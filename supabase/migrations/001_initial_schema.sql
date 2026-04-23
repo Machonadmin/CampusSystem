@@ -148,7 +148,7 @@ CREATE TABLE roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   code TEXT NOT NULL UNIQUE,
-  category TEXT CHECK (category IN ('system','campus','education','medical','custom')),
+  category TEXT CHECK (category IN ('system','campus','education','medical','custom','external')),
   description TEXT,
   is_system BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()

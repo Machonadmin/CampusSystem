@@ -3,6 +3,13 @@
 -- code-based system, and adds module_privileges + person_privileges tables.
 
 -- ─────────────────────────────────────────────
+-- 0. Extend category check constraint to include 'external'
+-- ─────────────────────────────────────────────
+ALTER TABLE roles DROP CONSTRAINT IF EXISTS roles_category_check;
+ALTER TABLE roles ADD CONSTRAINT roles_category_check
+  CHECK (category IN ('system','campus','education','medical','custom','external'));
+
+-- ─────────────────────────────────────────────
 -- 1. Clear existing roles and re-seed
 -- ─────────────────────────────────────────────
 TRUNCATE TABLE person_roles, role_privileges, roles CASCADE;
