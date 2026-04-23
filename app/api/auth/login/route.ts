@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const normalizedEmail = email.toLowerCase().trim()
 
+    console.log('[login] attempt for:', normalizedEmail)
+
     // 1. Fetch the account record
     const { data: account, error: accountError } = await supabase
       .from('person_accounts')
@@ -25,12 +27,23 @@ export async function POST(request: NextRequest) {
       .eq('login_email', normalizedEmail)
       .single()
 
-    if (accountError || !account) {
+    if (accountError) {
+      console.error('[login] account query error:', accountError.code, accountError.message)
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
         { status: 401 }
       )
     }
+
+    if (!account) {
+      console.error('[login] no account found for:', normalizedEmail)
+      return NextResponse.json(
+        { error: 'Неверный email или пароль' },
+        { status: 401 }
+      )
+    }
+
+    console.log('[login] account found, is_active:', account.is_active, 'has_hash:', !!account.password_hash)
 
     if (!account.is_active) {
       return NextResponse.json(
@@ -40,6 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!account.password_hash) {
+      console.error('[login] password_hash is null for:', normalizedEmail)
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
         { status: 401 }
@@ -47,6 +61,8 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordValid = await verifyPassword(password, account.password_hash)
+    console.log('[login] password valid:', passwordValid)
+
     if (!passwordValid) {
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
@@ -78,6 +94,8 @@ export async function POST(request: NextRequest) {
       roleRows?.forEach(r => roles.push(r.code))
     }
 
+    console.log('[login] success for:', normalizedEmail, '| roles:', roles)
+
     await createSession({
       person_id: account.person_id,
       login_email: account.login_email,
@@ -97,7 +115,8 @@ export async function POST(request: NextRequest) {
       full_name: person?.full_name ?? null,
       roles,
     })
-  } catch {
+  } catch (err) {
+    console.error('[login] unhandled exception:', err)
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },
       { status: 500 }
