@@ -236,87 +236,51 @@ export type PersonPrivilegeUpdate = Partial<PersonPrivilegeInsert>
 
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
+// Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
+type T<Row, Insert, Update> = {
+  Row: Row & Record<string, unknown>
+  Insert: Insert & Record<string, unknown>
+  Update: Update & Record<string, unknown>
+  Relationships: never[]
+}
+
 export interface Database {
   public: {
     Tables: {
-      persons: {
-        Row: PersonRow
-        Insert: PersonInsert
-        Update: PersonUpdate
-      }
-      person_accounts: {
-        Row: PersonAccountRow
-        Insert: PersonAccountInsert
-        Update: PersonAccountUpdate
-      }
-      person_family: {
-        Row: PersonFamilyRow
-        Insert: PersonFamilyInsert
-        Update: PersonFamilyUpdate
-      }
-      applicant_profiles: {
-        Row: ApplicantProfileRow
-        Insert: ApplicantProfileInsert
-        Update: ApplicantProfileUpdate
-      }
-      enrollments: {
-        Row: EnrollmentRow
-        Insert: EnrollmentInsert
-        Update: EnrollmentUpdate
-      }
-      staff_profiles: {
-        Row: StaffProfileRow
-        Insert: StaffProfileInsert
-        Update: StaffProfileUpdate
-      }
-      departments: {
-        Row: DepartmentRow
-        Insert: DepartmentInsert
-        Update: DepartmentUpdate
-      }
-      staff_positions: {
-        Row: StaffPositionRow
-        Insert: StaffPositionInsert
-        Update: StaffPositionUpdate
-      }
-      alumni_profiles: {
-        Row: AlumniProfileRow
-        Insert: AlumniProfileInsert
-        Update: AlumniProfileUpdate
-      }
-      sponsor_profiles: {
-        Row: SponsorProfileRow
-        Insert: SponsorProfileInsert
-        Update: SponsorProfileUpdate
-      }
-      roles: {
-        Row: RoleRow
-        Insert: RoleInsert
-        Update: RoleUpdate
-      }
-      role_privileges: {
-        Row: RolePrivilegeRow
-        Insert: RolePrivilegeInsert
-        Update: RolePrivilegeUpdate
-      }
-      person_roles: {
-        Row: PersonRoleRow
-        Insert: PersonRoleInsert
-        Update: PersonRoleUpdate
-      }
-      module_privileges: {
-        Row: ModulePrivilegeRow
-        Insert: ModulePrivilegeInsert
-        Update: ModulePrivilegeUpdate
-      }
-      person_privileges: {
-        Row: PersonPrivilegeRow
-        Insert: PersonPrivilegeInsert
-        Update: PersonPrivilegeUpdate
-      }
+      persons:           T<PersonRow,           PersonInsert,           PersonUpdate>
+      person_accounts:   T<PersonAccountRow,    PersonAccountInsert,    PersonAccountUpdate>
+      person_family:     T<PersonFamilyRow,     PersonFamilyInsert,     PersonFamilyUpdate>
+      applicant_profiles:T<ApplicantProfileRow, ApplicantProfileInsert, ApplicantProfileUpdate>
+      enrollments:       T<EnrollmentRow,       EnrollmentInsert,       EnrollmentUpdate>
+      staff_profiles:    T<StaffProfileRow,     StaffProfileInsert,     StaffProfileUpdate>
+      departments:       T<DepartmentRow,       DepartmentInsert,       DepartmentUpdate>
+      staff_positions:   T<StaffPositionRow,    StaffPositionInsert,    StaffPositionUpdate>
+      alumni_profiles:   T<AlumniProfileRow,    AlumniProfileInsert,    AlumniProfileUpdate>
+      sponsor_profiles:  T<SponsorProfileRow,   SponsorProfileInsert,   SponsorProfileUpdate>
+      roles:             T<RoleRow,             RoleInsert,             RoleUpdate>
+      role_privileges:   T<RolePrivilegeRow,    RolePrivilegeInsert,    RolePrivilegeUpdate>
+      person_roles:      T<PersonRoleRow,       PersonRoleInsert,       PersonRoleUpdate>
+      module_privileges: T<ModulePrivilegeRow,  ModulePrivilegeInsert,  ModulePrivilegeUpdate>
+      person_privileges: T<PersonPrivilegeRow,  PersonPrivilegeInsert,  PersonPrivilegeUpdate>
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      verify_login: {
+        Args: { p_email: string }
+        Returns: Array<{
+          person_id: string
+          login_email: string
+          password_hash: string
+          is_active: boolean
+          full_name: string
+          roles: string[]
+        }>
+      }
+      update_last_login: {
+        Args: { p_person_id: string }
+        Returns: void
+      }
+    }
     Enums: Record<string, never>
   }
 }
