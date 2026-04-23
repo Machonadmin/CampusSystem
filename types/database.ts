@@ -15,7 +15,27 @@ export type Institution = 'university' | 'touro' | 'college' | 'school' | 'emuna
 export type EnrollmentStatus = 'active' | 'graduated' | 'expelled' | 'academic_leave'
 export type EmploymentType = 'staff' | 'intern' | 'volunteer' | 'contractor'
 export type SponsorType = 'individual' | 'organization'
-export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'custom'
+export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'custom' | 'external'
+
+export type RoleCode =
+  | 'superadmin' | 'tech_admin'
+  | 'campus_president' | 'president_secretary'
+  | 'finance_director' | 'accountant' | 'lawyer'
+  | 'rector' | 'dean' | 'school_director' | 'vice_director' | 'dept_head' | 'program_head'
+  | 'teacher' | 'curator'
+  | 'student' | 'pupil'
+  | 'dorm_director' | 'embait' | 'mashgiach'
+  | 'doctor' | 'psychologist'
+  | 'security_head' | 'security_guard'
+  | 'maintenance_head' | 'maintenance_staff'
+  | 'kitchen_head' | 'kitchen_staff'
+  | 'technical_staff'
+  | 'applicant' | 'alumni' | 'sponsor'
+
+export type PrivilegeModule =
+  | 'persons' | 'applicants' | 'education' | 'finance'
+  | 'dormitory' | 'food' | 'security' | 'doctor' | 'psychologist'
+  | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 
@@ -132,22 +152,21 @@ export interface SponsorProfileRow {
 export interface RoleRow {
   id: string
   name: string
-  code: string
+  code: RoleCode
   category: RoleCategory | null
   description: string | null
   is_system: boolean
   created_at: string
 }
 
+/** Replaces the boolean-column model from migration 001 */
 export interface RolePrivilegeRow {
   id: string
   role_id: string
-  module: string
-  can_create: boolean
-  can_view: boolean
-  can_edit: boolean
-  can_delete: boolean
-  is_confidential: boolean
+  module: PrivilegeModule
+  privilege_code: string
+  granted_at: string
+  granted_by: string | null
 }
 
 export interface PersonRoleRow {
@@ -156,6 +175,27 @@ export interface PersonRoleRow {
   role_id: string
   assigned_at: string
   assigned_by: string | null
+}
+
+export interface ModulePrivilegeRow {
+  id: string
+  module: PrivilegeModule
+  privilege_code: string
+  privilege_name: string
+  description: string | null
+  sort_order: number
+}
+
+export interface PersonPrivilegeRow {
+  id: string
+  person_id: string
+  module: PrivilegeModule
+  privilege_code: string
+  is_granted: boolean
+  reason: string | null
+  expires_at: string | null
+  granted_at: string
+  granted_by: string | null
 }
 
 // ─── Insert types (omit server-generated fields) ─────────────────────────────
@@ -171,10 +211,12 @@ export type StaffPositionInsert = Omit<StaffPositionRow, 'id'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id'>
 export type RoleInsert = Omit<RoleRow, 'id' | 'created_at'>
-export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id'>
+export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at'>
 export type PersonRoleInsert = Omit<PersonRoleRow, 'id' | 'assigned_at'>
+export type ModulePrivilegeInsert = Omit<ModulePrivilegeRow, 'id'>
+export type PersonPrivilegeInsert = Omit<PersonPrivilegeRow, 'id' | 'granted_at'>
 
-// ─── Update types (all fields optional except id) ────────────────────────────
+// ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
 export type PersonAccountUpdate = Partial<PersonAccountInsert>
@@ -189,6 +231,8 @@ export type SponsorProfileUpdate = Partial<SponsorProfileInsert>
 export type RoleUpdate = Partial<RoleInsert>
 export type RolePrivilegeUpdate = Partial<RolePrivilegeInsert>
 export type PersonRoleUpdate = Partial<PersonRoleInsert>
+export type ModulePrivilegeUpdate = Partial<ModulePrivilegeInsert>
+export type PersonPrivilegeUpdate = Partial<PersonPrivilegeInsert>
 
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
@@ -259,6 +303,16 @@ export interface Database {
         Row: PersonRoleRow
         Insert: PersonRoleInsert
         Update: PersonRoleUpdate
+      }
+      module_privileges: {
+        Row: ModulePrivilegeRow
+        Insert: ModulePrivilegeInsert
+        Update: ModulePrivilegeUpdate
+      }
+      person_privileges: {
+        Row: PersonPrivilegeRow
+        Insert: PersonPrivilegeInsert
+        Update: PersonPrivilegeUpdate
       }
     }
     Views: Record<string, never>
