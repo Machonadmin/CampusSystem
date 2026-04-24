@@ -72,10 +72,10 @@ function ModuleIcon({ moduleKey }: { moduleKey: string }) {
   const [bg, iconColor] = COLORS[moduleKey] ?? ['#F3F4F6', '#6B7280']
   return (
     <div
-      style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: bg, flexShrink: 0 }}
+      style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: bg, flexShrink: 0 }}
       className="flex items-center justify-center"
     >
-      <svg style={{ width: 20, height: 20, color: iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg style={{ width: 22, height: 22, color: iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
@@ -100,16 +100,16 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       {/* ── Welcome banner ── */}
       <div
-        className="flex items-center gap-3 rounded-xl px-6 py-3"
-        style={{ background: 'linear-gradient(135deg, #2D3170 0%, #4BAED4 100%)' }}
+        className="flex items-center justify-between rounded-xl overflow-hidden"
+        style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
       >
-        <h1 className="text-base font-semibold text-white leading-tight">
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (
           <span
-            className="flex-shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium text-white"
-            style={{ backgroundColor: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)' }}
+            className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white"
+            style={{ backgroundColor: '#4BAED4' }}
           >
             {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
           </span>
@@ -122,23 +122,33 @@ export default function DashboardPage() {
           {t.availableModules}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {MODULES.map(key => (
-            <Link
-              key={key}
-              href={`/dashboard/${key}`}
-              className="group flex flex-col gap-3 bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-[#4BAED4] transition-all duration-200"
-            >
-              <ModuleIcon moduleKey={key} />
-              <div>
-                <p className="text-sm font-semibold text-gray-800 group-hover:text-[#2D3170] transition-colors leading-snug">
-                  {t.nav[key as ModuleKey]}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
-                  {t.moduleDesc[key as ModuleKey]}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {MODULES.map(key => {
+            const borderColor = COLORS[key]?.[1] ?? '#E5E7EB'
+            return (
+              <Link
+                key={key}
+                href={`/dashboard/${key}`}
+                className="group flex flex-col gap-3 bg-white rounded-xl border border-gray-100 transition-all duration-200"
+                style={{
+                  padding: 24,
+                  borderTop: `3px solid ${borderColor}`,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
+              >
+                <ModuleIcon moduleKey={key} />
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#2D3170', lineHeight: 1.3 }}>
+                    {t.nav[key as ModuleKey]}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3, lineHeight: 1.4 }}>
+                    {t.moduleDesc[key as ModuleKey]}
+                  </p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </div>
     </div>

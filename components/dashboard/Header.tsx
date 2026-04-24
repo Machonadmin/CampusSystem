@@ -52,16 +52,19 @@ export default function Header({ userName, roles }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4 border-b border-gray-200"
-      style={{ backgroundColor: '#FFFFFF' }}
+      className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4"
+      style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB' }}
     >
       {/* ── Logo + Campus name ── */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div
+        className="flex items-center gap-3 flex-shrink-0"
+        style={{ borderLeft: '3px solid #4BAED4', paddingLeft: 12 }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="Махон Хамеш" style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
-          style={{ color: '#2D3170', fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap' }}
+          style={{ color: '#2D3170', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusName}
         </span>
@@ -119,9 +122,7 @@ export default function Header({ userName, roles }: HeaderProps) {
               key={l}
               onClick={() => setLang(l)}
               className={`w-8 py-1 rounded text-xs font-semibold transition ${
-                lang === l
-                  ? 'text-white shadow-sm'
-                  : 'text-gray-500 hover:text-gray-800'
+                lang === l ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
               style={lang === l ? { backgroundColor: '#2D3170' } : {}}
             >
@@ -136,10 +137,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             onClick={() => setUserMenuOpen(v => !v)}
             className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition"
           >
-            <div
-              className="hidden sm:block text-left"
-              style={{ minWidth: 140 }}
-            >
+            <div className="hidden sm:block text-left" style={{ minWidth: 140 }}>
               <p className="text-[13px] font-medium text-gray-900 truncate leading-tight" style={{ maxWidth: 160 }}>
                 {userName ?? '—'}
               </p>
@@ -149,7 +147,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             </div>
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-              style={{ backgroundColor: '#4BAED4' }}
+              style={{ backgroundColor: '#2D3170' }}
             >
               {initials}
             </div>
