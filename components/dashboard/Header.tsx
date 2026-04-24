@@ -61,7 +61,7 @@ export default function Header({ userName, roles }: HeaderProps) {
         <img src="/logo.png" alt="Махон Хамеш" style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
-          style={{ color: '#2D3170', fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}
+          style={{ color: '#2D3170', fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap' }}
         >
           {t.campusName}
         </span>
@@ -74,7 +74,7 @@ export default function Header({ userName, roles }: HeaderProps) {
       </div>
 
       {/* ── Search ── */}
-      <div className="flex-1 max-w-lg mx-auto">
+      <div className="flex-1 max-w-xs mx-auto">
         <div className="relative">
           <svg
             className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
