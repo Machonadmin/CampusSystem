@@ -57,17 +57,10 @@ export default function Header({ userName, roles }: HeaderProps) {
     >
       {/* ── Logo + Campus name ── */}
       <div className="flex items-center gap-3 flex-shrink-0 w-56">
-        {/* Menorah / seal icon */}
-        <svg className="w-9 h-9 flex-shrink-0" viewBox="0 0 36 36" fill="none">
-          <circle cx="18" cy="18" r="17" stroke="#4BAED4" strokeWidth="1.5" />
-          <polygon points="18,7 22.5,14.5 13.5,14.5" fill="#4BAED4" />
-          <polygon points="18,29 13.5,21.5 22.5,21.5" fill="#4BAED4" />
-          <line x1="18" y1="8" x2="18" y2="28" stroke="white" strokeWidth="1" opacity="0.4" />
-          <line x1="9" y1="16" x2="27" y2="16" stroke="white" strokeWidth="1" opacity="0.4" />
-          <line x1="9" y1="20" x2="27" y2="20" stroke="white" strokeWidth="1" opacity="0.4" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Махон Хамеш" height={32} style={{ height: 32, objectFit: 'contain', flexShrink: 0 }} />
         <div className="hidden lg:block leading-tight">
-          <p className="text-white text-[10px] font-bold tracking-wide uppercase leading-snug max-w-[170px]">
+          <p className="text-white text-[10px] font-bold tracking-wide uppercase leading-snug max-w-[160px]">
             {t.campusName}
           </p>
         </div>

@@ -21,6 +21,14 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get(AUTH_CONFIG.cookieName)?.value
 
+  // Root path: redirect based on auth status
+  if (pathname === '/') {
+    if (token && await verifyToken(token)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   // No token — redirect pages to /login, reject API calls with 401
   if (!token) {
     return unauthorized(request)
@@ -49,6 +57,7 @@ function unauthorized(request: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
+    '/',
     '/dashboard/:path*',
     '/api/:path*',
   ],
