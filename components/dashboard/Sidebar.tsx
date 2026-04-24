@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
+import { useSidebar } from '@/lib/sidebar/SidebarContext'
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -22,14 +24,6 @@ const I = {
   reports: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z',
   contacts: 'M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z',
   settings: 'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
-}
-
-function NavIcon({ path }: { path: string }) {
-  return (
-    <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
-    </svg>
-  )
 }
 
 const TOP_ITEMS = [
@@ -54,9 +48,73 @@ const MODULES = [
   { key: 'settings' as const, href: '/dashboard/settings', icon: I.settings },
 ]
 
+// ── Nav link — defined outside Sidebar to avoid reconciliation issues ────────
+function SidebarNavLink({
+  href, iconPath, label, active, isOpen, isRTL,
+}: {
+  href: string
+  iconPath: string
+  label: string
+  active: boolean
+  isOpen: boolean
+  isRTL: boolean
+}) {
+  return (
+    <div className="relative">
+      {active && (
+        <span
+          className="absolute top-0 bottom-0 w-[3px] rounded-r"
+          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#2D3170' }}
+        />
+      )}
+      <Link
+        href={href}
+        title={!isOpen ? label : undefined}
+        className={`flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'}`}
+        style={
+          active
+            ? { backgroundColor: '#EEF2FF', color: '#2D3170', padding: isOpen ? '8px 10px' : '10px 11px' }
+            : { color: '#4B5563', padding: isOpen ? '8px 10px' : '10px 11px' }
+        }
+      >
+        <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={iconPath} />
+        </svg>
+        <span
+          style={{
+            maxWidth: isOpen ? 180 : 0,
+            opacity: isOpen ? 1 : 0,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            transition: 'max-width 0.2s ease, opacity 0.15s ease',
+            fontSize: 14,
+            lineHeight: 1.4,
+          }}
+        >
+          {label}
+        </span>
+      </Link>
+    </div>
+  )
+}
+
 export default function Sidebar() {
   const pathname = usePathname()
   const { t, isRTL } = useLang()
+  const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
+  const sidebarRef = useRef<HTMLElement>(null)
+
+  // Click-outside to close when unpinned on desktop
+  useEffect(() => {
+    if (isPinned || isMobile || !isOpen) return
+    function onOutside(e: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        close()
+      }
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [isPinned, isMobile, isOpen, close])
 
   function isActive(href: string) {
     return href === '/dashboard' ? pathname === href : pathname.startsWith(href)
@@ -64,76 +122,115 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed top-16 bottom-0 z-40 w-56 flex flex-col bg-white overflow-y-auto"
-      style={{ [isRTL ? 'right' : 'left']: 0, borderRight: isRTL ? 'none' : '1px solid #E5E7EB', borderLeft: isRTL ? '1px solid #E5E7EB' : 'none' }}
+      ref={sidebarRef}
+      className="fixed top-16 bottom-0 z-40 flex flex-col bg-white overflow-hidden"
+      style={{
+        width: isOpen ? 240 : 56,
+        transition: 'width 0.2s ease, transform 0.2s ease',
+        [isRTL ? 'right' : 'left']: 0,
+        transform: isMobile && !isOpen ? `translateX(${isRTL ? '100%' : '-100%'})` : 'translateX(0)',
+        borderInlineEnd: '1px solid #E5E7EB',
+      }}
     >
-      {/* ── Logo area ── */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Logo" style={{ height: 28, objectFit: 'contain', flexShrink: 0 }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#2D3170', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
-          {t.campusNameShort}
-        </span>
+      {/* ── Sidebar header: logo + pin + toggle ── */}
+      <div
+        className="flex items-center border-b border-gray-100 flex-shrink-0"
+        style={{
+          justifyContent: isOpen ? 'space-between' : 'center',
+          padding: isOpen ? '8px 12px' : '10px 0',
+          minHeight: 52,
+        }}
+      >
+        {isOpen && (
+          <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Logo" style={{ height: 26, objectFit: 'contain', flexShrink: 0 }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#2D3170', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {t.campusNameShort}
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Pin button — desktop only, visible when expanded */}
+          {isOpen && !isMobile && (
+            <button
+              onClick={() => setPin(!isPinned)}
+              title={isPinned ? 'Открепить' : 'Закрепить'}
+              className={`p-1.5 rounded transition-colors ${
+                isPinned ? 'text-[#2D3170] bg-[#EEF2FF]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <svg style={{ width: 13, height: 13 }} fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
+          )}
+
+          {/* Toggle button */}
+          <button
+            onClick={toggle}
+            title={isOpen ? 'Свернуть' : 'Развернуть'}
+            className="p-1.5 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            {isOpen ? (
+              <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
+              </svg>
+            ) : (
+              <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 py-3 space-y-0.5">
-        {/* Top links */}
-        {TOP_ITEMS.map(item => {
-          const active = isActive(item.href)
-          return (
-            <div key={item.key} className="relative">
-              {active && (
-                <span className="absolute top-0 bottom-0 w-[3px] rounded-r" style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#2D3170' }} />
-              )}
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 py-2 mx-2 rounded-lg text-sm font-medium transition-colors"
-                style={active
-                  ? { backgroundColor: '#EEF2FF', color: '#2D3170', paddingLeft: 10, paddingRight: 10 }
-                  : { color: '#4B5563', paddingLeft: 10, paddingRight: 10 }
-                }
-              >
-                <NavIcon path={item.icon} />
-                {t.nav[item.key]}
-              </Link>
-            </div>
-          )
-        })}
+      {/* ── Nav ── */}
+      <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        {TOP_ITEMS.map(item => (
+          <SidebarNavLink
+            key={item.key}
+            href={item.href}
+            iconPath={item.icon}
+            label={t.nav[item.key]}
+            active={isActive(item.href)}
+            isOpen={isOpen}
+            isRTL={isRTL}
+          />
+        ))}
 
-        {/* Modules section header */}
-        <div className="pt-4 pb-1 px-4">
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {t.nav.modulesSection}
-          </p>
+        {/* Section divider / header */}
+        <div style={{ padding: isOpen ? '16px 16px 4px' : '12px 6px 4px' }}>
+          {isOpen ? (
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {t.nav.modulesSection}
+            </p>
+          ) : (
+            <div style={{ height: 1, backgroundColor: '#F3F4F6' }} />
+          )}
         </div>
 
-        {MODULES.map(item => {
-          const active = isActive(item.href)
-          return (
-            <div key={item.key} className="relative">
-              {active && (
-                <span className="absolute top-0 bottom-0 w-[3px] rounded-r" style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#2D3170' }} />
-              )}
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 py-2 mx-2 rounded-lg text-sm font-medium transition-colors"
-                style={active
-                  ? { backgroundColor: '#EEF2FF', color: '#2D3170', paddingLeft: 10, paddingRight: 10 }
-                  : { color: '#4B5563', paddingLeft: 10, paddingRight: 10 }
-                }
-              >
-                <NavIcon path={item.icon} />
-                {t.nav[item.key]}
-              </Link>
-            </div>
-          )
-        })}
+        {MODULES.map(item => (
+          <SidebarNavLink
+            key={item.key}
+            href={item.href}
+            iconPath={item.icon}
+            label={t.nav[item.key]}
+            active={isActive(item.href)}
+            isOpen={isOpen}
+            isRTL={isRTL}
+          />
+        ))}
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100">
-        <p className="text-[10px] text-gray-400 text-center">© 2025 {t.campusNameShort}</p>
-      </div>
+      {isOpen && (
+        <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0">
+          <p className="text-[10px] text-gray-400 text-center">© 2025 {t.campusNameShort}</p>
+        </div>
+      )}
     </aside>
   )
 }
