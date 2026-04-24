@@ -100,35 +100,20 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       {/* ── Welcome banner ── */}
       <div
-        className="relative overflow-hidden rounded-2xl px-6 py-4"
-        style={{ background: 'linear-gradient(135deg, #3D4E9E 0%, #4A72BB 60%, #4BAED4 100%)' }}
+        className="flex items-center gap-3 rounded-xl px-6 py-3"
+        style={{ background: 'linear-gradient(135deg, #2D3170 0%, #4BAED4 100%)' }}
       >
-        {/* Decorative circles */}
-        <span
-          className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-10"
-          style={{ background: '#4BAED4' }}
-        />
-        <span
-          className="absolute -bottom-12 -left-8 w-56 h-56 rounded-full opacity-10"
-          style={{ background: '#4BAED4' }}
-        />
-
-        <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-snug">
-            {greeting}
-          </h1>
-          <p className="mt-1 text-blue-200 text-sm">
-            {t.welcomeSubtitle}
-          </p>
-          {user?.roles && user.roles.length > 0 && (
-            <span
-              className="inline-block mt-4 px-3 py-1 rounded-full text-xs font-semibold text-white"
-              style={{ backgroundColor: 'rgba(75, 174, 212, 0.35)', border: '1px solid rgba(75,174,212,0.5)' }}
-            >
-              {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
-            </span>
-          )}
-        </div>
+        <h1 className="text-base font-semibold text-white leading-tight">
+          {greeting}
+        </h1>
+        {user?.roles && user.roles.length > 0 && (
+          <span
+            className="flex-shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium text-white"
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)' }}
+          >
+            {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
+          </span>
+        )}
       </div>
 
       {/* ── Modules grid ── */}
