@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
     await createSession({
       person_id: account.person_id,
       login_email: account.login_email,
+      full_name: person?.full_name ?? null,
       roles,
     })
 

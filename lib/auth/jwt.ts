@@ -4,6 +4,7 @@ import { AUTH_CONFIG } from './config'
 export interface SessionPayload extends JosePayload {
   person_id: string
   login_email: string
+  full_name: string | null
   roles: string[]
 }
 
