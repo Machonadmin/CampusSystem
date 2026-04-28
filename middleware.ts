@@ -2,45 +2,78 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken } from '@/lib/auth/jwt'
 
-// Routes that are always public
 const PUBLIC_API_PREFIXES = ['/api/auth/']
 const PUBLIC_PAGES = ['/login']
+
+// Module routes that require an explicit access privilege
+const PROTECTED_MODULES = new Set([
+  'persons', 'applicants', 'education', 'finance', 'dormitory', 'food',
+  'security', 'alumni', 'sponsors', 'documents', 'reports',
+  'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
+])
+
+async function fetchAccessibleModules(roleCodes: string[]): Promise<string[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key || roleCodes.length === 0) return []
+
+  const headers = { apikey: key, Authorization: `Bearer ${key}` }
+
+  // Get role IDs for the user's role codes
+  const quotedCodes = roleCodes.map(c => `"${c}"`).join(',')
+  const rolesRes = await fetch(
+    `${url}/rest/v1/roles?code=in.(${quotedCodes})&select=id`,
+    { headers }
+  )
+  if (!rolesRes.ok) return []
+  const roleRows = (await rolesRes.json()) as { id: string }[]
+  if (roleRows.length === 0) return []
+
+  // Get modules where privilege_code = 'access'
+  const quotedIds = roleRows.map(r => `"${r.id}"`).join(',')
+  const privsRes = await fetch(
+    `${url}/rest/v1/role_privileges?role_id=in.(${quotedIds})&privilege_code=eq.access&select=module`,
+    { headers }
+  )
+  if (!privsRes.ok) return []
+  const privs = (await privsRes.json()) as { module: string }[]
+  return [...new Set(privs.map(p => p.module))]
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow public API auth routes
-  if (PUBLIC_API_PREFIXES.some(p => pathname.startsWith(p))) {
-    return NextResponse.next()
-  }
-
-  // Allow public pages
-  if (PUBLIC_PAGES.some(p => pathname.startsWith(p))) {
-    return NextResponse.next()
-  }
+  if (PUBLIC_API_PREFIXES.some(p => pathname.startsWith(p))) return NextResponse.next()
+  if (PUBLIC_PAGES.some(p => pathname.startsWith(p))) return NextResponse.next()
 
   const token = request.cookies.get(AUTH_CONFIG.cookieName)?.value
 
-  // Root path: redirect based on auth status
   if (pathname === '/') {
-    if (token && await verifyToken(token)) {
+    if (token && (await verifyToken(token))) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // No token — redirect pages to /login, reject API calls with 401
-  if (!token) {
-    return unauthorized(request)
-  }
+  if (!token) return unauthorized(request)
 
   const session = await verifyToken(token)
+  if (!session) return unauthorized(request)
 
-  if (!session) {
-    return unauthorized(request)
+  // Module access guard — only for /dashboard/[moduleCode] page routes
+  if (pathname.startsWith('/dashboard/')) {
+    const moduleCode = pathname.split('/')[2] // e.g. 'settings', 'education'
+
+    if (moduleCode && PROTECTED_MODULES.has(moduleCode) && !pathname.startsWith('/api/')) {
+      if (!session.roles.includes('superadmin')) {
+        const accessible = await fetchAccessibleModules(session.roles)
+        if (!accessible.includes(moduleCode)) {
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
+      }
+    }
   }
 
-  // Attach person_id header for downstream use
   const response = NextResponse.next()
   response.headers.set('x-person-id', session.person_id)
   return response
@@ -56,9 +89,5 @@ function unauthorized(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/dashboard/:path*',
-    '/api/:path*',
-  ],
+  matcher: ['/', '/dashboard/:path*', '/api/:path*'],
 }

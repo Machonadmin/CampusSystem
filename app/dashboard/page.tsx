@@ -7,10 +7,15 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 interface MeResponse {
   full_name: string | null
   roles: string[]
+  accessible_modules: string[]
 }
 
-// ── Module icon paths (Heroicons outline 24px) ───────────────────────────────
+// ── Icons (Heroicons outline 24px) ───────────────────────────────────────────
 const ICONS: Record<string, string> = {
+  persons:
+    'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
+  applicants:
+    'M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21a11.993 11.993 0 01-6.374-1.765z',
   education:
     'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
   finance:
@@ -40,8 +45,9 @@ const ICONS: Record<string, string> = {
     'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
-// Per-module accent colours: [bgHex, iconHex]
 const COLORS: Record<string, [string, string]> = {
+  persons:      ['#E6F1FB', '#2563EB'],
+  applicants:   ['#EAF3DE', '#16A34A'],
   education:    ['#E6F1FB', '#2563EB'],
   finance:      ['#EAF3DE', '#16A34A'],
   dormitory:    ['#E1F5EE', '#059669'],
@@ -58,23 +64,28 @@ const COLORS: Record<string, [string, string]> = {
   settings:     ['#F1EFE8', '#78716C'],
 }
 
-const MODULES = [
-  'education', 'finance', 'dormitory', 'food',
-  'maintenance', 'security', 'alumni', 'sponsors',
-  'doctor', 'psychologist', 'documents', 'reports',
-  'contacts', 'settings',
-] as const
+// Fallback names for modules not in translations
+const MODULE_NAMES: Record<string, string> = {
+  persons:    'База людей',
+  applicants: 'Приёмная комиссия',
+}
+const MODULE_DESCS: Record<string, string> = {
+  persons:    'Профили людей, контакты',
+  applicants: 'Заявки и поступающие',
+}
 
-type ModuleKey = typeof MODULES[number]
+// Full ordered list — user only sees ones in their accessible_modules
+const ALL_MODULE_CARDS = [
+  'persons', 'applicants', 'education', 'finance', 'dormitory', 'food',
+  'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
+  'documents', 'reports', 'contacts', 'settings',
+]
 
 function ModuleIcon({ moduleKey }: { moduleKey: string }) {
   const path = ICONS[moduleKey] ?? ''
   const [bg, iconColor] = COLORS[moduleKey] ?? ['#F3F4F6', '#6B7280']
   return (
-    <div
-      style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: bg, flexShrink: 0 }}
-      className="flex items-center justify-center"
-    >
+    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg style={{ width: 22, height: 22, color: iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
@@ -85,20 +96,26 @@ function ModuleIcon({ moduleKey }: { moduleKey: string }) {
 export default function DashboardPage() {
   const { t } = useLang()
   const [user, setUser] = useState<MeResponse | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setUser(data) })
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
+  const visibleModules = user
+    ? ALL_MODULE_CARDS.filter(key => user.accessible_modules.includes(key))
+    : []
+
   return (
     <div className="p-6 space-y-6">
-      {/* ── Welcome banner ── */}
+      {/* Welcome banner */}
       <div
         className="flex items-center justify-between rounded-xl overflow-hidden"
         style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
@@ -107,49 +124,47 @@ export default function DashboardPage() {
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (
-          <span
-            className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white"
-            style={{ backgroundColor: '#4BAED4' }}
-          >
+          <span className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: '#4BAED4' }}>
             {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
           </span>
         )}
       </div>
 
-      {/* ── Modules grid ── */}
+      {/* Modules grid */}
       <div>
         <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">
           {t.availableModules}
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {MODULES.map(key => {
-            const borderColor = COLORS[key]?.[1] ?? '#E5E7EB'
-            return (
-              <Link
-                key={key}
-                href={`/dashboard/${key}`}
-                className="group flex flex-col gap-3 bg-white rounded-xl border border-gray-100 transition-all duration-200"
-                style={{
-                  padding: 24,
-                  borderTop: `3px solid ${borderColor}`,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
-              >
-                <ModuleIcon moduleKey={key} />
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#2D3170', lineHeight: 1.3 }}>
-                    {t.nav[key as ModuleKey]}
-                  </p>
-                  <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3, lineHeight: 1.4 }}>
-                    {t.moduleDesc[key as ModuleKey]}
-                  </p>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+
+        {loading ? (
+          <div style={{ color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
+        ) : visibleModules.length === 0 ? (
+          <div style={{ color: '#9CA3AF', fontSize: 13 }}>Нет доступных модулей</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {visibleModules.map(key => {
+              const borderColor = COLORS[key]?.[1] ?? '#E5E7EB'
+              const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
+              const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
+              return (
+                <Link
+                  key={key}
+                  href={`/dashboard/${key}`}
+                  className="group flex flex-col gap-3 bg-white rounded-xl border border-gray-100 transition-all duration-200"
+                  style={{ padding: 24, borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
+                >
+                  <ModuleIcon moduleKey={key} />
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#2D3170', lineHeight: 1.3 }}>{name}</p>
+                    <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
