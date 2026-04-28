@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
+import ChangePasswordModal from '@/components/ChangePasswordModal'
 
 interface HeaderProps {
   userName: string | null
@@ -14,6 +15,7 @@ export default function Header({ userName, roles }: HeaderProps) {
   const { lang, setLang, t, isRTL } = useLang()
   const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [pwdOpen, setPwdOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function Header({ userName, roles }: HeaderProps) {
     : '?'
 
   return (
+    <>
     <header
       className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4"
       style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB' }}
@@ -178,7 +181,7 @@ export default function Header({ userName, roles }: HeaderProps) {
               </button>
 
               <button
-                onClick={() => setUserMenuOpen(false)}
+                onClick={() => { setUserMenuOpen(false); setPwdOpen(true) }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
               >
                 <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,5 +208,8 @@ export default function Header({ userName, roles }: HeaderProps) {
         </div>
       </div>
     </header>
+
+    {pwdOpen && <ChangePasswordModal onClose={() => setPwdOpen(false)} />}
+    </>
   )
 }
