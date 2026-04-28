@@ -9,7 +9,7 @@ async function guard() {
     throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+async function handlePasswordReset(request: NextRequest, params: { id: string }) {
   try {
     await guard()
     const sb = createServerClient()
@@ -29,4 +29,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
   }
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  return handlePasswordReset(request, params)
+}
+
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  return handlePasswordReset(request, params)
 }

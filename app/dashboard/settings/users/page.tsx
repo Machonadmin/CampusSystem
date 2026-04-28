@@ -76,6 +76,13 @@ const T = {
     error: 'Ошибка загрузки',
     noUsers: 'Пользователи не найдены',
     all: 'Все',
+    edit: 'Редактировать',
+    editModal: 'Редактировать пользователя',
+    resetPwd: 'Сбросить пароль',
+    resetPwdModal: 'Сброс пароля',
+    newPassword: 'Новый пароль',
+    confirmPassword: 'Подтвердить пароль',
+    passwordMismatch: 'Пароли не совпадают',
   },
   he: {
     title: 'משתמשים וגישה',
@@ -104,6 +111,13 @@ const T = {
     error: 'שגיאת טעינה',
     noUsers: 'לא נמצאו משתמשים',
     all: 'הכל',
+    edit: 'ערוך',
+    editModal: 'ערוך משתמש',
+    resetPwd: 'אפס סיסמה',
+    resetPwdModal: 'איפוס סיסמה',
+    newPassword: 'סיסמה חדשה',
+    confirmPassword: 'אמת סיסמה',
+    passwordMismatch: 'הסיסמאות אינן תואמות',
   },
   en: {
     title: 'Users & Access',
@@ -132,6 +146,13 @@ const T = {
     error: 'Load error',
     noUsers: 'No users found',
     all: 'All',
+    edit: 'Edit',
+    editModal: 'Edit User',
+    resetPwd: 'Reset Password',
+    resetPwdModal: 'Reset Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    passwordMismatch: 'Passwords do not match',
   },
 }
 
@@ -474,6 +495,152 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
   )
 }
 
+// ── Reset-password modal ─────────────────────────────────────────────────────
+
+interface ResetPasswordModalProps {
+  user: UserRow
+  t: typeof T.ru
+  onClose: () => void
+}
+
+function ResetPasswordModal({ user, t, onClose }: ResetPasswordModalProps) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function save() {
+    if (password.length < 8) { setErr('Пароль минимум 8 символов'); return }
+    if (password !== confirm) { setErr(t.passwordMismatch); return }
+    setSaving(true); setErr('')
+    const res = await fetch(`/api/settings/users/${user.account_id}/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+    setSaving(false)
+    if (res.ok) onClose()
+    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.resetPwdModal}: {user.full_name}</p>
+          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.newPassword} *</span>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Минимум 8 символов"
+              autoComplete="new-password"
+              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+            />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.confirmPassword} *</span>
+            <input
+              type="password"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder="Повторите пароль"
+              autoComplete="new-password"
+              style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : '#D1D5DB'}`, fontSize: 13, outline: 'none' }}
+            />
+          </label>
+        </div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.resetPwd}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Edit-user modal ───────────────────────────────────────────────────────────
+
+interface EditUserModalProps {
+  user: UserRow
+  t: typeof T.ru
+  onClose: () => void
+  onSaved: () => void
+}
+
+function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
+  const [fullName, setFullName] = useState(user.full_name)
+  const [email, setEmail] = useState(user.login_email)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [pwdOpen, setPwdOpen] = useState(false)
+
+  async function save() {
+    if (!fullName.trim() || !email.trim()) { setErr('Поля не могут быть пустыми'); return }
+    setSaving(true); setErr('')
+    const res = await fetch(`/api/settings/users/${user.account_id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name: fullName.trim(), login_email: email.trim() }),
+    })
+    setSaving(false)
+    if (res.ok) { onSaved(); onClose() }
+    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+  }
+
+  return (
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.editModal}</p>
+            <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+          </div>
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName}</span>
+              <input
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+          </div>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              onClick={() => setPwdOpen(true)}
+              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2', fontSize: 12, cursor: 'pointer', color: '#DC2626' }}
+            >
+              {t.resetPwd}
+            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
+              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {pwdOpen && <ResetPasswordModal user={user} t={t} onClose={() => setPwdOpen(false)} />}
+    </>
+  )
+}
+
 export default function UsersPage() {
   const { lang } = useLang()
   const t = T[lang] ?? T.ru
@@ -484,6 +651,7 @@ export default function UsersPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
+  const [editTarget, setEditTarget] = useState<UserRow | null>(null)
   const [addOpen, setAddOpen] = useState(false)
 
   const load = useCallback(async () => {
@@ -606,6 +774,12 @@ export default function UsersPage() {
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
+                        onClick={() => setEditTarget(user)}
+                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
+                      >
+                        {t.edit}
+                      </button>
+                      <button
                         onClick={() => setRolesTarget(user)}
                         style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
                       >
@@ -632,6 +806,9 @@ export default function UsersPage() {
         )}
       </div>
 
+      {editTarget && (
+        <EditUserModal user={editTarget} t={t} onClose={() => setEditTarget(null)} onSaved={load} />
+      )}
       {rolesTarget && (
         <RolesModal user={rolesTarget} allRoles={allRoles} t={t} onClose={() => setRolesTarget(null)} onSaved={load} />
       )}
