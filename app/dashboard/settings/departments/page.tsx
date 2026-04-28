@@ -1,77 +1,31 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
 interface Department {
   id: string
   name: string
   parent_id: string | null
-  head_person_id: string | null
   head_name: string | null
   employee_count: number
-  created_at: string
 }
 
-interface TreeNode extends Department {
-  children: TreeNode[]
+interface TreeNode extends Department { children: TreeNode[] }
+
+interface StaffMember {
+  id: string
+  full_name: string
+  position_ru: string
+  is_head: boolean
+  employment_type: string | null
 }
 
-const T = {
-  ru: {
-    title: 'Структура организации',
-    addRoot: 'Добавить отдел',
-    addChild: 'Подотдел',
-    rename: 'Переименовать',
-    delete: 'Удалить',
-    employees: 'сотр.',
-    head: 'Рук.',
-    save: 'Сохранить',
-    cancel: 'Отмена',
-    deptName: 'Название отдела',
-    newDept: 'Новый отдел',
-    renameDept: 'Переименовать',
-    confirmDelete: 'Удалить отдел? Дочерние отделы будут перенесены выше.',
-    loading: 'Загрузка...',
-    error: 'Ошибка загрузки',
-    noDepts: 'Нет подразделений',
-  },
-  he: {
-    title: 'מבנה ארגוני',
-    addRoot: 'הוסף מחלקה',
-    addChild: 'תת-מחלקה',
-    rename: 'שנה שם',
-    delete: 'מחק',
-    employees: 'עובד.',
-    head: 'ראש',
-    save: 'שמור',
-    cancel: 'בטל',
-    deptName: 'שם מחלקה',
-    newDept: 'מחלקה חדשה',
-    renameDept: 'שנה שם',
-    confirmDelete: 'למחוק מחלקה? תת-מחלקות יועברו למעלה.',
-    loading: 'טוען...',
-    error: 'שגיאת טעינה',
-    noDepts: 'אין מחלקות',
-  },
-  en: {
-    title: 'Organization Structure',
-    addRoot: 'Add Department',
-    addChild: 'Sub-dept',
-    rename: 'Rename',
-    delete: 'Delete',
-    employees: 'emp.',
-    head: 'Head',
-    save: 'Save',
-    cancel: 'Cancel',
-    deptName: 'Department name',
-    newDept: 'New Department',
-    renameDept: 'Rename',
-    confirmDelete: 'Delete department? Sub-departments will be moved up.',
-    loading: 'Loading...',
-    error: 'Load error',
-    noDepts: 'No departments',
-  },
+interface PersonResult { id: string; full_name: string; email: string | null }
+
+const EMP_LABELS: Record<string, string> = {
+  staff: 'Штат', intern: 'Стажёр', volunteer: 'Волонтёр', contractor: 'Подрядчик',
 }
 
 function buildTree(depts: Department[]): TreeNode[] {
@@ -79,94 +33,243 @@ function buildTree(depts: Department[]): TreeNode[] {
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: TreeNode[] = []
   for (const node of map.values()) {
-    if (node.parent_id && map.has(node.parent_id)) {
-      map.get(node.parent_id)!.children.push(node)
-    } else {
-      roots.push(node)
-    }
+    if (node.parent_id && map.has(node.parent_id)) map.get(node.parent_id)!.children.push(node)
+    else roots.push(node)
   }
-  function sortNodes(nodes: TreeNode[]) {
-    nodes.sort((a, b) => a.name.localeCompare(b.name))
-    nodes.forEach(n => sortNodes(n.children))
-  }
-  sortNodes(roots)
+  const sort = (nodes: TreeNode[]) => { nodes.sort((a, b) => a.name.localeCompare(b.name)); nodes.forEach(n => sort(n.children)) }
+  sort(roots)
   return roots
 }
 
-interface DeptModalProps {
-  t: typeof T.ru
-  initialName?: string
-  title: string
-  onClose: () => void
-  onSave: (name: string) => Promise<void>
-}
+// ── Add-staff modal ──────────────────────────────────────────────────────────
 
-function DeptModal({ t, initialName = '', title, onClose, onSave }: DeptModalProps) {
-  const [name, setName] = useState(initialName)
+function AddStaffModal({ deptId, onClose, onSaved }: { deptId: string; onClose: () => void; onSaved: () => void }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<PersonResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [selected, setSelected] = useState<PersonResult | null>(null)
+  const [createNew, setCreateNew] = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [position, setPosition] = useState('')
+  const [empType, setEmpType] = useState('staff')
   const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  async function submit() {
-    if (!name.trim()) return
-    setSaving(true)
-    await onSave(name.trim())
-    setSaving(false)
+  function search(q: string) {
+    setQuery(q); setSelected(null); setCreateNew(false)
+    if (timer.current) clearTimeout(timer.current)
+    if (q.length < 2) { setResults([]); return }
+    timer.current = setTimeout(async () => {
+      setSearching(true)
+      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(q)}`)
+      if (res.ok) setResults(await res.json())
+      setSearching(false)
+    }, 300)
   }
+
+  async function save() {
+    setErr('')
+    if (!position.trim()) { setErr('Должность обязательна'); return }
+    if (!selected && !createNew) { setErr('Выберите человека или создайте нового'); return }
+    if (createNew && !fullName.trim()) { setErr('Введите имя'); return }
+    setSaving(true)
+    const body = selected
+      ? { person_id: selected.id, position_ru: position.trim(), employment_type: empType }
+      : { full_name: fullName.trim(), email: email.trim() || undefined, position_ru: position.trim(), employment_type: empType }
+    const res = await fetch(`/api/settings/departments/${deptId}/staff`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    })
+    setSaving(false)
+    if (res.ok) { onSaved(); onClose() }
+    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+  }
+
+  const personChosen = !!selected || createNew
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{title}</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>Добавить сотрудника</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
-        <div style={{ padding: '16px 20px' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.deptName}</span>
-            <input
-              autoFocus
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') submit() }}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
-            />
-          </label>
+
+        {/* Search — outside any overflow:auto so dropdown isn't clipped */}
+        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Поиск в базе людей</p>
+
+          {selected && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF', marginBottom: 8 }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selected.full_name}</p>
+                {selected.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selected.email}</p>}
+              </div>
+              <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {createNew && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', marginBottom: 8 }}>
+              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
+              <button onClick={() => setCreateNew(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {!personChosen && (
+            <div style={{ position: 'relative' }}>
+              <input
+                value={query} onChange={e => search(e.target.value)}
+                placeholder="Введите имя или email..."
+                autoComplete="off"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+              {(searching || results.length > 0 || query.length >= 2) && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
+                  {searching && <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>}
+                  {!searching && results.map(p => (
+                    <div key={p.id} onClick={() => { setSelected(p); setResults([]); setQuery('') }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
+                      {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
+                    </div>
+                  ))}
+                  {!searching && (
+                    <div onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}>
+                      + Создать нового человека
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Rest of the form */}
+        <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {createNew && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Полное имя *</span>
+                <input autoFocus value={fullName} onChange={e => setFullName(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email</span>
+                <input value={email} onChange={e => setEmail(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
+              </label>
+            </>
+          )}
+
+          {personChosen && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Должность *</span>
+                <input value={position} onChange={e => setPosition(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Тип занятости</span>
+                <select value={empType} onChange={e => setEmpType(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', backgroundColor: '#fff' }}>
+                  <option value="staff">Штат</option>
+                  <option value="intern">Стажёр</option>
+                  <option value="volunteer">Волонтёр</option>
+                  <option value="contractor">Подрядчик</option>
+                </select>
+              </label>
+            </>
+          )}
+
+          {err && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{err}</p>}
+        </div>
+
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={submit} disabled={saving || !name.trim()} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>{t.save}</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+          <button onClick={save} disabled={saving}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+            Сохранить
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-interface TreeRowProps {
-  node: TreeNode
-  depth: number
-  t: typeof T.ru
-  onAddChild: (parentId: string) => void
-  onRename: (dept: Department) => void
-  onDelete: (dept: Department) => void
+// ── Dept name/rename modal ───────────────────────────────────────────────────
+
+function DeptModal({ title, initialName = '', onClose, onSave }: { title: string; initialName?: string; onClose: () => void; onSave: (name: string) => Promise<void> }) {
+  const [name, setName] = useState(initialName)
+  const [saving, setSaving] = useState(false)
+  async function submit() {
+    if (!name.trim()) return
+    setSaving(true); await onSave(name.trim()); setSaving(false)
+  }
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{title}</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 20 }}>×</button>
+        </div>
+        <div style={{ padding: '16px 20px' }}>
+          <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submit() }}
+            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+          <button onClick={submit} disabled={saving || !name.trim()}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function TreeRow({ node, depth, t, onAddChild, onRename, onDelete }: TreeRowProps) {
+// ── Tree row ─────────────────────────────────────────────────────────────────
+
+function TreeRow({ node, depth, onAddChild, onRename, onDelete, onAddStaff }: {
+  node: TreeNode; depth: number
+  onAddChild: (id: string) => void
+  onRename: (node: TreeNode) => void
+  onDelete: (node: TreeNode) => void
+  onAddStaff: (id: string) => void
+}) {
   const [expanded, setExpanded] = useState(true)
-  const hasChildren = node.children.length > 0
+  const [staffOpen, setStaffOpen] = useState(false)
+  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [staffLoading, setStaffLoading] = useState(false)
+
+  useEffect(() => {
+    if (!staffOpen) return
+    setStaffLoading(true)
+    fetch(`/api/settings/departments/${node.id}/staff`)
+      .then(r => r.ok ? r.json() : [])
+      .then((d: StaffMember[]) => { setStaff(d); setStaffLoading(false) })
+  }, [staffOpen, node.id])
 
   return (
     <>
-      <tr
-        style={{ borderBottom: '1px solid #F3F4F6' }}
+      <tr style={{ borderBottom: '1px solid #F3F4F6' }}
         onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '#F9FAFB' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}
-      >
+        onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}>
+
+        {/* Name */}
         <td style={{ padding: '9px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', paddingInlineStart: depth * 20 }}>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              style={{ width: 18, height: 18, flexShrink: 0, background: 'none', border: 'none', cursor: hasChildren ? 'pointer' : 'default', color: '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginInlineEnd: 6 }}
-            >
-              {hasChildren && (
+            <button onClick={() => setExpanded(v => !v)}
+              style={{ width: 18, height: 18, flexShrink: 0, background: 'none', border: 'none', cursor: node.children.length ? 'pointer' : 'default', color: '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginInlineEnd: 6 }}>
+              {node.children.length > 0 && (
                 <svg style={{ width: 12, height: 12, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
@@ -175,129 +278,158 @@ function TreeRow({ node, depth, t, onAddChild, onRename, onDelete }: TreeRowProp
             <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: '#1F2937' }}>{node.name}</span>
           </div>
         </td>
+
+        {/* Head */}
         <td style={{ padding: '9px 14px', fontSize: 12, color: '#6B7280' }}>
-          {node.head_name ? (
-            <span>{t.head}: {node.head_name}</span>
-          ) : (
-            <span style={{ color: '#D1D5DB' }}>—</span>
-          )}
+          {node.head_name ?? <span style={{ color: '#D1D5DB' }}>—</span>}
         </td>
+
+        {/* Staff count — clickable */}
         <td style={{ padding: '9px 14px' }}>
-          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 500 }}>
-            {node.employee_count} {t.employees}
-          </span>
+          <button onClick={() => setStaffOpen(v => !v)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : '#F3F4F6', color: staffOpen ? '#1D4ED8' : '#6B7280', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            {node.employee_count} сотр.
+            <svg style={{ width: 10, height: 10, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </button>
         </td>
+
+        {/* Actions */}
         <td style={{ padding: '9px 14px' }}>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={() => onAddChild(node.id)}
-              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', color: '#374151', whiteSpace: 'nowrap' }}
-            >
-              + {t.addChild}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <button onClick={() => onAddStaff(node.id)}
+              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #BFDBFE', background: '#EFF6FF', fontSize: 11, cursor: 'pointer', color: '#1D4ED8', whiteSpace: 'nowrap' }}>
+              + Сотрудник
             </button>
-            <button
-              onClick={() => onRename(node)}
-              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', color: '#374151' }}
-            >
-              {t.rename}
+            <button onClick={() => onAddChild(node.id)}
+              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', color: '#374151', whiteSpace: 'nowrap' }}>
+              + Подотдел
             </button>
-            <button
-              onClick={() => onDelete(node)}
-              style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}
-            >
-              {t.delete}
+            <button onClick={() => onRename(node)}
+              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, cursor: 'pointer', color: '#374151' }}>
+              Переименовать
+            </button>
+            <button onClick={() => onDelete(node)}
+              style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>
+              Удалить
             </button>
           </div>
         </td>
       </tr>
+
+      {/* Staff expansion row */}
+      {staffOpen && (
+        <tr style={{ backgroundColor: '#FAFBFF' }}>
+          <td colSpan={4} style={{ padding: '8px 14px 12px' }}>
+            <div style={{ paddingInlineStart: depth * 20 + 44 }}>
+              {staffLoading ? (
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Загрузка...</p>
+              ) : staff.length === 0 ? (
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Нет сотрудников</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {staff.map(s => (
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', backgroundColor: '#fff', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#6B7280' }}>
+                        {s.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{s.full_name}</p>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
+                          {s.position_ru}
+                          {s.employment_type && s.employment_type !== 'staff' && ` · ${EMP_LABELS[s.employment_type] ?? s.employment_type}`}
+                          {s.is_head && ' · Руководитель'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+
       {expanded && node.children.map(child => (
-        <TreeRow key={child.id} node={child} depth={depth + 1} t={t} onAddChild={onAddChild} onRename={onRename} onDelete={onDelete} />
+        <TreeRow key={child.id} node={child} depth={depth + 1} onAddChild={onAddChild} onRename={onRename} onDelete={onDelete} onAddStaff={onAddStaff} />
       ))}
     </>
   )
 }
 
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function DepartmentsPage() {
   const { lang } = useLang()
-  const t = T[lang] ?? T.ru
 
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  type ModalState =
-    | { type: 'add'; parentId: string | null }
-    | { type: 'rename'; dept: Department }
-    | null
-
-  const [modal, setModal] = useState<ModalState>(null)
+  type Modal = { type: 'add'; parentId: string | null } | { type: 'rename'; node: TreeNode } | null
+  const [modal, setModal] = useState<Modal>(null)
+  const [addStaffDept, setAddStaffDept] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/settings/departments')
-    if (!res.ok) { setError(t.error); setLoading(false); return }
-    setDepts(await res.json())
-    setLoading(false)
-  }, [t.error])
+    if (!res.ok) { setError('Ошибка загрузки'); setLoading(false); return }
+    setDepts(await res.json()); setLoading(false)
+  }, [])
 
   useEffect(() => { load() }, [load])
 
   async function handleAdd(name: string, parentId: string | null) {
-    await fetch('/api/settings/departments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, parent_id: parentId }),
-    })
-    setModal(null)
-    load()
+    await fetch('/api/settings/departments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, parent_id: parentId }) })
+    setModal(null); load()
   }
 
   async function handleRename(name: string, id: string) {
-    await fetch(`/api/settings/departments/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    })
-    setModal(null)
-    load()
+    await fetch(`/api/settings/departments/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) })
+    setModal(null); load()
   }
 
-  async function handleDelete(dept: Department) {
-    if (!confirm(t.confirmDelete)) return
-    await fetch(`/api/settings/departments/${dept.id}`, { method: 'DELETE' })
+  async function handleDelete(node: TreeNode) {
+    if (!confirm('Удалить отдел? Дочерние отделы будут перенесены выше.')) return
+    await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
     load()
   }
 
   const tree = buildTree(depts)
+  const settingsLabel = lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'
+  const title = lang === 'he' ? 'מבנה ארגוני' : lang === 'en' ? 'Organization Structure' : 'Структура организации'
 
   return (
     <div className="p-6 space-y-5">
-      <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
-      >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>{t.title}</h1>
+      {/* Breadcrumb */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Link href="/dashboard/settings" style={{ fontSize: 13, color: '#4BAED4', textDecoration: 'none' }}>{settingsLabel}</Link>
+        <span style={{ color: '#D1D5DB', fontSize: 14 }}>›</span>
+        <span style={{ fontSize: 13, color: '#6B7280' }}>{title}</span>
+      </nav>
+
+      <div style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          onClick={() => setModal({ type: 'add', parentId: null })}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-        >
+        <button onClick={() => setModal({ type: 'add', parentId: null })}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          {t.addRoot}
+          Добавить отдел
         </button>
       </div>
 
       <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t.loading}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
         ) : error ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
         ) : tree.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t.noDepts}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Нет подразделений</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -309,14 +441,11 @@ export default function DepartmentsPage() {
             </thead>
             <tbody>
               {tree.map(node => (
-                <TreeRow
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  t={t}
-                  onAddChild={parentId => setModal({ type: 'add', parentId })}
-                  onRename={dept => setModal({ type: 'rename', dept })}
+                <TreeRow key={node.id} node={node} depth={0}
+                  onAddChild={id => setModal({ type: 'add', parentId: id })}
+                  onRename={n => setModal({ type: 'rename', node: n })}
                   onDelete={handleDelete}
+                  onAddStaff={setAddStaffDept}
                 />
               ))}
             </tbody>
@@ -325,21 +454,13 @@ export default function DepartmentsPage() {
       </div>
 
       {modal?.type === 'add' && (
-        <DeptModal
-          t={t}
-          title={t.newDept}
-          onClose={() => setModal(null)}
-          onSave={name => handleAdd(name, modal.parentId)}
-        />
+        <DeptModal title="Новый отдел" onClose={() => setModal(null)} onSave={name => handleAdd(name, modal.parentId)} />
       )}
       {modal?.type === 'rename' && (
-        <DeptModal
-          t={t}
-          title={t.renameDept}
-          initialName={modal.dept.name}
-          onClose={() => setModal(null)}
-          onSave={name => handleRename(name, modal.dept.id)}
-        />
+        <DeptModal title="Переименовать" initialName={modal.node.name} onClose={() => setModal(null)} onSave={name => handleRename(name, modal.node.id)} />
+      )}
+      {addStaffDept && (
+        <AddStaffModal deptId={addStaffDept} onClose={() => setAddStaffDept(null)} onSaved={() => { setAddStaffDept(null); load() }} />
       )}
     </div>
   )
