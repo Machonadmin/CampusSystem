@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
@@ -234,34 +234,82 @@ interface AddUserModalProps {
   onSaved: () => void
 }
 
+interface PersonResult { id: string; full_name: string; email: string | null }
+
 function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
   const { lang } = useLang()
   const catLabel = (cat: string) =>
     lang === 'he' ? (CAT_HE[cat] ?? cat) : lang === 'en' ? (CAT_EN[cat] ?? cat) : (CAT_RU[cat] ?? cat)
-  const [form, setForm] = useState({ full_name: '', login_email: '', password: '', role_ids: [] as string[] })
+
+  // Person search
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<PersonResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(null)
+  const [createNew, setCreateNew] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Form fields
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [roleIds, setRoleIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
+  function handleSearch(q: string) {
+    setQuery(q)
+    setSelectedPerson(null)
+    setCreateNew(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (q.length < 2) { setResults([]); return }
+    timerRef.current = setTimeout(async () => {
+      setSearching(true)
+      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(q)}`)
+      if (res.ok) setResults(await res.json())
+      setSearching(false)
+    }, 300)
+  }
+
+  function selectPerson(p: PersonResult) {
+    setSelectedPerson(p)
+    setCreateNew(false)
+    setQuery('')
+    setResults([])
+    if (p.email && !email) setEmail(p.email)
+  }
+
+  function clearSelection() {
+    setSelectedPerson(null)
+    setCreateNew(false)
+    setQuery('')
+    setResults([])
+  }
+
   async function save() {
-    if (!form.full_name || !form.login_email || !form.password) { setErr('Заполните обязательные поля'); return }
+    if (!email || !password) { setErr('Email и пароль обязательны'); return }
+    if (password.length < 8) { setErr('Пароль минимум 8 символов'); return }
+    if (!selectedPerson && !createNew) { setErr('Выберите человека или создайте нового'); return }
+    if (createNew && !fullName.trim()) { setErr('Введите имя'); return }
+
     setSaving(true); setErr('')
+    const body = selectedPerson
+      ? { person_id: selectedPerson.id, login_email: email, password, role_ids: roleIds }
+      : { full_name: fullName.trim(), login_email: email, password, role_ids: roleIds }
+
     const res = await fetch('/api/settings/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     setSaving(false)
     if (res.ok) { onSaved(); onClose() }
-    else setErr(data.error ?? 'Error')
+    else setErr(data.error ?? 'Ошибка')
   }
 
-  const toggleRole = (id: string) => {
-    setForm(f => ({
-      ...f,
-      role_ids: f.role_ids.includes(id) ? f.role_ids.filter(r => r !== id) : [...f.role_ids, id],
-    }))
-  }
+  const toggleRole = (id: string) =>
+    setRoleIds(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id])
 
   const grouped: Record<string, Role[]> = {}
   for (const r of allRoles) {
@@ -269,50 +317,157 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
     grouped[r.category].push(r)
   }
 
+  const personChosen = !!selectedPerson || createNew
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+
+        {/* Header */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.addUserModal}</p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
+
         <div style={{ overflowY: 'auto', padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12 }}>{err}</p>}
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName} *</span>
-            <input value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email *</span>
-            <input type="email" value={form.login_email} onChange={e => setForm(f => ({ ...f, login_email: e.target.value }))}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.password} *</span>
-            <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-          </label>
+          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+
+          {/* ── Step 1: person selection ── */}
           <div>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t.selectRoles}</p>
-            {Object.entries(grouped).map(([cat, roles]) => (
-              <div key={cat} style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{catLabel(cat)}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {roles.map(r => (
-                    <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                      <input type="checkbox" checked={form.role_ids.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: '#2D3170' }} />
-                      <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
-                    </label>
-                  ))}
+            <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+              Поиск существующего человека
+            </p>
+
+            {/* Show selected person card */}
+            {selectedPerson && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selectedPerson.full_name}</p>
+                  {selectedPerson.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selectedPerson.email}</p>}
                 </div>
+                <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
               </div>
-            ))}
+            )}
+
+            {/* Show "create new" confirmation */}
+            {createNew && !selectedPerson && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}>
+                <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
+                <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+              </div>
+            )}
+
+            {/* Search input (hidden once a choice is made) */}
+            {!personChosen && (
+              <div style={{ position: 'relative' }}>
+                <input
+                  value={query}
+                  onChange={e => handleSearch(e.target.value)}
+                  placeholder="Введите имя или email..."
+                  autoComplete="off"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+                {(results.length > 0 || searching || (query.length >= 2 && !searching)) && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: 4, overflow: 'hidden' }}>
+                    {searching && (
+                      <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
+                    )}
+                    {!searching && results.map(p => (
+                      <div
+                        key={p.id}
+                        onClick={() => selectPerson(p)}
+                        style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                      >
+                        <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
+                        {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
+                      </div>
+                    ))}
+                    {!searching && query.length >= 2 && (
+                      <div
+                        onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
+                        style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                      >
+                        + Создать нового человека
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* ── Step 2: name field (only for new person) ── */}
+          {createNew && (
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName} *</span>
+              <input
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                placeholder="Полное имя"
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+          )}
+
+          {/* ── Step 3: account fields ── */}
+          {personChosen && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email *</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.password} *</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Минимум 8 символов"
+                  autoComplete="new-password"
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                />
+              </label>
+
+              {/* ── Step 4: roles ── */}
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t.selectRoles}</p>
+                {Object.entries(grouped).map(([cat, roles]) => (
+                  <div key={cat} style={{ marginBottom: 12 }}>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{catLabel(cat)}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {roles.map(r => (
+                        <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
+                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: '#2D3170' }} />
+                          <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+
+        {/* Footer */}
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+          <button
+            onClick={save}
+            disabled={saving || !personChosen}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
+          >
+            {t.save}
+          </button>
         </div>
       </div>
     </div>
