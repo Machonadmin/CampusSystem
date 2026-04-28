@@ -1,7 +1,33 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
+
+const CAT_RU: Record<string, string> = {
+  system: 'Системные',
+  campus: 'Кампус',
+  education: 'Образование',
+  medical: 'Медицина',
+  external: 'Внешние',
+  custom: 'Прочие',
+}
+const CAT_HE: Record<string, string> = {
+  system: 'מערכת',
+  campus: 'קמפוס',
+  education: 'חינוך',
+  medical: 'רפואה',
+  external: 'חיצוני',
+  custom: 'אחר',
+}
+const CAT_EN: Record<string, string> = {
+  system: 'System',
+  campus: 'Campus',
+  education: 'Education',
+  medical: 'Medical',
+  external: 'External',
+  custom: 'Other',
+}
 
 interface Role {
   id: string
@@ -139,12 +165,17 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
   const [saving, setSaving] = useState(false)
 
+  const { lang } = useLang()
+  const catLabel = (cat: string) =>
+    lang === 'he' ? (CAT_HE[cat] ?? cat) : lang === 'en' ? (CAT_EN[cat] ?? cat) : (CAT_RU[cat] ?? cat)
+
   async function save() {
     setSaving(true)
     const res = await fetch(`/api/settings/users/${user.account_id}/roles`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role_ids: [...selected] }),
+      // person_id required by API to target the correct person_roles rows
+      body: JSON.stringify({ person_id: user.person_id, role_ids: [...selected] }),
     })
     setSaving(false)
     if (res.ok) { onSaved(); onClose() }
@@ -166,7 +197,7 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
         <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
           {Object.entries(grouped).map(([cat, roles]) => (
             <div key={cat} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{cat}</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{catLabel(cat)}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {roles.map(r => (
                   <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
@@ -204,6 +235,9 @@ interface AddUserModalProps {
 }
 
 function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
+  const { lang } = useLang()
+  const catLabel = (cat: string) =>
+    lang === 'he' ? (CAT_HE[cat] ?? cat) : lang === 'en' ? (CAT_EN[cat] ?? cat) : (CAT_RU[cat] ?? cat)
   const [form, setForm] = useState({ full_name: '', login_email: '', password: '', role_ids: [] as string[] })
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
@@ -263,7 +297,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
             <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t.selectRoles}</p>
             {Object.entries(grouped).map(([cat, roles]) => (
               <div key={cat} style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{cat}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{catLabel(cat)}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {roles.map(r => (
                     <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
@@ -328,6 +362,15 @@ export default function UsersPage() {
 
   return (
     <div className="p-6 space-y-5">
+      {/* Breadcrumb */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Link href="/dashboard/settings" style={{ fontSize: 13, color: '#4BAED4', textDecoration: 'none' }}>
+          {lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'}
+        </Link>
+        <span style={{ color: '#D1D5DB', fontSize: 14 }}>›</span>
+        <span style={{ fontSize: 13, color: '#6B7280' }}>{t.title}</span>
+      </nav>
+
       <div
         className="flex items-center rounded-xl overflow-hidden"
         style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
@@ -413,16 +456,18 @@ export default function UsersPage() {
                       >
                         {t.manageRoles}
                       </button>
-                      <button
-                        onClick={() => toggleActive(user)}
-                        style={{
-                          padding: '5px 10px', borderRadius: 6, border: 'none', fontSize: 12, cursor: 'pointer',
-                          backgroundColor: user.is_active ? '#FEF2F2' : '#F0FDF4',
-                          color: user.is_active ? '#DC2626' : '#16A34A',
-                        }}
-                      >
-                        {user.is_active ? t.deactivate : t.activate}
-                      </button>
+                      {!user.roles.some(r => r.code === 'superadmin') && (
+                        <button
+                          onClick={() => toggleActive(user)}
+                          style={{
+                            padding: '5px 10px', borderRadius: 6, border: 'none', fontSize: 12, cursor: 'pointer',
+                            backgroundColor: user.is_active ? '#FEF2F2' : '#F0FDF4',
+                            color: user.is_active ? '#DC2626' : '#16A34A',
+                          }}
+                        >
+                          {user.is_active ? t.deactivate : t.activate}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
