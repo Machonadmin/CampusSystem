@@ -350,78 +350,75 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
-        <div style={{ overflowY: 'auto', padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+        {/* ── Step 1: person search — outside overflowY container so dropdown isn't clipped ── */}
+        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
 
-          {/* ── Step 1: person selection ── */}
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-              Поиск существующего человека
-            </p>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+            Поиск существующего человека
+          </p>
 
-            {/* Show selected person card */}
-            {selectedPerson && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selectedPerson.full_name}</p>
-                  {selectedPerson.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selectedPerson.email}</p>}
+          {selectedPerson && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF' }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selectedPerson.full_name}</p>
+                {selectedPerson.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selectedPerson.email}</p>}
+              </div>
+              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {createNew && !selectedPerson && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}>
+              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
+              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {!personChosen && (
+            <div style={{ position: 'relative' }}>
+              <input
+                value={query}
+                onChange={e => handleSearch(e.target.value)}
+                placeholder="Введите имя или email..."
+                autoComplete="off"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+              {(results.length > 0 || searching || query.length >= 2) && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
+                  {searching && (
+                    <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
+                  )}
+                  {!searching && results.map(p => (
+                    <div
+                      key={p.id}
+                      onClick={() => selectPerson(p)}
+                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                    >
+                      <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
+                      {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
+                    </div>
+                  ))}
+                  {!searching && (
+                    <div
+                      onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                    >
+                      + Создать нового человека
+                    </div>
+                  )}
                 </div>
-                <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
-              </div>
-            )}
+              )}
+            </div>
+          )}
+        </div>
 
-            {/* Show "create new" confirmation */}
-            {createNew && !selectedPerson && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}>
-                <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
-                <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
-              </div>
-            )}
-
-            {/* Search input (hidden once a choice is made) */}
-            {!personChosen && (
-              <div style={{ position: 'relative' }}>
-                <input
-                  value={query}
-                  onChange={e => handleSearch(e.target.value)}
-                  placeholder="Введите имя или email..."
-                  autoComplete="off"
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                />
-                {(results.length > 0 || searching || (query.length >= 2 && !searching)) && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: 4, overflow: 'hidden' }}>
-                    {searching && (
-                      <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
-                    )}
-                    {!searching && results.map(p => (
-                      <div
-                        key={p.id}
-                        onClick={() => selectPerson(p)}
-                        style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
-                      >
-                        <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
-                        {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
-                      </div>
-                    ))}
-                    {!searching && query.length >= 2 && (
-                      <div
-                        onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
-                        style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
-                      >
-                        + Создать нового человека
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* ── Step 2: name field (only for new person) ── */}
+        {/* ── Steps 2-4: scrollable area ── */}
+        <div style={{ overflowY: 'auto', padding: '14px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {createNew && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName} *</span>
@@ -434,7 +431,6 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
             </label>
           )}
 
-          {/* ── Step 3: account fields ── */}
           {personChosen && (
             <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -457,8 +453,6 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
                   style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
                 />
               </label>
-
-              {/* ── Step 4: roles ── */}
               <div>
                 <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t.selectRoles}</p>
                 {Object.entries(grouped).map(([cat, roles]) => (
