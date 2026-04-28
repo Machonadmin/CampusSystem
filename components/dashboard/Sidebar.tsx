@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
@@ -103,6 +103,13 @@ export default function Sidebar() {
   const { t, isRTL } = useLang()
   const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
   const sidebarRef = useRef<HTMLElement>(null)
+  const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.accessible_modules) setAccessibleModules(data.accessible_modules) })
+  }, [])
 
   // Click-outside to close when unpinned on desktop
   useEffect(() => {
@@ -212,7 +219,7 @@ export default function Sidebar() {
           )}
         </div>
 
-        {MODULES.map(item => (
+        {(accessibleModules === null ? MODULES : MODULES.filter(m => accessibleModules.includes(m.key))).map(item => (
           <SidebarNavLink
             key={item.key}
             href={item.href}

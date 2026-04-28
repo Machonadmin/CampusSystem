@@ -23,7 +23,12 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ data: [] }),
     ])
 
-    return NextResponse.json({ modulePrivileges: modulePrivs ?? [], rolePrivileges: rolePrivs ?? [] })
+    const allRolePrivs = rolePrivs ?? []
+    return NextResponse.json({
+      modulePrivileges: modulePrivs ?? [],
+      rolePrivileges: allRolePrivs,
+      accessPrivileges: allRolePrivs.filter(p => p.privilege_code === 'access'),
+    })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })

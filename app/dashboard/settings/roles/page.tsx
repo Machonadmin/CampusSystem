@@ -4,6 +4,27 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
+// ── All modules ──────────────────────────────────────────────────────────────
+const ALL_MODULES = [
+  { code: 'persons',      name: 'База людей' },
+  { code: 'applicants',   name: 'Приёмная комиссия' },
+  { code: 'education',    name: 'Образование' },
+  { code: 'finance',      name: 'Финансы' },
+  { code: 'dormitory',    name: 'Общежитие' },
+  { code: 'food',         name: 'Питание' },
+  { code: 'security',     name: 'Безопасность' },
+  { code: 'alumni',       name: 'Выпускники' },
+  { code: 'sponsors',     name: 'Спонсоры' },
+  { code: 'tasks',        name: 'Задачи' },
+  { code: 'documents',    name: 'Документы' },
+  { code: 'reports',      name: 'Отчёты' },
+  { code: 'contacts',     name: 'Контакты' },
+  { code: 'settings',     name: 'Настройки' },
+  { code: 'doctor',       name: 'Врач' },
+  { code: 'psychologist', name: 'Психолог' },
+  { code: 'maintenance',  name: 'Эксплуатация' },
+]
+
 // ── Category display config ──────────────────────────────────────────────────
 const CAT_STYLE: Record<string, { bg: string; text: string }> = {
   system:    { bg: '#FEF3C7', text: '#92400E' },
@@ -460,6 +481,52 @@ export default function RolesPage() {
 
               {/* Privileges body */}
               <div style={{ overflowY: 'auto', flex: 1, padding: '16px 20px' }}>
+
+                {/* ── Доступные модули ── */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#10B981', flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                      Доступные модули
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 8 }}>
+                    {ALL_MODULES.map(mod => {
+                      const isOn = selectedRole.is_system || rolePrivs.has(`${mod.code}::access`)
+                      return (
+                        <div key={mod.code} style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '7px 10px', borderRadius: 8,
+                          border: `1px solid ${isOn ? '#A7F3D0' : '#E5E7EB'}`,
+                          backgroundColor: isOn ? '#F0FDF4' : '#F9FAFB',
+                        }}>
+                          <span style={{ fontSize: 12, color: '#374151', fontWeight: isOn ? 500 : 400 }}>{mod.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => !selectedRole.is_system && togglePriv(mod.code, 'access')}
+                            style={{
+                              width: 34, height: 18, borderRadius: 9, position: 'relative',
+                              border: 'none', cursor: selectedRole.is_system ? 'default' : 'pointer',
+                              backgroundColor: isOn ? '#10B981' : '#D1D5DB',
+                              transition: 'background-color 0.2s', flexShrink: 0, marginLeft: 8,
+                            }}
+                          >
+                            <span style={{
+                              position: 'absolute', top: 2, left: isOn ? 18 : 2,
+                              width: 14, height: 14, borderRadius: '50%', backgroundColor: '#fff',
+                              transition: 'left 0.2s', display: 'block',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                            }} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ borderBottom: '1px solid #E5E7EB', marginBottom: 20 }} />
+
+                {/* ── Привилегии ── */}
                 {loadingPrivs ? (
                   <div style={{ color: '#9CA3AF', fontSize: 13 }}>{t.loading}</div>
                 ) : Object.keys(grouped).length === 0 ? (
