@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
 
 const SECTIONS = [
   {
@@ -52,8 +53,15 @@ export default function SettingsPage() {
   const { lang } = useLang()
   const labels = LABELS[lang] ?? LABELS.ru
 
+  const homeLabel = lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная'
+  const settingsLabel = lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'
+
   return (
     <div className="p-6 space-y-6">
+      <Breadcrumb items={[
+        { label: homeLabel, href: '/dashboard' },
+        { label: settingsLabel },
+      ]} />
       <div
         className="flex items-center rounded-xl overflow-hidden"
         style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}

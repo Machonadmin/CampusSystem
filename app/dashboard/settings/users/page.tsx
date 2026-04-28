@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
 const CAT_RU: Record<string, string> = {
@@ -680,13 +680,11 @@ export default function UsersPage() {
   return (
     <div className="p-6 space-y-5">
       {/* Breadcrumb */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Link href="/dashboard/settings" style={{ fontSize: 13, color: '#4BAED4', textDecoration: 'none' }}>
-          {lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'}
-        </Link>
-        <span style={{ color: '#D1D5DB', fontSize: 14 }}>›</span>
-        <span style={{ fontSize: 13, color: '#6B7280' }}>{t.title}</span>
-      </nav>
+      <Breadcrumb items={[
+        { label: lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная', href: '/dashboard' },
+        { label: lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки', href: '/dashboard/settings' },
+        { label: t.title },
+      ]} />
 
       <div
         className="flex items-center rounded-xl overflow-hidden"

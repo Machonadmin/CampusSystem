@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
 interface Department {
@@ -403,11 +403,11 @@ export default function DepartmentsPage() {
   return (
     <div className="p-6 space-y-5">
       {/* Breadcrumb */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Link href="/dashboard/settings" style={{ fontSize: 13, color: '#4BAED4', textDecoration: 'none' }}>{settingsLabel}</Link>
-        <span style={{ color: '#D1D5DB', fontSize: 14 }}>›</span>
-        <span style={{ fontSize: 13, color: '#6B7280' }}>{title}</span>
-      </nav>
+      <Breadcrumb items={[
+        { label: lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная', href: '/dashboard' },
+        { label: settingsLabel, href: '/dashboard/settings' },
+        { label: title },
+      ]} />
 
       <div style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>

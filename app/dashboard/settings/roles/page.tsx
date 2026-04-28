@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 
 // ── All modules ──────────────────────────────────────────────────────────────
@@ -361,13 +361,11 @@ export default function RolesPage() {
     <div className="p-6" style={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Breadcrumb */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        <Link href="/dashboard/settings" style={{ fontSize: 13, color: '#4BAED4', textDecoration: 'none' }}>
-          {t.settings}
-        </Link>
-        <span style={{ color: '#D1D5DB', fontSize: 14 }}>›</span>
-        <span style={{ fontSize: 13, color: '#6B7280' }}>{t.title}</span>
-      </nav>
+      <Breadcrumb items={[
+        { label: lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная', href: '/dashboard' },
+        { label: t.settings, href: '/dashboard/settings' },
+        { label: t.title },
+      ]} />
 
       {/* Banner */}
       <div
