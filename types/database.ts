@@ -9,6 +9,7 @@ export type Json =
 // ─── Enum helpers ────────────────────────────────────────────────────────────
 
 export type Gender = 'female' | 'male' | 'other'
+export type PersonEducationStatus = 'lead' | 'applicant' | 'student' | 'alumni'
 export type RelativeType = 'mother' | 'father' | 'emergency' | 'other'
 export type ApplicantStatus = 'new' | 'reviewing' | 'accepted' | 'rejected'
 export type Institution = 'university' | 'touro' | 'college' | 'school' | 'emuna' | 'other'
@@ -52,6 +53,10 @@ export interface PersonRow {
   notes: string | null
   created_at: string
   updated_at: string
+  education_status: PersonEducationStatus | null
+  marital_status: string | null
+  nationality: string | null
+  passport_number: string | null
 }
 
 export interface PersonAccountRow {
@@ -85,6 +90,32 @@ export interface ApplicantProfileRow {
   community_phone: string | null
   community_email: string | null
   notes: string | null
+  education_status: PersonEducationStatus | null
+  institution: string | null
+  direction: string | null
+  level: string | null
+  interview_date: string | null
+  decision_date: string | null
+  rejection_reason: string | null
+}
+
+export interface LeadInterestRow {
+  id: string
+  person_id: string
+  institution: string
+  direction: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface PersonStatusHistoryRow {
+  id: string
+  person_id: string
+  from_status: PersonEducationStatus | null
+  to_status: PersonEducationStatus
+  changed_at: string
+  changed_by: string | null
+  comment: string | null
 }
 
 export interface EnrollmentRow {
@@ -200,10 +231,14 @@ export interface PersonPrivilegeRow {
 
 // ─── Insert types (omit server-generated fields) ─────────────────────────────
 
-export type PersonInsert = Omit<PersonRow, 'id' | 'created_at' | 'updated_at'>
+export type PersonInsert =
+  Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
+  & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
 export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at'>
 export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>
-export type ApplicantProfileInsert = Omit<ApplicantProfileRow, 'id'>
+export type ApplicantProfileInsert =
+  Omit<ApplicantProfileRow, 'id' | 'education_status' | 'institution' | 'direction' | 'level' | 'interview_date' | 'decision_date' | 'rejection_reason'>
+  & { education_status?: PersonEducationStatus | null; institution?: string | null; direction?: string | null; level?: string | null; interview_date?: string | null; decision_date?: string | null; rejection_reason?: string | null }
 export type EnrollmentInsert = Omit<EnrollmentRow, 'id'>
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id'>
 export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at'>
@@ -215,6 +250,10 @@ export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at'>
 export type PersonRoleInsert = Omit<PersonRoleRow, 'id' | 'assigned_at'>
 export type ModulePrivilegeInsert = Omit<ModulePrivilegeRow, 'id'>
 export type PersonPrivilegeInsert = Omit<PersonPrivilegeRow, 'id' | 'granted_at'>
+export type LeadInterestInsert = Omit<LeadInterestRow, 'id' | 'created_at' | 'notes'> & { notes?: string | null }
+export type LeadInterestUpdate = Partial<LeadInterestInsert>
+export type PersonStatusHistoryInsert = Omit<PersonStatusHistoryRow, 'id' | 'changed_at' | 'comment'> & { comment?: string | null }
+export type PersonStatusHistoryUpdate = Partial<PersonStatusHistoryInsert>
 
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
@@ -261,7 +300,9 @@ export interface Database {
       role_privileges:   T<RolePrivilegeRow,    RolePrivilegeInsert,    RolePrivilegeUpdate>
       person_roles:      T<PersonRoleRow,       PersonRoleInsert,       PersonRoleUpdate>
       module_privileges: T<ModulePrivilegeRow,  ModulePrivilegeInsert,  ModulePrivilegeUpdate>
-      person_privileges: T<PersonPrivilegeRow,  PersonPrivilegeInsert,  PersonPrivilegeUpdate>
+      person_privileges:       T<PersonPrivilegeRow,          PersonPrivilegeInsert,          PersonPrivilegeUpdate>
+      lead_interests:          T<LeadInterestRow,             LeadInterestInsert,             LeadInterestUpdate>
+      person_status_history:   T<PersonStatusHistoryRow,      PersonStatusHistoryInsert,      PersonStatusHistoryUpdate>
     }
     Views: Record<string, never>
     Functions: {
