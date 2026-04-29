@@ -33,6 +33,7 @@ const SOURCES = [
   { value: 'social', label: 'Соцсети' },
   { value: 'referral', label: 'Рекомендация' },
   { value: 'call', label: 'Звонок' },
+  { value: 'exhibition', label: 'Выставка' },
   { value: 'other', label: 'Другое' },
 ]
 const SOURCE_LABELS: Record<string, string> = Object.fromEntries(SOURCES.map(s => [s.value, s.label]))
@@ -58,22 +59,49 @@ function formatDate(d: string | null) {
 
 type ModalView = 'search' | 'new' | 'existing'
 
+const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Направления', 'Дополнительно']
+const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
+
 function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [view, setView] = useState<ModalView>('search')
   const [selected, setSelected] = useState<PersonResult | null>(null)
+  const [tabIdx, setTabIdx] = useState(0)
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PersonResult[]>([])
   const [searching, setSearching] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
+  // Tab 1 – Личные данные
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [fullName, setFullName] = useState('')
-  const [phone, setPhone]       = useState('')
-  const [email, setEmail]       = useState('')
-  const [gender, setGender]     = useState('')
+  const [hebrewName, setHebrewName] = useState('')
+  const [gender, setGender] = useState('')
   const [birthDate, setBirthDate] = useState('')
+  const [maritalStatus, setMaritalStatus] = useState('')
+  const [citizenship, setCitizenship] = useState('')
 
+  // Tab 2 – Контакты и адрес
+  const [phones, setPhones] = useState<string[]>([''])
+  const [email, setEmail] = useState('')
+  const [country, setCountry] = useState('')
+  const [city, setCity] = useState('')
+  const [street, setStreet] = useState('')
+  const [house, setHouse] = useState('')
+  const [apartment, setApartment] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+
+  // Tab 3 – Семья
+  const [momName, setMomName] = useState('')
+  const [momPhone, setMomPhone] = useState('')
+  const [dadName, setDadName] = useState('')
+  const [dadPhone, setDadPhone] = useState('')
+  const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string }[]>([])
+
+  // Tab 4 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
+
+  // Tab 5 – Дополнительно
   const [source, setSource] = useState('')
   const [comment, setComment] = useState('')
 
@@ -93,11 +121,19 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }, [query])
 
   function selectPerson(p: PersonResult) {
-    setSelected(p)
-    setView('existing')
-    setQuery('')
-    setResults([])
+    setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0)
   }
+
+  function goNext() {
+    setError('')
+    if (view === 'new') {
+      if (tabIdx === 0 && !fullName.trim()) { setError('ФИО обязательно'); return }
+      if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
+    }
+    setTabIdx(t => Math.min(t + 1, 4))
+  }
+
+  function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
 
   function updateInterest(idx: number, field: keyof Interest, value: string) {
     setInterests(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item))
@@ -115,13 +151,26 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       if (view === 'existing' && selected) {
         body.person_id = selected.id
       } else {
-        if (!fullName.trim()) { setError('ФИО обязательно'); return }
-        if (!phone.trim()) { setError('Телефон обязателен'); return }
+        if (!fullName.trim()) { setError('ФИО обязательно'); setSaving(false); return }
+        const validPhones = phones.filter(p => p.trim())
+        if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); return }
         body.full_name = fullName.trim()
-        body.phone = phone.trim()
+        body.phone = validPhones[0]
+        if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
         if (gender) body.gender = gender
         if (birthDate) body.birth_date = birthDate
+        if (hebrewName) body.hebrew_name = hebrewName.trim()
+        if (maritalStatus) body.marital_status = maritalStatus
+        if (citizenship) body.citizenship = citizenship.trim()
+        const addr = { country, city, street, house, apartment, postal_code: postalCode }
+        if (Object.values(addr).some(v => v)) body.address = addr
+        const familyData: Record<string, unknown> = {}
+        if (momName || momPhone) familyData.mom = { name: momName, phone: momPhone }
+        if (dadName || dadPhone) familyData.dad = { name: dadName, phone: dadPhone }
+        const validContacts = extraContacts.filter(c => c.name || c.phone)
+        if (validContacts.length > 0) familyData.contacts = validContacts
+        if (Object.keys(familyData).length > 0) body.family = familyData
       }
       const res = await fetch('/api/education/leads', {
         method: 'POST',
@@ -147,9 +196,267 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
   }
 
+  function renderTab() {
+    if (view === 'existing' && tabIdx === 0) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#2D3170', marginBottom: 12 }}>
+            {initials(selected?.full_name ?? '')}
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1F2937' }}>{selected?.full_name}</div>
+          {selected?.email && <div style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{selected.email}</div>}
+          <div style={{ marginTop: 14, fontSize: 12, color: '#9CA3AF', textAlign: 'center', maxWidth: 300 }}>
+            Личные данные уже заполнены в профиле этого человека
+          </div>
+        </div>
+      )
+    }
+
+    switch (tabIdx) {
+      case 0:
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                {photoPreview
+                  ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: '#2D3170', cursor: 'pointer', padding: '6px 14px', border: '1px solid #2D3170', borderRadius: 8, display: 'inline-block' }}>
+                  Загрузить фото
+                  <input type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
+                </label>
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · JPG, PNG</div>
+              </div>
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>ФИО *</label>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Иванова Мария Ивановна" style={inp} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>Имя на иврите</label>
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="מריה" style={{ ...inp, direction: 'rtl' }} />
+            </div>
+            <div>
+              <label style={lbl}>Пол</label>
+              <select value={gender} onChange={e => setGender(e.target.value)} style={inp}>
+                <option value="">—</option>
+                <option value="female">Женский</option>
+                <option value="male">Мужской</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Дата рождения</label>
+              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Семейное положение</label>
+              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} style={inp}>
+                <option value="">—</option>
+                <option value="single">Не замужем</option>
+                <option value="married">Замужем</option>
+                <option value="divorced">Разведена</option>
+                <option value="widowed">Вдова</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Гражданство</label>
+              <input value={citizenship} onChange={e => setCitizenship(e.target.value)} placeholder="Израиль" style={inp} />
+            </div>
+          </div>
+        )
+
+      case 1:
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ ...lbl, marginBottom: 0 }}>Телефоны{view === 'new' ? ' *' : ''}</label>
+                <button onClick={() => setPhones(prev => [...prev, ''])}
+                  style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  + Добавить телефон
+                </button>
+              </div>
+              {phones.map((p, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                  <input value={p} onChange={e => setPhones(prev => prev.map((ph, pi) => pi === i ? e.target.value : ph))}
+                    placeholder="+972..." style={{ ...inp, flex: 1 }} />
+                  {phones.length > 1 && (
+                    <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Страна</label>
+              <select value={country} onChange={e => setCountry(e.target.value)} style={inp}>
+                <option value="">—</option>
+                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Город</label>
+              <input value={city} onChange={e => setCity(e.target.value)} placeholder="Тель-Авив" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Улица</label>
+              <input value={street} onChange={e => setStreet(e.target.value)} placeholder="Дизенгоф" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Дом</label>
+              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Квартира</label>
+              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Индекс</label>
+              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" style={inp} />
+            </div>
+          </div>
+        )
+
+      case 2:
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Мама</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                <div>
+                  <label style={lbl}>ФИО</label>
+                  <input value={momName} onChange={e => setMomName(e.target.value)} placeholder="Иванова Нина Петровна" style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Телефон</label>
+                  <input value={momPhone} onChange={e => setMomPhone(e.target.value)} placeholder="+972..." style={inp} />
+                </div>
+              </div>
+            </div>
+            <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Папа</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                <div>
+                  <label style={lbl}>ФИО</label>
+                  <input value={dadName} onChange={e => setDadName(e.target.value)} placeholder="Иванов Петр Иванович" style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Телефон</label>
+                  <input value={dadPhone} onChange={e => setDadPhone(e.target.value)} placeholder="+972..." style={inp} />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Контактное лицо</div>
+                <button onClick={() => setExtraContacts(prev => [...prev, { name: '', relation: '', phone: '', email: '' }])}
+                  style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  + Добавить контактное лицо
+                </button>
+              </div>
+              {extraContacts.map((c, i) => (
+                <div key={i} style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 10, position: 'relative' }}>
+                  <button onClick={() => setExtraContacts(prev => prev.filter((_, ci) => ci !== i))}
+                    style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                    ×
+                  </button>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                    <div>
+                      <label style={lbl}>ФИО</label>
+                      <input value={c.name}
+                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, name: e.target.value } : ec))}
+                        placeholder="Петрова Анна Ивановна" style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Степень родства</label>
+                      <input value={c.relation}
+                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, relation: e.target.value } : ec))}
+                        placeholder="Тётя" style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Телефон</label>
+                      <input value={c.phone}
+                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, phone: e.target.value } : ec))}
+                        placeholder="+972..." style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Email</label>
+                      <input type="email" value={c.email}
+                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, email: e.target.value } : ec))}
+                        placeholder="email@..." style={inp} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 3:
+        return (
+          <div>
+            <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
+              Укажите направления которые интересуют
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <button onClick={() => setInterests(prev => [...prev, { institution: 'university', direction: '' }])}
+                style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                + Добавить направление
+              </button>
+            </div>
+            {interests.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
+                <select value={item.institution} onChange={e => updateInterest(idx, 'institution', e.target.value)}
+                  style={{ ...inp, flex: '0 0 160px', width: 'auto' }}>
+                  {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
+                </select>
+                <input value={item.direction} onChange={e => updateInterest(idx, 'direction', e.target.value)}
+                  placeholder="Направление..." style={{ ...inp, flex: 1 }} />
+                {interests.length > 1 && (
+                  <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+
+      case 4:
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={lbl}>Источник обращения</label>
+              <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
+                <option value="">— Не указан —</option>
+                {SOURCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Комментарий</label>
+              <textarea value={comment} onChange={e => setComment(e.target.value)} rows={5}
+                style={{ ...inp, resize: 'vertical' }} placeholder="Дополнительные заметки..." />
+            </div>
+          </div>
+        )
+
+      default: return null
+    }
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
@@ -157,7 +464,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
-        {/* Search section — kept outside overflow container so dropdown is not clipped */}
+        {/* Search section */}
         {view === 'search' && (
           <div style={{ flexShrink: 0, padding: '14px 24px', position: 'relative' }}>
             <label style={lbl}>Поиск существующего человека</label>
@@ -180,118 +487,88 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 ))}
               </div>
             )}
-            <button onClick={() => setView('new')}
+            <button onClick={() => { setView('new'); setTabIdx(0) }}
               style={{ marginTop: 10, fontSize: 13, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               + Создать нового человека
             </button>
           </div>
         )}
 
-        {/* Selected / new person indicator */}
+        {/* Person indicator + tab steps */}
         {view !== 'search' && (
-          <div style={{ flexShrink: 0, padding: '0 24px 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: '#6B7280' }}>
-              {view === 'existing' && selected
-                ? <>Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong></>
-                : <strong style={{ color: '#1F2937' }}>Новый человек</strong>}
-            </span>
-            <button onClick={() => { setView('search'); setSelected(null) }}
-              style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              изменить
-            </button>
-          </div>
-        )}
-
-        {/* Scrollable form body */}
-        {view !== 'search' && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 24px 8px' }}>
-
-            {/* New person fields */}
-            {view === 'new' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F3F4F6' }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={lbl}>ФИО *</label>
-                  <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Полное имя" style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>Телефон *</label>
-                  <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7..." style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>Email</label>
-                  <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="email@..." style={inp} />
-                </div>
-                <div>
-                  <label style={lbl}>Пол</label>
-                  <select value={gender} onChange={e => setGender(e.target.value)} style={inp}>
-                    <option value="">—</option>
-                    <option value="male">Мужской</option>
-                    <option value="female">Женский</option>
-                    <option value="other">Другой</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={lbl}>Дата рождения</label>
-                  <input value={birthDate} onChange={e => setBirthDate(e.target.value)} type="date" style={inp} />
-                </div>
-              </div>
-            )}
-
-            {/* Lead-specific fields */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>Направления интереса</label>
-                <button onClick={() => setInterests(prev => [...prev, { institution: 'university', direction: '' }])}
-                  style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                  + Добавить
+          <>
+            <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#6B7280' }}>
+                {view === 'existing' && selected
+                  ? <>Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong></>
+                  : <strong style={{ color: '#1F2937' }}>Новый человек</strong>}
+              </span>
+              <button onClick={() => { setView('search'); setSelected(null); setTabIdx(0) }}
+                style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                изменить
+              </button>
+            </div>
+            <div style={{ flexShrink: 0, display: 'flex', padding: '10px 20px 0', gap: 2 }}>
+              {MODAL_TABS.map((tab, i) => (
+                <button key={i} onClick={() => { setError(''); setTabIdx(i) }}
+                  style={{
+                    flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
+                    fontWeight: tabIdx === i ? 600 : 400,
+                    color: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                    background: 'none', border: 'none',
+                    borderBottom: tabIdx === i ? '2px solid #2D3170' : '2px solid transparent',
+                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    transition: 'color 0.15s',
+                  }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
+                    background: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
+                    color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                  }}>
+                    {i < tabIdx ? '✓' : i + 1}
+                  </span>
+                  {tab}
                 </button>
-              </div>
-              {interests.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                  <select value={item.institution} onChange={e => updateInterest(idx, 'institution', e.target.value)}
-                    style={{ ...inp, flex: '0 0 130px' }}>
-                    {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
-                  </select>
-                  <input value={item.direction} onChange={e => updateInterest(idx, 'direction', e.target.value)}
-                    placeholder="Направление..." style={{ ...inp, flex: 1 }} />
-                  {interests.length > 1 && (
-                    <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
-                      ×
-                    </button>
-                  )}
-                </div>
               ))}
             </div>
+            <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+          </>
+        )}
 
-            <div style={{ marginTop: 12 }}>
-              <label style={lbl}>Источник обращения</label>
-              <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
-                <option value="">— Не указан —</option>
-                {SOURCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
-
-            <div style={{ marginTop: 12 }}>
-              <label style={lbl}>Комментарий</label>
-              <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                style={{ ...inp, resize: 'vertical' }} />
-            </div>
+        {/* Form body */}
+        {view !== 'search' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px' }}>
+            {renderTab()}
           </div>
         )}
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
-          {error && <span style={{ fontSize: 12, color: '#EF4444', flex: 1 }}>{error}</span>}
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
             Отмена
           </button>
-          {view !== 'search' && (
-            <button onClick={handleSave} disabled={saving}
-              style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Сохранение...' : 'Сохранить'}
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {view !== 'search' && tabIdx > 0 && (
+              <button onClick={goBack}
+                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                Назад
+              </button>
+            )}
+            {view !== 'search' && tabIdx < 4 && (
+              <button onClick={goNext}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                Далее
+              </button>
+            )}
+            {view !== 'search' && tabIdx === 4 && (
+              <button onClick={handleSave} disabled={saving}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+                {saving ? 'Сохранение...' : 'Сохранить'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
