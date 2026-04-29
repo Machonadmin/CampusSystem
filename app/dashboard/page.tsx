@@ -69,6 +69,9 @@ const MODULE_DESCS: Record<string, string> = {
   persons: 'Профили людей, контакты',
 }
 
+// Modules with real pages — shown first with full colour
+const IMPLEMENTED = new Set(['education', 'tasks', 'settings'])
+
 // Full ordered list — user only sees ones in their accessible_modules
 const ALL_MODULE_CARDS = [
   'persons', 'education', 'finance', 'dormitory', 'food',
@@ -76,12 +79,12 @@ const ALL_MODULE_CARDS = [
   'documents', 'reports', 'contacts', 'settings',
 ]
 
-function ModuleIcon({ moduleKey }: { moduleKey: string }) {
+function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boolean }) {
   const path = ICONS[moduleKey] ?? ''
   const [bg, iconColor] = COLORS[moduleKey] ?? ['#F3F4F6', '#6B7280']
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg style={{ width: 22, height: 22, color: iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 22, height: 22, color: disabled ? '#9CA3AF' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
@@ -104,9 +107,13 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  const visibleModules = user
+  const allVisible = user
     ? ALL_MODULE_CARDS.filter(key => user.accessible_modules.includes(key))
     : []
+  const visibleModules = [
+    ...allVisible.filter(k => IMPLEMENTED.has(k)),
+    ...allVisible.filter(k => !IMPLEMENTED.has(k)),
+  ]
 
   return (
     <div className="p-6 space-y-6">
@@ -138,24 +145,48 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {visibleModules.map(key => {
-              const borderColor = COLORS[key]?.[1] ?? '#E5E7EB'
+              const ready = IMPLEMENTED.has(key)
+              const borderColor = ready ? (COLORS[key]?.[1] ?? '#E5E7EB') : '#E5E7EB'
               const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
               const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
-              return (
+              const cardStyle = {
+                padding: 24,
+                borderTop: `3px solid ${borderColor}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              }
+              const inner = (
+                <>
+                  <ModuleIcon moduleKey={key} disabled={!ready} />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? '#2D3170' : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                      {!ready && (
+                        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 8, backgroundColor: '#F3F4F6', color: '#9CA3AF', fontWeight: 600, flexShrink: 0 }}>Скоро</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 12, color: ready ? '#6B7280' : '#D1D5DB', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                  </div>
+                </>
+              )
+              return ready ? (
                 <Link
                   key={key}
                   href={`/dashboard/${key}`}
-                  className="group flex flex-col gap-3 bg-white rounded-xl border border-gray-100 transition-all duration-200"
-                  style={{ padding: 24, borderTop: `3px solid ${borderColor}`, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                  className="flex flex-col gap-3 bg-white rounded-xl border border-gray-100"
+                  style={cardStyle}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
                 >
-                  <ModuleIcon moduleKey={key} />
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#2D3170', lineHeight: 1.3 }}>{name}</p>
-                    <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
-                  </div>
+                  {inner}
                 </Link>
+              ) : (
+                <div
+                  key={key}
+                  className="flex flex-col gap-3 bg-white rounded-xl border border-gray-100"
+                  style={{ ...cardStyle, cursor: 'default' }}
+                >
+                  {inner}
+                </div>
               )
             })}
           </div>

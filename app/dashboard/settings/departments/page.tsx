@@ -409,7 +409,7 @@ export default function DepartmentsPage() {
         { label: title },
       ]} />
 
-      <div style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
+      <div style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', borderRadius: 12, padding: '12px 24px' }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>
       </div>
 
