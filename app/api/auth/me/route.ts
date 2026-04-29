@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import type { RoleCode } from '@/types/database'
 
 const ALL_MODULE_CODES = [
-  'persons', 'applicants', 'education', 'finance', 'dormitory', 'food',
+  'persons', 'education', 'finance', 'dormitory', 'food',
   'security', 'alumni', 'sponsors', 'tasks', 'documents', 'reports',
   'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
 ]

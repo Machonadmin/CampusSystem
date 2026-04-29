@@ -7,7 +7,6 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 // ── All modules ──────────────────────────────────────────────────────────────
 const ALL_MODULES = [
   { code: 'persons',      name: 'База людей' },
-  { code: 'applicants',   name: 'Приёмная комиссия' },
   { code: 'education',    name: 'Образование' },
   { code: 'finance',      name: 'Финансы' },
   { code: 'dormitory',    name: 'Общежитие' },
