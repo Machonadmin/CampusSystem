@@ -432,55 +432,73 @@ export default function RolesPage() {
               const catTxt = CAT_TEXT[cat] ?? '#4B5563'
               return (
                 <div key={cat}>
-                  {/* Category header with colored background */}
+                  {/* Category header */}
                   <div style={{
-                    padding: '6px 14px',
+                    padding: '8px 12px',
                     backgroundColor: catBg,
                     borderBottom: '1px solid rgba(0,0,0,0.05)',
                     borderTop: '1px solid rgba(0,0,0,0.05)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
                   }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: catTxt, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: catTxt, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                       {catLabel(cat, lang)}
                     </span>
                   </div>
-                  {catRoles.map(role => (
-                    <div
-                      key={role.id}
-                      onClick={() => selectRole(role)}
-                      style={{
-                        padding: '9px 14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: selectedRole?.id === role.id ? '#EEF2FF' : 'transparent',
-                        borderLeft: selectedRole?.id === role.id ? '3px solid #2D3170' : '3px solid transparent',
-                        transition: 'background-color 0.1s',
-                      }}
-                      onMouseEnter={e => { if (selectedRole?.id !== role.id) (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
-                      onMouseLeave={e => { if (selectedRole?.id !== role.id) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent' }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#1F2937', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role.name}</p>
-                        <p style={{ fontSize: 10, color: '#9CA3AF', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
+                  {catRoles.map(role => {
+                    const isActive = selectedRole?.id === role.id
+                    return (
+                      <div
+                        key={role.id}
+                        onClick={() => selectRole(role)}
+                        style={{
+                          padding: '8px 12px 8px 20px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          backgroundColor: isActive ? '#EEF2FF' : 'transparent',
+                          borderLeft: `2px solid ${isActive ? '#2D3170' : 'transparent'}`,
+                          transition: 'background-color 0.1s, border-left-color 0.1s',
+                        }}
+                        onMouseEnter={e => {
+                          if (!isActive) {
+                            const el = e.currentTarget as HTMLDivElement
+                            el.style.backgroundColor = '#F5F7FF'
+                            el.style.borderLeftColor = '#4BAED4'
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isActive) {
+                            const el = e.currentTarget as HTMLDivElement
+                            el.style.backgroundColor = 'transparent'
+                            el.style.borderLeftColor = 'transparent'
+                          }
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role.name}</p>
+                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
+                          {role.is_system && (
+                            <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid ${catTxt}22` }}>
+                              {t.system}
+                            </span>
+                          )}
+                          {!role.is_system && (
+                            <button
+                              onClick={e => { e.stopPropagation(); deleteRole(role) }}
+                              style={{ padding: '2px 7px', borderRadius: 6, border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: 12, cursor: 'pointer', lineHeight: 1 }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
-                        {role.is_system && (
-                          <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid ${catTxt}22` }}>
-                            {t.system}
-                          </span>
-                        )}
-                        {!role.is_system && (
-                          <button
-                            onClick={e => { e.stopPropagation(); deleteRole(role) }}
-                            style={{ padding: '2px 7px', borderRadius: 6, border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: 12, cursor: 'pointer', lineHeight: 1 }}
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )
             })}
