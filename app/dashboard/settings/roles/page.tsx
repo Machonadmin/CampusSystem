@@ -25,19 +25,55 @@ const ALL_MODULES = [
 ]
 
 // ── Category display config ──────────────────────────────────────────────────
-const CAT_STYLE: Record<string, { bg: string; text: string }> = {
-  system:    { bg: '#FEF3C7', text: '#92400E' },
-  campus:    { bg: '#EEF2FF', text: '#1E40AF' },
-  education: { bg: '#ECFDF5', text: '#065F46' },
-  medical:   { bg: '#FEE2E2', text: '#991B1B' },
-  external:  { bg: '#F3F4F6', text: '#4B5563' },
-  custom:    { bg: '#F3F4F6', text: '#4B5563' },
+const CAT_COLORS: Record<string, string> = {
+  system:            '#FEF3C7',
+  campus_management: '#EEF2FF',
+  finance:           '#ECFDF5',
+  legal:             '#F0F9FF',
+  education:         '#F0FDF4',
+  dormitory:         '#FFF7ED',
+  medical:           '#FEE2E2',
+  security:          '#F1F5F9',
+  maintenance:       '#F8FAFC',
+  food:              '#FFFBEB',
+  technical:         '#F3F4F6',
+  external:          '#FAF5FF',
+}
+
+const CAT_TEXT: Record<string, string> = {
+  system:            '#92400E',
+  campus_management: '#1E40AF',
+  finance:           '#065F46',
+  legal:             '#0369A1',
+  education:         '#166534',
+  dormitory:         '#9A3412',
+  medical:           '#991B1B',
+  security:          '#334155',
+  maintenance:       '#475569',
+  food:              '#78350F',
+  technical:         '#4B5563',
+  external:          '#6D28D9',
 }
 
 function catLabel(cat: string, lang: string): string {
-  const ru: Record<string, string> = { system: 'Системные', campus: 'Кампус', education: 'Образование', medical: 'Медицина', external: 'Внешние', custom: 'Прочие' }
-  const he: Record<string, string> = { system: 'מערכת', campus: 'קמפוס', education: 'חינוך', medical: 'רפואה', external: 'חיצוני', custom: 'אחר' }
-  const en: Record<string, string> = { system: 'System', campus: 'Campus', education: 'Education', medical: 'Medical', external: 'External', custom: 'Other' }
+  const ru: Record<string, string> = {
+    system: 'Системные', campus_management: 'Управление кампусом', finance: 'Финансы',
+    legal: 'Юридический отдел', education: 'Образование', dormitory: 'Общежитие',
+    medical: 'Медицина', security: 'Безопасность', maintenance: 'Эксплуатация',
+    food: 'Питание', technical: 'Технический персонал', external: 'Внешние',
+  }
+  const he: Record<string, string> = {
+    system: 'מערכת', campus_management: 'ניהול קמפוס', finance: 'כספים',
+    legal: 'משפטי', education: 'חינוך', dormitory: 'מעונות',
+    medical: 'רפואה', security: 'ביטחון', maintenance: 'תחזוקה',
+    food: 'מזון', technical: 'טכני', external: 'חיצוני',
+  }
+  const en: Record<string, string> = {
+    system: 'System', campus_management: 'Campus Management', finance: 'Finance',
+    legal: 'Legal', education: 'Education', dormitory: 'Dormitory',
+    medical: 'Medical', security: 'Security', maintenance: 'Maintenance',
+    food: 'Food', technical: 'Technical Staff', external: 'External',
+  }
   return (lang === 'he' ? he : lang === 'en' ? en : ru)[cat] ?? cat
 }
 
@@ -392,17 +428,18 @@ export default function RolesPage() {
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {Object.entries(groupedRoles).map(([cat, catRoles]) => {
-              const style = CAT_STYLE[cat] ?? CAT_STYLE.custom
+              const catBg = CAT_COLORS[cat] ?? '#F3F4F6'
+              const catTxt = CAT_TEXT[cat] ?? '#4B5563'
               return (
                 <div key={cat}>
                   {/* Category header with colored background */}
                   <div style={{
                     padding: '6px 14px',
-                    backgroundColor: style.bg,
+                    backgroundColor: catBg,
                     borderBottom: '1px solid rgba(0,0,0,0.05)',
                     borderTop: '1px solid rgba(0,0,0,0.05)',
                   }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: style.text, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: catTxt, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                       {catLabel(cat, lang)}
                     </span>
                   </div>
@@ -429,7 +466,7 @@ export default function RolesPage() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
                         {role.is_system && (
-                          <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: style.bg, color: style.text, fontWeight: 600, border: `1px solid ${style.text}22` }}>
+                          <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid ${catTxt}22` }}>
                             {t.system}
                           </span>
                         )}

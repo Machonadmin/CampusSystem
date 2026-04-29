@@ -6,27 +6,45 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 
 const CAT_RU: Record<string, string> = {
   system: 'Системные',
-  campus: 'Кампус',
+  campus_management: 'Управление кампусом',
+  finance: 'Финансы',
+  legal: 'Юридический отдел',
   education: 'Образование',
+  dormitory: 'Общежитие',
   medical: 'Медицина',
+  security: 'Безопасность',
+  maintenance: 'Эксплуатация',
+  food: 'Питание',
+  technical: 'Технический персонал',
   external: 'Внешние',
-  custom: 'Прочие',
 }
 const CAT_HE: Record<string, string> = {
   system: 'מערכת',
-  campus: 'קמפוס',
+  campus_management: 'ניהול קמפוס',
+  finance: 'כספים',
+  legal: 'משפטי',
   education: 'חינוך',
+  dormitory: 'מעונות',
   medical: 'רפואה',
+  security: 'ביטחון',
+  maintenance: 'תחזוקה',
+  food: 'מזון',
+  technical: 'טכני',
   external: 'חיצוני',
-  custom: 'אחר',
 }
 const CAT_EN: Record<string, string> = {
   system: 'System',
-  campus: 'Campus',
+  campus_management: 'Campus Management',
+  finance: 'Finance',
+  legal: 'Legal',
   education: 'Education',
+  dormitory: 'Dormitory',
   medical: 'Medical',
+  security: 'Security',
+  maintenance: 'Maintenance',
+  food: 'Food',
+  technical: 'Technical Staff',
   external: 'External',
-  custom: 'Other',
 }
 
 interface Role {
