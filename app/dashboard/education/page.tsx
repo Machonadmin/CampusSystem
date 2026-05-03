@@ -318,8 +318,8 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Иванова Мария Ивановна" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Имя на иврите</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="מריה" disabled={ro} style={{ ...inp, direction: 'rtl', ...dis }} />
+              <label style={lbl}>Еврейское имя</label>
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="Мириам" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Пол</label>
