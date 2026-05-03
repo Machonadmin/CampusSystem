@@ -63,7 +63,7 @@ const MODAL_TABS = ['Личные данные', 'Контакты и адрес
 const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
 
 function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [view, setView] = useState<ModalView>('search')
+  const [view, setView] = useState<ModalView>('new')
   const [selected, setSelected] = useState<PersonResult | null>(null)
   const [tabIdx, setTabIdx] = useState(0)
 
@@ -71,6 +71,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [results, setResults] = useState<PersonResult[]>([])
   const [searching, setSearching] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [searchExpanded, setSearchExpanded] = useState(false)
 
   // Tab 1 – Личные данные
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -121,7 +122,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }, [query])
 
   function selectPerson(p: PersonResult) {
-    setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0)
+    setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0); setSearchExpanded(false)
   }
 
   function goNext() {
@@ -229,6 +230,41 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
                 <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · JPG, PNG</div>
+              </div>
+              <div style={{ flex: 1 }} />
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                {!searchExpanded ? (
+                  <button onClick={() => setSearchExpanded(true)}
+                    style={{ fontSize: 12, color: '#4BAED4', border: '1px solid #4BAED4', borderRadius: 8, padding: '6px 12px', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    🔍 Найти существующего человека
+                  </button>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                        placeholder="Имя или email..." style={{ ...inp, width: 220 }} />
+                      <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                        ×
+                      </button>
+                    </div>
+                    {(searching || results.length > 0) && (
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
+                        {results.map(p => (
+                          <button key={p.id} onClick={() => selectPerson(p)}
+                            style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                          >
+                            <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
+                            {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
@@ -464,84 +500,50 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
-        {/* Search section */}
-        {view === 'search' && (
-          <div style={{ flexShrink: 0, padding: '14px 24px', position: 'relative' }}>
-            <label style={lbl}>Поиск существующего человека</label>
-            <input
-              autoFocus value={query} onChange={e => setQuery(e.target.value)}
-              placeholder="Имя или email..." style={inp}
-            />
-            {(searching || results.length > 0) && (
-              <div style={{ position: 'absolute', top: 'calc(100% - 8px)', left: 24, right: 24, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: 200, overflowY: 'auto' }}>
-                {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
-                {results.map(p => (
-                  <button key={p.id} onClick={() => selectPerson(p)}
-                    style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
-                  >
-                    <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                    {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
-                  </button>
-                ))}
-              </div>
-            )}
-            <button onClick={() => { setView('new'); setTabIdx(0) }}
-              style={{ marginTop: 10, fontSize: 13, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              + Создать нового человека
-            </button>
-          </div>
-        )}
-
-        {/* Person indicator + tab steps */}
-        {view !== 'search' && (
-          <>
+        {/* Person indicator (shown when existing person is selected) + tab steps */}
+        <>
+          {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#6B7280' }}>
-                {view === 'existing' && selected
-                  ? <>Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong></>
-                  : <strong style={{ color: '#1F2937' }}>Новый человек</strong>}
+                Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
               </span>
-              <button onClick={() => { setView('search'); setSelected(null); setTabIdx(0) }}
+              <button onClick={() => { setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 изменить
               </button>
             </div>
-            <div style={{ flexShrink: 0, display: 'flex', padding: '10px 20px 0', gap: 2 }}>
-              {MODAL_TABS.map((tab, i) => (
-                <button key={i} onClick={() => { setError(''); setTabIdx(i) }}
-                  style={{
-                    flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
-                    fontWeight: tabIdx === i ? 600 : 400,
-                    color: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
-                    background: 'none', border: 'none',
-                    borderBottom: tabIdx === i ? '2px solid #2D3170' : '2px solid transparent',
-                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    transition: 'color 0.15s',
-                  }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                    background: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
-                    color: i <= tabIdx ? '#fff' : '#9CA3AF',
-                  }}>
-                    {i < tabIdx ? '✓' : i + 1}
-                  </span>
-                  {tab}
-                </button>
-              ))}
-            </div>
-            <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
-          </>
-        )}
+          )}
+          <div style={{ flexShrink: 0, display: 'flex', padding: '10px 20px 0', gap: 2 }}>
+            {MODAL_TABS.map((tab, i) => (
+              <button key={i} onClick={() => { setError(''); setTabIdx(i) }}
+                style={{
+                  flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
+                  fontWeight: tabIdx === i ? 600 : 400,
+                  color: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  background: 'none', border: 'none',
+                  borderBottom: tabIdx === i ? '2px solid #2D3170' : '2px solid transparent',
+                  cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  transition: 'color 0.15s',
+                }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
+                  background: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
+                  color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                }}>
+                  {i < tabIdx ? '✓' : i + 1}
+                </span>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+        </>
 
         {/* Form body */}
-        {view !== 'search' && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px' }}>
-            {renderTab()}
-          </div>
-        )}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px', minHeight: 440 }}>
+          {renderTab()}
+        </div>
 
         {/* Footer */}
         <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -550,19 +552,19 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
-            {view !== 'search' && tabIdx > 0 && (
+            {tabIdx > 0 && (
               <button onClick={goBack}
                 style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                 Назад
               </button>
             )}
-            {view !== 'search' && tabIdx < 4 && (
+            {tabIdx < 4 && (
               <button onClick={goNext}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
-            {view !== 'search' && tabIdx === 4 && (
+            {tabIdx === 4 && (
               <button onClick={handleSave} disabled={saving}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : 'Сохранить'}
