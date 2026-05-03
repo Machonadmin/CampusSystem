@@ -59,7 +59,7 @@ function formatDate(d: string | null) {
 
 type ModalView = 'search' | 'new' | 'existing'
 
-const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Направления', 'Дополнительно']
+const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
 const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
 
 function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
@@ -103,10 +103,16 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [dadContacts, setDadContacts] = useState<{ type: string; value: string }[]>([])
   const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string; contacts: { type: string; value: string }[] }[]>([])
 
-  // Tab 4 – Направления
+  // Tab 4 – Община
+  const [communities, setCommunities] = useState<{
+    name: string; contact_person: string; position: string;
+    phone: string; email: string; contacts: { type: string; value: string }[];
+  }[]>([{ name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
+
+  // Tab 5 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
 
-  // Tab 5 – Дополнительно
+  // Tab 6 – Дополнительно
   const [source, setSource] = useState('')
   const [comment, setComment] = useState('')
 
@@ -172,7 +178,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       if (tabIdx === 0 && !fullName.trim()) { setError('ФИО обязательно'); return }
       if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
     }
-    setTabIdx(t => Math.min(t + 1, 4))
+    setTabIdx(t => Math.min(t + 1, 5))
   }
 
   function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
@@ -227,6 +233,10 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
         if (validContacts.length > 0) familyData.contacts = validContacts
         if (Object.keys(familyData).length > 0) body.family = familyData
+        const validCommunities = communities
+          .filter(c => c.name || c.contact_person || c.phone)
+          .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
+        if (validCommunities.length > 0) body.communities = validCommunities
       }
       const res = await fetch('/api/education/leads', {
         method: 'POST',
@@ -593,7 +603,101 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           </div>
         )
 
-      case 3:
+      case 3: {
+        const communityContactTypes = (
+          <>
+            <option value="phone">Телефон</option>
+            <option value="email">Email</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="telegram">Telegram</option>
+            <option value="address">Адрес</option>
+            <option value="facebook">Facebook</option>
+            <option value="instagram">Instagram</option>
+            <option value="vk">VK</option>
+            <option value="other">Другое</option>
+          </>
+        )
+        const updateComm = (i: number, field: string, value: string) =>
+          setCommunities(prev => prev.map((c, ci) => ci === i ? { ...c, [field]: value } : c))
+        return (
+          <div>
+            {communities.map((comm, i) => {
+              const isCard = communities.length > 1
+              const wrap: React.CSSProperties = isCard
+                ? { background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
+                : {}
+              return (
+                <div key={i} style={wrap}>
+                  {isCard && (
+                    <button onClick={() => setCommunities(prev => prev.filter((_, ci) => ci !== i))}
+                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                      ×
+                    </button>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={lbl}>Название общины</label>
+                      <input value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
+                        placeholder="Бейт Хабад, Шалом и т.д." style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Имя контактного лица</label>
+                      <input value={comm.contact_person} onChange={e => updateComm(i, 'contact_person', e.target.value)}
+                        placeholder="Рабинович Давид" style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Должность в общине</label>
+                      <input value={comm.position} onChange={e => updateComm(i, 'position', e.target.value)}
+                        placeholder="Раввин, координатор..." style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Телефон</label>
+                      <input value={comm.phone} onChange={e => updateComm(i, 'phone', e.target.value)}
+                        placeholder="+972..." style={inp} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Email</label>
+                      <input type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
+                        placeholder="email@..." style={inp} />
+                    </div>
+                    {comm.contacts.map((cc, ci) => (
+                      <div key={ci} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <select value={cc.type}
+                          onChange={e => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.map((x, xi) => xi === ci ? { ...x, type: e.target.value } : x) } : c))}
+                          style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                          {communityContactTypes}
+                        </select>
+                        <input value={cc.value}
+                          onChange={e => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : c))}
+                          placeholder="Значение..." style={{ ...inp, flex: 1 }} />
+                        <button
+                          onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.filter((_, xi) => xi !== ci) } : c))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <button
+                        onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: [...c.contacts, { type: 'phone', value: '' }] } : c))}
+                        style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        + Добавить контакт
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+            <button
+              onClick={() => setCommunities(prev => [...prev, { name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
+              style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
+              + Добавить ещё общину
+            </button>
+          </div>
+        )
+      }
+
+      case 4:
         return (
           <div>
             <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
@@ -624,7 +728,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           </div>
         )
 
-      case 4:
+      case 5:
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
@@ -714,13 +818,13 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 Назад
               </button>
             )}
-            {tabIdx < 4 && (
+            {tabIdx < 5 && (
               <button onClick={goNext}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
-            {tabIdx === 4 && (
+            {tabIdx === 5 && (
               <button onClick={handleSave} disabled={saving}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : 'Сохранить'}
