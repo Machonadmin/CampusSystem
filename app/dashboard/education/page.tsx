@@ -101,7 +101,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [dadPhone, setDadPhone] = useState('')
   const [dadEmail, setDadEmail] = useState('')
   const [dadContacts, setDadContacts] = useState<{ type: string; value: string }[]>([])
-  const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string }[]>([])
+  const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string; contacts: { type: string; value: string }[] }[]>([])
 
   // Tab 4 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
@@ -222,7 +222,9 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           if (validDadContacts.length > 0) dadObj.contacts = validDadContacts
           familyData.dad = dadObj
         }
-        const validContacts = extraContacts.filter(c => c.name || c.phone)
+        const validContacts = extraContacts
+          .filter(c => c.name || c.phone)
+          .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
         if (validContacts.length > 0) familyData.contacts = validContacts
         if (Object.keys(familyData).length > 0) body.family = familyData
       }
@@ -516,7 +518,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Контактное лицо</div>
-                <button onClick={() => setExtraContacts(prev => [...prev, { name: '', relation: '', phone: '', email: '' }])}
+                <button onClick={() => setExtraContacts(prev => [...prev, { name: '', relation: '', phone: '', email: '', contacts: [] }])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   + Добавить контактное лицо
                 </button>
@@ -551,6 +553,38 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                       <input type="email" value={c.email}
                         onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, email: e.target.value } : ec))}
                         placeholder="email@..." style={inp} />
+                    </div>
+                    {c.contacts.map((cc, ci) => (
+                      <div key={ci} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <select value={cc.type}
+                          onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.map((x, xi) => xi === ci ? { ...x, type: e.target.value } : x) } : ec))}
+                          style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                          <option value="phone">Телефон</option>
+                          <option value="email">Email</option>
+                          <option value="whatsapp">WhatsApp</option>
+                          <option value="telegram">Telegram</option>
+                          <option value="address">Адрес</option>
+                          <option value="facebook">Facebook</option>
+                          <option value="instagram">Instagram</option>
+                          <option value="vk">VK</option>
+                          <option value="other">Другое</option>
+                        </select>
+                        <input value={cc.value}
+                          onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : ec))}
+                          placeholder="Значение..." style={{ ...inp, flex: 1 }} />
+                        <button
+                          onClick={() => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.filter((_, xi) => xi !== ci) } : ec))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <button
+                        onClick={() => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: [...ec.contacts, { type: 'phone', value: '' }] } : ec))}
+                        style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        + Добавить контакт
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -663,7 +697,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         </>
 
         {/* Form body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px', minHeight: 440 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px', minHeight: 480, maxHeight: 600 }}>
           {renderTab()}
         </div>
 
