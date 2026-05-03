@@ -9,13 +9,12 @@ ALTER TABLE roles ADD CONSTRAINT roles_category_check
     'food','technical','custom','external'
   ));
 
-INSERT INTO roles (name, code, category, description, level, is_system)
+INSERT INTO roles (name, code, category, description, is_system)
 VALUES (
   'Начальник отдела кадров',
   'hr_director',
   'campus_management',
   'Управляет персоналом, структурой организации, кадровым учётом',
-  3,
   false
 );
 
