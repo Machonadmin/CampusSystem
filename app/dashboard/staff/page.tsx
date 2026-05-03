@@ -353,53 +353,198 @@ function TreeRow({ node, depth, onAddChild, onRename, onDelete, onAddStaff, refr
   )
 }
 
-// ── Employees tab (placeholder) ───────────────────────────────────────────────
+// ── Employees tab ────────────────────────────────────────────────────────────
 
-function EmployeesTab({ onAdd, refreshSignal }: { onAdd: () => void; refreshSignal: number }) {
-  void refreshSignal
+interface Employee {
+  position_id: string
+  profile_id: string | null
+  person_id: string
+  full_name: string
+  photo_url: string | null
+  phone: string | null
+  email: string | null
+  position: string
+  is_head: boolean
+  department_id: string
+  department_name: string | null
+  hire_date: string | null
+  employment_type: string | null
+  status: 'active' | 'fired' | 'sick_leave' | 'vacation'
+}
+
+const EMPLOYMENT_LABELS: Record<string, string> = {
+  staff: 'Штат', intern: 'Стажёр', volunteer: 'Волонтёр', contractor: 'Подрядчик',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Активен', sick_leave: 'На больничном', vacation: 'В отпуске', fired: 'Уволен',
+}
+const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
+  active:     { bg: '#ECFDF5', fg: '#065F46' },
+  sick_leave: { bg: '#FEF3C7', fg: '#92400E' },
+  vacation:   { bg: '#DBEAFE', fg: '#1E40AF' },
+  fired:      { bg: '#FEE2E2', fg: '#991B1B' },
+}
+
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
+}
+
+type DeptWithKids = Department & { children: DeptWithKids[] }
+
+function flattenDeptOptions(depts: Department[]): { id: string; label: string }[] {
+  const map = new Map<string, DeptWithKids>()
+  for (const d of depts) map.set(d.id, { ...d, children: [] })
+  const roots: DeptWithKids[] = []
+  for (const node of map.values()) {
+    if (node.parent_id && map.has(node.parent_id)) map.get(node.parent_id)!.children.push(node)
+    else roots.push(node)
+  }
+  const out: { id: string; label: string }[] = []
+  function walk(node: DeptWithKids, depth: number) {
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
+    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walk(c, depth + 1))
+  }
+  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  return out
+}
+
+function EmployeesTab({
+  onAdd, depts, refreshSignal,
+}: {
+  onAdd: () => void
+  depts: Department[]
+  refreshSignal: number
+}) {
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
+  const [deptFilter, setDeptFilter] = useState('')
+
+  const deptOptions = flattenDeptOptions(depts)
+
+  useEffect(() => {
+    const handle = setTimeout(async () => {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      if (deptFilter) params.set('department', deptFilter)
+      const res = await fetch(`/api/staff?${params}`)
+      if (res.ok) setEmployees(await res.json())
+      setLoading(false)
+    }, search ? 250 : 0)
+    return () => clearTimeout(handle)
+  }, [search, deptFilter, refreshSignal])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      {/* Toolbar */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input
-          placeholder="Поиск по имени или должности..."
-          disabled
-          style={{ flex: 1, minWidth: 220, padding: '8px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#9CA3AF', backgroundColor: '#F9FAFB', outline: 'none' }}
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Поиск по имени, должности..."
+          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }}
         />
-        <select disabled style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#9CA3AF', backgroundColor: '#F9FAFB', outline: 'none' }}>
-          <option>Все отделы</option>
+        <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
+          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', color: deptFilter ? '#1F2937' : '#9CA3AF', minWidth: 200 }}>
+          <option value="">Все отделы</option>
+          {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
         <button onClick={onAdd}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-          <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Добавить сотрудника
+          style={{ padding: '8px 16px', background: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+          + Добавить сотрудника
         </button>
       </div>
 
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
-              {['Сотрудник', 'Должность', 'Отдел', 'Тип', 'Действия'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={5} style={{ padding: 48, textAlign: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <svg style={{ width: 40, height: 40, color: '#D1D5DB' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
-                  </svg>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: '#6B7280', margin: 0 }}>Раздел в разработке</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Список сотрудников появится здесь</p>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      {/* Table card */}
+      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+        {loading ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>Загрузка...</div>
+        ) : employees.length === 0 ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+            {search || deptFilter ? 'Ничего не найдено' : 'Сотрудники не добавлены'}
+          </div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                {['ИМЯ', 'ДОЛЖНОСТЬ', 'ОТДЕЛ', 'ТЕЛЕФОН', 'EMAIL', 'СТАТУС', ''].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {employees.map(emp => {
+                const statusKey = emp.status ?? 'active'
+                const statusColor = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
+                return (
+                  <tr key={emp.position_id} style={{ borderBottom: '1px solid #F9FAFB' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
+
+                    <td style={{ padding: '11px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {emp.photo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={emp.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#2D3170', flexShrink: 0 }}>
+                            {initials(emp.full_name)}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{emp.full_name}</span>
+                          {emp.is_head && <span style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>Руководитель</span>}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      <div>{emp.position}</div>
+                      {emp.employment_type && emp.employment_type !== 'staff' && (
+                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>{EMPLOYMENT_LABELS[emp.employment_type] ?? emp.employment_type}</div>
+                      )}
+                    </td>
+
+                    <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      {emp.department_name ?? '—'}
+                    </td>
+
+                    <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
+                      {emp.phone ?? '—'}
+                    </td>
+
+                    <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      {emp.email ?? '—'}
+                    </td>
+
+                    <td style={{ padding: '11px 14px' }}>
+                      <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: statusColor.bg, color: statusColor.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        {STATUS_LABELS[statusKey] ?? statusKey}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '11px 14px' }}>
+                      <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
+                        <button
+                          onClick={() => { if (emp.profile_id) window.location.href = `/dashboard/staff/${emp.profile_id}` }}
+                          disabled={!emp.profile_id}
+                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}>
+                          Открыть
+                        </button>
+                        <button
+                          onClick={() => alert('Перевод сотрудника — в разработке')}
+                          style={{ padding: '5px 12px', fontSize: 12, border: 'none', borderRadius: 6, background: '#EEF2FF', color: '#3730A3', cursor: 'pointer' }}>
+                          Перевести
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )
@@ -530,7 +675,7 @@ export default function StaffPage() {
         </div>
       )}
 
-      {activeTab === 1 && <EmployeesTab onAdd={() => setAddEmployeeOpen(true)} refreshSignal={refreshSignal} />}
+      {activeTab === 1 && <EmployeesTab onAdd={() => setAddEmployeeOpen(true)} depts={depts} refreshSignal={refreshSignal} />}
 
       {modal?.type === 'add' && (
         <DeptModal title="Новый отдел" onClose={() => setModal(null)} onSave={name => handleAdd(name, modal.parentId)} />

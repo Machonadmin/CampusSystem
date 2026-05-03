@@ -9,6 +9,90 @@ async function guard() {
   return session
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    await guard()
+    const sb = createServerClient()
+
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get('search')?.trim() ?? ''
+    const departmentId = searchParams.get('department')?.trim() ?? ''
+
+    // 1) Current positions (end_date IS NULL), optionally filtered by department
+    let posQuery = sb
+      .from('staff_positions')
+      .select('id, person_id, department_id, position_ru, is_head, start_date')
+      .is('end_date', null)
+      .order('is_head', { ascending: false })
+    if (departmentId) posQuery = posQuery.eq('department_id', departmentId)
+    const { data: positions, error: posErr } = await posQuery
+    if (posErr) throw posErr
+    if (!positions || positions.length === 0) return NextResponse.json([])
+
+    const personIds = [...new Set(positions.map(p => p.person_id))]
+    const deptIds = [...new Set(positions.map(p => p.department_id))]
+
+    // 2) Persons (with optional name search)
+    let personQuery = sb
+      .from('persons')
+      .select('id, full_name, photo_url, email, phones')
+      .in('id', personIds)
+    if (search) personQuery = personQuery.ilike('full_name', `%${search}%`)
+    const { data: persons, error: personsErr } = await personQuery
+    if (personsErr) throw personsErr
+
+    const personMap = new Map((persons ?? []).map(p => [p.id, p]))
+
+    // 3) Staff profiles (for hire_date, employment_type, fire_date → status)
+    const { data: profiles } = await sb
+      .from('staff_profiles')
+      .select('id, person_id, employment_type, hire_date, fire_date')
+      .in('person_id', personIds)
+
+    const profileMap = new Map((profiles ?? []).map(p => [p.person_id, p]))
+
+    // 4) Departments
+    const { data: depts } = await sb
+      .from('departments')
+      .select('id, name')
+      .in('id', deptIds)
+
+    const deptMap = new Map((depts ?? []).map(d => [d.id, d.name]))
+
+    // 5) Join — one row per current position
+    const result = positions
+      .filter(pos => personMap.has(pos.person_id))
+      .map(pos => {
+        const person = personMap.get(pos.person_id)!
+        const profile = profileMap.get(pos.person_id)
+        const phones = (person.phones as string[] | null) ?? []
+        const status = profile?.fire_date ? 'fired' : 'active'
+        return {
+          position_id: pos.id,
+          profile_id: profile?.id ?? null,
+          person_id: person.id,
+          full_name: person.full_name,
+          photo_url: person.photo_url,
+          phone: phones[0] ?? null,
+          email: person.email,
+          position: pos.position_ru,
+          is_head: pos.is_head,
+          department_id: pos.department_id,
+          department_name: deptMap.get(pos.department_id) ?? null,
+          hire_date: profile?.hire_date ?? pos.start_date ?? null,
+          employment_type: profile?.employment_type ?? null,
+          status,
+        }
+      })
+      .sort((a, b) => a.full_name.localeCompare(b.full_name))
+
+    return NextResponse.json(result)
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+  }
+}
+
 // Map the richer UI employment options onto the DB enum
 const EMPLOYMENT_MAP: Record<string, EmploymentType> = {
   staff: 'staff',
