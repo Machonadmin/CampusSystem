@@ -112,6 +112,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [loadingPerson, setLoadingPerson] = useState(false)
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return }
@@ -125,8 +126,44 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     return () => clearTimeout(timerRef.current)
   }, [query])
 
-  function selectPerson(p: PersonResult) {
+  function resetFields() {
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship(''); setPhotoPreview(null)
+    setPhones(['']); setEmail(''); setCountry(''); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
+    setMomName(''); setMomPhone(''); setMomEmail(''); setMomContacts([]); setDadName(''); setDadPhone(''); setDadEmail(''); setDadContacts([])
+  }
+
+  async function loadPersonData(id: string) {
+    setLoadingPerson(true)
+    try {
+      const res = await fetch(`/api/settings/persons/${id}`)
+      if (!res.ok) return
+      const d = await res.json()
+      setFullName(d.full_name ?? '')
+      setHebrewName(d.hebrew_name ?? '')
+      setGender(d.gender ?? '')
+      setBirthDate(d.birth_date ? String(d.birth_date).slice(0, 10) : '')
+      setMaritalStatus(d.marital_status ?? '')
+      setCitizenship(d.citizenship ?? '')
+      if (d.photo_url) setPhotoPreview(d.photo_url)
+      if (Array.isArray(d.phones) && d.phones.length > 0) setPhones(d.phones)
+      else if (d.phone) setPhones([d.phone])
+      if (d.email) setEmail(d.email)
+      const addr = d.address ?? {}
+      setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
+      setHouse(addr.house ?? ''); setApartment(addr.apartment ?? ''); setPostalCode(addr.postal_code ?? '')
+      const mom = d.family?.mom ?? {}; const dad = d.family?.dad ?? {}
+      setMomName(mom.name ?? ''); setMomPhone(mom.phone ?? ''); setMomEmail(mom.email ?? '')
+      if (Array.isArray(mom.contacts)) setMomContacts(mom.contacts)
+      setDadName(dad.name ?? ''); setDadPhone(dad.phone ?? ''); setDadEmail(dad.email ?? '')
+      if (Array.isArray(dad.contacts)) setDadContacts(dad.contacts)
+    } finally {
+      setLoadingPerson(false)
+    }
+  }
+
+  async function selectPerson(p: PersonResult) {
     setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0); setSearchExpanded(false)
+    await loadPersonData(p.id)
   }
 
   function goNext() {
@@ -214,25 +251,18 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }
 
   function renderTab() {
-    if (view === 'existing' && tabIdx === 0) {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#2D3170', marginBottom: 12 }}>
-            {initials(selected?.full_name ?? '')}
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#1F2937' }}>{selected?.full_name}</div>
-          {selected?.email && <div style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{selected.email}</div>}
-          <div style={{ marginTop: 14, fontSize: 12, color: '#9CA3AF', textAlign: 'center', maxWidth: 300 }}>
-            Личные данные уже заполнены в профиле этого человека
-          </div>
-        </div>
-      )
-    }
+    const ro = view === 'existing'
+    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: '#F9FAFB' } : {}
 
     switch (tabIdx) {
       case 0:
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+            {ro && (
+              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+                {loadingPerson ? 'Загрузка данных...' : '📋 Данные загружены из профиля · только для просмотра'}
+              </div>
+            )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                 {photoPreview
@@ -285,15 +315,15 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>ФИО *</label>
-              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Иванова Мария Ивановна" style={inp} />
+              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Иванова Мария Ивановна" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Имя на иврите</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="מריה" style={{ ...inp, direction: 'rtl' }} />
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="מריה" disabled={ro} style={{ ...inp, direction: 'rtl', ...dis }} />
             </div>
             <div>
               <label style={lbl}>Пол</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} style={inp}>
+              <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="female">Женский</option>
                 <option value="male">Мужской</option>
@@ -301,11 +331,11 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Дата рождения</label>
-              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} style={inp} />
+              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Семейное положение</label>
-              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} style={inp}>
+              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="single">Не замужем</option>
                 <option value="married">Замужем</option>
@@ -315,7 +345,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Гражданство</label>
-              <input value={citizenship} onChange={e => setCitizenship(e.target.value)} placeholder="Израиль" style={inp} />
+              <input value={citizenship} onChange={e => setCitizenship(e.target.value)} placeholder="Израиль" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -323,19 +353,24 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       case 1:
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+            {ro && (
+              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+                📋 Данные загружены из профиля · только для просмотра
+              </div>
+            )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <label style={{ ...lbl, marginBottom: 0 }}>Телефоны{view === 'new' ? ' *' : ''}</label>
-                <button onClick={() => setPhones(prev => [...prev, ''])}
+                {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   + Добавить телефон
-                </button>
+                </button>}
               </div>
               {phones.map((p, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                   <input value={p} onChange={e => setPhones(prev => prev.map((ph, pi) => pi === i ? e.target.value : ph))}
-                    placeholder="+972..." style={{ ...inp, flex: 1 }} />
-                  {phones.length > 1 && (
+                    placeholder="+972..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                  {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
                       ×
@@ -346,34 +381,34 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" style={inp} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Страна</label>
-              <select value={country} onChange={e => setCountry(e.target.value)} style={inp}>
+              <select value={country} onChange={e => setCountry(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label style={lbl}>Город</label>
-              <input value={city} onChange={e => setCity(e.target.value)} placeholder="Тель-Авив" style={inp} />
+              <input value={city} onChange={e => setCity(e.target.value)} placeholder="Тель-Авив" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Улица</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder="Дизенгоф" style={inp} />
+              <input value={street} onChange={e => setStreet(e.target.value)} placeholder="Дизенгоф" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Дом</label>
-              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" style={inp} />
+              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Квартира</label>
-              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" style={inp} />
+              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Индекс</label>
-              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" style={inp} />
+              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -381,26 +416,31 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       case 2:
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {ro && (
+              <div style={{ background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
+                📋 Данные загружены из профиля · только для просмотра
+              </div>
+            )}
             {/* Мама */}
             <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Мама</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>ФИО</label>
-                  <input value={momName} onChange={e => setMomName(e.target.value)} placeholder="Иванова Нина Петровна" style={inp} />
+                  <input value={momName} onChange={e => setMomName(e.target.value)} placeholder="Иванова Нина Петровна" disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Телефон</label>
-                  <input value={momPhone} onChange={e => setMomPhone(e.target.value)} placeholder="+972..." style={inp} />
+                  <input value={momPhone} onChange={e => setMomPhone(e.target.value)} placeholder="+972..." disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Email</label>
-                  <input type="email" value={momEmail} onChange={e => setMomEmail(e.target.value)} placeholder="email@..." style={inp} />
+                  <input type="email" value={momEmail} onChange={e => setMomEmail(e.target.value)} placeholder="email@..." disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 {momContacts.map((c, i) => (
                   <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
                     <select value={c.type} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
-                      style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                      disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
                       <option value="phone">Телефон</option>
                       <option value="email">Email</option>
                       <option value="whatsapp">WhatsApp</option>
@@ -412,19 +452,19 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                       <option value="other">Другое</option>
                     </select>
                     <input value={c.value} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
-                      placeholder="Значение..." style={{ ...inp, flex: 1 }} />
-                    <button onClick={() => setMomContacts(prev => prev.filter((_, xi) => xi !== i))}
+                      placeholder="Значение..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                    {!ro && <button onClick={() => setMomContacts(prev => prev.filter((_, xi) => xi !== i))}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                       ×
-                    </button>
+                    </button>}
                   </div>
                 ))}
-                <div style={{ gridColumn: '1 / -1' }}>
+                {!ro && <div style={{ gridColumn: '1 / -1' }}>
                   <button onClick={() => setMomContacts(prev => [...prev, { type: 'phone', value: '' }])}
                     style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     + Добавить контакт
                   </button>
-                </div>
+                </div>}
               </div>
             </div>
             {/* Папа */}
@@ -433,20 +473,20 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>ФИО</label>
-                  <input value={dadName} onChange={e => setDadName(e.target.value)} placeholder="Иванов Петр Иванович" style={inp} />
+                  <input value={dadName} onChange={e => setDadName(e.target.value)} placeholder="Иванов Петр Иванович" disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Телефон</label>
-                  <input value={dadPhone} onChange={e => setDadPhone(e.target.value)} placeholder="+972..." style={inp} />
+                  <input value={dadPhone} onChange={e => setDadPhone(e.target.value)} placeholder="+972..." disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Email</label>
-                  <input type="email" value={dadEmail} onChange={e => setDadEmail(e.target.value)} placeholder="email@..." style={inp} />
+                  <input type="email" value={dadEmail} onChange={e => setDadEmail(e.target.value)} placeholder="email@..." disabled={ro} style={{ ...inp, ...dis }} />
                 </div>
                 {dadContacts.map((c, i) => (
                   <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
                     <select value={c.type} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
-                      style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                      disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
                       <option value="phone">Телефон</option>
                       <option value="email">Email</option>
                       <option value="whatsapp">WhatsApp</option>
@@ -458,19 +498,19 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                       <option value="other">Другое</option>
                     </select>
                     <input value={c.value} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
-                      placeholder="Значение..." style={{ ...inp, flex: 1 }} />
-                    <button onClick={() => setDadContacts(prev => prev.filter((_, xi) => xi !== i))}
+                      placeholder="Значение..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                    {!ro && <button onClick={() => setDadContacts(prev => prev.filter((_, xi) => xi !== i))}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                       ×
-                    </button>
+                    </button>}
                   </div>
                 ))}
-                <div style={{ gridColumn: '1 / -1' }}>
+                {!ro && <div style={{ gridColumn: '1 / -1' }}>
                   <button onClick={() => setDadContacts(prev => [...prev, { type: 'phone', value: '' }])}
                     style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     + Добавить контакт
                   </button>
-                </div>
+                </div>}
               </div>
             </div>
             <div>
@@ -589,7 +629,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               <span style={{ fontSize: 12, color: '#6B7280' }}>
                 Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
               </span>
-              <button onClick={() => { setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
+              <button onClick={() => { resetFields(); setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 изменить
               </button>
