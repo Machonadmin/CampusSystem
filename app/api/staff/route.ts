@@ -9,100 +9,147 @@ async function guard() {
   return session
 }
 
-const VALID_EMPLOYMENT: EmploymentType[] = ['staff', 'intern', 'volunteer', 'contractor']
-
-function mapEmploymentType(input: string | undefined): EmploymentType {
+// Map the richer UI employment options onto the DB enum
+const EMPLOYMENT_MAP: Record<string, EmploymentType> = {
+  staff: 'staff',
+  full_time: 'staff',
+  part_time: 'staff',
+  hourly: 'staff',
+  intern: 'intern',
+  volunteer: 'volunteer',
+  contractor: 'contractor',
+}
+function toEmploymentType(input: string | undefined): EmploymentType {
   if (!input) return 'staff'
-  if (VALID_EMPLOYMENT.includes(input as EmploymentType)) return input as EmploymentType
-  // UI exposes additional types we collapse into 'staff' for the DB enum
-  if (input === 'part_time' || input === 'hourly') return 'staff'
-  return 'staff'
+  return EMPLOYMENT_MAP[input] ?? 'staff'
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await guard()
+    const session = await guard()
     const sb = createServerClient()
+
     const body = await request.json() as {
+      // Existing person
+      person_id?: string
+      // New person fields
       full_name?: string
       hebrew_name?: string
-      phone?: string
-      phones?: string[]
-      email?: string
       gender?: string
       birth_date?: string
       marital_status?: string
       citizenship?: string
+      phone?: string
+      phones?: string[]
+      email?: string
       address?: Record<string, string>
       contacts?: { type: string; value: string }[]
+      // Employment
       department_id?: string
       position?: string
       hire_date?: string
       employment_type?: string
       work_schedule?: string
-      passport?: Record<string, unknown>
-      education?: Record<string, unknown>
-      contract?: Record<string, unknown>
+      // Documents
+      passport?: { series?: string; number?: string; issue_date?: string; issued_by?: string }
+      education?: { level?: string; specialty?: string; graduation_year?: number; certificates?: string }
+      contract?: { number?: string; date?: string; salary?: number; currency?: string; file_name?: string }
       comment?: string
     }
 
-    if (!body.full_name?.trim()) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
-    if (!body.phone?.trim() && !body.phones?.length) return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
-    if (!body.department_id) return NextResponse.json({ error: 'Отдел обязателен' }, { status: 400 })
-    if (!body.position?.trim()) return NextResponse.json({ error: 'Должность обязательна' }, { status: 400 })
-    if (!body.hire_date) return NextResponse.json({ error: 'Дата приёма обязательна' }, { status: 400 })
+    // ── Validation ──────────────────────────────────────────────────────────
+    if (!body.person_id && !body.full_name?.trim())
+      return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
+    if (!body.person_id && !body.phone?.trim() && !(body.phones?.some(p => p.trim())))
+      return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
+    if (!body.department_id)
+      return NextResponse.json({ error: 'Отдел обязателен' }, { status: 400 })
+    if (!body.position?.trim())
+      return NextResponse.json({ error: 'Должность обязательна' }, { status: 400 })
+    if (!body.hire_date)
+      return NextResponse.json({ error: 'Дата приёма обязательна' }, { status: 400 })
 
-    const allPhones = (body.phones?.filter(p => p.trim()) ?? []).length > 0
-      ? body.phones!.filter(p => p.trim())
-      : (body.phone ? [body.phone.trim()] : [])
+    // ── Resolve / create person ─────────────────────────────────────────────
+    let personId: string
+    let personName: string
 
-    const { data: newPerson, error: personErr } = await sb
-      .from('persons')
+    if (body.person_id) {
+      const { data: existing } = await sb
+        .from('persons')
+        .select('id, full_name')
+        .eq('id', body.person_id)
+        .single()
+      if (!existing) return NextResponse.json({ error: 'Человек не найден' }, { status: 404 })
+      personId = existing.id
+      personName = existing.full_name
+    } else {
+      const allPhones = (body.phones?.filter(p => p.trim()) ?? [])
+      if (allPhones.length === 0 && body.phone?.trim()) allPhones.push(body.phone.trim())
+
+      const { data: newPerson, error: personErr } = await sb
+        .from('persons')
+        .insert({
+          full_name: body.full_name!.trim(),
+          hebrew_name: body.hebrew_name?.trim() || null,
+          gender: (body.gender as 'male' | 'female' | 'other') || null,
+          birth_date: body.birth_date || null,
+          marital_status: body.marital_status || null,
+          nationality: body.citizenship?.trim() || null,
+          passport_number: body.passport?.number?.trim() || null,
+          phones: allPhones,
+          email: body.email?.trim() || null,
+          photo_url: null,
+          address: body.address ?? {},
+          notes: null,
+        })
+        .select('id, full_name')
+        .single()
+
+      if (personErr || !newPerson) throw personErr ?? new Error('Ошибка создания человека')
+      personId = newPerson.id
+      personName = newPerson.full_name
+    }
+
+    // ── Staff profile ───────────────────────────────────────────────────────
+    // Extra fields that have no dedicated column go into notes as JSON
+    const extra: Record<string, unknown> = {}
+    if (body.work_schedule) extra.work_schedule = body.work_schedule
+    if (body.passport?.series || body.passport?.issue_date || body.passport?.issued_by) {
+      extra.passport = {
+        series: body.passport.series,
+        issue_date: body.passport.issue_date,
+        issued_by: body.passport.issued_by,
+      }
+    }
+    if (body.education) extra.education = body.education
+    if (body.contract) extra.contract = body.contract
+    if (body.contacts?.length) extra.contacts = body.contacts
+    if (body.comment) extra.comment = body.comment
+
+    const { data: profile, error: profileErr } = await sb
+      .from('staff_profiles')
       .insert({
-        full_name: body.full_name.trim(),
-        hebrew_name: body.hebrew_name?.trim() || null,
-        phones: allPhones,
-        email: body.email?.trim() || null,
-        gender: (body.gender as 'male' | 'female' | 'other') || null,
-        birth_date: body.birth_date || null,
-        photo_url: null,
-        address: body.address ?? {},
-        notes: null,
+        person_id: personId,
+        employment_type: toEmploymentType(body.employment_type),
+        hire_date: body.hire_date,
+        fire_date: null,
+        notes: Object.keys(extra).length > 0 ? JSON.stringify(extra) : null,
       })
       .select('id')
       .single()
 
-    if (personErr || !newPerson) throw personErr ?? new Error('Ошибка создания человека')
-    const personId = newPerson.id
-
-    const profileNotes = {
-      marital_status: body.marital_status,
-      citizenship: body.citizenship,
-      contacts: body.contacts,
-      work_schedule: body.work_schedule,
-      passport: body.passport,
-      education: body.education,
-      contract: body.contract,
-      comment: body.comment,
-    }
-    const cleanedNotes: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(profileNotes)) {
-      if (v !== undefined && v !== null && v !== '') cleanedNotes[k] = v
+    if (profileErr) {
+      // Ignore duplicate (person already has a staff profile)
+      if ((profileErr as { code?: string }).code !== '23505') throw profileErr
     }
 
-    const { error: profileErr } = await sb.from('staff_profiles').insert({
-      person_id: personId,
-      employment_type: mapEmploymentType(body.employment_type),
-      hire_date: body.hire_date,
-      fire_date: null,
-      notes: Object.keys(cleanedNotes).length > 0 ? JSON.stringify(cleanedNotes) : null,
-    })
-    if (profileErr) throw profileErr
+    const profileId = profile?.id ?? null
 
+    // ── Staff position ──────────────────────────────────────────────────────
     const { error: posErr } = await sb.from('staff_positions').insert({
       person_id: personId,
       department_id: body.department_id,
-      position_ru: body.position.trim(),
+      position_ru: body.position!.trim(),
       position_he: null,
       is_head: false,
       start_date: body.hire_date,
@@ -110,7 +157,32 @@ export async function POST(request: NextRequest) {
     })
     if (posErr) throw posErr
 
-    return NextResponse.json({ person_id: personId }, { status: 201 })
+    // ── Fetch department name for response ──────────────────────────────────
+    const { data: dept } = await sb
+      .from('departments')
+      .select('name')
+      .eq('id', body.department_id)
+      .single()
+
+    // ── Status history (education_status enum doesn't include 'staff';
+    //    only record if person has no prior education status) ─────────────
+    const { data: existingHistory } = await sb
+      .from('person_status_history')
+      .select('id')
+      .eq('person_id', personId)
+      .limit(1)
+
+    if (!existingHistory?.length) {
+      // Person has no education history — safe to ignore; no valid 'staff' enum value
+    }
+
+    return NextResponse.json({
+      profile_id: profileId,
+      person_id: personId,
+      full_name: personName,
+      position: body.position!.trim(),
+      department: dept?.name ?? null,
+    }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
