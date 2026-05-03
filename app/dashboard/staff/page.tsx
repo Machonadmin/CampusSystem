@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
+import AddEmployeeModal from './components/AddEmployeeModal'
 
 interface Department {
   id: string
@@ -354,7 +355,8 @@ function TreeRow({ node, depth, onAddChild, onRename, onDelete, onAddStaff, refr
 
 // ── Employees tab (placeholder) ───────────────────────────────────────────────
 
-function EmployeesTab() {
+function EmployeesTab({ onAdd, refreshSignal }: { onAdd: () => void; refreshSignal: number }) {
+  void refreshSignal
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -366,7 +368,8 @@ function EmployeesTab() {
         <select disabled style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, color: '#9CA3AF', backgroundColor: '#F9FAFB', outline: 'none' }}>
           <option>Все отделы</option>
         </select>
-        <button disabled style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#D1D5DB', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'not-allowed' }}>
+        <button onClick={onAdd}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -418,6 +421,7 @@ export default function StaffPage() {
   type Modal = { type: 'add'; parentId: string | null } | { type: 'rename'; node: TreeNode } | null
   const [modal, setModal] = useState<Modal>(null)
   const [addStaffDept, setAddStaffDept] = useState<string | null>(null)
+  const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -526,7 +530,7 @@ export default function StaffPage() {
         </div>
       )}
 
-      {activeTab === 1 && <EmployeesTab />}
+      {activeTab === 1 && <EmployeesTab onAdd={() => setAddEmployeeOpen(true)} refreshSignal={refreshSignal} />}
 
       {modal?.type === 'add' && (
         <DeptModal title="Новый отдел" onClose={() => setModal(null)} onSave={name => handleAdd(name, modal.parentId)} />
@@ -539,6 +543,12 @@ export default function StaffPage() {
           deptId={addStaffDept}
           onClose={() => setAddStaffDept(null)}
           onSaved={() => { setAddStaffDept(null); load(); setRefreshSignal(s => s + 1) }}
+        />
+      )}
+      {addEmployeeOpen && (
+        <AddEmployeeModal
+          onClose={() => setAddEmployeeOpen(false)}
+          onSaved={() => { setAddEmployeeOpen(false); load(); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>
