@@ -880,11 +880,12 @@ export default function EducationPage() {
 
   const tabBtn = (key: TabKey, label: string) => (
     <button key={key} onClick={() => setTab(key)} style={{
-      padding: '8px 20px', fontSize: 14,
-      fontWeight: tab === key ? 600 : 400,
-      color: tab === key ? '#2D3170' : '#6B7280',
-      borderBottom: tab === key ? '2px solid #4BAED4' : '2px solid transparent',
-      marginBottom: -2, background: 'none', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer',
+      padding: '12px 32px', fontSize: 15,
+      fontWeight: tab === key ? 700 : 500,
+      color: tab === key ? '#fff' : '#6B7280',
+      background: tab === key ? '#2D3170' : '#F3F4F6',
+      border: 'none', borderRadius: '8px 8px 0 0',
+      cursor: 'pointer', transition: 'all 0.2s ease', marginRight: '4px',
     }}>
       {label}
     </button>
@@ -902,7 +903,7 @@ export default function EducationPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 2, borderBottom: '2px solid #E5E7EB' }}>
+      <div style={{ display: 'flex', gap: 4, borderBottom: '2px solid #E5E7EB', marginBottom: 0 }}>
         {TABS.map(t => tabBtn(t.key, t.label))}
       </div>
 
