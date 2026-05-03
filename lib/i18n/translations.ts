@@ -26,6 +26,7 @@ const ru = {
     reports: 'Отчёты',
     contacts: 'Контакты',
     settings: 'Настройки',
+    staff: 'Персонал',
   },
   moduleDesc: {
     education: 'Учащиеся, группы, расписание',
@@ -42,6 +43,7 @@ const ru = {
     reports: 'Статистика, экспорт',
     contacts: 'Телефонная книга',
     settings: 'Роли, конфигурация',
+    staff: 'Сотрудники, структура',
   },
   user: {
     profile: 'Профиль',
@@ -110,6 +112,7 @@ const he: typeof ru = {
     reports: 'דוחות',
     contacts: 'אנשי קשר',
     settings: 'הגדרות',
+    staff: 'כוח אדם',
   },
   moduleDesc: {
     education: 'תלמידים, קבוצות, לוח זמנים',
@@ -126,6 +129,7 @@ const he: typeof ru = {
     reports: 'סטטיסטיקה, ייצוא',
     contacts: 'ספר טלפונים',
     settings: 'תפקידים, הגדרות',
+    staff: 'עובדים, מבנה',
   },
   user: {
     profile: 'פרופיל',
@@ -194,6 +198,7 @@ const en: typeof ru = {
     reports: 'Reports',
     contacts: 'Contacts',
     settings: 'Settings',
+    staff: 'Staff',
   },
   moduleDesc: {
     education: 'Students, groups, schedule',
@@ -210,6 +215,7 @@ const en: typeof ru = {
     reports: 'Statistics, export',
     contacts: 'Phone directory',
     settings: 'Roles, configuration',
+    staff: 'Staff, structure',
   },
   user: {
     profile: 'Profile',
