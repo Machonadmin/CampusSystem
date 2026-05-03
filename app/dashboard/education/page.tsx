@@ -95,8 +95,12 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   // Tab 3 – Семья
   const [momName, setMomName] = useState('')
   const [momPhone, setMomPhone] = useState('')
+  const [momEmail, setMomEmail] = useState('')
+  const [momContacts, setMomContacts] = useState<{ type: string; value: string }[]>([])
   const [dadName, setDadName] = useState('')
   const [dadPhone, setDadPhone] = useState('')
+  const [dadEmail, setDadEmail] = useState('')
+  const [dadContacts, setDadContacts] = useState<{ type: string; value: string }[]>([])
   const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string }[]>([])
 
   // Tab 4 – Направления
@@ -167,8 +171,20 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         const addr = { country, city, street, house, apartment, postal_code: postalCode }
         if (Object.values(addr).some(v => v)) body.address = addr
         const familyData: Record<string, unknown> = {}
-        if (momName || momPhone) familyData.mom = { name: momName, phone: momPhone }
-        if (dadName || dadPhone) familyData.dad = { name: dadName, phone: dadPhone }
+        if (momName || momPhone) {
+          const momObj: Record<string, unknown> = { name: momName, phone: momPhone }
+          if (momEmail) momObj.email = momEmail
+          const validMomContacts = momContacts.filter(c => c.value.trim())
+          if (validMomContacts.length > 0) momObj.contacts = validMomContacts
+          familyData.mom = momObj
+        }
+        if (dadName || dadPhone) {
+          const dadObj: Record<string, unknown> = { name: dadName, phone: dadPhone }
+          if (dadEmail) dadObj.email = dadEmail
+          const validDadContacts = dadContacts.filter(c => c.value.trim())
+          if (validDadContacts.length > 0) dadObj.contacts = validDadContacts
+          familyData.dad = dadObj
+        }
         const validContacts = extraContacts.filter(c => c.name || c.phone)
         if (validContacts.length > 0) familyData.contacts = validContacts
         if (Object.keys(familyData).length > 0) body.family = familyData
@@ -365,10 +381,11 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       case 2:
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Мама */}
             <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Мама</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                <div>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>ФИО</label>
                   <input value={momName} onChange={e => setMomName(e.target.value)} placeholder="Иванова Нина Петровна" style={inp} />
                 </div>
@@ -376,18 +393,83 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                   <label style={lbl}>Телефон</label>
                   <input value={momPhone} onChange={e => setMomPhone(e.target.value)} placeholder="+972..." style={inp} />
                 </div>
+                <div>
+                  <label style={lbl}>Email</label>
+                  <input type="email" value={momEmail} onChange={e => setMomEmail(e.target.value)} placeholder="email@..." style={inp} />
+                </div>
+                {momContacts.map((c, i) => (
+                  <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <select value={c.type} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
+                      style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                      <option value="phone">Телефон</option>
+                      <option value="email">Email</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="telegram">Telegram</option>
+                      <option value="address">Адрес</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="instagram">Instagram</option>
+                      <option value="vk">VK</option>
+                      <option value="other">Другое</option>
+                    </select>
+                    <input value={c.value} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
+                      placeholder="Значение..." style={{ ...inp, flex: 1 }} />
+                    <button onClick={() => setMomContacts(prev => prev.filter((_, xi) => xi !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <button onClick={() => setMomContacts(prev => [...prev, { type: 'phone', value: '' }])}
+                    style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    + Добавить контакт
+                  </button>
+                </div>
               </div>
             </div>
+            {/* Папа */}
             <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Папа</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                <div>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>ФИО</label>
                   <input value={dadName} onChange={e => setDadName(e.target.value)} placeholder="Иванов Петр Иванович" style={inp} />
                 </div>
                 <div>
                   <label style={lbl}>Телефон</label>
                   <input value={dadPhone} onChange={e => setDadPhone(e.target.value)} placeholder="+972..." style={inp} />
+                </div>
+                <div>
+                  <label style={lbl}>Email</label>
+                  <input type="email" value={dadEmail} onChange={e => setDadEmail(e.target.value)} placeholder="email@..." style={inp} />
+                </div>
+                {dadContacts.map((c, i) => (
+                  <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <select value={c.type} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
+                      style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
+                      <option value="phone">Телефон</option>
+                      <option value="email">Email</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="telegram">Telegram</option>
+                      <option value="address">Адрес</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="instagram">Instagram</option>
+                      <option value="vk">VK</option>
+                      <option value="other">Другое</option>
+                    </select>
+                    <input value={c.value} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
+                      placeholder="Значение..." style={{ ...inp, flex: 1 }} />
+                    <button onClick={() => setDadContacts(prev => prev.filter((_, xi) => xi !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <button onClick={() => setDadContacts(prev => [...prev, { type: 'phone', value: '' }])}
+                    style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    + Добавить контакт
+                  </button>
                 </div>
               </div>
             </div>
