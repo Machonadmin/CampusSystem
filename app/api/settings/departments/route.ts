@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
-async function guard() {
+async function requireAuth() {
+  const session = await getSession()
+  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+}
+
+async function requireSuperadmin() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
     throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
@@ -10,7 +15,7 @@ async function guard() {
 
 export async function GET() {
   try {
-    await guard()
+    await requireAuth()
     const sb = createServerClient()
 
     const [{ data: depts }, { data: staffPos }] = await Promise.all([
@@ -43,7 +48,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await guard()
+    await requireSuperadmin()
     const sb = createServerClient()
     const body = await request.json() as { name: string; parent_id?: string | null; sort_order?: number; description?: string | null }
 
