@@ -178,7 +178,7 @@ function Avatar({ name, photo }: { name: string; photo: string | null }) {
   if (photo) return <img src={photo} alt={name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
   const initials = name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
   return (
-    <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#2D3170', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{initials}</span>
     </div>
   )
@@ -186,7 +186,7 @@ function Avatar({ name, photo }: { name: string; photo: string | null }) {
 
 function RoleBadge({ name }: { name: string }) {
   return (
-    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: '#EEF2FF', color: '#2D3170', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: '#EEF2FF', color: '#3B82F6', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
       {name}
     </span>
   )
@@ -248,7 +248,7 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
                         if (e.target.checked) next.add(r.id); else next.delete(r.id)
                         setSelected(next)
                       }}
-                      style={{ accentColor: '#2D3170' }}
+                      style={{ accentColor: '#3B82F6' }}
                     />
                     <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
                   </label>
@@ -259,7 +259,7 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
         </div>
       </div>
     </div>
@@ -422,7 +422,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
                   {!searching && (
                     <div
                       onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
-                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#3B82F6', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
                     >
@@ -479,7 +479,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {roles.map(r => (
                         <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: '#2D3170' }} />
+                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: '#3B82F6' }} />
                           <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
                         </label>
                       ))}
@@ -497,7 +497,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
           <button
             onClick={save}
             disabled={saving || !personChosen}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
           >
             {t.save}
           </button>
@@ -642,7 +642,7 @@ function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
             </div>
           </div>
         </div>
@@ -725,7 +725,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
         >
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

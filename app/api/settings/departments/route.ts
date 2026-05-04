@@ -14,7 +14,7 @@ export async function GET() {
     const sb = createServerClient()
 
     const [{ data: depts }, { data: staffPos }] = await Promise.all([
-      sb.from('departments').select('id, name, parent_id, head_person_id, created_at').order('name'),
+      sb.from('departments').select('id, name, parent_id, head_person_id, sort_order, description, created_at').order('sort_order').order('name'),
       sb.from('staff_positions').select('department_id').is('end_date', null),
     ])
 
@@ -45,12 +45,12 @@ export async function POST(request: NextRequest) {
   try {
     await guard()
     const sb = createServerClient()
-    const body = await request.json() as { name: string; parent_id?: string | null }
+    const body = await request.json() as { name: string; parent_id?: string | null; sort_order?: number; description?: string | null }
 
     if (!body.name) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
 
     const { data, error } = await sb.from('departments')
-      .insert({ name: body.name, parent_id: body.parent_id ?? null, head_person_id: null })
+      .insert({ name: body.name, parent_id: body.parent_id ?? null, head_person_id: null, sort_order: body.sort_order ?? 0, description: body.description ?? null })
       .select('*').single()
     if (error) throw error
 

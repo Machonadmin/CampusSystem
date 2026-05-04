@@ -237,7 +237,7 @@ function AddRoleModal({ t, onClose, onSaved }: AddRoleModalProps) {
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
         </div>
       </div>
     </div>
@@ -267,7 +267,7 @@ function AddPrivilegeModal({ module, t, onClose, onAdd }: AddPrivilegeModalProps
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 14, color: '#1F2937', margin: 0 }}>{t.addPrivTitle}: <span style={{ color: '#2D3170' }}>{module}</span></p>
+          <p style={{ fontWeight: 600, fontSize: 14, color: '#1F2937', margin: 0 }}>{t.addPrivTitle}: <span style={{ color: '#3B82F6' }}>{module}</span></p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -293,7 +293,7 @@ function AddPrivilegeModal({ module, t, onClose, onAdd }: AddPrivilegeModalProps
         </div>
         <div style={{ padding: '10px 18px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={submit} style={{ padding: '6px 14px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer' }}>{t.addPrivilege}</button>
+          <button onClick={submit} style={{ padding: '6px 14px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer' }}>{t.addPrivilege}</button>
         </div>
       </div>
     </div>
@@ -418,7 +418,7 @@ export default function RolesPage() {
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1F2937' }}>Роли</span>
             <button
               onClick={() => setAddOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: '#2D3170', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: '#3B82F6', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
             >
               <svg style={{ width: 11, height: 11 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -459,7 +459,7 @@ export default function RolesPage() {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           backgroundColor: isActive ? '#EEF2FF' : 'transparent',
-                          borderLeft: `2px solid ${isActive ? '#2D3170' : 'transparent'}`,
+                          borderLeft: `2px solid ${isActive ? '#3B82F6' : 'transparent'}`,
                           transition: 'background-color 0.1s, border-left-color 0.1s',
                         }}
                         onMouseEnter={e => {
@@ -524,7 +524,7 @@ export default function RolesPage() {
                   <button
                     onClick={savePrivileges}
                     disabled={saving || selectedRole.is_system}
-                    style={{ padding: '7px 18px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || selectedRole.is_system) ? 'not-allowed' : 'pointer', opacity: (saving || selectedRole.is_system) ? 0.5 : 1 }}
+                    style={{ padding: '7px 18px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || selectedRole.is_system) ? 'not-allowed' : 'pointer', opacity: (saving || selectedRole.is_system) ? 0.5 : 1 }}
                   >
                     {t.save}
                   </button>
@@ -598,8 +598,8 @@ export default function RolesPage() {
                             border: '1px solid #E5E7EB',
                             marginBottom: 10,
                           }}>
-                            <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#2D3170', flexShrink: 0 }} />
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#2D3170', textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1 }}>
+                            <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#3B82F6', flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1 }}>
                               {module}
                             </span>
                             {/* Select-all checkbox */}
@@ -617,7 +617,7 @@ export default function RolesPage() {
                                     return next
                                   })
                                 }}
-                                style={{ accentColor: '#2D3170' }}
+                                style={{ accentColor: '#3B82F6' }}
                                 disabled={selectedRole.is_system}
                               />
                               <span style={{ fontSize: 11, color: '#6B7280' }}>{t.all}</span>
@@ -657,7 +657,7 @@ export default function RolesPage() {
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => !selectedRole.is_system && togglePriv(module, p.privilege_code)}
-                                    style={{ accentColor: '#2D3170' }}
+                                    style={{ accentColor: '#3B82F6' }}
                                     disabled={selectedRole.is_system}
                                   />
                                   <div style={{ minWidth: 0 }}>

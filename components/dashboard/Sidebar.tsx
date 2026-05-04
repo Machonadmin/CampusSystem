@@ -66,7 +66,7 @@ function SidebarNavLink({
       {active && (
         <span
           className="absolute top-0 bottom-0 w-[3px] rounded-r"
-          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#2D3170' }}
+          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#3B82F6' }}
         />
       )}
       <Link
@@ -75,7 +75,7 @@ function SidebarNavLink({
         className={`flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'}`}
         style={
           active
-            ? { backgroundColor: '#EEF2FF', color: '#2D3170', padding: isOpen ? '8px 10px' : '10px 11px' }
+            ? { backgroundColor: '#EEF2FF', color: '#3B82F6', padding: isOpen ? '8px 10px' : '10px 11px' }
             : { color: '#4B5563', padding: isOpen ? '8px 10px' : '10px 11px' }
         }
       >
@@ -154,7 +154,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" style={{ height: 26, objectFit: 'contain', flexShrink: 0 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#2D3170', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#3B82F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t.campusNameShort}
             </span>
           </div>
@@ -167,7 +167,7 @@ export default function Sidebar() {
               onClick={() => setPin(!isPinned)}
               title={isPinned ? 'Открепить' : 'Закрепить'}
               className={`p-1.5 rounded transition-colors ${
-                isPinned ? 'text-[#2D3170] bg-[#EEF2FF]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                isPinned ? 'text-[#3B82F6] bg-[#EEF2FF]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
               }`}
             >
               <svg style={{ width: 13, height: 13 }} fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">

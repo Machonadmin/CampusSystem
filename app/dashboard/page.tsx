@@ -47,7 +47,7 @@ const ICONS: Record<string, string> = {
 
 const COLORS: Record<string, [string, string]> = {
   persons:      ['#E6F1FB', '#2563EB'],
-  staff:        ['#EEF2FF', '#2D3170'],
+  staff:        ['#EEF2FF', '#3B82F6'],
   education:    ['#E6F1FB', '#2563EB'],
   finance:      ['#EAF3DE', '#16A34A'],
   dormitory:    ['#E1F5EE', '#059669'],
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       {/* Welcome banner */}
       <div
         className="flex items-center justify-between rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
+        style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
           {greeting}
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                   <ModuleIcon moduleKey={key} disabled={!ready} />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? '#2D3170' : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? '#3B82F6' : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
                       {!ready && (
                         <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 8, backgroundColor: '#F3F4F6', color: '#9CA3AF', fontWeight: 600, flexShrink: 0 }}>Скоро</span>
                       )}

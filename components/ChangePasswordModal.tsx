@@ -169,7 +169,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 onClick={submit}
                 disabled={saving}
                 style={{
-                  padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170',
+                  padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6',
                   color: '#fff', border: 'none', fontSize: 13,
                   cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
                 }}

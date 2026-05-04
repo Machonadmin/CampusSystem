@@ -67,13 +67,13 @@ export default function Header({ userName, roles }: HeaderProps) {
         <img src="/logo.png" alt="Махон Хамеш" style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
-          style={{ color: '#2D3170', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+          style={{ color: '#3B82F6', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusName}
         </span>
         <span
           className="block lg:hidden"
-          style={{ color: '#2D3170', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+          style={{ color: '#3B82F6', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusNameShort}
         </span>
@@ -127,7 +127,7 @@ export default function Header({ userName, roles }: HeaderProps) {
               className={`w-8 py-1 rounded text-xs font-semibold transition ${
                 lang === l ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
-              style={lang === l ? { backgroundColor: '#2D3170' } : {}}
+              style={lang === l ? { backgroundColor: '#3B82F6' } : {}}
             >
               {l.toUpperCase()}
             </button>
@@ -150,7 +150,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             </div>
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-              style={{ backgroundColor: '#2D3170' }}
+              style={{ backgroundColor: '#3B82F6' }}
             >
               {initials}
             </div>

@@ -282,7 +282,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#2D3170', cursor: 'pointer', padding: '6px 14px', border: '1px solid #2D3170', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
                   Загрузить фото
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
@@ -779,16 +779,16 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #2D3170' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
+                  background: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
                   color: i <= tabIdx ? '#fff' : '#9CA3AF',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
@@ -801,7 +801,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         </>
 
         {/* Form body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px', minHeight: 480, maxHeight: 600 }}>
+        <div style={{ height: 560, overflowY: 'auto', padding: '16px 24px 8px' }}>
           {renderTab()}
         </div>
 
@@ -820,13 +820,13 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
             {tabIdx === 5 && (
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : 'Сохранить'}
               </button>
             )}
@@ -882,7 +882,7 @@ export default function EducationPage() {
     <button key={key} onClick={() => setTab(key)} style={{
       padding: '14px 40px', fontSize: 15,
       fontWeight: tab === key ? 700 : 500,
-      color: tab === key ? '#2D3170' : '#6B7280',
+      color: tab === key ? '#3B82F6' : '#6B7280',
       background: tab === key ? '#E0F2FE' : 'transparent',
       border: tab === key ? '2px solid #4BAED4' : '2px solid transparent',
       borderBottom: 'none', borderRadius: '10px 10px 0 0',
@@ -899,7 +899,7 @@ export default function EducationPage() {
         { label: 'Образование' },
       ]} />
 
-      <div style={{ backgroundColor: '#2D3170', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
+      <div style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Образование</h1>
       </div>
 
@@ -924,7 +924,7 @@ export default function EducationPage() {
               {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
             </select>
             <button onClick={() => setAddOpen(true)}
-              style={{ padding: '8px 16px', background: '#2D3170', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
               + Добавить лида
             </button>
           </div>

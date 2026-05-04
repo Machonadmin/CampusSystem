@@ -294,7 +294,7 @@ export default function AddEmployeeModal({
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#2D3170', cursor: 'pointer', padding: '6px 14px', border: '1px solid #2D3170', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
                   Загрузить фото
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
@@ -578,7 +578,7 @@ export default function AddEmployeeModal({
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Прикрепить файл договора</label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed #D1D5DB', borderRadius: 8, cursor: 'pointer', background: '#F9FAFB' }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#2D3170', padding: '4px 12px', border: '1px solid #2D3170', borderRadius: 6, background: '#fff' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', padding: '4px 12px', border: '1px solid #3B82F6', borderRadius: 6, background: '#fff' }}>
                   Выбрать файл
                 </span>
                 <span style={{ fontSize: 12, color: contractFile ? '#1F2937' : '#9CA3AF' }}>
@@ -634,16 +634,16 @@ export default function AddEmployeeModal({
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #2D3170' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? '#2D3170' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
+                  background: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
                   color: i <= tabIdx ? '#fff' : '#9CA3AF',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
@@ -656,7 +656,7 @@ export default function AddEmployeeModal({
         </>
 
         {/* Form body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 8px', minHeight: 480, maxHeight: 600 }}>
+        <div style={{ height: 520, overflowY: 'auto', padding: '16px 24px 8px' }}>
           {renderTab()}
         </div>
 
@@ -675,13 +675,13 @@ export default function AddEmployeeModal({
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
             {tabIdx === 5 && (
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#2D3170', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : 'Сохранить'}
               </button>
             )}
