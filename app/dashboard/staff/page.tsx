@@ -464,6 +464,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
+  const [localRefresh, setLocalRefresh] = useState(0)
+  const [editingEmployee, setEditingEmployee] = useState<string | null>(null)
   const deptOptions = flattenDeptOptions(depts)
 
   useEffect(() => {
@@ -477,7 +479,27 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
       setLoading(false)
     }, search ? 250 : 0)
     return () => clearTimeout(handle)
-  }, [search, deptFilter, refreshSignal])
+  }, [search, deptFilter, refreshSignal, localRefresh])
+
+  function handleEditEmployee(profileId: string) {
+    setEditingEmployee(profileId)
+    onAdd()
+  }
+
+  async function handleDeleteEmployee(profileId: string, fullName: string) {
+    if (!confirm(`Вы уверены, что хотите удалить сотрудника ${fullName}?\n\nЭто действие нельзя отменить.`)) return
+    try {
+      const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || 'Ошибка при удалении')
+        return
+      }
+      setLocalRefresh(n => n + 1)
+    } catch {
+      alert('Ошибка при удалении сотрудника')
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -548,9 +570,19 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                        <button onClick={() => { if (emp.profile_id) window.location.href = `/dashboard/staff/${emp.profile_id}` }} disabled={!emp.profile_id}
-                          style={{ padding: '5px 10px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}>
-                          Открыть
+                        <button
+                          onClick={() => emp.profile_id && handleEditEmployee(emp.profile_id)}
+                          disabled={!emp.profile_id}
+                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}
+                        >
+                          Редактировать
+                        </button>
+                        <button
+                          onClick={() => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name)}
+                          disabled={!emp.profile_id}
+                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#DC2626', opacity: emp.profile_id ? 1 : 0.5 }}
+                        >
+                          Удалить
                         </button>
                       </div>
                     </td>
