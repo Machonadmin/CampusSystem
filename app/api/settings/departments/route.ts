@@ -18,10 +18,29 @@ export async function GET() {
     await requireAuth()
     const sb = createServerClient()
 
-    const [{ data: depts }, { data: staffPos }] = await Promise.all([
-      sb.from('departments').select('id, name, parent_id, head_person_id, sort_order, description, created_at').order('sort_order').order('name'),
-      sb.from('staff_positions').select('department_id').is('end_date', null),
-    ])
+    // Try query with sort_order (post-migration). If the column doesn't exist yet,
+    // PostgREST returns an error and data=null — fall back to the base columns.
+    const { data: deptsWithSort, error: sortErr } = await sb
+      .from('departments')
+      .select('id, name, parent_id, head_person_id, sort_order, description, created_at')
+      .order('sort_order')
+      .order('name')
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let depts: any[] | null = deptsWithSort
+    if (sortErr) {
+      const { data: fallback, error: fallbackErr } = await sb
+        .from('departments')
+        .select('id, name, parent_id, head_person_id, created_at')
+        .order('name')
+      if (fallbackErr) throw fallbackErr
+      depts = fallback
+    }
+
+    const { data: staffPos } = await sb
+      .from('staff_positions')
+      .select('department_id')
+      .is('end_date', null)
 
     const headIds = [...new Set((depts ?? []).filter(d => d.head_person_id).map(d => d.head_person_id!))]
     const { data: headPersons } = headIds.length
@@ -54,10 +73,19 @@ export async function POST(request: NextRequest) {
 
     if (!body.name) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
 
-    const { data, error } = await sb.from('departments')
+    // Try inserting with sort_order/description; fall back to base columns if migration not yet applied
+    const insertFull = await sb.from('departments')
       .insert({ name: body.name, parent_id: body.parent_id ?? null, head_person_id: null, sort_order: body.sort_order ?? 0, description: body.description ?? null })
       .select('*').single()
-    if (error) throw error
+
+    let data = insertFull.data
+    if (insertFull.error) {
+      const insertBase = await sb.from('departments')
+        .insert({ name: body.name, parent_id: body.parent_id ?? null, head_person_id: null })
+        .select('*').single()
+      if (insertBase.error) throw insertBase.error
+      data = insertBase.data
+    }
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
