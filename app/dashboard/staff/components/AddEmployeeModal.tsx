@@ -45,7 +45,13 @@ function flattenTree(depts: Department[]): DeptOption[] {
   return out
 }
 
-export default function AddEmployeeModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+export default function AddEmployeeModal({
+  onClose, onSaved, defaultDepartmentId,
+}: {
+  onClose: () => void
+  onSaved: () => void
+  defaultDepartmentId?: string
+}) {
   const [view, setView] = useState<ModalView>('new')
   const [selected, setSelected] = useState<PersonResult | null>(null)
   const [tabIdx, setTabIdx] = useState(0)
@@ -78,7 +84,7 @@ export default function AddEmployeeModal({ onClose, onSaved }: { onClose: () => 
 
   // Tab 2 — Должность и отдел
   const [departments, setDepartments] = useState<DeptOption[]>([])
-  const [departmentId, setDepartmentId] = useState('')
+  const [departmentId, setDepartmentId] = useState(defaultDepartmentId ?? '')
   const [position, setPosition] = useState('')
   const [hireDate, setHireDate] = useState('')
   const [employmentType, setEmploymentType] = useState('staff')

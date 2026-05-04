@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import AddEmployeeModal from './components/AddEmployeeModal'
@@ -23,8 +23,6 @@ interface StaffMember {
   employment_type: string | null
 }
 
-interface PersonResult { id: string; full_name: string; email: string | null }
-
 const EMP_LABELS: Record<string, string> = {
   staff: 'Штат', intern: 'Стажёр', volunteer: 'Волонтёр', contractor: 'Подрядчик',
 }
@@ -42,166 +40,6 @@ function buildTree(depts: Department[]): TreeNode[] {
   return roots
 }
 
-// ── Add-staff modal ──────────────────────────────────────────────────────────
-
-function AddStaffModal({ deptId, onClose, onSaved }: { deptId: string; onClose: () => void; onSaved: () => void }) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<PersonResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [selected, setSelected] = useState<PersonResult | null>(null)
-  const [createNew, setCreateNew] = useState(false)
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [position, setPosition] = useState('')
-  const [empType, setEmpType] = useState('staff')
-  const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState('')
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  function search(q: string) {
-    setQuery(q); setSelected(null); setCreateNew(false)
-    if (timer.current) clearTimeout(timer.current)
-    if (q.length < 2) { setResults([]); return }
-    timer.current = setTimeout(async () => {
-      setSearching(true)
-      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(q)}`)
-      if (res.ok) setResults(await res.json())
-      setSearching(false)
-    }, 300)
-  }
-
-  async function save() {
-    setErr('')
-    if (!position.trim()) { setErr('Должность обязательна'); return }
-    if (!selected && !createNew) { setErr('Выберите человека или создайте нового'); return }
-    if (createNew && !fullName.trim()) { setErr('Введите имя'); return }
-    setSaving(true)
-    const body = selected
-      ? { person_id: selected.id, position_ru: position.trim(), employment_type: empType }
-      : { full_name: fullName.trim(), email: email.trim() || undefined, position_ru: position.trim(), employment_type: empType }
-    const res = await fetch(`/api/settings/departments/${deptId}/staff`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-    })
-    setSaving(false)
-    if (res.ok) { onSaved(); onClose() }
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
-  }
-
-  const personChosen = !!selected || createNew
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>Добавить сотрудника</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 20, lineHeight: 1 }}>×</button>
-        </div>
-
-        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Поиск в базе людей</p>
-
-          {selected && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF', marginBottom: 8 }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selected.full_name}</p>
-                {selected.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selected.email}</p>}
-              </div>
-              <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
-            </div>
-          )}
-
-          {createNew && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', marginBottom: 8 }}>
-              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
-              <button onClick={() => setCreateNew(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
-            </div>
-          )}
-
-          {!personChosen && (
-            <div style={{ position: 'relative' }}>
-              <input
-                value={query} onChange={e => search(e.target.value)}
-                placeholder="Введите имя или email..."
-                autoComplete="off"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-              />
-              {(searching || results.length > 0 || query.length >= 2) && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
-                  {searching && <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>}
-                  {!searching && results.map(p => (
-                    <div key={p.id} onClick={() => { setSelected(p); setResults([]); setQuery('') }}
-                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
-                      {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
-                    </div>
-                  ))}
-                  {!searching && (
-                    <div onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
-                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#2D3170', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}>
-                      + Создать нового человека
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {createNew && (
-            <>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Полное имя *</span>
-                <input autoFocus value={fullName} onChange={e => setFullName(e.target.value)}
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email</span>
-                <input value={email} onChange={e => setEmail(e.target.value)}
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-              </label>
-            </>
-          )}
-
-          {personChosen && (
-            <>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Должность *</span>
-                <input value={position} onChange={e => setPosition(e.target.value)}
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Тип занятости</span>
-                <select value={empType} onChange={e => setEmpType(e.target.value)}
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', backgroundColor: '#fff' }}>
-                  <option value="staff">Штат</option>
-                  <option value="intern">Стажёр</option>
-                  <option value="volunteer">Волонтёр</option>
-                  <option value="contractor">Подрядчик</option>
-                </select>
-              </label>
-            </>
-          )}
-
-          {err && <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{err}</p>}
-        </div>
-
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
-          <button onClick={save} disabled={saving}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#2D3170', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            Сохранить
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ── Dept name/rename modal ───────────────────────────────────────────────────
 
@@ -565,7 +403,7 @@ export default function StaffPage() {
 
   type Modal = { type: 'add'; parentId: string | null } | { type: 'rename'; node: TreeNode } | null
   const [modal, setModal] = useState<Modal>(null)
-  const [addStaffDept, setAddStaffDept] = useState<string | null>(null)
+  const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
 
   const load = useCallback(async () => {
@@ -664,7 +502,7 @@ export default function StaffPage() {
                       onAddChild={id => setModal({ type: 'add', parentId: id })}
                       onRename={n => setModal({ type: 'rename', node: n })}
                       onDelete={handleDelete}
-                      onAddStaff={id => setAddStaffDept(id)}
+                      onAddStaff={id => { setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
                       refreshSignal={refreshSignal}
                     />
                   ))}
@@ -675,7 +513,7 @@ export default function StaffPage() {
         </div>
       )}
 
-      {activeTab === 1 && <EmployeesTab onAdd={() => setAddEmployeeOpen(true)} depts={depts} refreshSignal={refreshSignal} />}
+      {activeTab === 1 && <EmployeesTab onAdd={() => { setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }} depts={depts} refreshSignal={refreshSignal} />}
 
       {modal?.type === 'add' && (
         <DeptModal title="Новый отдел" onClose={() => setModal(null)} onSave={name => handleAdd(name, modal.parentId)} />
@@ -683,17 +521,11 @@ export default function StaffPage() {
       {modal?.type === 'rename' && (
         <DeptModal title="Переименовать" initialName={modal.node.name} onClose={() => setModal(null)} onSave={name => handleRename(name, modal.node.id)} />
       )}
-      {addStaffDept && (
-        <AddStaffModal
-          deptId={addStaffDept}
-          onClose={() => setAddStaffDept(null)}
-          onSaved={() => { setAddStaffDept(null); load(); setRefreshSignal(s => s + 1) }}
-        />
-      )}
       {addEmployeeOpen && (
         <AddEmployeeModal
-          onClose={() => setAddEmployeeOpen(false)}
-          onSaved={() => { setAddEmployeeOpen(false); load(); setRefreshSignal(s => s + 1) }}
+          defaultDepartmentId={addEmployeeDept}
+          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined) }}
+          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); load(); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>
