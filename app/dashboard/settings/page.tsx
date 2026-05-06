@@ -23,23 +23,32 @@ const SECTIONS = [
     iconPath: 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z',
     bg: '#EAF3DE', color: '#16A34A',
   },
+  {
+    key: 'quality_templates',
+    href: '/dashboard/settings/quality-templates',
+    iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+    bg: '#FFF0F6', color: '#BE185D',
+  },
 ]
 
 const LABELS: Record<string, Record<string, { title: string; desc: string }>> = {
   ru: {
     users: { title: 'Пользователи', desc: 'Управление учётными записями и назначение ролей' },
     roles: { title: 'Роли и привилегии', desc: 'Настройка ролей и прав доступа к модулям' },
-    departments: { title: 'Структура организации', desc: 'Управление подразделениями и отделами' },
+    departments:        { title: 'Структура организации', desc: 'Управление подразделениями и отделами' },
+    quality_templates:  { title: 'Шаблоны проверок', desc: 'Шаблоны для контроля качества преподавания' },
   },
   he: {
-    users: { title: 'משתמשים', desc: 'ניהול חשבונות והקצאת תפקידים' },
-    roles: { title: 'תפקידים והרשאות', desc: 'הגדרת תפקידים וזכויות גישה למודולים' },
-    departments: { title: 'מבנה ארגוני', desc: 'ניהול מחלקות ויחידות' },
+    users:             { title: 'משתמשים', desc: 'ניהול חשבונות והקצאת תפקידים' },
+    roles:             { title: 'תפקידים והרשאות', desc: 'הגדרת תפקידים וזכויות גישה למודולים' },
+    departments:       { title: 'מבנה ארגוני', desc: 'ניהול מחלקות ויחידות' },
+    quality_templates: { title: 'תבניות בדיקה', desc: 'תבניות לבקרת איכות הוראה' },
   },
   en: {
-    users: { title: 'Users', desc: 'Manage accounts and assign roles' },
-    roles: { title: 'Roles & Privileges', desc: 'Configure roles and module access rights' },
-    departments: { title: 'Organization Structure', desc: 'Manage departments and units' },
+    users:             { title: 'Users', desc: 'Manage accounts and assign roles' },
+    roles:             { title: 'Roles & Privileges', desc: 'Configure roles and module access rights' },
+    departments:       { title: 'Organization Structure', desc: 'Manage departments and units' },
+    quality_templates: { title: 'Check Templates', desc: 'Templates for teaching quality control' },
   },
 }
 

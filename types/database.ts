@@ -255,6 +255,53 @@ export type LeadInterestUpdate = Partial<LeadInterestInsert>
 export type PersonStatusHistoryInsert = Omit<PersonStatusHistoryRow, 'id' | 'changed_at' | 'comment'> & { comment?: string | null }
 export type PersonStatusHistoryUpdate = Partial<PersonStatusHistoryInsert>
 
+export interface QualityCheckTemplateRow {
+  id: string
+  name: string
+  description: string | null
+  structure: Record<string, unknown>
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface QualityCheckTemplateInsert {
+  name: string
+  description?: string | null
+  structure: Record<string, unknown>
+  is_active?: boolean
+  created_by?: string | null
+}
+export type QualityCheckTemplateUpdate = Partial<QualityCheckTemplateInsert>
+
+export interface QualityCheckRow {
+  id: string
+  template_id: string | null
+  lesson_date: string
+  lesson_time: string
+  observer_person_id: string
+  teacher_person_id: string
+  group_name: string | null
+  course_name: string | null
+  started_on_time: boolean | null
+  delay_minutes: number | null
+  delay_reason: string | null
+  technical_issues: string | null
+  answers: Record<string, unknown> | null
+  strengths: string | null
+  areas_for_improvement: string | null
+  action_item: string | null
+  overall_rating: number | null
+  teacher_feedback: string | null
+  status: string
+  created_by: string | null
+  created_at: string
+  completed_at: string | null
+}
+export type QualityCheckInsert = Omit<QualityCheckRow, 'id' | 'created_at'>
+  & { status?: string; group_name?: string | null; course_name?: string | null; created_by?: string | null }
+export type QualityCheckUpdate = Partial<QualityCheckInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -301,8 +348,10 @@ export interface Database {
       person_roles:      T<PersonRoleRow,       PersonRoleInsert,       PersonRoleUpdate>
       module_privileges: T<ModulePrivilegeRow,  ModulePrivilegeInsert,  ModulePrivilegeUpdate>
       person_privileges:       T<PersonPrivilegeRow,          PersonPrivilegeInsert,          PersonPrivilegeUpdate>
-      lead_interests:          T<LeadInterestRow,             LeadInterestInsert,             LeadInterestUpdate>
-      person_status_history:   T<PersonStatusHistoryRow,      PersonStatusHistoryInsert,      PersonStatusHistoryUpdate>
+      lead_interests:            T<LeadInterestRow,              LeadInterestInsert,              LeadInterestUpdate>
+      person_status_history:     T<PersonStatusHistoryRow,       PersonStatusHistoryInsert,       PersonStatusHistoryUpdate>
+      quality_check_templates:   T<QualityCheckTemplateRow,      QualityCheckTemplateInsert,      QualityCheckTemplateUpdate>
+      quality_checks:            T<QualityCheckRow,              QualityCheckInsert,              QualityCheckUpdate>
     }
     Views: Record<string, never>
     Functions: {
