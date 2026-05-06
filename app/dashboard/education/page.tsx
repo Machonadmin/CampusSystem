@@ -65,6 +65,33 @@ const COUNTRY_API_KEY: Record<string, string> = {
   'Израиль': 'Israel', 'Россия': 'Russia', 'США': 'USA', 'Украина': 'Ukraine',
 }
 const COMMUNITY_COUNTRIES = ['Израиль', 'Россия', 'США', 'Украина']
+const CITIZENSHIPS = ['Россия', 'Израиль', 'США', 'Украина', 'Беларусь', 'Казахстан', 'Германия', 'Франция', 'Великобритания', 'Другое']
+
+function getPhoneFlag(phone: string): string {
+  if (phone.startsWith('+972')) return '🇮🇱'
+  if (phone.startsWith('+380')) return '🇺🇦'
+  if (phone.startsWith('+375')) return '🇧🇾'
+  if (phone.startsWith('+7')) return '🇷🇺'
+  if (phone.startsWith('+1')) return '🇺🇸'
+  if (phone.startsWith('+49')) return '🇩🇪'
+  if (phone.startsWith('+33')) return '🇫🇷'
+  if (phone.startsWith('+44')) return '🇬🇧'
+  return '📞'
+}
+
+function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placeholder }: {
+  value: string; onChange: (v: string) => void; disabled?: boolean
+  wrapStyle?: React.CSSProperties; inputStyle?: React.CSSProperties; placeholder?: string
+}) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
+      <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
+      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+        placeholder={placeholder ?? '+7...'}
+        style={{ ...inputStyle, paddingLeft: 34 }} />
+    </div>
+  )
+}
 
 function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [view, setView] = useState<ModalView>('new')
@@ -84,12 +111,12 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [gender, setGender] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [maritalStatus, setMaritalStatus] = useState('')
-  const [citizenship, setCitizenship] = useState('')
+  const [citizenship, setCitizenship] = useState('Россия')
 
   // Tab 2 – Контакты и адрес
   const [phones, setPhones] = useState<string[]>([''])
   const [email, setEmail] = useState('')
-  const [country, setCountry] = useState('')
+  const [country, setCountry] = useState('Россия')
   const [city, setCity] = useState('')
   const [street, setStreet] = useState('')
   const [house, setHouse] = useState('')
@@ -112,7 +139,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     country: string; city: string;
     name: string; contact_person: string; position: string;
     phone: string; email: string; contacts: { type: string; value: string }[];
-  }[]>([{ country: '', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
+  }[]>([{ country: 'Россия', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
 
   // Tab 5 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
@@ -128,6 +155,16 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [cities, setCities] = useState<string[]>([])
   const [loadingCities, setLoadingCities] = useState(false)
   const [communityCitiesMap, setCommunityCitiesMap] = useState<Record<number, string[]>>({})
+
+  useEffect(() => {
+    const key = COUNTRY_API_KEY['Россия']
+    if (key) {
+      fetch(`/api/references/cities?country=${encodeURIComponent(key)}`)
+        .then(r => r.json())
+        .then(data => setCommunityCitiesMap(prev => ({ ...prev, 0: data.cities ?? [] })))
+        .catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     const key = COUNTRY_API_KEY[country]
@@ -156,8 +193,8 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }, [query])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship(''); setPhotoPreview(null)
-    setPhones(['']); setEmail(''); setCountry(''); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setMomName(''); setMomPhone(''); setMomEmail(''); setMomContacts([]); setDadName(''); setDadPhone(''); setDadEmail(''); setDadContacts([])
   }
 
@@ -380,7 +417,10 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Гражданство</label>
-              <input value={citizenship} onChange={e => setCitizenship(e.target.value)} placeholder="Израиль" disabled={ro} style={{ ...inp, ...dis }} />
+              <select value={citizenship} onChange={e => setCitizenship(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+                <option value="">—</option>
+                {CITIZENSHIPS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
           </div>
         )
@@ -403,8 +443,8 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               </div>
               {phones.map((p, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                  <input value={p} onChange={e => setPhones(prev => prev.map((ph, pi) => pi === i ? e.target.value : ph))}
-                    placeholder="+972..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                  <FlagPhone value={p} onChange={v => setPhones(prev => prev.map((ph, pi) => pi === i ? v : ph))}
+                    disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
@@ -471,7 +511,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 </div>
                 <div>
                   <label style={lbl}>Телефон</label>
-                  <input value={momPhone} onChange={e => setMomPhone(e.target.value)} placeholder="+972..." disabled={ro} style={{ ...inp, ...dis }} />
+                  <FlagPhone value={momPhone} onChange={v => setMomPhone(v)} disabled={ro} inputStyle={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Email</label>
@@ -517,7 +557,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 </div>
                 <div>
                   <label style={lbl}>Телефон</label>
-                  <input value={dadPhone} onChange={e => setDadPhone(e.target.value)} placeholder="+972..." disabled={ro} style={{ ...inp, ...dis }} />
+                  <FlagPhone value={dadPhone} onChange={v => setDadPhone(v)} disabled={ro} inputStyle={{ ...inp, ...dis }} />
                 </div>
                 <div>
                   <label style={lbl}>Email</label>
@@ -582,9 +622,9 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                     </div>
                     <div>
                       <label style={lbl}>Телефон</label>
-                      <input value={c.phone}
-                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, phone: e.target.value } : ec))}
-                        placeholder="+972..." style={inp} />
+                      <FlagPhone value={c.phone}
+                        onChange={v => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, phone: v } : ec))}
+                        inputStyle={inp} />
                     </div>
                     <div>
                       <label style={lbl}>Email</label>
@@ -709,8 +749,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                     </div>
                     <div>
                       <label style={lbl}>Телефон</label>
-                      <input value={comm.phone} onChange={e => updateComm(i, 'phone', e.target.value)}
-                        placeholder="+972..." style={inp} />
+                      <FlagPhone value={comm.phone} onChange={v => updateComm(i, 'phone', v)} inputStyle={inp} />
                     </div>
                     <div>
                       <label style={lbl}>Email</label>
@@ -746,7 +785,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               )
             })}
             <button
-              onClick={() => setCommunities(prev => [...prev, { country: '', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
+              onClick={() => setCommunities(prev => [...prev, { country: 'Россия', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
               style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
               + Добавить ещё общину
             </button>

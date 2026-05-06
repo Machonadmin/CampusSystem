@@ -26,6 +26,33 @@ const CONTACT_TYPES = [
   { value: 'vk', label: 'VK' },
   { value: 'other', label: 'Другое' },
 ]
+const CITIZENSHIPS = ['Россия', 'Израиль', 'США', 'Украина', 'Беларусь', 'Казахстан', 'Германия', 'Франция', 'Великобритания', 'Другое']
+
+function getPhoneFlag(phone: string): string {
+  if (phone.startsWith('+972')) return '🇮🇱'
+  if (phone.startsWith('+380')) return '🇺🇦'
+  if (phone.startsWith('+375')) return '🇧🇾'
+  if (phone.startsWith('+7')) return '🇷🇺'
+  if (phone.startsWith('+1')) return '🇺🇸'
+  if (phone.startsWith('+49')) return '🇩🇪'
+  if (phone.startsWith('+33')) return '🇫🇷'
+  if (phone.startsWith('+44')) return '🇬🇧'
+  return '📞'
+}
+
+function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placeholder }: {
+  value: string; onChange: (v: string) => void; disabled?: boolean
+  wrapStyle?: React.CSSProperties; inputStyle?: React.CSSProperties; placeholder?: string
+}) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
+      <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
+      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+        placeholder={placeholder ?? '+7...'}
+        style={{ ...inputStyle, paddingLeft: 34 }} />
+    </div>
+  )
+}
 
 type ModalView = 'new' | 'existing'
 interface DeptOption { id: string; label: string }
@@ -72,12 +99,12 @@ export default function AddEmployeeModal({
   const [gender, setGender] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [maritalStatus, setMaritalStatus] = useState('')
-  const [citizenship, setCitizenship] = useState('')
+  const [citizenship, setCitizenship] = useState('Россия')
 
   // Tab 1 — Контакты и адрес
   const [phones, setPhones] = useState<string[]>([''])
   const [email, setEmail] = useState('')
-  const [country, setCountry] = useState('')
+  const [country, setCountry] = useState('Россия')
   const [city, setCity] = useState('')
   const [street, setStreet] = useState('')
   const [house, setHouse] = useState('')
@@ -152,8 +179,8 @@ export default function AddEmployeeModal({
   }, [country])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship(''); setPhotoPreview(null)
-    setPhones(['']); setEmail(''); setCountry(''); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setExtraContacts([])
   }
 
@@ -388,7 +415,10 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Гражданство</label>
-              <input value={citizenship} onChange={e => setCitizenship(e.target.value)} placeholder="Израиль" disabled={ro} style={{ ...inp, ...dis }} />
+              <select value={citizenship} onChange={e => setCitizenship(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+                <option value="">—</option>
+                {CITIZENSHIPS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
           </div>
         )
@@ -411,8 +441,8 @@ export default function AddEmployeeModal({
               </div>
               {phones.map((p, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                  <input value={p} onChange={e => setPhones(prev => prev.map((ph, pi) => pi === i ? e.target.value : ph))}
-                    placeholder="+972..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                  <FlagPhone value={p} onChange={v => setPhones(prev => prev.map((ph, pi) => pi === i ? v : ph))}
+                    disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
