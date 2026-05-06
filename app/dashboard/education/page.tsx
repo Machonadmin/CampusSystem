@@ -61,6 +61,10 @@ type ModalView = 'search' | 'new' | 'existing'
 
 const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
 const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
+const COUNTRY_API_KEY: Record<string, string> = {
+  'Израиль': 'Israel', 'Россия': 'Russia', 'США': 'USA', 'Украина': 'Ukraine',
+}
+const COMMUNITY_COUNTRIES = ['Израиль', 'Россия', 'США', 'Украина']
 
 function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [view, setView] = useState<ModalView>('new')
@@ -105,9 +109,10 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
 
   // Tab 4 – Община
   const [communities, setCommunities] = useState<{
+    country: string; city: string;
     name: string; contact_person: string; position: string;
     phone: string; email: string; contacts: { type: string; value: string }[];
-  }[]>([{ name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
+  }[]>([{ country: '', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
 
   // Tab 5 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
@@ -119,6 +124,24 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loadingPerson, setLoadingPerson] = useState(false)
+
+  const [cities, setCities] = useState<string[]>([])
+  const [loadingCities, setLoadingCities] = useState(false)
+  const [communityCitiesMap, setCommunityCitiesMap] = useState<Record<number, string[]>>({})
+
+  useEffect(() => {
+    const key = COUNTRY_API_KEY[country]
+    if (key) {
+      setLoadingCities(true)
+      fetch(`/api/references/cities?country=${encodeURIComponent(key)}`)
+        .then(r => r.json())
+        .then(data => setCities(data.cities ?? []))
+        .catch(() => setCities([]))
+        .finally(() => setLoadingCities(false))
+    } else {
+      setCities([])
+    }
+  }, [country])
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return }
@@ -234,7 +257,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         if (validContacts.length > 0) familyData.contacts = validContacts
         if (Object.keys(familyData).length > 0) body.family = familyData
         const validCommunities = communities
-          .filter(c => c.name || c.contact_person || c.phone)
+          .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
           .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
         if (validCommunities.length > 0) body.communities = validCommunities
       }
@@ -404,7 +427,12 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Город</label>
-              <input value={city} onChange={e => setCity(e.target.value)} placeholder="Тель-Авив" disabled={ro} style={{ ...inp, ...dis }} />
+              <select value={city} onChange={e => setCity(e.target.value)}
+                disabled={ro || !country || loadingCities} style={{ ...inp, ...dis }}>
+                <option value="">— Выберите город —</option>
+                {city && !cities.includes(city) && <option value={city}>{city}</option>}
+                {cities.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
             <div>
               <label style={lbl}>Улица</label>
@@ -619,6 +647,18 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         )
         const updateComm = (i: number, field: string, value: string) =>
           setCommunities(prev => prev.map((c, ci) => ci === i ? { ...c, [field]: value } : c))
+        const updateCommCountry = (i: number, newCountry: string) => {
+          setCommunities(prev => prev.map((c, ci) => ci === i ? { ...c, country: newCountry, city: '' } : c))
+          const key = COUNTRY_API_KEY[newCountry]
+          if (key) {
+            fetch(`/api/references/cities?country=${encodeURIComponent(key)}`)
+              .then(r => r.json())
+              .then(data => setCommunityCitiesMap(prev => ({ ...prev, [i]: data.cities ?? [] })))
+              .catch(() => setCommunityCitiesMap(prev => ({ ...prev, [i]: [] })))
+          } else {
+            setCommunityCitiesMap(prev => ({ ...prev, [i]: [] }))
+          }
+        }
         return (
           <div>
             {communities.map((comm, i) => {
@@ -626,6 +666,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               const wrap: React.CSSProperties = isCard
                 ? { background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
                 : {}
+              const commCities = communityCitiesMap[i] ?? []
               return (
                 <div key={i} style={wrap}>
                   {isCard && (
@@ -635,6 +676,22 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                     </button>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                    <div>
+                      <label style={lbl}>Страна общины</label>
+                      <select value={comm.country} onChange={e => updateCommCountry(i, e.target.value)} style={inp}>
+                        <option value="">— Выберите страну —</option>
+                        {COMMUNITY_COUNTRIES.map(ct => <option key={ct} value={ct}>{ct}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={lbl}>Город общины</label>
+                      <select value={comm.city} onChange={e => updateComm(i, 'city', e.target.value)}
+                        disabled={!comm.country} style={{ ...inp, ...(comm.country ? {} : { opacity: 0.5, cursor: 'not-allowed' }) }}>
+                        <option value="">— Выберите город —</option>
+                        {comm.city && !commCities.includes(comm.city) && <option value={comm.city}>{comm.city}</option>}
+                        {commCities.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={lbl}>Название общины</label>
                       <input value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
@@ -689,7 +746,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               )
             })}
             <button
-              onClick={() => setCommunities(prev => [...prev, { name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
+              onClick={() => setCommunities(prev => [...prev, { country: '', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
               style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
               + Добавить ещё общину
             </button>

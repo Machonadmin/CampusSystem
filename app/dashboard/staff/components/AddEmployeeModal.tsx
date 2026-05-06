@@ -12,6 +12,9 @@ interface PersonResult { id: string; full_name: string; email: string | null }
 
 const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Должность и отдел', 'Документы и образование', 'Трудовой договор', 'Дополнительно']
 const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
+const COUNTRY_API_KEY: Record<string, string> = {
+  'Израиль': 'Israel', 'Россия': 'Russia', 'США': 'USA', 'Украина': 'Ukraine',
+}
 const CONTACT_TYPES = [
   { value: 'phone', label: 'Телефон' },
   { value: 'email', label: 'Email' },
@@ -80,6 +83,8 @@ export default function AddEmployeeModal({
   const [house, setHouse] = useState('')
   const [apartment, setApartment] = useState('')
   const [postalCode, setPostalCode] = useState('')
+  const [cities, setCities] = useState<string[]>([])
+  const [loadingCities, setLoadingCities] = useState(false)
   const [extraContacts, setExtraContacts] = useState<{ type: string; value: string }[]>([])
 
   // Tab 2 — Должность и отдел
@@ -131,6 +136,20 @@ export default function AddEmployeeModal({
     }, 300)
     return () => clearTimeout(timerRef.current)
   }, [query])
+
+  useEffect(() => {
+    const key = COUNTRY_API_KEY[country]
+    if (key) {
+      setLoadingCities(true)
+      fetch(`/api/references/cities?country=${encodeURIComponent(key)}`)
+        .then(r => r.json())
+        .then(data => setCities(data.cities ?? []))
+        .catch(() => setCities([]))
+        .finally(() => setLoadingCities(false))
+    } else {
+      setCities([])
+    }
+  }, [country])
 
   function resetFields() {
     setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship(''); setPhotoPreview(null)
@@ -414,7 +433,12 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Город</label>
-              <input value={city} onChange={e => setCity(e.target.value)} placeholder="Тель-Авив" disabled={ro} style={{ ...inp, ...dis }} />
+              <select value={city} onChange={e => setCity(e.target.value)}
+                disabled={ro || !country || loadingCities} style={{ ...inp, ...dis }}>
+                <option value="">— Выберите город —</option>
+                {city && !cities.includes(city) && <option value={city}>{city}</option>}
+                {cities.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
             <div>
               <label style={lbl}>Улица</label>
