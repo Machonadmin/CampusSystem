@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
 
@@ -83,15 +84,6 @@ export default function QualityControlPage() {
     } finally {
       setDeletingId(null)
     }
-  }
-
-  async function handleChangeStatus(id: string, status: string) {
-    await fetch(`/api/quality-control/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-    setRefresh(r => r + 1)
   }
 
   function formatDate(d: string) {
@@ -199,22 +191,17 @@ export default function QualityControlPage() {
                     </td>
                     <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        {c.status === 'planned' && (
-                          <button
-                            onClick={() => handleChangeStatus(c.id, 'in_progress')}
-                            style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FDE68A', borderRadius: 5, background: '#FFFBEB', cursor: 'pointer', color: '#92400E', fontWeight: 600 }}
-                          >
-                            Начать
-                          </button>
-                        )}
-                        {c.status === 'in_progress' && (
-                          <button
-                            onClick={() => handleChangeStatus(c.id, 'completed')}
-                            style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #86EFAC', borderRadius: 5, background: '#F0FDF4', cursor: 'pointer', color: '#166534', fontWeight: 600 }}
-                          >
-                            Завершить
-                          </button>
-                        )}
+                        <Link
+                          href={`/dashboard/quality-control/${c.id}`}
+                          style={{
+                            padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
+                            border: c.status === 'completed' ? '1px solid #D1D5DB' : '1px solid #BFDBFE',
+                            background: c.status === 'completed' ? '#F9FAFB' : '#EFF6FF',
+                            color: c.status === 'completed' ? '#374151' : '#1D4ED8',
+                          }}
+                        >
+                          {c.status === 'completed' ? 'Просмотр' : 'Заполнить'}
+                        </Link>
                         <button
                           onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
                           disabled={deletingId === c.id}

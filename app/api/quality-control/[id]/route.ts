@@ -13,15 +13,27 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     await requireAuth()
     const sb = createServerClient()
 
-    const { data, error } = await sb
+    const { data: check, error } = await sb
       .from('quality_checks')
       .select('*')
       .eq('id', params.id)
       .single()
 
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
-    return NextResponse.json(data)
+    if (!check) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
+
+    const personIds = [check.observer_person_id, check.teacher_person_id].filter(Boolean)
+    const { data: persons } = await sb
+      .from('persons')
+      .select('id, full_name')
+      .in('id', personIds)
+
+    const pm = new Map((persons ?? []).map(p => [p.id, p.full_name]))
+    return NextResponse.json({
+      ...check,
+      observer_name: pm.get(check.observer_person_id) ?? null,
+      teacher_name: pm.get(check.teacher_person_id) ?? null,
+    })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
