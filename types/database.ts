@@ -298,8 +298,28 @@ export interface QualityCheckRow {
   created_at: string
   completed_at: string | null
 }
-export type QualityCheckInsert = Omit<QualityCheckRow, 'id' | 'created_at'>
-  & { status?: string; group_name?: string | null; course_name?: string | null; created_by?: string | null }
+export interface QualityCheckInsert {
+  template_id?: string | null
+  lesson_date: string
+  lesson_time: string
+  observer_person_id: string
+  teacher_person_id: string
+  group_name?: string | null
+  course_name?: string | null
+  started_on_time?: boolean | null
+  delay_minutes?: number | null
+  delay_reason?: string | null
+  technical_issues?: string | null
+  answers?: Record<string, unknown> | null
+  strengths?: string | null
+  areas_for_improvement?: string | null
+  action_item?: string | null
+  overall_rating?: number | null
+  teacher_feedback?: string | null
+  status?: string
+  created_by?: string | null
+  completed_at?: string | null
+}
 export type QualityCheckUpdate = Partial<QualityCheckInsert>
 
 // ─── Update types (all fields optional) ──────────────────────────────────────

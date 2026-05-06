@@ -43,11 +43,14 @@ const ICONS: Record<string, string> = {
     'M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z',
   settings:
     'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+  quality_control:
+    'M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-.723 3.065 3.745 3.745 0 01-3.065.723 3.745 3.745 0 01-3.068 1.593 3.745 3.745 0 01-3.068-1.593 3.746 3.746 0 01-3.065-.723 3.745 3.745 0 01-.723-3.065A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 01.723-3.065 3.746 3.746 0 013.065-.723A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.065.723 3.746 3.746 0 01.723 3.065A3.745 3.745 0 0121 12z',
 }
 
 const COLORS: Record<string, [string, string]> = {
-  persons:      ['#E6F1FB', '#2563EB'],
-  staff:        ['#EEF2FF', '#3B82F6'],
+  persons:         ['#E6F1FB', '#2563EB'],
+  staff:           ['#EEF2FF', '#3B82F6'],
+  quality_control: ['#FCE7F3', '#BE185D'],
   education:    ['#E6F1FB', '#2563EB'],
   finance:      ['#EAF3DE', '#16A34A'],
   dormitory:    ['#E1F5EE', '#059669'],
@@ -74,12 +77,17 @@ const MODULE_DESCS: Record<string, string> = {
   staff: 'Сотрудники, структура организации',
 }
 
+// Module keys whose URL path differs from the key (underscore vs hyphen etc.)
+const HREF_OVERRIDES: Record<string, string> = {
+  quality_control: '/dashboard/quality-control',
+}
+
 // Modules with real pages — shown first with full colour
-const IMPLEMENTED = new Set(['education', 'tasks', 'settings', 'staff'])
+const IMPLEMENTED = new Set(['education', 'tasks', 'settings', 'staff', 'quality_control'])
 
 // Full ordered list — user only sees ones in their accessible_modules
 const ALL_MODULE_CARDS = [
-  'persons', 'staff', 'education', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'quality_control', 'education', 'finance', 'dormitory', 'food',
   'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
   'documents', 'reports', 'contacts', 'settings',
 ]
@@ -176,7 +184,7 @@ export default function DashboardPage() {
               return ready ? (
                 <Link
                   key={key}
-                  href={`/dashboard/${key}`}
+                  href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
                   className="flex flex-col gap-3 bg-white rounded-xl border border-gray-100"
                   style={cardStyle}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}

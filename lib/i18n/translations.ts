@@ -27,8 +27,10 @@ const ru = {
     contacts: 'Контакты',
     settings: 'Настройки',
     staff: 'Персонал',
+    quality_control: 'Контроль качества',
   },
   moduleDesc: {
+    quality_control: 'Проверки уроков, оценки',
     education: 'Учащиеся, группы, расписание',
     finance: 'Счета, платежи, бюджет',
     dormitory: 'Комнаты, жильцы',
@@ -113,8 +115,10 @@ const he: typeof ru = {
     contacts: 'אנשי קשר',
     settings: 'הגדרות',
     staff: 'כוח אדם',
+    quality_control: 'בקרת איכות',
   },
   moduleDesc: {
+    quality_control: 'בדיקות שיעורים, הערכות',
     education: 'תלמידים, קבוצות, לוח זמנים',
     finance: 'חשבוניות, תשלומים, תקציב',
     dormitory: 'חדרים, דיירים',
@@ -199,8 +203,10 @@ const en: typeof ru = {
     contacts: 'Contacts',
     settings: 'Settings',
     staff: 'Staff',
+    quality_control: 'Quality Control',
   },
   moduleDesc: {
+    quality_control: 'Lesson checks, ratings',
     education: 'Students, groups, schedule',
     finance: 'Invoices, payments, budget',
     dormitory: 'Rooms, residents',
