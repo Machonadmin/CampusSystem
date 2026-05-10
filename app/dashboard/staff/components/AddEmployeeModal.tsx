@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
+import { CountrySelect } from '@/components/ui/country-select'
 
 interface Department {
   id: string
@@ -13,7 +14,6 @@ interface Department {
 interface PersonResult { id: string; full_name: string; email: string | null }
 
 const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Должность и отдел', 'Документы и образование', 'Трудовой договор', 'Дополнительно']
-const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
 const CONTACT_TYPES = [
   { value: 'phone', label: 'Телефон' },
   { value: 'email', label: 'Email' },
@@ -439,10 +439,7 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Страна</label>
-              <select value={country} onChange={e => setCountry(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
-                <option value="">—</option>
-                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <CountrySelect value={country} onChange={setCountry} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Город</label>

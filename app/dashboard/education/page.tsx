@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
+import { CountrySelect } from '@/components/ui/country-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -63,8 +64,6 @@ function formatDate(d: string | null) {
 type ModalView = 'search' | 'new' | 'existing'
 
 const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
-const COUNTRIES = ['Израиль', 'Россия', 'США', 'Германия', 'Франция', 'Великобритания', 'Украина', 'Беларусь', 'Казахстан', 'Другая']
-const COMMUNITY_COUNTRIES = ['Израиль', 'Россия', 'США', 'Украина']
 const CITIZENSHIPS = ['Россия', 'Израиль', 'США', 'Украина', 'Беларусь', 'Казахстан', 'Германия', 'Франция', 'Великобритания', 'Другое']
 
 function getPhoneFlag(phone: string): string {
@@ -432,10 +431,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Страна</label>
-              <select value={country} onChange={e => setCountry(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
-                <option value="">—</option>
-                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <CountrySelect value={country} onChange={setCountry} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>Город</label>
@@ -675,10 +671,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                     <div>
                       <label style={lbl}>Страна общины</label>
-                      <select value={comm.country} onChange={e => updateCommCountry(i, e.target.value)} style={inp}>
-                        <option value="">— Выберите страну —</option>
-                        {COMMUNITY_COUNTRIES.map(ct => <option key={ct} value={ct}>{ct}</option>)}
-                      </select>
+                      <CountrySelect value={comm.country} onChange={ct => updateCommCountry(i, ct)} style={inp} />
                     </div>
                     <div>
                       <label style={lbl}>Город общины</label>
