@@ -117,46 +117,126 @@ function fmtDate(iso: string) {
 
 function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => void }) {
   const blocks = tmpl.structure?.blocks ?? []
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  function toggle(id: string) {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function expandAll() { setExpanded(new Set(blocks.map(b => b.id))) }
+  function collapseAll() { setExpanded(new Set()) }
+
+  const allExpanded = blocks.length > 0 && expanded.size === blocks.length
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 700, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 700, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden' }}>
+
+        {/* Header (fixed) */}
         <div style={{ padding: '18px 24px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 700, fontSize: 16, color: '#1F2937', margin: 0 }}>{tmpl.name}</p>
             {tmpl.description && <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0 0' }}>{tmpl.description}</p>}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 24, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 24, lineHeight: 1, padding: 0, marginLeft: 12 }}>×</button>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {blocks.map(block => (
-            <div key={block.id} style={{ border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ padding: '10px 14px', background: '#F9FAFB', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1F2937' }}>{block.title}</span>
-                {block.type && (
-                  <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: '#DBEAFE', color: '#1D4ED8', fontWeight: 500 }}>
-                    {BLOCK_TYPE_LABELS[block.type] ?? block.type}
-                  </span>
-                )}
-                <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 'auto' }}>{block.questions.length} вопр.</span>
-              </div>
-              {block.questions.length > 0 && (
-                <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {block.questions.map(q => (
-                    <div key={q.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0', borderBottom: '1px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0, marginTop: 1 }}>{q.id}</span>
-                      <span style={{ fontSize: 13, color: '#374151', flex: 1 }}>{q.text}</span>
-                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: '#F3F4F6', color: '#6B7280', flexShrink: 0, whiteSpace: 'nowrap' }}>{TYPE_LABELS[q.type]}</span>
-                      {q.required && <span style={{ fontSize: 10, color: '#DC2626', flexShrink: 0 }}>*</span>}
-                    </div>
-                  ))}
+
+        {/* Toolbar (fixed) */}
+        <div style={{ padding: '10px 24px', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: '#FAFAFA' }}>
+          <span style={{ fontSize: 11, color: '#6B7280' }}>
+            {blocks.length} {blocks.length === 1 ? 'блок' : 'блоков'}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={expandAll}
+              disabled={allExpanded}
+              style={{ padding: '5px 12px', fontSize: 11, background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: allExpanded ? 'not-allowed' : 'pointer', color: '#374151', opacity: allExpanded ? 0.5 : 1 }}
+            >
+              Развернуть все
+            </button>
+            <button
+              onClick={collapseAll}
+              disabled={expanded.size === 0}
+              style={{ padding: '5px 12px', fontSize: 11, background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: expanded.size === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: expanded.size === 0 ? 0.5 : 1 }}
+            >
+              Свернуть все
+            </button>
+          </div>
+        </div>
+
+        {/* Body (scrollable) */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {blocks.map(block => {
+            const isOpen = expanded.has(block.id)
+            return (
+              <div key={block.id} style={{ border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
+                <div
+                  onClick={() => toggle(block.id)}
+                  style={{ padding: '10px 14px', background: '#F9FAFB', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#1F2937' }}>{block.title}</span>
+                  {block.type && (
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: '#DBEAFE', color: '#1D4ED8', fontWeight: 500 }}>
+                      {BLOCK_TYPE_LABELS[block.type] ?? block.type}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 'auto' }}>{block.questions.length} вопр.</span>
+                  <svg
+                    width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round"
+                    style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
                 </div>
-              )}
-              {block.questions.length === 0 && (
-                <p style={{ margin: 0, padding: '8px 14px', fontSize: 12, color: '#9CA3AF' }}>Нет вопросов</p>
-              )}
-            </div>
-          ))}
+
+                {isOpen && block.questions.length > 0 && (
+                  <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {block.questions.map((q, qi) => (
+                      <div
+                        key={q.id}
+                        style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0',
+                          borderBottom: qi < block.questions.length - 1 ? '1px solid #F3F4F6' : 'none',
+                        }}
+                      >
+                        <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0, marginTop: 1, minWidth: 28 }}>{q.id}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
+                            {q.text}
+                            {q.required && <span style={{ color: '#DC2626', marginLeft: 4 }}>*</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                            <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: '#F3F4F6', color: '#6B7280', whiteSpace: 'nowrap' }}>
+                              {TYPE_LABELS[q.type]}
+                            </span>
+                            {q.maps_to && (
+                              <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: '#FEF3C7', color: '#92400E', whiteSpace: 'nowrap' }}>
+                                → {q.maps_to}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {isOpen && block.questions.length === 0 && (
+                  <p style={{ margin: 0, padding: '10px 14px', fontSize: 12, color: '#9CA3AF', textAlign: 'center' }}>Нет вопросов</p>
+                )}
+              </div>
+            )
+          })}
         </div>
+
+        {/* Footer (fixed) */}
         <div style={{ padding: '12px 24px', borderTop: '1px solid #F3F4F6', flexShrink: 0, display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>
             Закрыть
