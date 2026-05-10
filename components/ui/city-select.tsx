@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CITIES_BY_COUNTRY } from '@/lib/geo'
 
 interface CitySelectProps {
   country: string
@@ -12,21 +11,38 @@ interface CitySelectProps {
   disabled?: boolean
 }
 
-export function CitySelect({ country, value, onChange, className, style, disabled }: CitySelectProps) {
-  const cities = CITIES_BY_COUNTRY[country] ?? []
-  const hasCities = cities.length > 0
+const cityCache = new Map<string, string[]>()
 
+export function CitySelect({ country, value, onChange, className, style, disabled }: CitySelectProps) {
+  const [cities, setCities] = useState<string[]>(() => cityCache.get(country) ?? [])
+  const [loading, setLoading] = useState(false)
   const [showCustomInput, setShowCustomInput] = useState(false)
 
   useEffect(() => {
-    if (value && hasCities && !cities.includes(value)) {
+    if (!country) { setCities([]); return }
+    const cached = cityCache.get(country)
+    if (cached) { setCities(cached); return }
+    setLoading(true)
+    fetch(`/api/references/cities?country=${encodeURIComponent(country)}`)
+      .then(r => r.ok ? r.json() : { cities: [] })
+      .then((data: { cities: string[] }) => {
+        cityCache.set(country, data.cities ?? [])
+        setCities(data.cities ?? [])
+      })
+      .finally(() => setLoading(false))
+  }, [country])
+
+  useEffect(() => {
+    if (value && cities.length > 0 && !cities.includes(value)) {
       setShowCustomInput(true)
     } else if (!value) {
       setShowCustomInput(false)
     }
-  }, [country]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [country, cities]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!hasCities) {
+  const hasCities = cities.length > 0
+
+  if (!hasCities && !loading) {
     return (
       <input
         type="text"
@@ -77,9 +93,9 @@ export function CitySelect({ country, value, onChange, className, style, disable
       }}
       className={className}
       style={style}
-      disabled={disabled}
+      disabled={disabled || loading}
     >
-      <option value="">— Выберите город —</option>
+      <option value="">{loading ? 'Загрузка...' : '— Выберите город —'}</option>
       {cities.map(city => (
         <option key={city} value={city}>{city}</option>
       ))}

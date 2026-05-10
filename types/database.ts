@@ -344,6 +344,19 @@ export interface FeaturePrivilegeInsert {
 }
 export type FeaturePrivilegeUpdate = Partial<FeaturePrivilegeInsert>
 
+export interface ReferenceCityRow {
+  id: string
+  country: string
+  city: string
+  created_at?: string
+}
+export interface ReferenceCityInsert {
+  id?: string
+  country: string
+  city: string
+}
+export type ReferenceCityUpdate = Partial<ReferenceCityInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -395,6 +408,7 @@ export interface Database {
       quality_check_templates:   T<QualityCheckTemplateRow,      QualityCheckTemplateInsert,      QualityCheckTemplateUpdate>
       quality_checks:            T<QualityCheckRow,              QualityCheckInsert,              QualityCheckUpdate>
       feature_privileges:        T<FeaturePrivilegeRow,          FeaturePrivilegeInsert,          FeaturePrivilegeUpdate>
+      reference_cities:          T<ReferenceCityRow,             ReferenceCityInsert,             ReferenceCityUpdate>
     }
     Views: Record<string, never>
     Functions: {
