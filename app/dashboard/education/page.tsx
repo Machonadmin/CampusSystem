@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
+import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -690,8 +691,12 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                     </div>
                     <div>
                       <label style={lbl}>Имя контактного лица</label>
-                      <input value={comm.contact_person} onChange={e => updateComm(i, 'contact_person', e.target.value)}
-                        placeholder="Рабинович Давид" style={inp} />
+                      <PersonSelect
+                        value={comm.contact_person}
+                        onChange={v => updateComm(i, 'contact_person', v)}
+                        placeholder="Рабинович Давид"
+                        accentColor={getModuleColor('education')}
+                      />
                     </div>
                     <div>
                       <label style={lbl}>Должность в общине</label>
