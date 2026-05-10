@@ -25,7 +25,6 @@ const CONTACT_TYPES = [
   { value: 'vk', label: 'VK' },
   { value: 'other', label: 'Другое' },
 ]
-const CITIZENSHIPS = ['Россия', 'Израиль', 'США', 'Украина', 'Беларусь', 'Казахстан', 'Германия', 'Франция', 'Великобритания', 'Другое']
 
 function getPhoneFlag(phone: string): string {
   if (phone.startsWith('+972')) return '🇮🇱'
@@ -398,10 +397,12 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Гражданство</label>
-              <select value={citizenship} onChange={e => setCitizenship(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
-                <option value="">—</option>
-                {CITIZENSHIPS.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <CountrySelect
+                value={citizenship}
+                onChange={setCitizenship}
+                disabled={ro}
+                style={{ ...inp, ...dis }}
+              />
             </div>
           </div>
         )
