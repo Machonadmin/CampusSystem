@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
+import { getModuleHeaderGradient } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -952,7 +953,11 @@ export default function EducationPage() {
         { label: 'Образование' },
       ]} />
 
-      <div style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
+      <div style={{
+        background: getModuleHeaderGradient('education'),
+        borderRadius: 12, padding: '12px 24px',
+        boxShadow: '0 2px 8px rgba(16,185,129,0.2)',
+      }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Образование</h1>
       </div>
 

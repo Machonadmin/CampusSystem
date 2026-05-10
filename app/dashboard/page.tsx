@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
+import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface MeResponse {
   full_name: string | null
@@ -47,26 +48,6 @@ const ICONS: Record<string, string> = {
     'M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-.723 3.065 3.745 3.745 0 01-3.065.723 3.745 3.745 0 01-3.068 1.593 3.745 3.745 0 01-3.068-1.593 3.746 3.746 0 01-3.065-.723 3.745 3.745 0 01-.723-3.065A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 01.723-3.065 3.746 3.746 0 013.065-.723A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.065.723 3.746 3.746 0 01.723 3.065A3.745 3.745 0 0121 12z',
 }
 
-const COLORS: Record<string, [string, string]> = {
-  persons:         ['#E6F1FB', '#2563EB'],
-  staff:           ['#EEF2FF', '#3B82F6'],
-  quality_control: ['#FCE7F3', '#BE185D'],
-  education:    ['#E6F1FB', '#2563EB'],
-  finance:      ['#EAF3DE', '#16A34A'],
-  dormitory:    ['#E1F5EE', '#059669'],
-  food:         ['#FAEEDA', '#D97706'],
-  maintenance:  ['#F1EFE8', '#92400E'],
-  security:     ['#FCEBEB', '#DC2626'],
-  alumni:       ['#FBEAF0', '#DB2777'],
-  sponsors:     ['#FAEEDA', '#D97706'],
-  doctor:       ['#E1F5EE', '#059669'],
-  psychologist: ['#EEEDFE', '#7C3AED'],
-  documents:    ['#E6F1FB', '#2563EB'],
-  reports:      ['#EAF3DE', '#16A34A'],
-  contacts:     ['#FBEAF0', '#DB2777'],
-  settings:     ['#F1EFE8', '#78716C'],
-}
-
 // Fallback names for modules not in translations
 const MODULE_NAMES: Record<string, string> = {
   persons: 'База людей',
@@ -94,9 +75,9 @@ const ALL_MODULE_CARDS = [
 
 function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boolean }) {
   const path = ICONS[moduleKey] ?? ''
-  const [bg, iconColor] = COLORS[moduleKey] ?? ['#F3F4F6', '#6B7280']
+  const iconColor = getModuleColor(moduleKey, 'primary')
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : 'rgba(255,255,255,0.6)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg style={{ width: 22, height: 22, color: disabled ? '#9CA3AF' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
@@ -133,13 +114,17 @@ export default function DashboardPage() {
       {/* Welcome banner */}
       <div
         className="flex items-center justify-between rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
+        style={{
+          background: getModuleHeaderGradient('dashboard'),
+          padding: '12px 24px',
+          boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+        }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (
-          <span className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: '#4BAED4' }}>
+          <span className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(6px)' }}>
             {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
           </span>
         )}
@@ -159,25 +144,29 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {visibleModules.map(key => {
               const ready = IMPLEMENTED.has(key)
-              const borderColor = ready ? (COLORS[key]?.[1] ?? '#E5E7EB') : '#E5E7EB'
+              const primary = getModuleColor(key, 'primary')
+              const lightBg = getModuleColor(key, 'light')
               const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
               const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
-              const cardStyle = {
-                padding: 24,
-                borderTop: `3px solid ${borderColor}`,
+              const cardStyle: React.CSSProperties = {
+                padding: 20,
+                backgroundColor: ready ? lightBg : '#F9FAFB',
+                borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
+                borderRadius: 12,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                transition: 'box-shadow 0.2s, transform 0.2s',
               }
               const inner = (
                 <>
                   <ModuleIcon moduleKey={key} disabled={!ready} />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? '#3B82F6' : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
                       {!ready && (
                         <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 8, backgroundColor: '#F3F4F6', color: '#9CA3AF', fontWeight: 600, flexShrink: 0 }}>Скоро</span>
                       )}
                     </div>
-                    <p style={{ fontSize: 12, color: ready ? '#6B7280' : '#D1D5DB', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                    <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#D1D5DB', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
                   </div>
                 </>
               )
@@ -185,17 +174,25 @@ export default function DashboardPage() {
                 <Link
                   key={key}
                   href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
-                  className="flex flex-col gap-3 bg-white rounded-xl border border-gray-100"
+                  className="flex flex-col gap-3"
                   style={cardStyle}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(45,49,112,0.12)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)'
+                    el.style.transform = 'translateY(-2px)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
+                    el.style.transform = 'translateY(0)'
+                  }}
                 >
                   {inner}
                 </Link>
               ) : (
                 <div
                   key={key}
-                  className="flex flex-col gap-3 bg-white rounded-xl border border-gray-100"
+                  className="flex flex-col gap-3"
                   style={{ ...cardStyle, cursor: 'default' }}
                 >
                   {inner}

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
+import { getModuleColor } from '@/lib/module-colors'
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -54,7 +55,7 @@ const MODULES = [
 
 // ── Nav link — defined outside Sidebar to avoid reconciliation issues ────────
 function SidebarNavLink({
-  href, iconPath, label, active, isOpen, isRTL,
+  href, iconPath, label, active, isOpen, isRTL, moduleKey,
 }: {
   href: string
   iconPath: string
@@ -62,13 +63,17 @@ function SidebarNavLink({
   active: boolean
   isOpen: boolean
   isRTL: boolean
+  moduleKey: string
 }) {
+  const colorKey = moduleKey === 'home' ? 'dashboard' : moduleKey
+  const activePrimary = getModuleColor(colorKey, 'primary')
+  const activeLight = getModuleColor(colorKey, 'light')
   return (
     <div className="relative">
       {active && (
         <span
           className="absolute top-0 bottom-0 w-[3px] rounded-r"
-          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: '#3B82F6' }}
+          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: activePrimary }}
         />
       )}
       <Link
@@ -77,7 +82,7 @@ function SidebarNavLink({
         className={`flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'}`}
         style={
           active
-            ? { backgroundColor: '#EEF2FF', color: '#3B82F6', padding: isOpen ? '8px 10px' : '10px 11px' }
+            ? { backgroundColor: activeLight, color: activePrimary, padding: isOpen ? '8px 10px' : '10px 11px' }
             : { color: '#4B5563', padding: isOpen ? '8px 10px' : '10px 11px' }
         }
       >
@@ -209,6 +214,7 @@ export default function Sidebar() {
             active={isActive(item.href)}
             isOpen={isOpen}
             isRTL={isRTL}
+            moduleKey={item.key}
           />
         ))}
 
@@ -232,6 +238,7 @@ export default function Sidebar() {
             active={isActive(item.href)}
             isOpen={isOpen}
             isRTL={isRTL}
+            moduleKey={item.key}
           />
         ))}
       </nav>

@@ -7,6 +7,7 @@ import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
+import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface CheckRow {
   id: string
@@ -130,14 +131,18 @@ export default function QualityControlPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div
           className="flex items-center rounded-xl overflow-hidden flex-1"
-          style={{ backgroundColor: '#BE185D', borderLeft: '4px solid #EC4899', padding: '12px 24px', minWidth: 200 }}
+          style={{
+            background: getModuleHeaderGradient('quality_control'),
+            padding: '12px 24px', minWidth: 200,
+            boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
+          }}
         >
           <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Контроль качества преподавания</h1>
         </div>
         {canCreateCheck && tab !== 'templates' && (
           <button
             onClick={() => setShowCreate(true)}
-            style={{ padding: '10px 18px', fontSize: 13, fontWeight: 600, backgroundColor: '#BE185D', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+            style={{ padding: '10px 18px', fontSize: 13, fontWeight: 600, backgroundColor: getModuleColor('quality_control'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
           >
             + Новая проверка
           </button>
@@ -154,8 +159,8 @@ export default function QualityControlPage() {
               onClick={() => setTab(t.key)}
               style={{
                 padding: '11px 20px', fontSize: 13, fontWeight: tab === t.key ? 600 : 400,
-                color: tab === t.key ? '#BE185D' : '#6B7280',
-                borderBottom: tab === t.key ? '2px solid #BE185D' : '2px solid transparent',
+                color: tab === t.key ? '#EC4899' : '#6B7280',
+                borderBottom: tab === t.key ? '2px solid #EC4899' : '2px solid transparent',
                 background: 'none', border: 'none', borderBottomStyle: 'solid',
                 cursor: 'pointer', transition: 'color 0.15s',
               }}

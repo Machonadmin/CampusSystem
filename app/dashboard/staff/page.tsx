@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import AddEmployeeModal from './components/AddEmployeeModal'
+import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface Department {
   id: string
@@ -650,7 +651,11 @@ export default function StaffPage() {
         { label: title },
       ]} />
 
-      <div style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
+      <div style={{
+        background: getModuleHeaderGradient('staff'),
+        borderRadius: 12, padding: '12px 24px',
+        boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
+      }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>
       </div>
 
@@ -664,7 +669,7 @@ export default function StaffPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={() => setModal({ type: 'add', parentId: null })}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>

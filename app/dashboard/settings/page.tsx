@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleHeaderGradient } from '@/lib/module-colors'
 
 const SECTIONS = [
   {
@@ -64,7 +65,11 @@ export default function SettingsPage() {
       ]} />
       <div
         className="flex items-center rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', padding: '12px 24px' }}
+        style={{
+          background: getModuleHeaderGradient('settings'),
+          padding: '12px 24px',
+          boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
+        }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>
           {PAGE_TITLE[lang] ?? PAGE_TITLE.ru}
