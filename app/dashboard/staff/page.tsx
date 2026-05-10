@@ -133,7 +133,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
           <button onClick={save} disabled={saving || !name.trim()}
-            style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
+            style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
             {saving ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
@@ -170,7 +170,7 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
           <button onClick={save} disabled={saving || !name.trim()}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
             {saving ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
@@ -238,7 +238,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
           <button onClick={save} disabled={saving}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
@@ -320,11 +320,11 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
         <td style={{ padding: '7px 12px' }}>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <button onClick={() => onAddStaff(node.id)}
-              style={{ ...btnBase, border: 'none', background: '#3B82F6', color: '#fff' }}>
+              style={{ ...btnBase, border: 'none', background: getModuleColor('staff'), color: '#fff' }}>
               + Сотрудник
             </button>
             <button onClick={() => onAddChild(node.id)}
-              style={{ ...btnBase, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8' }}>
+              style={{ ...btnBase, border: `1px solid ${getModuleColor('staff', 'medium')}`, background: getModuleColor('staff', 'light'), color: getModuleColor('staff') }}>
               + Подотдел
             </button>
             <button onClick={() => onRename(node)}
@@ -513,7 +513,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
         <button onClick={onAdd}
-          style={{ padding: '8px 16px', background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ padding: '8px 16px', background: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
           + Добавить сотрудника
         </button>
       </div>
@@ -547,7 +547,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                         {emp.photo_url
                           // eslint-disable-next-line @next/next/no-img-element
                           ? <img src={emp.photo_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                          : <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#3B82F6', flexShrink: 0 }}>{initials(emp.full_name)}</div>
+                          : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(emp.full_name)}</div>
                         }
                         <div>
                           <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{emp.full_name}</span>

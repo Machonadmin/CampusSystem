@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -842,7 +842,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
+                  background: tabIdx === i ? getModuleColor('education') : (i < tabIdx ? getModuleColor('education', 'medium') : '#E5E7EB'),
                   color: i <= tabIdx ? '#fff' : '#9CA3AF',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
@@ -874,13 +874,13 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
             {tabIdx === 5 && (
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : 'Сохранить'}
               </button>
             )}
@@ -982,7 +982,7 @@ export default function EducationPage() {
               {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
             </select>
             <button onClick={() => setAddOpen(true)}
-              style={{ padding: '8px 16px', background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', background: getModuleColor('education'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
               + Добавить лида
             </button>
           </div>
