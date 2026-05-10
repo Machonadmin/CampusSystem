@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { DateInput } from '@/components/ui/date-input'
 
 interface PersonOption { id: string; full_name: string }
 interface TemplateOption { id: string; name: string }
@@ -100,7 +101,7 @@ function PersonAutocomplete({
 export default function CreateCheckModal({ onClose, onCreated }: Props) {
   const [templates, setTemplates] = useState<TemplateOption[]>([])
   const [templateId, setTemplateId] = useState('')
-  const [lessonDate, setLessonDate] = useState(new Date().toISOString().split('T')[0])
+  const [lessonDate, setLessonDate] = useState<Date | null>(new Date())
   const [lessonTime, setLessonTime] = useState('09:00')
   const [observer, setObserver] = useState<{ id: string; name: string } | null>(null)
   const [teacher, setTeacher] = useState<{ id: string; name: string } | null>(null)
@@ -131,7 +132,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           template_id: templateId || null,
-          lesson_date: lessonDate,
+          lesson_date: lessonDate ? lessonDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           lesson_time: lessonTime,
           observer_person_id: observer.id,
           teacher_person_id: teacher.id,
@@ -186,13 +187,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
                   Дата урока <span style={{ color: '#EF4444' }}>*</span>
                 </label>
-                <input
-                  type="date"
-                  value={lessonDate}
-                  onChange={e => setLessonDate(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }}
-                />
+                <DateInput value={lessonDate} onChange={setLessonDate} placeholder="Выберите дату" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>

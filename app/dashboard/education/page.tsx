@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { DateInput } from '@/components/ui/date-input'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -109,7 +110,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [fullName, setFullName] = useState('')
   const [hebrewName, setHebrewName] = useState('')
   const [gender, setGender] = useState('')
-  const [birthDate, setBirthDate] = useState('')
+  const [birthDate, setBirthDate] = useState<Date | null>(null)
   const [maritalStatus, setMaritalStatus] = useState('')
   const [citizenship, setCitizenship] = useState('Россия')
 
@@ -193,7 +194,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }, [query])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
     setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setMomName(''); setMomPhone(''); setMomEmail(''); setMomContacts([]); setDadName(''); setDadPhone(''); setDadEmail(''); setDadContacts([])
   }
@@ -207,7 +208,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       setFullName(d.full_name ?? '')
       setHebrewName(d.hebrew_name ?? '')
       setGender(d.gender ?? '')
-      setBirthDate(d.birth_date ? String(d.birth_date).slice(0, 10) : '')
+      setBirthDate(d.birth_date ? new Date(d.birth_date) : null)
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
@@ -267,7 +268,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
         if (gender) body.gender = gender
-        if (birthDate) body.birth_date = birthDate
+        if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
         if (hebrewName) body.hebrew_name = hebrewName.trim()
         if (maritalStatus) body.marital_status = maritalStatus
         if (citizenship) body.citizenship = citizenship.trim()
@@ -403,7 +404,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </div>
             <div>
               <label style={lbl}>Дата рождения</label>
-              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} disabled={ro} style={{ ...inp, ...dis }} />
+              <DateInput value={birthDate} onChange={setBirthDate} maxDate={new Date()} minDate={new Date(1940, 0, 1)} disabled={ro} style={dis} />
             </div>
             <div>
               <label style={lbl}>Семейное положение</label>

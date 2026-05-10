@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { DateInput } from '@/components/ui/date-input'
 
 interface Department {
   id: string
@@ -97,7 +98,7 @@ export default function AddEmployeeModal({
   const [fullName, setFullName] = useState('')
   const [hebrewName, setHebrewName] = useState('')
   const [gender, setGender] = useState('')
-  const [birthDate, setBirthDate] = useState('')
+  const [birthDate, setBirthDate] = useState<Date | null>(null)
   const [maritalStatus, setMaritalStatus] = useState('')
   const [citizenship, setCitizenship] = useState('Россия')
 
@@ -118,14 +119,14 @@ export default function AddEmployeeModal({
   const [departments, setDepartments] = useState<DeptOption[]>([])
   const [departmentId, setDepartmentId] = useState(defaultDepartmentId ?? '')
   const [position, setPosition] = useState('')
-  const [hireDate, setHireDate] = useState('')
+  const [hireDate, setHireDate] = useState<Date | null>(null)
   const [employmentType, setEmploymentType] = useState('staff')
   const [workSchedule, setWorkSchedule] = useState('')
 
   // Tab 3 — Документы и образование
   const [passportSeries, setPassportSeries] = useState('')
   const [passportNumber, setPassportNumber] = useState('')
-  const [passportIssueDate, setPassportIssueDate] = useState('')
+  const [passportIssueDate, setPassportIssueDate] = useState<Date | null>(null)
   const [passportIssuedBy, setPassportIssuedBy] = useState('')
   const [educationLevel, setEducationLevel] = useState('')
   const [specialty, setSpecialty] = useState('')
@@ -134,7 +135,7 @@ export default function AddEmployeeModal({
 
   // Tab 4 — Трудовой договор
   const [contractNumber, setContractNumber] = useState('')
-  const [contractDate, setContractDate] = useState('')
+  const [contractDate, setContractDate] = useState<Date | null>(null)
   const [salary, setSalary] = useState('')
   const [currency, setCurrency] = useState('ILS')
   const [contractFile, setContractFile] = useState<File | null>(null)
@@ -179,7 +180,7 @@ export default function AddEmployeeModal({
   }, [country])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(''); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
     setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setExtraContacts([])
   }
@@ -193,7 +194,7 @@ export default function AddEmployeeModal({
       setFullName(d.full_name ?? '')
       setHebrewName(d.hebrew_name ?? '')
       setGender(d.gender ?? '')
-      setBirthDate(d.birth_date ? String(d.birth_date).slice(0, 10) : '')
+      setBirthDate(d.birth_date ? new Date(d.birth_date) : null)
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? d.nationality ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
@@ -240,7 +241,7 @@ export default function AddEmployeeModal({
       const body: Record<string, unknown> = {
         department_id: departmentId,
         position: position.trim(),
-        hire_date: hireDate,
+        hire_date: hireDate ? hireDate.toISOString().split('T')[0] : '',
         employment_type: employmentType,
       }
 
@@ -255,7 +256,7 @@ export default function AddEmployeeModal({
         if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
         if (gender) body.gender = gender
-        if (birthDate) body.birth_date = birthDate
+        if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
         if (hebrewName) body.hebrew_name = hebrewName.trim()
         if (maritalStatus) body.marital_status = maritalStatus
         if (citizenship) body.citizenship = citizenship.trim()
@@ -270,7 +271,7 @@ export default function AddEmployeeModal({
         body.passport = {
           series: passportSeries || undefined,
           number: passportNumber || undefined,
-          issue_date: passportIssueDate || undefined,
+          issue_date: passportIssueDate ? passportIssueDate.toISOString().split('T')[0] : undefined,
           issued_by: passportIssuedBy || undefined,
         }
       }
@@ -285,7 +286,7 @@ export default function AddEmployeeModal({
       if (contractNumber || contractDate || salary) {
         body.contract = {
           number: contractNumber || undefined,
-          date: contractDate || undefined,
+          date: contractDate ? contractDate.toISOString().split('T')[0] : undefined,
           salary: salary ? Number(salary) : undefined,
           currency: currency || undefined,
           file_name: contractFile?.name,
@@ -401,7 +402,7 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Дата рождения</label>
-              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} disabled={ro} style={{ ...inp, ...dis }} />
+              <DateInput value={birthDate} onChange={setBirthDate} maxDate={new Date()} minDate={new Date(1940, 0, 1)} disabled={ro} style={dis} />
             </div>
             <div>
               <label style={lbl}>Семейное положение</label>
@@ -526,7 +527,7 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>Дата приёма на работу *</label>
-              <input type="date" value={hireDate} onChange={e => setHireDate(e.target.value)} style={inp} />
+              <DateInput value={hireDate} onChange={setHireDate} />
             </div>
             <div>
               <label style={lbl}>Тип занятости</label>
@@ -566,7 +567,7 @@ export default function AddEmployeeModal({
                 </div>
                 <div>
                   <label style={lbl}>Дата выдачи</label>
-                  <input type="date" value={passportIssueDate} onChange={e => setPassportIssueDate(e.target.value)} style={inp} />
+                  <DateInput value={passportIssueDate} onChange={setPassportIssueDate} />
                 </div>
                 <div>
                   <label style={lbl}>Кем выдан</label>
@@ -614,7 +615,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Дата заключения</label>
-              <input type="date" value={contractDate} onChange={e => setContractDate(e.target.value)} style={inp} />
+              <DateInput value={contractDate} onChange={setContractDate} />
             </div>
             <div>
               <label style={lbl}>Оклад / Ставка</label>
