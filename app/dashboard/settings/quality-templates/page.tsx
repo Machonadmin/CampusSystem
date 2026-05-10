@@ -475,10 +475,20 @@ export default function QualityTemplatesPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/settings/quality-templates')
-    if (res.ok) setTemplates(await res.json())
-    else setError('Ошибка загрузки')
-    setLoading(false)
+    setError('')
+    try {
+      const res = await fetch('/api/settings/quality-templates')
+      if (res.ok) {
+        setTemplates(await res.json())
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setError(body.error ?? `Ошибка ${res.status}`)
+      }
+    } catch {
+      setError('Нет соединения с сервером')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])

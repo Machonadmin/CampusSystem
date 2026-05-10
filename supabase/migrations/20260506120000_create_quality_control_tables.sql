@@ -6,7 +6,7 @@
 -- 1. TEMPLATES (шаблоны проверок)
 -- ─────────────────────────────────────────────
 
-CREATE TABLE quality_check_templates (
+CREATE TABLE IF NOT EXISTS quality_check_templates (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name        TEXT NOT NULL,
   description TEXT,
@@ -43,7 +43,7 @@ CREATE TABLE quality_check_templates (
 -- 2. CHECKS (проверки уроков)
 -- ─────────────────────────────────────────────
 
-CREATE TABLE quality_checks (
+CREATE TABLE IF NOT EXISTS quality_checks (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   template_id UUID REFERENCES quality_check_templates(id),
 
@@ -87,18 +87,18 @@ CREATE TABLE quality_checks (
 -- 3. INDEXES
 -- ─────────────────────────────────────────────
 
-CREATE INDEX idx_quality_checks_teacher   ON quality_checks(teacher_person_id);
-CREATE INDEX idx_quality_checks_observer  ON quality_checks(observer_person_id);
-CREATE INDEX idx_quality_checks_date      ON quality_checks(lesson_date);
-CREATE INDEX idx_quality_checks_status    ON quality_checks(status);
-CREATE INDEX idx_quality_templates_active ON quality_check_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_quality_checks_teacher   ON quality_checks(teacher_person_id);
+CREATE INDEX IF NOT EXISTS idx_quality_checks_observer  ON quality_checks(observer_person_id);
+CREATE INDEX IF NOT EXISTS idx_quality_checks_date      ON quality_checks(lesson_date);
+CREATE INDEX IF NOT EXISTS idx_quality_checks_status    ON quality_checks(status);
+CREATE INDEX IF NOT EXISTS idx_quality_templates_active ON quality_check_templates(is_active);
 
 -- ─────────────────────────────────────────────
 -- 4. DEFAULT TEMPLATE — "Проверка урока (полная)"
 -- ─────────────────────────────────────────────
 
 INSERT INTO quality_check_templates (name, description, structure, is_active)
-VALUES (
+SELECT * FROM (VALUES (
   'Проверка урока (полная)',
   'Подробная оценка качества преподавания по 9 критериям',
   $template$
@@ -408,4 +408,7 @@ VALUES (
   }
   $template$::jsonb,
   true
+)) AS v(name, description, structure, is_active)
+WHERE NOT EXISTS (
+  SELECT 1 FROM quality_check_templates WHERE name = 'Проверка урока (полная)'
 );
