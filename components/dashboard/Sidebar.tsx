@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
-import { getModuleColor } from '@/lib/module-colors'
+import { getModuleColor, isModuleImplemented } from '@/lib/module-colors'
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -66,6 +66,7 @@ function SidebarNavLink({
   moduleKey: string
 }) {
   const colorKey = moduleKey === 'home' ? 'dashboard' : moduleKey
+  const implemented = moduleKey === 'home' || isModuleImplemented(moduleKey)
   const activePrimary = getModuleColor(colorKey, 'primary')
   const activeLight = getModuleColor(colorKey, 'light')
   return (
@@ -77,13 +78,19 @@ function SidebarNavLink({
         />
       )}
       <Link
-        href={href}
+        href={implemented ? href : '#'}
         title={!isOpen ? label : undefined}
+        onClick={implemented ? undefined : (e) => e.preventDefault()}
+        prefetch={false}
         className={`flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'}`}
         style={
           active
             ? { backgroundColor: activeLight, color: activePrimary, padding: isOpen ? '8px 10px' : '10px 11px' }
-            : { color: '#4B5563', padding: isOpen ? '8px 10px' : '10px 11px' }
+            : {
+                color: implemented ? '#4B5563' : '#C4C9D0',
+                cursor: implemented ? 'pointer' : 'not-allowed',
+                padding: isOpen ? '8px 10px' : '10px 11px',
+              }
         }
       >
         <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,10 +105,19 @@ function SidebarNavLink({
             transition: 'max-width 0.2s ease, opacity 0.15s ease',
             fontSize: 14,
             lineHeight: 1.4,
+            flex: 1,
           }}
         >
           {label}
         </span>
+        {isOpen && !implemented && (
+          <span style={{
+            fontSize: 9, fontWeight: 700, color: '#F59E0B',
+            letterSpacing: '0.05em', flexShrink: 0,
+          }}>
+            СКОРО
+          </span>
+        )}
       </Link>
     </div>
   )

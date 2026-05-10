@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
 
 interface MeResponse {
   full_name: string | null
@@ -63,10 +63,7 @@ const HREF_OVERRIDES: Record<string, string> = {
   quality_control: '/dashboard/quality-control',
 }
 
-// Modules with real pages — shown first with full colour
-const IMPLEMENTED = new Set(['education', 'tasks', 'settings', 'staff', 'quality_control'])
-
-// Full ordered list — user only sees ones in their accessible_modules
+// Full ordered list — always shown, implemented ones first
 const ALL_MODULE_CARDS = [
   'persons', 'staff', 'quality_control', 'education', 'finance', 'dormitory', 'food',
   'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
@@ -101,12 +98,10 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  const allVisible = user
-    ? ALL_MODULE_CARDS.filter(key => user.accessible_modules.includes(key))
-    : []
+  // Implemented modules first, then coming-soon modules
   const visibleModules = [
-    ...allVisible.filter(k => IMPLEMENTED.has(k)),
-    ...allVisible.filter(k => !IMPLEMENTED.has(k)),
+    ...ALL_MODULE_CARDS.filter(k => isModuleImplemented(k)),
+    ...ALL_MODULE_CARDS.filter(k => !isModuleImplemented(k)),
   ]
 
   return (
@@ -136,71 +131,75 @@ export default function DashboardPage() {
           {t.availableModules}
         </h2>
 
-        {loading ? (
-          <div style={{ color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
-        ) : visibleModules.length === 0 ? (
-          <div style={{ color: '#9CA3AF', fontSize: 13 }}>Нет доступных модулей</div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {visibleModules.map(key => {
-              const ready = IMPLEMENTED.has(key)
-              const primary = getModuleColor(key, 'primary')
-              const lightBg = getModuleColor(key, 'light')
-              const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
-              const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
-              const cardStyle: React.CSSProperties = {
-                padding: 20,
-                backgroundColor: ready ? lightBg : '#F9FAFB',
-                borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
-                borderRadius: 12,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                transition: 'box-shadow 0.2s, transform 0.2s',
-              }
-              const inner = (
-                <>
-                  <ModuleIcon moduleKey={key} disabled={!ready} />
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
-                      {!ready && (
-                        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 8, backgroundColor: '#F3F4F6', color: '#9CA3AF', fontWeight: 600, flexShrink: 0 }}>Скоро</span>
-                      )}
-                    </div>
-                    <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#D1D5DB', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
-                  </div>
-                </>
-              )
-              return ready ? (
-                <Link
-                  key={key}
-                  href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
-                  className="flex flex-col gap-3"
-                  style={cardStyle}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)'
-                    el.style.transform = 'translateY(-2px)'
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
-                    el.style.transform = 'translateY(0)'
-                  }}
-                >
-                  {inner}
-                </Link>
-              ) : (
-                <div
-                  key={key}
-                  className="flex flex-col gap-3"
-                  style={{ ...cardStyle, cursor: 'default' }}
-                >
-                  {inner}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {visibleModules.map(key => {
+            const ready = isModuleImplemented(key)
+            const primary = getModuleColor(key, 'primary')
+            const lightBg = getModuleColor(key, 'light')
+            const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
+            const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
+            const cardStyle: React.CSSProperties = {
+              position: 'relative',
+              padding: 20,
+              backgroundColor: ready ? lightBg : '#F9FAFB',
+              borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
+              borderRadius: 12,
+              opacity: ready ? 1 : 0.65,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',
+            }
+            const badge = !ready && (
+              <span style={{
+                position: 'absolute', top: 10, right: 10,
+                background: '#F59E0B', color: '#fff',
+                padding: '3px 8px', borderRadius: 6,
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+              }}>
+                СКОРО
+              </span>
+            )
+            const inner = (
+              <>
+                {badge}
+                <ModuleIcon moduleKey={key} disabled={!ready} />
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                  <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#9CA3AF', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
                 </div>
-              )
-            })}
-          </div>
-        )}
+              </>
+            )
+            return ready ? (
+              <Link
+                key={key}
+                href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
+                prefetch={false}
+                className="flex flex-col gap-3"
+                style={cardStyle}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)'
+                  el.style.transform = 'translateY(-2px)'
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
+                  el.style.transform = 'translateY(0)'
+                }}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div
+                key={key}
+                className="flex flex-col gap-3"
+                style={{ ...cardStyle, cursor: 'not-allowed' }}
+              >
+                {inner}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

@@ -1,3 +1,11 @@
+export const IMPLEMENTED_MODULES = new Set([
+  'education', 'tasks', 'settings', 'staff', 'quality_control',
+])
+
+export function isModuleImplemented(moduleCode: string): boolean {
+  return IMPLEMENTED_MODULES.has(moduleCode)
+}
+
 export const MODULE_COLORS = {
   dashboard:       { primary: '#3B82F6', light: '#DBEAFE', medium: '#60A5FA' },
   persons:         { primary: '#2563EB', light: '#DBEAFE', medium: '#60A5FA' },
