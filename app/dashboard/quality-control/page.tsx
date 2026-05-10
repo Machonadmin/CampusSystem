@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
+import TemplatesTab from './components/TemplatesTab'
+import { hasFeatureAccess } from '@/lib/permissions'
+import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 
 interface CheckRow {
   id: string
@@ -32,6 +35,8 @@ const STATUS_COLOR: Record<string, [string, string]> = {
   completed:   ['#F0FDF4', '#16A34A'],
 }
 
+const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
+
 function StatusBadge({ status }: { status: string }) {
   const [bg, color] = STATUS_COLOR[status] ?? ['#F3F4F6', '#6B7280']
   return (
@@ -51,17 +56,33 @@ function RatingStars({ rating }: { rating: number | null }) {
   )
 }
 
+type Tab = 'planned' | 'history' | 'templates'
+
 export default function QualityControlPage() {
-  const [tab, setTab] = useState<'planned' | 'history'>('planned')
+  const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
+  const [tab, setTab] = useState<Tab>('planned')
   const [checks, setChecks] = useState<CheckRow[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [refresh, setRefresh] = useState(0)
-
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : {})
+      .then((data: { feature_access?: FeatureAccess }) => { if (data.feature_access) setFeatureAccess(data.feature_access) })
+  }, [])
+
+  const canViewPlanned   = hasFeatureAccess(featureAccess, 'quality_control', 'planned',   'can_view')
+  const canViewHistory   = hasFeatureAccess(featureAccess, 'quality_control', 'history',   'can_view')
+  const canViewTemplates = hasFeatureAccess(featureAccess, 'quality_control', 'templates', 'can_view')
+  const canCreateCheck   = hasFeatureAccess(featureAccess, 'quality_control', 'planned',   'can_create')
+
+  const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
+
   const load = useCallback(async () => {
+    if (tab === 'templates') return
     setLoading(true)
     try {
       const params = new URLSearchParams({ tab })
@@ -92,6 +113,12 @@ export default function QualityControlPage() {
     } catch { return d }
   }
 
+  const tabs: { key: Tab; label: string; visible: boolean }[] = [
+    { key: 'planned',   label: 'Запланированные',  visible: canViewPlanned },
+    { key: 'history',   label: 'История проверок',  visible: canViewHistory },
+    { key: 'templates', label: 'Шаблоны проверок',  visible: canViewTemplates },
+  ]
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -107,116 +134,128 @@ export default function QualityControlPage() {
         >
           <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Контроль качества преподавания</h1>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          style={{ padding: '10px 18px', fontSize: 13, fontWeight: 600, backgroundColor: '#BE185D', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
-        >
-          + Новая проверка
-        </button>
+        {canCreateCheck && tab !== 'templates' && (
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{ padding: '10px 18px', fontSize: 13, fontWeight: 600, backgroundColor: '#BE185D', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+          >
+            + Новая проверка
+          </button>
+        )}
       </div>
 
-      {/* Tabs + toolbar */}
+      {/* Tabs + content */}
       <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
         {/* Tab strip */}
         <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB' }}>
-          {(['planned', 'history'] as const).map(t => (
+          {tabs.filter(t => t.visible).map(t => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={t.key}
+              onClick={() => setTab(t.key)}
               style={{
-                padding: '11px 20px', fontSize: 13, fontWeight: tab === t ? 600 : 400,
-                color: tab === t ? '#BE185D' : '#6B7280',
-                borderBottom: tab === t ? '2px solid #BE185D' : '2px solid transparent',
+                padding: '11px 20px', fontSize: 13, fontWeight: tab === t.key ? 600 : 400,
+                color: tab === t.key ? '#BE185D' : '#6B7280',
+                borderBottom: tab === t.key ? '2px solid #BE185D' : '2px solid transparent',
                 background: 'none', border: 'none', borderBottomStyle: 'solid',
                 cursor: 'pointer', transition: 'color 0.15s',
               }}
             >
-              {t === 'planned' ? 'Запланированные' : 'История проверок'}
+              {t.label}
             </button>
           ))}
         </div>
 
-        {/* Search toolbar */}
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA' }}>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Поиск по группе или курсу..."
-            style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
-          />
-        </div>
+        {/* Templates tab */}
+        {tab === 'templates' && (
+          <TemplatesTab perms={templatePerms} />
+        )}
 
-        {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
-          {loading ? (
-            <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
-          ) : checks.length === 0 ? (
-            <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
-              {tab === 'planned' ? 'Нет запланированных проверок' : 'История проверок пуста'}
+        {/* Checks tabs */}
+        {tab !== 'templates' && (
+          <>
+            {/* Search toolbar */}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA' }}>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Поиск по группе или курсу..."
+                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
+              />
             </div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#F9FAFB' }}>
-                  {['Дата / Время', 'Преподаватель', 'Группа / Курс', 'Наблюдатель', 'Статус', 'Оценка', 'Действия'].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {checks.map((c, i) => (
-                  <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
-                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{formatDate(c.lesson_date)}</div>
-                      <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <div style={{ fontSize: 13, color: '#374151' }}>{c.teacher_name ?? '—'}</div>
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      {c.group_name && <div style={{ fontSize: 13, color: '#374151' }}>{c.group_name}</div>}
-                      {c.course_name && <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.course_name}</div>}
-                      {!c.group_name && !c.course_name && <span style={{ color: '#D1D5DB', fontSize: 13 }}>—</span>}
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <div style={{ fontSize: 13, color: '#374151' }}>{c.observer_name ?? '—'}</div>
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <StatusBadge status={c.status} />
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <RatingStars rating={c.overall_rating} />
-                    </td>
-                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <Link
-                          href={`/dashboard/quality-control/${c.id}`}
-                          style={{
-                            padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
-                            border: c.status === 'completed' ? '1px solid #D1D5DB' : '1px solid #BFDBFE',
-                            background: c.status === 'completed' ? '#F9FAFB' : '#EFF6FF',
-                            color: c.status === 'completed' ? '#374151' : '#1D4ED8',
-                          }}
-                        >
-                          {c.status === 'completed' ? 'Просмотр' : 'Заполнить'}
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
-                          disabled={deletingId === c.id}
-                          style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
-                        >
-                          Удалить
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+
+            {/* Table */}
+            <div style={{ overflowX: 'auto' }}>
+              {loading ? (
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
+              ) : checks.length === 0 ? (
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+                  {tab === 'planned' ? 'Нет запланированных проверок' : 'История проверок пуста'}
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#F9FAFB' }}>
+                      {['Дата / Время', 'Преподаватель', 'Группа / Курс', 'Наблюдатель', 'Статус', 'Оценка', 'Действия'].map(h => (
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checks.map((c, i) => (
+                      <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
+                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{formatDate(c.lesson_date)}</div>
+                          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontSize: 13, color: '#374151' }}>{c.teacher_name ?? '—'}</div>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          {c.group_name && <div style={{ fontSize: 13, color: '#374151' }}>{c.group_name}</div>}
+                          {c.course_name && <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.course_name}</div>}
+                          {!c.group_name && !c.course_name && <span style={{ color: '#D1D5DB', fontSize: 13 }}>—</span>}
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontSize: 13, color: '#374151' }}>{c.observer_name ?? '—'}</div>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <StatusBadge status={c.status} />
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <RatingStars rating={c.overall_rating} />
+                        </td>
+                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <Link
+                              href={`/dashboard/quality-control/${c.id}`}
+                              style={{
+                                padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
+                                border: c.status === 'completed' ? '1px solid #D1D5DB' : '1px solid #BFDBFE',
+                                background: c.status === 'completed' ? '#F9FAFB' : '#EFF6FF',
+                                color: c.status === 'completed' ? '#374151' : '#1D4ED8',
+                              }}
+                            >
+                              {c.status === 'completed' ? 'Просмотр' : 'Заполнить'}
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
+                              disabled={deletingId === c.id}
+                              style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
+                            >
+                              Удалить
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {showCreate && (

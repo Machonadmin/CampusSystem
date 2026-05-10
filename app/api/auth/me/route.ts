@@ -9,14 +9,29 @@ const ALL_MODULE_CODES = [
   'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
 ]
 
+type FeaturePerms = { can_view: boolean; can_create: boolean; can_edit: boolean; can_delete: boolean }
+type FeatureAccess = Record<string, Record<string, FeaturePerms>>
+
+const ALL_FEATURE_PERMS: FeaturePerms = { can_view: true, can_create: true, can_edit: true, can_delete: true }
+
+const ALL_FEATURES: FeatureAccess = {
+  quality_control: {
+    planned:   ALL_FEATURE_PERMS,
+    history:   ALL_FEATURE_PERMS,
+    templates: ALL_FEATURE_PERMS,
+  },
+}
+
 export async function GET() {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
 
   let accessible_modules: string[]
+  let feature_access: FeatureAccess
 
   if (session.roles.includes('superadmin')) {
     accessible_modules = ALL_MODULE_CODES
+    feature_access = ALL_FEATURES
   } else {
     const sb = createServerClient()
     const { data: roleRows } = await sb.from('roles').select('id').in('code', session.roles as RoleCode[])
@@ -24,6 +39,7 @@ export async function GET() {
 
     if (roleIds.length === 0) {
       accessible_modules = []
+      feature_access = {}
     } else {
       const { data: privs } = await sb
         .from('role_privileges')
@@ -31,6 +47,22 @@ export async function GET() {
         .in('role_id', roleIds)
         .eq('privilege_code', 'access')
       accessible_modules = [...new Set((privs ?? []).map(p => p.module as string))]
+
+      const { data: featRows } = await sb
+        .from('feature_privileges')
+        .select('module_code, feature_code, can_view, can_create, can_edit, can_delete')
+        .in('role_code', session.roles)
+      feature_access = {}
+      for (const row of featRows ?? []) {
+        if (!feature_access[row.module_code]) feature_access[row.module_code] = {}
+        const existing = feature_access[row.module_code][row.feature_code]
+        feature_access[row.module_code][row.feature_code] = {
+          can_view:   (existing?.can_view   ?? false) || row.can_view,
+          can_create: (existing?.can_create ?? false) || row.can_create,
+          can_edit:   (existing?.can_edit   ?? false) || row.can_edit,
+          can_delete: (existing?.can_delete ?? false) || row.can_delete,
+        }
+      }
     }
   }
 
@@ -40,5 +72,6 @@ export async function GET() {
     full_name: session.full_name,
     roles: session.roles,
     accessible_modules,
+    feature_access,
   })
 }

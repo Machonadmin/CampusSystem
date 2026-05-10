@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { useCallback, useEffect, useState } from 'react'
+import type { FeaturePerms } from '@/lib/permissions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -186,8 +185,6 @@ function TemplateBuilder({
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
-  // ── Block operations ─────────────────────────────────────────────────────
-
   function addBlock() {
     setBlocks(prev => [...prev, {
       id: uid(), _key: uid(), title: 'Новый блок', order: prev.length + 1,
@@ -212,8 +209,6 @@ function TemplateBuilder({
       return next
     })
   }
-
-  // ── Question operations ──────────────────────────────────────────────────
 
   function addQuestion(blockKey: string) {
     setBlocks(prev => prev.map(b => {
@@ -251,8 +246,6 @@ function TemplateBuilder({
     }))
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
-
   async function handleSave() {
     if (!name.trim()) { setErr('Введите название шаблона'); return }
     setSaving(true); setErr('')
@@ -266,13 +259,10 @@ function TemplateBuilder({
     else { const d = await res.json(); setErr(d.error ?? 'Ошибка сохранения') }
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 860, maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
 
-        {/* Header */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #E5E7EB', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 700, fontSize: 16, color: '#1F2937', margin: 0 }}>
             {isEdit ? 'Редактировать шаблон' : 'Создать шаблон'}
@@ -280,10 +270,8 @@ function TemplateBuilder({
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 24, lineHeight: 1 }}>×</button>
         </div>
 
-        {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* Template info */}
           <div style={{ display: 'flex', gap: 14 }}>
             <div style={{ flex: 2 }}>
               <label style={lbl}>Название шаблона *</label>
@@ -295,7 +283,6 @@ function TemplateBuilder({
             </div>
           </div>
 
-          {/* Blocks */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <p style={{ fontWeight: 600, fontSize: 14, color: '#1F2937', margin: 0 }}>Блоки ({blocks.length})</p>
@@ -315,10 +302,7 @@ function TemplateBuilder({
               {blocks.map((block, bi) => (
                 <div key={block._key} style={{ border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
 
-                  {/* Block header */}
                   <div style={{ padding: '10px 12px', background: '#F9FAFB', display: 'flex', alignItems: 'center', gap: 8 }}>
-
-                    {/* Up/Down */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
                       <button onClick={() => moveBlock(bi, -1)} disabled={bi === 0}
                         style={{ width: 18, height: 14, border: '1px solid #D1D5DB', borderRadius: 3, background: '#fff', cursor: bi === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: bi === 0 ? 0.35 : 1, padding: 0 }}>
@@ -330,24 +314,19 @@ function TemplateBuilder({
                       </button>
                     </div>
 
-                    {/* Block number */}
                     <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0, width: 16 }}>{bi + 1}.</span>
 
-                    {/* Block title input */}
                     <input value={block.title} onChange={e => updateBlock(block._key, { title: e.target.value })}
                       style={{ flex: 1, padding: '4px 8px', fontSize: 13, fontWeight: 500, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', minWidth: 0 }} />
 
-                    {/* Special type badge */}
                     {block.type && (
                       <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: '#DBEAFE', color: '#1D4ED8', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}>
                         {BLOCK_TYPE_LABELS[block.type] ?? block.type}
                       </span>
                     )}
 
-                    {/* Question count */}
                     <span style={{ fontSize: 11, color: '#6B7280', flexShrink: 0 }}>{block.questions.length} вопр.</span>
 
-                    {/* Toggle expand */}
                     <button onClick={() => updateBlock(block._key, { _expanded: !block._expanded })}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '2px 4px', flexShrink: 0 }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
@@ -356,17 +335,14 @@ function TemplateBuilder({
                       </svg>
                     </button>
 
-                    {/* Delete block */}
                     <button onClick={() => removeBlock(block._key)}
                       style={{ background: '#FEF2F2', border: 'none', borderRadius: 5, cursor: 'pointer', color: '#DC2626', padding: '3px 7px', fontSize: 11, flexShrink: 0 }}>
                       Удалить
                     </button>
                   </div>
 
-                  {/* Questions (expanded) */}
                   {block._expanded && (
                     <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-
                       {block.questions.length === 0 && (
                         <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 4px', textAlign: 'center' }}>
                           Нет вопросов. Добавьте первый вопрос в этот блок.
@@ -375,8 +351,6 @@ function TemplateBuilder({
 
                       {block.questions.map((q, qi) => (
                         <div key={q._key} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '8px 10px', background: '#FAFAFA', borderRadius: 7, border: '1px solid #E5E7EB' }}>
-
-                          {/* Question up/down */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, marginTop: 2 }}>
                             <button onClick={() => moveQuestion(block._key, qi, -1)} disabled={qi === 0}
                               style={{ width: 16, height: 12, border: '1px solid #D1D5DB', borderRadius: 2, background: '#fff', cursor: qi === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: qi === 0 ? 0.35 : 1, padding: 0 }}>
@@ -388,14 +362,11 @@ function TemplateBuilder({
                             </button>
                           </div>
 
-                          {/* Question number */}
                           <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0, width: 14, marginTop: 6 }}>{qi + 1}.</span>
 
-                          {/* Question text */}
                           <input value={q.text} onChange={e => updateQuestion(block._key, q._key, { text: e.target.value })}
                             placeholder="Текст вопроса..." style={{ flex: 1, padding: '5px 8px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none' }} />
 
-                          {/* Type select */}
                           <select value={q.type} onChange={e => updateQuestion(block._key, q._key, { type: e.target.value as QuestionType })}
                             style={{ padding: '5px 6px', fontSize: 11, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', flexShrink: 0 }}>
                             {(Object.entries(TYPE_LABELS) as [QuestionType, string][]).map(([val, label]) => (
@@ -403,21 +374,18 @@ function TemplateBuilder({
                             ))}
                           </select>
 
-                          {/* Required checkbox */}
                           <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#374151', flexShrink: 0, cursor: 'pointer', whiteSpace: 'nowrap', paddingTop: 4 }}>
                             <input type="checkbox" checked={q.required} onChange={e => updateQuestion(block._key, q._key, { required: e.target.checked })}
                               style={{ accentColor: '#3B82F6', width: 13, height: 13 }} />
                             Обяз.
                           </label>
 
-                          {/* maps_to badge (read-only, only for summary block questions) */}
                           {q.maps_to && (
                             <span style={{ fontSize: 10, padding: '2px 5px', borderRadius: 4, background: '#FEF3C7', color: '#92400E', flexShrink: 0, whiteSpace: 'nowrap' }}>
                               → {q.maps_to}
                             </span>
                           )}
 
-                          {/* Delete question */}
                           <button onClick={() => removeQuestion(block._key, q._key)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px 2px', flexShrink: 0 }}
                             title="Удалить вопрос">
@@ -440,7 +408,6 @@ function TemplateBuilder({
           </div>
         </div>
 
-        {/* Footer */}
         <div style={{ padding: '12px 24px', borderTop: '1px solid #F3F4F6', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {err ? <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{err}</p> : <span />}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -458,15 +425,18 @@ function TemplateBuilder({
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 
 type BuilderState =
   | null
   | { mode: 'create' }
   | { mode: 'edit' | 'view'; template: TemplateDetail }
 
-export default function QualityTemplatesPage() {
-  const { lang } = useLang()
+interface Props {
+  perms: FeaturePerms
+}
+
+export default function TemplatesTab({ perms }: Props) {
   const [templates, setTemplates] = useState<TemplateListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -505,42 +475,27 @@ export default function QualityTemplatesPage() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Удалить шаблон «${name}»?\n\nЭто действие нельзя отменить.`)) return
     const res = await fetch(`/api/settings/quality-templates/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      load()
-    } else {
-      const d = await res.json()
-      alert(d.error ?? 'Ошибка удаления')
-    }
+    if (res.ok) { load() }
+    else { const d = await res.json(); alert(d.error ?? 'Ошибка удаления') }
   }
-
-  const homeLabel = lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная'
-  const settLabel = lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'
 
   const btnSm: React.CSSProperties = { padding: '4px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap' }
 
   return (
-    <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: homeLabel, href: '/dashboard' },
-        { label: settLabel, href: '/dashboard/settings' },
-        { label: 'Шаблоны проверок' },
-      ]} />
-
-      <div style={{ backgroundColor: '#3B82F6', borderLeft: '4px solid #4BAED4', borderRadius: 12, padding: '12px 24px' }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: 0 }}>Шаблоны проверок</h1>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          onClick={() => setBuilderState({ mode: 'create' })}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-        >
-          <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Создать шаблон
-        </button>
-      </div>
+    <div style={{ padding: '16px' }}>
+      {perms.can_create && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button
+            onClick={() => setBuilderState({ mode: 'create' })}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#BE185D', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+          >
+            <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Создать шаблон
+          </button>
+        </div>
+      )}
 
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
@@ -573,29 +528,27 @@ export default function QualityTemplatesPage() {
                       {t.description ?? '—'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', textAlign: 'center' }}>
-                    {t.block_count}
-                  </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', textAlign: 'center' }}>
-                    {t.question_count}
-                  </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>
-                    {fmtDate(t.created_at)}
-                  </td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', textAlign: 'center' }}>{t.block_count}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', textAlign: 'center' }}>{t.question_count}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#6B7280', whiteSpace: 'nowrap' }}>{fmtDate(t.created_at)}</td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                       <button onClick={() => openEdit(t.id, 'view')} disabled={loadingDetail}
                         style={{ ...btnSm, border: '1px solid #D1D5DB', background: '#fff', color: '#374151' }}>
                         Просмотр
                       </button>
-                      <button onClick={() => openEdit(t.id, 'edit')} disabled={loadingDetail}
-                        style={{ ...btnSm, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8' }}>
-                        Редактировать
-                      </button>
-                      <button onClick={() => handleDelete(t.id, t.name)}
-                        style={{ ...btnSm, border: '1px solid #FEE2E2', background: '#FEF2F2', color: '#DC2626' }}>
-                        Удалить
-                      </button>
+                      {perms.can_edit && (
+                        <button onClick={() => openEdit(t.id, 'edit')} disabled={loadingDetail}
+                          style={{ ...btnSm, border: '1px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8' }}>
+                          Редактировать
+                        </button>
+                      )}
+                      {perms.can_delete && (
+                        <button onClick={() => handleDelete(t.id, t.name)}
+                          style={{ ...btnSm, border: '1px solid #FEE2E2', background: '#FEF2F2', color: '#DC2626' }}>
+                          Удалить
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -605,7 +558,6 @@ export default function QualityTemplatesPage() {
         )}
       </div>
 
-      {/* Modals */}
       {builderState?.mode === 'create' && (
         <TemplateBuilder
           initial={null}

@@ -322,6 +322,28 @@ export interface QualityCheckInsert {
 }
 export type QualityCheckUpdate = Partial<QualityCheckInsert>
 
+export interface FeaturePrivilegeRow {
+  id: string
+  role_code: string
+  module_code: string
+  feature_code: string
+  can_view: boolean
+  can_create: boolean
+  can_edit: boolean
+  can_delete: boolean
+}
+export interface FeaturePrivilegeInsert {
+  id?: string
+  role_code: string
+  module_code: string
+  feature_code: string
+  can_view?: boolean
+  can_create?: boolean
+  can_edit?: boolean
+  can_delete?: boolean
+}
+export type FeaturePrivilegeUpdate = Partial<FeaturePrivilegeInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -372,6 +394,7 @@ export interface Database {
       person_status_history:     T<PersonStatusHistoryRow,       PersonStatusHistoryInsert,       PersonStatusHistoryUpdate>
       quality_check_templates:   T<QualityCheckTemplateRow,      QualityCheckTemplateInsert,      QualityCheckTemplateUpdate>
       quality_checks:            T<QualityCheckRow,              QualityCheckInsert,              QualityCheckUpdate>
+      feature_privileges:        T<FeaturePrivilegeRow,          FeaturePrivilegeInsert,          FeaturePrivilegeUpdate>
     }
     Views: Record<string, never>
     Functions: {
