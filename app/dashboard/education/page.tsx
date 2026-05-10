@@ -136,9 +136,9 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   // Tab 4 – Община
   const [communities, setCommunities] = useState<{
     country: string; city: string;
-    name: string; contact_person: string; position: string;
+    name: string; contact_person: string; contact_person_id: string | null; position: string;
     phone: string; email: string; contacts: { type: string; value: string }[];
-  }[]>([{ country: 'Россия', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])
+  }[]>([{ country: 'Россия', city: '', name: '', contact_person: '', contact_person_id: null, position: '', phone: '', email: '', contacts: [] }])
 
   // Tab 5 – Направления
   const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
@@ -691,11 +691,17 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                         placeholder="Бейт Хабад, Шалом и т.д." style={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Имя контактного лица</label>
+                      <label style={lbl}>Контактное лицо</label>
                       <PersonSelect
-                        value={comm.contact_person}
-                        onChange={v => updateComm(i, 'contact_person', v)}
-                        placeholder="Рабинович Давид"
+                        value={comm.contact_person_id}
+                        onChange={(personId, personData) => {
+                          setCommunities(prev => prev.map((c, ci) => ci === i ? {
+                            ...c,
+                            contact_person_id: personId,
+                            contact_person: personData?.full_name ?? c.contact_person,
+                          } : c))
+                        }}
+                        placeholder="Выберите или добавьте контактное лицо"
                         accentColor={getModuleColor('education')}
                       />
                     </div>
@@ -742,7 +748,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               )
             })}
             <button
-              onClick={() => setCommunities(prev => [...prev, { country: 'Россия', city: '', name: '', contact_person: '', position: '', phone: '', email: '', contacts: [] }])}
+              onClick={() => setCommunities(prev => [...prev, { country: 'Россия', city: '', name: '', contact_person: '', contact_person_id: null, position: '', phone: '', email: '', contacts: [] }])}
               style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
               + Добавить ещё общину
             </button>
