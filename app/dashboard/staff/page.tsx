@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import ModuleTabs from '@/components/ui/ModuleTabs'
 
 interface Department {
   id: string
@@ -600,11 +601,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const TABS = ['Структура организации', 'Сотрудники']
-
 export default function StaffPage() {
   const { lang } = useLang()
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState<string>('structure')
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -636,14 +635,6 @@ export default function StaffPage() {
   const tree = buildTree(depts)
   const title = lang === 'he' ? 'כוח אדם' : lang === 'en' ? 'Staff' : 'Персонал'
 
-  const tabBtn = (idx: number) => ({
-    padding: '10px 28px', borderRadius: '8px 8px 0 0', border: '1px solid', borderBottom: 'none',
-    marginRight: 4, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'background 0.15s',
-    ...(activeTab === idx
-      ? { backgroundColor: '#E0F2FE', borderColor: '#4BAED4', color: '#1F2937' }
-      : { backgroundColor: '#fff', borderColor: '#E5E7EB', color: '#6B7280' }),
-  })
-
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -659,13 +650,17 @@ export default function StaffPage() {
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>
       </div>
 
-      <div style={{ borderBottom: '1px solid #E5E7EB', display: 'flex' }}>
-        {TABS.map((tab, idx) => (
-          <button key={tab} onClick={() => setActiveTab(idx)} style={tabBtn(idx)}>{tab}</button>
-        ))}
-      </div>
+      <ModuleTabs
+        tabs={[
+          { key: 'structure', label: 'Структура организации' },
+          { key: 'staff', label: 'Сотрудники' },
+        ]}
+        active={activeTab}
+        onChange={setActiveTab}
+        accentColor={getModuleColor('staff')}
+      />
 
-      {activeTab === 0 && (
+      {activeTab === 'structure' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={() => setModal({ type: 'add', parentId: null })}
@@ -710,7 +705,7 @@ export default function StaffPage() {
         </div>
       )}
 
-      {activeTab === 1 && (
+      {activeTab === 'staff' && (
         <EmployeesTab onAdd={() => { setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }} depts={depts} refreshSignal={refreshSignal} />
       )}
 

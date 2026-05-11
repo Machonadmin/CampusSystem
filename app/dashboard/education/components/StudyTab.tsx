@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import SubjectsTab from './SubjectsTab'
+import SubTabs from '@/components/ui/SubTabs'
 
 type SubTab = 'subjects' | 'specialties' | 'study_groups' | 'students' | 'class_groups'
 
@@ -27,35 +28,12 @@ export default function StudyTab() {
       overflow: 'hidden',
     }}>
       {/* Полоса подвкладок */}
-      <div style={{
-        display: 'flex',
-        borderBottom: '1px solid #E5E7EB',
-        background: '#F9FAFB',
-      }}>
-        {SUB_TABS.map(t => {
-          const isActive = t.code === active
-          return (
-            <button
-              key={t.code}
-              onClick={() => setActive(t.code)}
-              style={{
-                padding: '11px 20px',
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? accent : '#6B7280',
-                background: isActive ? '#fff' : 'transparent',
-                border: 'none',
-                borderBottom: isActive ? `2px solid ${accent}` : '2px solid transparent',
-                cursor: 'pointer',
-                marginBottom: -1,
-                transition: 'color 0.15s',
-              }}
-            >
-              {t.label}
-            </button>
-          )
-        })}
-      </div>
+      <SubTabs
+        tabs={SUB_TABS.map(t => ({ key: t.code, label: t.label }))}
+        active={active}
+        onChange={k => setActive(k as SubTab)}
+        accentColor={accent}
+      />
 
       {/* Содержимое */}
       <div style={{ padding: 20 }}>

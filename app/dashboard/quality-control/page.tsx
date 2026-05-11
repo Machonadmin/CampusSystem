@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
+import ModuleTabs from '@/components/ui/ModuleTabs'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
@@ -149,27 +150,16 @@ export default function QualityControlPage() {
         )}
       </div>
 
-      {/* Tabs + content */}
-      <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-        {/* Tab strip */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB' }}>
-          {tabs.filter(t => t.visible).map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              style={{
-                padding: '11px 20px', fontSize: 13, fontWeight: tab === t.key ? 600 : 400,
-                color: tab === t.key ? '#EC4899' : '#6B7280',
-                borderBottom: tab === t.key ? '2px solid #EC4899' : '2px solid transparent',
-                background: 'none', border: 'none', borderBottomStyle: 'solid',
-                cursor: 'pointer', transition: 'color 0.15s',
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <ModuleTabs
+        tabs={tabs}
+        active={tab}
+        onChange={k => setTab(k as Tab)}
+        accentColor={getModuleColor('quality_control')}
+      />
 
+      {/* Content */}
+      <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
         {/* Templates tab */}
         {tab === 'templates' && (
           <TemplatesTab perms={templatePerms} />

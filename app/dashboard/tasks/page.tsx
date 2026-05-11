@@ -1,10 +1,16 @@
 'use client'
 
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
 
 export default function TasksPage() {
   return (
     <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: 'Главная', href: '/dashboard' },
+        { label: 'Задачи' },
+      ]} />
+
       {/* Page header */}
       <div
         className="flex items-center rounded-xl overflow-hidden"

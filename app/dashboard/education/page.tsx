@@ -9,6 +9,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import StudyTab from './components/StudyTab'
+import ModuleTabs from '@/components/ui/ModuleTabs'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -938,19 +939,6 @@ export default function EducationPage() {
     setConverting(null)
   }
 
-  const tabBtn = (key: TabKey, label: string) => (
-    <button key={key} onClick={() => setTab(key)} style={{
-      padding: '14px 40px', fontSize: 15,
-      fontWeight: tab === key ? 700 : 500,
-      color: tab === key ? '#3B82F6' : '#6B7280',
-      background: tab === key ? '#E0F2FE' : 'transparent',
-      border: tab === key ? '2px solid #4BAED4' : '2px solid transparent',
-      borderBottom: 'none', borderRadius: '10px 10px 0 0',
-      cursor: 'pointer', transition: 'all 0.2s ease', marginRight: '6px',
-    }}>
-      {label}
-    </button>
-  )
 
   return (
     <div className="p-6 space-y-5">
@@ -968,9 +956,12 @@ export default function EducationPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '2px solid #E5E7EB', marginBottom: 0 }}>
-        {TABS.map(t => tabBtn(t.key, t.label))}
-      </div>
+      <ModuleTabs
+        tabs={TABS.map(t => ({ key: t.key, label: t.label }))}
+        active={tab}
+        onChange={k => setTab(k as TabKey)}
+        accentColor={getModuleColor('education')}
+      />
 
       {/* ── Набор tab ─────────────────────────────────────────────────────── */}
       {tab === 'recruitment' && (
