@@ -388,6 +388,9 @@ export interface TaskRow {
   due_time: string | null      // 'HH:MM:SS'
   due_all_day: boolean
   claimed_at: string | null
+  recurrence_series_id: string | null  // UUID серии, NULL для разовых
+  recurrence_rule: Json | null          // см. структуру в миграции
+  recurrence_position: number | null    // порядковый номер в серии
   created_at: string
   updated_at: string
   completed_at: string | null
@@ -409,6 +412,9 @@ export interface TaskInsert {
   due_all_day?: boolean
   claimed_at?: string | null
   completed_at?: string | null
+  recurrence_series_id?: string | null
+  recurrence_rule?: Json | null
+  recurrence_position?: number | null
 }
 export type TaskUpdate = Partial<TaskInsert>
 
