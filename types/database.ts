@@ -18,6 +18,19 @@ export type EmploymentType = 'staff' | 'intern' | 'volunteer' | 'contractor'
 export type SponsorType = 'individual' | 'organization'
 export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'custom' | 'external'
 
+export type TaskModule = 'general' | 'education' | 'staff' | 'quality_control'
+export type TaskAssigneeType = 'person' | 'department'
+export type TaskStatus =
+  | 'unassigned'
+  | 'pending'
+  | 'in_progress'
+  | 'review'
+  | 'completed'
+  | 'cancelled'
+  | 'declined'
+export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type TaskCommentType = 'comment' | 'decline_reason' | 'status_note'
+
 export type RoleCode =
   | 'superadmin' | 'tech_admin'
   | 'campus_president' | 'president_secretary'
@@ -357,6 +370,96 @@ export interface ReferenceCityInsert {
 }
 export type ReferenceCityUpdate = Partial<ReferenceCityInsert>
 
+// ─── Tasks module ─────────────────────────────────────────────────────────────
+
+export interface TaskRow {
+  id: string
+  title: string
+  description: string | null
+  module: TaskModule
+  metadata: Json
+  assignee_type: TaskAssigneeType
+  assignee_id: string | null
+  department_id: string | null
+  creator_id: string
+  status: TaskStatus
+  priority: TaskPriority
+  due_date: string | null      // ISO date 'YYYY-MM-DD'
+  due_time: string | null      // 'HH:MM:SS'
+  due_all_day: boolean
+  claimed_at: string | null
+  created_at: string
+  updated_at: string
+  completed_at: string | null
+}
+export interface TaskInsert {
+  id?: string
+  title: string
+  description?: string | null
+  module?: TaskModule
+  metadata?: Json
+  assignee_type?: TaskAssigneeType
+  assignee_id?: string | null
+  department_id?: string | null
+  creator_id: string
+  status?: TaskStatus
+  priority?: TaskPriority
+  due_date?: string | null
+  due_time?: string | null
+  due_all_day?: boolean
+  claimed_at?: string | null
+  completed_at?: string | null
+}
+export type TaskUpdate = Partial<TaskInsert>
+
+export interface TaskCommentRow {
+  id: string
+  task_id: string
+  author_id: string
+  content: string
+  comment_type: TaskCommentType
+  created_at: string
+}
+export interface TaskCommentInsert {
+  id?: string
+  task_id: string
+  author_id: string
+  content: string
+  comment_type?: TaskCommentType
+}
+export type TaskCommentUpdate = Partial<TaskCommentInsert>
+
+export interface TaskWatcherRow {
+  task_id: string
+  person_id: string
+  added_by: string | null
+  added_at: string
+}
+export interface TaskWatcherInsert {
+  task_id: string
+  person_id: string
+  added_by?: string | null
+}
+
+export interface TaskStatusHistoryRow {
+  id: string
+  task_id: string
+  actor_id: string
+  from_status: TaskStatus | null
+  to_status: TaskStatus
+  note: string | null
+  created_at: string
+}
+export interface TaskStatusHistoryInsert {
+  id?: string
+  task_id: string
+  actor_id: string
+  from_status?: TaskStatus | null
+  to_status: TaskStatus
+  note?: string | null
+}
+export type TaskStatusHistoryUpdate = Partial<TaskStatusHistoryInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -409,6 +512,10 @@ export interface Database {
       quality_checks:            T<QualityCheckRow,              QualityCheckInsert,              QualityCheckUpdate>
       feature_privileges:        T<FeaturePrivilegeRow,          FeaturePrivilegeInsert,          FeaturePrivilegeUpdate>
       reference_cities:          T<ReferenceCityRow,             ReferenceCityInsert,             ReferenceCityUpdate>
+      tasks:                     T<TaskRow,                      TaskInsert,                      TaskUpdate>
+      task_comments:             T<TaskCommentRow,               TaskCommentInsert,               TaskCommentUpdate>
+      task_watchers:             T<TaskWatcherRow,               TaskWatcherInsert,               TaskWatcherInsert>
+      task_status_history:       T<TaskStatusHistoryRow,         TaskStatusHistoryInsert,         TaskStatusHistoryUpdate>
     }
     Views: Record<string, never>
     Functions: {
