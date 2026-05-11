@@ -6,6 +6,13 @@ import { DateInput } from '@/components/ui/date-input'
 interface PersonOption { id: string; full_name: string }
 interface TemplateOption { id: string; name: string }
 
+interface ClassGroupOption {
+  id: string
+  name: string
+  subject: { id: string; name: string } | null
+  teachers: { person_id: string; full_name: string | null; is_primary: boolean }[]
+}
+
 interface Props {
   onClose: () => void
   onCreated: () => void
@@ -110,6 +117,12 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // Class group state
+  const [classGroups, setClassGroups] = useState<ClassGroupOption[]>([])
+  const [classGroupsLoading, setClassGroupsLoading] = useState(false)
+  const [classGroupId, setClassGroupId] = useState<string>('')
+  const [freeInput, setFreeInput] = useState(false)
+
   useEffect(() => {
     fetch('/api/settings/quality-templates')
       .then(r => r.ok ? r.json() : [])
@@ -118,6 +131,47 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         if (data.length > 0) setTemplateId(data[0].id)
       })
   }, [])
+
+  useEffect(() => {
+    setClassGroupsLoading(true)
+    fetch('/api/education/class-groups?active_only=true')
+      .then(r => r.ok ? r.json() : { class_groups: [] })
+      .then(json => setClassGroups(json.class_groups ?? []))
+      .catch(() => setClassGroups([]))
+      .finally(() => setClassGroupsLoading(false))
+  }, [])
+
+  // When a class group is selected from dropdown — autofill fields
+  function handleClassGroupChange(id: string) {
+    setClassGroupId(id)
+    if (!id) {
+      setGroupName('')
+      setCourseName('')
+      return
+    }
+    const g = classGroups.find(c => c.id === id)
+    if (!g) return
+    setGroupName(g.name)
+    setCourseName(g.subject?.name ?? '')
+    // Autofill teacher: prefer primary, fallback to first
+    const primary = g.teachers.find(t => t.is_primary)
+    const firstTeacher = primary ?? g.teachers[0] ?? null
+    if (firstTeacher?.full_name) {
+      setTeacher({ id: firstTeacher.person_id, name: firstTeacher.full_name })
+    }
+  }
+
+  // Toggle free input — clear class group selection
+  function toggleFreeInput() {
+    const next = !freeInput
+    setFreeInput(next)
+    if (next) {
+      setClassGroupId('')
+    } else {
+      setGroupName('')
+      setCourseName('')
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -132,6 +186,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           template_id: templateId || null,
+          class_group_id: classGroupId || null,
           lesson_date: lessonDate ? lessonDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           lesson_time: lessonTime,
           observer_person_id: observer.id,
@@ -151,6 +206,16 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
     }
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
+    borderRadius: 6, outline: 'none', boxSizing: 'border-box',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4,
+  }
+
+  const groupSelected = !freeInput && !!classGroupId
+
   return (
     <div
       style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
@@ -166,13 +231,14 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
             {/* Template */}
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Шаблон проверки</label>
+              <label style={labelStyle}>Шаблон проверки</label>
               <select
                 value={templateId}
                 onChange={e => setTemplateId(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', backgroundColor: '#fff' }}
+                style={{ ...inputStyle, backgroundColor: '#fff' }}
               >
                 <option value="">— без шаблона —</option>
                 {templates.map(t => (
@@ -184,13 +250,13 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Date + Time */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <label style={labelStyle}>
                   Дата урока <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <DateInput value={lessonDate} onChange={setLessonDate} placeholder="Выберите дату" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <label style={labelStyle}>
                   Время <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <input
@@ -198,7 +264,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   value={lessonTime}
                   onChange={e => setLessonTime(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }}
+                  style={inputStyle}
                 />
               </div>
             </div>
@@ -206,30 +272,75 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Observer */}
             <PersonAutocomplete label="Наблюдатель" value={observer} onChange={setObserver} />
 
-            {/* Teacher */}
-            <PersonAutocomplete label="Преподаватель" value={teacher} onChange={setTeacher} />
+            {/* Group — dropdown or free input */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Учебная группа</label>
+                <button
+                  type="button"
+                  onClick={toggleFreeInput}
+                  style={{
+                    fontSize: 11, color: '#6B7280', background: 'none', border: 'none',
+                    cursor: 'pointer', textDecoration: 'underline', padding: 0,
+                  }}
+                >
+                  {freeInput ? '← Выбрать из списка' : 'Свободный ввод'}
+                </button>
+              </div>
 
-            {/* Group + Course */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Группа</label>
+              {freeInput ? (
                 <input
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
                   placeholder="Название группы"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }}
+                  style={inputStyle}
                 />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Курс / Предмет</label>
-                <input
-                  value={courseName}
-                  onChange={e => setCourseName(e.target.value)}
-                  placeholder="Название курса"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
+              ) : (
+                <select
+                  value={classGroupId}
+                  onChange={e => handleClassGroupChange(e.target.value)}
+                  disabled={classGroupsLoading}
+                  style={{ ...inputStyle, backgroundColor: '#fff', opacity: classGroupsLoading ? 0.6 : 1 }}
+                >
+                  <option value="">{classGroupsLoading ? 'Загрузка…' : '— выберите группу —'}</option>
+                  {classGroups.map(g => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}{g.subject?.name ? ` — ${g.subject.name}` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
+
+            {/* Course / Subject */}
+            <div>
+              <label style={labelStyle}>Курс / Предмет</label>
+              <input
+                value={courseName}
+                onChange={e => setCourseName(e.target.value)}
+                placeholder="Название курса"
+                readOnly={groupSelected}
+                style={{
+                  ...inputStyle,
+                  backgroundColor: groupSelected ? '#F9FAFB' : '#fff',
+                  color: groupSelected ? '#6B7280' : '#111827',
+                }}
+              />
+              {groupSelected && (
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>
+                  Заполняется автоматически из учебной группы
+                </div>
+              )}
+            </div>
+
+            {/* Teacher */}
+            <PersonAutocomplete label="Преподаватель" value={teacher} onChange={setTeacher} />
+            {groupSelected && classGroups.find(g => g.id === classGroupId)?.teachers.length ? (
+              <div style={{ marginTop: -10, fontSize: 11, color: '#9CA3AF' }}>
+                Преподаватель подставлен из группы — можно изменить
+              </div>
+            ) : null}
+
           </div>
 
           {error && (

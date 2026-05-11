@@ -293,6 +293,7 @@ export type QualityCheckTemplateUpdate = Partial<QualityCheckTemplateInsert>
 export interface QualityCheckRow {
   id: string
   template_id: string | null
+  class_group_id: string | null
   lesson_date: string
   lesson_time: string
   observer_person_id: string
@@ -316,6 +317,7 @@ export interface QualityCheckRow {
 }
 export interface QualityCheckInsert {
   template_id?: string | null
+  class_group_id?: string | null
   lesson_date: string
   lesson_time: string
   observer_person_id: string

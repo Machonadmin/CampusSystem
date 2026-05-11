@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
     const body = await request.json() as {
       template_id?: string
+      class_group_id?: string | null
       lesson_date?: string
       lesson_time?: string
       observer_person_id?: string
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest) {
       .from('quality_checks')
       .insert({
         template_id: body.template_id ?? null,
+        class_group_id: body.class_group_id ?? null,
         lesson_date: body.lesson_date,
         lesson_time: body.lesson_time,
         observer_person_id: body.observer_person_id,
