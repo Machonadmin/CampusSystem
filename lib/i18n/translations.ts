@@ -32,6 +32,7 @@ const ru = {
   moduleDesc: {
     quality_control: 'Проверки уроков, оценки',
     education: 'Учащиеся, группы, расписание',
+    tasks: 'Назначение и контроль исполнения',
     finance: 'Счета, платежи, бюджет',
     dormitory: 'Комнаты, жильцы',
     food: 'Меню, заказы питания',
@@ -120,6 +121,7 @@ const he: typeof ru = {
   moduleDesc: {
     quality_control: 'בדיקות שיעורים, הערכות',
     education: 'תלמידים, קבוצות, לוח זמנים',
+    tasks: 'הקצאה ובקרה על ביצוע',
     finance: 'חשבוניות, תשלומים, תקציב',
     dormitory: 'חדרים, דיירים',
     food: 'תפריט, הזמנות',
@@ -208,6 +210,7 @@ const en: typeof ru = {
   moduleDesc: {
     quality_control: 'Lesson checks, ratings',
     education: 'Students, groups, schedule',
+    tasks: 'Assignment and execution tracking',
     finance: 'Invoices, payments, budget',
     dormitory: 'Rooms, residents',
     food: 'Menu, meal orders',
