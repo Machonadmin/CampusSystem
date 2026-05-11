@@ -8,6 +8,7 @@ import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import StudyTab from './components/StudyTab'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1099,12 +1100,13 @@ export default function EducationPage() {
         </>
       )}
 
-      {/* Placeholder for other tabs */}
-      {tab !== 'recruitment' && (
+      {tab === 'admission' && (
         <div style={{ background: '#fff', borderRadius: 12, padding: '48px 24px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
           <p style={{ fontSize: 14, color: '#9CA3AF' }}>Раздел в разработке</p>
         </div>
       )}
+
+      {tab === 'study' && <StudyTab />}
 
       {addOpen && (
         <AddLeadModal onClose={() => setAddOpen(false)} onSaved={() => { setAddOpen(false); loadLeads() }} />
