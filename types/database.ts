@@ -470,8 +470,31 @@ export type TaskStatusHistoryUpdate = Partial<TaskStatusHistoryInsert>
 
 export type StudentStatus = 'active' | 'on_leave' | 'graduated' | 'expelled'
 
+export interface SpecialtyRow {
+  id: string
+  department_id: string
+  name: string
+  name_he: string | null
+  code: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface SpecialtyInsert {
+  id?: string
+  department_id: string
+  name: string
+  name_he?: string | null
+  code?: string | null
+  sort_order?: number
+  is_active?: boolean
+}
+export type SpecialtyUpdate = Partial<SpecialtyInsert>
+
 export interface SubjectRow {
   id: string
+  department_id: string
   name: string
   name_he: string | null
   sort_order: number
@@ -481,6 +504,7 @@ export interface SubjectRow {
 }
 export interface SubjectInsert {
   id?: string
+  department_id: string
   name: string
   name_he?: string | null
   sort_order?: number
@@ -490,9 +514,12 @@ export type SubjectUpdate = Partial<SubjectInsert>
 
 export interface StudyGroupRow {
   id: string
+  department_id: string
+  specialty_id: string | null
   name: string
   name_he: string | null
   year_level: number | null
+  year_start: number | null
   notes: string | null
   is_active: boolean
   created_at: string
@@ -500,9 +527,12 @@ export interface StudyGroupRow {
 }
 export interface StudyGroupInsert {
   id?: string
+  department_id: string
+  specialty_id?: string | null
   name: string
   name_he?: string | null
   year_level?: number | null
+  year_start?: number | null
   notes?: string | null
   is_active?: boolean
 }
@@ -511,8 +541,12 @@ export type StudyGroupUpdate = Partial<StudyGroupInsert>
 export interface StudentRow {
   id: string
   person_id: string
+  primary_department_id: string
+  specialty_id: string | null
   main_group_id: string | null
   status: StudentStatus
+  year_level: number | null
+  year_start: number | null
   enrolled_at: string        // ISO date 'YYYY-MM-DD'
   notes: string | null
   created_at: string
@@ -521,8 +555,12 @@ export interface StudentRow {
 export interface StudentInsert {
   id?: string
   person_id: string
+  primary_department_id: string
+  specialty_id?: string | null
   main_group_id?: string | null
   status?: StudentStatus
+  year_level?: number | null
+  year_start?: number | null
   enrolled_at?: string
   notes?: string | null
 }
@@ -530,9 +568,14 @@ export type StudentUpdate = Partial<StudentInsert>
 
 export interface ClassGroupRow {
   id: string
+  department_id: string
   name: string
   subject_id: string
   teacher_id: string
+  level: string | null
+  period_start: string | null  // ISO date 'YYYY-MM-DD'
+  period_end: string | null    // ISO date 'YYYY-MM-DD'
+  max_participants: number | null
   notes: string | null
   is_active: boolean
   created_at: string
@@ -540,9 +583,14 @@ export interface ClassGroupRow {
 }
 export interface ClassGroupInsert {
   id?: string
+  department_id: string
   name: string
   subject_id: string
   teacher_id: string
+  level?: string | null
+  period_start?: string | null
+  period_end?: string | null
+  max_participants?: number | null
   notes?: string | null
   is_active?: boolean
 }
@@ -559,6 +607,21 @@ export interface ClassEnrollmentInsert {
   enrolled_at?: string
 }
 export type ClassEnrollmentUpdate = Partial<ClassEnrollmentInsert>
+
+export interface ClassTeacherRow {
+  class_group_id: string
+  teacher_id: string
+  added_at: string
+  added_by: string | null
+  is_primary: boolean
+}
+export interface ClassTeacherInsert {
+  class_group_id: string
+  teacher_id: string
+  added_at?: string
+  added_by?: string | null
+  is_primary?: boolean
+}
 
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
@@ -616,11 +679,13 @@ export interface Database {
       task_comments:             T<TaskCommentRow,               TaskCommentInsert,               TaskCommentUpdate>
       task_watchers:             T<TaskWatcherRow,               TaskWatcherInsert,               TaskWatcherInsert>
       task_status_history:       T<TaskStatusHistoryRow,         TaskStatusHistoryInsert,         TaskStatusHistoryUpdate>
+      specialties:               T<SpecialtyRow,                 SpecialtyInsert,                 SpecialtyUpdate>
       subjects:                  T<SubjectRow,                   SubjectInsert,                   SubjectUpdate>
       study_groups:              T<StudyGroupRow,                StudyGroupInsert,                StudyGroupUpdate>
       students:                  T<StudentRow,                   StudentInsert,                   StudentUpdate>
       class_groups:              T<ClassGroupRow,                ClassGroupInsert,                ClassGroupUpdate>
       class_enrollments:         T<ClassEnrollmentRow,           ClassEnrollmentInsert,           ClassEnrollmentUpdate>
+      class_teachers:            T<ClassTeacherRow,              ClassTeacherInsert,              ClassTeacherInsert>
     }
     Views: Record<string, never>
     Functions: {
