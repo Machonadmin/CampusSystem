@@ -134,8 +134,9 @@ export async function GET(request: NextRequest) {
  * POST /api/education/class-groups
  * Право: manage_class_groups в указанном подразделении.
  *
- * teacher_ids (или teacher_id) — минимум один обязателен (class_groups.teacher_id NOT NULL).
- * Первый из teacher_ids становится основным (class_groups.teacher_id + is_primary в class_teachers).
+ * teacher_ids — опционален. Если передан, первый получает is_primary=true в class_teachers.
+ * Группу можно создать без преподавателей и добавить их позже через
+ * POST /api/education/class-groups/[id]/teachers.
  * Предмет должен принадлежать тому же подразделению.
  */
 export async function POST(request: NextRequest) {
@@ -157,11 +158,6 @@ export async function POST(request: NextRequest) {
     if (!body.subject_id) return NextResponse.json({ error: 'subject_id обязателен' }, { status: 400 })
     if (!body.department_id) return NextResponse.json({ error: 'department_id обязателен' }, { status: 400 })
 
-    const teacherIds = body.teacher_ids ?? []
-    if (teacherIds.length === 0) {
-      return NextResponse.json({ error: 'Укажите хотя бы одного преподавателя (teacher_ids)' }, { status: 400 })
-    }
-
     await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
 
     const sb = createServerClient()
@@ -177,13 +173,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Предмет принадлежит другому подразделению' }, { status: 400 })
     }
 
-    const uniqueTeacherIds = Array.from(new Set(teacherIds))
+    const uniqueTeacherIds = Array.from(new Set(body.teacher_ids ?? []))
 
     const insert: ClassGroupInsert = {
       name,
       subject_id: body.subject_id,
       department_id: body.department_id,
-      teacher_id: uniqueTeacherIds[0],
       level: body.level?.trim() || null,
       period_start: body.period_start ?? null,
       period_end: body.period_end ?? null,
@@ -202,30 +197,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    const session = await getSession()
-    const teacherRows = uniqueTeacherIds.map((teacher_id, idx) => ({
-      class_group_id: group.id,
-      teacher_id,
-      is_primary: idx === 0,
-      added_by: session?.person_id ?? null,
-    }))
+    let teachers: TeacherEntry[] = []
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: ctErr } = await sb.from('class_teachers').insert(teacherRows as any)
-    if (ctErr) {
-      return NextResponse.json({
-        ...group,
-        counts: { students: 0 },
-        teachers: [],
-        warning: 'Группа создана, но не удалось добавить преподавателей',
-      }, { status: 201 })
+    if (uniqueTeacherIds.length > 0) {
+      const session = await getSession()
+      const teacherRows = uniqueTeacherIds.map((teacher_id, idx) => ({
+        class_group_id: group.id,
+        teacher_id,
+        is_primary: idx === 0,
+        added_by: session?.person_id ?? null,
+      }))
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: ctErr } = await sb.from('class_teachers').insert(teacherRows as any)
+      if (ctErr) {
+        return NextResponse.json({
+          ...group,
+          counts: { students: 0 },
+          teachers: [],
+          warning: 'Группа создана, но не удалось добавить преподавателей',
+        }, { status: 201 })
+      }
+      teachers = uniqueTeacherIds.map((id, idx) => ({
+        person_id: id,
+        full_name: null,
+        is_primary: idx === 0,
+      }))
     }
-
-    const teachers: TeacherEntry[] = uniqueTeacherIds.map((id, idx) => ({
-      person_id: id,
-      full_name: null,
-      is_primary: idx === 0,
-    }))
 
     return NextResponse.json({ ...group, counts: { students: 0 }, teachers }, { status: 201 })
   } catch (err: unknown) {

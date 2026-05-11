@@ -574,7 +574,6 @@ export interface ClassGroupRow {
   department_id: string
   name: string
   subject_id: string
-  teacher_id: string
   level: string | null
   period_start: string | null  // ISO date 'YYYY-MM-DD'
   period_end: string | null    // ISO date 'YYYY-MM-DD'
@@ -589,7 +588,6 @@ export interface ClassGroupInsert {
   department_id: string
   name: string
   subject_id: string
-  teacher_id: string
   level?: string | null
   period_start?: string | null
   period_end?: string | null

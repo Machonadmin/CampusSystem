@@ -105,7 +105,6 @@ export async function PATCH(
       name?: string
       subject_id?: string
       department_id?: string
-      teacher_id?: string
       level?: string | null
       period_start?: string | null
       period_end?: string | null
@@ -152,7 +151,6 @@ export async function PATCH(
     }
     if (body.subject_id !== undefined) update.subject_id = body.subject_id
     if (body.department_id !== undefined) update.department_id = body.department_id
-    if (body.teacher_id !== undefined) update.teacher_id = body.teacher_id
     if (body.level !== undefined) update.level = body.level?.trim() || null
     if (body.period_start !== undefined) update.period_start = body.period_start
     if (body.period_end !== undefined) update.period_end = body.period_end
