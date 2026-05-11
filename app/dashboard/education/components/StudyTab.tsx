@@ -6,6 +6,7 @@ import SubjectsTab from './SubjectsTab'
 import SpecialtiesTab from './SpecialtiesTab'
 import StudyGroupsTab from './StudyGroupsTab'
 import StudentsTab from './StudentsTab'
+import ClassGroupsTab from './ClassGroupsTab'
 import SubTabs from '@/components/ui/SubTabs'
 
 type SubTab = 'subjects' | 'specialties' | 'study_groups' | 'students' | 'class_groups'
@@ -44,16 +45,7 @@ export default function StudyTab() {
         {active === 'specialties' && <SpecialtiesTab />}
         {active === 'study_groups' && <StudyGroupsTab />}
         {active === 'students' && <StudentsTab />}
-        {active !== 'subjects' && active !== 'specialties' && active !== 'study_groups' && active !== 'students' && (
-          <div style={{
-            textAlign: 'center',
-            padding: '64px 24px',
-            color: '#6B7280',
-          }}>
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>В разработке</div>
-            <div style={{ fontSize: 13 }}>Эта подвкладка появится в ближайшее время.</div>
-          </div>
-        )}
+        {active === 'class_groups' && <ClassGroupsTab />}
       </div>
     </div>
   )
