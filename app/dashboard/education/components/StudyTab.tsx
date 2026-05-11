@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import SubjectsTab from './SubjectsTab'
 import SpecialtiesTab from './SpecialtiesTab'
 import StudyGroupsTab from './StudyGroupsTab'
+import StudentsTab from './StudentsTab'
 import SubTabs from '@/components/ui/SubTabs'
 
 type SubTab = 'subjects' | 'specialties' | 'study_groups' | 'students' | 'class_groups'
@@ -42,7 +43,8 @@ export default function StudyTab() {
         {active === 'subjects' && <SubjectsTab />}
         {active === 'specialties' && <SpecialtiesTab />}
         {active === 'study_groups' && <StudyGroupsTab />}
-        {active !== 'subjects' && active !== 'specialties' && active !== 'study_groups' && (
+        {active === 'students' && <StudentsTab />}
+        {active !== 'subjects' && active !== 'specialties' && active !== 'study_groups' && active !== 'students' && (
           <div style={{
             textAlign: 'center',
             padding: '64px 24px',
