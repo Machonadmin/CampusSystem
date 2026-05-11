@@ -466,6 +466,100 @@ export interface TaskStatusHistoryInsert {
 }
 export type TaskStatusHistoryUpdate = Partial<TaskStatusHistoryInsert>
 
+// ─── Education module ─────────────────────────────────────────────────────────
+
+export type StudentStatus = 'active' | 'on_leave' | 'graduated' | 'expelled'
+
+export interface SubjectRow {
+  id: string
+  name: string
+  name_he: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface SubjectInsert {
+  id?: string
+  name: string
+  name_he?: string | null
+  sort_order?: number
+  is_active?: boolean
+}
+export type SubjectUpdate = Partial<SubjectInsert>
+
+export interface StudyGroupRow {
+  id: string
+  name: string
+  name_he: string | null
+  year_level: number | null
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface StudyGroupInsert {
+  id?: string
+  name: string
+  name_he?: string | null
+  year_level?: number | null
+  notes?: string | null
+  is_active?: boolean
+}
+export type StudyGroupUpdate = Partial<StudyGroupInsert>
+
+export interface StudentRow {
+  id: string
+  person_id: string
+  main_group_id: string | null
+  status: StudentStatus
+  enrolled_at: string        // ISO date 'YYYY-MM-DD'
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface StudentInsert {
+  id?: string
+  person_id: string
+  main_group_id?: string | null
+  status?: StudentStatus
+  enrolled_at?: string
+  notes?: string | null
+}
+export type StudentUpdate = Partial<StudentInsert>
+
+export interface ClassGroupRow {
+  id: string
+  name: string
+  subject_id: string
+  teacher_id: string
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface ClassGroupInsert {
+  id?: string
+  name: string
+  subject_id: string
+  teacher_id: string
+  notes?: string | null
+  is_active?: boolean
+}
+export type ClassGroupUpdate = Partial<ClassGroupInsert>
+
+export interface ClassEnrollmentRow {
+  student_id: string
+  class_group_id: string
+  enrolled_at: string
+}
+export interface ClassEnrollmentInsert {
+  student_id: string
+  class_group_id: string
+  enrolled_at?: string
+}
+export type ClassEnrollmentUpdate = Partial<ClassEnrollmentInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -522,6 +616,11 @@ export interface Database {
       task_comments:             T<TaskCommentRow,               TaskCommentInsert,               TaskCommentUpdate>
       task_watchers:             T<TaskWatcherRow,               TaskWatcherInsert,               TaskWatcherInsert>
       task_status_history:       T<TaskStatusHistoryRow,         TaskStatusHistoryInsert,         TaskStatusHistoryUpdate>
+      subjects:                  T<SubjectRow,                   SubjectInsert,                   SubjectUpdate>
+      study_groups:              T<StudyGroupRow,                StudyGroupInsert,                StudyGroupUpdate>
+      students:                  T<StudentRow,                   StudentInsert,                   StudentUpdate>
+      class_groups:              T<ClassGroupRow,                ClassGroupInsert,                ClassGroupUpdate>
+      class_enrollments:         T<ClassEnrollmentRow,           ClassEnrollmentInsert,           ClassEnrollmentUpdate>
     }
     Views: Record<string, never>
     Functions: {
