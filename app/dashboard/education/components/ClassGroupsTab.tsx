@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import ClassGroupModal from './ClassGroupModal'
 
@@ -45,6 +46,7 @@ function formatPeriod(start: string | null, end: string | null): string {
 }
 
 export default function ClassGroupsTab() {
+  const router = useRouter()
   const [groups, setGroups] = useState<ClassGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
@@ -233,7 +235,7 @@ export default function ClassGroupsTab() {
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 5 }}>
                           <button
-                            onClick={() => alert('Карточка группы будет реализована')}
+                            onClick={() => router.push(`/dashboard/education/class-groups/${g.id}`)}
                             style={{ ...btnSecondary, color: accent, borderColor: accent }}
                           >
                             Карточка
