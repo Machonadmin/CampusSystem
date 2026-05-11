@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import SubjectsTab from './SubjectsTab'
+import SpecialtiesTab from './SpecialtiesTab'
 import SubTabs from '@/components/ui/SubTabs'
 
 type SubTab = 'subjects' | 'specialties' | 'study_groups' | 'students' | 'class_groups'
@@ -38,7 +39,8 @@ export default function StudyTab() {
       {/* Содержимое */}
       <div style={{ padding: 20 }}>
         {active === 'subjects' && <SubjectsTab />}
-        {active !== 'subjects' && (
+        {active === 'specialties' && <SpecialtiesTab />}
+        {active !== 'subjects' && active !== 'specialties' && (
           <div style={{
             textAlign: 'center',
             padding: '64px 24px',

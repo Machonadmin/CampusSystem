@@ -1,0 +1,220 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { getModuleColor } from '@/lib/module-colors'
+import SpecialtyModal from './SpecialtyModal'
+
+interface Department {
+  id: string
+  name: string
+}
+
+interface Specialty {
+  id: string
+  name: string
+  code: string | null
+  sort_order: number
+  is_active: boolean
+  department_id: string
+  department: Department | null
+  created_at: string
+  updated_at: string
+}
+
+const accent = getModuleColor('education')
+
+export default function SpecialtiesTab() {
+  const [specialties, setSpecialties] = useState<Specialty[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [filterDept, setFilterDept] = useState('')
+  const [showInactive, setShowInactive] = useState(false)
+
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
+  const [editingSpecialty, setEditingSpecialty] = useState<Specialty | null>(null)
+
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [sResp, dResp] = await Promise.all([
+        fetch(`/api/education/specialties?active_only=${showInactive ? 'false' : 'true'}`),
+        fetch('/api/settings/departments'),
+      ])
+      if (!sResp.ok) throw new Error(`Ошибка загрузки специальностей: ${sResp.status}`)
+      if (!dResp.ok) throw new Error(`Ошибка загрузки подразделений: ${dResp.status}`)
+      const sJson = await sResp.json()
+      const dJson = await dResp.json()
+      setSpecialties(sJson.specialties ?? [])
+      setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
+    } finally {
+      setLoading(false)
+    }
+  }, [showInactive])
+
+  useEffect(() => { loadData() }, [loadData])
+
+  const handleDelete = async (spec: Specialty) => {
+    if (!confirm(`Удалить специальность «${spec.name}»?`)) return
+    try {
+      const resp = await fetch(`/api/education/specialties/${spec.id}`, { method: 'DELETE' })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        alert(err.error ?? 'Не удалось удалить')
+        return
+      }
+      loadData()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Ошибка удаления')
+    }
+  }
+
+  const handleSaved = () => {
+    setModalMode(null)
+    setEditingSpecialty(null)
+    loadData()
+  }
+
+  const filtered = filterDept
+    ? specialties.filter(s => s.department_id === filterDept)
+    : specialties
+
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const btnPrimary: React.CSSProperties = {
+    padding: '7px 14px', fontSize: 13, fontWeight: 500, color: '#fff',
+    background: accent, border: 'none', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+  }
+  const btnSecondary: React.CSSProperties = {
+    padding: '5px 10px', fontSize: 12, color: '#374151',
+    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+  }
+
+  return (
+    <div>
+      {/* Тулбар */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+        <select
+          value={filterDept}
+          onChange={e => setFilterDept(e.target.value)}
+          style={inp}
+        >
+          <option value="">Все подразделения</option>
+          {departments.map(d => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={e => setShowInactive(e.target.checked)}
+          />
+          Показать неактивные
+        </label>
+
+        <div style={{ flex: 1 }} />
+
+        <button
+          onClick={() => { setEditingSpecialty(null); setModalMode('create') }}
+          style={btnPrimary}
+        >
+          + Специальность
+        </button>
+      </div>
+
+      {loading && (
+        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>
+      )}
+
+      {error && (
+        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        filtered.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+            {specialties.length === 0 ? 'Специальностей пока нет' : 'Ничего не найдено'}
+          </div>
+        ) : (
+          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#F9FAFB' }}>
+                  <th style={{ ...thStyle, width: 80 }}>Код</th>
+                  <th style={thStyle}>Название</th>
+                  <th style={thStyle}>Подразделение</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Порядок</th>
+                  <th style={{ ...thStyle, width: 100 }}>Статус</th>
+                  <th style={{ ...thStyle, width: 160 }}>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(s => (
+                  <tr
+                    key={s.id}
+                    style={{ borderTop: '1px solid #F3F4F6' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                  >
+                    <td style={{ ...tdStyle, color: '#6B7280', fontFamily: 'monospace', fontSize: 12 }}>
+                      {s.code ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                    </td>
+                    <td style={tdStyle}>{s.name}</td>
+                    <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>{s.sort_order}</td>
+                    <td style={tdStyle}>
+                      {s.is_active ? (
+                        <span style={{ color: '#10B981', fontWeight: 500 }}>Активна</span>
+                      ) : (
+                        <span style={{ color: '#9CA3AF' }}>Неактивна</span>
+                      )}
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          onClick={() => { setEditingSpecialty(s); setModalMode('edit') }}
+                          style={btnSecondary}
+                        >
+                          Изменить
+                        </button>
+                        <button
+                          onClick={() => handleDelete(s)}
+                          style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
+
+      {modalMode && (
+        <SpecialtyModal
+          mode={modalMode}
+          initial={editingSpecialty}
+          departments={departments}
+          onClose={() => { setModalMode(null); setEditingSpecialty(null) }}
+          onSaved={handleSaved}
+        />
+      )}
+    </div>
+  )
+}
+
+const thStyle: React.CSSProperties = {
+  padding: '10px 12px', fontWeight: 600, color: '#374151',
+  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+}
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
