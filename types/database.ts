@@ -209,6 +209,7 @@ export interface RolePrivilegeRow {
   role_id: string
   module: PrivilegeModule
   privilege_code: string
+  scope: 'all' | 'department' | 'own'
   granted_at: string
   granted_by: string | null
 }
@@ -259,7 +260,9 @@ export type StaffPositionInsert = Omit<StaffPositionRow, 'id'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id'>
 export type RoleInsert = Omit<RoleRow, 'id' | 'created_at'>
-export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at'>
+export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at' | 'scope'> & {
+  scope?: 'all' | 'department' | 'own'
+}
 export type PersonRoleInsert = Omit<PersonRoleRow, 'id' | 'assigned_at'>
 export type ModulePrivilegeInsert = Omit<ModulePrivilegeRow, 'id'>
 export type PersonPrivilegeInsert = Omit<PersonPrivilegeRow, 'id' | 'granted_at'>
