@@ -29,7 +29,6 @@ const accent = getModuleColor('education')
 
 export default function SubjectModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
@@ -46,7 +45,6 @@ export default function SubjectModal({ mode, initial, departments, onClose, onSa
     try {
       const payload: Record<string, unknown> = {
         name: name.trim(),
-        name_he: nameHe.trim() || null,
         sort_order: Number(sortOrder) || 0,
         department_id: departmentId,
       }
@@ -111,15 +109,6 @@ export default function SubjectModal({ mode, initial, departments, onClose, onSa
             <input
               type="text" value={name} onChange={e => setName(e.target.value)}
               style={inp} autoFocus placeholder="Математика"
-            />
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Название на иврите</label>
-            <input
-              type="text" value={nameHe} onChange={e => setNameHe(e.target.value)}
-              style={{ ...inp, direction: 'rtl' }}
-              placeholder="מתמטיקה"
             />
           </div>
 

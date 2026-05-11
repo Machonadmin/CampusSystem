@@ -148,7 +148,6 @@ export default function SubjectsTab() {
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
                   <th style={thStyle}>Название</th>
-                  <th style={thStyle}>На иврите</th>
                   <th style={thStyle}>Подразделение</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Порядок</th>
                   <th style={{ ...thStyle, width: 100 }}>Статус</th>
@@ -164,7 +163,6 @@ export default function SubjectsTab() {
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
                     <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280', direction: 'rtl', textAlign: 'right' }}>{s.name_he ?? '—'}</td>
                     <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>{s.sort_order}</td>
                     <td style={tdStyle}>
