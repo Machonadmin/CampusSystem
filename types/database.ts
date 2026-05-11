@@ -577,7 +577,6 @@ export interface ClassGroupRow {
   level: string | null
   period_start: string | null  // ISO date 'YYYY-MM-DD'
   period_end: string | null    // ISO date 'YYYY-MM-DD'
-  max_participants: number | null
   notes: string | null
   is_active: boolean
   created_at: string
@@ -591,7 +590,6 @@ export interface ClassGroupInsert {
   level?: string | null
   period_start?: string | null
   period_end?: string | null
-  max_participants?: number | null
   notes?: string | null
   is_active?: boolean
 }

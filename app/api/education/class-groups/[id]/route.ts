@@ -108,7 +108,6 @@ export async function PATCH(
       level?: string | null
       period_start?: string | null
       period_end?: string | null
-      max_participants?: number | null
       notes?: string | null
       is_active?: boolean
     }
@@ -154,7 +153,6 @@ export async function PATCH(
     if (body.level !== undefined) update.level = body.level?.trim() || null
     if (body.period_start !== undefined) update.period_start = body.period_start
     if (body.period_end !== undefined) update.period_end = body.period_end
-    if (body.max_participants !== undefined) update.max_participants = body.max_participants
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
     if (body.is_active !== undefined) update.is_active = body.is_active
 
@@ -174,7 +172,6 @@ export async function PATCH(
       if (error.code === '23503') return NextResponse.json({ error: 'Некорректная ссылка' }, { status: 400 })
       if (error.code === '23514') {
         if (error.message?.includes('period_consistency')) return NextResponse.json({ error: 'period_end должен быть после period_start' }, { status: 400 })
-        if (error.message?.includes('max_participants')) return NextResponse.json({ error: 'max_participants должен быть положительным числом' }, { status: 400 })
       }
       throw error
     }

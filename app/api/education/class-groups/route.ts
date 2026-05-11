@@ -17,9 +17,6 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
     if (error.message?.includes('class_groups_period_consistency')) {
       return { status: 400, message: 'period_end должен быть после period_start' }
     }
-    if (error.message?.includes('class_groups_max_participants_positive')) {
-      return { status: 400, message: 'max_participants должен быть положительным числом' }
-    }
     return { status: 400, message: 'Нарушено ограничение БД' }
   }
   return { status: 500, message: error.message ?? 'Ошибка БД' }
@@ -149,7 +146,6 @@ export async function POST(request: NextRequest) {
       level?: string
       period_start?: string | null
       period_end?: string | null
-      max_participants?: number | null
       notes?: string
     }
 
@@ -182,7 +178,6 @@ export async function POST(request: NextRequest) {
       level: body.level?.trim() || null,
       period_start: body.period_start ?? null,
       period_end: body.period_end ?? null,
-      max_participants: body.max_participants ?? null,
       notes: body.notes?.trim() || null,
     }
 
