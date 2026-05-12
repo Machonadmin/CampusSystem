@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
+import TaskCreateModal from './components/TaskCreateModal'
 import type { TaskRow } from '@/types/database'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
@@ -36,6 +37,9 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [createOpen,    setCreateOpen]    = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const accent = getModuleColor('tasks')
 
@@ -72,6 +76,13 @@ export default function TasksPage() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.person_id) setCurrentUserId(d.person_id) })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -90,7 +101,7 @@ export default function TasksPage() {
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Задачи</h1>
         <button
-          onClick={() => alert('Форма создания задачи — следующий промпт')}
+          onClick={() => setCreateOpen(true)}
           style={{
             padding: '8px 14px', fontSize: 13, fontWeight: 500,
             background: 'rgba(255,255,255,0.2)', color: '#fff',
@@ -179,6 +190,14 @@ export default function TasksPage() {
         <TasksList
           tasks={tasks}
           onTaskClick={id => alert(`Карточка задачи #${id} — следующий промпт`)}
+        />
+      )}
+
+      {createOpen && currentUserId && (
+        <TaskCreateModal
+          currentUserId={currentUserId}
+          onClose={() => setCreateOpen(false)}
+          onSaved={() => { setCreateOpen(false); load() }}
         />
       )}
     </div>
