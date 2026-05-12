@@ -7,6 +7,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
+import PersonRelationField, { type PersonRelationValue } from '@/components/ui/PersonRelationField'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import StudyTab from './components/StudyTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
@@ -124,16 +125,11 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [apartment, setApartment] = useState('')
   const [postalCode, setPostalCode] = useState('')
 
-  // Tab 3 – Семья
-  const [momName, setMomName] = useState('')
-  const [momPhone, setMomPhone] = useState('')
-  const [momEmail, setMomEmail] = useState('')
-  const [momContacts, setMomContacts] = useState<{ type: string; value: string }[]>([])
-  const [dadName, setDadName] = useState('')
-  const [dadPhone, setDadPhone] = useState('')
-  const [dadEmail, setDadEmail] = useState('')
-  const [dadContacts, setDadContacts] = useState<{ type: string; value: string }[]>([])
-  const [extraContacts, setExtraContacts] = useState<{ name: string; relation: string; phone: string; email: string; contacts: { type: string; value: string }[] }[]>([])
+  // Tab 3 – Семья (через person_relatives)
+  const [familyRelations, setFamilyRelations] = useState<PersonRelationValue[]>([
+    { relative_id: null, relation_type: 'mother', notes: null },
+    { relative_id: null, relation_type: 'father', notes: null },
+  ])
 
   // Tab 4 – Община
   const [communities, setCommunities] = useState<{
@@ -168,7 +164,10 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   function resetFields() {
     setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
     setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
-    setMomName(''); setMomPhone(''); setMomEmail(''); setMomContacts([]); setDadName(''); setDadPhone(''); setDadEmail(''); setDadContacts([])
+    setFamilyRelations([
+      { relative_id: null, relation_type: 'mother', notes: null },
+      { relative_id: null, relation_type: 'father', notes: null },
+    ])
   }
 
   async function loadPersonData(id: string) {
@@ -190,11 +189,8 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       const addr = d.address ?? {}
       setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
       setHouse(addr.house ?? ''); setApartment(addr.apartment ?? ''); setPostalCode(addr.postal_code ?? '')
-      const mom = d.family?.mom ?? {}; const dad = d.family?.dad ?? {}
-      setMomName(mom.name ?? ''); setMomPhone(mom.phone ?? ''); setMomEmail(mom.email ?? '')
-      if (Array.isArray(mom.contacts)) setMomContacts(mom.contacts)
-      setDadName(dad.name ?? ''); setDadPhone(dad.phone ?? ''); setDadEmail(dad.email ?? '')
-      if (Array.isArray(dad.contacts)) setDadContacts(dad.contacts)
+      // Семейные связи будут подгружены отдельно, когда понадобятся
+      // (через GET /api/persons/[id]/relatives) — для просмотра существующего лида.
     } finally {
       setLoadingPerson(false)
     }
@@ -246,26 +242,6 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         if (citizenship) body.citizenship = citizenship.trim()
         const addr = { country, city, street, house, apartment, postal_code: postalCode }
         if (Object.values(addr).some(v => v)) body.address = addr
-        const familyData: Record<string, unknown> = {}
-        if (momName || momPhone) {
-          const momObj: Record<string, unknown> = { name: momName, phone: momPhone }
-          if (momEmail) momObj.email = momEmail
-          const validMomContacts = momContacts.filter(c => c.value.trim())
-          if (validMomContacts.length > 0) momObj.contacts = validMomContacts
-          familyData.mom = momObj
-        }
-        if (dadName || dadPhone) {
-          const dadObj: Record<string, unknown> = { name: dadName, phone: dadPhone }
-          if (dadEmail) dadObj.email = dadEmail
-          const validDadContacts = dadContacts.filter(c => c.value.trim())
-          if (validDadContacts.length > 0) dadObj.contacts = validDadContacts
-          familyData.dad = dadObj
-        }
-        const validContacts = extraContacts
-          .filter(c => c.name || c.phone)
-          .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
-        if (validContacts.length > 0) familyData.contacts = validContacts
-        if (Object.keys(familyData).length > 0) body.family = familyData
         const validCommunities = communities
           .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
           .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
@@ -281,6 +257,25 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         setError(data.error ?? 'Ошибка')
         return
       }
+
+      // После создания лида — сохранить семейные связи
+      const created = await res.json().catch(() => ({})) as { person_id?: string }
+      const leadPersonId = created.person_id ?? (view === 'existing' ? selected?.id : null)
+      if (leadPersonId) {
+        const validRelations = familyRelations.filter(r => r.relative_id)
+        await Promise.all(validRelations.map(rel =>
+          fetch(`/api/persons/${leadPersonId}/relatives`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              relative_id: rel.relative_id,
+              relation_type: rel.relation_type,
+              notes: rel.notes,
+            }),
+          }).catch(() => null)
+        ))
+      }
+
       onSaved()
     } finally {
       setSaving(false)
@@ -462,179 +457,39 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
 
       case 2:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {ro && (
               <div style={{ background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
                 📋 Данные загружены из профиля · только для просмотра
               </div>
             )}
-            {/* Мама */}
-            <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Мама</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={lbl}>ФИО</label>
-                  <input value={momName} onChange={e => setMomName(e.target.value)} placeholder="Иванова Нина Петровна" disabled={ro} style={{ ...inp, ...dis }} />
-                </div>
-                <div>
-                  <label style={lbl}>Телефон</label>
-                  <FlagPhone value={momPhone} onChange={v => setMomPhone(v)} disabled={ro} inputStyle={{ ...inp, ...dis }} />
-                </div>
-                <div>
-                  <label style={lbl}>Email</label>
-                  <input type="email" value={momEmail} onChange={e => setMomEmail(e.target.value)} placeholder="email@..." disabled={ro} style={{ ...inp, ...dis }} />
-                </div>
-                {momContacts.map((c, i) => (
-                  <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <select value={c.type} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
-                      disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
-                      <option value="phone">Телефон</option>
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="telegram">Telegram</option>
-                      <option value="address">Адрес</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="instagram">Instagram</option>
-                      <option value="vk">VK</option>
-                      <option value="other">Другое</option>
-                    </select>
-                    <input value={c.value} onChange={e => setMomContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
-                      placeholder="Значение..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
-                    {!ro && <button onClick={() => setMomContacts(prev => prev.filter((_, xi) => xi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
-                      ×
-                    </button>}
-                  </div>
-                ))}
-                {!ro && <div style={{ gridColumn: '1 / -1' }}>
-                  <button onClick={() => setMomContacts(prev => [...prev, { type: 'phone', value: '' }])}
-                    style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    + Добавить контакт
-                  </button>
-                </div>}
-              </div>
-            </div>
-            {/* Папа */}
-            <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px' }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Папа</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={lbl}>ФИО</label>
-                  <input value={dadName} onChange={e => setDadName(e.target.value)} placeholder="Иванов Петр Иванович" disabled={ro} style={{ ...inp, ...dis }} />
-                </div>
-                <div>
-                  <label style={lbl}>Телефон</label>
-                  <FlagPhone value={dadPhone} onChange={v => setDadPhone(v)} disabled={ro} inputStyle={{ ...inp, ...dis }} />
-                </div>
-                <div>
-                  <label style={lbl}>Email</label>
-                  <input type="email" value={dadEmail} onChange={e => setDadEmail(e.target.value)} placeholder="email@..." disabled={ro} style={{ ...inp, ...dis }} />
-                </div>
-                {dadContacts.map((c, i) => (
-                  <div key={i} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <select value={c.type} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
-                      disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
-                      <option value="phone">Телефон</option>
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="telegram">Telegram</option>
-                      <option value="address">Адрес</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="instagram">Instagram</option>
-                      <option value="vk">VK</option>
-                      <option value="other">Другое</option>
-                    </select>
-                    <input value={c.value} onChange={e => setDadContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
-                      placeholder="Значение..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
-                    {!ro && <button onClick={() => setDadContacts(prev => prev.filter((_, xi) => xi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
-                      ×
-                    </button>}
-                  </div>
-                ))}
-                {!ro && <div style={{ gridColumn: '1 / -1' }}>
-                  <button onClick={() => setDadContacts(prev => [...prev, { type: 'phone', value: '' }])}
-                    style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    + Добавить контакт
-                  </button>
-                </div>}
-              </div>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Контактное лицо</div>
-                <button onClick={() => setExtraContacts(prev => [...prev, { name: '', relation: '', phone: '', email: '', contacts: [] }])}
-                  style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                  + Добавить контактное лицо
-                </button>
-              </div>
-              {extraContacts.map((c, i) => (
-                <div key={i} style={{ background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 10, position: 'relative' }}>
-                  <button onClick={() => setExtraContacts(prev => prev.filter((_, ci) => ci !== i))}
-                    style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0 }}>
-                    ×
-                  </button>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                    <div>
-                      <label style={lbl}>ФИО</label>
-                      <input value={c.name}
-                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, name: e.target.value } : ec))}
-                        placeholder="Петрова Анна Ивановна" style={inp} />
-                    </div>
-                    <div>
-                      <label style={lbl}>Степень родства</label>
-                      <input value={c.relation}
-                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, relation: e.target.value } : ec))}
-                        placeholder="Тётя" style={inp} />
-                    </div>
-                    <div>
-                      <label style={lbl}>Телефон</label>
-                      <FlagPhone value={c.phone}
-                        onChange={v => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, phone: v } : ec))}
-                        inputStyle={inp} />
-                    </div>
-                    <div>
-                      <label style={lbl}>Email</label>
-                      <input type="email" value={c.email}
-                        onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, email: e.target.value } : ec))}
-                        placeholder="email@..." style={inp} />
-                    </div>
-                    {c.contacts.map((cc, ci) => (
-                      <div key={ci} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <select value={cc.type}
-                          onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.map((x, xi) => xi === ci ? { ...x, type: e.target.value } : x) } : ec))}
-                          style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
-                          <option value="phone">Телефон</option>
-                          <option value="email">Email</option>
-                          <option value="whatsapp">WhatsApp</option>
-                          <option value="telegram">Telegram</option>
-                          <option value="address">Адрес</option>
-                          <option value="facebook">Facebook</option>
-                          <option value="instagram">Instagram</option>
-                          <option value="vk">VK</option>
-                          <option value="other">Другое</option>
-                        </select>
-                        <input value={cc.value}
-                          onChange={e => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : ec))}
-                          placeholder="Значение..." style={{ ...inp, flex: 1 }} />
-                        <button
-                          onClick={() => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: ec.contacts.filter((_, xi) => xi !== ci) } : ec))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                      <button
-                        onClick={() => setExtraContacts(prev => prev.map((ec, ei) => ei === i ? { ...ec, contacts: [...ec.contacts, { type: 'phone', value: '' }] } : ec))}
-                        style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        + Добавить контакт
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {familyRelations.map((rel, idx) => {
+              const isFixed = idx < 2 && (rel.relation_type === 'mother' || rel.relation_type === 'father')
+              const fixedLabel = rel.relation_type === 'mother' ? 'Мать' : 'Отец'
+              return (
+                <PersonRelationField
+                  key={idx}
+                  value={rel}
+                  onChange={(updated) => setFamilyRelations(prev => prev.map((r, i) => i === idx ? updated : r))}
+                  onRemove={!isFixed ? () => setFamilyRelations(prev => prev.filter((_, i) => i !== idx)) : undefined}
+                  showRemove={!isFixed}
+                  fixedRelationType={isFixed ? rel.relation_type : undefined}
+                  label={isFixed ? fixedLabel : undefined}
+                  accentColor={getModuleColor('education')}
+                  availableRelations={['spouse', 'child', 'sibling', 'grandparent', 'guardian', 'emergency_contact', 'other']}
+                />
+              )
+            })}
+            <button
+              onClick={() => setFamilyRelations(prev => [...prev, { relative_id: null, relation_type: 'sibling', notes: null }])}
+              style={{
+                padding: '8px 12px', fontSize: 13, color: getModuleColor('education'),
+                background: 'transparent', border: `1px dashed ${getModuleColor('education', 'medium')}`,
+                borderRadius: 8, cursor: 'pointer', alignSelf: 'flex-start',
+              }}
+            >
+              + Добавить родственника / контакт
+            </button>
           </div>
         )
 

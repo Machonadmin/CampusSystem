@@ -116,7 +116,6 @@ export async function POST(request: NextRequest) {
       marital_status?: string
       citizenship?: string
       address?: Record<string, unknown>
-      family?: Record<string, unknown>
       interests?: { institution: string; direction?: string }[]
       communities?: CommunityPayload[]
       referral_source?: string
