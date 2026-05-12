@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
-import StudentModal from './StudentModal'
+import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 
 interface Department { id: string; name: string }
 interface StudyGroup { id: string; name: string; department_id: string }
@@ -61,8 +61,7 @@ export default function StudentsTab() {
   const [filterGroup, setFilterGroup] = useState('')
   const [filterStatus, setFilterStatus] = useState('')  // '' = active+on_leave
 
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -127,8 +126,7 @@ export default function StudentsTab() {
   }
 
   const handleSaved = () => {
-    setModalMode(null)
-    setEditingStudent(null)
+    setModalOpen(false)
     loadStudents(search)
   }
 
@@ -174,7 +172,7 @@ export default function StudentsTab() {
           <option value="active">Только активные</option>
           <option value="all">Все статусы</option>
         </select>
-        <button onClick={() => { setEditingStudent(null); setModalMode('create') }} style={btnPrimary}>
+        <button onClick={() => setModalOpen(true)} style={btnPrimary}>
           + Студент
         </button>
       </div>
@@ -249,7 +247,7 @@ export default function StudentsTab() {
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => { setEditingStudent(s); setModalMode('edit') }} style={btnSecondary}>
+                          <button onClick={() => alert('Редактирование пока через карточку студента, в разработке')} style={btnSecondary}>
                             Изменить
                           </button>
                           {!expelled && (
@@ -271,12 +269,10 @@ export default function StudentsTab() {
         )
       )}
 
-      {modalMode && (
-        <StudentModal
-          mode={modalMode}
-          initial={editingStudent}
-          departments={departments}
-          onClose={() => { setModalMode(null); setEditingStudent(null) }}
+      {modalOpen && (
+        <EducationJourneyForm
+          mode="student"
+          onClose={() => setModalOpen(false)}
           onSaved={handleSaved}
         />
       )}
