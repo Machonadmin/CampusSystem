@@ -92,25 +92,155 @@ export interface PersonFamilyRow {
   relation_note: string | null
 }
 
-export interface ApplicantProfileRow {
+/**
+ * Статусы journey. БД-enum `person_education_status` пока содержит только
+ * 'lead'|'applicant'|'student'|'alumni'. Остальные значения зарезервированы
+ * под расширение enum в Part 2 миграции; до этого вставка 'graduated' и т.п.
+ * вернёт ошибку enum-инварианта.
+ */
+export type JourneyStatus =
+  | 'lead'
+  | 'applicant'
+  | 'student'
+  | 'graduated'
+  | 'expelled'
+  | 'lost'
+  | 'on_leave'
+
+export interface EducationJourneyRow {
   id: string
   person_id: string
-  status: ApplicantStatus
-  application_date: string
+
+  // Статус journey
+  education_status: JourneyStatus | null
+
+  // Даты
+  opened_at: string
+  closed_at: string | null
+  application_date: string | null
+  interview_date: string | null
+  decision_date: string | null
+
+  // Источник
   referral_source: string | null
+  rejection_reason: string | null
+
+  // ЛЕГАСИ-поля (удалим в Part 2)
   community_contact_name: string | null
   community_contact_role: string | null
   community_phone: string | null
   community_email: string | null
-  notes: string | null
-  education_status: PersonEducationStatus | null
   institution: string | null
   direction: string | null
   level: string | null
-  interview_date: string | null
-  decision_date: string | null
-  rejection_reason: string | null
+
+  // Желаемое (для лида/абитуриента)
+  desired_department_id: string | null
+  desired_specialty_id: string | null
+
+  // Студенческие
+  primary_department_id: string | null
+  specialty_id: string | null
+  main_group_id: string | null
+  year_level: number | null
+  year_start: number | null
+  enrolled_at: string | null
+
+  status: string | null   // legacy: 'new' | 'reviewing' | 'accepted' | 'rejected'
+  notes: string | null
 }
+
+/**
+ * Insert: только person_id обязателен. Остальные поля имеют DB-defaults
+ * (opened_at, status, education_status, application_date) или nullable.
+ */
+export type EducationJourneyInsert = {
+  id?: string
+  person_id: string
+  education_status?: JourneyStatus | null
+  opened_at?: string
+  closed_at?: string | null
+  application_date?: string | null
+  interview_date?: string | null
+  decision_date?: string | null
+  referral_source?: string | null
+  rejection_reason?: string | null
+  community_contact_name?: string | null
+  community_contact_role?: string | null
+  community_phone?: string | null
+  community_email?: string | null
+  institution?: string | null
+  direction?: string | null
+  level?: string | null
+  desired_department_id?: string | null
+  desired_specialty_id?: string | null
+  primary_department_id?: string | null
+  specialty_id?: string | null
+  main_group_id?: string | null
+  year_level?: number | null
+  year_start?: number | null
+  enrolled_at?: string | null
+  status?: string | null
+  notes?: string | null
+}
+export type EducationJourneyUpdate = Partial<EducationJourneyInsert>
+
+/** Backward-compat алиас: старый код может ссылаться на ApplicantProfileRow. */
+export type ApplicantProfileRow = EducationJourneyRow
+
+export interface CommunityRow {
+  id: string
+  name: string
+  name_he: string | null
+  country: string
+  city: string
+  default_contact_name: string | null
+  default_contact_role: string | null
+  default_contact_phone: string | null
+  default_contact_email: string | null
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export type CommunityInsert =
+  Omit<CommunityRow, 'id' | 'created_at' | 'updated_at' | 'is_active'>
+  & { id?: string; is_active?: boolean }
+export type CommunityUpdate = Partial<CommunityInsert>
+
+export interface JourneyCommunityRow {
+  journey_id: string
+  community_id: string
+  contact_name: string | null
+  contact_role: string | null
+  contact_phone: string | null
+  contact_email: string | null
+  notes: string | null
+  added_at: string
+}
+export type JourneyCommunityInsert =
+  Omit<JourneyCommunityRow, 'added_at'>
+  & { added_at?: string }
+export type JourneyCommunityUpdate = Partial<JourneyCommunityInsert>
+
+export type JourneyDocumentStatus = 'pending' | 'received' | 'verified' | 'rejected' | 'expired'
+
+export interface JourneyDocumentRow {
+  id: string
+  journey_id: string
+  document_type: string
+  status: JourneyDocumentStatus
+  file_url: string | null
+  notes: string | null
+  uploaded_at: string | null
+  uploaded_by: string | null
+  created_at: string
+  updated_at: string
+}
+export type JourneyDocumentInsert =
+  Omit<JourneyDocumentRow, 'id' | 'created_at' | 'updated_at' | 'status'>
+  & { id?: string; status?: JourneyDocumentStatus }
+export type JourneyDocumentUpdate = Partial<JourneyDocumentInsert>
 
 export interface LeadInterestRow {
   id: string
@@ -250,9 +380,8 @@ export type PersonInsert =
   & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
 export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at'>
 export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>
-export type ApplicantProfileInsert =
-  Omit<ApplicantProfileRow, 'id' | 'education_status' | 'institution' | 'direction' | 'level' | 'interview_date' | 'decision_date' | 'rejection_reason'>
-  & { education_status?: PersonEducationStatus | null; institution?: string | null; direction?: string | null; level?: string | null; interview_date?: string | null; decision_date?: string | null; rejection_reason?: string | null }
+/** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
+export type ApplicantProfileInsert = EducationJourneyInsert
 export type EnrollmentInsert = Omit<EnrollmentRow, 'id'>
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id'>
 export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at'>
@@ -659,6 +788,10 @@ export interface Database {
       person_accounts:   T<PersonAccountRow,    PersonAccountInsert,    PersonAccountUpdate>
       person_family:     T<PersonFamilyRow,     PersonFamilyInsert,     PersonFamilyUpdate>
       applicant_profiles:T<ApplicantProfileRow, ApplicantProfileInsert, ApplicantProfileUpdate>
+      education_journeys:T<EducationJourneyRow, EducationJourneyInsert, EducationJourneyUpdate>
+      communities:       T<CommunityRow,        CommunityInsert,        CommunityUpdate>
+      journey_communities:T<JourneyCommunityRow,JourneyCommunityInsert, JourneyCommunityUpdate>
+      journey_documents: T<JourneyDocumentRow,  JourneyDocumentInsert,  JourneyDocumentUpdate>
       enrollments:       T<EnrollmentRow,       EnrollmentInsert,       EnrollmentUpdate>
       staff_profiles:    T<StaffProfileRow,     StaffProfileInsert,     StaffProfileUpdate>
       departments:       T<DepartmentRow,       DepartmentInsert,       DepartmentUpdate>
