@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
 import TaskCreateModal from './components/TaskCreateModal'
+import TaskDetailModal from './components/TaskDetailModal'
 import type { TaskRow } from '@/types/database'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
@@ -39,6 +40,7 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [createOpen,    setCreateOpen]    = useState(false)
+  const [openTaskId,    setOpenTaskId]    = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const accent = getModuleColor('tasks')
@@ -189,7 +191,7 @@ export default function TasksPage() {
       {!loading && !error && tasks.length > 0 && (
         <TasksList
           tasks={tasks}
-          onTaskClick={id => alert(`Карточка задачи #${id} — следующий промпт`)}
+          onTaskClick={id => setOpenTaskId(id)}
         />
       )}
 
@@ -198,6 +200,15 @@ export default function TasksPage() {
           currentUserId={currentUserId}
           onClose={() => setCreateOpen(false)}
           onSaved={() => { setCreateOpen(false); load() }}
+        />
+      )}
+
+      {openTaskId && currentUserId && (
+        <TaskDetailModal
+          taskId={openTaskId}
+          currentUserId={currentUserId}
+          onClose={() => setOpenTaskId(null)}
+          onChanged={() => { setOpenTaskId(null); load() }}
         />
       )}
     </div>
