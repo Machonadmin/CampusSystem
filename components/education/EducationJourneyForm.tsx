@@ -25,7 +25,8 @@ export interface EducationJourneyFormProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
+const TAB_LABELS_BASE = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
+const TAB_LABELS_WITH_ACADEMIC = [...TAB_LABELS_BASE, 'Академические данные']
 
 const INSTITUTIONS = ['university', 'touro', 'college', 'school', 'emuna', 'other'] as const
 const INST_LABELS: Record<string, string> = {
@@ -138,6 +139,18 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const [source, setSource] = useState('')
   const [comment, setComment] = useState('')
 
+  // Tab 6 (applicant/student) – Академические данные
+  const [primaryDepartmentId, setPrimaryDepartmentId] = useState<string | null>(null)
+  const [specialtyId, setSpecialtyId] = useState<string | null>(null)
+  const [mainGroupId, setMainGroupId] = useState<string | null>(null)
+  const [yearLevel, setYearLevel] = useState<string>('')
+  const [yearStart, setYearStart] = useState<string>('')
+  const [enrolledAt, setEnrolledAt] = useState<string>(() => new Date().toISOString().slice(0, 10))
+
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
+  const [specialties, setSpecialties] = useState<{ id: string; name: string; department_id: string }[]>([])
+  const [studyGroups, setStudyGroups] = useState<{ id: string; name: string; department_id: string }[]>([])
+
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loadingPerson, setLoadingPerson] = useState(false)
@@ -163,6 +176,44 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPersonId])
 
+  // Load departments list when academic tab is needed
+  useEffect(() => {
+    if (mode === 'lead') return
+    fetch('/api/settings/departments')
+      .then(r => r.ok ? r.json() : [])
+      .then((d: unknown) => {
+        const list = Array.isArray(d)
+          ? d
+          : ((d as { departments?: unknown[] })?.departments ?? [])
+        setDepartments((list as { id: string; name: string }[]).map(x => ({ id: x.id, name: x.name })))
+      })
+      .catch(() => {})
+  }, [mode])
+
+  // Cascading specialties + study_groups by primary department
+  useEffect(() => {
+    if (!primaryDepartmentId) {
+      setSpecialties([])
+      setStudyGroups([])
+      setSpecialtyId(null)
+      setMainGroupId(null)
+      return
+    }
+    void Promise.all([
+      fetch(`/api/education/specialties?department_id=${primaryDepartmentId}`)
+        .then(r => r.ok ? r.json() : { specialties: [] })
+        .then(d => (d.specialties ?? []) as { id: string; name: string; department_id: string }[]),
+      fetch(`/api/education/study-groups?department_id=${primaryDepartmentId}`)
+        .then(r => r.ok ? r.json() : { study_groups: [] })
+        .then(d => (d.study_groups ?? []) as { id: string; name: string; department_id: string }[]),
+    ]).then(([specs, groups]) => {
+      setSpecialties(specs)
+      setStudyGroups(groups)
+      setSpecialtyId(prev => prev && specs.find(s => s.id === prev) ? prev : null)
+      setMainGroupId(prev => prev && groups.find(g => g.id === prev) ? prev : null)
+    }).catch(() => {})
+  }, [primaryDepartmentId])
+
   function resetFields() {
     setView('new')
     setSelected(null)
@@ -183,6 +234,12 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setInterests([{ institution: 'university', direction: '' }])
     setSource('')
     setComment('')
+    setPrimaryDepartmentId(null)
+    setSpecialtyId(null)
+    setMainGroupId(null)
+    setYearLevel('')
+    setYearStart('')
+    setEnrolledAt(new Date().toISOString().slice(0, 10))
   }
 
   async function loadPersonData(id: string) {
@@ -219,13 +276,16 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     await loadPersonData(p.id)
   }
 
+  const tabs = mode === 'lead' ? TAB_LABELS_BASE : TAB_LABELS_WITH_ACADEMIC
+  const lastTabIdx = tabs.length - 1
+
   function goNext() {
     setError('')
     if (view === 'new') {
       if (tabIdx === 0 && !fullName.trim()) { setError('ФИО обязательно'); return }
       if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
     }
-    setTabIdx(t => Math.min(t + 1, 5))
+    setTabIdx(t => Math.min(t + 1, lastTabIdx))
   }
 
   function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
@@ -289,10 +349,22 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
       } else {
         // POST /api/education/journeys — applicant | student
+        if (mode === 'student' && !primaryDepartmentId) {
+          setError('Для студента необходимо выбрать подразделение')
+          setTabIdx(6)
+          setSaving(false)
+          return
+        }
         const body: Record<string, unknown> = {
           education_status: mode,
           referral_source: source || null,
           notes: comment || null,
+          primary_department_id: primaryDepartmentId,
+          specialty_id: specialtyId,
+          main_group_id: mainGroupId,
+          year_level: yearLevel ? parseInt(yearLevel, 10) : null,
+          year_start: yearStart ? parseInt(yearStart, 10) : null,
+          enrolled_at: enrolledAt || null,
         }
         if (view === 'existing' && selected) {
           body.person_id = selected.id
@@ -726,6 +798,64 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           </div>
         )
 
+      case 6: {
+        const isStudent = mode === 'student'
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
+            <div>
+              <label style={lbl}>Подразделение{isStudent && ' *'}</label>
+              <select
+                value={primaryDepartmentId ?? ''}
+                onChange={e => setPrimaryDepartmentId(e.target.value || null)}
+                style={inp}
+              >
+                <option value="">— выберите —</option>
+                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Специальность</label>
+              <select
+                value={specialtyId ?? ''}
+                onChange={e => setSpecialtyId(e.target.value || null)}
+                disabled={!primaryDepartmentId}
+                style={{ ...inp, ...(!primaryDepartmentId ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+              >
+                <option value="">{primaryDepartmentId ? '— нет —' : 'Сначала выберите подразделение'}</option>
+                {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Базовая группа</label>
+              <select
+                value={mainGroupId ?? ''}
+                onChange={e => setMainGroupId(e.target.value || null)}
+                disabled={!primaryDepartmentId}
+                style={{ ...inp, ...(!primaryDepartmentId ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+              >
+                <option value="">{primaryDepartmentId ? '— нет —' : 'Сначала выберите подразделение'}</option>
+                {studyGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Курс / Класс</label>
+              <input type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
+                placeholder="1, 2, 10..." style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Год набора</label>
+              <input type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
+                placeholder="2025" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Дата зачисления</label>
+              <input type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
+                style={inp} />
+            </div>
+          </div>
+        )
+      }
+
       default: return null
     }
   }
@@ -756,7 +886,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
           )}
           <div style={{ flexShrink: 0, display: 'flex', padding: '10px 20px 0', gap: 2 }}>
-            {MODAL_TABS.map((tab, i) => (
+            {tabs.map((tab, i) => (
               <button key={i} onClick={() => { setError(''); setTabIdx(i) }}
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
@@ -800,13 +930,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 Назад
               </button>
             )}
-            {tabIdx < 5 && (
+            {tabIdx < lastTabIdx && (
               <button onClick={goNext}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 Далее
               </button>
             )}
-            {tabIdx === 5 && (
+            {tabIdx === lastTabIdx && (
               <button onClick={handleSave} disabled={saving}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Сохранение...' : cfg.saveLabel}
