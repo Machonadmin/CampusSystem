@@ -114,6 +114,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   const [birthDate, setBirthDate] = useState<Date | null>(null)
   const [maritalStatus, setMaritalStatus] = useState('')
   const [citizenship, setCitizenship] = useState('Россия')
+  const [passportNumber, setPassportNumber] = useState('')
 
   // Tab 2 – Контакты и адрес
   const [phones, setPhones] = useState<string[]>([''])
@@ -162,7 +163,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   }, [query])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPassportNumber(''); setPhotoPreview(null)
     setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setFamilyRelations([
       { relative_id: null, relation_type: 'mother', notes: null },
@@ -173,7 +174,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   async function loadPersonData(id: string) {
     setLoadingPerson(true)
     try {
-      const res = await fetch(`/api/settings/persons/${id}`)
+      const res = await fetch(`/api/persons/${id}`)
       if (!res.ok) return
       const d = await res.json()
       setFullName(d.full_name ?? '')
@@ -182,15 +183,16 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       setBirthDate(d.birth_date ? new Date(d.birth_date) : null)
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? '')
+      setPassportNumber(d.passport_number ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
-      if (Array.isArray(d.phones) && d.phones.length > 0) setPhones(d.phones)
-      else if (d.phone) setPhones([d.phone])
+      const rawPhones: unknown[] = Array.isArray(d.phones) ? d.phones : d.phone ? [d.phone] : []
+      const flatPhones = rawPhones.map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? String(p))).filter(Boolean)
+      if (flatPhones.length > 0) setPhones(flatPhones)
       if (d.email) setEmail(d.email)
-      const addr = d.address ?? {}
+      const addr = (d.address as Record<string, string> | null) ?? {}
       setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
       setHouse(addr.house ?? ''); setApartment(addr.apartment ?? ''); setPostalCode(addr.postal_code ?? '')
-      // Семейные связи будут подгружены отдельно, когда понадобятся
-      // (через GET /api/persons/[id]/relatives) — для просмотра существующего лида.
+      // Семейные связи грузятся отдельно через GET /api/persons/[id]/relatives
     } finally {
       setLoadingPerson(false)
     }
@@ -240,6 +242,7 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         if (hebrewName) body.hebrew_name = hebrewName.trim()
         if (maritalStatus) body.marital_status = maritalStatus
         if (citizenship) body.citizenship = citizenship.trim()
+        if (passportNumber) body.passport_number = passportNumber.trim()
         const addr = { country, city, street, house, apartment, postal_code: postalCode }
         if (Object.values(addr).some(v => v)) body.address = addr
         const validCommunities = communities
@@ -391,6 +394,10 @@ function AddLeadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                 disabled={ro}
                 style={{ ...inp, ...dis }}
               />
+            </div>
+            <div>
+              <label style={lbl}>Номер паспорта</label>
+              <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="AA 123456" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )

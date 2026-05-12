@@ -13,7 +13,7 @@ export async function GET(
     const sb = createServerClient()
     const { data, error } = await sb
       .from('persons')
-      .select('id, full_name, email, phones')
+      .select('id, full_name, hebrew_name, email, phones, gender, birth_date, photo_url, address, marital_status, nationality, passport_number')
       .eq('id', params.id)
       .single()
 
@@ -21,11 +21,21 @@ export async function GET(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const p = data as any
+    const phones: unknown[] = Array.isArray(p.phones) ? p.phones : []
     return NextResponse.json({
       id: p.id,
       full_name: p.full_name,
+      hebrew_name: p.hebrew_name ?? null,
       email: p.email ?? null,
-      phone: Array.isArray(p.phones) && p.phones.length > 0 ? (p.phones[0]?.number ?? null) : null,
+      phone: phones.length > 0 ? ((phones[0] as { number?: string })?.number ?? phones[0]) : null,
+      phones: phones,
+      gender: p.gender ?? null,
+      birth_date: p.birth_date ?? null,
+      photo_url: p.photo_url ?? null,
+      address: p.address ?? null,
+      marital_status: p.marital_status ?? null,
+      citizenship: p.nationality ?? null,
+      passport_number: p.passport_number ?? null,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

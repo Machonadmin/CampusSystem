@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
       hebrew_name?: string
       marital_status?: string
       citizenship?: string
+      passport_number?: string
       address?: Record<string, unknown>
       interests?: { institution: string; direction?: string }[]
       communities?: CommunityPayload[]
@@ -153,11 +154,12 @@ export async function POST(request: NextRequest) {
           gender: (body.gender as 'male' | 'female' | 'other') || null,
           birth_date: body.birth_date || null,
           photo_url: null,
-          address: body.address ?? {},
+          address: (body.address && Object.values(body.address).some(v => v)) ? body.address : null,
           notes: null,
           education_status: 'lead',
           marital_status: body.marital_status || null,
           nationality: body.citizenship || null,
+          passport_number: body.passport_number?.trim() || null,
         } as any)
         .select('id')
         .single()
