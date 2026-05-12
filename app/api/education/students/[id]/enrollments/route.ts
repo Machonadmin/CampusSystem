@@ -10,7 +10,10 @@ async function requireAuth() {
 
 /**
  * GET /api/education/students/[id]/enrollments
- * В каких учебных группах состоит этот студент.
+ * В каких учебных группах состоит данный студент.
+ *
+ * [id] здесь — journey.id (не student.id).
+ * Совместим с proxy /api/education/students/[id] → journeys/[id].
  */
 export async function GET(
   _request: NextRequest,
@@ -23,7 +26,7 @@ export async function GET(
     const { data, error } = await sb
       .from('class_enrollments')
       .select(`
-        student_id,
+        journey_id,
         class_group_id,
         enrolled_at,
         class_group:class_groups(
@@ -36,7 +39,7 @@ export async function GET(
           department:departments(id, name)
         )
       `)
-      .eq('student_id', params.id)
+      .eq('journey_id', params.id)
       .order('enrolled_at', { ascending: false })
 
     if (error) throw error

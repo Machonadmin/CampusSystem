@@ -42,7 +42,7 @@ export async function GET(
         .select('teacher_id, is_primary, person:persons(id, full_name)')
         .eq('class_group_id', params.id),
       sb.from('class_enrollments')
-        .select('student_id')
+        .select('journey_id')
         .eq('class_group_id', params.id),
     ])
     if (teachersRes.error) throw teachersRes.error
@@ -58,20 +58,20 @@ export async function GET(
       .filter((t): t is NonNullable<typeof t> => t !== null)
       .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
 
-    const studentIds = (enrollsRes.data ?? []).map(r => r.student_id)
-    let students: { student_id: string; person_id: string; full_name: string | null; hebrew_name: string | null }[] = []
+    const journeyIds = (enrollsRes.data ?? []).map(r => r.journey_id)
+    let students: { journey_id: string; person_id: string; full_name: string | null; hebrew_name: string | null }[] = []
 
-    if (studentIds.length > 0) {
-      const { data: stuRows, error: stuErr } = await sb
-        .from('students')
+    if (journeyIds.length > 0) {
+      const { data: jRows, error: jErr } = await sb
+        .from('education_journeys')
         .select('id, person_id, person:persons(id, full_name, hebrew_name)')
-        .in('id', studentIds)
-      if (stuErr) throw stuErr
-      students = (stuRows ?? []).map(s => {
-        const p = (s.person as unknown) as { id: string; full_name: string | null; hebrew_name: string | null } | null
+        .in('id', journeyIds)
+      if (jErr) throw jErr
+      students = (jRows ?? []).map(j => {
+        const p = (j.person as unknown) as { id: string; full_name: string | null; hebrew_name: string | null } | null
         return {
-          student_id: s.id,
-          person_id: s.person_id,
+          journey_id: j.id,
+          person_id: j.person_id,
           full_name: p?.full_name ?? null,
           hebrew_name: p?.hebrew_name ?? null,
         }
@@ -80,7 +80,7 @@ export async function GET(
 
     return NextResponse.json({
       ...group,
-      counts: { students: studentIds.length },
+      counts: { students: journeyIds.length },
       teachers,
       students,
     })
@@ -208,7 +208,7 @@ export async function DELETE(
 
     const { count: enrollCount, error: cntErr } = await sb
       .from('class_enrollments')
-      .select('student_id', { count: 'exact', head: true })
+      .select('journey_id', { count: 'exact', head: true })
       .eq('class_group_id', params.id)
     if (cntErr) throw cntErr
 

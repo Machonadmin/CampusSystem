@@ -11,7 +11,7 @@ async function requireAuth() {
 
 /**
  * GET /api/education/class-groups/[id]/enrollments
- * Список студентов, записанных в группу.
+ * Список journeys (студентов), записанных в учебную группу.
  */
 export async function GET(
   _request: NextRequest,
@@ -24,12 +24,16 @@ export async function GET(
     const { data, error } = await sb
       .from('class_enrollments')
       .select(`
-        student_id,
+        journey_id,
         class_group_id,
         enrolled_at,
-        student:students(
+        journey:education_journeys(
           id,
-          status,
+          education_status,
+          primary_department_id,
+          specialty_id,
+          main_group_id,
+          year_level,
           person:persons(id, full_name, hebrew_name, email),
           main_group:study_groups(id, name)
         )
@@ -47,23 +51,33 @@ export async function GET(
 
 /**
  * POST /api/education/class-groups/[id]/enrollments
- * Записать одного или нескольких студентов в группу.
+ * Записать одного или нескольких студентов (journey) в учебную группу.
  *
- * Body: { student_ids: string[] }
- * Право: manage_enrollments в подразделении группы.
- * Идемпотентен: уже записанные пропускаются без ошибок.
- * Возвращает { added, already, total }.
+ * Body: { journey_ids: string[] }
+ *   ИЛИ { student_ids: string[] } (backward-compat алиас: student_ids == journey_ids)
+ *
+ * Только journeys с education_status='student' могут быть записаны.
+ * Идемпотентен: уже записанные пропускаются.
+ * Возвращает: { added, already, total }.
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const body = await request.json() as { student_ids?: string[] }
-    if (!Array.isArray(body.student_ids) || body.student_ids.length === 0) {
-      return NextResponse.json({ error: 'student_ids обязателен (массив)' }, { status: 400 })
+    const body = await request.json() as {
+      journey_ids?: string[]
+      student_ids?: string[]  // backward-compat алиас
     }
-    const uniqueIds = Array.from(new Set(body.student_ids))
+
+    const rawIds = body.journey_ids ?? body.student_ids
+    if (!Array.isArray(rawIds) || rawIds.length === 0) {
+      return NextResponse.json(
+        { error: 'journey_ids обязателен (массив)' },
+        { status: 400 }
+      )
+    }
+    const uniqueIds = Array.from(new Set(rawIds))
 
     const sb = createServerClient()
 
@@ -77,33 +91,43 @@ export async function POST(
 
     await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
 
-    const { data: existingStudents, error: sErr } = await sb
-      .from('students')
-      .select('id')
+    // Проверить, что все journeys существуют и имеют status='student'
+    const { data: journeys, error: jErr } = await sb
+      .from('education_journeys')
+      .select('id, education_status')
       .in('id', uniqueIds)
-    if (sErr) throw sErr
+    if (jErr) throw jErr
 
-    const existingStudentIds = new Set((existingStudents ?? []).map(s => s.id))
-    const missing = uniqueIds.filter(id => !existingStudentIds.has(id))
+    const foundIds = new Set((journeys ?? []).map(j => j.id))
+    const missing = uniqueIds.filter(id => !foundIds.has(id))
     if (missing.length > 0) {
       return NextResponse.json(
-        { error: `Студенты не найдены: ${missing.join(', ')}` },
+        { error: `Journey не найдены: ${missing.join(', ')}` },
         { status: 400 }
       )
     }
 
+    const nonStudents = (journeys ?? []).filter(j => j.education_status !== 'student')
+    if (nonStudents.length > 0) {
+      return NextResponse.json(
+        { error: 'Запись возможна только для студентов (education_status=student)' },
+        { status: 400 }
+      )
+    }
+
+    // Уже записанные
     const { data: existingEnrolls, error: eeErr } = await sb
       .from('class_enrollments')
-      .select('student_id')
+      .select('journey_id')
       .eq('class_group_id', params.id)
-      .in('student_id', uniqueIds)
+      .in('journey_id', uniqueIds)
     if (eeErr) throw eeErr
 
-    const alreadyEnrolledIds = new Set((existingEnrolls ?? []).map(e => e.student_id))
-    const toAdd = uniqueIds.filter(id => !alreadyEnrolledIds.has(id))
+    const alreadyIds = new Set((existingEnrolls ?? []).map(e => e.journey_id))
+    const toAdd = uniqueIds.filter(id => !alreadyIds.has(id))
 
     if (toAdd.length > 0) {
-      const rows = toAdd.map(student_id => ({ student_id, class_group_id: params.id }))
+      const rows = toAdd.map(journey_id => ({ journey_id, class_group_id: params.id }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insErr } = await sb.from('class_enrollments').insert(rows as any)
       if (insErr) {
@@ -116,7 +140,7 @@ export async function POST(
 
     return NextResponse.json({
       added: toAdd.length,
-      already: alreadyEnrolledIds.size,
+      already: alreadyIds.size,
       total: uniqueIds.length,
     }, { status: 201 })
   } catch (err: unknown) {

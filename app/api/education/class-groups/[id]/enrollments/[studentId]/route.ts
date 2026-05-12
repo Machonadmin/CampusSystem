@@ -4,10 +4,11 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 
 /**
  * DELETE /api/education/class-groups/[id]/enrollments/[studentId]
- * Снять студента с учебной группы.
+ * Снять запись из учебной группы.
  *
+ * Параметр [studentId] сохранён для совместимости UI; теперь это journey_id.
  * Право: manage_enrollments в подразделении группы.
- * Идемпотентен: если записи нет — возвращает { ok: true, already: true }.
+ * Идемпотентен: если записи нет — { ok: true, already: true }.
  */
 export async function DELETE(
   _request: NextRequest,
@@ -28,9 +29,9 @@ export async function DELETE(
 
     const { data: existing, error: chkErr } = await sb
       .from('class_enrollments')
-      .select('student_id')
+      .select('journey_id')
       .eq('class_group_id', params.id)
-      .eq('student_id', params.studentId)
+      .eq('journey_id', params.studentId)
       .maybeSingle()
     if (chkErr) throw chkErr
 
@@ -40,7 +41,7 @@ export async function DELETE(
       .from('class_enrollments')
       .delete()
       .eq('class_group_id', params.id)
-      .eq('student_id', params.studentId)
+      .eq('journey_id', params.studentId)
     if (delErr) throw delErr
 
     return NextResponse.json({ ok: true })

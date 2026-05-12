@@ -727,12 +727,12 @@ export interface ClassGroupInsert {
 export type ClassGroupUpdate = Partial<ClassGroupInsert>
 
 export interface ClassEnrollmentRow {
-  student_id: string
+  journey_id: string
   class_group_id: string
   enrolled_at: string
 }
 export interface ClassEnrollmentInsert {
-  student_id: string
+  journey_id: string
   class_group_id: string
   enrolled_at?: string
 }
