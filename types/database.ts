@@ -11,6 +11,27 @@ export type Json =
 export type Gender = 'female' | 'male' | 'other'
 export type PersonEducationStatus = 'lead' | 'applicant' | 'student' | 'alumni'
 export type RelativeType = 'mother' | 'father' | 'emergency' | 'other'
+
+/** person_relatives — связи person↔person с типом отношения. */
+export type RelationType =
+  | 'mother' | 'father' | 'parent'
+  | 'spouse' | 'child' | 'sibling' | 'grandparent'
+  | 'guardian'
+  | 'community_contact' | 'emergency_contact'
+  | 'other'
+
+export interface PersonRelativeRow {
+  id: string
+  person_id: string
+  relative_id: string
+  relation_type: RelationType
+  notes: string | null
+  created_at: string
+}
+export type PersonRelativeInsert =
+  Omit<PersonRelativeRow, 'id' | 'created_at'>
+  & { id?: string }
+export type PersonRelativeUpdate = Partial<Omit<PersonRelativeInsert, 'person_id' | 'relative_id'>>
 export type ApplicantStatus = 'new' | 'reviewing' | 'accepted' | 'rejected'
 export type Institution = 'university' | 'touro' | 'college' | 'school' | 'emuna' | 'other'
 export type EnrollmentStatus = 'active' | 'graduated' | 'expelled' | 'academic_leave'
@@ -787,6 +808,7 @@ export interface Database {
       persons:           T<PersonRow,           PersonInsert,           PersonUpdate>
       person_accounts:   T<PersonAccountRow,    PersonAccountInsert,    PersonAccountUpdate>
       person_family:     T<PersonFamilyRow,     PersonFamilyInsert,     PersonFamilyUpdate>
+      person_relatives:  T<PersonRelativeRow,   PersonRelativeInsert,   PersonRelativeUpdate>
       applicant_profiles:T<ApplicantProfileRow, ApplicantProfileInsert, ApplicantProfileUpdate>
       education_journeys:T<EducationJourneyRow, EducationJourneyInsert, EducationJourneyUpdate>
       communities:       T<CommunityRow,        CommunityInsert,        CommunityUpdate>
