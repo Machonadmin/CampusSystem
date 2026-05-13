@@ -6,6 +6,7 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
+import PageActionButton from '@/components/ui/PageActionButton'
 
 interface Department {
   id: string
@@ -513,10 +514,11 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
           <option value="">Все отделы</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        <button onClick={onAdd}
-          style={{ padding: '8px 16px', background: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
-          + Добавить сотрудника
-        </button>
+        <PageActionButton
+          label="Добавить сотрудника"
+          onClick={onAdd}
+          accentColor={getModuleColor('staff')}
+        />
       </div>
 
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
@@ -663,13 +665,11 @@ export default function StaffPage() {
       {activeTab === 'structure' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={() => setModal({ type: 'add', parentId: null })}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-              <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Добавить отдел
-            </button>
+            <PageActionButton
+              label="Добавить отдел"
+              onClick={() => setModal({ type: 'add', parentId: null })}
+              accentColor={getModuleColor('staff')}
+            />
           </div>
 
           <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>

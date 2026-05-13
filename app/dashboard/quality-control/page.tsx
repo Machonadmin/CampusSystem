@@ -7,6 +7,7 @@ import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import ModuleTabs from '@/components/ui/ModuleTabs'
+import PageActionButton from '@/components/ui/PageActionButton'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
@@ -129,25 +130,15 @@ export default function QualityControlPage() {
       ]} />
 
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div
-          className="flex items-center rounded-xl overflow-hidden flex-1"
-          style={{
-            background: getModuleHeaderGradient('quality_control'),
-            padding: '12px 24px', minWidth: 200,
-            boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
-          }}
-        >
-          <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Контроль качества преподавания</h1>
-        </div>
-        {canCreateCheck && tab !== 'templates' && (
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{ padding: '10px 18px', fontSize: 13, fontWeight: 600, backgroundColor: getModuleColor('quality_control'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
-          >
-            + Новая проверка
-          </button>
-        )}
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: getModuleHeaderGradient('quality_control'),
+          padding: '12px 24px',
+          boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
+        }}
+      >
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Контроль качества преподавания</h1>
       </div>
 
       {/* Tabs */}
@@ -169,13 +160,24 @@ export default function QualityControlPage() {
         {tab !== 'templates' && (
           <>
             {/* Search toolbar */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA' }}>
+            <div style={{
+              padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Поиск по группе или курсу..."
                 style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
               />
+              <div style={{ flex: 1 }} />
+              {canCreateCheck && (
+                <PageActionButton
+                  label="Новая проверка"
+                  onClick={() => setShowCreate(true)}
+                  accentColor={getModuleColor('quality_control')}
+                />
+              )}
             </div>
 
             {/* Table */}

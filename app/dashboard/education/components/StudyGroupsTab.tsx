@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import PageActionButton from '@/components/ui/PageActionButton'
 import StudyGroupModal from './StudyGroupModal'
 
 interface Department { id: string; name: string }
@@ -102,10 +103,6 @@ export default function StudyGroupsTab() {
   })
 
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
-  const btnPrimary: React.CSSProperties = {
-    padding: '7px 14px', fontSize: 13, fontWeight: 500, color: '#fff',
-    background: accent, border: 'none', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-  }
   const btnSecondary: React.CSSProperties = {
     padding: '5px 10px', fontSize: 12, color: '#374151',
     background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
@@ -141,9 +138,11 @@ export default function StudyGroupsTab() {
 
         <div style={{ flex: 1 }} />
 
-        <button onClick={() => { setEditingGroup(null); setModalMode('create') }} style={btnPrimary}>
-          + Группа
-        </button>
+        <PageActionButton
+          label="Группа"
+          onClick={() => { setEditingGroup(null); setModalMode('create') }}
+          accentColor={accent}
+        />
       </div>
 
       {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>}

@@ -7,6 +7,7 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
 import TaskCreateModal from './components/TaskCreateModal'
 import TaskDetailModal from './components/TaskDetailModal'
+import PageActionButton from '@/components/ui/PageActionButton'
 import type { TaskRow } from '@/types/database'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
@@ -97,22 +98,10 @@ export default function TasksPage() {
         background: getModuleHeaderGradient('tasks'),
         borderRadius: 12,
         padding: '12px 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
         color: '#fff',
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Задачи</h1>
-        <button
-          onClick={() => setCreateOpen(true)}
-          style={{
-            padding: '8px 14px', fontSize: 13, fontWeight: 500,
-            background: 'rgba(255,255,255,0.2)', color: '#fff',
-            border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8,
-            cursor: 'pointer',
-          }}
-        >
-          + Новая задача
-        </button>
       </div>
 
       {/* Вкладки */}
@@ -164,6 +153,12 @@ export default function TasksPage() {
         <div style={{ fontSize: 12, color: '#6B7280' }}>
           Всего: {tasks.length}
         </div>
+
+        <PageActionButton
+          label="Новая задача"
+          onClick={() => setCreateOpen(true)}
+          accentColor={accent}
+        />
       </div>
 
       {/* Контент */}

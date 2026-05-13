@@ -1,28 +1,54 @@
 'use client'
+
 import Link from 'next/link'
+import { Fragment } from 'react'
 
-interface Item { label: string; href?: string }
+interface Item {
+  label: string
+  href?: string
+}
 
-export function Breadcrumb({ items }: { items: Item[] }) {
+interface Props {
+  items: Item[]
+}
+
+export function Breadcrumb({ items }: Props) {
   return (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-      {items.map((item, i) => (
-        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {i > 0 && <span style={{ color: '#D1D5DB', fontSize: 13, userSelect: 'none' }}>›</span>}
-          {item.href ? (
-            <Link
-              href={item.href}
-              style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', textDecoration: 'none', background: '#EEF2FF', padding: '4px 10px', borderRadius: 6, transition: 'background 0.15s, color 0.15s' }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#4BAED4'; el.style.color = '#fff' }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#EEF2FF'; el.style.color = '#3B82F6' }}
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#3B82F6' }}>{item.label}</span>
-          )}
-        </span>
-      ))}
-    </nav>
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      padding: '8px 14px',
+      background: '#F3F4F6',
+      borderRadius: 8,
+      fontSize: 13,
+      border: '1px solid #E5E7EB',
+    }}>
+      {items.map((item, idx) => {
+        const isLast = idx === items.length - 1
+        return (
+          <Fragment key={idx}>
+            {idx > 0 && (
+              <span style={{ color: '#D1D5DB', fontSize: 12 }}>›</span>
+            )}
+            {isLast ? (
+              <span style={{ color: '#111827', fontWeight: 600 }}>
+                {item.label}
+              </span>
+            ) : item.href ? (
+              <Link
+                href={item.href}
+                style={{
+                  color: '#6B7280',
+                  textDecoration: 'none',
+                }}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span style={{ color: '#6B7280' }}>{item.label}</span>
+            )}
+          </Fragment>
+        )
+      })}
+    </div>
   )
 }

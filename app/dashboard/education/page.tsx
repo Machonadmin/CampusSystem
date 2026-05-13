@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import StudyTab from './components/StudyTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
+import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -131,10 +132,11 @@ export default function EducationPage() {
               <option value="">Все заведения</option>
               {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
             </select>
-            <button onClick={() => setAddOpen(true)}
-              style={{ padding: '8px 16px', background: getModuleColor('education'), color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
-              + Добавить лида
-            </button>
+            <PageActionButton
+              label="Добавить лида"
+              onClick={() => setAddOpen(true)}
+              accentColor={getModuleColor('education')}
+            />
           </div>
 
           {/* Table card */}
