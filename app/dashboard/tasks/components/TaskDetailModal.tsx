@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import type { TaskRow, TaskCommentType } from '@/types/database'
+import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 import { getModuleColor } from '@/lib/module-colors'
+import { PersonSelect } from '@/components/ui/person-select'
 
 interface Comment {
   id: string
@@ -19,6 +20,17 @@ interface Watcher {
   person_id: string
   added_at: string
   person?: { id: string; full_name: string } | null
+}
+
+interface HistoryEntry {
+  id: string
+  task_id: string
+  actor_id: string
+  from_status: TaskStatus | null
+  to_status: TaskStatus
+  note: string | null
+  created_at: string
+  actor?: { id: string; full_name: string } | null
 }
 
 interface TaskDetail extends TaskRow {
@@ -77,12 +89,19 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   const [task,     setTask]     = useState<TaskDetail | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [watchers, setWatchers] = useState<Watcher[]>([])
+  const [history,  setHistory]  = useState<HistoryEntry[]>([])
 
   const [loading,           setLoading]           = useState(true)
   const [error,             setError]             = useState<string | null>(null)
   const [actionInProgress,  setActionInProgress]  = useState(false)
   const [showDeclineInput,  setShowDeclineInput]  = useState(false)
   const [declineReason,     setDeclineReason]     = useState('')
+
+  const [newCommentText,    setNewCommentText]    = useState('')
+  const [postingComment,    setPostingComment]    = useState(false)
+
+  const [addingWatcher,     setAddingWatcher]     = useState(false)
+  const [newWatcherId,      setNewWatcherId]      = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -97,6 +116,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       setTask(data.task as TaskDetail)
       setComments((data.comments ?? []) as Comment[])
       setWatchers((data.watchers ?? []) as Watcher[])
+      setHistory((data.history ?? []) as HistoryEntry[])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка загрузки')
     } finally {
@@ -189,6 +209,69 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
     }
   }
 
+  const handleAddComment = async () => {
+    if (!newCommentText.trim()) return
+    setPostingComment(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newCommentText.trim() }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? 'Не удалось добавить комментарий')
+        return
+      }
+      setNewCommentText('')
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка')
+    } finally {
+      setPostingComment(false)
+    }
+  }
+
+  const handleAddWatcher = async () => {
+    if (!newWatcherId) return
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/watchers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person_id: newWatcherId }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? 'Не удалось добавить наблюдателя')
+        return
+      }
+      setNewWatcherId(null)
+      setAddingWatcher(false)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка')
+    }
+  }
+
+  const handleRemoveWatcher = async (personId: string) => {
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/watchers/${personId}`, {
+        method: 'DELETE',
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? 'Не удалось снять наблюдателя')
+        return
+      }
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка')
+    }
+  }
+
   if (loading) {
     return (
       <ModalShell onClose={onClose}>
@@ -278,14 +361,86 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
         {task.completed_at && (
           <Field label="Завершена" value={new Date(task.completed_at).toLocaleDateString('ru-RU')} />
         )}
+      </div>
+
+      {/* Наблюдатели */}
+      <div style={{ marginTop: 16 }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 8,
+        }}>
+          <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>
+            Наблюдатели ({watchers.length})
+          </div>
+          {!addingWatcher && (
+            <button
+              onClick={() => setAddingWatcher(true)}
+              style={{
+                fontSize: 12, color: accent, background: 'transparent',
+                border: `1px dashed ${accent}`, padding: '4px 10px',
+                borderRadius: 6, cursor: 'pointer',
+              }}
+            >
+              + Добавить
+            </button>
+          )}
+        </div>
+
         {watchers.length > 0 && (
-          <Field
-            label={`Наблюдатели (${watchers.length})`}
-            value={
-              watchers.map(w => w.person?.full_name).filter(Boolean).slice(0, 3).join(', ')
-              + (watchers.length > 3 ? '…' : '')
-            }
-          />
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {watchers.map(w => (
+              <div key={w.person_id} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '4px 10px', background: '#EFF6FF', color: '#1E40AF',
+                borderRadius: 12, fontSize: 12,
+              }}>
+                <span>{w.person?.full_name ?? '…'}</span>
+                <button
+                  onClick={() => handleRemoveWatcher(w.person_id)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 14, color: '#1E40AF', lineHeight: 1, padding: 0,
+                  }}
+                  title="Снять наблюдателя"
+                >×</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {addingWatcher && (
+          <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+              <PersonSelect
+                value={newWatcherId}
+                onChange={id => setNewWatcherId(id)}
+                placeholder="Выберите наблюдателя"
+                accentColor={accent}
+              />
+            </div>
+            <button
+              onClick={handleAddWatcher}
+              disabled={!newWatcherId}
+              style={{
+                padding: '8px 14px', fontSize: 12, color: '#fff',
+                background: accent, border: 'none', borderRadius: 6,
+                cursor: newWatcherId ? 'pointer' : 'not-allowed',
+                opacity: newWatcherId ? 1 : 0.5,
+              }}
+            >
+              Добавить
+            </button>
+            <button
+              onClick={() => { setAddingWatcher(false); setNewWatcherId(null) }}
+              style={{
+                padding: '8px 12px', fontSize: 12, color: '#6B7280',
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
+                cursor: 'pointer',
+              }}
+            >
+              Отмена
+            </button>
+          </div>
         )}
       </div>
 
@@ -381,10 +536,80 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
             {comments.map(c => <CommentItem key={c.id} comment={c} />)}
           </div>
         )}
-        <div style={{ marginTop: 10, fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>
-          Добавление комментариев — в следующем обновлении
+
+        <div style={{ marginTop: 12, padding: 10, background: '#F9FAFB', borderRadius: 8 }}>
+          <textarea
+            value={newCommentText}
+            onChange={e => setNewCommentText(e.target.value)}
+            placeholder="Написать комментарий…"
+            disabled={postingComment}
+            style={{
+              width: '100%', minHeight: 60, padding: '8px 10px', fontSize: 13,
+              border: '1px solid #D1D5DB', borderRadius: 6,
+              boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+            <button
+              onClick={handleAddComment}
+              disabled={postingComment || !newCommentText.trim()}
+              style={{
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: '#fff',
+                background: accent, border: 'none', borderRadius: 6,
+                cursor: postingComment || !newCommentText.trim() ? 'not-allowed' : 'pointer',
+                opacity: postingComment || !newCommentText.trim() ? 0.5 : 1,
+              }}
+            >
+              {postingComment ? 'Отправка…' : 'Отправить'}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* История изменений */}
+      {history.length > 0 && (
+        <div style={{ marginTop: 16, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: '#111827' }}>
+            История изменений ({history.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {history.map(h => (
+              <div key={h.id} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '8px 10px', fontSize: 12,
+                background: '#FAFAFA', borderRadius: 6,
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: STATUS_COLORS[h.to_status]?.fg ?? '#9CA3AF',
+                  marginTop: 5, flexShrink: 0,
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#374151' }}>
+                    <strong>{h.actor?.full_name ?? 'Система'}</strong>
+                    {h.from_status ? (
+                      <>: {STATUS_LABELS[h.from_status]} → {STATUS_LABELS[h.to_status]}</>
+                    ) : (
+                      <>: создал задачу со статусом {STATUS_LABELS[h.to_status]}</>
+                    )}
+                  </div>
+                  {h.note && (
+                    <div style={{ color: '#6B7280', marginTop: 2, fontStyle: 'italic' }}>
+                      «{h.note}»
+                    </div>
+                  )}
+                  <div style={{ color: '#9CA3AF', marginTop: 2, fontSize: 11 }}>
+                    {new Date(h.created_at).toLocaleString('ru-RU', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </ModalShell>
   )
 }
