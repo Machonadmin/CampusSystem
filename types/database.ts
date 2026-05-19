@@ -38,6 +38,7 @@ export type EnrollmentStatus = 'active' | 'graduated' | 'expelled' | 'academic_l
 export type EmploymentType = 'staff' | 'intern' | 'volunteer' | 'contractor'
 export type SponsorType = 'individual' | 'organization'
 export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'custom' | 'external'
+export type PositionCategory = 'academic' | 'administrative' | 'support'
 
 export type TaskModule = 'general' | 'education' | 'staff' | 'quality_control'
 export type TaskAssigneeType = 'person' | 'department'
@@ -525,6 +526,22 @@ export interface ReferenceCityInsert {
 }
 export type ReferenceCityUpdate = Partial<ReferenceCityInsert>
 
+export interface ReferencePositionRow {
+  id: string
+  name_ru: string
+  name_he: string | null
+  category: PositionCategory
+  is_teaching: boolean
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+export type ReferencePositionInsert = Omit<ReferencePositionRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+}
+export type ReferencePositionUpdate = Partial<ReferencePositionInsert>
+
 // ─── Tasks module ─────────────────────────────────────────────────────────────
 
 export interface TaskRow {
@@ -831,6 +848,7 @@ export interface Database {
       quality_checks:            T<QualityCheckRow,              QualityCheckInsert,              QualityCheckUpdate>
       feature_privileges:        T<FeaturePrivilegeRow,          FeaturePrivilegeInsert,          FeaturePrivilegeUpdate>
       reference_cities:          T<ReferenceCityRow,             ReferenceCityInsert,             ReferenceCityUpdate>
+      reference_positions:       T<ReferencePositionRow,         ReferencePositionInsert,         ReferencePositionUpdate>
       tasks:                     T<TaskRow,                      TaskInsert,                      TaskUpdate>
       task_comments:             T<TaskCommentRow,               TaskCommentInsert,               TaskCommentUpdate>
       task_watchers:             T<TaskWatcherRow,               TaskWatcherInsert,               TaskWatcherInsert>
