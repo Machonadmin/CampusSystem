@@ -74,7 +74,7 @@ const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
   low: '#9CA3AF', normal: '#6B7280', high: '#F59E0B', urgent: '#DC2626',
 }
 
-type ActionKey = 'claim' | 'start' | 'review' | 'complete' | 'reopen' | 'decline' | 'cancel'
+type ActionKey = 'claim' | 'start' | 'review' | 'complete' | 'reopen' | 'decline' | 'cancel' | 'cancelSeries'
 
 interface ActionDef {
   label: string
@@ -103,6 +103,14 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   const [addingWatcher,     setAddingWatcher]     = useState(false)
   const [newWatcherId,      setNewWatcherId]      = useState<string | null>(null)
 
+  const [showCancelSeriesDialog, setShowCancelSeriesDialog] = useState(false)
+  const [cancelSeriesMode,       setCancelSeriesMode]       = useState<'future' | 'all'>('future')
+  const [seriesPreview,          setSeriesPreview]          = useState<{
+    total: number
+    by_status: Record<string, number>
+  } | null>(null)
+  const [loadingPreview,         setLoadingPreview]         = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -125,6 +133,27 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   }, [taskId])
 
   useEffect(() => { load() }, [load])
+
+  const loadSeriesPreview = useCallback(async (mode: 'future' | 'all') => {
+    if (!task?.recurrence_series_id) return
+    setLoadingPreview(true)
+    try {
+      let url = `/api/tasks/series/${task.recurrence_series_id}`
+      if (mode === 'future' && task.due_date) url += `?from_date=${task.due_date}`
+      const resp = await fetch(url)
+      if (!resp.ok) { setSeriesPreview(null); return }
+      const data = await resp.json()
+      setSeriesPreview({ total: data.total ?? 0, by_status: data.by_status ?? {} })
+    } catch {
+      setSeriesPreview(null)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }, [task?.recurrence_series_id, task?.due_date])
+
+  useEffect(() => {
+    if (showCancelSeriesDialog) loadSeriesPreview(cancelSeriesMode)
+  }, [cancelSeriesMode, showCancelSeriesDialog, loadSeriesPreview])
 
   const getAvailableActions = (): ActionDef[] => {
     if (!task) return []
@@ -155,10 +184,45 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
         }
         break
     }
+
+    if (isCreator && task.recurrence_series_id && !['completed', 'cancelled'].includes(task.status)) {
+      out.push({ label: 'Отменить серию...', action: 'cancelSeries', danger: true })
+    }
+
     return out
   }
 
+  const handleCancelSeries = async () => {
+    if (!task?.recurrence_series_id) return
+    setActionInProgress(true)
+    setError(null)
+    try {
+      let url = `/api/tasks/series/${task.recurrence_series_id}`
+      if (cancelSeriesMode === 'future' && task.due_date) url += `?from_date=${task.due_date}`
+      const resp = await fetch(url, { method: 'DELETE' })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? 'Не удалось отменить серию')
+        return
+      }
+      onChanged()
+      onClose()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка')
+    } finally {
+      setActionInProgress(false)
+      setShowCancelSeriesDialog(false)
+    }
+  }
+
   const handleAction = async (action: ActionKey, withReason?: boolean) => {
+    if (action === 'cancelSeries') {
+      setShowCancelSeriesDialog(true)
+      setCancelSeriesMode('future')
+      setSeriesPreview(null)
+      loadSeriesPreview('future')
+      return
+    }
     if (withReason && !declineReason.trim()) {
       setError('Укажите причину отклонения')
       return
@@ -173,14 +237,14 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       } else if (action === 'cancel') {
         resp = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
       } else {
-        const STATUS_BY_ACTION: Record<Exclude<ActionKey, 'claim' | 'cancel'>, TaskRow['status']> = {
+        const STATUS_BY_ACTION: Record<Exclude<ActionKey, 'claim' | 'cancel' | 'cancelSeries'>, TaskRow['status']> = {
           start:    'in_progress',
           review:   'review',
           complete: 'completed',
           reopen:   'in_progress',
           decline:  'declined',
         }
-        const newStatus = STATUS_BY_ACTION[action as Exclude<ActionKey, 'claim' | 'cancel'>]
+        const newStatus = STATUS_BY_ACTION[action as Exclude<ActionKey, 'claim' | 'cancel' | 'cancelSeries'>]
         const body: Record<string, unknown> = { status: newStatus }
         if (action === 'decline' && declineReason.trim()) {
           body.status_note = declineReason.trim()
@@ -509,6 +573,145 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Диалог отмены серии */}
+      {showCancelSeriesDialog && (
+        <div style={{
+          marginTop: 12, padding: 14, background: '#FEF2F2',
+          border: '1px solid #FCA5A5', borderRadius: 8,
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#991B1B', marginBottom: 12 }}>
+            Отменить серию задач?
+          </div>
+
+          {/* Выбор режима */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+            <label style={{
+              display: 'flex', gap: 8, alignItems: 'flex-start',
+              padding: 10, background: '#fff', borderRadius: 6, cursor: 'pointer',
+              border: cancelSeriesMode === 'future' ? '1.5px solid #DC2626' : '1px solid #E5E7EB',
+            }}>
+              <input
+                type="radio"
+                checked={cancelSeriesMode === 'future'}
+                onChange={() => setCancelSeriesMode('future')}
+                style={{ marginTop: 3 }}
+              />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                  Только будущие задачи
+                </div>
+                <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+                  Начиная с этой задачи и далее
+                </div>
+              </div>
+            </label>
+
+            <label style={{
+              display: 'flex', gap: 8, alignItems: 'flex-start',
+              padding: 10, background: '#fff', borderRadius: 6, cursor: 'pointer',
+              border: cancelSeriesMode === 'all' ? '1.5px solid #DC2626' : '1px solid #E5E7EB',
+            }}>
+              <input
+                type="radio"
+                checked={cancelSeriesMode === 'all'}
+                onChange={() => setCancelSeriesMode('all')}
+                style={{ marginTop: 3 }}
+              />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                  Всю серию
+                </div>
+                <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+                  Все задачи серии, включая прошедшие активные
+                </div>
+              </div>
+            </label>
+          </div>
+
+          {/* Превью */}
+          <div style={{
+            padding: 10, background: '#fff', borderRadius: 6, marginBottom: 12,
+            border: '1px solid #FECACA',
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+              Что произойдёт:
+            </div>
+            {loadingPreview && (
+              <div style={{ fontSize: 12, color: '#9CA3AF' }}>Подсчёт...</div>
+            )}
+            {!loadingPreview && seriesPreview && (() => {
+              const bs = seriesPreview.by_status
+              const willDelete  = (bs.unassigned ?? 0) + (bs.pending ?? 0) + (bs.declined ?? 0)
+              const willPreserve = (bs.in_progress ?? 0) + (bs.review ?? 0)
+              const alreadyDone = (bs.completed ?? 0) + (bs.cancelled ?? 0)
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+                  {willDelete > 0 && (
+                    <div style={{ color: '#991B1B' }}>
+                      ✓ Будет удалено: <strong>{willDelete}</strong>
+                      <span style={{ color: '#6B7280', fontSize: 11 }}>
+                        {' '}({[
+                          bs.unassigned ? `${bs.unassigned} в пуле` : '',
+                          bs.pending    ? `${bs.pending} к выполнению` : '',
+                          bs.declined   ? `${bs.declined} отклонены` : '',
+                        ].filter(Boolean).join(', ')})
+                      </span>
+                    </div>
+                  )}
+                  {willPreserve > 0 && (
+                    <div style={{ color: '#92400E', fontWeight: 500 }}>
+                      ⚠ Сохранятся: <strong>{willPreserve}</strong>
+                      <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 400 }}>
+                        {' '}({[
+                          bs.in_progress ? `${bs.in_progress} в работе` : '',
+                          bs.review      ? `${bs.review} на проверке` : '',
+                        ].filter(Boolean).join(', ')})
+                      </span>
+                      <div style={{ color: '#6B7280', fontSize: 10, marginTop: 2 }}>
+                        Активные задачи нельзя удалить через эту операцию
+                      </div>
+                    </div>
+                  )}
+                  {alreadyDone > 0 && (
+                    <div style={{ color: '#6B7280', fontSize: 11 }}>
+                      Не затронуто: {alreadyDone} (завершено или ранее отменено)
+                    </div>
+                  )}
+                  {willDelete === 0 && willPreserve === 0 && alreadyDone === 0 && (
+                    <div style={{ color: '#6B7280' }}>Нет задач в выбранном диапазоне</div>
+                  )}
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* Кнопки */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setShowCancelSeriesDialog(false)}
+              disabled={actionInProgress}
+              style={{
+                padding: '8px 14px', fontSize: 12, color: '#6B7280',
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
+                cursor: 'pointer',
+              }}
+            >Отмена</button>
+            <button
+              onClick={handleCancelSeries}
+              disabled={actionInProgress || loadingPreview}
+              style={{
+                padding: '8px 14px', fontSize: 12, color: '#fff',
+                background: '#DC2626', border: 'none', borderRadius: 6,
+                cursor: actionInProgress || loadingPreview ? 'wait' : 'pointer',
+                opacity: actionInProgress || loadingPreview ? 0.6 : 1,
+              }}
+            >
+              {actionInProgress ? 'Удаление…' : 'Отменить серию'}
+            </button>
+          </div>
         </div>
       )}
 
