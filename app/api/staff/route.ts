@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
       // Employment
       department_id?: string
       position?: string
+      position_id?: string
       hire_date?: string
       employment_type?: string
       work_schedule?: string
@@ -148,8 +149,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
     if (!body.department_id)
       return NextResponse.json({ error: 'Отдел обязателен' }, { status: 400 })
-    if (!body.position?.trim())
-      return NextResponse.json({ error: 'Должность обязательна' }, { status: 400 })
+    if (!body.position_id && !body.position?.trim())
+      return NextResponse.json({ error: 'position или position_id обязательны' }, { status: 400 })
     if (!body.hire_date)
       return NextResponse.json({ error: 'Дата приёма обязательна' }, { status: 400 })
 
@@ -229,12 +230,27 @@ export async function POST(request: NextRequest) {
 
     const profileId = profile?.id ?? null
 
+    // ── Resolve position ────────────────────────────────────────────────────
+    let positionName = body.position?.trim() || null
+    let resolvedPositionId: string | null = body.position_id ?? null
+
+    if (resolvedPositionId) {
+      const { data: refPos } = await sb
+        .from('reference_positions')
+        .select('name_ru')
+        .eq('id', resolvedPositionId)
+        .maybeSingle()
+      if (!refPos) return NextResponse.json({ error: 'Должность не найдена' }, { status: 400 })
+      positionName = refPos.name_ru
+    }
+
     // ── Staff position ──────────────────────────────────────────────────────
     const { error: posErr } = await sb.from('staff_positions').insert({
       person_id: personId,
       department_id: body.department_id,
-      position_ru: body.position!.trim(),
+      position_ru: positionName!,
       position_he: null,
+      position_id: resolvedPositionId,
       is_head: false,
       start_date: body.hire_date,
       end_date: null,
@@ -264,7 +280,7 @@ export async function POST(request: NextRequest) {
       profile_id: profileId,
       person_id: personId,
       full_name: personName,
-      position: body.position!.trim(),
+      position: positionName,
       department: dept?.name ?? null,
     }, { status: 201 })
   } catch (err: unknown) {

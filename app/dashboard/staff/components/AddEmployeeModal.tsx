@@ -11,6 +11,13 @@ interface Department {
   parent_id: string | null
 }
 
+interface PositionOption {
+  id: string
+  name_ru: string
+  category: string
+  is_teaching: boolean
+}
+
 interface PersonResult { id: string; full_name: string; email: string | null }
 
 const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Должность и отдел', 'Документы и образование', 'Трудовой договор', 'Дополнительно']
@@ -113,7 +120,8 @@ export default function AddEmployeeModal({
   // Tab 2 — Должность и отдел
   const [departments, setDepartments] = useState<DeptOption[]>([])
   const [departmentId, setDepartmentId] = useState(defaultDepartmentId ?? '')
-  const [position, setPosition] = useState('')
+  const [positionId, setPositionId] = useState<string | null>(null)
+  const [positions, setPositions] = useState<PositionOption[]>([])
   const [hireDate, setHireDate] = useState<Date | null>(null)
   const [employmentType, setEmploymentType] = useState('staff')
   const [workSchedule, setWorkSchedule] = useState('')
@@ -146,6 +154,10 @@ export default function AddEmployeeModal({
     fetch('/api/settings/departments')
       .then(r => r.ok ? r.json() : [])
       .then((d: Department[]) => setDepartments(flattenTree(d)))
+    fetch('/api/settings/positions?active_only=true')
+      .then(r => r.ok ? r.json() : { positions: [] })
+      .then((d: { positions?: PositionOption[] }) => setPositions(d.positions ?? []))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -203,7 +215,7 @@ export default function AddEmployeeModal({
     }
     if (tabIdx === 2) {
       if (!departmentId) { setError('Выберите отдел'); return }
-      if (!position.trim()) { setError('Должность обязательна'); return }
+      if (!positionId) { setError('Выберите должность'); return }
       if (!hireDate) { setError('Дата приёма обязательна'); return }
     }
     setTabIdx(t => Math.min(t + 1, 5))
@@ -214,14 +226,14 @@ export default function AddEmployeeModal({
   async function handleSave() {
     setError('')
     if (!departmentId) { setError('Выберите отдел'); setTabIdx(2); return }
-    if (!position.trim()) { setError('Должность обязательна'); setTabIdx(2); return }
+    if (!positionId) { setError('Выберите должность'); setTabIdx(2); return }
     if (!hireDate) { setError('Дата приёма обязательна'); setTabIdx(2); return }
 
     setSaving(true)
     try {
       const body: Record<string, unknown> = {
         department_id: departmentId,
-        position: position.trim(),
+        position_id: positionId,
         hire_date: hireDate ? hireDate.toISOString().split('T')[0] : '',
         employment_type: employmentType,
       }
@@ -498,7 +510,30 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Должность *</label>
-              <input value={position} onChange={e => setPosition(e.target.value)} placeholder="Менеджер, бухгалтер..." style={inp} />
+              <select value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
+                <option value="">— выберите должность —</option>
+                {positions.filter(p => p.category === 'academic').length > 0 && (
+                  <optgroup label="Преподавательские">
+                    {positions.filter(p => p.category === 'academic').map(p => (
+                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {positions.filter(p => p.category === 'administrative').length > 0 && (
+                  <optgroup label="Управленческие">
+                    {positions.filter(p => p.category === 'administrative').map(p => (
+                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {positions.filter(p => p.category === 'support').length > 0 && (
+                  <optgroup label="Вспомогательные">
+                    {positions.filter(p => p.category === 'support').map(p => (
+                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
             </div>
             <div>
               <label style={lbl}>Дата приёма на работу *</label>

@@ -318,6 +318,7 @@ export interface StaffPositionRow {
   department_id: string
   position_ru: string
   position_he: string | null
+  position_id: string | null
   is_head: boolean
   start_date: string | null
   end_date: string | null

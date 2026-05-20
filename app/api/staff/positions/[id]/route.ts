@@ -12,10 +12,33 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     await guard()
     const sb = createServerClient()
-    const body = await request.json() as { position_ru?: string; employment_type?: string; is_head?: boolean; end_date?: string | null }
+    const body = await request.json() as {
+      position_ru?: string
+      position_id?: string | null
+      employment_type?: string
+      is_head?: boolean
+      end_date?: string | null
+    }
 
     const update: Record<string, unknown> = {}
-    if (body.position_ru !== undefined) update.position_ru = body.position_ru
+
+    if (body.position_id !== undefined) {
+      if (body.position_id) {
+        const { data: refPos } = await sb
+          .from('reference_positions')
+          .select('name_ru')
+          .eq('id', body.position_id)
+          .maybeSingle()
+        if (!refPos) return NextResponse.json({ error: 'Должность не найдена' }, { status: 400 })
+        update.position_id = body.position_id
+        update.position_ru = refPos.name_ru
+      } else {
+        update.position_id = null
+      }
+    } else if (body.position_ru !== undefined) {
+      update.position_ru = body.position_ru
+    }
+
     if (body.employment_type !== undefined) update.employment_type = body.employment_type
     if (body.is_head !== undefined) update.is_head = body.is_head
     if (body.end_date !== undefined) update.end_date = body.end_date
