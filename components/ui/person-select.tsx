@@ -9,6 +9,12 @@ interface Person {
   email?: string | null
 }
 
+interface EnrollOption {
+  label: string
+  departmentId: string
+  defaultChecked?: boolean
+}
+
 interface PersonSelectProps {
   value: string | null
   onChange: (personId: string | null, personData?: Person) => void
@@ -18,6 +24,9 @@ interface PersonSelectProps {
   required?: boolean
   disabled?: boolean
   accentColor?: string
+  roleFilter?: 'teacher'
+  allowShowAll?: boolean
+  enrollOption?: EnrollOption
 }
 
 const personCache = new Map<string, Person>()
@@ -31,6 +40,9 @@ export function PersonSelect({
   required = false,
   disabled,
   accentColor = '#3B82F6',
+  roleFilter,
+  allowShowAll = false,
+  enrollOption,
 }: PersonSelectProps) {
   const [search, setSearch] = useState('')
   const [people, setPeople] = useState<Person[]>([])
@@ -43,6 +55,8 @@ export function PersonSelect({
   const [newEmail, setNewEmail] = useState('')
   const [adding, setAdding] = useState(false)
   const [errMsg, setErrMsg] = useState('')
+  const [showAll, setShowAll] = useState(false)
+  const [enrollChecked, setEnrollChecked] = useState(enrollOption?.defaultChecked ?? false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -60,13 +74,13 @@ export function PersonSelect({
       .catch(() => {/* ignore */})
   }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch on open or search change
+  // Fetch on open, search change, or showAll toggle
   useEffect(() => {
     if (!isOpen) return
     if (debounce.current) clearTimeout(debounce.current)
     debounce.current = setTimeout(() => fetchPeople(search), search ? 250 : 0)
     return () => { if (debounce.current) clearTimeout(debounce.current) }
-  }, [search, isOpen])
+  }, [search, isOpen, showAll]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close on outside click
   useEffect(() => {
@@ -81,11 +95,14 @@ export function PersonSelect({
     return () => document.removeEventListener('mousedown', onOut)
   }, [])
 
-  async function fetchPeople(q: string) {
+  async function fetchPeople(q: string, all?: boolean) {
     setLoading(true)
     setErrMsg('')
     try {
-      const url = q.length >= 2 ? `/api/persons?search=${encodeURIComponent(q)}` : '/api/persons'
+      const params = new URLSearchParams()
+      if (q.length >= 2) params.set('search', q)
+      if (roleFilter && !(all ?? showAll)) params.set('role', roleFilter)
+      const url = `/api/persons${params.size > 0 ? '?' + params.toString() : ''}`
       const res = await fetch(url)
       if (res.ok) {
         const data: { people: Person[] } = await res.json()
@@ -124,13 +141,19 @@ export function PersonSelect({
     setAdding(true)
     setErrMsg('')
     try {
+      const payload: Record<string, unknown> = { full_name: newName, phone: newPhone, email: newEmail }
+      if (enrollOption && enrollChecked) {
+        payload.enroll_as_teacher = true
+        payload.department_id = enrollOption.departmentId
+      }
       const res = await fetch('/api/persons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: newName, phone: newPhone, email: newEmail }),
+        body: JSON.stringify(payload),
       })
       if (res.ok) {
-        const created: Person = await res.json()
+        const created: Person & { warning?: string } = await res.json()
+        if (created.warning) setErrMsg(created.warning)
         selectPerson(created)
         setNewName(''); setNewPhone(''); setNewEmail('')
       } else {
@@ -216,8 +239,11 @@ export function PersonSelect({
               </div>
               {errMsg && (
                 <div style={{
-                  padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#B91C1C',
-                  background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 5,
+                  padding: '6px 10px', marginBottom: 8, fontSize: 11,
+                  color: errMsg.startsWith('Человек создан') ? '#92400E' : '#B91C1C',
+                  background: errMsg.startsWith('Человек создан') ? '#FFFBEB' : '#FEF2F2',
+                  border: `1px solid ${errMsg.startsWith('Человек создан') ? '#FDE68A' : '#FCA5A5'}`,
+                  borderRadius: 5,
                 }}>{errMsg}</div>
               )}
               <input
@@ -239,8 +265,19 @@ export function PersonSelect({
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder="Email (необяз.)"
                 type="email"
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 10, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
+              {enrollOption && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={enrollChecked}
+                    onChange={e => setEnrollChecked(e.target.checked)}
+                    style={{ width: 14, height: 14, accentColor }}
+                  />
+                  <span style={{ fontSize: 12, color: '#374151' }}>{enrollOption.label}</span>
+                </label>
+              )}
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
                   type="button"
@@ -270,7 +307,7 @@ export function PersonSelect({
                   <div style={{ padding: '10px 12px', fontSize: 12, color: '#EF4444' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>
-                    {search.length >= 2 ? 'Ничего не найдено' : 'Нет сохранённых людей'}
+                    {search.length >= 2 ? 'Ничего не найдено' : (roleFilter && !showAll ? 'Нет преподавателей' : 'Нет сохранённых людей')}
                   </div>
                 ) : (
                   people.map(p => (
@@ -298,6 +335,20 @@ export function PersonSelect({
                   ))
                 )}
               </div>
+              {allowShowAll && roleFilter && (
+                <label style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
+                  borderTop: '1px solid #F3F4F6', cursor: 'pointer', userSelect: 'none',
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={showAll}
+                    onChange={e => setShowAll(e.target.checked)}
+                    style={{ width: 13, height: 13, accentColor: '#6B7280' }}
+                  />
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>Показать всех</span>
+                </label>
+              )}
               <button
                 type="button"
                 onClick={() => { setShowAdd(true); setNewName(search); setErrMsg('') }}

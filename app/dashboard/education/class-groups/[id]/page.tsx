@@ -193,6 +193,7 @@ export default function ClassGroupCardPage() {
       {/* Преподаватели */}
       <ClassGroupTeachers
         groupId={group.id}
+        departmentId={group.department?.id ?? null}
         teachers={group.teachers}
         onChange={load}
         accentColor={accent}

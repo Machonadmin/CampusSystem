@@ -11,12 +11,13 @@ interface Teacher {
 
 interface Props {
   groupId: string
+  departmentId?: string | null
   teachers: Teacher[]
   onChange: () => void
   accentColor: string
 }
 
-export default function ClassGroupTeachers({ groupId, teachers, onChange, accentColor }: Props) {
+export default function ClassGroupTeachers({ groupId, departmentId, teachers, onChange, accentColor }: Props) {
   const [adding, setAdding] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -112,6 +113,15 @@ export default function ClassGroupTeachers({ groupId, teachers, onChange, accent
               onChange={id => setSelectedId(id)}
               placeholder="Выберите или создайте преподавателя…"
               accentColor={accentColor}
+              roleFilter="teacher"
+              allowShowAll
+              {...(departmentId ? {
+                enrollOption: {
+                  label: 'Оформить как преподавателя',
+                  departmentId,
+                  defaultChecked: true,
+                },
+              } : {})}
             />
           </div>
           {actionError && (
