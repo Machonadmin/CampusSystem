@@ -116,7 +116,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as {
       // Existing person
       person_id?: string
-      // New person fields
+      // New person fields (split format, preferred)
+      last_name?: string | null
+      first_name?: string
+      middle_name?: string | null
+      // Legacy single-string format (fallback → first_name)
       full_name?: string
       hebrew_name?: string
       gender?: string
@@ -143,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Validation ──────────────────────────────────────────────────────────
-    if (!body.person_id && !body.full_name?.trim())
+    if (!body.person_id && !body.first_name?.trim() && !body.full_name?.trim())
       return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
     if (!body.person_id && !body.phone?.trim() && !(body.phones?.some(p => p.trim())))
       return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
@@ -171,10 +175,16 @@ export async function POST(request: NextRequest) {
       const allPhones = (body.phones?.filter(p => p.trim()) ?? [])
       if (allPhones.length === 0 && body.phone?.trim()) allPhones.push(body.phone.trim())
 
+      const newFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
+      const newLastName  = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
+      const newMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
+
       const { data: newPerson, error: personErr } = await sb
         .from('persons')
         .insert({
-          full_name: body.full_name!.trim(),
+          last_name: newLastName,
+          first_name: newFirstName,
+          middle_name: newMiddleName,
           hebrew_name: body.hebrew_name?.trim() || null,
           gender: (body.gender as 'male' | 'female' | 'other') || null,
           birth_date: body.birth_date || null,

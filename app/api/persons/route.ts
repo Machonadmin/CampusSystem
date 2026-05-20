@@ -78,6 +78,11 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
 
     const body = await request.json() as {
+      // Новый формат
+      last_name?: string | null
+      first_name?: string
+      middle_name?: string | null
+      // Легаси-формат (PersonSelect создаёт через full_name)
       full_name?: string
       email?: string
       phone?: string
@@ -85,11 +90,14 @@ export async function POST(request: NextRequest) {
       department_id?: string
       position_id?: string
     }
-    const { full_name, email, phone, enroll_as_teacher, department_id, position_id: positionIdParam } = body
+    const { email, phone, enroll_as_teacher, department_id, position_id: positionIdParam } = body
 
-    if (!full_name?.trim()) {
+    const firstName = body.first_name?.trim() || body.full_name?.trim() || ''
+    if (!firstName) {
       return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
     }
+    const lastName  = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
+    const middleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
     if (enroll_as_teacher && !department_id) {
       return NextResponse.json({ error: 'Для оформления укажите подразделение' }, { status: 400 })
     }
@@ -100,7 +108,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await sb
       .from('persons')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert({ full_name: full_name.trim(), email: email?.trim() || null, phones } as any)
+      .insert({ last_name: lastName, first_name: firstName, middle_name: middleName, email: email?.trim() || null, phones } as any)
       .select('id, full_name, email')
       .single()
 

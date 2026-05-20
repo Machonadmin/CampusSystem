@@ -77,7 +77,10 @@ export type PrivilegeModule =
 
 export interface PersonRow {
   id: string
-  full_name: string
+  last_name: string | null
+  first_name: string
+  middle_name: string | null
+  full_name: string         // GENERATED ALWAYS — read-only, не записывать
   hebrew_name: string | null
   gender: Gender | null
   birth_date: string | null
@@ -399,7 +402,7 @@ export interface PersonPrivilegeRow {
 // ─── Insert types (omit server-generated fields) ─────────────────────────────
 
 export type PersonInsert =
-  Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
+  Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'full_name' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
   & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
 export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at'>
 export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>

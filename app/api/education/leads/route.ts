@@ -106,7 +106,10 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
     const body = await request.json() as {
       person_id?: string
-      full_name?: string
+      last_name?: string | null
+      first_name?: string
+      middle_name?: string | null
+      full_name?: string   // legacy fallback → first_name
       phone?: string
       phones?: string[]
       email?: string
@@ -136,7 +139,10 @@ export async function POST(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sb.from('persons').update({ education_status: 'lead' } as any).eq('id', personId)
     } else {
-      if (!body.full_name?.trim()) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
+      const leadFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
+      if (!leadFirstName) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
+      const leadLastName   = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
+      const leadMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
       if (!body.phone?.trim()) return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
 
       const phones = body.phones && body.phones.length > 0
@@ -147,7 +153,9 @@ export async function POST(request: NextRequest) {
         .from('persons')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .insert({
-          full_name: body.full_name.trim(),
+          last_name: leadLastName,
+          first_name: leadFirstName,
+          middle_name: leadMiddleName,
           hebrew_name: body.hebrew_name?.trim() || null,
           phones,
           email: body.email?.trim() || null,

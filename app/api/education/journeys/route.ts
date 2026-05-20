@@ -151,7 +151,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as {
       person_id?: string
       new_person?: {
-        full_name?: string
+        last_name?: string | null
+        first_name?: string
+        middle_name?: string | null
+        full_name?: string   // legacy fallback → first_name
         hebrew_name?: string
         gender?: string
         birth_date?: string
@@ -231,14 +234,18 @@ export async function POST(request: NextRequest) {
       personId = body.person_id
     } else {
       const np = body.new_person!
-      const fullName = np.full_name?.trim()
-      if (!fullName) return NextResponse.json({ error: 'new_person.full_name обязателен' }, { status: 400 })
+      const npFirstName = np.first_name?.trim() || np.full_name?.trim() || ''
+      if (!npFirstName) return NextResponse.json({ error: 'new_person: укажите имя' }, { status: 400 })
+      const npLastName   = np.first_name?.trim() ? (np.last_name?.trim() || null) : null
+      const npMiddleName = np.first_name?.trim() ? (np.middle_name?.trim() || null) : null
 
       const { data: newP, error: createErr } = await sb
         .from('persons')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .insert({
-          full_name: fullName,
+          last_name: npLastName,
+          first_name: npFirstName,
+          middle_name: npMiddleName,
           hebrew_name: np.hebrew_name?.trim() || null,
           gender: np.gender || null,
           birth_date: np.birth_date || null,

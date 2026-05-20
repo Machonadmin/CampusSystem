@@ -55,7 +55,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const body = await request.json() as {
       person_id?: string
-      full_name?: string
+      last_name?: string | null
+      first_name?: string
+      middle_name?: string | null
+      full_name?: string   // legacy fallback → first_name
       email?: string
       position_ru: string
       employment_type: string
@@ -67,12 +70,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     let person_id = body.person_id
 
     if (!person_id) {
-      if (!body.full_name) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
+      const deptFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
+      if (!deptFirstName) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
+      const deptLastName   = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
+      const deptMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
       const { data: person, error: ep } = await sb.from('persons').insert({
-        full_name: body.full_name,
+        last_name: deptLastName,
+        first_name: deptFirstName,
+        middle_name: deptMiddleName,
         hebrew_name: null, gender: null, birth_date: null,
         photo_url: null, email: body.email ?? null, phones: [], address: {}, notes: null,
-      }).select('id').single()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any).select('id').single()
       if (ep) throw ep
       person_id = person.id
     }
