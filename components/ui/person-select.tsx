@@ -50,7 +50,9 @@ export function PersonSelect({
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<Person | null>(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [newName, setNewName] = useState('')
+  const [newLastName, setNewLastName] = useState('')
+  const [newFirstName, setNewFirstName] = useState('')
+  const [newMiddleName, setNewMiddleName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [adding, setAdding] = useState(false)
@@ -137,11 +139,17 @@ export function PersonSelect({
   }
 
   async function handleAdd() {
-    if (!newName.trim()) return
+    if (!newLastName.trim() || !newFirstName.trim()) return
     setAdding(true)
     setErrMsg('')
     try {
-      const payload: Record<string, unknown> = { full_name: newName, phone: newPhone, email: newEmail }
+      const payload: Record<string, unknown> = {
+        last_name: newLastName.trim(),
+        first_name: newFirstName.trim(),
+        middle_name: newMiddleName.trim() || null,
+        phone: newPhone,
+        email: newEmail,
+      }
       if (enrollOption && enrollChecked) {
         payload.enroll_as_teacher = true
         payload.department_id = enrollOption.departmentId
@@ -155,7 +163,8 @@ export function PersonSelect({
         const created: Person & { warning?: string } = await res.json()
         if (created.warning) setErrMsg(created.warning)
         selectPerson(created)
-        setNewName(''); setNewPhone(''); setNewEmail('')
+        setNewLastName(''); setNewFirstName(''); setNewMiddleName('')
+        setNewPhone(''); setNewEmail('')
       } else {
         const e = await res.json()
         setErrMsg(e.error ?? 'Ошибка')
@@ -248,10 +257,23 @@ export function PersonSelect({
               )}
               <input
                 autoFocus
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                placeholder="ФИО *"
+                value={newLastName}
+                onChange={e => setNewLastName(e.target.value)}
+                placeholder="Фамилия *"
+                onKeyDown={e => { if (e.key === 'Escape') setShowAdd(false) }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+              />
+              <input
+                value={newFirstName}
+                onChange={e => setNewFirstName(e.target.value)}
+                placeholder="Имя *"
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowAdd(false) }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+              />
+              <input
+                value={newMiddleName}
+                onChange={e => setNewMiddleName(e.target.value)}
+                placeholder="Отчество (необяз.)"
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
@@ -282,13 +304,13 @@ export function PersonSelect({
                 <button
                   type="button"
                   onClick={handleAdd}
-                  disabled={!newName.trim() || adding}
+                  disabled={!newLastName.trim() || !newFirstName.trim() || adding}
                   style={{
                     flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
-                    background: newName.trim() && !adding ? accentColor : '#E5E7EB',
-                    color: newName.trim() && !adding ? '#fff' : '#9CA3AF',
+                    background: newLastName.trim() && newFirstName.trim() && !adding ? accentColor : '#E5E7EB',
+                    color: newLastName.trim() && newFirstName.trim() && !adding ? '#fff' : '#9CA3AF',
                     border: 'none', borderRadius: 5,
-                    cursor: newName.trim() && !adding ? 'pointer' : 'not-allowed',
+                    cursor: newLastName.trim() && newFirstName.trim() && !adding ? 'pointer' : 'not-allowed',
                   }}
                 >{adding ? 'Сохранение...' : 'Создать'}</button>
                 <button
@@ -351,7 +373,7 @@ export function PersonSelect({
               )}
               <button
                 type="button"
-                onClick={() => { setShowAdd(true); setNewName(search); setErrMsg('') }}
+                onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left',
                   padding: '9px 12px', fontSize: 12, fontWeight: 600,

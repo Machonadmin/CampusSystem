@@ -99,7 +99,9 @@ export default function AddEmployeeModal({
 
   // Tab 0 — Личные данные
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [fullName, setFullName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [middleName, setMiddleName] = useState('')
   const [hebrewName, setHebrewName] = useState('')
   const [gender, setGender] = useState('')
   const [birthDate, setBirthDate] = useState<Date | null>(null)
@@ -173,7 +175,8 @@ export default function AddEmployeeModal({
   }, [query])
 
   function resetFields() {
-    setFullName(''); setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
+    setLastName(''); setFirstName(''); setMiddleName('')
+    setHebrewName(''); setGender(''); setBirthDate(null); setMaritalStatus(''); setCitizenship('Россия'); setPhotoPreview(null)
     setPhones(['']); setEmail(''); setCountry('Россия'); setCity(''); setStreet(''); setHouse(''); setApartment(''); setPostalCode('')
     setExtraContacts([])
   }
@@ -184,7 +187,9 @@ export default function AddEmployeeModal({
       const res = await fetch(`/api/settings/persons/${id}`)
       if (!res.ok) return
       const d = await res.json()
-      setFullName(d.full_name ?? '')
+      setLastName(d.last_name ?? '')
+      setFirstName(d.first_name ?? '')
+      setMiddleName(d.middle_name ?? '')
       setHebrewName(d.hebrew_name ?? '')
       setGender(d.gender ?? '')
       setBirthDate(d.birth_date ? new Date(d.birth_date) : null)
@@ -210,7 +215,8 @@ export default function AddEmployeeModal({
   function goNext() {
     setError('')
     if (view === 'new') {
-      if (tabIdx === 0 && !fullName.trim()) { setError('ФИО обязательно'); return }
+      if (tabIdx === 0 && !lastName.trim()) { setError('Фамилия обязательна'); return }
+      if (tabIdx === 0 && !firstName.trim()) { setError('Имя обязательно'); return }
       if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
     }
     if (tabIdx === 2) {
@@ -241,10 +247,13 @@ export default function AddEmployeeModal({
       if (view === 'existing' && selected) {
         body.person_id = selected.id
       } else {
-        if (!fullName.trim()) { setError('ФИО обязательно'); setSaving(false); setTabIdx(0); return }
+        if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
+        if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
         const validPhones = phones.filter(p => p.trim())
         if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
-        body.full_name = fullName.trim()
+        body.last_name = lastName.trim()
+        body.first_name = firstName.trim()
+        body.middle_name = middleName.trim() || null
         body.phone = validPhones[0]
         if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
@@ -377,9 +386,19 @@ export default function AddEmployeeModal({
                 )}
               </div>
             </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>ФИО *</label>
-              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Иванов Иван Иванович" disabled={ro} style={{ ...inp, ...dis }} />
+            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={lbl}>Фамилия *</label>
+                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Иванов" disabled={ro} style={{ ...inp, ...dis }} />
+              </div>
+              <div>
+                <label style={lbl}>Имя *</label>
+                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Иван" disabled={ro} style={{ ...inp, ...dis }} />
+              </div>
+              <div>
+                <label style={lbl}>Отчество</label>
+                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder="Иванович" disabled={ro} style={{ ...inp, ...dis }} />
+              </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Еврейское имя</label>
