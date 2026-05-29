@@ -799,162 +799,139 @@ export interface ClassTeacherInsert {
 
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
-export type ProcessInstanceStatus = 'active' | 'completed' | 'cancelled'
-export type StageInstanceStatus   = 'active' | 'completed' | 'skipped'
-
 export interface ProcessTemplateRow {
   id:          string
-  name:        string
+  code:        string
+  name_ru:     string
   description: string | null
-  module:      string | null
   is_active:   boolean
   created_at:  string
   updated_at:  string
 }
-export interface ProcessTemplateInsert {
-  id?:          string
-  name:         string
-  description?: string | null
-  module?:      string | null
-  is_active?:   boolean
+export type ProcessTemplateInsert = Omit<ProcessTemplateRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+  created_at?: string
+  updated_at?: string
 }
 export type ProcessTemplateUpdate = Partial<ProcessTemplateInsert>
 
 export interface StageTemplateRow {
-  id:                   string
-  process_template_id:  string
-  name:                 string
-  description:          string | null
-  sort_order:           number
-  is_initial:           boolean
-  created_at:           string
-  updated_at:           string
+  id:                  string
+  process_template_id: string
+  code:                string
+  name_ru:             string
+  description:         string | null
+  has_tasks:           boolean
+  has_action_log:      boolean
+  is_optional:         boolean
+  is_addable:          boolean
+  sort_order:          number
+  created_at:          string
 }
-export interface StageTemplateInsert {
-  id?:                   string
-  process_template_id:   string
-  name:                  string
-  description?:          string | null
-  sort_order?:           number
-  is_initial?:           boolean
+export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at'> & {
+  id?: string
+  created_at?: string
 }
 export type StageTemplateUpdate = Partial<StageTemplateInsert>
 
 export interface StageTaskTemplateRow {
-  id:                 string
-  stage_template_id:  string
-  title:              string
-  description:        string | null
-  assignee_type:      string | null
-  department_id:      string | null
-  priority:           string
-  due_days:           number | null
-  sort_order:         number
-  created_at:         string
+  id:                    string
+  stage_template_id:     string
+  code:                  string
+  title:                 string
+  description:           string | null
+  default_assignee_type: 'role' | 'department' | 'creator' | 'manual' | null
+  default_role_code:     string | null
+  default_priority:      'low' | 'normal' | 'high' | 'urgent'
+  default_due_days:      number | null
+  sort_order:            number
+  created_at:            string
 }
-export interface StageTaskTemplateInsert {
-  id?:                 string
-  stage_template_id:   string
-  title:               string
-  description?:        string | null
-  assignee_type?:      string | null
-  department_id?:      string | null
-  priority?:           string
-  due_days?:           number | null
-  sort_order?:         number
+export type StageTaskTemplateInsert = Omit<StageTaskTemplateRow, 'id' | 'created_at'> & {
+  id?: string
+  created_at?: string
 }
 export type StageTaskTemplateUpdate = Partial<StageTaskTemplateInsert>
 
 export interface StageFinalRow {
-  id:                 string
-  stage_template_id:  string
-  name:               string
-  code:               string
-  sort_order:         number
-  created_at:         string
+  id:                string
+  stage_template_id: string
+  code:              string
+  name_ru:           string
+  is_positive:       boolean
+  sort_order:        number
 }
-export interface StageFinalInsert {
-  id?:                 string
-  stage_template_id:   string
-  name:                string
-  code:                string
-  sort_order?:         number
-}
+export type StageFinalInsert = Omit<StageFinalRow, 'id'> & { id?: string }
 export type StageFinalUpdate = Partial<StageFinalInsert>
 
 export interface StageTransitionRow {
-  id:             string
-  from_stage_id:  string
-  final_id:       string
-  to_stage_id:    string | null   // null = process ends
-  created_at:     string
+  id:                    string
+  from_stage_template_id: string | null
+  to_stage_template_id:  string
+  trigger_final_code:    string | null
+  activation_mode:       'after_one' | 'after_all'
+  sort_order:            number
 }
-export interface StageTransitionInsert {
-  id?:             string
-  from_stage_id:   string
-  final_id:        string
-  to_stage_id?:    string | null
-}
+export type StageTransitionInsert = Omit<StageTransitionRow, 'id'> & { id?: string }
 export type StageTransitionUpdate = Partial<StageTransitionInsert>
 
+export type ProcessInstanceStatus = 'active' | 'completed' | 'cancelled'
+
 export interface ProcessInstanceRow {
-  id:                   string
-  process_template_id:  string
-  entity_type:          string
-  entity_id:            string
-  status:               ProcessInstanceStatus
-  started_by:           string | null
-  started_at:           string
-  completed_at:         string | null
-  created_at:           string
+  id:                  string
+  process_template_id: string
+  journey_id:          string
+  status:              ProcessInstanceStatus
+  collected_data:      Record<string, unknown>
+  started_at:          string
+  finished_at:         string | null
+  finish_reason:       string | null
+  created_by:          string | null
+  created_at:          string
+  updated_at:          string
 }
-export interface ProcessInstanceInsert {
-  id?:                   string
-  process_template_id:   string
-  entity_type:           string
-  entity_id:             string
-  status?:               ProcessInstanceStatus
-  started_by?:           string | null
-  completed_at?:         string | null
+export type ProcessInstanceInsert = Omit<ProcessInstanceRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+  created_at?: string
+  updated_at?: string
 }
 export type ProcessInstanceUpdate = Partial<ProcessInstanceInsert>
 
+export type StageInstanceStatus = 'waiting' | 'active' | 'completed' | 'skipped' | 'cancelled'
+
 export interface StageInstanceRow {
-  id:                   string
-  process_instance_id:  string
-  stage_template_id:    string
-  status:               StageInstanceStatus
-  final_id:             string | null
-  started_at:           string
-  completed_at:         string | null
-  completed_by:         string | null
-  created_at:           string
+  id:                  string
+  process_instance_id: string
+  stage_template_id:   string
+  status:              StageInstanceStatus
+  final_code:          string | null
+  result_data:         Record<string, unknown> | null
+  activated_at:        string | null
+  completed_at:        string | null
+  completed_by:        string | null
+  notes:               string | null
+  created_at:          string
+  updated_at:          string
 }
-export interface StageInstanceInsert {
-  id?:                   string
-  process_instance_id:   string
-  stage_template_id:     string
-  status?:               StageInstanceStatus
-  final_id?:             string | null
-  completed_at?:         string | null
-  completed_by?:         string | null
+export type StageInstanceInsert = Omit<StageInstanceRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+  created_at?: string
+  updated_at?: string
 }
 export type StageInstanceUpdate = Partial<StageInstanceInsert>
 
 export interface StageActionRow {
-  id:                 string
-  stage_instance_id:  string
-  actor_id:           string | null
-  action_type:        string
-  payload:            Json
-  created_at:         string
+  id:                string
+  stage_instance_id: string
+  action_type:       string
+  content:           string
+  metadata:          Record<string, unknown> | null
+  created_by:        string | null
+  created_at:        string
 }
-export interface StageActionInsert {
-  id?:                 string
-  stage_instance_id:   string
-  actor_id?:           string | null
-  action_type:         string
-  payload?:            Json
+export type StageActionInsert = Omit<StageActionRow, 'id' | 'created_at'> & {
+  id?: string
+  created_at?: string
 }
 export type StageActionUpdate = Partial<StageActionInsert>
 
