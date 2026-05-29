@@ -1,0 +1,86 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/session'
+
+async function requireAuth() {
+  const session = await getSession()
+  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  return session
+}
+
+async function requireSuperadmin() {
+  const session = await getSession()
+  if (!session?.roles.includes('superadmin'))
+    throw Object.assign(new Error('Доступ запрещён'), { status: 403 })
+  return session
+}
+
+// POST /api/workflow/stage-task-templates
+export async function POST(request: NextRequest) {
+  try {
+    await requireSuperadmin()
+    const sb = createServerClient()
+    const body = await request.json() as {
+      stage_template_id?: string
+      code?: string
+      title?: string
+      description?: string
+      default_assignee_type?: string
+      default_role_code?: string
+      default_priority?: string
+      default_due_days?: number
+      sort_order?: number
+    }
+
+    if (!body.stage_template_id)
+      return NextResponse.json({ error: 'stage_template_id обязателен' }, { status: 400 })
+    if (!body.code?.trim())
+      return NextResponse.json({ error: 'code обязателен' }, { status: 400 })
+    if (!body.title?.trim())
+      return NextResponse.json({ error: 'title обязателен' }, { status: 400 })
+
+    const { data: parent, error: pErr } = await sb
+      .from('stage_templates')
+      .select('id')
+      .eq('id', body.stage_template_id)
+      .maybeSingle()
+    if (pErr) throw pErr
+    if (!parent) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
+
+    const VALID_ASSIGNEE = ['role', 'department', 'creator', 'manual']
+    const VALID_PRIORITY  = ['low', 'normal', 'high', 'urgent']
+
+    if (body.default_assignee_type && !VALID_ASSIGNEE.includes(body.default_assignee_type))
+      return NextResponse.json({ error: 'Недопустимое значение default_assignee_type' }, { status: 400 })
+    if (body.default_priority && !VALID_PRIORITY.includes(body.default_priority))
+      return NextResponse.json({ error: 'Недопустимое значение default_priority' }, { status: 400 })
+
+    const { data, error } = await sb
+      .from('stage_task_templates')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert({
+        stage_template_id:     body.stage_template_id,
+        code:                  body.code.trim(),
+        title:                 body.title.trim(),
+        description:           body.description?.trim() || null,
+        default_assignee_type: body.default_assignee_type || null,
+        default_role_code:     body.default_role_code?.trim() || null,
+        default_priority:      body.default_priority ?? 'normal',
+        default_due_days:      body.default_due_days ?? null,
+        sort_order:            body.sort_order ?? 0,
+      } as any)
+      .select('*')
+      .single()
+
+    if (error) {
+      if (error.code === '23505')
+        return NextResponse.json({ error: 'Задача с таким кодом уже существует в этом подэтапе' }, { status: 409 })
+      throw error
+    }
+
+    return NextResponse.json(data, { status: 201 })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+  }
+}
