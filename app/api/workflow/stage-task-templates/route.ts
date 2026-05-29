@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       description?: string
       default_assignee_type?: string
       default_role_code?: string
+      default_position_id?: string
       default_priority?: string
       default_due_days?: number
       sort_order?: number
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (pErr) throw pErr
     if (!parent) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
 
-    const VALID_ASSIGNEE = ['role', 'department', 'creator', 'manual']
+    const VALID_ASSIGNEE = ['role', 'department', 'position', 'creator', 'manual']
     const VALID_PRIORITY  = ['low', 'normal', 'high', 'urgent']
 
     if (body.default_assignee_type && !VALID_ASSIGNEE.includes(body.default_assignee_type))
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
         description:           body.description?.trim() || null,
         default_assignee_type: body.default_assignee_type || null,
         default_role_code:     body.default_role_code?.trim() || null,
+        default_position_id:   body.default_position_id || null,
         default_priority:      body.default_priority ?? 'normal',
         default_due_days:      body.default_due_days ?? null,
         sort_order:            body.sort_order ?? 0,
