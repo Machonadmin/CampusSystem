@@ -567,6 +567,7 @@ export interface TaskRow {
   recurrence_series_id: string | null  // UUID серии, NULL для разовых
   recurrence_rule: Json | null          // см. структуру в миграции
   recurrence_position: number | null    // порядковый номер в серии
+  stage_instance_id: string | null
   created_at: string
   updated_at: string
   completed_at: string | null
@@ -591,6 +592,7 @@ export interface TaskInsert {
   recurrence_series_id?: string | null
   recurrence_rule?: Json | null
   recurrence_position?: number | null
+  stage_instance_id?: string | null
 }
 export type TaskUpdate = Partial<TaskInsert>
 
@@ -795,6 +797,167 @@ export interface ClassTeacherInsert {
   is_primary?: boolean
 }
 
+// ─── Workflow Engine ──────────────────────────────────────────────────────────
+
+export type ProcessInstanceStatus = 'active' | 'completed' | 'cancelled'
+export type StageInstanceStatus   = 'active' | 'completed' | 'skipped'
+
+export interface ProcessTemplateRow {
+  id:          string
+  name:        string
+  description: string | null
+  module:      string | null
+  is_active:   boolean
+  created_at:  string
+  updated_at:  string
+}
+export interface ProcessTemplateInsert {
+  id?:          string
+  name:         string
+  description?: string | null
+  module?:      string | null
+  is_active?:   boolean
+}
+export type ProcessTemplateUpdate = Partial<ProcessTemplateInsert>
+
+export interface StageTemplateRow {
+  id:                   string
+  process_template_id:  string
+  name:                 string
+  description:          string | null
+  sort_order:           number
+  is_initial:           boolean
+  created_at:           string
+  updated_at:           string
+}
+export interface StageTemplateInsert {
+  id?:                   string
+  process_template_id:   string
+  name:                  string
+  description?:          string | null
+  sort_order?:           number
+  is_initial?:           boolean
+}
+export type StageTemplateUpdate = Partial<StageTemplateInsert>
+
+export interface StageTaskTemplateRow {
+  id:                 string
+  stage_template_id:  string
+  title:              string
+  description:        string | null
+  assignee_type:      string | null
+  department_id:      string | null
+  priority:           string
+  due_days:           number | null
+  sort_order:         number
+  created_at:         string
+}
+export interface StageTaskTemplateInsert {
+  id?:                 string
+  stage_template_id:   string
+  title:               string
+  description?:        string | null
+  assignee_type?:      string | null
+  department_id?:      string | null
+  priority?:           string
+  due_days?:           number | null
+  sort_order?:         number
+}
+export type StageTaskTemplateUpdate = Partial<StageTaskTemplateInsert>
+
+export interface StageFinalRow {
+  id:                 string
+  stage_template_id:  string
+  name:               string
+  code:               string
+  sort_order:         number
+  created_at:         string
+}
+export interface StageFinalInsert {
+  id?:                 string
+  stage_template_id:   string
+  name:                string
+  code:                string
+  sort_order?:         number
+}
+export type StageFinalUpdate = Partial<StageFinalInsert>
+
+export interface StageTransitionRow {
+  id:             string
+  from_stage_id:  string
+  final_id:       string
+  to_stage_id:    string | null   // null = process ends
+  created_at:     string
+}
+export interface StageTransitionInsert {
+  id?:             string
+  from_stage_id:   string
+  final_id:        string
+  to_stage_id?:    string | null
+}
+export type StageTransitionUpdate = Partial<StageTransitionInsert>
+
+export interface ProcessInstanceRow {
+  id:                   string
+  process_template_id:  string
+  entity_type:          string
+  entity_id:            string
+  status:               ProcessInstanceStatus
+  started_by:           string | null
+  started_at:           string
+  completed_at:         string | null
+  created_at:           string
+}
+export interface ProcessInstanceInsert {
+  id?:                   string
+  process_template_id:   string
+  entity_type:           string
+  entity_id:             string
+  status?:               ProcessInstanceStatus
+  started_by?:           string | null
+  completed_at?:         string | null
+}
+export type ProcessInstanceUpdate = Partial<ProcessInstanceInsert>
+
+export interface StageInstanceRow {
+  id:                   string
+  process_instance_id:  string
+  stage_template_id:    string
+  status:               StageInstanceStatus
+  final_id:             string | null
+  started_at:           string
+  completed_at:         string | null
+  completed_by:         string | null
+  created_at:           string
+}
+export interface StageInstanceInsert {
+  id?:                   string
+  process_instance_id:   string
+  stage_template_id:     string
+  status?:               StageInstanceStatus
+  final_id?:             string | null
+  completed_at?:         string | null
+  completed_by?:         string | null
+}
+export type StageInstanceUpdate = Partial<StageInstanceInsert>
+
+export interface StageActionRow {
+  id:                 string
+  stage_instance_id:  string
+  actor_id:           string | null
+  action_type:        string
+  payload:            Json
+  created_at:         string
+}
+export interface StageActionInsert {
+  id?:                 string
+  stage_instance_id:   string
+  actor_id?:           string | null
+  action_type:         string
+  payload?:            Json
+}
+export type StageActionUpdate = Partial<StageActionInsert>
+
 // ─── Update types (all fields optional) ──────────────────────────────────────
 
 export type PersonUpdate = Partial<PersonInsert>
@@ -864,6 +1027,14 @@ export interface Database {
       class_groups:              T<ClassGroupRow,                ClassGroupInsert,                ClassGroupUpdate>
       class_enrollments:         T<ClassEnrollmentRow,           ClassEnrollmentInsert,           ClassEnrollmentUpdate>
       class_teachers:            T<ClassTeacherRow,              ClassTeacherInsert,              ClassTeacherInsert>
+      process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
+      stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
+      stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
+      stage_finals:              T<StageFinalRow,                StageFinalInsert,                StageFinalUpdate>
+      stage_transitions:         T<StageTransitionRow,           StageTransitionInsert,           StageTransitionUpdate>
+      process_instances:         T<ProcessInstanceRow,           ProcessInstanceInsert,           ProcessInstanceUpdate>
+      stage_instances:           T<StageInstanceRow,             StageInstanceInsert,             StageInstanceUpdate>
+      stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
     }
     Views: Record<string, never>
     Functions: {
