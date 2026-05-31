@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { startProcess, type StartProcessResult } from '@/lib/workflow/start-process'
 import type {
   EducationJourneyInsert,
   CommunityInsert,
@@ -318,7 +319,19 @@ export async function POST(request: NextRequest) {
       changed_by: session.person_id,
     } as any)
 
-    return NextResponse.json({ person_id: personId, journey_id: journeyId }, { status: 201 })
+    // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание лида
+    let workflowResult: StartProcessResult | null = null
+    let workflowError: string | null = null
+    try {
+      workflowResult = await startProcess(sb, 'recruitment', journeyId, session.person_id)
+    } catch (wfErr: unknown) {
+      workflowError = (wfErr as { message?: string }).message ?? 'Ошибка запуска процесса'
+    }
+
+    return NextResponse.json(
+      { person_id: personId, journey_id: journeyId, workflow: workflowResult, workflow_error: workflowError },
+      { status: 201 }
+    )
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })

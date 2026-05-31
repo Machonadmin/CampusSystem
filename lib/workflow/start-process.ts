@@ -65,8 +65,11 @@ export async function startProcess(
     .select('id, has_tasks, sort_order')
     .eq('process_template_id', template.id)
   if (sErr) throw sErr
-  const stageMap = new Map((stages ?? []).map(s => [s.id, s]))
-  const stageIds = (stages ?? []).map(s => s.id)
+  type StageInfo = { id: string; has_tasks: boolean; sort_order: number }
+  const stageMap = new Map<string, StageInfo>(
+    (stages ?? []).map((s: StageInfo) => [s.id, s])
+  )
+  const stageIds = (stages ?? []).map((s: StageInfo) => s.id)
   if (stageIds.length === 0) throw new Error('У процесса нет этапов')
 
   const { data: initTransitions, error: trErr } = await sb
@@ -77,9 +80,11 @@ export async function startProcess(
   if (trErr) throw trErr
 
   // Уникальные id начальных этапов, упорядоченные по sort_order этапа
-  const initialStageIds = Array.from(
-    new Set((initTransitions ?? []).map(t => t.to_stage_template_id))
-  ).sort((a, b) => (stageMap.get(a)?.sort_order ?? 0) - (stageMap.get(b)?.sort_order ?? 0))
+  const transitionTargets: string[] = (initTransitions ?? []).map(
+    (t: { to_stage_template_id: string }) => t.to_stage_template_id
+  )
+  const initialStageIds: string[] = [...new Set(transitionTargets)]
+    .sort((a, b) => (stageMap.get(a)?.sort_order ?? 0) - (stageMap.get(b)?.sort_order ?? 0))
 
   if (initialStageIds.length === 0) throw new Error('У процесса нет начальных этапов')
 
