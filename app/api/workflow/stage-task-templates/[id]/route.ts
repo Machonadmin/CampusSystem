@@ -29,6 +29,7 @@ export async function PATCH(
       default_assignee_type?: string | null
       default_role_code?: string | null
       default_position_id?: string | null
+      default_department_id?: string | null
       default_priority?: string
       default_due_days?: number | null
       sort_order?: number
@@ -54,6 +55,7 @@ export async function PATCH(
     if (body.default_assignee_type !== undefined) patch.default_assignee_type = body.default_assignee_type
     if (body.default_role_code !== undefined)     patch.default_role_code     = body.default_role_code?.trim() || null
     if (body.default_position_id !== undefined)   patch.default_position_id   = body.default_position_id || null
+    if (body.default_department_id !== undefined) patch.default_department_id = body.default_department_id || null
     if (body.default_priority !== undefined)      patch.default_priority      = body.default_priority
     if (body.default_due_days !== undefined)      patch.default_due_days      = body.default_due_days
     if (body.sort_order !== undefined)            patch.sort_order            = body.sort_order

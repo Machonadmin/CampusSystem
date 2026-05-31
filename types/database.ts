@@ -843,6 +843,7 @@ export interface StageTaskTemplateRow {
   default_assignee_type: 'role' | 'department' | 'position' | 'creator' | 'manual' | null
   default_role_code:     string | null
   default_position_id:   string | null
+  default_department_id: string | null
   default_priority:      'low' | 'normal' | 'high' | 'urgent'
   default_due_days:      number | null
   sort_order:            number

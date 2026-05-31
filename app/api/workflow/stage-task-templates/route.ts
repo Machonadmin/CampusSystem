@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       default_assignee_type?: string
       default_role_code?: string
       default_position_id?: string
+      default_department_id?: string
       default_priority?: string
       default_due_days?: number
       sort_order?: number
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
         default_assignee_type: body.default_assignee_type || null,
         default_role_code:     body.default_role_code?.trim() || null,
         default_position_id:   body.default_position_id || null,
+        default_department_id: body.default_department_id || null,
         default_priority:      body.default_priority ?? 'normal',
         default_due_days:      body.default_due_days ?? null,
         sort_order:            body.sort_order ?? 0,
