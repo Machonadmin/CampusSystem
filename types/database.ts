@@ -41,7 +41,7 @@ export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'cust
 export type PositionCategory = 'academic' | 'administrative' | 'support'
 
 export type TaskModule = 'general' | 'education' | 'staff' | 'quality_control'
-export type TaskAssigneeType = 'person' | 'department'
+export type TaskAssigneeType = 'person' | 'department' | 'position' | 'unassigned'
 export type TaskStatus =
   | 'unassigned'
   | 'pending'
@@ -557,6 +557,7 @@ export interface TaskRow {
   assignee_type: TaskAssigneeType
   assignee_id: string | null
   department_id: string | null
+  position_id: string | null
   creator_id: string
   status: TaskStatus
   priority: TaskPriority
@@ -581,6 +582,7 @@ export interface TaskInsert {
   assignee_type?: TaskAssigneeType
   assignee_id?: string | null
   department_id?: string | null
+  position_id?: string | null
   creator_id: string
   status?: TaskStatus
   priority?: TaskPriority
