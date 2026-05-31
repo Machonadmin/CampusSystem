@@ -110,30 +110,33 @@ export async function startProcess(
     .single()
   if (piErr || !pi) throw piErr ?? new Error('Ошибка создания process_instance')
 
-  // 6–7. stage_instances + задачи
+  // 6–7. stage_instances + задачи (все подэтапы: active + waiting)
   const stageInstanceIds: string[] = []
-  for (const stageId of initialStageIds) {
-    const stage = stageMap.get(stageId)!
+  const initialSet = new Set(initialStageIds)
+  const allStages = [...stageMap.values()].sort((a, b) => a.sort_order - b.sort_order)
+
+  for (const stage of allStages) {
+    const isActive = initialSet.has(stage.id)
     const { data: si, error: siErr } = await sb
       .from('stage_instances')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert({
         process_instance_id: pi.id,
-        stage_template_id: stageId,
-        status: 'active',
-        activated_at: now,
+        stage_template_id: stage.id,
+        status: isActive ? 'active' : 'waiting',
+        activated_at: isActive ? now : null,
       } as any)
       .select('id')
       .single()
     if (siErr || !si) throw siErr ?? new Error('Ошибка создания stage_instance')
     stageInstanceIds.push(si.id)
 
-    if (!stage.has_tasks) continue
+    if (!isActive || !stage.has_tasks) continue
 
     const { data: taskTemplates, error: ttErr } = await sb
       .from('stage_task_templates')
       .select('*')
-      .eq('stage_template_id', stageId)
+      .eq('stage_template_id', stage.id)
       .order('sort_order', { ascending: true })
     if (ttErr) throw ttErr
 
