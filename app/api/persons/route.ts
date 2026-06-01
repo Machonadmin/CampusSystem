@@ -139,10 +139,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Staff profile (ignore duplicate)
-        await sb.from('staff_profiles')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: _spErr } = await sb.from('staff_profiles')
           .insert({ person_id: personId, employment_type: 'staff', hire_date: today, fire_date: null, notes: null } as any)
-          .select('id').single().catch(() => null)
+        void _spErr // дубль игнорируется намеренно
 
         // Staff position
         const { error: posErr } = await sb.from('staff_positions').insert({
