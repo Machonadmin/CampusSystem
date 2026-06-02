@@ -21,6 +21,9 @@ export interface EducationJourneyFormProps {
   onClose: () => void
   onSaved: (createdId?: string) => void
   initialPersonId?: string
+  journeyId?: string
+  /** Render without modal overlay — for embedding in a page layout */
+  inline?: boolean
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -50,6 +53,15 @@ const MODE_CONFIG = {
 } as const
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function parseExtraContacts(notes: string | null): { type: string; value: string }[] {
+  if (!notes) return []
+  return notes.split('; ').filter(Boolean).map(part => {
+    const colonIdx = part.indexOf(': ')
+    if (colonIdx === -1) return { type: 'other', value: part }
+    return { type: part.slice(0, colonIdx), value: part.slice(colonIdx + 2) }
+  })
+}
 
 function getPhoneFlag(phone: string): string {
   if (phone.startsWith('+972')) return '🇮🇱'
@@ -92,7 +104,7 @@ const DEFAULT_COMMUNITY: CommunityEntry = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function EducationJourneyForm({ mode, onClose, onSaved, initialPersonId }: EducationJourneyFormProps) {
+export default function EducationJourneyForm({ mode, onClose, onSaved, initialPersonId, journeyId, inline }: EducationJourneyFormProps) {
   const [view, setView] = useState<ModalView>('new')
   const [selected, setSelected] = useState<PersonResult | null>(null)
   const [tabIdx, setTabIdx] = useState(0)
@@ -156,6 +168,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loadingPerson, setLoadingPerson] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   // Search query effect
   useEffect(() => {
@@ -177,6 +190,114 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPersonId])
+
+  // Load journey data in edit mode
+  useEffect(() => {
+    if (!journeyId) return
+    setLoading(true)
+    void (async () => {
+      try {
+        const res = await fetch(`/api/education/journeys/${journeyId}`)
+        if (!res.ok) return
+        const d = await res.json() as {
+          referral_source?: string | null
+          notes?: string | null
+          lead_interests?: { institution: string; direction: string | null }[]
+          journey_communities_data?: {
+            contact_name: string | null
+            contact_role: string | null
+            contact_phone: string | null
+            contact_email: string | null
+            notes: string | null
+            community: { id: string; name: string; country: string; city: string } | null
+          }[]
+          person?: {
+            id?: string
+            last_name?: string | null
+            first_name?: string | null
+            middle_name?: string | null
+            hebrew_name?: string | null
+            gender?: string | null
+            birth_date?: string | null
+            marital_status?: string | null
+            nationality?: string | null
+            passport_number?: string | null
+            email?: string | null
+            phones?: unknown[]
+            address?: Record<string, string> | null
+          }
+        }
+
+        const person = d.person ?? {}
+        setLastName(person.last_name ?? '')
+        setFirstName(person.first_name ?? '')
+        setMiddleName(person.middle_name ?? '')
+        setHebrewName(person.hebrew_name ?? '')
+        setGender(person.gender ?? '')
+        setBirthDate(person.birth_date ? new Date(person.birth_date) : null)
+        setMaritalStatus(person.marital_status ?? '')
+        setCitizenship(person.nationality ?? 'Россия')
+        setPassportNumber(person.passport_number ?? '')
+        if (person.email) setEmail(person.email)
+        const rawPhones: unknown[] = Array.isArray(person.phones) ? person.phones : []
+        const flatPhones = rawPhones
+          .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? String(p)))
+          .filter(Boolean)
+        setPhones(flatPhones.length > 0 ? flatPhones : [''])
+        const addr = (person.address as Record<string, string> | null) ?? {}
+        setCountry(addr.country ?? 'Россия')
+        setCity(addr.city ?? '')
+        setStreet(addr.street ?? '')
+        setHouse(addr.house ?? '')
+        setApartment(addr.apartment ?? '')
+        setPostalCode(addr.postal_code ?? '')
+
+        setSource(d.referral_source ?? '')
+        setComment(d.notes ?? '')
+
+        const loadedInterests = d.lead_interests ?? []
+        setInterests(loadedInterests.length > 0
+          ? loadedInterests.map(i => ({ institution: i.institution, direction: i.direction ?? '' }))
+          : [{ institution: 'university', direction: '' }])
+
+        const loadedComms = d.journey_communities_data ?? []
+        if (loadedComms.length > 0) {
+          setCommunities(loadedComms.map(jc => ({
+            country: jc.community?.country ?? '',
+            city: jc.community?.city ?? '',
+            name: jc.community?.name ?? '',
+            contact_person: jc.contact_name ?? '',
+            contact_person_id: null,
+            position: jc.contact_role ?? '',
+            phone: jc.contact_phone ?? '',
+            email: jc.contact_email ?? '',
+            contacts: parseExtraContacts(jc.notes),
+          })))
+        }
+
+        if (person.id) {
+          const relRes = await fetch(`/api/persons/${person.id}/relatives`)
+          if (relRes.ok) {
+            const relData = await relRes.json() as {
+              relatives?: { relation_type: string; notes: string | null; relative: { id: string } | null }[]
+            }
+            const rels = (relData.relatives ?? []).filter(r => r.relative?.id)
+            const mother = rels.find(r => r.relation_type === 'mother')
+            const father = rels.find(r => r.relation_type === 'father')
+            const others = rels.filter(r => r.relation_type !== 'mother' && r.relation_type !== 'father')
+            setFamilyRelations([
+              { relative_id: mother?.relative?.id ?? null, relation_type: 'mother', notes: mother?.notes ?? null },
+              { relative_id: father?.relative?.id ?? null, relation_type: 'father', notes: father?.notes ?? null },
+              ...others.map(r => ({ relative_id: r.relative?.id ?? null, relation_type: r.relation_type, notes: r.notes })),
+            ])
+          }
+        }
+      } finally {
+        setLoading(false)
+      }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journeyId])
 
   // Load departments list when academic tab is needed
   useEffect(() => {
@@ -308,6 +429,47 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       const validCommunities = communities
         .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
         .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
+
+      if (journeyId) {
+        // Edit mode: PATCH /api/education/leads/{journeyId}
+        if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
+        if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
+        const validPhones = phones.filter(p => p.trim())
+        const addr = { country, city, street, house, apartment, postal_code: postalCode }
+        const body: Record<string, unknown> = {
+          last_name: lastName.trim() || null,
+          first_name: firstName.trim(),
+          middle_name: middleName.trim() || null,
+          hebrew_name: hebrewName.trim() || null,
+          gender: gender || null,
+          birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+          marital_status: maritalStatus || null,
+          citizenship: citizenship || null,
+          passport_number: passportNumber.trim() || null,
+          email: email.trim() || null,
+          phones: validPhones,
+          address: Object.values(addr).some(v => v) ? addr : null,
+          referral_source: source || null,
+          comment: comment || null,
+          interests: interests.filter(i => i.institution),
+          relatives: familyRelations
+            .filter(r => r.relative_id)
+            .map(r => ({ relative_id: r.relative_id!, relation_type: r.relation_type, notes: r.notes ?? null })),
+          communities: validCommunities,
+        }
+        const res = await fetch(`/api/education/leads/${journeyId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          setError(data.error ?? 'Ошибка')
+          return
+        }
+        onSaved(journeyId)
+        return
+      }
 
       if (mode === 'lead') {
         // POST /api/education/leads — existing format
@@ -467,40 +629,42 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · JPG, PNG</div>
               </div>
               <div style={{ flex: 1 }} />
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                {!searchExpanded ? (
-                  <button onClick={() => setSearchExpanded(true)}
-                    style={{ fontSize: 12, color: '#4BAED4', border: '1px solid #4BAED4', borderRadius: 8, padding: '6px 12px', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    🔍 Найти существующего человека
-                  </button>
-                ) : (
-                  <div>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
-                        placeholder="Имя или email..." style={{ ...inp, width: 220 }} />
-                      <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
-                        ×
-                      </button>
-                    </div>
-                    {(searching || results.length > 0) && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
-                        {results.map(p => (
-                          <button key={p.id} onClick={() => selectPerson(p)}
-                            style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
-                          >
-                            <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                            {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
-                          </button>
-                        ))}
+              {!journeyId && (
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  {!searchExpanded ? (
+                    <button onClick={() => setSearchExpanded(true)}
+                      style={{ fontSize: 12, color: '#4BAED4', border: '1px solid #4BAED4', borderRadius: 8, padding: '6px 12px', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      🔍 Найти существующего человека
+                    </button>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                          placeholder="Имя или email..." style={{ ...inp, width: 220 }} />
+                        <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          ×
+                        </button>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                      {(searching || results.length > 0) && (
+                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
+                          {results.map(p => (
+                            <button key={p.id} onClick={() => selectPerson(p)}
+                              style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                            >
+                              <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
+                              {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div>
@@ -883,14 +1047,15 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   }
 
   const cfg = MODE_CONFIG[mode]
+  const formTitle = journeyId ? 'Редактировать лида' : cfg.title
+  const saveLabel = journeyId ? 'Сохранить' : cfg.saveLabel
 
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+  const formInner = (
+    <div style={{ background: '#fff', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid #E5E7EB' : 'none' }}>
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{cfg.title}</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{formTitle}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
@@ -935,15 +1100,20 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         </>
 
         {/* Form body */}
-        <div style={{ height: 560, overflowY: 'auto', padding: '16px 24px 8px' }}>
-          {renderTab()}
+        <div style={{ ...(inline ? {} : { height: 560 }), overflowY: 'auto', padding: '16px 24px 8px' }}>
+          {loading
+            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: '#9CA3AF', fontSize: 14 }}>Загрузка...</div>
+            : renderTab()}
         </div>
 
         {/* Footer */}
         <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
-            Отмена
-          </button>
+          {inline
+            ? <div />
+            : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
+                Отмена
+              </button>
+          }
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
@@ -960,11 +1130,18 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             )}
             <button onClick={handleSave} disabled={saving}
               style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Сохранение...' : cfg.saveLabel}
+              {saving ? 'Сохранение...' : saveLabel}
             </button>
           </div>
         </div>
       </div>
+  )
+
+  if (inline) return formInner
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      {formInner}
     </div>
   )
 }

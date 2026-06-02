@@ -30,7 +30,7 @@ function isStudentStatus(s: string | null | undefined): boolean {
 
 const JOURNEY_SELECT = `
   *,
-  person:persons(id, full_name, hebrew_name, email, phones, gender, birth_date, address, notes),
+  person:persons(id, full_name, first_name, last_name, middle_name, hebrew_name, email, phones, gender, birth_date, address, notes, marital_status, nationality, passport_number),
   primary_department:departments!education_journeys_primary_department_id_fkey(id, name),
   specialty:specialties!education_journeys_specialty_id_fkey(id, name, code),
   main_group:study_groups(id, name, year_level, year_start),
@@ -61,6 +61,8 @@ export async function GET(
     if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
 
     const j = journey as unknown as {
+      id: string
+      person_id: string
       education_status: string | null
       primary_department_id: string | null
       desired_department_id: string | null
@@ -76,7 +78,21 @@ export async function GET(
       return NextResponse.json({ error: 'Нет прав на просмотр этого journey' }, { status: 403 })
     }
 
-    return NextResponse.json(journey)
+    // Extra data for edit form
+    const [{ data: leadInterests }, { data: jCommunities }] = await Promise.all([
+      sb.from('lead_interests')
+        .select('institution, direction')
+        .eq('person_id', j.person_id),
+      sb.from('journey_communities')
+        .select('community_id, contact_name, contact_role, contact_phone, contact_email, notes, community:communities(id, name, country, city)')
+        .eq('journey_id', j.id),
+    ])
+
+    return NextResponse.json({
+      ...journey,
+      lead_interests: leadInterests ?? [],
+      journey_communities_data: jCommunities ?? [],
+    })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
