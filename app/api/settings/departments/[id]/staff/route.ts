@@ -100,6 +100,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       department_id: params.id,
       position_ru: body.position_ru,
       position_he: null,
+      position_id: null,
       is_head: false,
       start_date: new Date().toISOString().split('T')[0],
       end_date: null,
