@@ -132,12 +132,13 @@ export async function PATCH(
         if (!rel.relative_id) continue
         if (!existingSet.has(`${rel.relative_id}:${rel.relation_type}`)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await sb.from('person_relatives').insert({
+          const { error: _e1 } = await sb.from('person_relatives').insert({
             person_id: personId,
             relative_id: rel.relative_id,
             relation_type: rel.relation_type,
             notes: rel.notes ?? null,
-          } as any).catch(() => null)
+          } as any)
+          void _e1
         }
       }
     }
@@ -182,7 +183,7 @@ export async function PATCH(
           .join('; ') || null
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await sb.from('journey_communities').insert({
+        const { error: _e2 } = await sb.from('journey_communities').insert({
           journey_id: params.id,
           community_id: communityId,
           contact_name: c.contact_person?.trim() || null,
@@ -190,7 +191,8 @@ export async function PATCH(
           contact_phone: c.phone?.trim() || null,
           contact_email: c.email?.trim() || null,
           notes: extraNotes,
-        } as any).catch(() => null)
+        } as any)
+        void _e2
       }
     }
 
