@@ -62,13 +62,17 @@ export async function POST(request: NextRequest) {
   try {
     const session = await guard()
     const sb = createServerClient()
-    const { full_name, person_id, login_email, password, role_ids = [] } = await request.json() as {
-      full_name?: string
+    const body = await request.json() as {
+      full_name?: string        // legacy fallback → first_name
+      last_name?: string | null
+      first_name?: string
+      middle_name?: string | null
       person_id?: string
       login_email: string
       password: string
       role_ids?: string[]
     }
+    const { person_id, login_email, password, role_ids = [] } = body
 
     if (!login_email || !password)
       return NextResponse.json({ error: 'Email и пароль обязательны' }, { status: 400 })
@@ -80,11 +84,18 @@ export async function POST(request: NextRequest) {
     let final_person_id = person_id
 
     if (!final_person_id) {
-      if (!full_name) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
+      const userFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
+      const userLastName   = body.last_name?.trim() || null
+      const userMiddleName = body.middle_name?.trim() || null
+      if (!userFirstName) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
       const { data: person, error: e1 } = await sb.from('persons').insert({
-        full_name, hebrew_name: null, gender: null, birth_date: null,
+        last_name: userLastName,
+        first_name: userFirstName,
+        middle_name: userMiddleName,
+        hebrew_name: null, gender: null, birth_date: null,
         photo_url: null, email: null, phones: [], address: {}, notes: null,
-      }).select('id').single()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any).select('id').single()
       if (e1) throw e1
       final_person_id = person.id
     }
