@@ -319,10 +319,10 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         if (view === 'existing' && selected) {
           body.person_id = selected.id
         } else {
-          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); return }
-          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); return }
+          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
+          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
           const validPhones = phones.filter(p => p.trim())
-          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); return }
+          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
           body.last_name = lastName.trim()
           body.first_name = firstName.trim()
           body.middle_name = middleName.trim() || null
@@ -378,10 +378,10 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         if (view === 'existing' && selected) {
           body.person_id = selected.id
         } else {
-          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); return }
-          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); return }
+          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
+          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
           const validPhones = phones.filter(p => p.trim())
-          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); return }
+          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
           body.new_person = {
             last_name: lastName.trim(),
             first_name: firstName.trim(),
@@ -954,16 +954,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             )}
             {tabIdx < lastTabIdx && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                 Далее
               </button>
             )}
-            {tabIdx === lastTabIdx && (
-              <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-                {saving ? 'Сохранение...' : cfg.saveLabel}
-              </button>
-            )}
+            <button onClick={handleSave} disabled={saving}
+              style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+              {saving ? 'Сохранение...' : cfg.saveLabel}
+            </button>
           </div>
         </div>
       </div>
