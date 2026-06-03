@@ -5,7 +5,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
-import PersonRelationField, { type PersonRelationValue } from '@/components/ui/PersonRelationField'
+import PersonRelationField, { type PersonRelationValue, type RelationType } from '@/components/ui/PersonRelationField'
 import { getModuleColor } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -288,7 +288,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             setFamilyRelations([
               { relative_id: mother?.relative?.id ?? null, relation_type: 'mother', notes: mother?.notes ?? null },
               { relative_id: father?.relative?.id ?? null, relation_type: 'father', notes: father?.notes ?? null },
-              ...others.map(r => ({ relative_id: r.relative?.id ?? null, relation_type: r.relation_type, notes: r.notes })),
+              ...others.map(r => ({ relative_id: r.relative?.id ?? null, relation_type: r.relation_type as RelationType, notes: r.notes })),
             ])
           }
         }
