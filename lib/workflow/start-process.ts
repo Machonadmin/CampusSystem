@@ -162,7 +162,7 @@ export async function startProcess(
  * откатываемся на 'unassigned', чтобы не нарушить CHECK tasks_assignee_consistency
  * и не уронить запуск процесса.
  */
-function mapTaskTemplate(
+export function mapTaskTemplate(
   tt: StageTaskTemplateRow,
   stageInstanceId: string,
   actorId: string,
