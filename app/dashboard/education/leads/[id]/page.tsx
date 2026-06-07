@@ -71,6 +71,8 @@ export default async function LeadViewPage({ params }: Props) {
 
   // Право на редактирование — определяет показ кнопки «Редактировать»
   const canManage = await hasEducationPrivilege(session, 'manage_leads', target)
+  // Право на конверт — определяет показ финала «В абитуриенты» при закрытии процесса
+  const canConvert = await hasEducationPrivilege(session, 'convert_lead', target)
 
   // Доп. данные: направления, общины, родственники
   const [{ data: interests }, { data: communities }, { data: relatives }] = await Promise.all([
@@ -134,5 +136,5 @@ export default async function LeadViewPage({ params }: Props) {
     comment: j.notes,
   }
 
-  return <LeadViewClient data={data} showEditButton={canManage} />
+  return <LeadViewClient data={data} showEditButton={canManage} canManage={canManage} canConvert={canConvert} />
 }

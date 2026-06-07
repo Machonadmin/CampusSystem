@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -68,8 +69,16 @@ interface StageDetail {
   can_convert: boolean
 }
 
+interface ClosingFinal {
+  code: string
+  name_ru: string
+  is_positive: boolean
+}
+
 interface Props {
   journeyId: string
+  canManage?: boolean
+  canConvert?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -135,7 +144,8 @@ function taskStatusStyle(status: string): { color: string; label: string } {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function ProcessInfoBlock({ journeyId }: Props) {
+export default function ProcessInfoBlock({ journeyId, canManage = false, canConvert = false }: Props) {
+  const router = useRouter()
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
@@ -145,6 +155,13 @@ export default function ProcessInfoBlock({ journeyId }: Props) {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState('')
+
+  // Досрочное закрытие процесса
+  const [closingProc, setClosingProc] = useState<ProcessInfo | null>(null)
+  const [closingFinals, setClosingFinals] = useState<ClosingFinal[]>([])
+  const [loadingFinals, setLoadingFinals] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const [closeError, setCloseError] = useState('')
 
   const accent = getModuleColor('education')
 
@@ -197,6 +214,51 @@ export default function ProcessInfoBlock({ journeyId }: Props) {
       reload()
     } finally {
       setCompleting(false)
+    }
+  }
+
+  async function openCloseEarly(proc: ProcessInfo) {
+    setClosingProc(proc)
+    setClosingFinals([])
+    setCloseError('')
+    setLoadingFinals(true)
+    try {
+      const res = await fetch(`/api/workflow/processes/${proc.id}/closing-finals`)
+      if (res.ok) {
+        const data = await res.json() as { finals?: ClosingFinal[] }
+        setClosingFinals(data.finals ?? [])
+      }
+    } finally {
+      setLoadingFinals(false)
+    }
+  }
+
+  function closeCloseEarly() {
+    setClosingProc(null)
+    setClosingFinals([])
+    setCloseError('')
+  }
+
+  async function submitCloseEarly(finalCode: string) {
+    if (!closingProc) return
+    setClosing(true)
+    setCloseError('')
+    try {
+      const res = await fetch(`/api/workflow/processes/${closingProc.id}/close-early`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ final_code: finalCode }),
+      })
+      if (!res.ok) {
+        const data = await res.json() as { error?: string }
+        setCloseError(data.error ?? 'Ошибка')
+        return
+      }
+      closeCloseEarly()
+      reload()
+      router.refresh()
+    } finally {
+      setClosing(false)
     }
   }
 
@@ -264,6 +326,23 @@ export default function ProcessInfoBlock({ journeyId }: Props) {
                   </button>
                 ))}
             </div>
+
+            {/* Завершить процесс досрочно */}
+            {proc.status === 'active' && canManage && (
+              <button
+                onClick={() => openCloseEarly(proc)}
+                style={{
+                  marginTop: 12, width: '100%', padding: '8px 12px',
+                  fontSize: 12, fontWeight: 500, color: '#6B7280',
+                  background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8,
+                  cursor: 'pointer', textAlign: 'center',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+              >
+                ⚙ Завершить процесс досрочно
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -397,6 +476,79 @@ export default function ProcessInfoBlock({ journeyId }: Props) {
                 : <span />}
               <button onClick={closeModal} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                 Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Close-process-early modal */}
+      {closingProc && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) closeCloseEarly() }}
+        >
+          <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
+
+            {/* Header */}
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>
+                Завершить процесс «{closingProc.template?.name_ru ?? 'Процесс'}» досрочно
+              </span>
+              <button onClick={closeCloseEarly} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>
+                ×
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+              <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+                Это закроет процесс полностью. Все незавершённые подэтапы и задачи
+                будут отменены. Выберите итоговый статус:
+              </div>
+
+              {loadingFinals && (
+                <div style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', padding: 24 }}>
+                  Загрузка…
+                </div>
+              )}
+
+              {!loadingFinals && closingFinals.length === 0 && (
+                <div style={{ fontSize: 13, color: '#9CA3AF' }}>Нет доступных финалов</div>
+              )}
+
+              {!loadingFinals && closingFinals.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {closingFinals
+                    .filter(final => final.code !== 'convert_to_applicant' || canConvert)
+                    .map(final => (
+                      <button
+                        key={final.code}
+                        onClick={() => submitCloseEarly(final.code)}
+                        disabled={closing}
+                        style={{
+                          padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
+                          cursor: closing ? 'not-allowed' : 'pointer', opacity: closing ? 0.6 : 1,
+                          border: 'none',
+                          background: final.is_positive ? '#D1FAE5' : '#FEE2E2',
+                          color: final.is_positive ? '#065F46' : '#991B1B',
+                          transition: 'opacity 0.15s',
+                        }}
+                      >
+                        {final.name_ru}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {closeError
+                ? <span style={{ fontSize: 12, color: '#EF4444' }}>{closeError}</span>
+                : <span />}
+              <button onClick={closeCloseEarly} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                Отмена
               </button>
             </div>
           </div>

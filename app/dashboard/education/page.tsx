@@ -63,7 +63,6 @@ export default function EducationPage() {
   const [search, setSearch] = useState('')
   const [instFilter, setInstFilter] = useState('')
   const [addOpen, setAddOpen] = useState(false)
-  const [converting, setConverting] = useState<string | null>(null)
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
@@ -85,14 +84,6 @@ export default function EducationPage() {
     const matchInst = !instFilter || l.interests.some(i => i.institution === instFilter)
     return matchSearch && matchInst
   })
-
-  async function handleConvert(profileId: string) {
-    setConverting(profileId)
-    const res = await fetch(`/api/education/leads/${profileId}/convert`, { method: 'PATCH' })
-    if (res.ok) await loadLeads()
-    setConverting(null)
-  }
-
 
   return (
     <div className="p-6 space-y-5">
@@ -151,7 +142,7 @@ export default function EducationPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    {['ИМЯ', 'ТЕЛЕФОН', 'EMAIL', 'НАПРАВЛЕНИЯ', 'ИСТОЧНИК', 'ДАТА', 'СТАТУС', ''].map(h => (
+                    {['ИМЯ', 'ТЕЛЕФОН', 'EMAIL', 'НАПРАВЛЕНИЯ', 'ИСТОЧНИК', 'ДАТА', 'СТАТУС'].map(h => (
                       <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
@@ -226,18 +217,6 @@ export default function EducationPage() {
                         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#ECFDF5', color: '#065F46', fontWeight: 500 }}>
                           Потенциальный
                         </span>
-                      </td>
-
-                      {/* Действия */}
-                      <td style={{ padding: '11px 14px' }}>
-                        <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                          <button
-                            onClick={() => handleConvert(lead.profile_id)}
-                            disabled={converting === lead.profile_id}
-                            style={{ padding: '5px 12px', fontSize: 12, border: 'none', borderRadius: 6, background: '#EEF2FF', color: '#3730A3', cursor: converting === lead.profile_id ? 'not-allowed' : 'pointer', opacity: converting === lead.profile_id ? 0.5 : 1 }}>
-                            {converting === lead.profile_id ? '...' : 'В абитуриенты'}
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))}

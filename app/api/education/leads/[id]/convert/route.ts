@@ -18,6 +18,10 @@ async function requireAuth() {
  *
  * Право: manage_students с desired_department_id из journey
  *        (если desired_department_id NULL — общий чек без department).
+ *
+ * @deprecated Прямой конверт обходит движок процессов (процесс «Набор»
+ * остаётся активным). Используйте POST /api/workflow/processes/[id]/close-early
+ * с final_code='convert_to_applicant' — он корректно закрывает процесс.
  */
 export async function PATCH(
   _request: NextRequest,

@@ -43,6 +43,8 @@ export interface LeadViewData {
 interface Props {
   data: LeadViewData
   showEditButton: boolean
+  canManage: boolean
+  canConvert: boolean
 }
 
 // ── Label maps ──────────────────────────────────────────────────────────────
@@ -110,7 +112,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert }: Props) {
   const router = useRouter()
   const { person } = data
 
@@ -255,7 +257,7 @@ export default function LeadViewClient({ data, showEditButton }: Props) {
 
         {/* Right: processes */}
         <div className="lg:col-span-1">
-          <ProcessInfoBlock journeyId={data.journeyId} />
+          <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
         </div>
       </div>
     </div>
