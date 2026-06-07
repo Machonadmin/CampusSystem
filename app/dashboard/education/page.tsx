@@ -174,7 +174,14 @@ export default function EducationPage() {
                               {initials(lead.full_name)}
                             </div>
                           )}
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{lead.full_name}</span>
+                          <span
+                            onClick={() => router.push(`/dashboard/education/leads/${lead.profile_id}`)}
+                            style={{ fontSize: 13, fontWeight: 500, color: '#2563EB', cursor: 'pointer' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
+                          >
+                            {lead.full_name}
+                          </span>
                         </div>
                       </td>
 
@@ -224,11 +231,6 @@ export default function EducationPage() {
                       {/* Действия */}
                       <td style={{ padding: '11px 14px' }}>
                         <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                          <button
-                            onClick={() => router.push(`/dashboard/education/leads/${lead.profile_id}`)}
-                            style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151' }}>
-                            Открыть
-                          </button>
                           <button
                             onClick={() => handleConvert(lead.profile_id)}
                             disabled={converting === lead.profile_id}

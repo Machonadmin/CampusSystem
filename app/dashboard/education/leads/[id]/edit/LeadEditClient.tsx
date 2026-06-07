@@ -12,9 +12,11 @@ interface Props {
   personName: string
 }
 
-export default function LeadCardClient({ journeyId, personName }: Props) {
+export default function LeadEditClient({ journeyId, personName }: Props) {
   const router = useRouter()
   const [savedAt, setSavedAt] = useState<Date | null>(null)
+
+  const viewHref = `/dashboard/education/leads/${journeyId}`
 
   return (
     <div className="p-6 space-y-5">
@@ -22,7 +24,8 @@ export default function LeadCardClient({ journeyId, personName }: Props) {
         { label: 'Главная', href: '/dashboard' },
         { label: 'Образование', href: '/dashboard/education' },
         { label: 'Набор', href: '/dashboard/education' },
-        { label: personName },
+        { label: personName, href: viewHref },
+        { label: 'Редактирование' },
       ]} />
 
       <div style={{
@@ -35,10 +38,10 @@ export default function LeadCardClient({ journeyId, personName }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{personName}</h1>
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Карточка лида</div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Редактирование лида</div>
           </div>
           <button
-            onClick={() => router.push('/dashboard/education')}
+            onClick={() => router.push(viewHref)}
             style={{
               padding: '8px 14px', fontSize: 13, fontWeight: 500,
               background: 'rgba(255,255,255,0.2)', color: '#fff',
@@ -46,7 +49,7 @@ export default function LeadCardClient({ journeyId, personName }: Props) {
               cursor: 'pointer',
             }}
           >
-            ← К списку
+            ← Назад к просмотру
           </button>
         </div>
       </div>
@@ -70,8 +73,8 @@ export default function LeadCardClient({ journeyId, personName }: Props) {
           mode="lead"
           inline
           journeyId={journeyId}
-          onClose={() => router.push('/dashboard/education')}
-          onSaved={() => setSavedAt(new Date())}
+          onClose={() => router.push(viewHref)}
+          onSaved={() => { setSavedAt(new Date()); router.push(viewHref) }}
         />
         <ProcessInfoBlock journeyId={journeyId} />
       </div>
