@@ -270,8 +270,9 @@ export type JourneyDocumentUpdate = Partial<JourneyDocumentInsert>
 export interface LeadInterestRow {
   id: string
   person_id: string
-  institution: string
-  direction: string | null
+  direction_id: string | null
+  level_id: string | null
+  free_text: string | null
   notes: string | null
   created_at: string
 }
@@ -312,6 +313,7 @@ export interface DepartmentRow {
   name: string
   parent_id: string | null
   head_person_id: string | null
+  is_educational_institution: boolean
   created_at: string
 }
 
@@ -410,7 +412,9 @@ export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>
 export type ApplicantProfileInsert = EducationJourneyInsert
 export type EnrollmentInsert = Omit<EnrollmentRow, 'id'>
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id'>
-export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at'>
+export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'is_educational_institution'> & {
+  is_educational_institution?: boolean
+}
 export type StaffPositionInsert = Omit<StaffPositionRow, 'id'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id'>
@@ -545,6 +549,37 @@ export type ReferencePositionInsert = Omit<ReferencePositionRow, 'id' | 'created
   id?: string
 }
 export type ReferencePositionUpdate = Partial<ReferencePositionInsert>
+
+// ─── Каскад направлений (reference_directions / reference_levels) ────────────────
+
+export interface ReferenceDirectionRow {
+  id: string
+  department_id: string
+  name_ru: string
+  code: string | null
+  has_levels: boolean
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export type ReferenceDirectionInsert = Omit<ReferenceDirectionRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+}
+export type ReferenceDirectionUpdate = Partial<ReferenceDirectionInsert>
+
+export interface ReferenceLevelRow {
+  id: string
+  direction_id: string
+  name_ru: string
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+export type ReferenceLevelInsert = Omit<ReferenceLevelRow, 'id' | 'created_at'> & {
+  id?: string
+}
+export type ReferenceLevelUpdate = Partial<ReferenceLevelInsert>
 
 // ─── Tasks module ─────────────────────────────────────────────────────────────
 
@@ -997,6 +1032,8 @@ export interface Database {
       feature_privileges:        T<FeaturePrivilegeRow,          FeaturePrivilegeInsert,          FeaturePrivilegeUpdate>
       reference_cities:          T<ReferenceCityRow,             ReferenceCityInsert,             ReferenceCityUpdate>
       reference_positions:       T<ReferencePositionRow,         ReferencePositionInsert,         ReferencePositionUpdate>
+      reference_directions:      T<ReferenceDirectionRow,        ReferenceDirectionInsert,        ReferenceDirectionUpdate>
+      reference_levels:          T<ReferenceLevelRow,            ReferenceLevelInsert,            ReferenceLevelUpdate>
       tasks:                     T<TaskRow,                      TaskInsert,                      TaskUpdate>
       task_comments:             T<TaskCommentRow,               TaskCommentInsert,               TaskCommentUpdate>
       task_watchers:             T<TaskWatcherRow,               TaskWatcherInsert,               TaskWatcherInsert>

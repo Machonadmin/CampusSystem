@@ -46,7 +46,7 @@ export async function PATCH(
       referral_source?: string | null
       comment?: string | null
       // Interests (B1: delete+insert)
-      interests?: { institution: string; direction?: string }[]
+      interests?: { free_text?: string }[]
       // Relatives (C1: diff)
       relatives?: { relative_id: string; relation_type: string; notes?: string | null }[]
       // Communities (delete+re-insert)
@@ -104,13 +104,12 @@ export async function PATCH(
     // 3. Interests: B1 — DELETE + INSERT
     if (body.interests !== undefined) {
       await sb.from('lead_interests').delete().eq('person_id', personId)
-      const validInterests = (body.interests ?? []).filter(i => i.institution)
+      const validInterests = (body.interests ?? []).filter(i => i.free_text?.trim())
       if (validInterests.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await sb.from('lead_interests').insert(validInterests.map(i => ({
           person_id: personId,
-          institution: i.institution,
-          direction: i.direction?.trim() || null,
+          free_text: i.free_text?.trim() || null,
         })) as any)
       }
     }

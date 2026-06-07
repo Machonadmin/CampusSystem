@@ -24,7 +24,7 @@ export interface LeadViewData {
     phones: string[]
     address: Record<string, string> | null
   }
-  interests: { institution: string; direction: string | null }[]
+  interests: { free_text: string | null }[]
   communities: {
     name: string
     country: string | null
@@ -56,10 +56,6 @@ const STATUS_LABELS: Record<string, string> = {
 const CARD_TYPE_LABELS: Record<string, string> = {
   lead: 'Карточка лида', applicant: 'Карточка абитуриента', student: 'Карточка студента',
   graduated: 'Карточка выпускника', expelled: 'Карточка отчисленного', on_leave: 'Карточка (академ. отпуск)',
-}
-const INST_LABELS: Record<string, string> = {
-  university: 'Университет', touro: 'Touro', college: 'Колледж',
-  school: 'Школа', emuna: 'Эмуна', other: 'Другое',
 }
 const SOURCE_LABELS: Record<string, string> = {
   website: 'Сайт', social: 'Соцсети', referral: 'Рекомендация',
@@ -122,6 +118,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
 
   const statusLabel = data.status ? (STATUS_LABELS[data.status] ?? data.status) : '—'
   const cardTypeLabel = data.status ? (CARD_TYPE_LABELS[data.status] ?? 'Карточка') : 'Карточка'
+  const interestTexts = data.interests
+    .map(i => (i.free_text ?? '').trim())
+    .filter(Boolean)
   const sectionLabel = data.status === 'applicant' ? 'Приём'
     : (data.status && data.status !== 'lead') ? 'Учёба'
     : 'Набор'
@@ -243,13 +242,13 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
 
           {/* НАПРАВЛЕНИЯ */}
           <Section title="Направления">
-            {data.interests.length === 0 ? (
+            {interestTexts.length === 0 ? (
               <div style={{ fontSize: 13, color: '#9CA3AF' }}>Направления не указаны</div>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {data.interests.map((i, idx) => (
+                {interestTexts.map((text, idx) => (
                   <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3' }}>
-                    {INST_LABELS[i.institution] ?? i.institution}{i.direction ? `: ${i.direction}` : ''}
+                    {text}
                   </span>
                 ))}
               </div>

@@ -19,10 +19,11 @@ async function requireAuth() {
  * GET /api/education/leads
  * Возвращает journeys со статусом 'lead' в формате, совместимом со старым UI лидов.
  * Формат ответа: [{ profile_id, person_id, full_name, email, phones, photo_url,
- *                   referral_source, application_date, interests: [{institution, direction}] }]
+ *                   referral_source, application_date, interests: [{free_text}] }]
  *
  * Поле profile_id здесь == journey.id (UI ожидает это для последующего convert).
- * interests пока берутся из legacy-таблицы lead_interests (удалим в Part 2).
+ * interests берутся из lead_interests.free_text (каскад direction_id/level_id —
+ * следующие этапы).
  */
 export async function GET() {
   try {
@@ -47,15 +48,15 @@ export async function GET() {
         .select('id, full_name, email, phones, photo_url')
         .in('id', personIds),
       sb.from('lead_interests')
-        .select('person_id, institution, direction')
+        .select('person_id, free_text')
         .in('person_id', personIds),
     ])
 
     const personMap = new Map((persons ?? []).map(p => [p.id, p]))
-    const interestMap = new Map<string, { institution: string; direction: string | null }[]>()
+    const interestMap = new Map<string, { free_text: string | null }[]>()
     for (const i of interests ?? []) {
       if (!interestMap.has(i.person_id)) interestMap.set(i.person_id, [])
-      interestMap.get(i.person_id)!.push({ institution: i.institution, direction: i.direction })
+      interestMap.get(i.person_id)!.push({ free_text: i.free_text })
     }
 
     const result = journeys.map(j => {
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
       citizenship?: string
       passport_number?: string
       address?: Record<string, unknown>
-      interests?: { institution: string; direction?: string }[]
+      interests?: { free_text?: string }[]
       communities?: CommunityPayload[]
       referral_source?: string
       comment?: string
@@ -217,15 +218,15 @@ export async function POST(request: NextRequest) {
       journeyId = newJourney.id
     }
 
-    // Legacy: lead_interests (сохраняем для обратной совместимости — удалим в Part 2)
-    const validInterests = (body.interests ?? []).filter(i => i.institution)
+    // lead_interests: новая структура (direction_id/level_id появятся с каскадом).
+    // Пока пишем только свободный текст в free_text (fallback).
+    const validInterests = (body.interests ?? []).filter(i => i.free_text?.trim())
     if (validInterests.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sb.from('lead_interests').insert(
         validInterests.map(i => ({
           person_id: personId,
-          institution: i.institution,
-          direction: i.direction?.trim() || null,
+          free_text: i.free_text?.trim() || null,
         })) as any
       )
     }

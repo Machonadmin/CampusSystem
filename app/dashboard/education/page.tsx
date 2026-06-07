@@ -20,7 +20,7 @@ interface Lead {
   photo_url: string | null
   referral_source: string | null
   application_date: string | null
-  interests: { institution: string; direction: string | null }[]
+  interests: { free_text: string | null }[]
 }
 
 /** Строка из GET /api/education/journeys?status=applicant */
@@ -40,11 +40,6 @@ interface ApplicantJourney {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const INSTITUTIONS = ['university', 'touro', 'college', 'school', 'emuna', 'other'] as const
-const INST_LABELS: Record<string, string> = {
-  university: 'Университет', touro: 'Touro', college: 'Колледж',
-  school: 'Школа', emuna: 'Эмуна', other: 'Другое',
-}
 const SOURCE_LABELS: Record<string, string> = {
   website: 'Сайт', social: 'Соцсети', referral: 'Рекомендация',
   call: 'Звонок', exhibition: 'Выставка', other: 'Другое',
@@ -83,7 +78,6 @@ export default function EducationPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
-  const [instFilter, setInstFilter] = useState('')
   const [addOpen, setAddOpen] = useState(false)
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
@@ -116,9 +110,9 @@ export default function EducationPage() {
     const matchSearch = !q ||
       l.full_name.toLowerCase().includes(q) ||
       (l.email?.toLowerCase().includes(q) ?? false) ||
-      l.phones.some(p => p.includes(q))
-    const matchInst = !instFilter || l.interests.some(i => i.institution === instFilter)
-    return matchSearch && matchInst
+      l.phones.some(p => p.includes(q)) ||
+      l.interests.some(i => (i.free_text ?? '').toLowerCase().includes(q))
+    return matchSearch
   })
 
   return (
@@ -151,14 +145,9 @@ export default function EducationPage() {
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <input
               value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Поиск по имени, телефону, email..."
+              placeholder="Поиск по имени, телефону, email, направлению..."
               style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }}
             />
-            <select value={instFilter} onChange={e => setInstFilter(e.target.value)}
-              style={{ padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', color: instFilter ? '#1F2937' : '#9CA3AF' }}>
-              <option value="">Все заведения</option>
-              {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
-            </select>
             <PageActionButton
               label="Добавить лида"
               onClick={() => setAddOpen(true)}
@@ -224,18 +213,20 @@ export default function EducationPage() {
 
                       {/* Направления */}
                       <td style={{ padding: '11px 14px' }}>
-                        {lead.interests.length === 0 ? (
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
-                        ) : (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {lead.interests.map((i, idx) => (
-                              <span key={idx} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3', whiteSpace: 'nowrap' }}>
-                                {INST_LABELS[i.institution] ?? i.institution}
-                                {i.direction ? ` · ${i.direction}` : ''}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {(() => {
+                          const texts = lead.interests.map(i => (i.free_text ?? '').trim()).filter(Boolean)
+                          return texts.length === 0 ? (
+                            <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                          ) : (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                              {texts.map((text, idx) => (
+                                <span key={idx} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3', whiteSpace: 'nowrap' }}>
+                                  {text}
+                                </span>
+                              ))}
+                            </div>
+                          )
+                        })()}
                       </td>
 
                       {/* Источник */}

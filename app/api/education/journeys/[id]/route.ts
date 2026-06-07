@@ -86,7 +86,7 @@ export async function GET(
     // Extra data for edit form
     const [{ data: leadInterests }, { data: jCommunities }] = await Promise.all([
       sb.from('lead_interests')
-        .select('institution, direction')
+        .select('free_text')
         .eq('person_id', j.person_id),
       sb.from('journey_communities')
         .select('community_id, contact_name, contact_role, contact_phone, contact_email, notes, community:communities(id, name, country, city)')

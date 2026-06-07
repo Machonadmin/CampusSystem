@@ -13,7 +13,7 @@ import { getModuleColor } from '@/lib/module-colors'
 export type JourneyFormMode = 'lead' | 'applicant' | 'student'
 
 interface PersonResult { id: string; full_name: string; email: string | null }
-interface Interest { institution: string; direction: string }
+interface Interest { free_text: string }
 type ModalView = 'search' | 'new' | 'existing'
 
 export interface EducationJourneyFormProps {
@@ -31,11 +31,6 @@ export interface EducationJourneyFormProps {
 const TAB_LABELS_BASE = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
 const TAB_LABELS_WITH_ACADEMIC = [...TAB_LABELS_BASE, 'Академические данные']
 
-const INSTITUTIONS = ['university', 'touro', 'college', 'school', 'emuna', 'other'] as const
-const INST_LABELS: Record<string, string> = {
-  university: 'Университет', touro: 'Touro', college: 'Колледж',
-  school: 'Школа', emuna: 'Эмуна', other: 'Другое',
-}
 
 const SOURCES = [
   { value: 'website', label: 'Сайт' },
@@ -147,7 +142,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const [communities, setCommunities] = useState<CommunityEntry[]>([{ ...DEFAULT_COMMUNITY }])
 
   // Tab 4 – Направления
-  const [interests, setInterests] = useState<Interest[]>([{ institution: 'university', direction: '' }])
+  const [interests, setInterests] = useState<Interest[]>([{ free_text: '' }])
 
   // Tab 5 – Дополнительно
   const [source, setSource] = useState('')
@@ -202,7 +197,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         const d = await res.json() as {
           referral_source?: string | null
           notes?: string | null
-          lead_interests?: { institution: string; direction: string | null }[]
+          lead_interests?: { free_text: string | null }[]
           journey_communities_data?: {
             contact_name: string | null
             contact_role: string | null
@@ -257,8 +252,8 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
         const loadedInterests = d.lead_interests ?? []
         setInterests(loadedInterests.length > 0
-          ? loadedInterests.map(i => ({ institution: i.institution, direction: i.direction ?? '' }))
-          : [{ institution: 'university', direction: '' }])
+          ? loadedInterests.map(i => ({ free_text: i.free_text ?? '' }))
+          : [{ free_text: '' }])
 
         const loadedComms = d.journey_communities_data ?? []
         if (loadedComms.length > 0) {
@@ -355,7 +350,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       { relative_id: null, relation_type: 'father', notes: null },
     ])
     setCommunities([{ ...DEFAULT_COMMUNITY }])
-    setInterests([{ institution: 'university', direction: '' }])
+    setInterests([{ free_text: '' }])
     setSource('')
     setComment('')
     setPrimaryDepartmentId(null)
@@ -451,7 +446,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           address: Object.values(addr).some(v => v) ? addr : null,
           referral_source: source || null,
           comment: comment || null,
-          interests: interests.filter(i => i.institution),
+          interests: interests.filter(i => i.free_text.trim()),
           relatives: familyRelations
             .filter(r => r.relative_id)
             .map(r => ({ relative_id: r.relative_id!, relation_type: r.relation_type, notes: r.notes ?? null })),
@@ -474,7 +469,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       if (mode === 'lead') {
         // POST /api/education/leads — existing format
         const body: Record<string, unknown> = {
-          interests: interests.filter(i => i.institution),
+          interests: interests.filter(i => i.free_text.trim()),
           referral_source: source || undefined,
           comment: comment || undefined,
         }
@@ -942,19 +937,15 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               Укажите направления которые интересуют
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-              <button onClick={() => setInterests(prev => [...prev, { institution: 'university', direction: '' }])}
+              <button onClick={() => setInterests(prev => [...prev, { free_text: '' }])}
                 style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 + Добавить направление
               </button>
             </div>
             {interests.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
-                <select value={item.institution} onChange={e => updateInterest(idx, 'institution', e.target.value)}
-                  style={{ ...inp, flex: '0 0 160px', width: 'auto' }}>
-                  {INSTITUTIONS.map(inst => <option key={inst} value={inst}>{INST_LABELS[inst]}</option>)}
-                </select>
-                <input value={item.direction} onChange={e => updateInterest(idx, 'direction', e.target.value)}
-                  placeholder="Направление..." style={{ ...inp, flex: 1 }} />
+                <input value={item.free_text} onChange={e => updateInterest(idx, 'free_text', e.target.value)}
+                  placeholder="Направление (свободный текст)..." style={{ ...inp, flex: 1 }} />
                 {interests.length > 1 && (
                   <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
