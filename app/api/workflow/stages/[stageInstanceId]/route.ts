@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { hasEducationPrivilege } from '@/lib/education/permissions'
 
 export async function GET(
   _request: NextRequest,
@@ -25,8 +26,21 @@ export async function GET(
     if (!stage) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
 
     const stageTemplateId = (stage.stage_template as unknown as { id: string } | null)?.id ?? null
+    const journeyId = (stage.process_instance as unknown as { journey_id: string } | null)?.journey_id ?? null
 
-    const [{ data: tasks }, { data: finals }] = await Promise.all([
+    // Загружаем primary_department_id для проверки прав
+    let targetDept: string | null = null
+    if (journeyId) {
+      const { data: journey } = await sb
+        .from('education_journeys')
+        .select('primary_department_id')
+        .eq('id', journeyId)
+        .maybeSingle()
+      targetDept = journey?.primary_department_id ?? null
+    }
+    const target = targetDept ? { department_id: targetDept } : undefined
+
+    const [{ data: tasks }, { data: finals }, can_manage, can_convert] = await Promise.all([
       sb.from('tasks')
         .select('id, title, status, priority, assignee_type, due_date, completed_at')
         .eq('stage_instance_id', params.stageInstanceId)
@@ -37,12 +51,16 @@ export async function GET(
             .eq('stage_template_id', stageTemplateId)
             .order('sort_order', { ascending: true })
         : { data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] },
+      hasEducationPrivilege(session, 'manage_leads', target),
+      hasEducationPrivilege(session, 'convert_lead', target),
     ])
 
     return NextResponse.json({
       ...stage,
       tasks: tasks ?? [],
       finals: finals ?? [],
+      can_manage,
+      can_convert,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

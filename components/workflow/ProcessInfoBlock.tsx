@@ -64,6 +64,8 @@ interface StageDetail {
   stage_template: (StageTemplateInfo & { description: string | null; has_tasks: boolean }) | null
   tasks: TaskInfo[]
   finals: FinalInfo[]
+  can_manage: boolean
+  can_convert: boolean
 }
 
 interface Props {
@@ -342,30 +344,39 @@ export default function ProcessInfoBlock({ journeyId }: Props) {
                   )}
 
                   {/* Finals (only when active) */}
-                  {stageDetail.status === 'active' && stageDetail.finals.length > 0 && (
+                  {stageDetail.status === 'active' && stageDetail.finals.length > 0 && stageDetail.can_manage && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
                         Завершить подэтап
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {stageDetail.finals.map(final => (
-                          <button
-                            key={final.id}
-                            onClick={() => completeStage(final.code)}
-                            disabled={completing}
-                            style={{
-                              padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
-                              cursor: completing ? 'not-allowed' : 'pointer', opacity: completing ? 0.6 : 1,
-                              border: 'none',
-                              background: final.is_positive ? '#D1FAE5' : '#FEE2E2',
-                              color: final.is_positive ? '#065F46' : '#991B1B',
-                              transition: 'opacity 0.15s',
-                            }}
-                          >
-                            {final.name_ru}
-                          </button>
-                        ))}
+                        {stageDetail.finals
+                          .filter(final => final.code !== 'convert_to_applicant' || stageDetail.can_convert)
+                          .map(final => (
+                            <button
+                              key={final.id}
+                              onClick={() => completeStage(final.code)}
+                              disabled={completing}
+                              style={{
+                                padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
+                                cursor: completing ? 'not-allowed' : 'pointer', opacity: completing ? 0.6 : 1,
+                                border: 'none',
+                                background: final.is_positive ? '#D1FAE5' : '#FEE2E2',
+                                color: final.is_positive ? '#065F46' : '#991B1B',
+                                transition: 'opacity 0.15s',
+                              }}
+                            >
+                              {final.name_ru}
+                            </button>
+                          ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* No-permission notice */}
+                  {stageDetail.status === 'active' && !stageDetail.can_manage && (
+                    <div style={{ padding: '10px 14px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, color: '#6B7280' }}>
+                      У вас нет прав на завершение этого подэтапа
                     </div>
                   )}
 

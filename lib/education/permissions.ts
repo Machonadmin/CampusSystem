@@ -196,7 +196,10 @@ export async function hasEducationPrivilege(
   if (scope === 'all') return true
 
   if (scope === 'department') {
-    if (!target?.department_id) return false
+    // Если объект не привязан к конкретному department
+    // (например, лид ещё не определился с учреждением) —
+    // доступ разрешён как для общего пула.
+    if (!target?.department_id) return true
     return access.departmentIds.includes(target.department_id)
   }
 
