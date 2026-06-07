@@ -133,6 +133,38 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Прикрепляем направления (lead_interests с именами справочника) к каждому journey
+    const personIds = Array.from(
+      new Set(
+        filtered
+          .map(j => (j.person as { id?: string } | null)?.id ?? (j as { person_id?: string }).person_id)
+          .filter((id): id is string => !!id)
+      )
+    )
+    if (personIds.length > 0) {
+      const { data: interests } = await sb
+        .from('lead_interests')
+        .select('person_id, free_text, direction:reference_directions(name_ru), level:reference_levels(name_ru)')
+        .in('person_id', personIds)
+
+      type InterestOut = { free_text: string | null; direction_name: string | null; level_name: string | null }
+      const interestMap = new Map<string, InterestOut[]>()
+      for (const i of interests ?? []) {
+        const dir = (i.direction as unknown) as { name_ru: string } | null
+        const lvl = (i.level as unknown) as { name_ru: string } | null
+        if (!interestMap.has(i.person_id)) interestMap.set(i.person_id, [])
+        interestMap.get(i.person_id)!.push({
+          free_text: i.free_text,
+          direction_name: dir?.name_ru ?? null,
+          level_name: lvl?.name_ru ?? null,
+        })
+      }
+      filtered = filtered.map(j => {
+        const pid = (j.person as { id?: string } | null)?.id ?? (j as { person_id?: string }).person_id
+        return { ...j, interests: (pid && interestMap.get(pid)) || [] }
+      })
+    }
+
     return NextResponse.json({ journeys: filtered })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }

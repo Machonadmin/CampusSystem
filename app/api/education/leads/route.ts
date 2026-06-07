@@ -48,15 +48,22 @@ export async function GET() {
         .select('id, full_name, email, phones, photo_url')
         .in('id', personIds),
       sb.from('lead_interests')
-        .select('person_id, free_text')
+        .select('person_id, free_text, direction:reference_directions(name_ru), level:reference_levels(name_ru)')
         .in('person_id', personIds),
     ])
 
     const personMap = new Map((persons ?? []).map(p => [p.id, p]))
-    const interestMap = new Map<string, { free_text: string | null }[]>()
+    type InterestOut = { free_text: string | null; direction_name: string | null; level_name: string | null }
+    const interestMap = new Map<string, InterestOut[]>()
     for (const i of interests ?? []) {
+      const dir = (i.direction as unknown) as { name_ru: string } | null
+      const lvl = (i.level as unknown) as { name_ru: string } | null
       if (!interestMap.has(i.person_id)) interestMap.set(i.person_id, [])
-      interestMap.get(i.person_id)!.push({ free_text: i.free_text })
+      interestMap.get(i.person_id)!.push({
+        free_text: i.free_text,
+        direction_name: dir?.name_ru ?? null,
+        level_name: lvl?.name_ru ?? null,
+      })
     }
 
     const result = journeys.map(j => {
@@ -124,7 +131,7 @@ export async function POST(request: NextRequest) {
       citizenship?: string
       passport_number?: string
       address?: Record<string, unknown>
-      interests?: { free_text?: string }[]
+      interests?: { direction_id?: string | null; level_id?: string | null; free_text?: string | null }[]
       communities?: CommunityPayload[]
       referral_source?: string
       comment?: string
@@ -218,16 +225,15 @@ export async function POST(request: NextRequest) {
       journeyId = newJourney.id
     }
 
-    // lead_interests: новая структура (direction_id/level_id появятся с каскадом).
-    // Пока пишем только свободный текст в free_text (fallback).
-    const validInterests = (body.interests ?? []).filter(i => i.free_text?.trim())
+    // lead_interests: каскад direction_id/level_id или свободный текст free_text.
+    const validInterests = (body.interests ?? []).filter(i => i.direction_id || i.free_text?.trim())
     if (validInterests.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sb.from('lead_interests').insert(
-        validInterests.map(i => ({
-          person_id: personId,
-          free_text: i.free_text?.trim() || null,
-        })) as any
+        validInterests.map(i => i.direction_id
+          ? { person_id: personId, direction_id: i.direction_id, level_id: i.level_id ?? null, free_text: null }
+          : { person_id: personId, direction_id: null, level_id: null, free_text: i.free_text?.trim() || null }
+        ) as any
       )
     }
 

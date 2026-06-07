@@ -24,7 +24,7 @@ export interface LeadViewData {
     phones: string[]
     address: Record<string, string> | null
   }
-  interests: { free_text: string | null }[]
+  interests: { free_text: string | null; direction_name: string | null; level_name: string | null }[]
   communities: {
     name: string
     country: string | null
@@ -119,7 +119,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const statusLabel = data.status ? (STATUS_LABELS[data.status] ?? data.status) : '—'
   const cardTypeLabel = data.status ? (CARD_TYPE_LABELS[data.status] ?? 'Карточка') : 'Карточка'
   const interestTexts = data.interests
-    .map(i => (i.free_text ?? '').trim())
+    .map(i => i.direction_name
+      ? (i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name)
+      : (i.free_text ?? '').trim())
     .filter(Boolean)
   const sectionLabel = data.status === 'applicant' ? 'Приём'
     : (data.status && data.status !== 'lead') ? 'Учёба'

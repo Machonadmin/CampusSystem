@@ -20,7 +20,7 @@ interface Lead {
   photo_url: string | null
   referral_source: string | null
   application_date: string | null
-  interests: { free_text: string | null }[]
+  interests: { free_text: string | null; direction_name: string | null; level_name: string | null }[]
 }
 
 /** Строка из GET /api/education/journeys?status=applicant */
@@ -36,6 +36,7 @@ interface ApplicantJourney {
   primary_department: { name: string } | null
   desired_department: { name: string } | null
   desired_specialty: { name: string } | null
+  interests?: { free_text: string | null; direction_name: string | null; level_name: string | null }[]
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -67,6 +68,11 @@ function flattenPhones(raw: unknown): string[] {
   return raw
     .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
     .filter(Boolean)
+}
+/** Текст направления: справочник (с уровнем) или free_text. */
+function interestLabel(i: { free_text: string | null; direction_name: string | null; level_name: string | null }): string {
+  if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
+  return (i.free_text ?? '').trim()
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -111,7 +117,7 @@ export default function EducationPage() {
       l.full_name.toLowerCase().includes(q) ||
       (l.email?.toLowerCase().includes(q) ?? false) ||
       l.phones.some(p => p.includes(q)) ||
-      l.interests.some(i => (i.free_text ?? '').toLowerCase().includes(q))
+      l.interests.some(i => interestLabel(i).toLowerCase().includes(q))
     return matchSearch
   })
 
@@ -214,7 +220,7 @@ export default function EducationPage() {
                       {/* Направления */}
                       <td style={{ padding: '11px 14px' }}>
                         {(() => {
-                          const texts = lead.interests.map(i => (i.free_text ?? '').trim()).filter(Boolean)
+                          const texts = lead.interests.map(interestLabel).filter(Boolean)
                           return texts.length === 0 ? (
                             <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
                           ) : (
@@ -277,7 +283,10 @@ export default function EducationPage() {
                 {applicants.map(app => {
                   const fullName = app.person?.full_name ?? '—'
                   const phones = flattenPhones(app.person?.phones)
-                  const direction = app.desired_specialty?.name ?? app.desired_department?.name ?? '—'
+                  const interestTexts = (app.interests ?? []).map(interestLabel).filter(Boolean)
+                  const direction = interestTexts.length > 0
+                    ? interestTexts.join(', ')
+                    : (app.desired_specialty?.name ?? app.desired_department?.name ?? '—')
                   return (
                     <tr key={app.id} style={{ borderBottom: '1px solid #F9FAFB' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
