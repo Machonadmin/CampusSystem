@@ -6,11 +6,21 @@ import {
   hasEducationPrivilege,
   getEducationPrivilegeScope,
   getUserDepartmentIds,
+  type EducationPrivilege,
 } from '@/lib/education/permissions'
 import type {
   EducationJourneyInsert,
   JourneyStatus,
 } from '@/types/database'
+
+type EduWriteScope = 'view' | 'manage'
+
+/** Подбирает привилегию по состоянию journey и типу доступа (view/manage). */
+function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPrivilege {
+  if (status === 'lead')      return scope === 'manage' ? 'manage_leads' : 'view_leads'
+  if (status === 'applicant') return scope === 'manage' ? 'manage_applicants' : 'view_applicants'
+  return scope === 'manage' ? 'manage_students' : 'view_students'
+}
 
 async function requireAuth() {
   const session = await getSession()
@@ -198,10 +208,11 @@ export async function POST(request: NextRequest) {
       deptForCheck = body.desired_department_id ?? null
     }
 
+    const priv = pickPrivilege(status, 'manage')
     if (deptForCheck) {
-      await requireEducationPrivilege('manage_students', { department_id: deptForCheck })
+      await requireEducationPrivilege(priv, { department_id: deptForCheck })
     } else {
-      const allowed = await hasEducationPrivilege(session, 'manage_students', {})
+      const allowed = await hasEducationPrivilege(session, priv, {})
       if (!allowed) {
         return NextResponse.json({ error: 'Нет прав на создание journey' }, { status: 403 })
       }

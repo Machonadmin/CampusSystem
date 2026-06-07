@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
-  hasEducationPrivilege,
   requireEducationPrivilege,
+  type EducationPrivilege,
 } from '@/lib/education/permissions'
 import type { EducationJourneyUpdate, JourneyStatus } from '@/types/database'
 
@@ -11,6 +11,15 @@ async function requireAuth() {
   const session = await getSession()
   if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
   return session
+}
+
+type EduWriteScope = 'view' | 'manage'
+
+/** Подбирает привилегию по состоянию journey и типу доступа (view/manage). */
+function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPrivilege {
+  if (status === 'lead')      return scope === 'manage' ? 'manage_leads' : 'view_leads'
+  if (status === 'applicant') return scope === 'manage' ? 'manage_applicants' : 'view_applicants'
+  return scope === 'manage' ? 'manage_students' : 'view_students'
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -48,7 +57,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await requireAuth()
+    await requireAuth()
     const sb = createServerClient()
 
     const { data: journey, error } = await sb
@@ -71,12 +80,8 @@ export async function GET(
       ? j.primary_department_id
       : j.desired_department_id
 
-    const allowed = await hasEducationPrivilege(session, 'view_students', {
-      department_id: checkDept ?? undefined,
-    })
-    if (!allowed) {
-      return NextResponse.json({ error: 'Нет прав на просмотр этого journey' }, { status: 403 })
-    }
+    const priv = pickPrivilege(j.education_status, 'view')
+    await requireEducationPrivilege(priv, { department_id: checkDept ?? undefined })
 
     // Extra data for edit form
     const [{ data: leadInterests }, { data: jCommunities }] = await Promise.all([
@@ -146,18 +151,20 @@ export async function PATCH(
       ? current.primary_department_id
       : current.desired_department_id
 
-    await requireEducationPrivilege('manage_students', {
+    const priv = pickPrivilege(current.education_status, 'manage')
+
+    await requireEducationPrivilege(priv, {
       department_id: currentDept ?? undefined,
     })
 
     // Если меняется primary/desired department — проверить и новое подразделение
     const newPrimary = body.primary_department_id
     if (newPrimary !== undefined && newPrimary !== null && newPrimary !== current.primary_department_id) {
-      await requireEducationPrivilege('manage_students', { department_id: newPrimary })
+      await requireEducationPrivilege(priv, { department_id: newPrimary })
     }
     const newDesired = body.desired_department_id
     if (newDesired !== undefined && newDesired !== null && newDesired !== current.desired_department_id) {
-      await requireEducationPrivilege('manage_students', { department_id: newDesired })
+      await requireEducationPrivilege(priv, { department_id: newDesired })
     }
 
     if (body.specialty_id) {
@@ -247,7 +254,8 @@ export async function DELETE(
       ? current.primary_department_id
       : current.desired_department_id
 
-    await requireEducationPrivilege('manage_students', {
+    const priv = pickPrivilege(current.education_status, 'manage')
+    await requireEducationPrivilege(priv, {
       department_id: checkDept ?? undefined,
     })
 

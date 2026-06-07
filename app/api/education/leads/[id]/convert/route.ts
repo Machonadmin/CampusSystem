@@ -38,9 +38,9 @@ export async function PATCH(
     }
 
     if (journey.desired_department_id) {
-      await requireEducationPrivilege('manage_students', { department_id: journey.desired_department_id })
+      await requireEducationPrivilege('convert_lead', { department_id: journey.desired_department_id })
     } else {
-      const allowed = await hasEducationPrivilege(session, 'manage_students', {})
+      const allowed = await hasEducationPrivilege(session, 'convert_lead', {})
       if (!allowed) {
         return NextResponse.json({ error: 'Нет прав на конверт' }, { status: 403 })
       }

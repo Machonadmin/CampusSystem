@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, canDoEducationInAny } from '@/lib/education/permissions'
 import { startProcess, type StartProcessResult } from '@/lib/workflow/start-process'
 import type {
   EducationJourneyInsert,
@@ -26,7 +26,9 @@ async function requireAuth() {
  */
 export async function GET() {
   try {
-    await requireAuth()
+    const session = await requireAuth()
+    const ok = await canDoEducationInAny(session, 'view_leads')
+    if (!ok) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
     const sb = createServerClient()
 
     const { data: journeys, error: jErr } = await sb
@@ -103,7 +105,7 @@ interface CommunityPayload {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
-    await requireEducationPrivilege('manage_students', {})
+    await requireEducationPrivilege('manage_leads', {})
     const sb = createServerClient()
     const body = await request.json() as {
       person_id?: string

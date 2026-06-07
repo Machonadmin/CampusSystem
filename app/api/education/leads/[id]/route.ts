@@ -27,7 +27,6 @@ export async function PATCH(
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
-    await requireEducationPrivilege('manage_students', {})
 
     const body = await request.json() as {
       // Person fields
@@ -58,13 +57,17 @@ export async function PATCH(
 
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, person_id, education_status')
+      .select('id, person_id, education_status, primary_department_id')
       .eq('id', params.id)
       .maybeSingle()
     if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
     if (journey.education_status !== 'lead') {
       return NextResponse.json({ error: 'Это не лид' }, { status: 400 })
     }
+
+    await requireEducationPrivilege('manage_leads', {
+      department_id: journey.primary_department_id ?? undefined,
+    })
 
     const personId = journey.person_id
 
