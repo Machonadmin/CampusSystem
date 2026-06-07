@@ -132,6 +132,13 @@ function stageLabelStyle(status: string, accent: string): React.CSSProperties {
   return { fontSize: 13, color: '#9CA3AF' }
 }
 
+/** Цвет кнопки финала: позитивный — зелёный, postponed — оранжевый, иначе красный. */
+function finalButtonColors(code: string, isPositive: boolean): { background: string; color: string } {
+  if (isPositive) return { background: '#D1FAE5', color: '#065F46' }
+  if (code === 'postponed') return { background: '#FED7AA', color: '#9A3412' }
+  return { background: '#FEE2E2', color: '#991B1B' }
+}
+
 function taskStatusStyle(status: string): { color: string; label: string } {
   if (status === 'completed') return { color: '#6B7280', label: 'Выполнено' }
   if (status === 'in_progress') return { color: '#2563EB', label: 'В работе' }
@@ -521,23 +528,26 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {closingFinals
                     .filter(final => final.code !== 'convert_to_applicant' || canConvert)
-                    .map(final => (
-                      <button
-                        key={final.code}
-                        onClick={() => submitCloseEarly(final.code)}
-                        disabled={closing}
-                        style={{
-                          padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
-                          cursor: closing ? 'not-allowed' : 'pointer', opacity: closing ? 0.6 : 1,
-                          border: 'none',
-                          background: final.is_positive ? '#D1FAE5' : '#FEE2E2',
-                          color: final.is_positive ? '#065F46' : '#991B1B',
-                          transition: 'opacity 0.15s',
-                        }}
-                      >
-                        {final.name_ru}
-                      </button>
-                    ))}
+                    .map(final => {
+                      const colors = finalButtonColors(final.code, final.is_positive)
+                      return (
+                        <button
+                          key={final.code}
+                          onClick={() => submitCloseEarly(final.code)}
+                          disabled={closing}
+                          style={{
+                            padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
+                            cursor: closing ? 'not-allowed' : 'pointer', opacity: closing ? 0.6 : 1,
+                            border: 'none',
+                            background: colors.background,
+                            color: colors.color,
+                            transition: 'opacity 0.15s',
+                          }}
+                        >
+                          {final.name_ru}
+                        </button>
+                      )
+                    })}
                 </div>
               )}
             </div>

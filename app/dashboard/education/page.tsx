@@ -23,6 +23,21 @@ interface Lead {
   interests: { institution: string; direction: string | null }[]
 }
 
+/** Строка из GET /api/education/journeys?status=applicant */
+interface ApplicantJourney {
+  id: string
+  application_date: string | null
+  opened_at: string | null
+  person: {
+    full_name: string | null
+    email: string | null
+    phones: unknown
+  } | null
+  primary_department: { name: string } | null
+  desired_department: { name: string } | null
+  desired_specialty: { name: string } | null
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const INSTITUTIONS = ['university', 'touro', 'college', 'school', 'emuna', 'other'] as const
@@ -51,6 +66,13 @@ function formatDate(d: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
+/** Json-поле phones → плоский массив строк. */
+function flattenPhones(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
+    .filter(Boolean)
+}
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
@@ -64,6 +86,9 @@ export default function EducationPage() {
   const [instFilter, setInstFilter] = useState('')
   const [addOpen, setAddOpen] = useState(false)
 
+  const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
+  const [loadingApplicants, setLoadingApplicants] = useState(false)
+
   const loadLeads = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/education/leads')
@@ -71,9 +96,20 @@ export default function EducationPage() {
     setLoading(false)
   }, [])
 
+  const loadApplicants = useCallback(async () => {
+    setLoadingApplicants(true)
+    const res = await fetch('/api/education/journeys?status=applicant')
+    if (res.ok) {
+      const data = await res.json() as { journeys?: ApplicantJourney[] }
+      setApplicants(data.journeys ?? [])
+    }
+    setLoadingApplicants(false)
+  }, [])
+
   useEffect(() => {
     if (tab === 'recruitment') loadLeads()
-  }, [tab, loadLeads])
+    if (tab === 'admission') loadApplicants()
+  }, [tab, loadLeads, loadApplicants])
 
   const filtered = leads.filter(l => {
     const q = search.toLowerCase()
@@ -228,8 +264,88 @@ export default function EducationPage() {
       )}
 
       {tab === 'admission' && (
-        <div style={{ background: '#fff', borderRadius: 12, padding: '48px 24px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-          <p style={{ fontSize: 14, color: '#9CA3AF' }}>Раздел в разработке</p>
+        <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+          {loadingApplicants ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>Загрузка...</div>
+          ) : applicants.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+              Нет абитуриентов
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                  {['ИМЯ', 'ДАТА ЗАЯВКИ', 'ТЕЛЕФОН', 'EMAIL', 'УЧРЕЖДЕНИЕ', 'НАПРАВЛЕНИЕ', 'СТАТУС'].map(h => (
+                    <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {applicants.map(app => {
+                  const fullName = app.person?.full_name ?? '—'
+                  const phones = flattenPhones(app.person?.phones)
+                  const direction = app.desired_specialty?.name ?? app.desired_department?.name ?? '—'
+                  return (
+                    <tr key={app.id} style={{ borderBottom: '1px solid #F9FAFB' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
+
+                      {/* Фото + Имя */}
+                      <td style={{ padding: '11px 14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#6D28D9', flexShrink: 0 }}>
+                            {initials(fullName)}
+                          </div>
+                          <span
+                            onClick={() => router.push(`/dashboard/education/leads/${app.id}`)}
+                            style={{ fontSize: 13, fontWeight: 500, color: '#2563EB', cursor: 'pointer' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
+                          >
+                            {fullName}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Дата заявки */}
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>
+                        {formatDate(app.application_date)}
+                      </td>
+
+                      {/* Телефон */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
+                        {phones[0] ?? '—'}
+                      </td>
+
+                      {/* Email */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                        {app.person?.email ?? '—'}
+                      </td>
+
+                      {/* Учреждение */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                        {app.primary_department?.name ?? '—'}
+                      </td>
+
+                      {/* Направление */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                        {direction}
+                      </td>
+
+                      {/* Статус */}
+                      <td style={{ padding: '11px 14px' }}>
+                        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EDE9FE', color: '#6D28D9', fontWeight: 500 }}>
+                          Абитуриент
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

@@ -53,6 +53,10 @@ const STATUS_LABELS: Record<string, string> = {
   lead: 'Лид', applicant: 'Абитуриент', student: 'Студент',
   graduated: 'Выпускник', expelled: 'Отчислен', on_leave: 'Академ. отпуск',
 }
+const CARD_TYPE_LABELS: Record<string, string> = {
+  lead: 'Карточка лида', applicant: 'Карточка абитуриента', student: 'Карточка студента',
+  graduated: 'Карточка выпускника', expelled: 'Карточка отчисленного', on_leave: 'Карточка (академ. отпуск)',
+}
 const INST_LABELS: Record<string, string> = {
   university: 'Университет', touro: 'Touro', college: 'Колледж',
   school: 'Школа', emuna: 'Эмуна', other: 'Другое',
@@ -117,14 +121,18 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const { person } = data
 
   const statusLabel = data.status ? (STATUS_LABELS[data.status] ?? data.status) : '—'
+  const cardTypeLabel = data.status ? (CARD_TYPE_LABELS[data.status] ?? 'Карточка') : 'Карточка'
+  const sectionLabel = data.status === 'applicant' ? 'Приём'
+    : (data.status && data.status !== 'lead') ? 'Учёба'
+    : 'Набор'
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: 'Главная', href: '/dashboard' },
         { label: 'Образование', href: '/dashboard/education' },
-        { label: 'Набор', href: '/dashboard/education' },
-        { label: person.full_name || 'Лид' },
+        { label: sectionLabel, href: '/dashboard/education' },
+        { label: person.full_name || cardTypeLabel },
       ]} />
 
       {/* Header */}
@@ -136,13 +144,13 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{person.full_name || 'Лид'}</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{person.full_name || cardTypeLabel}</h1>
               <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.22)', fontWeight: 500 }}>
                 {statusLabel}
               </span>
             </div>
             <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
-              Создан: {formatDate(data.createdAt)}
+              {cardTypeLabel} · Создан: {formatDate(data.createdAt)}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>

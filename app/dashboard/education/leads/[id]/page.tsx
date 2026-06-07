@@ -1,11 +1,24 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
+import {
+  requireEducationPrivilege,
+  hasEducationPrivilege,
+  type EducationPrivilege,
+} from '@/lib/education/permissions'
 import LeadViewClient, { type LeadViewData } from './LeadViewClient'
 
 interface Props {
   params: { id: string }
+}
+
+type EduWriteScope = 'view' | 'manage'
+
+/** Подбирает привилегию по education_status journey и типу доступа. */
+function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPrivilege {
+  if (status === 'lead')      return scope === 'manage' ? 'manage_leads' : 'view_leads'
+  if (status === 'applicant') return scope === 'manage' ? 'manage_applicants' : 'view_applicants'
+  return scope === 'manage' ? 'manage_students' : 'view_students'
 }
 
 /** Преобразует Json-поле phones в плоский массив строк. */
@@ -65,14 +78,17 @@ export default async function LeadViewPage({ params }: Props) {
   }
 
   const target = { department_id: j.primary_department_id ?? undefined }
+  const status = j.education_status
 
-  // Право на просмотр лида (бросает 403, если нет)
-  await requireEducationPrivilege('view_leads', target)
+  // Право на просмотр — по статусу journey (бросает 403, если нет)
+  await requireEducationPrivilege(pickPrivilege(status, 'view'), target)
 
   // Право на редактирование — определяет показ кнопки «Редактировать»
-  const canManage = await hasEducationPrivilege(session, 'manage_leads', target)
-  // Право на конверт — определяет показ финала «В абитуриенты» при закрытии процесса
-  const canConvert = await hasEducationPrivilege(session, 'convert_lead', target)
+  const canManage = await hasEducationPrivilege(session, pickPrivilege(status, 'manage'), target)
+  // Право на конверт — только для лидов (определяет показ финала «В абитуриенты»)
+  const canConvert = status === 'lead'
+    ? await hasEducationPrivilege(session, 'convert_lead', target)
+    : false
 
   // Доп. данные: направления, общины, родственники
   const [{ data: interests }, { data: communities }, { data: relatives }] = await Promise.all([
