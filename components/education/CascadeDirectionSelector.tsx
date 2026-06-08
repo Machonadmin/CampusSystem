@@ -117,7 +117,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
             value={value.department_id ?? ''}
             onChange={e => handleInstitution(e.target.value)}
             disabled={disabled}
-            style={{ ...inp, color: value.department_id ? '#1F2937' : '#9CA3AF' }}
+            style={{ ...inp, color: value.department_id ? '#111827' : '#9CA3AF' }}
           >
             <option value="">— выберите учреждение —</option>
             {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
@@ -134,7 +134,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
               value={value.direction_id ?? ''}
               onChange={e => handleDirection(e.target.value)}
               disabled={disabled}
-              style={{ ...inp, color: value.direction_id ? '#1F2937' : '#9CA3AF' }}
+              style={{ ...inp, color: value.direction_id ? '#111827' : '#9CA3AF' }}
             >
               <option value="">— выберите направление —</option>
               {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
@@ -150,7 +150,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
               value={value.level_id ?? ''}
               onChange={e => handleLevel(e.target.value)}
               disabled={disabled}
-              style={{ ...inp, color: value.level_id ? '#1F2937' : '#9CA3AF' }}
+              style={{ ...inp, color: value.level_id ? '#111827' : '#9CA3AF' }}
             >
               <option value="">— выберите уровень —</option>
               {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}

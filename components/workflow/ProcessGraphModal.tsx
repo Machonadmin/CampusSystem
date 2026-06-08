@@ -93,7 +93,7 @@ function buildMermaid(data: GraphData): string {
     // Кликабельны только узлы с реальным экземпляром подэтапа;
     // stage_instance_id передаётся напрямую аргументом функции
     if (n.stage_instance_id) {
-      lines.push(`  click ${key} call processGraphNodeClick("${n.stage_instance_id}") "Открыть подэтап"`)
+      lines.push(`  click ${key} call processGraphNodeClick("${n.stage_instance_id}")`)
     }
   }
 

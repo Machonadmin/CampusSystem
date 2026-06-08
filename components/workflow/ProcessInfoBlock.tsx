@@ -141,17 +141,15 @@ function stageLabelStyle(status: string, accent: string): React.CSSProperties {
 
 /**
  * Цвет кнопки финала по семантике:
+ *   code ∈ ORANGE_FINAL_CODES                     → оранжевый (приоритет над is_positive)
  *   is_positive=true                              → зелёный
- *   code ∈ {postponed, partial, done_event_later} → оранжевый
  *   is_positive=false                             → красный
- *   иначе                                         → серый
  */
-const ORANGE_FINAL_CODES = ['postponed', 'partial', 'done_event_later']
+const ORANGE_FINAL_CODES = new Set(['postponed', 'partial', 'done_event_later', 'no_show'])
 function finalButtonColors(code: string, isPositive: boolean): { background: string; color: string } {
+  if (ORANGE_FINAL_CODES.has(code)) return { background: '#FED7AA', color: '#9A3412' }
   if (isPositive) return { background: '#D1FAE5', color: '#065F46' }
-  if (ORANGE_FINAL_CODES.includes(code)) return { background: '#FED7AA', color: '#9A3412' }
-  if (isPositive === false) return { background: '#FEE2E2', color: '#991B1B' }
-  return { background: '#F3F4F6', color: '#6B7280' }
+  return { background: '#FEE2E2', color: '#991B1B' }
 }
 
 function taskStatusStyle(status: string): { color: string; label: string } {
