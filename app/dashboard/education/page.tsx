@@ -20,8 +20,11 @@ interface Lead {
   photo_url: string | null
   referral_source: string | null
   application_date: string | null
+  updated_at: string | null
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
 }
+
+type LeadSortKey = 'full_name' | 'phones' | 'email' | 'updated_at'
 
 /** Строка из GET /api/education/journeys?status=applicant */
 interface ApplicantJourney {
@@ -88,6 +91,8 @@ export default function EducationPage() {
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
+  const [sortBy, setSortBy] = useState<LeadSortKey>('updated_at')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
@@ -114,15 +119,37 @@ export default function EducationPage() {
     if (tab === 'admission') loadApplicants()
   }, [tab, loadLeads, loadApplicants])
 
-  const filtered = leads.filter(l => {
-    const q = search.toLowerCase()
-    const matchSearch = !q ||
-      l.full_name.toLowerCase().includes(q) ||
-      (l.email?.toLowerCase().includes(q) ?? false) ||
-      l.phones.some(p => p.includes(q)) ||
-      l.interests.some(i => interestLabel(i).toLowerCase().includes(q))
-    return matchSearch
-  })
+  function handleLeadSort(key: LeadSortKey) {
+    if (sortBy === key) {
+      setSortOrder(o => o === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(key)
+      setSortOrder('asc')
+    }
+  }
+
+  const filtered = leads
+    .filter(l => {
+      const q = search.toLowerCase()
+      return !q ||
+        l.full_name.toLowerCase().includes(q) ||
+        (l.email?.toLowerCase().includes(q) ?? false) ||
+        l.phones.some(p => p.includes(q)) ||
+        l.interests.some(i => interestLabel(i).toLowerCase().includes(q))
+    })
+    .sort((a, b) => {
+      let va: string | null
+      let vb: string | null
+      if (sortBy === 'full_name') { va = a.full_name; vb = b.full_name }
+      else if (sortBy === 'email') { va = a.email; vb = b.email }
+      else if (sortBy === 'phones') { va = a.phones[0] ?? null; vb = b.phones[0] ?? null }
+      else { va = a.updated_at ?? a.application_date; vb = b.updated_at ?? b.application_date }
+      if (!va && !vb) return 0
+      if (!va) return 1
+      if (!vb) return -1
+      const cmp = va.localeCompare(vb)
+      return sortOrder === 'asc' ? cmp : -cmp
+    })
 
   return (
     <div className="p-6 space-y-5">
@@ -176,9 +203,30 @@ export default function EducationPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    {['ИМЯ', 'ТЕЛЕФОН', 'EMAIL', 'НАПРАВЛЕНИЯ', 'ИСТОЧНИК', 'ДАТА', 'СТАТУС'].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
-                        {h}
+                    {([
+                      { label: 'ИМЯ',       key: 'full_name'  as LeadSortKey },
+                      { label: 'ТЕЛЕФОН',    key: 'phones'     as LeadSortKey },
+                      { label: 'EMAIL',      key: 'email'      as LeadSortKey },
+                      { label: 'НАПРАВЛЕНИЯ', key: null },
+                      { label: 'ИСТОЧНИК',   key: null },
+                      { label: 'ДАТА',       key: 'updated_at' as LeadSortKey },
+                      { label: 'СТАТУС',     key: null },
+                    ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
+                      <th
+                        key={label}
+                        onClick={key ? () => handleLeadSort(key) : undefined}
+                        style={{
+                          padding: '10px 14px', fontSize: 11, fontWeight: 600,
+                          color: key ? (sortBy === key ? '#374151' : '#9CA3AF') : '#9CA3AF',
+                          textAlign: 'left', whiteSpace: 'nowrap',
+                          cursor: key ? 'pointer' : 'default',
+                          userSelect: 'none',
+                        }}
+                      >
+                        {label}
+                        {key && sortBy === key && (
+                          <span style={{ marginLeft: 4 }}>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
                       </th>
                     ))}
                   </tr>

@@ -34,9 +34,9 @@ export async function GET() {
 
     const { data: journeys, error: jErr } = await sb
       .from('education_journeys')
-      .select('id, person_id, referral_source, application_date, opened_at, notes')
+      .select('id, person_id, referral_source, application_date, opened_at, notes, updated_at')
       .eq('education_status', 'lead')
-      .order('opened_at', { ascending: false })
+      .order('updated_at', { ascending: false })
 
     if (jErr) throw jErr
     if (!journeys || journeys.length === 0) return NextResponse.json([])
@@ -78,6 +78,7 @@ export async function GET() {
         photo_url: person?.photo_url ?? null,
         referral_source: j.referral_source ?? null,
         application_date: j.application_date ?? j.opened_at ?? null,
+        updated_at: j.updated_at ?? null,
         interests: interestMap.get(j.person_id) ?? [],
       }
     })

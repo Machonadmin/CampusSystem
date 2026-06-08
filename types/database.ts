@@ -27,9 +27,10 @@ export interface PersonRelativeRow {
   relation_type: RelationType
   notes: string | null
   created_at: string
+  updated_at: string
 }
 export type PersonRelativeInsert =
-  Omit<PersonRelativeRow, 'id' | 'created_at'>
+  Omit<PersonRelativeRow, 'id' | 'created_at' | 'updated_at'>
   & { id?: string }
 export type PersonRelativeUpdate = Partial<Omit<PersonRelativeInsert, 'person_id' | 'relative_id'>>
 export type ApplicantStatus = 'new' | 'reviewing' | 'accepted' | 'rejected'
@@ -105,6 +106,7 @@ export interface PersonAccountRow {
   is_active: boolean
   last_login: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface PersonFamilyRow {
@@ -138,6 +140,10 @@ export interface EducationJourneyRow {
 
   // Статус journey
   education_status: JourneyStatus | null
+
+  // Системные даты
+  created_at: string
+  updated_at: string
 
   // Даты
   opened_at: string
@@ -275,6 +281,7 @@ export interface LeadInterestRow {
   free_text: string | null
   notes: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface PersonStatusHistoryRow {
@@ -315,6 +322,7 @@ export interface DepartmentRow {
   head_person_id: string | null
   is_educational_institution: boolean
   created_at: string
+  updated_at: string
 }
 
 export interface StaffPositionRow {
@@ -359,6 +367,7 @@ export interface RoleRow {
   description: string | null
   is_system: boolean
   created_at: string
+  updated_at: string
 }
 
 /** Replaces the boolean-column model from migration 001 */
@@ -406,19 +415,19 @@ export interface PersonPrivilegeRow {
 export type PersonInsert =
   Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'full_name' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
   & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
-export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at'>
+export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at' | 'updated_at'>
 export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>
 /** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
 export type ApplicantProfileInsert = EducationJourneyInsert
 export type EnrollmentInsert = Omit<EnrollmentRow, 'id'>
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id'>
-export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'is_educational_institution'> & {
+export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'> & {
   is_educational_institution?: boolean
 }
 export type StaffPositionInsert = Omit<StaffPositionRow, 'id'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id'>
-export type RoleInsert = Omit<RoleRow, 'id' | 'created_at'>
+export type RoleInsert = Omit<RoleRow, 'id' | 'created_at' | 'updated_at'>
 export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at' | 'scope'> & {
   scope?: 'all' | 'department' | 'own'
 }
@@ -575,8 +584,9 @@ export interface ReferenceLevelRow {
   sort_order: number
   is_active: boolean
   created_at: string
+  updated_at: string
 }
-export type ReferenceLevelInsert = Omit<ReferenceLevelRow, 'id' | 'created_at'> & {
+export type ReferenceLevelInsert = Omit<ReferenceLevelRow, 'id' | 'created_at' | 'updated_at'> & {
   id?: string
 }
 export type ReferenceLevelUpdate = Partial<ReferenceLevelInsert>
@@ -866,8 +876,9 @@ export interface StageTemplateRow {
   is_addable:          boolean
   sort_order:          number
   created_at:          string
+  updated_at:          string
 }
-export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at'> & {
+export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at' | 'updated_at'> & {
   id?: string
   created_at?: string
 }
@@ -887,8 +898,9 @@ export interface StageTaskTemplateRow {
   default_due_days:      number | null
   sort_order:            number
   created_at:            string
+  updated_at:            string
 }
-export type StageTaskTemplateInsert = Omit<StageTaskTemplateRow, 'id' | 'created_at'> & {
+export type StageTaskTemplateInsert = Omit<StageTaskTemplateRow, 'id' | 'created_at' | 'updated_at'> & {
   id?: string
   created_at?: string
 }
@@ -901,8 +913,10 @@ export interface StageFinalRow {
   name_ru:           string
   is_positive:       boolean
   sort_order:        number
+  created_at:        string
+  updated_at:        string
 }
-export type StageFinalInsert = Omit<StageFinalRow, 'id'> & { id?: string }
+export type StageFinalInsert = Omit<StageFinalRow, 'id' | 'created_at' | 'updated_at'> & { id?: string }
 export type StageFinalUpdate = Partial<StageFinalInsert>
 
 export interface StageTransitionRow {
@@ -912,8 +926,10 @@ export interface StageTransitionRow {
   trigger_final_code:    string | null
   activation_mode:       'after_one' | 'after_all'
   sort_order:            number
+  created_at:            string
+  updated_at:            string
 }
-export type StageTransitionInsert = Omit<StageTransitionRow, 'id'> & { id?: string }
+export type StageTransitionInsert = Omit<StageTransitionRow, 'id' | 'created_at' | 'updated_at'> & { id?: string }
 export type StageTransitionUpdate = Partial<StageTransitionInsert>
 
 export interface TaskTransitionRow {
@@ -924,8 +940,9 @@ export interface TaskTransitionRow {
   activation_mode:   'after_one' | 'after_all'
   sort_order:        number
   created_at:        string
+  updated_at:        string
 }
-export type TaskTransitionInsert = Omit<TaskTransitionRow, 'id' | 'created_at'> & {
+export type TaskTransitionInsert = Omit<TaskTransitionRow, 'id' | 'created_at' | 'updated_at'> & {
   id?: string
   created_at?: string
 }

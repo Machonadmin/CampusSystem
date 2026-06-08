@@ -94,6 +94,18 @@ export async function startProcess(
     throw new Error('Нельзя запустить процесс с задачами без автора (actorId=null)')
   }
 
+  // 4а. ФИО лида — подставляется в title задач
+  let personFullName: string | undefined
+  if (anyInitialHasTasks) {
+    const { data: journeyPerson } = await sb
+      .from('education_journeys')
+      .select('person:persons!education_journeys_person_id_fkey(full_name)')
+      .eq('id', journeyId)
+      .maybeSingle()
+    const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
+    personFullName = p?.full_name ?? undefined
+  }
+
   const now = new Date().toISOString()
 
   // 5. process_instance
@@ -133,7 +145,7 @@ export async function startProcess(
 
     if (!isActive || !stage.has_tasks) continue
 
-    await createStartingTasks(sb, stage.id, si.id, actorId!)
+    await createStartingTasks(sb, stage.id, si.id, actorId!, personFullName)
   }
 
   return { process_instance_id: pi.id, stage_instance_ids: stageInstanceIds, already_existed: false }
@@ -152,6 +164,7 @@ export function mapTaskTemplate(
   tt: StageTaskTemplateRow,
   stageInstanceId: string,
   actorId: string,
+  personFullName?: string,
 ): TaskInsert {
   let assignee_type: TaskInsert['assignee_type'] = 'unassigned'
   let assignee_id: string | null = null
@@ -175,7 +188,7 @@ export function mapTaskTemplate(
   // role / manual / null / department без отдела / position без должности → unassigned
 
   return {
-    title: tt.title,
+    title: personFullName ? `${tt.title}: ${personFullName}` : tt.title,
     description: tt.description,
     module: 'general',
     metadata: {},
@@ -207,6 +220,7 @@ export async function createStartingTasks(
   stageTemplateId: string,
   stageInstanceId: string,
   actorId: string,
+  personFullName?: string,
 ): Promise<void> {
   const { data: taskTemplates, error: ttErr } = await sb
     .from('stage_task_templates')
@@ -233,7 +247,7 @@ export async function createStartingTasks(
     : taskTemplates
 
   for (const tt of toCreate) {
-    const insert = mapTaskTemplate(tt as unknown as StageTaskTemplateRow, stageInstanceId, actorId)
+    const insert = mapTaskTemplate(tt as unknown as StageTaskTemplateRow, stageInstanceId, actorId, personFullName)
     const { error: taskErr } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -49,6 +49,24 @@ export async function handleTaskCompletion(
   const stageInstanceId = task.stage_instance_id as string
   const stageTemplateId = template.stage_template_id
 
+  // 1b. ФИО лида для title задачи
+  let personFullName: string | undefined
+  {
+    const { data: siChain } = await sb
+      .from('stage_instances')
+      .select(`
+        process_instance:process_instances!stage_instances_process_instance_id_fkey(
+          journey:education_journeys!process_instances_journey_id_fkey(
+            person:persons!education_journeys_person_id_fkey(full_name)
+          )
+        )
+      `)
+      .eq('id', stageInstanceId)
+      .maybeSingle()
+    const pi = (siChain?.process_instance as unknown as { journey?: { person?: { full_name: string | null } } } | null)
+    personFullName = pi?.journey?.person?.full_name ?? undefined
+  }
+
   // 2. Исходящие переходы от завершённой задачи
   const { data: transitions, error: trErr } = await sb
     .from('task_transitions')
@@ -125,7 +143,7 @@ export async function handleTaskCompletion(
     }
 
     // Создать задачу
-    const insert = mapTaskTemplate(targetTemplate, stageInstanceId, actorId)
+    const insert = mapTaskTemplate(targetTemplate, stageInstanceId, actorId, personFullName)
     const { error: insErr } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

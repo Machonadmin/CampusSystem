@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
@@ -445,9 +446,18 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                               <span style={{ fontSize: 12, color: ts.color, fontWeight: 500, whiteSpace: 'nowrap' }}>
                                 {ts.label}
                               </span>
-                              <span style={{ fontSize: 13, color: task.status === 'completed' || task.status === 'cancelled' ? '#9CA3AF' : '#1F2937', flex: 1, textDecoration: task.status === 'cancelled' ? 'line-through' : 'none' }}>
+                              <Link
+                                href={`/dashboard/tasks/${task.id}`}
+                                style={{
+                                  fontSize: 13, flex: 1,
+                                  color: task.status === 'completed' || task.status === 'cancelled' ? '#9CA3AF' : '#2563EB',
+                                  textDecoration: task.status === 'cancelled' ? 'line-through' : 'none',
+                                }}
+                                onMouseEnter={e => { if (task.status !== 'cancelled') (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline' }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = task.status === 'cancelled' ? 'line-through' : 'none' }}
+                              >
                                 {task.title}
-                              </span>
+                              </Link>
                             </div>
                           )
                         })}

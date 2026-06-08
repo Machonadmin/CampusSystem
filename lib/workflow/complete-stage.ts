@@ -78,6 +78,18 @@ export async function completeStage(
     .order('sort_order', { ascending: true })
   if (trErr) throw trErr
 
+  // 4b. ФИО лида — подставляется в title задач при создании
+  let personFullName: string | undefined
+  {
+    const { data: journeyPerson } = await sb
+      .from('education_journeys')
+      .select('person:persons!education_journeys_person_id_fkey(full_name)')
+      .eq('id', processInstance.journey_id)
+      .maybeSingle()
+    const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
+    personFullName = p?.full_name ?? undefined
+  }
+
   // 5. Activate target stages
   const activatedStageIds: string[] = []
   const seenTargets = new Set<string>()
@@ -146,7 +158,7 @@ export async function completeStage(
       .maybeSingle()
 
     if (targetTemplate?.has_tasks && actorId) {
-      await createStartingTasks(sb, tr.to_stage_template_id, targetSi.id, actorId)
+      await createStartingTasks(sb, tr.to_stage_template_id, targetSi.id, actorId, personFullName)
     }
   }
 
