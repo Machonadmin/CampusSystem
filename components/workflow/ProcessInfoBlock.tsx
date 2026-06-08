@@ -10,6 +10,7 @@ import ProcessGraphModal from './ProcessGraphModal'
 interface StageFinalName {
   code: string
   name_ru: string
+  is_positive?: boolean
 }
 
 interface StageTemplateInfo {

@@ -19,7 +19,7 @@ export async function GET(
         template:process_templates(id, code, name_ru),
         stages:stage_instances(
           id, status, final_code, activated_at, completed_at,
-          stage_template:stage_templates(id, code, name_ru, sort_order, finals:stage_finals(code, name_ru))
+          stage_template:stage_templates(id, code, name_ru, sort_order, finals:stage_finals(code, name_ru, is_positive))
         )
       `)
       .eq('journey_id', params.journeyId)
