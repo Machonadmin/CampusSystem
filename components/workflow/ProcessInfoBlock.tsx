@@ -192,6 +192,22 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   const reload = useCallback(() => setVersion((v: number) => v + 1), [])
 
+  async function handleReactivate(stageId: string) {
+    if (!confirm('Активировать пропущенный подэтап?')) return
+    try {
+      const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json() as { error?: string }
+        alert(data.error ?? 'Не удалось активировать подэтап')
+        return
+      }
+      reload()
+      router.refresh()
+    } catch {
+      alert('Ошибка сети')
+    }
+  }
+
   useEffect(() => {
     setLoading(true)
     fetch(`/api/workflow/journeys/${journeyId}/processes`)
@@ -338,30 +354,46 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               {[...proc.stages]
                 .sort((a, b) => (a.stage_template?.sort_order ?? 0) - (b.stage_template?.sort_order ?? 0))
                 .map(stage => (
-                  <button
-                    key={stage.id}
-                    onClick={() => openStage(stage.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      padding: '4px 6px', borderRadius: 6, textAlign: 'left', width: '100%',
-                      transition: 'background 0.1s',
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
-                  >
-                    <span style={stageIconStyle(stage.status, accent)}>
-                      {stageIcon(stage.status)}
-                    </span>
-                    <span style={stageLabelStyle(stage.status, accent)}>
-                      {stage.stage_template?.name_ru ?? '—'}
-                    </span>
-                    {stage.final_code && stage.status === 'completed' && (
-                      <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 'auto' }}>
-                        {stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code}
+                  <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button
+                      onClick={() => openStage(stage.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '4px 6px', borderRadius: 6, textAlign: 'left', flex: 1, minWidth: 0,
+                        transition: 'background 0.1s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                    >
+                      <span style={stageIconStyle(stage.status, accent)}>
+                        {stageIcon(stage.status)}
                       </span>
+                      <span style={stageLabelStyle(stage.status, accent)}>
+                        {stage.stage_template?.name_ru ?? '—'}
+                      </span>
+                      {stage.final_code && stage.status === 'completed' && (
+                        <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 'auto' }}>
+                          {stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code}
+                        </span>
+                      )}
+                    </button>
+                    {stage.status === 'skipped' && proc.status === 'active' && canManage && (
+                      <button
+                        onClick={() => handleReactivate(stage.id)}
+                        title="Вернуть пропущенный подэтап к выполнению"
+                        style={{
+                          flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
+                          padding: '2px 6px', fontSize: 11, fontWeight: 500, color: '#2563EB',
+                          whiteSpace: 'nowrap', borderRadius: 4,
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none' }}
+                      >
+                        ▶ Активировать
+                      </button>
                     )}
-                  </button>
+                  </div>
                 ))}
             </div>
 
