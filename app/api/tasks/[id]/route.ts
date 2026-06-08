@@ -198,6 +198,20 @@ export async function PATCH(
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+
+      // Дублируем заметку смены статуса в общий фид комментариев, чтобы она
+      // не «терялась» (видна только в истории). Ошибка вставки не должна
+      // валить уже выполненную смену статуса.
+      const note = body.status_note?.trim()
+      if (note) {
+        const { error: cErr } = await sb.from('task_comments').insert({
+          task_id: params.id,
+          author_id: session.person_id,
+          content: note,
+          comment_type: 'status_note',
+        })
+        if (cErr) console.error('[tasks PATCH] не удалось продублировать заметку в комментарии:', cErr)
+      }
     }
 
     // Завершение задачи → активировать следующие задачи подэтапа.
