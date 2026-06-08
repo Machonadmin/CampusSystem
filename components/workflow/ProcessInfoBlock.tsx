@@ -587,7 +587,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         <ProcessGraphModal
           processInstanceId={graphProcessId}
           onClose={() => setGraphProcessId(null)}
-          onStageClick={(stageInstanceId) => openStage(stageInstanceId)}
+          onStageClick={(stageInstanceId) => {
+            setGraphProcessId(null)   // закрыть схему
+            openStage(stageInstanceId) // открыть карточку подэтапа поверх
+          }}
         />
       )}
     </>

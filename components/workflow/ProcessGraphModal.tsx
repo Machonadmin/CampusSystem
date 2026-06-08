@@ -54,13 +54,12 @@ const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {
 }
 
 /** Строит Mermaid-разметку графа из данных. */
-function buildMermaid(data: GraphData): { markup: string; nodeKeyToInstance: Map<string, string> } {
+function buildMermaid(data: GraphData): string {
   const ordered = [...data.nodes].sort((a, b) => a.sort_order - b.sort_order)
   const keyOf = new Map<string, string>()      // stage_template_id → mermaid node key (n0, n1…)
-  const nodeKeyToInstance = new Map<string, string>() // mermaid node key → stage_instance_id
   ordered.forEach((n, i) => keyOf.set(n.id, `n${i}`))
 
-  const lines: string[] = ['graph TD']
+  const lines: string[] = ['graph LR']
 
   // Узлы
   for (const n of ordered) {
@@ -68,16 +67,16 @@ function buildMermaid(data: GraphData): { markup: string; nodeKeyToInstance: Map
     lines.push(`  ${key}["${esc(n.name_ru)}"]`)
   }
 
-  // Рёбра
+  // Рёбра — без меток финалов, только структура переходов
+  const seen = new Set<string>()
   for (const e of data.edges) {
     const from = keyOf.get(e.from_stage_template_id)
     const to = keyOf.get(e.to_stage_template_id)
     if (!from || !to) continue
-    if (e.final_name) {
-      lines.push(`  ${from} -->|"${esc(e.final_name)}"| ${to}`)
-    } else {
-      lines.push(`  ${from} --> ${to}`)
-    }
+    const edgeKey = `${from}→${to}`
+    if (seen.has(edgeKey)) continue  // дедупликация параллельных рёбер A→B
+    seen.add(edgeKey)
+    lines.push(`  ${from} --> ${to}`)
   }
 
   // Классы статусов
@@ -91,14 +90,14 @@ function buildMermaid(data: GraphData): { markup: string; nodeKeyToInstance: Map
     const key = keyOf.get(n.id)!
     const cls = n.status ? STATUS_CLASS[n.status] : 'pending'
     lines.push(`  class ${key} ${cls};`)
-    // Кликабельны только узлы с реальным экземпляром подэтапа
+    // Кликабельны только узлы с реальным экземпляром подэтапа;
+    // stage_instance_id передаётся напрямую аргументом функции
     if (n.stage_instance_id) {
-      nodeKeyToInstance.set(key, n.stage_instance_id)
-      lines.push(`  click ${key} call processGraphNodeClick() "Открыть подэтап"`)
+      lines.push(`  click ${key} call processGraphNodeClick("${n.stage_instance_id}") "Открыть подэтап"`)
     }
   }
 
-  return { markup: lines.join('\n'), nodeKeyToInstance }
+  return lines.join('\n')
 }
 
 const PROCESS_STATUS_LABEL: Record<string, string> = {
@@ -113,8 +112,6 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
   const [error, setError] = useState('')
   const [svg, setSvg] = useState('')
   const containerRef = useRef<HTMLDivElement | null>(null)
-  // Текущая карта «ключ узла → stage_instance_id» для обработчика клика
-  const instanceMapRef = useRef<Map<string, string>>(new Map())
   const onStageClickRef = useRef(onStageClick)
   onStageClickRef.current = onStageClick
 
@@ -137,11 +134,11 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     return () => { cancelled = true }
   }, [processInstanceId])
 
-  // Регистрация глобального коллбэка клика по узлу (Mermaid securityLevel: 'loose')
+  // Регистрация глобального коллбэка клика по узлу (Mermaid securityLevel: 'loose').
+  // stage_instance_id передаётся напрямую из click-директивы в Mermaid markup.
   useEffect(() => {
-    const w = window as unknown as { processGraphNodeClick?: (nodeKey: string) => void }
-    w.processGraphNodeClick = (nodeKey: string) => {
-      const instanceId = instanceMapRef.current.get(nodeKey)
+    const w = window as unknown as { processGraphNodeClick?: (instanceId: string) => void }
+    w.processGraphNodeClick = (instanceId: string) => {
       if (instanceId) onStageClickRef.current(instanceId)
     }
     return () => { delete (window as unknown as { processGraphNodeClick?: unknown }).processGraphNodeClick }
@@ -153,8 +150,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     let cancelled = false
     if (data.nodes.length === 0) { setSvg(''); return }
 
-    const { markup, nodeKeyToInstance } = buildMermaid(data)
-    instanceMapRef.current = nodeKeyToInstance
+    const markup = buildMermaid(data)
 
     ;(async () => {
       try {
