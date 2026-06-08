@@ -24,7 +24,7 @@ interface Lead {
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
 }
 
-type LeadSortKey = 'full_name' | 'phones' | 'email' | 'updated_at'
+type LeadSortKey = 'full_name' | 'phones' | 'email' | 'application_date'
 
 /** Строка из GET /api/education/journeys?status=applicant */
 interface ApplicantJourney {
@@ -91,7 +91,7 @@ export default function EducationPage() {
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
-  const [sortBy, setSortBy] = useState<LeadSortKey>('updated_at')
+  const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
@@ -143,7 +143,7 @@ export default function EducationPage() {
       if (sortBy === 'full_name') { va = a.full_name; vb = b.full_name }
       else if (sortBy === 'email') { va = a.email; vb = b.email }
       else if (sortBy === 'phones') { va = a.phones[0] ?? null; vb = b.phones[0] ?? null }
-      else { va = a.updated_at ?? a.application_date; vb = b.updated_at ?? b.application_date }
+      else { va = a.application_date; vb = b.application_date }
       if (!va && !vb) return 0
       if (!va) return 1
       if (!vb) return -1
@@ -209,7 +209,7 @@ export default function EducationPage() {
                       { label: 'EMAIL',      key: 'email'      as LeadSortKey },
                       { label: 'НАПРАВЛЕНИЯ', key: null },
                       { label: 'ИСТОЧНИК',   key: null },
-                      { label: 'ДАТА',       key: 'updated_at' as LeadSortKey },
+                      { label: 'ДАТА СОЗДАНИЯ', key: 'application_date' as LeadSortKey },
                       { label: 'СТАТУС',     key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
                       <th
