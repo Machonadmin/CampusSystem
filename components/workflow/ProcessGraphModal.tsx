@@ -104,13 +104,18 @@ const PROCESS_STATUS_LABEL: Record<string, string> = {
   active: 'Активен', completed: 'Завершён', cancelled: 'Отменён',
 }
 
+/** Человекочитаемая причина завершения процесса (finish_reason). */
+const FINISH_REASON_LABEL: Record<string, string> = {
+  converted: 'Конвертирован', rejected: 'Отклонён', postponed: 'Отложен', cancelled: 'Отменён',
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProcessGraphModal({ processInstanceId, onClose, onStageClick }: Props) {
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [svg, setSvg] = useState('')
+  const [renderError, setRenderError] = useState('')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const onStageClickRef = useRef(onStageClick)
   onStageClickRef.current = onStageClick
@@ -136,19 +141,23 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
 
   // Регистрация глобального коллбэка клика по узлу (Mermaid securityLevel: 'loose').
   // stage_instance_id передаётся напрямую из click-директивы в Mermaid markup.
+  // Регистрируется ДО рендера Mermaid (этот эффект объявлен раньше render-эффекта).
   useEffect(() => {
     const w = window as unknown as { processGraphNodeClick?: (instanceId: string) => void }
     w.processGraphNodeClick = (instanceId: string) => {
+      console.log('[ProcessGraphModal] node clicked:', instanceId)
       if (instanceId) onStageClickRef.current(instanceId)
     }
     return () => { delete (window as unknown as { processGraphNodeClick?: unknown }).processGraphNodeClick }
   }, [])
 
-  // Рендер Mermaid при появлении данных
+  // Рендер Mermaid при появлении данных.
+  // Императивно: пишем SVG прямо в containerRef и сразу вызываем bindFunctions —
+  // так React не пересоздаёт DOM-узлы после привязки click-обработчиков.
   useEffect(() => {
-    if (!data) return
+    if (!data || data.nodes.length === 0) return
     let cancelled = false
-    if (data.nodes.length === 0) { setSvg(''); return }
+    setRenderError('')
 
     const markup = buildMermaid(data)
 
@@ -158,19 +167,19 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
         const renderId = `proc-graph-${Math.random().toString(36).slice(2)}`
         const { svg: out, bindFunctions } = await mermaid.render(renderId, markup)
-        if (cancelled) return
-        setSvg(out)
-        // bindFunctions навешивает click-обработчики на отрендеренные узлы
-        requestAnimationFrame(() => {
-          if (containerRef.current && bindFunctions) bindFunctions(containerRef.current)
-        })
+        if (cancelled || !containerRef.current) return
+        containerRef.current.innerHTML = out
+        // bindFunctions навешивает click-обработчики на только что вставленные узлы
+        if (bindFunctions) bindFunctions(containerRef.current)
       } catch (e) {
-        if (!cancelled) setError('Ошибка отрисовки схемы: ' + (e as Error).message)
+        if (!cancelled) setRenderError('Ошибка отрисовки схемы: ' + (e as Error).message)
       }
     })()
 
     return () => { cancelled = true }
   }, [data])
+
+  const showGraph = !loading && !error && !renderError && !!data && data.nodes.length > 0
 
   return (
     <div
@@ -189,7 +198,8 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         .proc-graph-svg .node.active circle {
           animation: procGraphPulse 1.6s ease-in-out infinite;
         }
-        .proc-graph-svg .node[id] { cursor: default; }
+        .proc-graph-svg .node { cursor: default; }
+        .proc-graph-svg .node.clickable { cursor: pointer; }
         .proc-graph-svg svg { max-width: 100%; height: auto; }
       `}</style>
 
@@ -209,7 +219,9 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
               </span>
             )}
             {data?.process_final && (
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>Итог: {data.process_final}</span>
+              <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+                Итог: {FINISH_REASON_LABEL[data.process_final] ?? data.process_final}
+              </span>
             )}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>
@@ -222,18 +234,17 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
           {loading && (
             <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>Загрузка схемы…</div>
           )}
-          {!loading && error && (
-            <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error}</div>
+          {!loading && (error || renderError) && (
+            <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
           )}
-          {!loading && !error && data && data.nodes.length === 0 && (
+          {!loading && !error && !renderError && data && data.nodes.length === 0 && (
             <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>Нет данных для схемы процесса</div>
           )}
-          {!loading && !error && svg && (
+          {showGraph && (
             <div
               ref={containerRef}
               className="proc-graph-svg"
               style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
-              dangerouslySetInnerHTML={{ __html: svg }}
             />
           )}
         </div>
