@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
+import ProcessGraphModal from './ProcessGraphModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -163,6 +164,9 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState('')
 
+  // Схема процесса (Mermaid)
+  const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
+
   // Досрочное закрытие процесса
   const [closingProc, setClosingProc] = useState<ProcessInfo | null>(null)
   const [closingFinals, setClosingFinals] = useState<ClosingFinal[]>([])
@@ -302,6 +306,19 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               }}>
                 {processStatusLabel(proc.status)}
               </span>
+              <button
+                onClick={() => setGraphProcessId(proc.id)}
+                title="Схема процесса"
+                style={{
+                  marginLeft: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
+                  color: '#6B7280', background: '#F9FAFB', border: '1px solid #E5E7EB',
+                  borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+              >
+                ⛁ Схема процесса
+              </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {[...proc.stages]
@@ -563,6 +580,15 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             </div>
           </div>
         </div>
+      )}
+
+      {/* Process graph modal */}
+      {graphProcessId && (
+        <ProcessGraphModal
+          processInstanceId={graphProcessId}
+          onClose={() => setGraphProcessId(null)}
+          onStageClick={(stageInstanceId) => openStage(stageInstanceId)}
+        />
       )}
     </>
   )
