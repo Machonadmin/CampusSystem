@@ -604,6 +604,7 @@ export interface TaskRow {
   recurrence_rule: Json | null          // см. структуру в миграции
   recurrence_position: number | null    // порядковый номер в серии
   stage_instance_id: string | null
+  stage_task_template_id: string | null  // FK на шаблон задачи (NULL для legacy)
   created_at: string
   updated_at: string
   completed_at: string | null
@@ -630,6 +631,7 @@ export interface TaskInsert {
   recurrence_rule?: Json | null
   recurrence_position?: number | null
   stage_instance_id?: string | null
+  stage_task_template_id?: string | null
 }
 export type TaskUpdate = Partial<TaskInsert>
 
@@ -914,6 +916,21 @@ export interface StageTransitionRow {
 export type StageTransitionInsert = Omit<StageTransitionRow, 'id'> & { id?: string }
 export type StageTransitionUpdate = Partial<StageTransitionInsert>
 
+export interface TaskTransitionRow {
+  id:                string
+  stage_template_id: string
+  from_task_code:    string | null   // NULL = стартовая задача
+  to_task_code:      string
+  activation_mode:   'after_one' | 'after_all'
+  sort_order:        number
+  created_at:        string
+}
+export type TaskTransitionInsert = Omit<TaskTransitionRow, 'id' | 'created_at'> & {
+  id?: string
+  created_at?: string
+}
+export type TaskTransitionUpdate = Partial<TaskTransitionInsert>
+
 export type ProcessInstanceStatus = 'active' | 'completed' | 'cancelled'
 
 export interface ProcessInstanceRow {
@@ -1050,6 +1067,7 @@ export interface Database {
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
       stage_finals:              T<StageFinalRow,                StageFinalInsert,                StageFinalUpdate>
       stage_transitions:         T<StageTransitionRow,           StageTransitionInsert,           StageTransitionUpdate>
+      task_transitions:          T<TaskTransitionRow,            TaskTransitionInsert,            TaskTransitionUpdate>
       process_instances:         T<ProcessInstanceRow,           ProcessInstanceInsert,           ProcessInstanceUpdate>
       stage_instances:           T<StageInstanceRow,             StageInstanceInsert,             StageInstanceUpdate>
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>

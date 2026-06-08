@@ -133,21 +133,7 @@ export async function startProcess(
 
     if (!isActive || !stage.has_tasks) continue
 
-    const { data: taskTemplates, error: ttErr } = await sb
-      .from('stage_task_templates')
-      .select('*')
-      .eq('stage_template_id', stage.id)
-      .order('sort_order', { ascending: true })
-    if (ttErr) throw ttErr
-
-    for (const tt of taskTemplates ?? []) {
-      const insert = mapTaskTemplate(tt, si.id, actorId!)
-      const { error: taskErr } = await sb
-        .from('tasks')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert(insert as any)
-      if (taskErr) throw taskErr
-    }
+    await createStartingTasks(sb, stage.id, si.id, actorId!)
   }
 
   return { process_instance_id: pi.id, stage_instance_ids: stageInstanceIds, already_existed: false }
@@ -204,5 +190,54 @@ export function mapTaskTemplate(
     due_time: null,
     due_all_day: true,
     stage_instance_id: stageInstanceId,
+    stage_task_template_id: tt.id,
+  }
+}
+
+/**
+ * Создаёт стартовые задачи подэтапа.
+ *
+ * Стартовые = те шаблоны, чей code есть среди to_task_code в task_transitions
+ * с from_task_code IS NULL. Если для подэтапа нет ни одной такой transition
+ * (legacy без настроенных переходов) — создаём все шаблоны (обратная
+ * совместимость).
+ */
+export async function createStartingTasks(
+  sb: SB,
+  stageTemplateId: string,
+  stageInstanceId: string,
+  actorId: string,
+): Promise<void> {
+  const { data: taskTemplates, error: ttErr } = await sb
+    .from('stage_task_templates')
+    .select('*')
+    .eq('stage_template_id', stageTemplateId)
+    .order('sort_order', { ascending: true })
+  if (ttErr) throw ttErr
+  if (!taskTemplates || taskTemplates.length === 0) return
+
+  const { data: startTransitions, error: trErr } = await sb
+    .from('task_transitions')
+    .select('to_task_code')
+    .eq('stage_template_id', stageTemplateId)
+    .is('from_task_code', null)
+  if (trErr) throw trErr
+
+  const startCodes = new Set(
+    (startTransitions ?? []).map((t: { to_task_code: string }) => t.to_task_code)
+  )
+
+  // Нет настроенных стартовых переходов → создаём все (legacy fallback)
+  const toCreate = startCodes.size > 0
+    ? taskTemplates.filter((tt: StageTaskTemplateRow) => startCodes.has(tt.code))
+    : taskTemplates
+
+  for (const tt of toCreate) {
+    const insert = mapTaskTemplate(tt as unknown as StageTaskTemplateRow, stageInstanceId, actorId)
+    const { error: taskErr } = await sb
+      .from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(insert as any)
+    if (taskErr) throw taskErr
   }
 }

@@ -1,6 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { mapTaskTemplate } from '@/lib/workflow/start-process'
-import type { StageTaskTemplateRow } from '@/types/database'
+import { createStartingTasks } from '@/lib/workflow/start-process'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -147,20 +146,7 @@ export async function completeStage(
       .maybeSingle()
 
     if (targetTemplate?.has_tasks && actorId) {
-      const { data: taskTemplates } = await sb
-        .from('stage_task_templates')
-        .select('*')
-        .eq('stage_template_id', tr.to_stage_template_id)
-        .order('sort_order', { ascending: true })
-
-      for (const tt of taskTemplates ?? []) {
-        const insert = mapTaskTemplate(tt as unknown as StageTaskTemplateRow, targetSi.id, actorId)
-        const { error: insertErr } = await sb
-          .from('tasks')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .insert(insert as any)
-        if (insertErr) throw insertErr
-      }
+      await createStartingTasks(sb, tr.to_stage_template_id, targetSi.id, actorId)
     }
   }
 

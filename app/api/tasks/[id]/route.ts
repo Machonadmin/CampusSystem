@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
+import { handleTaskCompletion } from '@/lib/workflow/handle-task-completion'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 async function requireAuth() {
@@ -197,6 +198,16 @@ export async function PATCH(
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+    }
+
+    // Завершение задачи → активировать следующие задачи подэтапа.
+    // Ошибки перехода не должны валить уже выполненную смену статуса.
+    if (statusChange?.to === 'completed') {
+      try {
+        await handleTaskCompletion(sb, params.id, session.person_id)
+      } catch (chainErr) {
+        console.error('[handleTaskCompletion] не удалось активировать следующие задачи:', chainErr)
+      }
     }
 
     return NextResponse.json(updated)
