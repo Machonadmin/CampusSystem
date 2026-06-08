@@ -144,19 +144,20 @@ export async function GET(request: NextRequest) {
     if (personIds.length > 0) {
       const { data: interests } = await sb
         .from('lead_interests')
-        .select('person_id, free_text, direction:reference_directions(name_ru), level:reference_levels(name_ru)')
+        .select('person_id, free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
         .in('person_id', personIds)
 
-      type InterestOut = { free_text: string | null; direction_name: string | null; level_name: string | null }
+      type InterestOut = { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }
       const interestMap = new Map<string, InterestOut[]>()
       for (const i of interests ?? []) {
-        const dir = (i.direction as unknown) as { name_ru: string } | null
+        const dir = (i.direction as unknown) as { name_ru: string; department: { name: string } | null } | null
         const lvl = (i.level as unknown) as { name_ru: string } | null
         if (!interestMap.has(i.person_id)) interestMap.set(i.person_id, [])
         interestMap.get(i.person_id)!.push({
           free_text: i.free_text,
           direction_name: dir?.name_ru ?? null,
           level_name: lvl?.name_ru ?? null,
+          department_name: dir?.department?.name ?? null,
         })
       }
       filtered = filtered.map(j => {

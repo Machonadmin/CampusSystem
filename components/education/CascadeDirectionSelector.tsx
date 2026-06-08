@@ -108,57 +108,58 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
-      {/* Учреждение */}
-      <div>
-        <label style={lbl}>Учреждение</label>
-        <select
-          value={value.department_id ?? ''}
-          onChange={e => handleInstitution(e.target.value)}
-          disabled={disabled}
-          style={{ ...inp, color: value.department_id ? '#1F2937' : '#9CA3AF' }}
-        >
-          <option value="">— выберите учреждение —</option>
-          {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-        </select>
+      {/* Three selects in a horizontal grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'end' }}>
+        {/* Учреждение */}
+        <div>
+          <label style={lbl}>Учреждение</label>
+          <select
+            value={value.department_id ?? ''}
+            onChange={e => handleInstitution(e.target.value)}
+            disabled={disabled}
+            style={{ ...inp, color: value.department_id ? '#1F2937' : '#9CA3AF' }}
+          >
+            <option value="">— выберите учреждение —</option>
+            {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+          </select>
+        </div>
+
+        {/* Направление */}
+        {loadingDirections ? (
+          <div style={{ fontSize: 12, color: '#9CA3AF', paddingBottom: 8 }}>Загрузка направлений…</div>
+        ) : showDirections ? (
+          <div>
+            <label style={lbl}>Направление</label>
+            <select
+              value={value.direction_id ?? ''}
+              onChange={e => handleDirection(e.target.value)}
+              disabled={disabled}
+              style={{ ...inp, color: value.direction_id ? '#1F2937' : '#9CA3AF' }}
+            >
+              <option value="">— выберите направление —</option>
+              {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
+            </select>
+          </div>
+        ) : null}
+
+        {/* Уровень / Курс */}
+        {showLevels ? (
+          <div>
+            <label style={lbl}>Уровень / Курс</label>
+            <select
+              value={value.level_id ?? ''}
+              onChange={e => handleLevel(e.target.value)}
+              disabled={disabled}
+              style={{ ...inp, color: value.level_id ? '#1F2937' : '#9CA3AF' }}
+            >
+              <option value="">— выберите уровень —</option>
+              {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}
+            </select>
+          </div>
+        ) : null}
       </div>
 
-      {/* Направление */}
-      {loadingDirections && (
-        <div style={{ fontSize: 12, color: '#9CA3AF' }}>Загрузка направлений…</div>
-      )}
-
-      {showDirections && (
-        <div>
-          <label style={lbl}>Направление</label>
-          <select
-            value={value.direction_id ?? ''}
-            onChange={e => handleDirection(e.target.value)}
-            disabled={disabled}
-            style={{ ...inp, color: value.direction_id ? '#1F2937' : '#9CA3AF' }}
-          >
-            <option value="">— выберите направление —</option>
-            {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
-          </select>
-        </div>
-      )}
-
-      {/* Уровень / Курс */}
-      {showLevels && (
-        <div>
-          <label style={lbl}>Уровень / Курс</label>
-          <select
-            value={value.level_id ?? ''}
-            onChange={e => handleLevel(e.target.value)}
-            disabled={disabled}
-            style={{ ...inp, color: value.level_id ? '#1F2937' : '#9CA3AF' }}
-          >
-            <option value="">— выберите уровень —</option>
-            {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}
-          </select>
-        </div>
-      )}
-
-      {/* Свободный текст (учреждение без справочника / легаси) */}
+      {/* Свободный текст (учреждение без справочника / легаси) — на всю ширину */}
       {showFreeText && (
         <div>
           <label style={lbl}>Опишите направление</label>

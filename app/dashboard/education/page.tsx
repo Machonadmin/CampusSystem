@@ -20,7 +20,7 @@ interface Lead {
   photo_url: string | null
   referral_source: string | null
   application_date: string | null
-  interests: { free_text: string | null; direction_name: string | null; level_name: string | null }[]
+  interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
 }
 
 /** Строка из GET /api/education/journeys?status=applicant */
@@ -36,7 +36,7 @@ interface ApplicantJourney {
   primary_department: { name: string } | null
   desired_department: { name: string } | null
   desired_specialty: { name: string } | null
-  interests?: { free_text: string | null; direction_name: string | null; level_name: string | null }[]
+  interests?: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -69,9 +69,12 @@ function flattenPhones(raw: unknown): string[] {
     .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
     .filter(Boolean)
 }
-/** Текст направления: справочник (с уровнем) или free_text. */
-function interestLabel(i: { free_text: string | null; direction_name: string | null; level_name: string | null }): string {
-  if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
+/** Текст направления: «Учреждение → Направление, Курс» или free_text. */
+function interestLabel(i: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }): string {
+  if (i.direction_name) {
+    const dir = i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
+    return i.department_name ? `${i.department_name} → ${dir}` : dir
+  }
   return (i.free_text ?? '').trim()
 }
 

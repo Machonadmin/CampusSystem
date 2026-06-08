@@ -93,7 +93,7 @@ export default async function LeadViewPage({ params }: Props) {
   // Доп. данные: направления, общины, родственники
   const [{ data: interests }, { data: communities }, { data: relatives }] = await Promise.all([
     sb.from('lead_interests')
-      .select('free_text, direction:reference_directions(name_ru), level:reference_levels(name_ru)')
+      .select('free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
       .eq('person_id', j.person_id),
     sb.from('journey_communities')
       .select('community_id, contact_name, contact_role, contact_phone, contact_email, notes, community:communities(id, name, country, city)')
@@ -124,12 +124,13 @@ export default async function LeadViewPage({ params }: Props) {
       address: p?.address ?? null,
     },
     interests: (interests ?? []).map(i => {
-      const dir = (i.direction as unknown) as { name_ru: string } | null
+      const dir = (i.direction as unknown) as { name_ru: string; department: { name: string } | null } | null
       const lvl = (i.level as unknown) as { name_ru: string } | null
       return {
         free_text: i.free_text,
         direction_name: dir?.name_ru ?? null,
         level_name: lvl?.name_ru ?? null,
+        department_name: dir?.department?.name ?? null,
       }
     }),
     communities: (communities ?? []).map(c => {
