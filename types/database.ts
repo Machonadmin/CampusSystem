@@ -117,6 +117,7 @@ export interface PersonFamilyRow {
   phone: string | null
   email: string | null
   relation_note: string | null
+  created_at: string
 }
 
 /**
@@ -248,9 +249,10 @@ export interface JourneyCommunityRow {
   contact_email: string | null
   notes: string | null
   added_at: string
+  created_at: string
 }
 export type JourneyCommunityInsert =
-  Omit<JourneyCommunityRow, 'added_at'>
+  Omit<JourneyCommunityRow, 'added_at' | 'created_at'>
   & { added_at?: string }
 export type JourneyCommunityUpdate = Partial<JourneyCommunityInsert>
 
@@ -292,6 +294,7 @@ export interface PersonStatusHistoryRow {
   changed_at: string
   changed_by: string | null
   comment: string | null
+  created_at: string
 }
 
 export interface EnrollmentRow {
@@ -304,6 +307,7 @@ export interface EnrollmentRow {
   graduation_date: string | null
   status: EnrollmentStatus
   notes: string | null
+  created_at: string
 }
 
 export interface StaffProfileRow {
@@ -313,6 +317,8 @@ export interface StaffProfileRow {
   hire_date: string | null
   fire_date: string | null
   notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface DepartmentRow {
@@ -335,6 +341,8 @@ export interface StaffPositionRow {
   is_head: boolean
   start_date: string | null
   end_date: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface AlumniProfileRow {
@@ -346,6 +354,8 @@ export interface AlumniProfileRow {
   current_location: string | null
   current_occupation: string | null
   notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface SponsorProfileRow {
@@ -357,6 +367,8 @@ export interface SponsorProfileRow {
   org_contact_phone: string | null
   org_contact_email: string | null
   notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface RoleRow {
@@ -379,6 +391,7 @@ export interface RolePrivilegeRow {
   scope: 'all' | 'department' | 'own'
   granted_at: string
   granted_by: string | null
+  created_at: string
 }
 
 export interface PersonRoleRow {
@@ -387,6 +400,7 @@ export interface PersonRoleRow {
   role_id: string
   assigned_at: string
   assigned_by: string | null
+  created_at: string
 }
 
 export interface ModulePrivilegeRow {
@@ -396,6 +410,8 @@ export interface ModulePrivilegeRow {
   privilege_name: string
   description: string | null
   sort_order: number
+  created_at: string
+  updated_at: string
 }
 
 export interface PersonPrivilegeRow {
@@ -408,6 +424,7 @@ export interface PersonPrivilegeRow {
   expires_at: string | null
   granted_at: string
   granted_by: string | null
+  created_at: string
 }
 
 // ─── Insert types (omit server-generated fields) ─────────────────────────────
@@ -416,27 +433,27 @@ export type PersonInsert =
   Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'full_name' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
   & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
 export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at' | 'updated_at'>
-export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id'>
+export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id' | 'created_at'>
 /** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
 export type ApplicantProfileInsert = EducationJourneyInsert
-export type EnrollmentInsert = Omit<EnrollmentRow, 'id'>
-export type StaffProfileInsert = Omit<StaffProfileRow, 'id'>
+export type EnrollmentInsert = Omit<EnrollmentRow, 'id' | 'created_at'>
+export type StaffProfileInsert = Omit<StaffProfileRow, 'id' | 'created_at' | 'updated_at'>
 export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'> & {
   is_educational_institution?: boolean
 }
-export type StaffPositionInsert = Omit<StaffPositionRow, 'id'>
-export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id'>
-export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id'>
+export type StaffPositionInsert = Omit<StaffPositionRow, 'id' | 'created_at' | 'updated_at'>
+export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id' | 'created_at' | 'updated_at'>
+export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id' | 'created_at' | 'updated_at'>
 export type RoleInsert = Omit<RoleRow, 'id' | 'created_at' | 'updated_at'>
-export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at' | 'scope'> & {
+export type RolePrivilegeInsert = Omit<RolePrivilegeRow, 'id' | 'granted_at' | 'scope' | 'created_at'> & {
   scope?: 'all' | 'department' | 'own'
 }
-export type PersonRoleInsert = Omit<PersonRoleRow, 'id' | 'assigned_at'>
-export type ModulePrivilegeInsert = Omit<ModulePrivilegeRow, 'id'>
-export type PersonPrivilegeInsert = Omit<PersonPrivilegeRow, 'id' | 'granted_at'>
+export type PersonRoleInsert = Omit<PersonRoleRow, 'id' | 'assigned_at' | 'created_at'>
+export type ModulePrivilegeInsert = Omit<ModulePrivilegeRow, 'id' | 'created_at' | 'updated_at'>
+export type PersonPrivilegeInsert = Omit<PersonPrivilegeRow, 'id' | 'granted_at' | 'created_at'>
 export type LeadInterestInsert = Omit<LeadInterestRow, 'id' | 'created_at' | 'notes'> & { notes?: string | null }
 export type LeadInterestUpdate = Partial<LeadInterestInsert>
-export type PersonStatusHistoryInsert = Omit<PersonStatusHistoryRow, 'id' | 'changed_at' | 'comment'> & { comment?: string | null }
+export type PersonStatusHistoryInsert = Omit<PersonStatusHistoryRow, 'id' | 'changed_at' | 'comment' | 'created_at'> & { comment?: string | null }
 export type PersonStatusHistoryUpdate = Partial<PersonStatusHistoryInsert>
 
 export interface QualityCheckTemplateRow {
@@ -481,6 +498,7 @@ export interface QualityCheckRow {
   status: string
   created_by: string | null
   created_at: string
+  updated_at: string
   completed_at: string | null
 }
 export interface QualityCheckInsert {
@@ -535,6 +553,7 @@ export interface ReferenceCityRow {
   country: string
   city: string
   created_at?: string
+  updated_at: string
 }
 export interface ReferenceCityInsert {
   id?: string
@@ -652,6 +671,7 @@ export interface TaskCommentRow {
   content: string
   comment_type: TaskCommentType
   created_at: string
+  updated_at: string
 }
 export interface TaskCommentInsert {
   id?: string
@@ -667,6 +687,7 @@ export interface TaskWatcherRow {
   person_id: string
   added_by: string | null
   added_at: string
+  created_at: string
 }
 export interface TaskWatcherInsert {
   task_id: string
@@ -823,6 +844,7 @@ export interface ClassEnrollmentRow {
   journey_id: string
   class_group_id: string
   enrolled_at: string
+  created_at: string
 }
 export interface ClassEnrollmentInsert {
   journey_id: string
@@ -837,6 +859,7 @@ export interface ClassTeacherRow {
   added_at: string
   added_by: string | null
   is_primary: boolean
+  created_at: string
 }
 export interface ClassTeacherInsert {
   class_group_id: string
@@ -1001,8 +1024,9 @@ export interface StageActionRow {
   metadata:          Record<string, unknown> | null
   created_by:        string | null
   created_at:        string
+  updated_at:        string
 }
-export type StageActionInsert = Omit<StageActionRow, 'id' | 'created_at'> & {
+export type StageActionInsert = Omit<StageActionRow, 'id' | 'created_at' | 'updated_at'> & {
   id?: string
   created_at?: string
 }
