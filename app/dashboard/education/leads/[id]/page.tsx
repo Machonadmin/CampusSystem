@@ -41,7 +41,7 @@ export default async function LeadViewPage({ params }: Props) {
       id, person_id, education_status, primary_department_id,
       referral_source, notes, opened_at, application_date,
       person:persons(id, full_name, first_name, last_name, middle_name, hebrew_name,
-        email, phones, gender, birth_date, address, marital_status, nationality, passport_number),
+        email, phones, gender, birth_date, address, marital_status, nationality, passport_number, photo_url),
       primary_department:departments!education_journeys_primary_department_id_fkey(id, name)
     `)
     .eq('id', params.id)
@@ -73,6 +73,7 @@ export default async function LeadViewPage({ params }: Props) {
       marital_status: string | null
       nationality: string | null
       passport_number: string | null
+      photo_url: string | null
     } | null
     primary_department: { id: string; name: string } | null
   }
@@ -113,6 +114,9 @@ export default async function LeadViewPage({ params }: Props) {
     departmentName: j.primary_department?.name ?? null,
     person: {
       full_name: p?.full_name ?? '',
+      first_name: p?.first_name ?? null,
+      last_name: p?.last_name ?? null,
+      middle_name: p?.middle_name ?? null,
       hebrew_name: p?.hebrew_name ?? null,
       birth_date: p?.birth_date ?? null,
       gender: p?.gender ?? null,
@@ -122,6 +126,7 @@ export default async function LeadViewPage({ params }: Props) {
       email: p?.email ?? null,
       phones: flattenPhones(p?.phones),
       address: p?.address ?? null,
+      photo_url: p?.photo_url ?? null,
     },
     interests: (interests ?? []).map(i => {
       const dir = (i.direction as unknown) as { name_ru: string; department: { name: string } | null } | null
