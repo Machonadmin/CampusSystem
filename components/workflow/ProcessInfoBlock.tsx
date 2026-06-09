@@ -193,7 +193,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const reload = useCallback(() => setVersion((v: number) => v + 1), [])
 
   async function handleReactivate(stageId: string) {
-    if (!confirm('Активировать пропущенный подэтап?')) return
+    if (!confirm('Активировать подэтап?')) return
     try {
       const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
       if (!res.ok) {
@@ -378,10 +378,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         </span>
                       )}
                     </button>
-                    {stage.status === 'skipped' && proc.status === 'active' && canManage && (
+                    {(stage.status === 'skipped' || stage.status === 'waiting') && proc.status === 'active' && canManage && (
                       <button
                         onClick={() => handleReactivate(stage.id)}
-                        title="Вернуть пропущенный подэтап к выполнению"
+                        title="Вернуть подэтап к выполнению"
                         style={{
                           flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
                           padding: '2px 6px', fontSize: 11, fontWeight: 500, color: '#2563EB',

@@ -33,6 +33,15 @@ export async function POST(
     const isSuperadmin = session.roles?.includes('superadmin') ?? false
     const sb = createServerClient()
 
+    // Необязательный комментарий при взятии задачи (по аналогии с PATCH)
+    let statusNote = ''
+    try {
+      const body = await request.json()
+      if (typeof body?.status_note === 'string') statusNote = body.status_note.trim()
+    } catch {
+      // тело может отсутствовать — это нормально
+    }
+
     const { data: task, error: tErr } = await sb
       .from('tasks')
       .select('*')
@@ -96,8 +105,20 @@ export async function POST(
       actor_id: personId,
       from_status: 'unassigned',
       to_status: 'in_progress',
-      note: 'Задача взята из пула',
+      note: statusNote || 'Задача взята из пула',
     })
+
+    // Если указан комментарий — продублировать его в ленту task_comments,
+    // чтобы он был виден в обсуждении, а не только в истории статусов.
+    if (statusNote) {
+      const { error: cErr } = await sb.from('task_comments').insert({
+        task_id: params.id,
+        author_id: personId,
+        content: statusNote,
+        comment_type: 'status_note',
+      })
+      if (cErr) console.error('[tasks claim] не удалось продублировать заметку в комментарии:', cErr)
+    }
 
     return NextResponse.json(updated)
   } catch (err: unknown) {

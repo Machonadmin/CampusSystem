@@ -209,7 +209,7 @@ export default function EducationPage() {
                       { label: 'EMAIL',      key: 'email'      as LeadSortKey },
                       { label: 'НАПРАВЛЕНИЯ', key: null },
                       { label: 'ИСТОЧНИК',   key: null },
-                      { label: 'ДАТА СОЗДАНИЯ', key: 'application_date' as LeadSortKey },
+                      { label: 'ДАТА ПОДАЧИ', key: 'application_date' as LeadSortKey },
                       { label: 'СТАТУС',     key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
                       <th

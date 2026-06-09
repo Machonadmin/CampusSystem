@@ -12,7 +12,7 @@ type SB = ReturnType<typeof createServerClient>
  *
  * Шаги:
  *   1. Загрузить stage_instance + процесс. Проверки:
- *      - status === 'skipped' (иначе Error)
+ *      - status === 'skipped' | 'waiting' (иначе Error)
  *      - process.status === 'active' (иначе Error)
  *   2. UPDATE stage_instance: status='active', completed_at/by=NULL, final_code=NULL.
  *   3. Создать стартовые задачи подэтапа (createStartingTasks) с ФИО лида в title.
@@ -44,9 +44,9 @@ export async function reactivateStage(
     throw new Error('Ошибка данных подэтапа')
   }
 
-  if (si.status !== 'skipped') {
+  if (si.status !== 'skipped' && si.status !== 'waiting') {
     throw Object.assign(
-      new Error('Активировать можно только пропущенный подэтап'),
+      new Error('Активировать можно только пропущенный или ожидающий подэтап'),
       { status: 400 },
     )
   }
