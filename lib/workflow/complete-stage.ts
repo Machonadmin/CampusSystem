@@ -117,6 +117,16 @@ export async function completeStage(
         .eq('id', processInstance.id)
       if (piCancelErr) throw piCancelErr
 
+      // г. Конверсия лида в абитуриента
+      if (processFinishReason === 'converted') {
+        const { error: jErr } = await sb
+          .from('education_journeys')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ education_status: 'applicant' } as any)
+          .eq('id', processInstance.journey_id)
+        if (jErr) throw jErr
+      }
+
       return {
         stage_instance_id: stageInstanceId,
         activated_stage_ids: [],
