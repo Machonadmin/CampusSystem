@@ -65,6 +65,7 @@ export async function handleTaskCompletion(
       .maybeSingle()
     const pi = (siChain?.process_instance as unknown as { journey?: { person?: { full_name: string | null } } } | null)
     personFullName = pi?.journey?.person?.full_name ?? undefined
+    console.log('[handleTaskCompletion] stageInstanceId:', stageInstanceId, 'siChain raw:', JSON.stringify(siChain), 'personFullName:', personFullName)
   }
 
   // 2. Исходящие переходы от завершённой задачи

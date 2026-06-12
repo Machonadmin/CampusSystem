@@ -104,6 +104,7 @@ export async function startProcess(
       .maybeSingle()
     const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
     personFullName = p?.full_name ?? undefined
+    console.log('[startProcess] journeyId:', journeyId, 'journeyPerson raw:', JSON.stringify(journeyPerson), 'personFullName:', personFullName)
   }
 
   const now = new Date().toISOString()
@@ -187,8 +188,10 @@ export function mapTaskTemplate(
   }
   // role / manual / null / department без отдела / position без должности → unassigned
 
+  const title = personFullName ? `${tt.title}: ${personFullName}` : tt.title
+  console.log('[mapTaskTemplate] tt.title:', tt.title, 'personFullName:', personFullName, '→ title:', title)
   return {
-    title: personFullName ? `${tt.title}: ${personFullName}` : tt.title,
+    title,
     description: tt.description,
     module: 'general',
     metadata: {},
@@ -222,6 +225,7 @@ export async function createStartingTasks(
   actorId: string,
   personFullName?: string,
 ): Promise<void> {
+  console.log('[createStartingTasks] stageTemplateId:', stageTemplateId, 'stageInstanceId:', stageInstanceId, 'personFullName param:', personFullName)
   const { data: taskTemplates, error: ttErr } = await sb
     .from('stage_task_templates')
     .select('*')
