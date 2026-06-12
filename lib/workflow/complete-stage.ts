@@ -81,14 +81,20 @@ export async function completeStage(
   // 4b. ФИО лида — подставляется в title задач при создании
   let personFullName: string | undefined
   {
-    const { data: journeyPerson } = await sb
+    const { data: journeyRow } = await sb
       .from('education_journeys')
-      .select('person:persons!education_journeys_person_id_fkey(full_name)')
+      .select('person_id')
       .eq('id', processInstance.journey_id)
       .maybeSingle()
-    const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
-    personFullName = p?.full_name ?? undefined
-    console.log('[completeStage] journey_id:', processInstance.journey_id, 'journeyPerson raw:', JSON.stringify(journeyPerson), 'personFullName:', personFullName)
+    const personId = (journeyRow as { person_id: string | null } | null)?.person_id
+    if (personId) {
+      const { data: personRow } = await sb
+        .from('persons')
+        .select('full_name')
+        .eq('id', personId)
+        .maybeSingle()
+      personFullName = (personRow as { full_name: string | null } | null)?.full_name ?? undefined
+    }
   }
 
   // 5. Activate target stages
@@ -172,8 +178,6 @@ export async function completeStage(
       .eq('process_instance_id', processInstance.id)
       .eq('status', 'waiting')
 
-    console.log('[completeStage] checking unreachable stages, waiting count:', (waitingInstances ?? []).length)
-
     const justActivated = new Set(activatedStageIds)
 
     for (const wi of (waitingInstances ?? []) as { id: string; stage_template_id: string }[]) {
@@ -184,9 +188,12 @@ export async function completeStage(
         .select('from_stage_template_id')
         .eq('to_stage_template_id', wi.stage_template_id)
 
-      const predTemplateIds = ((incomingTr ?? []) as { from_stage_template_id: string | null }[])
-        .map(t => t.from_stage_template_id)
-        .filter((id): id is string => id !== null)
+      // Дедуплицируем: один predecessor может дать несколько transitions (разные final_codes)
+      const predTemplateIds = [...new Set(
+        ((incomingTr ?? []) as { from_stage_template_id: string | null }[])
+          .map(t => t.from_stage_template_id)
+          .filter((id): id is string => id !== null)
+      )]
 
       if (predTemplateIds.length === 0) continue
 
@@ -201,11 +208,6 @@ export async function completeStage(
         (predInstances ?? []).every(
           (p: { status: string }) => p.status === 'completed' || p.status === 'skipped'
         )
-
-      console.log('[completeStage]  waiting stage instance:', wi.id, 'template:', wi.stage_template_id)
-      console.log('[completeStage]    incoming transitions raw:', (incomingTr ?? []).length, 'predTemplateIds:', JSON.stringify(predTemplateIds))
-      console.log('[completeStage]    predInstances found:', (predInstances ?? []).length, 'statuses:', JSON.stringify((predInstances ?? []).map((p: { status: string }) => p.status)))
-      console.log('[completeStage]    → allTerminated?', allTerminated)
 
       if (allTerminated) {
         const { error: skipErr } = await sb

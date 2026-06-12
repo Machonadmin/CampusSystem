@@ -49,23 +49,39 @@ export async function handleTaskCompletion(
   const stageInstanceId = task.stage_instance_id as string
   const stageTemplateId = template.stage_template_id
 
-  // 1b. ФИО лида для title задачи
+  // 1b. ФИО лида для title задачи (последовательные запросы — без зависимости от FK-имён)
   let personFullName: string | undefined
   {
-    const { data: siChain } = await sb
+    const { data: siRow } = await sb
       .from('stage_instances')
-      .select(`
-        process_instance:process_instances!stage_instances_process_instance_id_fkey(
-          journey:education_journeys!process_instances_journey_id_fkey(
-            person:persons!education_journeys_person_id_fkey(full_name)
-          )
-        )
-      `)
+      .select('process_instance_id')
       .eq('id', stageInstanceId)
       .maybeSingle()
-    const pi = (siChain?.process_instance as unknown as { journey?: { person?: { full_name: string | null } } } | null)
-    personFullName = pi?.journey?.person?.full_name ?? undefined
-    console.log('[handleTaskCompletion] stageInstanceId:', stageInstanceId, 'siChain raw:', JSON.stringify(siChain), 'personFullName:', personFullName)
+    const piId = (siRow as { process_instance_id: string | null } | null)?.process_instance_id
+    if (piId) {
+      const { data: piRow } = await sb
+        .from('process_instances')
+        .select('journey_id')
+        .eq('id', piId)
+        .maybeSingle()
+      const journeyId = (piRow as { journey_id: string | null } | null)?.journey_id
+      if (journeyId) {
+        const { data: journeyRow } = await sb
+          .from('education_journeys')
+          .select('person_id')
+          .eq('id', journeyId)
+          .maybeSingle()
+        const personId = (journeyRow as { person_id: string | null } | null)?.person_id
+        if (personId) {
+          const { data: personRow } = await sb
+            .from('persons')
+            .select('full_name')
+            .eq('id', personId)
+            .maybeSingle()
+          personFullName = (personRow as { full_name: string | null } | null)?.full_name ?? undefined
+        }
+      }
+    }
   }
 
   // 2. Исходящие переходы от завершённой задачи

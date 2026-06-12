@@ -76,14 +76,20 @@ export async function reactivateStage(
   // 3. ФИО лида — подставляется в title задач
   let personFullName: string | undefined
   {
-    const { data: journeyPerson } = await sb
+    const { data: journeyRow } = await sb
       .from('education_journeys')
-      .select('person:persons!education_journeys_person_id_fkey(full_name)')
+      .select('person_id')
       .eq('id', processInstance.journey_id)
       .maybeSingle()
-    const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
-    personFullName = p?.full_name ?? undefined
-    console.log('[reactivateStage] journey_id:', processInstance.journey_id, 'journeyPerson raw:', JSON.stringify(journeyPerson), 'personFullName:', personFullName)
+    const personId = (journeyRow as { person_id: string | null } | null)?.person_id
+    if (personId) {
+      const { data: personRow } = await sb
+        .from('persons')
+        .select('full_name')
+        .eq('id', personId)
+        .maybeSingle()
+      personFullName = (personRow as { full_name: string | null } | null)?.full_name ?? undefined
+    }
   }
 
   // 4. Создать стартовые задачи подэтапа (createStartingTasks сам выйдет,

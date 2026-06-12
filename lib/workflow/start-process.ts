@@ -97,14 +97,20 @@ export async function startProcess(
   // 4а. ФИО лида — подставляется в title задач
   let personFullName: string | undefined
   if (anyInitialHasTasks) {
-    const { data: journeyPerson } = await sb
+    const { data: journeyRow } = await sb
       .from('education_journeys')
-      .select('person:persons!education_journeys_person_id_fkey(full_name)')
+      .select('person_id')
       .eq('id', journeyId)
       .maybeSingle()
-    const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
-    personFullName = p?.full_name ?? undefined
-    console.log('[startProcess] journeyId:', journeyId, 'journeyPerson raw:', JSON.stringify(journeyPerson), 'personFullName:', personFullName)
+    const personId = (journeyRow as { person_id: string | null } | null)?.person_id
+    if (personId) {
+      const { data: personRow } = await sb
+        .from('persons')
+        .select('full_name')
+        .eq('id', personId)
+        .maybeSingle()
+      personFullName = (personRow as { full_name: string | null } | null)?.full_name ?? undefined
+    }
   }
 
   const now = new Date().toISOString()
@@ -188,10 +194,8 @@ export function mapTaskTemplate(
   }
   // role / manual / null / department без отдела / position без должности → unassigned
 
-  const title = personFullName ? `${tt.title}: ${personFullName}` : tt.title
-  console.log('[mapTaskTemplate] tt.title:', tt.title, 'personFullName:', personFullName, '→ title:', title)
   return {
-    title,
+    title: personFullName ? `${tt.title}: ${personFullName}` : tt.title,
     description: tt.description,
     module: 'general',
     metadata: {},
@@ -225,7 +229,6 @@ export async function createStartingTasks(
   actorId: string,
   personFullName?: string,
 ): Promise<void> {
-  console.log('[createStartingTasks] stageTemplateId:', stageTemplateId, 'stageInstanceId:', stageInstanceId, 'personFullName param:', personFullName)
   const { data: taskTemplates, error: ttErr } = await sb
     .from('stage_task_templates')
     .select('*')
