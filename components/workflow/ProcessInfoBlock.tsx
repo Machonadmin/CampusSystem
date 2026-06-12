@@ -181,6 +181,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   // Схема процесса (Mermaid)
   const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
 
+  // Подтверждение активации пропущенного подэтапа
+  const [reactivatingStage, setReactivatingStage] = useState<{ id: string; name: string } | null>(null)
+  const [reactivating, setReactivating] = useState(false)
+
   // Досрочное закрытие процесса
   const [closingProc, setClosingProc] = useState<ProcessInfo | null>(null)
   const [closingFinals, setClosingFinals] = useState<ClosingFinal[]>([])
@@ -192,8 +196,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   const reload = useCallback(() => setVersion((v: number) => v + 1), [])
 
-  async function handleReactivate(stageId: string) {
-    if (!confirm('Активировать подэтап?')) return
+  async function handleReactivate() {
+    if (!reactivatingStage) return
+    const stageId = reactivatingStage.id
+    setReactivating(true)
     try {
       const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
       if (!res.ok) {
@@ -201,10 +207,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         alert(data.error ?? 'Не удалось активировать подэтап')
         return
       }
+      setReactivatingStage(null)
       reload()
       router.refresh()
     } catch {
       alert('Ошибка сети')
+    } finally {
+      setReactivating(false)
     }
   }
 
@@ -378,10 +387,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         </span>
                       )}
                     </button>
-                    {(stage.status === 'skipped' || stage.status === 'waiting') && proc.status === 'active' && canManage && (
+                    {stage.status === 'skipped' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => handleReactivate(stage.id)}
-                        title="Вернуть подэтап к выполнению"
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template?.name_ru ?? 'Подэтап' })}
+                        title="Вернуть пропущенный подэтап к выполнению"
                         style={{
                           flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
                           padding: '2px 6px', fontSize: 11, fontWeight: 500, color: '#2563EB',
@@ -636,6 +645,53 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 : <span />}
               <button onClick={closeCloseEarly} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                 Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reactivate stage confirm modal */}
+      {reactivatingStage && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) setReactivatingStage(null) }}
+        >
+          <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 16px 48px rgba(0,0,0,0.2)', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>
+                Активировать пропущенный подэтап?
+              </span>
+              <button
+                onClick={() => setReactivatingStage(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}
+              >×</button>
+            </div>
+            <div style={{ padding: '16px 24px' }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+                Подэтап <strong>«{reactivatingStage.name}»</strong> будет активирован.
+                {' '}Создадутся задачи. Продолжить?
+              </p>
+            </div>
+            <div style={{ padding: '12px 24px 20px', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                onClick={() => setReactivatingStage(null)}
+                disabled={reactivating}
+                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleReactivate}
+                disabled={reactivating}
+                style={{
+                  padding: '8px 16px', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  background: '#2563EB', color: '#fff',
+                  cursor: reactivating ? 'wait' : 'pointer',
+                  opacity: reactivating ? 0.6 : 1,
+                }}
+              >
+                {reactivating ? 'Активация…' : 'Активировать'}
               </button>
             </div>
           </div>
