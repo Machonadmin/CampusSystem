@@ -25,12 +25,14 @@ async function requireAuth() {
  * interests берутся из lead_interests.free_text (каскад direction_id/level_id —
  * следующие этапы).
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth()
     const ok = await canDoEducationInAny(session, 'view_leads')
     if (!ok) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
     const sb = createServerClient()
+
+    const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
 
     const { data: journeys, error: jErr } = await sb
       .from('education_journeys')
@@ -42,16 +44,47 @@ export async function GET() {
     if (!journeys || journeys.length === 0) return NextResponse.json([])
 
     const personIds = journeys.map(j => j.person_id)
-
     const journeyIds = journeys.map(j => j.id)
+
+    // Все process_instances для фильтрации по статусу
+    const { data: allPi } = await sb
+      .from('process_instances')
+      .select('id, journey_id, status')
+      .in('journey_id', journeyIds)
+
+    const journeyHasActive = new Set<string>()
+    const journeyHasTerminated = new Set<string>()
+    for (const pi of allPi ?? []) {
+      if ((pi.status as string) === 'active') journeyHasActive.add(pi.journey_id as string)
+      else if ((pi.status as string) === 'cancelled' || (pi.status as string) === 'completed') {
+        journeyHasTerminated.add(pi.journey_id as string)
+      }
+    }
+
+    const filteredJourneys = journeys.filter(j => {
+      if (processStatus === 'active') {
+        // Показать: есть активный процесс ИЛИ вообще нет процесса
+        return journeyHasActive.has(j.id) || !journeyHasTerminated.has(j.id)
+      }
+      if (processStatus === 'closed') {
+        // Показать: есть завершённый/отменённый процесс И нет активного
+        return journeyHasTerminated.has(j.id) && !journeyHasActive.has(j.id)
+      }
+      return true // all
+    })
+
+    if (filteredJourneys.length === 0) return NextResponse.json([])
+
+    const filteredPersonIds = filteredJourneys.map(j => j.person_id)
+    const filteredJourneyIds = filteredJourneys.map(j => j.id)
 
     const [{ data: persons }, { data: interests }] = await Promise.all([
       sb.from('persons')
         .select('id, full_name, email, phones, photo_url')
-        .in('id', personIds),
+        .in('id', filteredPersonIds),
       sb.from('lead_interests')
         .select('person_id, free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
-        .in('person_id', personIds),
+        .in('person_id', filteredPersonIds),
     ])
 
     const personMap = new Map((persons ?? []).map(p => [p.id, p]))
@@ -72,18 +105,17 @@ export async function GET() {
     // Fetch active stages with their tasks, grouped per journey
     type StageEntry = { stageName: string; tasks: string[] }
     const journeyStages = new Map<string, StageEntry[]>()
-    for (const j of journeys) journeyStages.set(j.id, [])
+    for (const j of filteredJourneys) journeyStages.set(j.id, [])
 
-    const { data: processInstances } = await sb
-      .from('process_instances')
-      .select('id, journey_id')
-      .in('journey_id', journeyIds)
-      .eq('status', 'active')
-
-    const piToJourney = new Map<string, string>()
-    for (const pi of processInstances ?? []) {
-      piToJourney.set(pi.id as string, pi.journey_id as string)
+    // Только активные process_instances (для stages/tasks)
+    const activePiToJourney = new Map<string, string>()
+    for (const pi of allPi ?? []) {
+      if ((pi.status as string) === 'active' && filteredJourneyIds.includes(pi.journey_id as string)) {
+        activePiToJourney.set(pi.id as string, pi.journey_id as string)
+      }
     }
+
+    const piToJourney = activePiToJourney
     const piIds = [...piToJourney.keys()]
 
     if (piIds.length > 0) {
@@ -118,7 +150,7 @@ export async function GET() {
       }
     }
 
-    const result = journeys.map(j => {
+    const result = filteredJourneys.map(j => {
       const person = personMap.get(j.person_id)
       return {
         profile_id: j.id,

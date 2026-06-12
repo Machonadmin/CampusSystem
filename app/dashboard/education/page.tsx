@@ -90,16 +90,17 @@ export default function EducationPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [processStatus, setProcessStatus] = useState<'active' | 'closed' | 'all'>('active')
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/education/leads')
+    const res = await fetch(`/api/education/leads?process_status=${processStatus}`)
     if (res.ok) setLeads(await res.json())
     setLoading(false)
-  }, [])
+  }, [processStatus])
 
   const loadApplicants = useCallback(async () => {
     setLoadingApplicants(true)
@@ -179,6 +180,15 @@ export default function EducationPage() {
               placeholder="Поиск по имени, телефону, email, направлению..."
               style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }}
             />
+            <select
+              value={processStatus}
+              onChange={e => setProcessStatus(e.target.value as 'active' | 'closed' | 'all')}
+              style={{ padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer' }}
+            >
+              <option value="active">Активные процессы</option>
+              <option value="closed">Закрытые процессы</option>
+              <option value="all">Все</option>
+            </select>
             <PageActionButton
               label="Добавить лида"
               onClick={() => setAddOpen(true)}
