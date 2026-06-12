@@ -22,8 +22,7 @@ interface Lead {
   application_date: string | null
   updated_at: string | null
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
-  active_stages: string[]
-  active_tasks: string[]
+  active_stages_with_tasks: { stage_name: string; tasks: string[] }[]
 }
 
 type LeadSortKey = 'full_name' | 'application_date'
@@ -200,12 +199,13 @@ export default function EducationPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {([
-                      { label: 'ИМЯ',            key: 'full_name'       as LeadSortKey },
-                      { label: 'УЧРЕЖДЕНИЕ',      key: null },
-                      { label: 'НАПРАВЛЕНИЕ',     key: null },
-                      { label: 'ДАТА ПОДАЧИ',     key: 'application_date' as LeadSortKey },
-                      { label: 'ТЕКУЩИЙ ЭТАП',    key: null },
-                      { label: 'АКТИВНЫЕ ЗАДАЧИ', key: null },
+                      { label: 'ИМЯ',                    key: 'full_name'        as LeadSortKey },
+                      { label: 'УЧРЕЖДЕНИЕ',              key: null },
+                      { label: 'НАПРАВЛЕНИЕ',             key: null },
+                      { label: 'ТЕЛЕФОН',                 key: null },
+                      { label: 'EMAIL',                   key: null },
+                      { label: 'ДАТА ПОДАЧИ',             key: 'application_date' as LeadSortKey },
+                      { label: 'ТЕКУЩИЙ ЭТАП И ЗАДАЧИ',   key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
                       <th
                         key={label}
@@ -254,15 +254,21 @@ export default function EducationPage() {
                       </td>
 
                       {/* Учреждение */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 160 }}>
                         {(() => {
-                          const depts = [...new Set(lead.interests.map(i => i.department_name).filter(Boolean))]
-                          return depts.length > 0 ? depts.join(', ') : <span style={{ color: '#9CA3AF' }}>—</span>
+                          const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
+                          return depts.length === 0 ? (
+                            <span style={{ color: '#9CA3AF' }}>—</span>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {depts.map((d, idx) => <span key={idx}>{d}</span>)}
+                            </div>
+                          )
                         })()}
                       </td>
 
                       {/* Направление */}
-                      <td style={{ padding: '11px 14px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 14px', maxWidth: 200 }}>
                         {(() => {
                           const texts = lead.interests.map(i => {
                             if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
@@ -271,9 +277,27 @@ export default function EducationPage() {
                           return texts.length === 0 ? (
                             <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
                           ) : (
-                            <span style={{ fontSize: 12, color: '#374151' }}>{texts.join(', ')}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12, color: '#374151' }}>
+                              {texts.map((t, idx) => <span key={idx}>{t}</span>)}
+                            </div>
                           )
                         })()}
+                      </td>
+
+                      {/* Телефон */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                        {lead.phones.length === 0 ? (
+                          <span style={{ color: '#9CA3AF' }}>—</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {lead.phones.map((p, idx) => <span key={idx} style={{ whiteSpace: 'nowrap' }}>{p}</span>)}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Email */}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                        {lead.email ?? <span style={{ color: '#9CA3AF' }}>—</span>}
                       </td>
 
                       {/* Дата */}
@@ -281,17 +305,25 @@ export default function EducationPage() {
                         {formatDate(lead.application_date)}
                       </td>
 
-                      {/* Текущий этап */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {lead.active_stages.length > 0 ? lead.active_stages.join(', ') : (
-                          <span style={{ color: '#9CA3AF' }}>Не в работе</span>
-                        )}
-                      </td>
-
-                      {/* Активные задачи */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {lead.active_tasks.length > 0 ? lead.active_tasks.join(', ') : (
-                          <span style={{ color: '#9CA3AF' }}>—</span>
+                      {/* Текущий этап и задачи */}
+                      <td style={{ padding: '11px 14px', minWidth: 200 }}>
+                        {lead.active_stages_with_tasks.length === 0 ? (
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>Не в работе</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {lead.active_stages_with_tasks.map(stage => (
+                              <div key={stage.stage_name}>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{stage.stage_name}</div>
+                                {stage.tasks.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
+                                    {stage.tasks.map((task, idx) => (
+                                      <div key={idx} style={{ fontSize: 11, color: '#6B7280' }}>• {task}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </td>
                     </tr>

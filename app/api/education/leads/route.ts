@@ -69,13 +69,10 @@ export async function GET() {
       })
     }
 
-    // Fetch active stages and tasks per journey
-    const journeyToStages = new Map<string, string[]>()
-    const journeyToTasks = new Map<string, string[]>()
-    for (const j of journeys) {
-      journeyToStages.set(j.id, [])
-      journeyToTasks.set(j.id, [])
-    }
+    // Fetch active stages with their tasks, grouped per journey
+    type StageEntry = { stageName: string; tasks: string[] }
+    const journeyStages = new Map<string, StageEntry[]>()
+    for (const j of journeys) journeyStages.set(j.id, [])
 
     const { data: processInstances } = await sb
       .from('process_instances')
@@ -96,16 +93,18 @@ export async function GET() {
         .in('process_instance_id', piIds)
         .eq('status', 'active')
 
-      const siToJourney = new Map<string, string>()
+      const siToEntry = new Map<string, StageEntry>()
       for (const si of stageInstances ?? []) {
         const journeyId = piToJourney.get(si.process_instance_id as string)
         if (!journeyId) continue
         const name = (si.stage_template as unknown as { name_ru: string } | null)?.name_ru
-        if (name) journeyToStages.get(journeyId)!.push(name)
-        siToJourney.set(si.id as string, journeyId)
+        if (!name) continue
+        const entry: StageEntry = { stageName: name, tasks: [] }
+        siToEntry.set(si.id as string, entry)
+        journeyStages.get(journeyId)!.push(entry)
       }
 
-      const siIds = (stageInstances ?? []).map(si => si.id as string)
+      const siIds = [...siToEntry.keys()]
       if (siIds.length > 0) {
         const { data: tasks } = await sb
           .from('tasks')
@@ -114,9 +113,7 @@ export async function GET() {
           .in('status', ['unassigned', 'pending', 'in_progress'])
 
         for (const t of tasks ?? []) {
-          const journeyId = siToJourney.get(t.stage_instance_id as string)
-          if (!journeyId) continue
-          journeyToTasks.get(journeyId)!.push(t.title as string)
+          siToEntry.get(t.stage_instance_id as string)?.tasks.push(t.title as string)
         }
       }
     }
@@ -134,8 +131,10 @@ export async function GET() {
         application_date: j.application_date ?? j.opened_at ?? null,
         updated_at: j.updated_at ?? null,
         interests: interestMap.get(j.person_id) ?? [],
-        active_stages: journeyToStages.get(j.id) ?? [],
-        active_tasks: journeyToTasks.get(j.id) ?? [],
+        active_stages_with_tasks: (journeyStages.get(j.id) ?? []).map(s => ({
+          stage_name: s.stageName,
+          tasks: s.tasks,
+        })),
       }
     })
 
