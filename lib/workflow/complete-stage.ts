@@ -172,6 +172,8 @@ export async function completeStage(
       .eq('process_instance_id', processInstance.id)
       .eq('status', 'waiting')
 
+    console.log('[completeStage] checking unreachable stages, waiting count:', (waitingInstances ?? []).length)
+
     const justActivated = new Set(activatedStageIds)
 
     for (const wi of (waitingInstances ?? []) as { id: string; stage_template_id: string }[]) {
@@ -199,6 +201,11 @@ export async function completeStage(
         (predInstances ?? []).every(
           (p: { status: string }) => p.status === 'completed' || p.status === 'skipped'
         )
+
+      console.log('[completeStage]  waiting stage instance:', wi.id, 'template:', wi.stage_template_id)
+      console.log('[completeStage]    incoming transitions raw:', (incomingTr ?? []).length, 'predTemplateIds:', JSON.stringify(predTemplateIds))
+      console.log('[completeStage]    predInstances found:', (predInstances ?? []).length, 'statuses:', JSON.stringify((predInstances ?? []).map((p: { status: string }) => p.status)))
+      console.log('[completeStage]    → allTerminated?', allTerminated)
 
       if (allTerminated) {
         const { error: skipErr } = await sb
