@@ -930,14 +930,16 @@ export type StageTaskTemplateInsert = Omit<StageTaskTemplateRow, 'id' | 'created
 export type StageTaskTemplateUpdate = Partial<StageTaskTemplateInsert>
 
 export interface StageFinalRow {
-  id:                string
-  stage_template_id: string
-  code:              string
-  name_ru:           string
-  is_positive:       boolean
-  sort_order:        number
-  created_at:        string
-  updated_at:        string
+  id:                    string
+  stage_template_id:     string
+  code:                  string
+  name_ru:               string
+  is_positive:           boolean
+  closes_process:        boolean
+  process_finish_reason: string | null
+  sort_order:            number
+  created_at:            string
+  updated_at:            string
 }
 export type StageFinalInsert = Omit<StageFinalRow, 'id' | 'created_at' | 'updated_at'> & { id?: string }
 export type StageFinalUpdate = Partial<StageFinalInsert>

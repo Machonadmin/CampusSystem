@@ -69,6 +69,63 @@ export async function completeStage(
     .neq('status', 'cancelled')
   if (taskErr) throw taskErr
 
+  // 3b. Если финал закрывает процесс целиком — отменить остальные подэтапы/задачи
+  {
+    const { data: stageFinal } = await sb
+      .from('stage_finals')
+      .select('closes_process, process_finish_reason')
+      .eq('stage_template_id', si.stage_template_id)
+      .eq('code', finalCode)
+      .maybeSingle()
+
+    const final = stageFinal as { closes_process: boolean; process_finish_reason: string | null } | null
+    if (final?.closes_process) {
+      const processFinishReason = final.process_finish_reason ?? finalCode
+
+      // а. Отменить оставшиеся active/waiting подэтапы (текущий уже completed)
+      const { error: siCancelErr } = await sb
+        .from('stage_instances')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ status: 'cancelled', completed_at: now, completed_by: actorId } as any)
+        .eq('process_instance_id', processInstance.id)
+        .in('status', ['active', 'waiting'])
+      if (siCancelErr) throw siCancelErr
+
+      // б. Отменить незавершённые задачи всех подэтапов процесса
+      const { data: allSi, error: allSiErr } = await sb
+        .from('stage_instances')
+        .select('id')
+        .eq('process_instance_id', processInstance.id)
+      if (allSiErr) throw allSiErr
+      const allSiIds = (allSi ?? []).map((s: { id: string }) => s.id)
+
+      if (allSiIds.length > 0) {
+        const { error: taskCancelErr } = await sb
+          .from('tasks')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ status: 'cancelled', completed_at: now } as any)
+          .in('stage_instance_id', allSiIds)
+          .in('status', ['unassigned', 'pending', 'in_progress', 'review'])
+        if (taskCancelErr) throw taskCancelErr
+      }
+
+      // в. Закрыть процесс
+      const { error: piCancelErr } = await sb
+        .from('process_instances')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ status: 'cancelled', finish_reason: processFinishReason, finished_at: now } as any)
+        .eq('id', processInstance.id)
+      if (piCancelErr) throw piCancelErr
+
+      return {
+        stage_instance_id: stageInstanceId,
+        activated_stage_ids: [],
+        process_completed: true,
+        finish_reason: processFinishReason,
+      }
+    }
+  }
+
   // 4. Find outgoing transitions for this stage + final_code
   const { data: transitions, error: trErr } = await sb
     .from('stage_transitions')
