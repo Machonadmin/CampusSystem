@@ -22,9 +22,11 @@ interface Lead {
   application_date: string | null
   updated_at: string | null
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
+  active_stages: string[]
+  active_tasks: string[]
 }
 
-type LeadSortKey = 'full_name' | 'phones' | 'email' | 'application_date'
+type LeadSortKey = 'full_name' | 'application_date'
 
 /** Строка из GET /api/education/journeys?status=applicant */
 interface ApplicantJourney {
@@ -44,10 +46,6 @@ interface ApplicantJourney {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SOURCE_LABELS: Record<string, string> = {
-  website: 'Сайт', social: 'Соцсети', referral: 'Рекомендация',
-  call: 'Звонок', exhibition: 'Выставка', other: 'Другое',
-}
 
 const TABS = [
   { key: 'recruitment', label: 'Набор' },
@@ -141,8 +139,6 @@ export default function EducationPage() {
       let va: string | null
       let vb: string | null
       if (sortBy === 'full_name') { va = a.full_name; vb = b.full_name }
-      else if (sortBy === 'email') { va = a.email; vb = b.email }
-      else if (sortBy === 'phones') { va = a.phones[0] ?? null; vb = b.phones[0] ?? null }
       else { va = a.application_date; vb = b.application_date }
       if (!va && !vb) return 0
       if (!va) return 1
@@ -204,13 +200,12 @@ export default function EducationPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {([
-                      { label: 'ИМЯ',       key: 'full_name'  as LeadSortKey },
-                      { label: 'ТЕЛЕФОН',    key: 'phones'     as LeadSortKey },
-                      { label: 'EMAIL',      key: 'email'      as LeadSortKey },
-                      { label: 'НАПРАВЛЕНИЯ', key: null },
-                      { label: 'ИСТОЧНИК',   key: null },
-                      { label: 'ДАТА ПОДАЧИ', key: 'application_date' as LeadSortKey },
-                      { label: 'СТАТУС',     key: null },
+                      { label: 'ИМЯ',            key: 'full_name'       as LeadSortKey },
+                      { label: 'УЧРЕЖДЕНИЕ',      key: null },
+                      { label: 'НАПРАВЛЕНИЕ',     key: null },
+                      { label: 'ДАТА ПОДАЧИ',     key: 'application_date' as LeadSortKey },
+                      { label: 'ТЕКУЩИЙ ЭТАП',    key: null },
+                      { label: 'АКТИВНЫЕ ЗАДАЧИ', key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
                       <th
                         key={label}
@@ -258,37 +253,27 @@ export default function EducationPage() {
                         </div>
                       </td>
 
-                      {/* Телефон */}
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
-                        {lead.phones[0] ?? '—'}
-                      </td>
-
-                      {/* Email */}
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
-                        {lead.email ?? '—'}
-                      </td>
-
-                      {/* Направления */}
-                      <td style={{ padding: '11px 14px' }}>
+                      {/* Учреждение */}
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {(() => {
-                          const texts = lead.interests.map(interestLabel).filter(Boolean)
-                          return texts.length === 0 ? (
-                            <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
-                          ) : (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                              {texts.map((text, idx) => (
-                                <span key={idx} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3', whiteSpace: 'nowrap' }}>
-                                  {text}
-                                </span>
-                              ))}
-                            </div>
-                          )
+                          const depts = [...new Set(lead.interests.map(i => i.department_name).filter(Boolean))]
+                          return depts.length > 0 ? depts.join(', ') : <span style={{ color: '#9CA3AF' }}>—</span>
                         })()}
                       </td>
 
-                      {/* Источник */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>
-                        {lead.referral_source ? (SOURCE_LABELS[lead.referral_source] ?? lead.referral_source) : '—'}
+                      {/* Направление */}
+                      <td style={{ padding: '11px 14px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(() => {
+                          const texts = lead.interests.map(i => {
+                            if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
+                            return (i.free_text ?? '').trim()
+                          }).filter(Boolean)
+                          return texts.length === 0 ? (
+                            <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                          ) : (
+                            <span style={{ fontSize: 12, color: '#374151' }}>{texts.join(', ')}</span>
+                          )
+                        })()}
                       </td>
 
                       {/* Дата */}
@@ -296,11 +281,18 @@ export default function EducationPage() {
                         {formatDate(lead.application_date)}
                       </td>
 
-                      {/* Статус */}
-                      <td style={{ padding: '11px 14px' }}>
-                        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#ECFDF5', color: '#065F46', fontWeight: 500 }}>
-                          Потенциальный
-                        </span>
+                      {/* Текущий этап */}
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {lead.active_stages.length > 0 ? lead.active_stages.join(', ') : (
+                          <span style={{ color: '#9CA3AF' }}>Не в работе</span>
+                        )}
+                      </td>
+
+                      {/* Активные задачи */}
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {lead.active_tasks.length > 0 ? lead.active_tasks.join(', ') : (
+                          <span style={{ color: '#9CA3AF' }}>—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
