@@ -200,6 +200,7 @@ export default function EducationPage() {
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {([
                       { label: 'ИМЯ',                    key: 'full_name'        as LeadSortKey },
+                      { label: 'УЧРЕЖДЕНИЕ',              key: null },
                       { label: 'НАПРАВЛЕНИЕ',             key: null },
                       { label: 'ТЕЛЕФОН',                 key: null },
                       { label: 'EMAIL',                   key: null },
@@ -250,6 +251,20 @@ export default function EducationPage() {
                             {lead.full_name}
                           </span>
                         </div>
+                      </td>
+
+                      {/* Учреждение */}
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 160 }}>
+                        {(() => {
+                          const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
+                          return depts.length === 0 ? (
+                            <span style={{ color: '#9CA3AF' }}>—</span>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {depts.map((d, idx) => <span key={idx}>{d}</span>)}
+                            </div>
+                          )
+                        })()}
                       </td>
 
                       {/* Направление */}
