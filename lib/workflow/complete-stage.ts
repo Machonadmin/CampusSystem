@@ -88,6 +88,7 @@ export async function completeStage(
       .maybeSingle()
     const p = (journeyPerson?.person as unknown as { full_name: string | null } | null)
     personFullName = p?.full_name ?? undefined
+    console.log('[completeStage] journey_id:', processInstance.journey_id, 'journeyPerson raw:', JSON.stringify(journeyPerson), 'personFullName:', personFullName)
   }
 
   // 5. Activate target stages
@@ -121,7 +122,7 @@ export async function completeStage(
           .in('stage_template_id', predecessorIds)
 
         shouldActivate = (predecessors ?? []).every(
-          (p: { status: string }) => p.status === 'completed'
+          (p: { status: string }) => p.status === 'completed' || p.status === 'skipped'
         )
       } else {
         shouldActivate = true
@@ -159,6 +160,54 @@ export async function completeStage(
 
     if (targetTemplate?.has_tasks && actorId) {
       await createStartingTasks(sb, tr.to_stage_template_id, targetSi.id, actorId, personFullName)
+    }
+  }
+
+  // 5b. Пометить как skipped waiting-подэтапы, которые больше не могут быть
+  //     активированы: все их predecessors уже завершены или пропущены.
+  {
+    const { data: waitingInstances } = await sb
+      .from('stage_instances')
+      .select('id, stage_template_id')
+      .eq('process_instance_id', processInstance.id)
+      .eq('status', 'waiting')
+
+    const justActivated = new Set(activatedStageIds)
+
+    for (const wi of (waitingInstances ?? []) as { id: string; stage_template_id: string }[]) {
+      if (justActivated.has(wi.id)) continue
+
+      const { data: incomingTr } = await sb
+        .from('stage_transitions')
+        .select('from_stage_template_id')
+        .eq('to_stage_template_id', wi.stage_template_id)
+
+      const predTemplateIds = ((incomingTr ?? []) as { from_stage_template_id: string | null }[])
+        .map(t => t.from_stage_template_id)
+        .filter((id): id is string => id !== null)
+
+      if (predTemplateIds.length === 0) continue
+
+      const { data: predInstances } = await sb
+        .from('stage_instances')
+        .select('status')
+        .eq('process_instance_id', processInstance.id)
+        .in('stage_template_id', predTemplateIds)
+
+      const allTerminated =
+        (predInstances ?? []).length >= predTemplateIds.length &&
+        (predInstances ?? []).every(
+          (p: { status: string }) => p.status === 'completed' || p.status === 'skipped'
+        )
+
+      if (allTerminated) {
+        const { error: skipErr } = await sb
+          .from('stage_instances')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ status: 'skipped' } as any)
+          .eq('id', wi.id)
+        if (skipErr) console.error('[completeStage] failed to skip unreachable stage:', skipErr)
+      }
     }
   }
 
