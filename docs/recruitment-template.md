@@ -1,105 +1,127 @@
 # Шаблон процесса «Набор» (recruitment)
 
-Процесс работы с лидом до перевода в абитуриенты. Источник структуры —
-seed-скрипт `scripts/seed-workflow-recruitment.ts` (запуск:
-`npm run seed:workflow-recruitment`).
+Процесс работы с лидом до перевода в абитуриенты.
 
 - **code:** `recruitment`
 - **name_ru:** Набор
 - **description:** Процесс работы с лидом до перевода в абитуриенты
 
+Автозапуск — при создании нового лида (`POST /api/education/leads`).
+
 ## Подэтапы
 
 | sort | code | Название | has_tasks | is_optional |
 |-----:|------|----------|:---------:|:-----------:|
-| 10 | `contact` | Контакт | нет | нет |
+| 10 | `contact` | Контакт | да | нет |
 | 20 | `documents` | Документы | да | нет |
-| 30 | `event` | Мероприятие | * | да |
+| 30 | `event` | Мероприятие | да | да |
 | 40 | `decision` | Решение | да | нет |
 
 У всех подэтапов `has_action_log = true`, `is_addable = false`.
 
-> \* В seed-скрипте `event` создаётся с `has_tasks: false`. В рабочей БД флаг
-> позднее был выставлен в `true` (точечный фикс), чтобы у мероприятия
-> появлялись задачи. См. примечание про задачи ниже.
-
 ## Финалы по подэтапам
 
 ### Контакт (`contact`)
-| code | Название | is_positive |
-|------|----------|:-----------:|
-| `done_event_yes` | Готов, записан на мероприятие | ✓ |
-| `done_event_skip` | Готов, мероприятие пропускаем | ✓ |
-| `done_event_later` | Готов, мероприятие отложено | ✓ |
+
+| code | Название | is_positive | closes_process | process_finish_reason |
+|------|----------|:-----------:|:--------------:|:---------------------:|
+| `done_event_yes` | Записан на мероприятие | ✓ | false | — |
+| `done_event_skip` | Без мероприятия | ✓ | false | — |
+| `rejected` | Отказ | ✗ | **true** | `rejected` |
+| `postponed` | Поступление отложено | ✗ | **true** | `postponed` |
 
 ### Документы (`documents`)
-| code | Название | is_positive |
-|------|----------|:-----------:|
-| `all_collected` | Все собраны | ✓ |
-| `partial` | Частично собраны | ✓ |
-| `not_provided` | Не предоставил | ✗ |
+
+| code | Название | is_positive | closes_process |
+|------|----------|:-----------:|:--------------:|
+| `all_collected` | Все собраны | ✓ | false |
+| `partial` | Частично собраны | ✓ | false |
+| `not_provided` | Не предоставил | ✗ | false |
 
 ### Мероприятие (`event`)
-| code | Название | is_positive |
-|------|----------|:-----------:|
-| `feedback_received` | Обратная связь получена | ✓ |
-| `no_show` | Не приехал | ✗ |
-| `refused` | Отказ от приезда | ✗ |
+
+| code | Название | is_positive | closes_process |
+|------|----------|:-----------:|:--------------:|
+| `feedback_received` | Обратная связь получена | ✓ | false |
+| `no_show` | Не приехал | ✗ | false |
+| `refused` | Отказ от приезда | ✗ | false |
 
 ### Решение (`decision`)
-| code | Название | is_positive |
-|------|----------|:-----------:|
-| `convert_to_applicant` | Перевести в абитуриенты | ✓ |
-| `rejected` | Отказ | ✗ |
-| `postponed` | Отложено | ✗ |
+
+| code | Название | is_positive | closes_process | process_finish_reason |
+|------|----------|:-----------:|:--------------:|:---------------------:|
+| `convert_to_applicant` | Перевести в абитуриенты | ✓ | **true** | `converted` |
+| `rejected` | Отказ | ✗ | **true** | `rejected` |
+| `postponed` | Отложено | ✗ | **true** | `postponed` |
+
+Финалы с `closes_process = true` закрывают весь процесс через `completeStage`
+(см. [workflow-engine.md](./workflow-engine.md)). При `process_finish_reason = 'converted'`
+дополнительно: `education_journeys.education_status = 'applicant'`.
 
 ## Переходы между подэтапами
 
 ```
 (start) ──► contact
 
-contact ──(done_event_yes)──►   documents      [after_one]
-contact ──(done_event_skip)──►  documents      [after_one]
-contact ──(done_event_later)──► documents      [after_one]
-contact ──(done_event_yes)──►   event          [after_one]
-contact ──(done_event_later)──► event          [after_one]
+contact ──(done_event_yes)──►  documents  [after_one]
+contact ──(done_event_skip)──► documents  [after_one]
+contact ──(done_event_yes)──►  event      [after_one]
 
 documents ──(all_collected|partial|not_provided)──► decision  [after_all]
 event     ──(feedback_received|no_show|refused)──►  decision  [after_all]
 ```
 
-Особенности:
-- После «Контакта» с `done_event_skip` подэтап **Мероприятие** не
-  активируется (переход на `event` отсутствует) — он остаётся `waiting` и
-  при закрытии становится `skipped`. Вернуть его можно кнопкой
-  «▶ Активировать» (`reactivateStage`).
-- В **Решение** ведут переходы `after_all`: оно активируется, только когда
-  завершены все активные подэтапы-предшественники (Документы и/или
-  Мероприятие).
+Финалы `rejected` и `postponed` (Контакт, Решение) не ведут к следующим
+подэтапам — вместо этого процесс закрывается через `closes_process = true`.
 
-## Задачи
+**Сценарий `done_event_skip`:**
+- Контакт → `done_event_skip` → активируются Документы.
+- Мероприятие не получает перехода, остаётся `waiting`.
+- При завершении Документов движок помечает Мероприятие → `skipped`
+  (все предшественники Решения в terminal-состоянии → Решение активируется).
+- Мероприятие можно вернуть кнопкой «▶ Активировать» (`reactivateStage`).
 
-Seed-скрипт заводит **2** шаблона задач (оба `default_assignee_type:
-creator`):
+## Задачи и переходы между задачами
 
-| Подэтап | code | Заголовок | Приоритет | due_days |
-|---------|------|-----------|-----------|---------:|
-| `documents` | `request_docs` | Запросить документы | normal | 7 |
-| `decision` | `make_decision` | Принять решение по лиду | high | 3 |
+### Контакт (`contact`)
 
-> **Расхождение с устной спецификацией.** В описании задачи упоминались
-> последовательные задачи Мероприятия (`invite_event → arrange_trip →
-> get_feedback`) и задачи в «Контакте». В **репозитории** (seed-скрипт)
-> их нет — там только две задачи выше, и `task_transitions` для них не
-> заводятся скриптом. Возможно, эти задачи и переходы были добавлены
-> напрямую в рабочую БД и не отражены в коде.
->
-> **TODO: уточнить у разработчика** и при необходимости перенести
-> конфигурацию задач/переходов Мероприятия в seed-скрипт, чтобы код был
-> источником правды.
+Одна стартовая задача:
 
-## Конверсия в абитуриенты
+| code | Заголовок | Назначение |
+|------|-----------|-----------|
+| `first_contact` | Связаться с новым лидом | `creator` |
 
-Финал `convert_to_applicant` в подэтапе **Решение** переводит journey в
-статус `applicant` (`completeStage` / `closeProcessEarly`). Процесс
-закрывается с `finish_reason = 'converted'`.
+### Документы (`documents`)
+
+Две **параллельные** стартовые задачи (обе `from_task_code IS NULL`):
+
+| code | Заголовок | Назначение |
+|------|-----------|-----------|
+| `collect_docs` | Собрать документы | `creator` |
+| `verify_docs` | Проверить документы | `creator` |
+
+Обе создаются при активации подэтапа. Завершение одной не блокирует другую.
+
+### Мероприятие (`event`)
+
+Три **последовательные** задачи:
+
+| code | Заголовок | Назначение | Активируется после |
+|------|-----------|-----------|-------------------|
+| `invite_event` | Пригласить на мероприятие | `creator` | старт (NULL) |
+| `arrange_trip` | Организовать приезд | `creator` | `invite_event` |
+| `get_feedback` | Получить обратную связь | `creator` | `arrange_trip` |
+
+При активации подэтапа создаётся только `invite_event`. `handleTaskCompletion`
+создаёт следующую задачу после завершения предыдущей.
+
+### Решение (`decision`)
+
+| code | Заголовок | Назначение |
+|------|-----------|-----------|
+| `make_decision` | Принять решение по лиду | `creator` |
+
+## Title задач с ФИО лида
+
+`mapTaskTemplate` формирует title как `"<tt.title>: <person.full_name>"`,
+если ФИО известно. Например: `"Связаться с новым лидом: Иванов Иван Иванович"`.

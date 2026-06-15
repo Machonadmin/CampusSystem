@@ -68,6 +68,28 @@ Middleware закрывает доступ к модулю целиком, но 
 `completeStage`) не создаст задачи для подэтапа. Эти поля должны быть
 синхронизированы.
 
+## FK-имена не меняются при переименовании таблицы
+
+PostgreSQL **не переименовывает** constraint-ы при `ALTER TABLE ... RENAME TO`.
+Пример: таблица `applicant_profiles` была переименована в `education_journeys`,
+но FK на `persons` по-прежнему называется `applicant_profiles_person_id_fkey`.
+
+Это ломает Supabase-embed с явным именем FK:
+
+```ts
+// ❌ Ошибка — constraint с таким именем не существует
+.select('persons!education_journeys_person_id_fkey(full_name)')
+
+// ✅ Использовать отдельный запрос
+const { data: journeyRow } = await sb
+  .from('education_journeys').select('person_id').eq('id', journeyId).maybeSingle()
+const { data: personRow } = await sb
+  .from('persons').select('full_name').eq('id', journeyRow.person_id).maybeSingle()
+```
+
+Supabase embed с неверным именем FK **не бросает ошибку** — он молча
+возвращает `null`. Это делает баг трудно диагностируемым.
+
 ## Insert-типы и `created_at` / `updated_at`
 
 В `types/database.ts` Insert-типы исключают серверные поля:

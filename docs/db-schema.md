@@ -58,6 +58,7 @@
   `default_assignee_type`, `default_priority`, `default_due_days`,
   `sort_order`.
 - `stage_finals` — `stage_template_id`, `code`, `name_ru`, `is_positive`,
+  `closes_process` (bool, default false), `process_finish_reason` (text),
   `sort_order`.
 - `stage_transitions` — `from_stage_template_id` (NULL=старт),
   `to_stage_template_id`, `trigger_final_code`, `activation_mode`.
@@ -78,6 +79,9 @@
 - `reference_levels` — `direction_id`, `name_ru`, `sort_order`,
   `is_active`.
 
+Учебные заведения в `departments` помечаются флагом
+`is_educational_institution = true` — каскадный селектор фильтрует по нему.
+
 ## Права
 
 `roles`, `module_privileges`, `role_privileges` (со `scope`),
@@ -85,33 +89,27 @@
 
 ## Триггеры `updated_at`
 
-`updated_at` обновляется триггером `BEFORE UPDATE`. В проекте есть **две**
-функции-триггера (по историческим причинам сосуществуют, делают одно и
-то же — `NEW.updated_at = NOW()`):
+`updated_at` обновляется триггером `BEFORE UPDATE`. В проекте одна
+функция-триггер: **`update_updated_at_column()`** — устанавливает
+`NEW.updated_at = NOW()`. Итого **31 триггер на 31 таблице**.
 
-| Функция | Введена в миграции |
-|---------|--------------------|
-| `update_updated_at_column()` | `20260608180000_add_updated_at_universal.sql` |
-| `set_updated_at()` | `20260608190000_add_updated_at_remaining.sql` |
+Таблицы с триггером `updated_at` (по миграциям):
 
-Эти две миграции добавили `updated_at` (+ `created_at`, где не было) и
-триггеры к основным сущностям:
+- `persons`, `tasks`, `communities`, `process_templates`,
+  `process_instances`, `stage_instances`, `task_transitions`
+- `education_journeys`, `stage_finals`, `stage_transitions`,
+  `lead_interests`, `stage_templates`, `stage_task_templates`,
+  `person_relatives`, `reference_levels`, `departments`, `roles`,
+  `person_accounts`
+- `alumni_profiles`, `module_privileges`, `quality_checks`,
+  `reference_cities`, `sponsor_profiles`, `staff_positions`,
+  `staff_profiles`, `stage_actions`, `task_comments`
+- `reference_directions`, `reference_levels`
 
-- **Первая миграция (12 триггеров):** `education_journeys`, `stage_finals`,
-  `stage_transitions`, `lead_interests`, `stage_templates`,
-  `stage_task_templates`, `task_transitions`, `person_relatives`,
-  `reference_levels`, `departments`, `roles`, `person_accounts`.
-- **Вторая миграция (9 триггеров):** `alumni_profiles`,
-  `module_privileges`, `quality_checks`, `reference_cities`,
-  `sponsor_profiles`, `staff_positions`, `staff_profiles`,
-  `stage_actions`, `task_comments`.
-
-Часть таблиц (`persons`, `communities`, образовательные справочники и др.)
-получила триггер `updated_at` ещё в более ранних миграциях.
+> Точный перечень всех 31 таблицы — в миграциях `supabase/migrations/`.
 
 **Junction- и history-таблицы** (`person_roles`, `role_privileges`,
 `task_watchers`, `class_enrollments`, `class_teachers`,
 `journey_communities`, `person_status_history`, `enrollments`,
 `person_family`, `person_privileges`) получили только `created_at`
-**без** триггера `updated_at` — для них имеет смысл момент записи, а не
-обновления.
+**без** триггера `updated_at` — для них важен момент записи, не обновления.
