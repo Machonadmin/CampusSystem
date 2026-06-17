@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -52,33 +53,6 @@ interface Props {
   canConvert: boolean
 }
 
-// ── Label maps ──────────────────────────────────────────────────────────────
-
-const STATUS_LABELS: Record<string, string> = {
-  lead: 'Лид', applicant: 'Абитуриент', student: 'Студент',
-  graduated: 'Выпускник', expelled: 'Отчислен', on_leave: 'Академ. отпуск',
-}
-const CARD_TYPE_LABELS: Record<string, string> = {
-  lead: 'Карточка лида', applicant: 'Карточка абитуриента', student: 'Карточка студента',
-  graduated: 'Карточка выпускника', expelled: 'Карточка отчисленного', on_leave: 'Карточка (академ. отпуск)',
-}
-const SOURCE_LABELS: Record<string, string> = {
-  website: 'Сайт', social: 'Соцсети', referral: 'Рекомендация',
-  call: 'Звонок', exhibition: 'Выставка', other: 'Другое',
-}
-const RELATION_LABELS: Record<string, string> = {
-  mother: 'Мать', father: 'Отец', parent: 'Родитель', spouse: 'Супруг(а)',
-  child: 'Ребёнок', sibling: 'Брат/Сестра', grandparent: 'Бабушка/Дедушка',
-  guardian: 'Опекун', community_contact: 'Контакт общины',
-  emergency_contact: 'Экстренный контакт', other: 'Другое',
-}
-const GENDER_LABELS: Record<string, string> = {
-  female: 'Женский', male: 'Мужской', other: 'Другое',
-}
-const MARITAL_LABELS: Record<string, string> = {
-  single: 'Не замужем', married: 'Замужем', divorced: 'Разведена', widowed: 'Вдова',
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(d: string | null): string {
@@ -99,14 +73,6 @@ function getInitials(p: LeadViewData['person']): string {
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
 type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'extra'
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'personal',   label: 'Личные данные' },
-  { key: 'contacts',   label: 'Контакты и адрес' },
-  { key: 'family',     label: 'Семья' },
-  { key: 'community',  label: 'Община' },
-  { key: 'directions', label: 'Направления' },
-  { key: 'extra',      label: 'Дополнительно' },
-]
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -134,11 +100,22 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function LeadViewClient({ data, showEditButton, canManage, canConvert }: Props) {
   const router = useRouter()
+  const t = useTranslations('education')
+  const tNav = useTranslations('navigation')
   const { person } = data
   const [tab, setTab] = useState<TabKey>('personal')
 
-  const statusLabel = data.status ? (STATUS_LABELS[data.status] ?? data.status) : '—'
-  const cardTypeLabel = data.status ? (CARD_TYPE_LABELS[data.status] ?? 'Карточка') : 'Карточка'
+  const TABS: { key: TabKey; labelKey: string }[] = [
+    { key: 'personal',   labelKey: 'personal' },
+    { key: 'contacts',   labelKey: 'contacts' },
+    { key: 'family',     labelKey: 'family' },
+    { key: 'community',  labelKey: 'community' },
+    { key: 'directions', labelKey: 'directions' },
+    { key: 'extra',      labelKey: 'extra' },
+  ]
+
+  const statusLabel = data.status ? t(`card.status.${data.status}`, data.status) : '—'
+  const cardTypeLabel = data.status ? t(`card.card_type.${data.status}`, t('card.card_type.lead')) : t('card.card_type.lead')
   const interestTexts = data.interests
     .map(i => {
       if (i.direction_name) {
@@ -148,9 +125,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       return (i.free_text ?? '').trim()
     })
     .filter(Boolean)
-  const sectionLabel = data.status === 'applicant' ? 'Приём'
-    : (data.status && data.status !== 'lead') ? 'Учёба'
-    : 'Набор'
+  const sectionLabel = data.status === 'applicant' ? t('card.section.applicant')
+    : (data.status && data.status !== 'lead') ? t('card.section.student')
+    : t('card.section.lead')
 
   const addr = person.address ?? {}
 
@@ -159,38 +136,38 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       case 'personal':
         return (
           <>
-            <Field label="Фамилия" value={person.last_name} />
-            <Field label="Имя" value={person.first_name} />
-            <Field label="Отчество" value={person.middle_name} />
-            <Field label="Еврейское имя" value={person.hebrew_name} />
-            <Field label="Дата рождения" value={formatDate(person.birth_date)} />
-            <Field label="Пол" value={person.gender ? (GENDER_LABELS[person.gender] ?? person.gender) : '—'} />
-            <Field label="Семейное положение" value={person.marital_status ? (MARITAL_LABELS[person.marital_status] ?? person.marital_status) : '—'} />
-            <Field label="Гражданство" value={person.nationality} />
-            <Field label="Паспорт" value={person.passport_number} />
+            <Field label={t('card.labels.last_name')} value={person.last_name} />
+            <Field label={t('card.labels.first_name')} value={person.first_name} />
+            <Field label={t('card.labels.middle_name')} value={person.middle_name} />
+            <Field label={t('card.labels.hebrew_name')} value={person.hebrew_name} />
+            <Field label={t('card.labels.birth_date')} value={formatDate(person.birth_date)} />
+            <Field label={t('card.labels.gender')} value={person.gender ? t(`card.gender.${person.gender}`, person.gender) : '—'} />
+            <Field label={t('card.labels.marital_status')} value={person.marital_status ? t(`card.marital.${person.marital_status}`, person.marital_status) : '—'} />
+            <Field label={t('card.labels.citizenship')} value={person.nationality} />
+            <Field label={t('card.labels.passport')} value={person.passport_number} />
           </>
         )
       case 'contacts':
         return (
           <>
-            <Field label="Телефон" value={person.phones.length > 0 ? person.phones.join(', ') : '—'} />
-            <Field label="Email" value={person.email} />
-            <Field label="Страна" value={addr.country} />
-            <Field label="Город" value={addr.city} />
-            <Field label="Улица" value={addr.street} />
-            <Field label="Дом" value={addr.house} />
-            <Field label="Квартира" value={addr.apartment} />
-            <Field label="Индекс" value={addr.postal_code} />
+            <Field label={t('card.labels.phone')} value={person.phones.length > 0 ? person.phones.join(', ') : '—'} />
+            <Field label={t('card.labels.email')} value={person.email} />
+            <Field label={t('card.labels.country')} value={addr.country} />
+            <Field label={t('card.labels.city')} value={addr.city} />
+            <Field label={t('card.labels.street')} value={addr.street} />
+            <Field label={t('card.labels.house')} value={addr.house} />
+            <Field label={t('card.labels.apartment')} value={addr.apartment} />
+            <Field label={t('card.labels.postal_code')} value={addr.postal_code} />
           </>
         )
       case 'family':
         return data.relatives.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>Родственники не указаны</div>
+          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_relatives')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.relatives.map((r, idx) => (
               <div key={idx} style={{ fontSize: 13, color: '#1F2937' }}>
-                {r.full_name || '—'} — {(RELATION_LABELS[r.relation_type] ?? r.relation_type).toLowerCase()}
+                {r.full_name || '—'} — {t(`card.relation.${r.relation_type}`, r.relation_type).toLowerCase()}
                 {r.notes ? <span style={{ color: '#9CA3AF' }}> ({r.notes})</span> : null}
               </div>
             ))}
@@ -198,7 +175,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'community':
         return data.communities.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>Общины не указаны</div>
+          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_communities')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.communities.map((c, idx) => (
@@ -218,7 +195,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'directions':
         return interestTexts.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>Направления не указаны</div>
+          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_directions')}</div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {interestTexts.map((text, idx) => (
@@ -231,8 +208,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       case 'extra':
         return (
           <>
-            <Field label="Источник" value={data.referral_source ? (SOURCE_LABELS[data.referral_source] ?? data.referral_source) : '—'} />
-            <Field label="Комментарий" value={data.comment} />
+            <Field label={t('card.labels.referral_source')} value={data.referral_source ? t(`card.source.${data.referral_source}`, data.referral_source) : '—'} />
+            <Field label={t('card.labels.comment')} value={data.comment} />
           </>
         )
       default:
@@ -243,8 +220,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Образование', href: '/dashboard/education' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education'), href: '/dashboard/education' },
         { label: sectionLabel, href: '/dashboard/education' },
         { label: person.full_name || cardTypeLabel },
       ]} />
@@ -276,7 +253,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                 </span>
               </div>
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
-                {cardTypeLabel} · Создан: {formatDate(data.createdAt)}
+                {cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt)}
               </div>
             </div>
           </div>
@@ -290,7 +267,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                   border: 'none', borderRadius: 8, cursor: 'pointer',
                 }}
               >
-                Редактировать
+                {t('card.labels.edit')}
               </button>
             )}
             <button
@@ -301,7 +278,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                 border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
               }}
             >
-              ← К списку
+              {t('card.labels.back_to_list')}
             </button>
           </div>
         </div>
@@ -309,12 +286,12 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid #E5E7EB', flexWrap: 'wrap' }}>
-        {TABS.map(t => {
-          const active = tab === t.key
+        {TABS.map(tabItem => {
+          const active = tab === tabItem.key
           return (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tabItem.key}
+              onClick={() => setTab(tabItem.key)}
               style={{
                 padding: '8px 14px', fontSize: 13,
                 fontWeight: active ? 600 : 400,
@@ -326,7 +303,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             >
-              {t.label}
+              {t(`card.tabs.${tabItem.labelKey}`)}
             </button>
           )
         })}
@@ -335,7 +312,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       {/* Body: tab content (left) + processes (right), 1:1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         <div>
-          <Section title={TABS.find(t => t.key === tab)?.label ?? ''}>
+          <Section title={t(`card.tabs.${TABS.find(x => x.key === tab)?.labelKey ?? 'personal'}`)}>
             {renderTab()}
           </Section>
         </div>

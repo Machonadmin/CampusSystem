@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import SubjectsTab from './SubjectsTab'
 import SpecialtiesTab from './SpecialtiesTab'
 import StudyGroupsTab from './StudyGroupsTab'
@@ -11,17 +12,12 @@ import SubTabs from '@/components/ui/SubTabs'
 
 type SubTab = 'subjects' | 'specialties' | 'study_groups' | 'students' | 'class_groups'
 
-const SUB_TABS: { code: SubTab; label: string }[] = [
-  { code: 'subjects',     label: 'Предметы' },
-  { code: 'specialties',  label: 'Специальности' },
-  { code: 'study_groups', label: 'Базовые группы' },
-  { code: 'students',     label: 'Студенты' },
-  { code: 'class_groups', label: 'Учебные группы' },
-]
+const SUB_TAB_CODES: SubTab[] = ['subjects', 'specialties', 'study_groups', 'students', 'class_groups']
 
 const accent = getModuleColor('education')
 
 export default function StudyTab() {
+  const t = useTranslations('education')
   const [active, setActive] = useState<SubTab>('subjects')
 
   return (
@@ -33,7 +29,7 @@ export default function StudyTab() {
     }}>
       {/* Полоса подвкладок */}
       <SubTabs
-        tabs={SUB_TABS.map(t => ({ key: t.code, label: t.label }))}
+        tabs={SUB_TAB_CODES.map(code => ({ key: code, label: t(`study.tabs.${code}`) }))}
         active={active}
         onChange={k => setActive(k as SubTab)}
         accentColor={accent}

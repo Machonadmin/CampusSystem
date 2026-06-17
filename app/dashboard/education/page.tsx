@@ -8,6 +8,7 @@ import StudyTab from './components/StudyTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,16 +44,6 @@ interface ApplicantJourney {
   interests?: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-
-const TABS = [
-  { key: 'recruitment', label: 'Набор' },
-  { key: 'admission',   label: 'Приём' },
-  { key: 'study',       label: 'Учёба' },
-] as const
-type TabKey = typeof TABS[number]['key']
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function initials(name: string) {
@@ -62,14 +53,12 @@ function formatDate(d: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
-/** Json-поле phones → плоский массив строк. */
 function flattenPhones(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
   return raw
     .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
     .filter(Boolean)
 }
-/** Текст направления: «Учреждение → Направление, Курс» или free_text. */
 function interestLabel(i: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }): string {
   if (i.direction_name) {
     const dir = i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
@@ -82,7 +71,11 @@ function interestLabel(i: { free_text: string | null; direction_name: string | n
 
 export default function EducationPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<TabKey>('recruitment')
+  const t = useTranslations('education')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
+  const [tab, setTab] = useState<'recruitment' | 'admission' | 'study'>('recruitment')
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
@@ -94,6 +87,12 @@ export default function EducationPage() {
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
+
+  const TABS = [
+    { key: 'recruitment', label: t('tabs.leads') },
+    { key: 'admission',   label: t('tabs.applicants') },
+    { key: 'study',       label: t('tabs.students') },
+  ] as const
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
@@ -150,8 +149,8 @@ export default function EducationPage() {
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Образование' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education') },
       ]} />
 
       <div style={{
@@ -159,14 +158,14 @@ export default function EducationPage() {
         borderRadius: 12, padding: '12px 24px',
         boxShadow: '0 2px 8px rgba(16,185,129,0.2)',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Образование</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
       </div>
 
       {/* Tabs */}
       <ModuleTabs
-        tabs={TABS.map(t => ({ key: t.key, label: t.label }))}
+        tabs={TABS.map(tb => ({ key: tb.key, label: tb.label }))}
         active={tab}
-        onChange={k => setTab(k as TabKey)}
+        onChange={k => setTab(k as 'recruitment' | 'admission' | 'study')}
         accentColor={getModuleColor('education')}
       />
 
@@ -177,7 +176,7 @@ export default function EducationPage() {
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <input
               value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Поиск по имени, телефону, email, направлению..."
+              placeholder={t('leads.search_placeholder')}
               style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }}
             />
             <select
@@ -185,12 +184,12 @@ export default function EducationPage() {
               onChange={e => setProcessStatus(e.target.value as 'active' | 'closed' | 'all')}
               style={{ padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer' }}
             >
-              <option value="active">Активные процессы</option>
-              <option value="closed">Закрытые процессы</option>
-              <option value="all">Все</option>
+              <option value="active">{t('leads.process_status.active')}</option>
+              <option value="closed">{t('leads.process_status.closed')}</option>
+              <option value="all">{t('leads.process_status.all')}</option>
             </select>
             <PageActionButton
-              label="Добавить лида"
+              label={t('leads.create_button')}
               onClick={() => setAddOpen(true)}
               accentColor={getModuleColor('education')}
             />
@@ -199,23 +198,23 @@ export default function EducationPage() {
           {/* Table card */}
           <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
             {loading ? (
-              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>Загрузка...</div>
+              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
             ) : filtered.length === 0 ? (
               <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
-                {leads.length === 0 ? 'Лиды не добавлены' : 'Ничего не найдено'}
+                {leads.length === 0 ? t('leads.no_data') : t('leads.no_results')}
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                     {([
-                      { label: 'ИМЯ',                    key: 'full_name'        as LeadSortKey },
-                      { label: 'УЧРЕЖДЕНИЕ',              key: null },
-                      { label: 'НАПРАВЛЕНИЕ',             key: null },
-                      { label: 'ТЕЛЕФОН',                 key: null },
-                      { label: 'EMAIL',                   key: null },
-                      { label: 'ДАТА ПОДАЧИ',             key: 'application_date' as LeadSortKey },
-                      { label: 'ТЕКУЩИЙ ЭТАП И ЗАДАЧИ',   key: null },
+                      { label: t('leads.table.full_name'),        key: 'full_name'        as LeadSortKey },
+                      { label: t('leads.table.institution'),       key: null },
+                      { label: t('leads.table.direction'),         key: null },
+                      { label: t('leads.table.phone'),             key: null },
+                      { label: t('leads.table.email'),             key: null },
+                      { label: t('leads.table.application_date'), key: 'application_date' as LeadSortKey },
+                      { label: t('leads.table.current_stage'),     key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
                       <th
                         key={label}
@@ -288,7 +287,7 @@ export default function EducationPage() {
                             <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
                           ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12, color: '#374151' }}>
-                              {texts.map((t, idx) => <span key={idx}>{t}</span>)}
+                              {texts.map((txt, idx) => <span key={idx}>{txt}</span>)}
                             </div>
                           )
                         })()}
@@ -318,7 +317,7 @@ export default function EducationPage() {
                       {/* Текущий этап и задачи */}
                       <td style={{ padding: '11px 14px', minWidth: 200 }}>
                         {lead.active_stages_with_tasks.length === 0 ? (
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>Не в работе</span>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('leads.no_stages')}</span>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {lead.active_stages_with_tasks.map(stage => (
@@ -348,16 +347,24 @@ export default function EducationPage() {
       {tab === 'admission' && (
         <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
           {loadingApplicants ? (
-            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>Загрузка...</div>
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
           ) : applicants.length === 0 ? (
             <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
-              Нет абитуриентов
+              {t('applicants.no_data')}
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['ИМЯ', 'ДАТА ЗАЯВКИ', 'ТЕЛЕФОН', 'EMAIL', 'УЧРЕЖДЕНИЕ', 'НАПРАВЛЕНИЕ', 'СТАТУС'].map(h => (
+                  {[
+                    t('applicants.table.full_name'),
+                    t('applicants.table.application_date'),
+                    t('applicants.table.phone'),
+                    t('applicants.table.email'),
+                    t('applicants.table.institution'),
+                    t('applicants.table.direction'),
+                    t('applicants.table.status'),
+                  ].map(h => (
                     <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
@@ -377,7 +384,6 @@ export default function EducationPage() {
                       onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
-                      {/* Фото + Имя */}
                       <td style={{ padding: '11px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#6D28D9', flexShrink: 0 }}>
@@ -393,36 +399,24 @@ export default function EducationPage() {
                           </span>
                         </div>
                       </td>
-
-                      {/* Дата заявки */}
                       <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>
                         {formatDate(app.application_date)}
                       </td>
-
-                      {/* Телефон */}
                       <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
                         {phones[0] ?? '—'}
                       </td>
-
-                      {/* Email */}
                       <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
                         {app.person?.email ?? '—'}
                       </td>
-
-                      {/* Учреждение */}
                       <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
                         {app.primary_department?.name ?? '—'}
                       </td>
-
-                      {/* Направление */}
                       <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
                         {direction}
                       </td>
-
-                      {/* Статус */}
                       <td style={{ padding: '11px 14px' }}>
                         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EDE9FE', color: '#6D28D9', fontWeight: 500 }}>
-                          Абитуриент
+                          {t('applicants.status_label')}
                         </span>
                       </td>
                     </tr>

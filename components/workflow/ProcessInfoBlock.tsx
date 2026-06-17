@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -90,29 +91,13 @@ interface Props {
   canConvert?: boolean
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function processStatusLabel(status: string): string {
-  if (status === 'active') return 'Активен'
-  if (status === 'completed') return 'Завершён'
-  if (status === 'cancelled') return 'Отменён'
-  return status
-}
+// ── Stateless style helpers (no translations needed) ──────────────────────────
 
 function processStatusStyle(status: string): React.CSSProperties {
   if (status === 'active') return { background: '#D1FAE5', color: '#065F46' }
   if (status === 'completed') return { background: '#E5E7EB', color: '#374151' }
   if (status === 'cancelled') return { background: '#FEE2E2', color: '#991B1B' }
   return {}
-}
-
-function stageStatusLabel(status: string): string {
-  if (status === 'completed') return 'Завершён'
-  if (status === 'active') return 'Активен'
-  if (status === 'waiting') return 'Ожидает'
-  if (status === 'skipped') return 'Пропущен'
-  if (status === 'cancelled') return 'Отменён'
-  return status
 }
 
 function stageIcon(status: string): string {
@@ -154,20 +139,13 @@ function finalButtonColors(code: string, isPositive: boolean): { background: str
   return { background: '#FEE2E2', color: '#991B1B' }
 }
 
-function taskStatusStyle(status: string): { color: string; label: string } {
-  if (status === 'completed') return { color: '#6B7280', label: 'Выполнено' }
-  if (status === 'in_progress') return { color: '#2563EB', label: 'В работе' }
-  if (status === 'review') return { color: '#7C3AED', label: 'На проверке' }
-  if (status === 'cancelled') return { color: '#EF4444', label: 'Отменено' }
-  if (status === 'declined') return { color: '#EF4444', label: 'Отклонено' }
-  if (status === 'pending') return { color: '#D97706', label: 'Ожидает' }
-  return { color: '#9CA3AF', label: 'Не назначено' }
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProcessInfoBlock({ journeyId, canManage = false, canConvert = false }: Props) {
   const router = useRouter()
+  const t = useTranslations('education')
+  const tCommon = useTranslations('common')
+
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
@@ -178,14 +156,11 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState('')
 
-  // Схема процесса (Mermaid)
   const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
 
-  // Подтверждение активации пропущенного подэтапа
   const [reactivatingStage, setReactivatingStage] = useState<{ id: string; name: string } | null>(null)
   const [reactivating, setReactivating] = useState(false)
 
-  // Досрочное закрытие процесса
   const [closingProc, setClosingProc] = useState<ProcessInfo | null>(null)
   const [closingFinals, setClosingFinals] = useState<ClosingFinal[]>([])
   const [loadingFinals, setLoadingFinals] = useState(false)
@@ -196,6 +171,29 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   const reload = useCallback(() => setVersion((v: number) => v + 1), [])
 
+  // ── Translated label helpers ─────────────────────────────────────────────────
+
+  function processStatusLabel(status: string): string {
+    return t(`process.process_status.${status}`, status)
+  }
+
+  function stageStatusLabel(status: string): string {
+    return t(`process.stage_status.${status}`, status)
+  }
+
+  function taskStatusStyle(status: string): { color: string; label: string } {
+    const label = t(`process.task_status.${status}`, status)
+    if (status === 'completed') return { color: '#6B7280', label }
+    if (status === 'in_progress') return { color: '#2563EB', label }
+    if (status === 'review') return { color: '#7C3AED', label }
+    if (status === 'cancelled') return { color: '#EF4444', label }
+    if (status === 'declined') return { color: '#EF4444', label }
+    if (status === 'pending') return { color: '#D97706', label }
+    return { color: '#9CA3AF', label }
+  }
+
+  // ── Handlers ─────────────────────────────────────────────────────────────────
+
   async function handleReactivate() {
     if (!reactivatingStage) return
     const stageId = reactivatingStage.id
@@ -204,14 +202,14 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
       const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        alert(data.error ?? 'Не удалось активировать подэтап')
+        alert(data.error ?? t('process.modals.activate_title'))
         return
       }
       setReactivatingStage(null)
       reload()
       router.refresh()
     } catch {
-      alert('Ошибка сети')
+      alert(tCommon('error'))
     } finally {
       setReactivating(false)
     }
@@ -257,7 +255,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        setCompleteError(data.error ?? 'Ошибка')
+        setCompleteError(data.error ?? tCommon('error'))
         return
       }
       closeModal()
@@ -301,7 +299,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        setCloseError(data.error ?? 'Ошибка')
+        setCloseError(data.error ?? tCommon('error'))
         return
       }
       closeCloseEarly()
@@ -317,7 +315,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   if (loading) {
     return (
       <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px', color: '#9CA3AF', fontSize: 13 }}>
-        Загрузка процессов…
+        {t('process.loading')}
       </div>
     )
   }
@@ -325,7 +323,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   if (processes.length === 0) {
     return (
       <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px', color: '#9CA3AF', fontSize: 13 }}>
-        Процессы не запущены
+        {t('process.no_processes')}
       </div>
     )
   }
@@ -337,7 +335,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           <div key={proc.id} style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
-                {proc.template?.name_ru ?? 'Процесс'}
+                {proc.template?.name_ru ?? t('process.title')}
               </span>
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
@@ -347,7 +345,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               </span>
               <button
                 onClick={() => setGraphProcessId(proc.id)}
-                title="Схема процесса"
+                title={t('process.actions.view_graph')}
                 style={{
                   marginLeft: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
                   color: '#6B7280', background: '#F9FAFB', border: '1px solid #E5E7EB',
@@ -356,7 +354,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
               >
-                ⛁ Схема процесса
+                {t('process.actions.view_graph')}
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -379,18 +377,21 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         {stageIcon(stage.status)}
                       </span>
                       <span style={stageLabelStyle(stage.status, accent)}>
-                        {stage.stage_template?.name_ru ?? '—'}
+                        {stage.stage_template
+                          ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru)
+                          : '—'}
                       </span>
                       {stage.final_code && stage.status === 'completed' && (
                         <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 'auto' }}>
-                          {stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code}
+                          {t(`process.finals.${stage.final_code}`,
+                            stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code)}
                         </span>
                       )}
                     </button>
                     {stage.status === 'skipped' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template?.name_ru ?? 'Подэтап' })}
-                        title="Вернуть пропущенный подэтап к выполнению"
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '' })}
+                        title={t('process.actions.activate_stage')}
                         style={{
                           flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
                           padding: '2px 6px', fontSize: 11, fontWeight: 500, color: '#2563EB',
@@ -399,14 +400,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none' }}
                       >
-                        ▶ Активировать
+                        {t('process.actions.activate_stage')}
                       </button>
                     )}
                   </div>
                 ))}
             </div>
 
-            {/* Завершить процесс досрочно */}
             {proc.status === 'active' && canManage && (
               <button
                 onClick={() => openCloseEarly(proc)}
@@ -419,7 +419,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
               >
-                ⚙ Завершить процесс досрочно
+                {t('process.actions.close_process_early')}
               </button>
             )}
           </div>
@@ -438,7 +438,11 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>
-                  {loadingDetail ? 'Загрузка…' : (stageDetail?.stage_template?.name_ru ?? 'Подэтап')}
+                  {loadingDetail
+                    ? tCommon('loading')
+                    : stageDetail?.stage_template
+                      ? t(`process.stages.${stageDetail.stage_template.code}`, stageDetail.stage_template.name_ru)
+                      : '—'}
                 </span>
                 {stageDetail && (
                   <span style={{
@@ -460,24 +464,22 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               {loadingDetail && (
                 <div style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', padding: 24 }}>
-                  Загрузка данных…
+                  {tCommon('loading')}
                 </div>
               )}
 
               {!loadingDetail && stageDetail && (
                 <>
-                  {/* Description */}
                   {stageDetail.stage_template?.description && (
                     <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
                       {stageDetail.stage_template.description}
                     </div>
                   )}
 
-                  {/* Tasks */}
                   {stageDetail.tasks.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-                        Задачи
+                        {t('process.tasks_label')}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {stageDetail.tasks.map(task => {
@@ -507,14 +509,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   )}
 
                   {stageDetail.tasks.length === 0 && stageDetail.stage_template?.has_tasks && (
-                    <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 16 }}>Задачи не созданы</div>
+                    <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 16 }}>{t('process.no_tasks_created')}</div>
                   )}
 
-                  {/* Finals (only when active) */}
                   {stageDetail.status === 'active' && stageDetail.finals.length > 0 && stageDetail.can_manage && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-                        Завершить подэтап
+                        {t('process.close_stage_section')}
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {stageDetail.finals
@@ -535,7 +536,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                                   transition: 'opacity 0.15s',
                                 }}
                               >
-                                {final.name_ru}
+                                {t(`process.finals.${final.code}`, final.name_ru)}
                               </button>
                             )
                           })}
@@ -543,18 +544,17 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                     </div>
                   )}
 
-                  {/* No-permission notice */}
                   {stageDetail.status === 'active' && !stageDetail.can_manage && (
                     <div style={{ padding: '10px 14px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, color: '#6B7280' }}>
-                      У вас нет прав на завершение этого подэтапа
+                      {t('process.no_rights')}
                     </div>
                   )}
 
-                  {/* Completed info */}
                   {stageDetail.status === 'completed' && stageDetail.final_code && (
                     <div style={{ padding: '10px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, fontSize: 13, color: '#065F46' }}>
-                      Завершён с результатом: <strong>
-                        {stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code}
+                      {t('process.completed_with')} <strong>
+                        {t(`process.finals.${stageDetail.final_code}`,
+                          stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code)}
                       </strong>
                     </div>
                   )}
@@ -568,7 +568,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 ? <span style={{ fontSize: 12, color: '#EF4444' }}>{completeError}</span>
                 : <span />}
               <button onClick={closeModal} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-                Закрыть
+                {t('process.close')}
               </button>
             </div>
           </div>
@@ -586,7 +586,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             {/* Header */}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>
-                Завершить процесс «{closingProc.template?.name_ru ?? 'Процесс'}» досрочно
+                {t('process.modals.close_early_title')}
               </span>
               <button onClick={closeCloseEarly} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>
                 ×
@@ -596,18 +596,17 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             {/* Body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-                Это закроет процесс полностью. Все незавершённые подэтапы и задачи
-                будут отменены. Выберите итоговый статус:
+                {t('process.modals.close_early_desc')}
               </div>
 
               {loadingFinals && (
                 <div style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', padding: 24 }}>
-                  Загрузка…
+                  {tCommon('loading')}
                 </div>
               )}
 
               {!loadingFinals && closingFinals.length === 0 && (
-                <div style={{ fontSize: 13, color: '#9CA3AF' }}>Нет доступных финалов</div>
+                <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('process.modals.no_finals')}</div>
               )}
 
               {!loadingFinals && closingFinals.length > 0 && (
@@ -630,7 +629,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                             transition: 'opacity 0.15s',
                           }}
                         >
-                          {final.name_ru}
+                          {t(`process.finals.${final.code}`, final.name_ru)}
                         </button>
                       )
                     })}
@@ -644,7 +643,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 ? <span style={{ fontSize: 12, color: '#EF4444' }}>{closeError}</span>
                 : <span />}
               <button onClick={closeCloseEarly} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-                Отмена
+                {t('process.cancel')}
               </button>
             </div>
           </div>
@@ -660,7 +659,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 16px 48px rgba(0,0,0,0.2)', overflow: 'hidden' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>
-                Активировать пропущенный подэтап?
+                {t('process.modals.activate_title')}
               </span>
               <button
                 onClick={() => setReactivatingStage(null)}
@@ -669,8 +668,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             </div>
             <div style={{ padding: '16px 24px' }}>
               <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
-                Подэтап <strong>«{reactivatingStage.name}»</strong> будет активирован.
-                {' '}Создадутся задачи. Продолжить?
+                <strong>«{reactivatingStage.name}»</strong> — {t('process.modals.activate_text')}
               </p>
             </div>
             <div style={{ padding: '12px 24px 20px', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
@@ -679,7 +677,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 disabled={reactivating}
                 style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}
               >
-                Отмена
+                {t('process.cancel')}
               </button>
               <button
                 onClick={handleReactivate}
@@ -691,7 +689,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   opacity: reactivating ? 0.6 : 1,
                 }}
               >
-                {reactivating ? 'Активация…' : 'Активировать'}
+                {reactivating ? t('process.modals.activating') : t('process.modals.activate_button')}
               </button>
             </div>
           </div>
@@ -704,8 +702,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           processInstanceId={graphProcessId}
           onClose={() => setGraphProcessId(null)}
           onStageClick={(stageInstanceId) => {
-            setGraphProcessId(null)   // закрыть схему
-            openStage(stageInstanceId) // открыть карточку подэтапа поверх
+            setGraphProcessId(null)
+            openStage(stageInstanceId)
           }}
         />
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,7 @@ const lbl: React.CSSProperties = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function CascadeDirectionSelector({ value, onChange, disabled = false }: Props) {
+  const t = useTranslations('education')
   const [institutions, setInstitutions] = useState<Institution[]>([])
   const [directions, setDirections] = useState<Direction[] | null>(null)
   const [levels, setLevels] = useState<Level[] | null>(null)
@@ -112,31 +114,31 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'end' }}>
         {/* Учреждение */}
         <div>
-          <label style={lbl}>Учреждение</label>
+          <label style={lbl}>{t('cascade.institution_label')}</label>
           <select
             value={value.department_id ?? ''}
             onChange={e => handleInstitution(e.target.value)}
             disabled={disabled}
             style={{ ...inp, color: value.department_id ? '#111827' : '#9CA3AF' }}
           >
-            <option value="">— выберите учреждение —</option>
+            <option value="">{t('cascade.institution_placeholder')}</option>
             {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
         </div>
 
         {/* Направление */}
         {loadingDirections ? (
-          <div style={{ fontSize: 12, color: '#9CA3AF', paddingBottom: 8 }}>Загрузка направлений…</div>
+          <div style={{ fontSize: 12, color: '#9CA3AF', paddingBottom: 8 }}>{t('cascade.loading_directions')}</div>
         ) : showDirections ? (
           <div>
-            <label style={lbl}>Направление</label>
+            <label style={lbl}>{t('cascade.direction_label')}</label>
             <select
               value={value.direction_id ?? ''}
               onChange={e => handleDirection(e.target.value)}
               disabled={disabled}
               style={{ ...inp, color: value.direction_id ? '#111827' : '#9CA3AF' }}
             >
-              <option value="">— выберите направление —</option>
+              <option value="">{t('cascade.direction_placeholder')}</option>
               {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
             </select>
           </div>
@@ -145,14 +147,14 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
         {/* Уровень / Курс */}
         {showLevels ? (
           <div>
-            <label style={lbl}>Уровень / Курс</label>
+            <label style={lbl}>{t('cascade.level_label')}</label>
             <select
               value={value.level_id ?? ''}
               onChange={e => handleLevel(e.target.value)}
               disabled={disabled}
               style={{ ...inp, color: value.level_id ? '#111827' : '#9CA3AF' }}
             >
-              <option value="">— выберите уровень —</option>
+              <option value="">{t('cascade.level_placeholder')}</option>
               {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}
             </select>
           </div>
@@ -162,12 +164,12 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
       {/* Свободный текст (учреждение без справочника / легаси) — на всю ширину */}
       {showFreeText && (
         <div>
-          <label style={lbl}>Опишите направление</label>
+          <label style={lbl}>{t('cascade.free_text_label')}</label>
           <textarea
             value={value.free_text ?? ''}
             onChange={e => handleFreeText(e.target.value)}
             disabled={disabled}
-            placeholder="Направление обучения свободным текстом…"
+            placeholder={t('cascade.free_text_placeholder')}
             rows={2}
             style={{ ...inp, resize: 'vertical' }}
           />

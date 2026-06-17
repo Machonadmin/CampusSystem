@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -100,18 +101,10 @@ function buildMermaid(data: GraphData): string {
   return lines.join('\n')
 }
 
-const PROCESS_STATUS_LABEL: Record<string, string> = {
-  active: 'Активен', completed: 'Завершён', cancelled: 'Отменён',
-}
-
-/** Человекочитаемая причина завершения процесса (finish_reason). */
-const FINISH_REASON_LABEL: Record<string, string> = {
-  converted: 'Конвертирован', rejected: 'Отклонён', postponed: 'Отложен', cancelled: 'Отменён',
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProcessGraphModal({ processInstanceId, onClose, onStageClick }: Props) {
+  const t = useTranslations('education')
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -129,7 +122,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
       .then(async r => {
         if (!r.ok) {
           const d = await r.json().catch(() => ({})) as { error?: string }
-          throw new Error(d.error ?? 'Не удалось загрузить схему')
+          throw new Error(d.error ?? t('process.graph.load_error'))
         }
         return r.json() as Promise<GraphData>
       })
@@ -172,7 +165,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         // bindFunctions навешивает click-обработчики на только что вставленные узлы
         if (bindFunctions) bindFunctions(containerRef.current)
       } catch (e) {
-        if (!cancelled) setRenderError('Ошибка отрисовки схемы: ' + (e as Error).message)
+        if (!cancelled) setRenderError(t('process.graph.render_error') + ': ' + (e as Error).message)
       }
     })()
 
@@ -207,7 +200,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Схема процесса</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{t('process.graph.title')}</span>
             {data && (
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
@@ -215,12 +208,12 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
                   : data.process_status === 'completed' ? { background: '#E5E7EB', color: '#374151' }
                   : { background: '#FEE2E2', color: '#991B1B' }),
               }}>
-                {PROCESS_STATUS_LABEL[data.process_status] ?? data.process_status}
+                {t(`process.process_status.${data.process_status}`, data.process_status)}
               </span>
             )}
             {data?.process_final && (
               <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-                Итог: {FINISH_REASON_LABEL[data.process_final] ?? data.process_final}
+                {t('process.graph.result')}: {t(`process.graph.finish_reason.${data.process_final}`, data.process_final)}
               </span>
             )}
           </div>
@@ -232,13 +225,13 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         {/* Body */}
         <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
           {loading && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>Загрузка схемы…</div>
+            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
           )}
           {!loading && (error || renderError) && (
             <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
           )}
           {!loading && !error && !renderError && data && data.nodes.length === 0 && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>Нет данных для схемы процесса</div>
+            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>
           )}
           {showGraph && (
             <div
@@ -252,10 +245,10 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         {/* Footer */}
         <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-            Кликните по подэтапу со статусом, чтобы открыть его карточку
+            {t('process.graph.click_hint')}
           </span>
           <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-            Закрыть
+            {t('process.close')}
           </button>
         </div>
       </div>

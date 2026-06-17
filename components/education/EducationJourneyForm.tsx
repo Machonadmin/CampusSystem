@@ -8,6 +8,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import PersonRelationField, { type PersonRelationValue, type RelationType } from '@/components/ui/PersonRelationField'
 import CascadeDirectionSelector, { type CascadeValue } from '@/components/education/CascadeDirectionSelector'
 import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -30,23 +31,15 @@ export interface EducationJourneyFormProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TAB_LABELS_BASE = ['Личные данные', 'Контакты и адрес', 'Семья', 'Община', 'Направления', 'Дополнительно']
-const TAB_LABELS_WITH_ACADEMIC = [...TAB_LABELS_BASE, 'Академические данные']
+const TAB_LABEL_KEYS_BASE = ['personal', 'contacts', 'family', 'community', 'directions', 'additional']
+const TAB_LABEL_KEYS_WITH_ACADEMIC = [...TAB_LABEL_KEYS_BASE, 'academic']
 
-
-const SOURCES = [
-  { value: 'website', label: 'Сайт' },
-  { value: 'social', label: 'Соцсети' },
-  { value: 'referral', label: 'Рекомендация' },
-  { value: 'call', label: 'Звонок' },
-  { value: 'exhibition', label: 'Выставка' },
-  { value: 'other', label: 'Другое' },
-]
+const SOURCE_CODES = ['website', 'social', 'referral', 'call', 'exhibition', 'other']
 
 const MODE_CONFIG = {
-  lead:      { title: 'Добавить лида',       saveLabel: 'Создать лида' },
-  applicant: { title: 'Добавить абитуриента', saveLabel: 'Создать абитуриента' },
-  student:   { title: 'Добавить студента',   saveLabel: 'Создать студента' },
+  lead:      { titleKey: 'add_lead',      saveKey: 'create_lead' },
+  applicant: { titleKey: 'add_applicant', saveKey: 'create_applicant' },
+  student:   { titleKey: 'add_student',   saveKey: 'create_student' },
 } as const
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -102,6 +95,8 @@ const DEFAULT_COMMUNITY: CommunityEntry = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function EducationJourneyForm({ mode, onClose, onSaved, initialPersonId, journeyId, inline }: EducationJourneyFormProps) {
+  const t = useTranslations('education')
+  const tCommon = useTranslations('common')
   const [view, setView] = useState<ModalView>('new')
   const [selected, setSelected] = useState<PersonResult | null>(null)
   const [tabIdx, setTabIdx] = useState(0)
@@ -409,15 +404,16 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     await loadPersonData(p.id)
   }
 
-  const tabs = mode === 'lead' ? TAB_LABELS_BASE : TAB_LABELS_WITH_ACADEMIC
+  const tabKeys = mode === 'lead' ? TAB_LABEL_KEYS_BASE : TAB_LABEL_KEYS_WITH_ACADEMIC
+  const tabs = tabKeys.map(k => t(`form.${k}`))
   const lastTabIdx = tabs.length - 1
 
   function goNext() {
     setError('')
     if (view === 'new') {
-      if (tabIdx === 0 && !lastName.trim()) { setError('Фамилия обязательна'); return }
-      if (tabIdx === 0 && !firstName.trim()) { setError('Имя обязательно'); return }
-      if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
+      if (tabIdx === 0 && !lastName.trim()) { setError(t('form.required_last_name')); return }
+      if (tabIdx === 0 && !firstName.trim()) { setError(t('form.required_first_name')); return }
+      if (tabIdx === 1 && !phones.some(p => p.trim())) { setError(t('form.required_phone')); return }
     }
     setTabIdx(t => Math.min(t + 1, lastTabIdx))
   }
@@ -439,8 +435,8 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
       if (journeyId) {
         // Edit mode: PATCH /api/education/leads/{journeyId}
-        if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
-        if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
+        if (!lastName.trim()) { setError(t('form.required_last_name')); setSaving(false); setTabIdx(0); return }
+        if (!firstName.trim()) { setError(t('form.required_first_name')); setSaving(false); setTabIdx(0); return }
         const validPhones = phones.filter(p => p.trim())
         const addr = { country, city, street, house, apartment, postal_code: postalCode }
         const body: Record<string, unknown> = {
@@ -475,7 +471,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         })
         if (!res.ok) {
           const data = await res.json()
-          setError(data.error ?? 'Ошибка')
+          setError(data.error ?? tCommon('error'))
           return
         }
         onSaved(journeyId)
@@ -496,10 +492,10 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         if (view === 'existing' && selected) {
           body.person_id = selected.id
         } else {
-          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
-          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
+          if (!lastName.trim()) { setError(t('form.required_last_name')); setSaving(false); setTabIdx(0); return }
+          if (!firstName.trim()) { setError(t('form.required_first_name')); setSaving(false); setTabIdx(0); return }
           const validPhones = phones.filter(p => p.trim())
-          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
+          if (validPhones.length === 0) { setError(t('form.required_phone_short')); setSaving(false); setTabIdx(1); return }
           body.last_name = lastName.trim()
           body.first_name = firstName.trim()
           body.middle_name = middleName.trim() || null
@@ -524,7 +520,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         })
         if (!res.ok) {
           const data = await res.json()
-          setError(data.error ?? 'Ошибка')
+          setError(data.error ?? tCommon('error'))
           return
         }
         const created = await res.json().catch(() => ({})) as { person_id?: string; journey_id?: string }
@@ -536,7 +532,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       } else {
         // POST /api/education/journeys — applicant | student
         if (mode === 'student' && !primaryDepartmentId) {
-          setError('Для студента необходимо выбрать подразделение')
+          setError(t('form.required_department'))
           setTabIdx(6)
           setSaving(false)
           return
@@ -555,10 +551,10 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         if (view === 'existing' && selected) {
           body.person_id = selected.id
         } else {
-          if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
-          if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
+          if (!lastName.trim()) { setError(t('form.required_last_name')); setSaving(false); setTabIdx(0); return }
+          if (!firstName.trim()) { setError(t('form.required_first_name')); setSaving(false); setTabIdx(0); return }
           const validPhones = phones.filter(p => p.trim())
-          if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
+          if (validPhones.length === 0) { setError(t('form.required_phone_short')); setSaving(false); setTabIdx(1); return }
           body.new_person = {
             last_name: lastName.trim(),
             first_name: firstName.trim(),
@@ -578,7 +574,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         })
         if (!res.ok) {
           const data = await res.json()
-          setError(data.error ?? 'Ошибка')
+          setError(data.error ?? tCommon('error'))
           return
         }
         const journey = await res.json().catch(() => ({})) as { id?: string; person_id?: string }
@@ -626,7 +622,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
-                {loadingPerson ? 'Загрузка данных...' : '📋 Данные загружены из профиля · только для просмотра'}
+                {loadingPerson ? t('form.loading_data') : t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -637,11 +633,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
-                  Загрузить фото
+                  {t('form.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · JPG, PNG</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('form.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               {!journeyId && (
@@ -649,13 +645,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                   {!searchExpanded ? (
                     <button onClick={() => setSearchExpanded(true)}
                       style={{ fontSize: 12, color: '#4BAED4', border: '1px solid #4BAED4', borderRadius: 8, padding: '6px 12px', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      🔍 Найти существующего человека
+                      {t('form.find_existing')}
                     </button>
                   ) : (
                     <div>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
-                          placeholder="Имя или email..." style={{ ...inp, width: 220 }} />
+                          placeholder={t('form.ph.search')} style={{ ...inp, width: 220 }} />
                         <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
@@ -663,7 +659,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                       </div>
                       {(searching || results.length > 0) && (
                         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
+                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('form.searching')}</div>}
                           {results.map(p => (
                             <button key={p.id} onClick={() => selectPerson(p)}
                               style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
@@ -683,51 +679,51 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div>
-                <label style={lbl}>Фамилия *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Иванова" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('form.last_name')} *</label>
+                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
-                <label style={lbl}>Имя *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Мария" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('form.first_name')} *</label>
+                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('form.ph.first_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
-                <label style={lbl}>Отчество</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder="Ивановна" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('form.middle_name')}</label>
+                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('form.ph.middle_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Еврейское имя</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="Мириам" disabled={ro} style={{ ...inp, ...dis }} />
+              <label style={lbl}>{t('form.hebrew_name')}</label>
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('form.ph.hebrew_name')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Пол</label>
+              <label style={lbl}>{t('form.gender')}</label>
               <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
-                <option value="female">Женский</option>
-                <option value="male">Мужской</option>
+                <option value="female">{t('form.gender_female')}</option>
+                <option value="male">{t('form.gender_male')}</option>
               </select>
             </div>
             <div>
-              <label style={lbl}>Дата рождения</label>
+              <label style={lbl}>{t('form.birth_date')}</label>
               <DateInput value={birthDate} onChange={setBirthDate} maxDate={new Date()} minDate={new Date(1940, 0, 1)} disabled={ro} style={dis} />
             </div>
             <div>
-              <label style={lbl}>Семейное положение</label>
+              <label style={lbl}>{t('form.marital_status')}</label>
               <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
-                <option value="single">Не замужем</option>
-                <option value="married">Замужем</option>
-                <option value="divorced">Разведена</option>
-                <option value="widowed">Вдова</option>
+                <option value="single">{t('form.marital_single')}</option>
+                <option value="married">{t('form.marital_married')}</option>
+                <option value="divorced">{t('form.marital_divorced')}</option>
+                <option value="widowed">{t('form.marital_widowed')}</option>
               </select>
             </div>
             <div>
-              <label style={lbl}>Гражданство</label>
+              <label style={lbl}>{t('form.citizenship')}</label>
               <CountrySelect value={citizenship} onChange={setCitizenship} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Номер паспорта</label>
-              <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="AA 123456" disabled={ro} style={{ ...inp, ...dis }} />
+              <label style={lbl}>{t('form.passport_number')}</label>
+              <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder={t('form.ph.passport')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -737,15 +733,15 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
-                📋 Данные загружены из профиля · только для просмотра
+                {t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>Телефоны{view === 'new' ? ' *' : ''}</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view === 'new' ? ' *' : ''}</label>
                 {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                  + Добавить телефон
+                  {t('form.add_phone')}
                 </button>}
               </div>
               {phones.map((p, i) => (
@@ -762,31 +758,31 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               ))}
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Email</label>
+              <label style={lbl}>{t('form.email')}</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Страна</label>
+              <label style={lbl}>{t('form.country')}</label>
               <CountrySelect value={country} onChange={setCountry} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Город</label>
+              <label style={lbl}>{t('form.city')}</label>
               <CitySelect country={country} value={city} onChange={setCity} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Улица</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder="Дизенгоф" disabled={ro} style={{ ...inp, ...dis }} />
+              <label style={lbl}>{t('form.street')}</label>
+              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('form.ph.street')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Дом</label>
+              <label style={lbl}>{t('form.house')}</label>
               <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Квартира</label>
+              <label style={lbl}>{t('form.apartment')}</label>
               <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Индекс</label>
+              <label style={lbl}>{t('form.postal_code')}</label>
               <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
@@ -797,12 +793,12 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {ro && (
               <div style={{ background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
-                📋 Данные загружены из профиля · только для просмотра
+                {t('form.profile_readonly')}
               </div>
             )}
             {familyRelations.map((rel, idx) => {
               const isFixed = idx < 2 && (rel.relation_type === 'mother' || rel.relation_type === 'father')
-              const fixedLabel = rel.relation_type === 'mother' ? 'Мать' : 'Отец'
+              const fixedLabel = rel.relation_type === 'mother' ? t('form.relation_mother') : t('form.relation_father')
               return (
                 <PersonRelationField
                   key={idx}
@@ -825,7 +821,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 borderRadius: 8, cursor: 'pointer', alignSelf: 'flex-start',
               }}
             >
-              + Добавить родственника / контакт
+              {t('form.add_relative')}
             </button>
           </div>
         )
@@ -833,15 +829,15 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 3: {
         const communityContactTypes = (
           <>
-            <option value="phone">Телефон</option>
+            <option value="phone">{t('form.ct_phone')}</option>
             <option value="email">Email</option>
             <option value="whatsapp">WhatsApp</option>
             <option value="telegram">Telegram</option>
-            <option value="address">Адрес</option>
+            <option value="address">{t('form.ct_address')}</option>
             <option value="facebook">Facebook</option>
             <option value="instagram">Instagram</option>
             <option value="vk">VK</option>
-            <option value="other">Другое</option>
+            <option value="other">{t('form.ct_other')}</option>
           </>
         )
         const updateComm = (i: number, field: string, value: string) =>
@@ -866,11 +862,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                     <div>
-                      <label style={lbl}>Страна общины</label>
+                      <label style={lbl}>{t('form.community_country')}</label>
                       <CountrySelect value={comm.country} onChange={ct => updateCommCountry(i, ct)} style={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Город общины</label>
+                      <label style={lbl}>{t('form.community_city')}</label>
                       <CitySelect
                         country={comm.country}
                         value={comm.city}
@@ -880,12 +876,12 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                       />
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={lbl}>Название общины</label>
+                      <label style={lbl}>{t('form.community_name')}</label>
                       <input value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
-                        placeholder="Бейт Хабад, Шалом и т.д." style={inp} />
+                        placeholder={t('form.ph.community_name')} style={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Контактное лицо</label>
+                      <label style={lbl}>{t('form.community_contact_person')}</label>
                       <PersonSelect
                         value={comm.contact_person_id}
                         onChange={(personId, personData) => {
@@ -895,23 +891,23 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                             contact_person: personData?.full_name ?? c.contact_person,
                           } : c))
                         }}
-                        placeholder="Выберите или добавьте контактное лицо"
+                        placeholder={t('form.ph.community_contact_person')}
                         accentColor={getModuleColor('education')}
                       />
                     </div>
                     <div>
-                      <label style={lbl}>Должность в общине</label>
+                      <label style={lbl}>{t('form.community_position')}</label>
                       <input value={comm.position} onChange={e => updateComm(i, 'position', e.target.value)}
-                        placeholder="Раввин, координатор..." style={inp} />
+                        placeholder={t('form.ph.community_position')} style={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Телефон</label>
+                      <label style={lbl}>{t('form.community_phone')}</label>
                       <FlagPhone value={comm.phone} onChange={v => updateComm(i, 'phone', v)} inputStyle={inp} />
                     </div>
                     <div>
                       <label style={lbl}>Email</label>
                       <input type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
-                        placeholder="email@..." style={inp} />
+                        placeholder={t('form.ph.community_email')} style={inp} />
                     </div>
                     {comm.contacts.map((cc, ci) => (
                       <div key={ci} style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -922,7 +918,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                         </select>
                         <input value={cc.value}
                           onChange={e => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : c))}
-                          placeholder="Значение..." style={{ ...inp, flex: 1 }} />
+                          placeholder={t('form.ph.contact_value')} style={{ ...inp, flex: 1 }} />
                         <button
                           onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.filter((_, xi) => xi !== ci) } : c))}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
@@ -934,7 +930,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                       <button
                         onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: [...c.contacts, { type: 'phone', value: '' }] } : c))}
                         style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        + Добавить контакт
+                        {t('form.add_contact')}
                       </button>
                     </div>
                   </div>
@@ -944,7 +940,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             <button
               onClick={() => setCommunities(prev => [...prev, { ...DEFAULT_COMMUNITY }])}
               style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
-              + Добавить ещё общину
+              {t('form.add_community')}
             </button>
           </div>
         )
@@ -954,12 +950,12 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div>
             <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
-              Укажите направления которые интересуют
+              {t('form.directions_hint')}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
               <button onClick={() => setInterests(prev => [...prev, { ...EMPTY_INTEREST }])}
                 style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                + Добавить направление
+                {t('form.add_direction')}
               </button>
             </div>
             {interests.map((item, idx) => (
@@ -982,16 +978,16 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={lbl}>Источник обращения</label>
+              <label style={lbl}>{t('form.source_label')}</label>
               <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
-                <option value="">— Не указан —</option>
-                {SOURCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                <option value="">{t('form.source_not_specified')}</option>
+                {SOURCE_CODES.map(code => <option key={code} value={code}>{t(`card.source.${code}`)}</option>)}
               </select>
             </div>
             <div>
-              <label style={lbl}>Комментарий</label>
+              <label style={lbl}>{t('form.comment')}</label>
               <textarea value={comment} onChange={e => setComment(e.target.value)} rows={5}
-                style={{ ...inp, resize: 'vertical' }} placeholder="Дополнительные заметки..." />
+                style={{ ...inp, resize: 'vertical' }} placeholder={t('form.ph.comment')} />
             </div>
           </div>
         )
@@ -1001,52 +997,52 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
             <div>
-              <label style={lbl}>Подразделение{isStudent && ' *'}</label>
+              <label style={lbl}>{t('form.academic_department')}{isStudent && ' *'}</label>
               <select
                 value={primaryDepartmentId ?? ''}
                 onChange={e => setPrimaryDepartmentId(e.target.value || null)}
                 style={inp}
               >
-                <option value="">— выберите —</option>
+                <option value="">{t('form.academic_select')}</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={lbl}>Специальность</label>
+              <label style={lbl}>{t('form.academic_specialty')}</label>
               <select
                 value={specialtyId ?? ''}
                 onChange={e => setSpecialtyId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
                 style={{ ...inp, ...(!primaryDepartmentId ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
               >
-                <option value="">{primaryDepartmentId ? '— нет —' : 'Сначала выберите подразделение'}</option>
+                <option value="">{primaryDepartmentId ? t('form.academic_none') : t('form.academic_select_dept_first')}</option>
                 {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={lbl}>Базовая группа</label>
+              <label style={lbl}>{t('form.academic_base_group')}</label>
               <select
                 value={mainGroupId ?? ''}
                 onChange={e => setMainGroupId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
                 style={{ ...inp, ...(!primaryDepartmentId ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
               >
-                <option value="">{primaryDepartmentId ? '— нет —' : 'Сначала выберите подразделение'}</option>
+                <option value="">{primaryDepartmentId ? t('form.academic_none') : t('form.academic_select_dept_first')}</option>
                 {studyGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={lbl}>Курс / Класс</label>
+              <label style={lbl}>{t('form.academic_course_class')}</label>
               <input type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
-                placeholder="1, 2, 10..." style={inp} />
+                placeholder={t('form.ph.course_class')} style={inp} />
             </div>
             <div>
-              <label style={lbl}>Год набора</label>
+              <label style={lbl}>{t('form.academic_enrollment_year')}</label>
               <input type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
-                placeholder="2025" style={inp} />
+                placeholder={t('form.ph.enrollment_year')} style={inp} />
             </div>
             <div>
-              <label style={lbl}>Дата зачисления</label>
+              <label style={lbl}>{t('form.academic_enrollment_date')}</label>
               <input type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
                 style={inp} />
             </div>
@@ -1059,8 +1055,8 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   }
 
   const cfg = MODE_CONFIG[mode]
-  const formTitle = journeyId ? 'Редактировать лида' : cfg.title
-  const saveLabel = journeyId ? 'Сохранить' : cfg.saveLabel
+  const formTitle = journeyId ? t('form.edit_lead') : t(`form.${cfg.titleKey}`)
+  const saveLabel = journeyId ? t('form.save') : t(`form.${cfg.saveKey}`)
 
   const formInner = (
     <div style={{ background: '#fff', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid #E5E7EB' : 'none' }}>
@@ -1076,11 +1072,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#6B7280' }}>
-                Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+                {t('form.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                изменить
+                {t('form.change')}
               </button>
             </div>
           )}
@@ -1114,7 +1110,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         {/* Form body */}
         <div style={{ ...(inline ? {} : { height: 560 }), overflowY: 'auto', padding: '16px 24px 8px' }}>
           {loading
-            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: '#9CA3AF', fontSize: 14 }}>Загрузка...</div>
+            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: '#9CA3AF', fontSize: 14 }}>{t('form.loading')}</div>
             : renderTab()}
         </div>
 
@@ -1123,7 +1119,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           {inline
             ? <div />
             : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
-                Отмена
+                {t('form.cancel')}
               </button>
           }
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1131,18 +1127,18 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             {tabIdx > 0 && (
               <button onClick={goBack}
                 style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-                Назад
+                {t('form.back')}
               </button>
             )}
             {tabIdx < lastTabIdx && (
               <button onClick={goNext}
                 style={{ padding: '8px 18px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-                Далее
+                {t('form.next')}
               </button>
             )}
             <button onClick={handleSave} disabled={saving}
               style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: getModuleColor('education'), color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Сохранение...' : saveLabel}
+              {saving ? t('form.saving') : saveLabel}
             </button>
           </div>
         </div>

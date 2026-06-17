@@ -74,6 +74,11 @@ export const useLang = () => useContext(LanguageContext)
 export function useTranslations(namespace?: string) {
   const { lang } = useLang()
   const messages = allMessages[lang]
-  return (key: string): string =>
-    lookupKey(messages, namespace ? `${namespace}.${key}` : key)
+  return (key: string, fallback?: string): string => {
+    const fullPath = namespace ? `${namespace}.${key}` : key
+    const result = lookupKey(messages, fullPath)
+    // lookupKey returns fullPath when key not found
+    if (result === fullPath) return fallback ?? key
+    return result
+  }
 }
