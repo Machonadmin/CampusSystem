@@ -2,11 +2,13 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 export default function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from') ?? '/dashboard'
+  const t = useTranslations('auth')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,7 +52,7 @@ export default function LoginForm() {
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Email
+            {t('email')}
           </label>
           <input
             id="email"
@@ -67,7 +69,7 @@ export default function LoginForm() {
         {/* Password */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Пароль
+            {t('password')}
           </label>
           <input
             id="password"
@@ -105,7 +107,7 @@ export default function LoginForm() {
               </svg>
               Вход...
             </span>
-          ) : 'Войти'}
+          ) : t('login')}
         </button>
 
       </form>

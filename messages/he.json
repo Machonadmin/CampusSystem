@@ -1,0 +1,36 @@
+{
+  "common": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "back": "חזרה",
+    "search": "חיפוש",
+    "close": "סגור",
+    "edit": "ערוך",
+    "create": "צור",
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "confirm": "אישור",
+    "yes": "כן",
+    "no": "לא"
+  },
+  "navigation": {
+    "home": "ראשי",
+    "tasks": "משימות",
+    "education": "חינוך",
+    "staff": "כוח אדם",
+    "quality_control": "בקרת איכות",
+    "settings": "הגדרות",
+    "modules": "מודולים זמינים"
+  },
+  "dashboard": {
+    "welcome": "ברוך הבא",
+    "recent_activity": "פעילות אחרונה"
+  },
+  "auth": {
+    "login": "כניסה",
+    "logout": "יציאה",
+    "email": "דואר אלקטרוני",
+    "password": "סיסמה"
+  }
+}

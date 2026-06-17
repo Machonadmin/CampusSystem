@@ -1,7 +1,28 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import { translations, type Lang, type Translations } from './translations'
+import ruMessages from '@/messages/ru.json'
+import heMessages from '@/messages/he.json'
+import enMessages from '@/messages/en.json'
+
+type AnyRecord = Record<string, unknown>
+
+const allMessages: Record<Lang, AnyRecord> = {
+  ru: ruMessages as AnyRecord,
+  he: heMessages as AnyRecord,
+  en: enMessages as AnyRecord,
+}
+
+function lookupKey(obj: AnyRecord, path: string): string {
+  const parts = path.split('.')
+  let cur: unknown = obj
+  for (const part of parts) {
+    if (typeof cur !== 'object' || cur === null) return path
+    cur = (cur as AnyRecord)[part]
+  }
+  return typeof cur === 'string' ? cur : path
+}
 
 interface LanguageContextType {
   lang: Lang
@@ -17,17 +38,23 @@ const LanguageContext = createContext<LanguageContextType>({
   isRTL: false,
 })
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('ru')
-
-  useEffect(() => {
-    const saved = localStorage.getItem('campus_lang') as Lang | null
-    if (saved && saved in translations) setLangState(saved)
-  }, [])
+export function LanguageProvider({
+  children,
+  initialLocale = 'ru',
+}: {
+  children: ReactNode
+  initialLocale?: Lang
+}) {
+  const [lang, setLangState] = useState<Lang>(initialLocale)
 
   function setLang(next: Lang) {
     setLangState(next)
-    localStorage.setItem('campus_lang', next)
+    document.cookie = `campus_locale=${next};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`
+    fetch('/api/auth/locale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ locale: next }),
+    })
   }
 
   const t = translations[lang]
@@ -43,3 +70,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 }
 
 export const useLang = () => useContext(LanguageContext)
+
+export function useTranslations(namespace?: string) {
+  const { lang } = useLang()
+  const messages = allMessages[lang]
+  return (key: string): string =>
+    lookupKey(messages, namespace ? `${namespace}.${key}` : key)
+}

@@ -123,7 +123,7 @@ export default function Header({ userName, roles }: HeaderProps) {
           {(['ru', 'he', 'en'] as Lang[]).map(l => (
             <button
               key={l}
-              onClick={() => setLang(l)}
+              onClick={() => { setLang(l); router.refresh() }}
               className={`w-8 py-1 rounded text-xs font-semibold transition ${
                 lang === l ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
               }`}
