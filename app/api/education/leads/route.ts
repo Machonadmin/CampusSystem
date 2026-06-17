@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, canDoEducationInAny } from '@/lib/education/permissions'
+import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { startProcess, type StartProcessResult } from '@/lib/workflow/start-process'
 import type {
   EducationJourneyInsert,
@@ -34,11 +34,25 @@ export async function GET(request: NextRequest) {
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
 
-    const { data: journeys, error: jErr } = await sb
+    // Просмотр удалённых — только manage_leads + scope=all
+    if (processStatus === 'deleted') {
+      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      if (scope !== 'all') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    }
+
+    let journeysQuery = sb
       .from('education_journeys')
-      .select('id, person_id, referral_source, application_date, opened_at, notes, updated_at')
+      .select('id, person_id, referral_source, application_date, opened_at, notes, updated_at, is_deleted')
       .eq('education_status', 'lead')
       .order('updated_at', { ascending: false })
+
+    if (processStatus === 'deleted') {
+      journeysQuery = journeysQuery.eq('is_deleted', true)
+    } else {
+      journeysQuery = journeysQuery.eq('is_deleted', false)
+    }
+
+    const { data: journeys, error: jErr } = await journeysQuery
 
     if (jErr) throw jErr
     if (!journeys || journeys.length === 0) return NextResponse.json([])
@@ -62,6 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     const filteredJourneys = journeys.filter(j => {
+      if (processStatus === 'deleted') return true // already filtered in DB query
       if (processStatus === 'active') {
         // Показать: есть активный процесс ИЛИ вообще нет процесса
         return journeyHasActive.has(j.id) || !journeyHasTerminated.has(j.id)
@@ -162,6 +177,7 @@ export async function GET(request: NextRequest) {
         referral_source: j.referral_source ?? null,
         application_date: j.application_date ?? j.opened_at ?? null,
         updated_at: j.updated_at ?? null,
+        is_deleted: (j as unknown as { is_deleted: boolean }).is_deleted ?? false,
         interests: interestMap.get(j.person_id) ?? [],
         active_stages_with_tasks: (journeyStages.get(j.id) ?? []).map(s => ({
           stage_name: s.stageName,

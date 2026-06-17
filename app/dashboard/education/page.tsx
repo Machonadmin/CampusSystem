@@ -22,11 +22,13 @@ interface Lead {
   referral_source: string | null
   application_date: string | null
   updated_at: string | null
+  is_deleted: boolean
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
   active_stages_with_tasks: { stage_name: string; tasks: string[] }[]
 }
 
 type LeadSortKey = 'full_name' | 'application_date'
+type ProcessStatusFilter = 'active' | 'closed' | 'all' | 'deleted'
 
 /** Строка из GET /api/education/journeys?status=applicant */
 interface ApplicantJourney {
@@ -83,7 +85,10 @@ export default function EducationPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [processStatus, setProcessStatus] = useState<'active' | 'closed' | 'all'>('active')
+  const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
@@ -115,6 +120,22 @@ export default function EducationPage() {
     if (tab === 'recruitment') loadLeads()
     if (tab === 'admission') loadApplicants()
   }, [tab, loadLeads, loadApplicants])
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+    const res = await fetch(`/api/education/leads/${deleteTarget.profile_id}`, { method: 'DELETE' })
+    setDeleteLoading(false)
+    if (res.ok) {
+      setDeleteTarget(null)
+      loadLeads()
+    }
+  }
+
+  async function handleRestore(lead: Lead) {
+    const res = await fetch(`/api/education/leads/${lead.profile_id}/restore`, { method: 'POST' })
+    if (res.ok) loadLeads()
+  }
 
   function handleLeadSort(key: LeadSortKey) {
     if (sortBy === key) {
@@ -172,6 +193,10 @@ export default function EducationPage() {
       {/* ── Набор tab ─────────────────────────────────────────────────────── */}
       {tab === 'recruitment' && (
         <>
+          {openMenuId && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setOpenMenuId(null)} />
+          )}
+
           {/* Toolbar */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <input
@@ -181,12 +206,13 @@ export default function EducationPage() {
             />
             <select
               value={processStatus}
-              onChange={e => setProcessStatus(e.target.value as 'active' | 'closed' | 'all')}
+              onChange={e => setProcessStatus(e.target.value as ProcessStatusFilter)}
               style={{ padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer' }}
             >
               <option value="active">{t('leads.process_status.active')}</option>
               <option value="closed">{t('leads.process_status.closed')}</option>
               <option value="all">{t('leads.process_status.all')}</option>
+              <option value="deleted">{t('leads.process_status.deleted')}</option>
             </select>
             <PageActionButton
               label={t('leads.create_button')}
@@ -215,9 +241,10 @@ export default function EducationPage() {
                       { label: t('leads.table.email'),             key: null },
                       { label: t('leads.table.application_date'), key: 'application_date' as LeadSortKey },
                       { label: t('leads.table.current_stage'),     key: null },
-                    ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }) => (
+                      { label: '',                                  key: null },
+                    ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }, idx) => (
                       <th
-                        key={label}
+                        key={idx}
                         onClick={key ? () => handleLeadSort(key) : undefined}
                         style={{
                           padding: '10px 14px', fontSize: 11, fontWeight: 600,
@@ -225,6 +252,7 @@ export default function EducationPage() {
                           textAlign: 'left', whiteSpace: 'nowrap',
                           cursor: key ? 'pointer' : 'default',
                           userSelect: 'none',
+                          width: idx === 7 ? 48 : undefined,
                         }}
                       >
                         {label}
@@ -316,7 +344,11 @@ export default function EducationPage() {
 
                       {/* Текущий этап и задачи */}
                       <td style={{ padding: '11px 14px', minWidth: 200 }}>
-                        {lead.active_stages_with_tasks.length === 0 ? (
+                        {processStatus === 'deleted' ? (
+                          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#FEE2E2', color: '#991B1B', fontWeight: 500 }}>
+                            Удалён
+                          </span>
+                        ) : lead.active_stages_with_tasks.length === 0 ? (
                           <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('leads.no_stages')}</span>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -332,6 +364,68 @@ export default function EducationPage() {
                                 )}
                               </div>
                             ))}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Действия */}
+                      <td style={{ padding: '11px 8px', position: 'relative', width: 48 }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === lead.profile_id ? null : lead.profile_id) }}
+                          style={{
+                            border: 'none', background: 'transparent', cursor: 'pointer',
+                            fontSize: 18, color: '#9CA3AF', padding: '2px 6px', borderRadius: 6,
+                            lineHeight: 1,
+                          }}
+                          title="Действия"
+                        >
+                          ···
+                        </button>
+                        {openMenuId === lead.profile_id && (
+                          <div style={{
+                            position: 'absolute', right: 4, top: '100%', zIndex: 100,
+                            background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.12)', minWidth: 170,
+                            overflow: 'hidden',
+                          }}>
+                            {lead.is_deleted ? (
+                              <button
+                                onClick={() => { setOpenMenuId(null); handleRestore(lead) }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#059669' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDF4' }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                              >
+                                ♻ {t('leads.actions.restore')}
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}`) }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                                >
+                                  {t('leads.actions.open')}
+                                </button>
+                                <button
+                                  onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}/edit`) }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                                >
+                                  {t('leads.actions.edit')}
+                                </button>
+                                <div style={{ borderTop: '1px solid #F3F4F6', margin: '2px 0' }} />
+                                <button
+                                  onClick={() => { setOpenMenuId(null); setDeleteTarget(lead) }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#DC2626' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2' }}
+                                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                                >
+                                  🗑 {t('leads.actions.delete')}
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </td>
@@ -429,6 +523,35 @@ export default function EducationPage() {
       )}
 
       {tab === 'study' && <StudyTab />}
+
+      {deleteTarget && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: '28px 28px 24px', maxWidth: 400, width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 10px' }}>
+              {t('leads.delete_confirm.title')}
+            </h2>
+            <p style={{ fontSize: 14, color: '#374151', margin: '0 0 24px', lineHeight: 1.5 }}>
+              Лид <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message')}
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+                style={{ padding: '8px 18px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', color: '#374151' }}
+              >
+                {t('leads.delete_confirm.cancel')}
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteLoading}
+                style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: '#DC2626', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
+              >
+                {t('leads.delete_confirm.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {addOpen && (
         <EducationJourneyForm mode="lead" onClose={() => setAddOpen(false)} onSaved={() => { setAddOpen(false); loadLeads() }} />

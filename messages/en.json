@@ -54,13 +54,27 @@
         "phone": "PHONE",
         "email": "EMAIL",
         "application_date": "DATE",
-        "current_stage": "CURRENT STAGE & TASKS"
+        "current_stage": "CURRENT STAGE & TASKS",
+        "actions": ""
       },
       "process_status": {
         "label": "Process status",
         "active": "Active processes",
         "closed": "Closed processes",
-        "all": "All"
+        "all": "All",
+        "deleted": "Deleted"
+      },
+      "actions": {
+        "open": "Open",
+        "edit": "Edit",
+        "delete": "Delete",
+        "restore": "Restore"
+      },
+      "delete_confirm": {
+        "title": "Delete lead?",
+        "message": "will be hidden. You can restore it later.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
       }
     },
     "applicants": {

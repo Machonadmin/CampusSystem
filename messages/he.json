@@ -54,13 +54,27 @@
         "phone": "טלפון",
         "email": "אימייל",
         "application_date": "תאריך הגשה",
-        "current_stage": "שלב נוכחי ומשימות"
+        "current_stage": "שלב נוכחי ומשימות",
+        "actions": ""
       },
       "process_status": {
         "label": "סטטוס תהליך",
         "active": "תהליכים פעילים",
         "closed": "תהליכים סגורים",
-        "all": "הכל"
+        "all": "הכל",
+        "deleted": "מחוקים"
+      },
+      "actions": {
+        "open": "פתח",
+        "edit": "ערוך",
+        "delete": "מחק",
+        "restore": "שחזר"
+      },
+      "delete_confirm": {
+        "title": "למחוק ליד?",
+        "message": "יוסתר. ניתן לשחזר מאוחר יותר.",
+        "confirm": "מחק",
+        "cancel": "ביטול"
       }
     },
     "applicants": {

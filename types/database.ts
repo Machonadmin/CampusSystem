@@ -180,6 +180,11 @@ export interface EducationJourneyRow {
 
   status: string | null   // legacy: 'new' | 'reviewing' | 'accepted' | 'rejected'
   notes: string | null
+
+  // Soft delete
+  is_deleted: boolean
+  deleted_at: string | null
+  deleted_by: string | null
 }
 
 /**

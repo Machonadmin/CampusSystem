@@ -54,13 +54,27 @@
         "phone": "ТЕЛЕФОН",
         "email": "EMAIL",
         "application_date": "ДАТА ПОДАЧИ",
-        "current_stage": "ТЕКУЩИЙ ЭТАП И ЗАДАЧИ"
+        "current_stage": "ТЕКУЩИЙ ЭТАП И ЗАДАЧИ",
+        "actions": ""
       },
       "process_status": {
         "label": "Статус процесса",
         "active": "Активные процессы",
         "closed": "Закрытые процессы",
-        "all": "Все"
+        "all": "Все",
+        "deleted": "Удалённые"
+      },
+      "actions": {
+        "open": "Открыть",
+        "edit": "Редактировать",
+        "delete": "Удалить",
+        "restore": "Восстановить"
+      },
+      "delete_confirm": {
+        "title": "Удалить лида?",
+        "message": "будет скрыт. Можно восстановить позже.",
+        "confirm": "Удалить",
+        "cancel": "Отмена"
       }
     },
     "applicants": {
