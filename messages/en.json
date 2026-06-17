@@ -398,5 +398,197 @@
         "class_groups": "Class groups"
       }
     }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "create_button": "Create Task",
+    "new_task": "New Task",
+    "search_placeholder": "Search tasks...",
+    "loading": "Loading...",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "my": "My",
+      "department": "Department",
+      "pool": "Pool",
+      "assigned": "Assigned",
+      "watching": "Watching"
+    },
+    "filter_labels": {
+      "status": "Status:",
+      "priority": "Priority:",
+      "total": "Total:"
+    },
+    "table": {
+      "title": "Title",
+      "module": "Module",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "due_date": "Due Date",
+      "created_at": "Created"
+    },
+    "status": {
+      "unassigned": "Unassigned",
+      "pending": "In Pool",
+      "in_progress": "In Progress",
+      "review": "In Review",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "declined": "Declined"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "actions": {
+      "claim": "Claim",
+      "start": "Start Working",
+      "decline": "Decline",
+      "send_to_review": "Send to Review",
+      "approve": "Approve",
+      "reopen": "Reopen",
+      "cancel": "Cancel",
+      "assign": "Assign",
+      "cancel_series": "Cancel Series..."
+    },
+    "card": {
+      "description": "Description",
+      "watchers": "Watchers",
+      "comments": "Comments",
+      "history": "Change History",
+      "system_note": "System Note",
+      "decline_reason": "Decline Reason",
+      "write_comment": "Write a comment...",
+      "send": "Send",
+      "add_watcher": "+ Add",
+      "assigned_to": "Assigned to",
+      "created_by": "Created by",
+      "created_at": "Created",
+      "completed_at": "Completed",
+      "dept_prefix": "Dept:",
+      "priority_suffix": "priority",
+      "due_prefix": "Due:",
+      "from_series": "↻ From series",
+      "series": "↻ Series",
+      "no_comments": "No comments yet",
+      "sending": "Sending...",
+      "user_fallback": "User",
+      "system_fallback": "System",
+      "task_created": "created task with status",
+      "decline_placeholder": "Describe the reason...",
+      "watcher_placeholder": "Select a watcher"
+    },
+    "module": {
+      "general": "General",
+      "education": "Education",
+      "staff": "Staff",
+      "quality_control": "Quality Control"
+    },
+    "empty": {
+      "assigned": "No tasks assigned to you",
+      "created": "You haven't created any tasks yet",
+      "department": "No tasks in your department pool",
+      "watching": "You are not watching any tasks"
+    }
+  },
+  "staff": {
+    "title": "Staff",
+    "create_button": "Hire Employee",
+    "add_employee": "Add Employee",
+    "add_dept": "Add Department",
+    "search_placeholder": "Search employees...",
+    "search_by": "Search by name, position...",
+    "all_depts": "All Departments",
+    "tabs": {
+      "structure": "Org Structure",
+      "staff": "Employees"
+    },
+    "table": {
+      "full_name": "Full Name",
+      "position": "Position",
+      "department": "Department",
+      "email": "Email",
+      "phone": "Phone",
+      "hired_at": "Hired",
+      "name": "Name",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "sick_leave": "Sick Leave",
+      "vacation": "Vacation",
+      "fired": "Dismissed"
+    },
+    "employment": {
+      "staff": "Staff",
+      "intern": "Intern",
+      "volunteer": "Volunteer",
+      "contractor": "Contractor"
+    },
+    "form": {
+      "personal": "Personal Data",
+      "position": "Position",
+      "contacts": "Contacts"
+    },
+    "dept": {
+      "name_col": "Name",
+      "head_col": "Head",
+      "staff_col": "Employees",
+      "actions_col": "Actions",
+      "head_label": "Head"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "deactivate": "Deactivate"
+    },
+    "loading": "Loading...",
+    "no_staff": "No employees",
+    "no_depts": "No departments",
+    "no_results": "Nothing found",
+    "no_employees": "No employees added"
+  },
+  "quality": {
+    "title": "Quality Control"
+  },
+  "settings": {
+    "title": "Settings",
+    "system_title": "System Settings",
+    "tabs": {
+      "users": "Users",
+      "roles": "Roles & Permissions",
+      "departments": "Departments",
+      "communities": "Communities",
+      "directions": "Directions",
+      "reference_cities": "Cities Reference",
+      "reference_positions": "Positions Reference"
+    },
+    "users": {
+      "create_button": "Add User",
+      "full_name": "Full Name",
+      "email": "Email",
+      "active": "Active",
+      "inactive": "Inactive",
+      "desc": "Manage accounts and assign roles"
+    },
+    "roles": {
+      "code": "Code",
+      "name": "Name",
+      "category": "Category",
+      "is_system": "System",
+      "desc": "Configure roles and module access rights"
+    },
+    "reference_cities": {
+      "title": "Cities Reference",
+      "desc": "Manage list of cities by country"
+    },
+    "reference_positions": {
+      "title": "Positions Reference",
+      "desc": "Staff positions: teaching, administrative, support"
+    }
   }
 }

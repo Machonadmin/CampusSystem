@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
@@ -32,45 +32,21 @@ const SECTIONS = [
   },
 ]
 
-const LABELS: Record<string, Record<string, { title: string; desc: string }>> = {
-  ru: {
-    users: { title: 'Пользователи', desc: 'Управление учётными записями и назначение ролей' },
-    roles: { title: 'Роли и привилегии', desc: 'Настройка ролей и прав доступа к модулям' },
-    reference_cities:    { title: 'Справочник городов', desc: 'Управление списком городов по странам' },
-    reference_positions: { title: 'Справочник должностей', desc: 'Должности сотрудников: преподавательские, управленческие, вспомогательные' },
-  },
-  he: {
-    users:             { title: 'משתמשים', desc: 'ניהול חשבונות והקצאת תפקידים' },
-    roles:             { title: 'תפקידים והרשאות', desc: 'הגדרת תפקידים וזכויות גישה למודולים' },
-    reference_cities:    { title: 'מדריך ערים', desc: 'ניהול רשימת ערים לפי מדינה' },
-    reference_positions: { title: 'מדריך תפקידים', desc: 'תפקידי עובדים: הוראה, ניהול, תמיכה' },
-  },
-  en: {
-    users:             { title: 'Users', desc: 'Manage accounts and assign roles' },
-    roles:             { title: 'Roles & Privileges', desc: 'Configure roles and module access rights' },
-    reference_cities:    { title: 'Cities Reference', desc: 'Manage list of cities by country' },
-    reference_positions: { title: 'Positions Reference', desc: 'Staff positions: teaching, administrative, support' },
-  },
-}
-
-const PAGE_TITLE: Record<string, string> = {
-  ru: 'Настройки системы',
-  he: 'הגדרות מערכת',
-  en: 'System Settings',
-}
-
 export default function SettingsPage() {
-  const { lang } = useLang()
-  const labels = LABELS[lang] ?? LABELS.ru
+  const t = useTranslations('settings')
+  const tNav = useTranslations('navigation')
 
-  const homeLabel = lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная'
-  const settingsLabel = lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки'
+  const sectionLabel = (key: string): { title: string; desc: string } => {
+    if (key === 'reference_cities') return { title: t('reference_cities.title'), desc: t('reference_cities.desc') }
+    if (key === 'reference_positions') return { title: t('reference_positions.title'), desc: t('reference_positions.desc') }
+    return { title: t(`tabs.${key}`), desc: t(`${key}.desc`) }
+  }
 
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb items={[
-        { label: homeLabel, href: '/dashboard' },
-        { label: settingsLabel },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
       ]} />
       <div
         className="flex items-center rounded-xl overflow-hidden"
@@ -81,13 +57,13 @@ export default function SettingsPage() {
         }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>
-          {PAGE_TITLE[lang] ?? PAGE_TITLE.ru}
+          {t('system_title')}
         </h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {SECTIONS.map(s => {
-          const lbl = labels[s.key]
+          const lbl = sectionLabel(s.key)
           return (
             <Link key={s.key} href={s.href} className="block group no-underline">
               <div
@@ -109,8 +85,8 @@ export default function SettingsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={s.iconPath} />
                   </svg>
                 </div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', marginBottom: 4 }}>{lbl?.title}</p>
-                <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.5 }}>{lbl?.desc}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', marginBottom: 4 }}>{lbl.title}</p>
+                <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.5 }}>{lbl.desc}</p>
               </div>
             </Link>
           )

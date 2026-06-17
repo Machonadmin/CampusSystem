@@ -10,6 +10,7 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface CheckRow {
   id: string
@@ -62,6 +63,8 @@ function RatingStars({ rating }: { rating: number | null }) {
 type Tab = 'planned' | 'history' | 'templates'
 
 export default function QualityControlPage() {
+  const t = useTranslations('quality')
+  const tNav = useTranslations('navigation')
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
   const [tab, setTab] = useState<Tab>('planned')
   const [checks, setChecks] = useState<CheckRow[]>([])
@@ -125,8 +128,8 @@ export default function QualityControlPage() {
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Контроль качества' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
       ]} />
 
       {/* Page header */}
@@ -138,7 +141,7 @@ export default function QualityControlPage() {
           boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Контроль качества преподавания</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>{t('title')}</h1>
       </div>
 
       {/* Tabs */}

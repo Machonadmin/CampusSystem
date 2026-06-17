@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
@@ -27,10 +27,6 @@ interface StaffMember {
   position_ru: string
   is_head: boolean
   employment_type: string | null
-}
-
-const EMP_LABELS: Record<string, string> = {
-  staff: 'Штат', intern: 'Стажёр', volunteer: 'Волонтёр', contractor: 'Подрядчик',
 }
 
 function buildTree(depts: Department[]): TreeNode[] {
@@ -259,6 +255,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   onAddStaff: (id: string) => void
   refreshSignal: number
 }) {
+  const tStaff = useTranslations('staff')
   const [expanded, setExpanded] = useState(true)
   const [staffOpen, setStaffOpen] = useState(false)
   const [staff, setStaff] = useState<StaffMember[]>([])
@@ -360,7 +357,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                         <p style={{ fontSize: 12, fontWeight: 500, color: '#1F2937', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.full_name}</p>
                         <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
                           {s.position_ru}
-                          {s.employment_type && s.employment_type !== 'staff' && ` · ${EMP_LABELS[s.employment_type] ?? s.employment_type}`}
+                          {s.employment_type && s.employment_type !== 'staff' && ` · ${tStaff(`employment.${s.employment_type}`, s.employment_type)}`}
                           {s.is_head && ' · Руководитель'}
                         </p>
                       </div>
@@ -426,12 +423,6 @@ interface Employee {
   status: 'active' | 'fired' | 'sick_leave' | 'vacation'
 }
 
-const EMPLOYMENT_LABELS: Record<string, string> = {
-  staff: 'Штат', intern: 'Стажёр', volunteer: 'Волонтёр', contractor: 'Подрядчик',
-}
-const STATUS_LABELS: Record<string, string> = {
-  active: 'Активен', sick_leave: 'На больничном', vacation: 'В отпуске', fired: 'Уволен',
-}
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   active:     { bg: '#ECFDF5', fg: '#065F46' },
   sick_leave: { bg: '#FEF3C7', fg: '#92400E' },
@@ -463,6 +454,8 @@ function flattenDeptOptions(depts: Department[]): { id: string; label: string }[
 }
 
 function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; depts: Department[]; refreshSignal: number }) {
+  const t = useTranslations('staff')
+  const tCommon = useTranslations('common')
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
@@ -507,15 +500,15 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по имени, должности..."
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
           style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }} />
         <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
           style={{ padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', color: deptFilter ? '#1F2937' : '#9CA3AF', minWidth: 200 }}>
-          <option value="">Все отделы</option>
+          <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
         <PageActionButton
-          label="Добавить сотрудника"
+          label={t('add_employee')}
           onClick={onAdd}
           accentColor={getModuleColor('staff')}
         />
@@ -523,16 +516,16 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
 
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>Загрузка...</div>
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
         ) : employees.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
-            {search || deptFilter ? 'Ничего не найдено' : 'Сотрудники не добавлены'}
+            {search || deptFilter ? t('no_results') : t('no_employees')}
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                {['ИМЯ', 'ДОЛЖНОСТЬ', 'ОТДЕЛ', 'ТЕЛЕФОН', 'EMAIL', 'СТАТУС', ''].map(h => (
+                {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
                   <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -554,14 +547,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                         }
                         <div>
                           <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{emp.full_name}</span>
-                          {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>Руководитель</div>}
+                          {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>{t('dept.head_label')}</div>}
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>
                       <div>{emp.position}</div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
-                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>{EMPLOYMENT_LABELS[emp.employment_type] ?? emp.employment_type}</div>
+                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}
                     </td>
                     <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.department_name ?? '—'}</td>
@@ -569,7 +562,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                     <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.email ?? '—'}</td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
-                        {STATUS_LABELS[statusKey] ?? statusKey}
+                        {t(`status.${statusKey}`, statusKey)}
                       </span>
                     </td>
                     <td style={{ padding: '10px 14px' }}>
@@ -579,14 +572,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                           disabled={!emp.profile_id}
                           style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}
                         >
-                          Редактировать
+                          {tCommon('edit')}
                         </button>
                         <button
                           onClick={() => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name)}
                           disabled={!emp.profile_id}
                           style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#DC2626', opacity: emp.profile_id ? 1 : 0.5 }}
                         >
-                          Удалить
+                          {tCommon('delete')}
                         </button>
                       </div>
                     </td>
@@ -604,7 +597,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function StaffPage() {
-  const { lang } = useLang()
+  const t = useTranslations('staff')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState<string>('structure')
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -635,13 +630,12 @@ export default function StaffPage() {
   }
 
   const tree = buildTree(depts)
-  const title = lang === 'he' ? 'כוח אדם' : lang === 'en' ? 'Staff' : 'Персонал'
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная', href: '/dashboard' },
-        { label: title },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
       ]} />
 
       <div style={{
@@ -649,13 +643,13 @@ export default function StaffPage() {
         borderRadius: 12, padding: '12px 24px',
         boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
       </div>
 
       <ModuleTabs
         tabs={[
-          { key: 'structure', label: 'Структура организации' },
-          { key: 'staff', label: 'Сотрудники' },
+          { key: 'structure', label: t('tabs.structure') },
+          { key: 'staff', label: t('tabs.staff') },
         ]}
         active={activeTab}
         onChange={setActiveTab}
@@ -666,7 +660,7 @@ export default function StaffPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <PageActionButton
-              label="Добавить отдел"
+              label={t('add_dept')}
               onClick={() => setModal({ type: 'add', parentId: null })}
               accentColor={getModuleColor('staff')}
             />
@@ -674,16 +668,16 @@ export default function StaffPage() {
 
           <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
             ) : error ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
             ) : tree.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Нет подразделений</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('no_depts')}</div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#FAFAFA' }}>
-                    {['Название', 'Руководитель', 'Сотрудники', 'Действия'].map(h => (
+                    {[t('dept.name_col'), t('dept.head_col'), t('dept.staff_col'), t('dept.actions_col')].map(h => (
                       <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                     ))}
                   </tr>

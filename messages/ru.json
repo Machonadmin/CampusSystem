@@ -398,5 +398,197 @@
         "class_groups": "Учебные группы"
       }
     }
+  },
+  "tasks": {
+    "title": "Задачи",
+    "create_button": "Создать задачу",
+    "new_task": "Новая задача",
+    "search_placeholder": "Поиск задач...",
+    "loading": "Загрузка...",
+    "filters": {
+      "all": "Все",
+      "active": "Активные",
+      "my": "Мои",
+      "department": "Отдел",
+      "pool": "Пул",
+      "assigned": "Назначенные",
+      "watching": "Наблюдаю"
+    },
+    "filter_labels": {
+      "status": "Статус:",
+      "priority": "Приоритет:",
+      "total": "Всего:"
+    },
+    "table": {
+      "title": "Название",
+      "module": "Модуль",
+      "status": "Статус",
+      "priority": "Приоритет",
+      "assignee": "Исполнитель",
+      "due_date": "Срок",
+      "created_at": "Создана"
+    },
+    "status": {
+      "unassigned": "Не назначена",
+      "pending": "В пуле",
+      "in_progress": "В работе",
+      "review": "На проверке",
+      "completed": "Завершена",
+      "cancelled": "Отменена",
+      "declined": "Отклонена"
+    },
+    "priority": {
+      "low": "Низкий",
+      "normal": "Средний",
+      "high": "Высокий",
+      "urgent": "Срочный"
+    },
+    "actions": {
+      "claim": "Взять в работу",
+      "start": "Начать работу",
+      "decline": "Отказаться",
+      "send_to_review": "Отправить на проверку",
+      "approve": "Утвердить",
+      "reopen": "Открыть заново",
+      "cancel": "Отменить",
+      "assign": "Назначить",
+      "cancel_series": "Отменить серию..."
+    },
+    "card": {
+      "description": "Описание",
+      "watchers": "Наблюдатели",
+      "comments": "Комментарии",
+      "history": "История изменений",
+      "system_note": "Системная заметка",
+      "decline_reason": "Причина отклонения",
+      "write_comment": "Написать комментарий...",
+      "send": "Отправить",
+      "add_watcher": "+ Добавить",
+      "assigned_to": "Назначена",
+      "created_by": "Создал",
+      "created_at": "Создана",
+      "completed_at": "Завершена",
+      "dept_prefix": "Отдел:",
+      "priority_suffix": "приоритет",
+      "due_prefix": "Срок:",
+      "from_series": "↻ Из серии",
+      "series": "↻ Серия",
+      "no_comments": "Пока нет комментариев",
+      "sending": "Отправка...",
+      "user_fallback": "Пользователь",
+      "system_fallback": "Система",
+      "task_created": "создал задачу со статусом",
+      "decline_placeholder": "Опишите причину…",
+      "watcher_placeholder": "Выберите наблюдателя"
+    },
+    "module": {
+      "general": "Общее",
+      "education": "Образование",
+      "staff": "Персонал",
+      "quality_control": "Контроль качества"
+    },
+    "empty": {
+      "assigned": "Вам пока не назначено задач",
+      "created": "Вы пока не создавали задач",
+      "department": "В пуле вашего отдела нет задач",
+      "watching": "Вы пока не наблюдаете за задачами"
+    }
+  },
+  "staff": {
+    "title": "Персонал",
+    "create_button": "Принять сотрудника",
+    "add_employee": "Добавить сотрудника",
+    "add_dept": "Добавить отдел",
+    "search_placeholder": "Поиск сотрудников...",
+    "search_by": "Поиск по имени, должности...",
+    "all_depts": "Все отделы",
+    "tabs": {
+      "structure": "Структура организации",
+      "staff": "Сотрудники"
+    },
+    "table": {
+      "full_name": "ФИО",
+      "position": "Должность",
+      "department": "Отдел",
+      "email": "Email",
+      "phone": "Телефон",
+      "hired_at": "Принят",
+      "name": "Имя",
+      "status": "Статус",
+      "actions": "Действия"
+    },
+    "status": {
+      "active": "Активен",
+      "sick_leave": "На больничном",
+      "vacation": "В отпуске",
+      "fired": "Уволен"
+    },
+    "employment": {
+      "staff": "Штат",
+      "intern": "Стажёр",
+      "volunteer": "Волонтёр",
+      "contractor": "Подрядчик"
+    },
+    "form": {
+      "personal": "Личные данные",
+      "position": "Должность",
+      "contacts": "Контакты"
+    },
+    "dept": {
+      "name_col": "Название",
+      "head_col": "Руководитель",
+      "staff_col": "Сотрудники",
+      "actions_col": "Действия",
+      "head_label": "Руководитель"
+    },
+    "actions": {
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "deactivate": "Деактивировать"
+    },
+    "loading": "Загрузка...",
+    "no_staff": "Нет сотрудников",
+    "no_depts": "Нет подразделений",
+    "no_results": "Ничего не найдено",
+    "no_employees": "Сотрудники не добавлены"
+  },
+  "quality": {
+    "title": "Контроль качества"
+  },
+  "settings": {
+    "title": "Настройки",
+    "system_title": "Настройки системы",
+    "tabs": {
+      "users": "Пользователи",
+      "roles": "Роли и права",
+      "departments": "Отделы",
+      "communities": "Общины",
+      "directions": "Направления",
+      "reference_cities": "Справочник городов",
+      "reference_positions": "Справочник должностей"
+    },
+    "users": {
+      "create_button": "Добавить пользователя",
+      "full_name": "Полное имя",
+      "email": "Email",
+      "active": "Активен",
+      "inactive": "Неактивен",
+      "desc": "Управление учётными записями и назначение ролей"
+    },
+    "roles": {
+      "code": "Код",
+      "name": "Название",
+      "category": "Категория",
+      "is_system": "Системная",
+      "desc": "Настройка ролей и прав доступа к модулям"
+    },
+    "reference_cities": {
+      "title": "Справочник городов",
+      "desc": "Управление списком городов по странам"
+    },
+    "reference_positions": {
+      "title": "Справочник должностей",
+      "desc": "Должности сотрудников: преподавательские, управленческие, вспомогательные"
+    }
   }
 }

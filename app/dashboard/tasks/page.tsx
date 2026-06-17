@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
 import TaskCreateModal from './components/TaskCreateModal'
@@ -16,15 +17,6 @@ type PriorityFilter = 'all' | TaskRow['priority']
 
 const TERMINAL_STATUSES = ['completed', 'cancelled', 'declined'] as const
 
-function emptyMessage(view: ViewMode): string {
-  switch (view) {
-    case 'assigned':   return 'Вам пока не назначено задач'
-    case 'created':    return 'Вы пока не создавали задач'
-    case 'department': return 'В пуле вашего отдела нет задач'
-    case 'watching':   return 'Вы пока не наблюдаете за задачами'
-  }
-}
-
 const inp: React.CSSProperties = {
   padding: '6px 10px', fontSize: 13,
   border: '1px solid #D1D5DB', borderRadius: 6,
@@ -32,6 +24,10 @@ const inp: React.CSSProperties = {
 }
 
 export default function TasksPage() {
+  const t = useTranslations('tasks')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
   const [view, setView] = useState<ViewMode>('assigned')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
@@ -66,16 +62,16 @@ export default function TasksPage() {
       let list: TaskRow[] = json.tasks ?? []
 
       if (statusFilter === 'active') {
-        list = list.filter(t => !(TERMINAL_STATUSES as readonly string[]).includes(t.status))
+        list = list.filter(task => !(TERMINAL_STATUSES as readonly string[]).includes(task.status))
       }
 
       setTasks(list)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     } finally {
       setLoading(false)
     }
-  }, [view, statusFilter, priorityFilter])
+  }, [view, statusFilter, priorityFilter, tCommon])
 
   useEffect(() => { load() }, [load])
 
@@ -86,14 +82,24 @@ export default function TasksPage() {
       .catch(() => {})
   }, [])
 
+  function emptyMsg(): string {
+    const map: Record<ViewMode, string> = {
+      assigned:   t('empty.assigned'),
+      created:    t('empty.created'),
+      department: t('empty.department'),
+      watching:   t('empty.watching'),
+    }
+    return map[view]
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Задачи' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
       ]} />
 
-      {/* Хедер */}
+      {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('tasks'),
         borderRadius: 12,
@@ -101,16 +107,16 @@ export default function TasksPage() {
         boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
         color: '#fff',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Задачи</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
       </div>
 
-      {/* Вкладки */}
+      {/* Tabs */}
       <ModuleTabs
         tabs={[
-          { key: 'assigned',   label: 'Назначенные' },
-          { key: 'created',    label: 'Мои' },
-          { key: 'department', label: 'Отдел' },
-          { key: 'watching',   label: 'Наблюдаю' },
+          { key: 'assigned',   label: t('filters.assigned') },
+          { key: 'created',    label: t('filters.my') },
+          { key: 'department', label: t('filters.department') },
+          { key: 'watching',   label: t('filters.watching') },
         ]}
         active={view}
         onChange={k => {
@@ -121,50 +127,50 @@ export default function TasksPage() {
         accentColor={accent}
       />
 
-      {/* Фильтры */}
+      {/* Filters */}
       <div style={{
         background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
         padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
       }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Статус:</label>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('filter_labels.status')}</label>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as StatusFilter)} style={inp}>
-          <option value="active">Активные</option>
-          <option value="all">Все</option>
-          <option value="unassigned">В пуле</option>
-          <option value="pending">К выполнению</option>
-          <option value="in_progress">В работе</option>
-          <option value="review">На проверке</option>
-          <option value="completed">Завершённые</option>
-          <option value="cancelled">Отменённые</option>
-          <option value="declined">Отклонённые</option>
+          <option value="active">{t('filters.active')}</option>
+          <option value="all">{t('filters.all')}</option>
+          <option value="unassigned">{t('status.unassigned')}</option>
+          <option value="pending">{t('status.pending')}</option>
+          <option value="in_progress">{t('status.in_progress')}</option>
+          <option value="review">{t('status.review')}</option>
+          <option value="completed">{t('status.completed')}</option>
+          <option value="cancelled">{t('status.cancelled')}</option>
+          <option value="declined">{t('status.declined')}</option>
         </select>
 
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, marginLeft: 4 }}>Приоритет:</label>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, marginLeft: 4 }}>{t('filter_labels.priority')}</label>
         <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
-          <option value="all">Любой</option>
-          <option value="urgent">Срочно</option>
-          <option value="high">Высокий</option>
-          <option value="normal">Обычный</option>
-          <option value="low">Низкий</option>
+          <option value="all">{t('filters.all')}</option>
+          <option value="urgent">{t('priority.urgent')}</option>
+          <option value="high">{t('priority.high')}</option>
+          <option value="normal">{t('priority.normal')}</option>
+          <option value="low">{t('priority.low')}</option>
         </select>
 
         <div style={{ flex: 1 }} />
 
         <div style={{ fontSize: 12, color: '#6B7280' }}>
-          Всего: {tasks.length}
+          {t('filter_labels.total')} {tasks.length}
         </div>
 
         <PageActionButton
-          label="Новая задача"
+          label={t('new_task')}
           onClick={() => setCreateOpen(true)}
           accentColor={accent}
         />
       </div>
 
-      {/* Контент */}
+      {/* Content */}
       {loading && (
         <div style={{ padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14 }}>
-          Загрузка…
+          {tCommon('loading')}
         </div>
       )}
 
@@ -179,7 +185,7 @@ export default function TasksPage() {
           padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14,
           background: '#fff', border: '1px dashed #D1D5DB', borderRadius: 10,
         }}>
-          {emptyMessage(view)}
+          {emptyMsg()}
         </div>
       )}
 

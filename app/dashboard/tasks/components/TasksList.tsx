@@ -1,20 +1,11 @@
 'use client'
 
 import type { TaskRow } from '@/types/database'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   tasks: TaskRow[]
   onTaskClick: (taskId: string) => void
-}
-
-const STATUS_LABELS: Record<TaskRow['status'], string> = {
-  unassigned:  'В пуле',
-  pending:     'К выполнению',
-  in_progress: 'В работе',
-  review:      'На проверке',
-  completed:   'Завершена',
-  cancelled:   'Отменена',
-  declined:    'Отклонена',
 }
 
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
@@ -34,13 +25,6 @@ const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
   urgent: '#DC2626',
 }
 
-const MODULE_LABELS: Record<TaskRow['module'], string> = {
-  general:         'Общее',
-  education:       'Образование',
-  staff:           'Персонал',
-  quality_control: 'Контроль качества',
-}
-
 export default function TasksList({ tasks, onTaskClick }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -52,6 +36,7 @@ export default function TasksList({ tasks, onTaskClick }: Props) {
 }
 
 function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
+  const t = useTranslations('tasks')
   const status = STATUS_COLORS[task.status]
   const priorityColor = PRIORITY_COLORS[task.priority]
   const dueText = formatDue(task.due_date, task.due_time, task.due_all_day)
@@ -74,12 +59,11 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
     >
-      {/* Приоритет-бар слева */}
+      {/* Priority bar */}
       <div style={{ width: 4, background: priorityColor, flexShrink: 0 }} />
 
-      {/* Контент */}
+      {/* Content */}
       <div style={{ padding: '12px 16px', flex: 1, minWidth: 0 }}>
-        {/* Строка: заголовок + бейдж + срок */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <div style={{
             fontSize: 14, fontWeight: 600, color: '#111827',
@@ -94,7 +78,7 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
             background: status.bg, color: status.fg, borderRadius: 12,
             whiteSpace: 'nowrap', flexShrink: 0,
           }}>
-            {STATUS_LABELS[task.status]}
+            {t(`status.${task.status}`, task.status)}
           </span>
 
           {dueText && (
@@ -109,7 +93,6 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
           )}
         </div>
 
-        {/* Описание */}
         {task.description && (
           <div style={{
             fontSize: 13, color: '#6B7280', marginBottom: 6,
@@ -119,15 +102,14 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
           </div>
         )}
 
-        {/* Подвал: модуль + серия */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: '#9CA3AF' }}>
-          <span>{MODULE_LABELS[task.module]}</span>
+          <span>{t(`module.${task.module}`, task.module)}</span>
           {task.recurrence_series_id && (
             <span style={{
               padding: '1px 8px', background: '#FEF3C7', color: '#92400E',
               borderRadius: 8, fontWeight: 500,
             }}>
-              ↻ Серия
+              {t('card.series')}
             </span>
           )}
         </div>

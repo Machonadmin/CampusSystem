@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 interface Comment {
@@ -41,16 +42,6 @@ interface TaskDetail extends TaskRow {
   creator?: { id: string; full_name: string } | null
 }
 
-const STATUS_LABELS: Record<TaskRow['status'], string> = {
-  unassigned:  'В пуле',
-  pending:     'К выполнению',
-  in_progress: 'В работе',
-  review:      'На проверке',
-  completed:   'Завершена',
-  cancelled:   'Отменена',
-  declined:    'Отклонена',
-}
-
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
   unassigned:  { bg: '#F3F4F6', fg: '#374151' },
   pending:     { bg: '#DBEAFE', fg: '#1E40AF' },
@@ -59,10 +50,6 @@ const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
   completed:   { bg: '#D1FAE5', fg: '#065F46' },
   cancelled:   { bg: '#F3F4F6', fg: '#6B7280' },
   declined:    { bg: '#FEE2E2', fg: '#991B1B' },
-}
-
-const PRIORITY_LABELS: Record<TaskRow['priority'], string> = {
-  low: 'Низкий', normal: 'Средний', high: 'Высокий', urgent: 'Срочный',
 }
 
 const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
@@ -83,6 +70,9 @@ export default function TaskPage() {
   const router = useRouter()
   const taskId = params.id as string
   const accent = getModuleColor('tasks')
+  const t = useTranslations('tasks')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
 
   const [task,     setTask]     = useState<TaskDetail | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
@@ -170,30 +160,30 @@ export default function TaskPage() {
 
     switch (task.status) {
       case 'unassigned':
-        out.push({ label: 'Взять в работу', action: 'claim' })
-        if (isCreator) out.push({ label: 'Отменить', action: 'cancel', danger: true })
+        out.push({ label: t('actions.claim'), action: 'claim' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'pending':
         if (isAssignee) {
-          out.push({ label: 'Начать работу', action: 'start' })
-          out.push({ label: 'Отклонить', action: 'decline', danger: true, needsReason: true })
+          out.push({ label: t('actions.start'), action: 'start' })
+          out.push({ label: t('actions.decline'), action: 'decline', danger: true, needsReason: true })
         }
-        if (isCreator) out.push({ label: 'Отменить', action: 'cancel', danger: true })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'in_progress':
-        if (isAssignee) out.push({ label: 'На проверку', action: 'review' })
-        if (isCreator) out.push({ label: 'Отменить', action: 'cancel', danger: true })
+        if (isAssignee) out.push({ label: t('actions.send_to_review'), action: 'review' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'review':
         if (isCreator) {
-          out.push({ label: 'Завершить', action: 'complete' })
-          out.push({ label: 'Вернуть в работу', action: 'reopen' })
+          out.push({ label: t('actions.approve'), action: 'complete' })
+          out.push({ label: t('actions.reopen'), action: 'reopen' })
         }
         break
     }
 
     if (isCreator && task.recurrence_series_id && !['completed', 'cancelled'].includes(task.status)) {
-      out.push({ label: 'Отменить серию...', action: 'cancelSeries', danger: true })
+      out.push({ label: t('actions.cancel_series'), action: 'cancelSeries', danger: true })
     }
 
     return out
@@ -344,9 +334,9 @@ export default function TaskPage() {
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Задачи', href: '/dashboard/tasks' },
-        { label: loading ? '…' : (task?.title ?? 'Задача') },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title'), href: '/dashboard/tasks' },
+        { label: loading ? '…' : (task?.title ?? t('title')) },
       ]} />
 
       {/* Хедер */}
@@ -367,16 +357,16 @@ export default function TaskPage() {
             color: '#fff', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
           }}
         >
-          ← Назад
+          ← {tCommon('back')}
         </button>
         <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>
-          {loading ? 'Загрузка…' : (task?.title ?? 'Задача')}
+          {loading ? tCommon('loading') : (task?.title ?? t('title'))}
         </h1>
       </div>
 
       {loading && (
         <div style={{ padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14 }}>
-          Загрузка…
+          {tCommon('loading')}
         </div>
       )}
 
@@ -405,14 +395,14 @@ export default function TaskPage() {
                   color: STATUS_COLORS[task.status].fg,
                   borderRadius: 12,
                 }}>
-                  {STATUS_LABELS[task.status]}
+                  {t(`status.${task.status}`, task.status)}
                 </span>
                 <span style={{ fontSize: 12, color: '#6B7280' }}>
-                  {PRIORITY_LABELS[task.priority]} приоритет
+                  {t(`priority.${task.priority}`, task.priority)} {t('card.priority_suffix')}
                 </span>
                 {task.due_date && (
                   <span style={{ fontSize: 12, color: '#6B7280' }}>
-                    • Срок: {new Date(task.due_date).toLocaleDateString('ru-RU', {
+                    • {t('card.due_prefix')} {new Date(task.due_date).toLocaleDateString('ru-RU', {
                       day: '2-digit', month: 'long', year: 'numeric',
                     })}{(!task.due_all_day && task.due_time) ? ` к ${task.due_time.slice(0, 5)}` : ''}
                   </span>
@@ -422,7 +412,7 @@ export default function TaskPage() {
                     padding: '2px 8px', fontSize: 11, background: '#FEF3C7', color: '#92400E',
                     borderRadius: 8, fontWeight: 500,
                   }}>
-                    ↻ Из серии
+                    ↻ {t('card.from_series')}
                   </span>
                 )}
               </div>
@@ -444,14 +434,14 @@ export default function TaskPage() {
             marginTop: 16, padding: 12, background: '#fff', border: '1px solid #E5E7EB',
             borderRadius: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px',
           }}>
-            <Field label="Назначена" value={
+            <Field label={t('card.assigned_to')} value={
               task.assignee?.full_name
-                ?? (task.department ? `Отдел: ${task.department.name}` : '—')
+                ?? (task.department ? `${t('card.dept_prefix')} ${task.department.name}` : '—')
             } />
-            <Field label="Создал" value={task.creator?.full_name ?? '—'} />
-            <Field label="Создана" value={new Date(task.created_at).toLocaleDateString('ru-RU')} />
+            <Field label={t('card.created_by')} value={task.creator?.full_name ?? '—'} />
+            <Field label={t('card.created_at')} value={new Date(task.created_at).toLocaleDateString('ru-RU')} />
             {task.completed_at && (
-              <Field label="Завершена" value={new Date(task.completed_at).toLocaleDateString('ru-RU')} />
+              <Field label={t('card.completed_at')} value={new Date(task.completed_at).toLocaleDateString('ru-RU')} />
             )}
           </div>
 
@@ -462,7 +452,7 @@ export default function TaskPage() {
               marginBottom: 8,
             }}>
               <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>
-                Наблюдатели ({watchers.length})
+                {t('card.watchers')} ({watchers.length})
               </div>
               {!addingWatcher && (
                 <button
@@ -473,7 +463,7 @@ export default function TaskPage() {
                     borderRadius: 6, cursor: 'pointer',
                   }}
                 >
-                  + Добавить
+                  {t('card.add_watcher')}
                 </button>
               )}
             </div>
@@ -506,7 +496,7 @@ export default function TaskPage() {
                   <PersonSelect
                     value={newWatcherId}
                     onChange={id => setNewWatcherId(id)}
-                    placeholder="Выберите наблюдателя"
+                    placeholder={t('card.watcher_placeholder')}
                     accentColor={accent}
                   />
                 </div>
@@ -520,7 +510,7 @@ export default function TaskPage() {
                     opacity: newWatcherId ? 1 : 0.5,
                   }}
                 >
-                  Добавить
+                  {t('actions.assign')}
                 </button>
                 <button
                   onClick={() => { setAddingWatcher(false); setNewWatcherId(null) }}
@@ -530,7 +520,7 @@ export default function TaskPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Отмена
+                  {tCommon('cancel')}
                 </button>
               </div>
             )}
@@ -568,12 +558,12 @@ export default function TaskPage() {
               {showDeclineInput && (
                 <div style={{ background: '#FEF2F2', padding: 12, borderRadius: 8 }}>
                   <label style={{ fontSize: 12, color: '#991B1B', marginBottom: 6, display: 'block' }}>
-                    Причина отклонения:
+                    {t('card.decline_reason')}:
                   </label>
                   <textarea
                     value={declineReason}
                     onChange={e => setDeclineReason(e.target.value)}
-                    placeholder="Опишите причину…"
+                    placeholder={t('card.decline_placeholder')}
                     style={{
                       width: '100%', padding: '8px 10px', fontSize: 13,
                       border: '1px solid #FCA5A5', borderRadius: 6, minHeight: 60,
@@ -587,7 +577,7 @@ export default function TaskPage() {
                         padding: '6px 12px', fontSize: 12, background: '#fff',
                         border: '1px solid #E5E7EB', borderRadius: 6, cursor: 'pointer',
                       }}
-                    >Отмена</button>
+                    >{tCommon('cancel')}</button>
                     <button
                       onClick={() => handleAction('decline', true)}
                       disabled={actionInProgress || !declineReason.trim()}
@@ -597,7 +587,7 @@ export default function TaskPage() {
                         cursor: declineReason.trim() && !actionInProgress ? 'pointer' : 'not-allowed',
                         opacity: declineReason.trim() && !actionInProgress ? 1 : 0.5,
                       }}
-                    >Отклонить задачу</button>
+                    >{t('actions.decline')}</button>
                   </div>
                 </div>
               )}
@@ -736,11 +726,11 @@ export default function TaskPage() {
           {/* Комментарии */}
           <div style={{ marginTop: 20, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
             <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: '#111827' }}>
-              Комментарии ({comments.length})
+              {t('card.comments')} ({comments.length})
             </h3>
             {comments.length === 0 ? (
               <div style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>
-                Пока нет комментариев
+                {t('card.no_comments')}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -752,7 +742,7 @@ export default function TaskPage() {
               <textarea
                 value={newCommentText}
                 onChange={e => setNewCommentText(e.target.value)}
-                placeholder="Написать комментарий…"
+                placeholder={t('card.write_comment')}
                 disabled={postingComment}
                 style={{
                   width: '100%', minHeight: 60, padding: '8px 10px', fontSize: 13,
@@ -771,7 +761,7 @@ export default function TaskPage() {
                     opacity: postingComment || !newCommentText.trim() ? 0.5 : 1,
                   }}
                 >
-                  {postingComment ? 'Отправка…' : 'Отправить'}
+                  {postingComment ? t('card.sending') : t('card.send')}
                 </button>
               </div>
             </div>
@@ -781,7 +771,7 @@ export default function TaskPage() {
           {history.length > 0 && (
             <div style={{ marginTop: 16, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
               <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: '#111827' }}>
-                История изменений ({history.length})
+                {t('card.history')} ({history.length})
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {history.map(h => (
@@ -797,11 +787,11 @@ export default function TaskPage() {
                     }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ color: '#374151' }}>
-                        <strong>{h.actor?.full_name ?? 'Система'}</strong>
+                        <strong>{h.actor?.full_name ?? t('card.system_fallback')}</strong>
                         {h.from_status ? (
-                          <>: {STATUS_LABELS[h.from_status]} → {STATUS_LABELS[h.to_status]}</>
+                          <>: {t(`status.${h.from_status}`, h.from_status)} → {t(`status.${h.to_status}`, h.to_status)}</>
                         ) : (
-                          <>: создал задачу со статусом {STATUS_LABELS[h.to_status]}</>
+                          <>: {t('card.task_created')} {t(`status.${h.to_status}`, h.to_status)}</>
                         )}
                       </div>
                       {h.note && (
@@ -837,21 +827,22 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 function CommentItem({ comment }: { comment: Comment }) {
+  const t = useTranslations('tasks')
   const typeBg     = comment.comment_type === 'decline_reason' ? '#FEE2E2'
                    : comment.comment_type === 'status_note'    ? '#EFF6FF'
                    : '#fff'
   const typeBorder = comment.comment_type === 'decline_reason' ? '#FCA5A5'
                    : comment.comment_type === 'status_note'    ? '#BFDBFE'
                    : '#E5E7EB'
-  const typeLabel  = comment.comment_type === 'decline_reason' ? 'Причина отклонения'
-                   : comment.comment_type === 'status_note'    ? 'Системная заметка'
+  const typeLabel  = comment.comment_type === 'decline_reason' ? t('card.decline_reason')
+                   : comment.comment_type === 'status_note'    ? t('card.system_note')
                    : ''
 
   return (
     <div style={{ padding: 10, background: typeBg, border: `1px solid ${typeBorder}`, borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
-          {comment.author?.full_name ?? 'Пользователь'}
+          {comment.author?.full_name ?? t('card.user_fallback')}
         </span>
         <span style={{ fontSize: 11, color: '#9CA3AF' }}>
           {new Date(comment.created_at).toLocaleString('ru-RU', {

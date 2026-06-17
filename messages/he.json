@@ -398,5 +398,197 @@
         "class_groups": "קבוצות לימוד"
       }
     }
+  },
+  "tasks": {
+    "title": "משימות",
+    "create_button": "צור משימה",
+    "new_task": "משימה חדשה",
+    "search_placeholder": "חפש משימות...",
+    "loading": "טוען...",
+    "filters": {
+      "all": "הכל",
+      "active": "פעיל",
+      "my": "שלי",
+      "department": "מחלקה",
+      "pool": "תור",
+      "assigned": "מוקצות",
+      "watching": "צופה"
+    },
+    "filter_labels": {
+      "status": "סטטוס:",
+      "priority": "עדיפות:",
+      "total": "סה\"כ:"
+    },
+    "table": {
+      "title": "כותרת",
+      "module": "מודול",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "assignee": "אחראי",
+      "due_date": "תאריך יעד",
+      "created_at": "נוצרה"
+    },
+    "status": {
+      "unassigned": "לא מוקצית",
+      "pending": "בתור",
+      "in_progress": "בעבודה",
+      "review": "בסקירה",
+      "completed": "הושלמה",
+      "cancelled": "בוטלה",
+      "declined": "נדחתה"
+    },
+    "priority": {
+      "low": "נמוך",
+      "normal": "בינוני",
+      "high": "גבוה",
+      "urgent": "דחוף"
+    },
+    "actions": {
+      "claim": "קח לטיפול",
+      "start": "התחל עבודה",
+      "decline": "סרב",
+      "send_to_review": "שלח לסקירה",
+      "approve": "אשר",
+      "reopen": "פתח מחדש",
+      "cancel": "בטל",
+      "assign": "הקצה",
+      "cancel_series": "בטל סדרה..."
+    },
+    "card": {
+      "description": "תיאור",
+      "watchers": "צופים",
+      "comments": "הערות",
+      "history": "היסטוריית שינויים",
+      "system_note": "הערת מערכת",
+      "decline_reason": "סיבת דחייה",
+      "write_comment": "כתוב הערה...",
+      "send": "שלח",
+      "add_watcher": "+ הוסף",
+      "assigned_to": "מוקצה ל",
+      "created_by": "נוצר על ידי",
+      "created_at": "נוצרה",
+      "completed_at": "הושלמה",
+      "dept_prefix": "מחלקה:",
+      "priority_suffix": "עדיפות",
+      "due_prefix": "תאריך יעד:",
+      "from_series": "↻ מסדרה",
+      "series": "↻ סדרה",
+      "no_comments": "אין הערות עדיין",
+      "sending": "שולח...",
+      "user_fallback": "משתמש",
+      "system_fallback": "מערכת",
+      "task_created": "יצר משימה עם סטטוס",
+      "decline_placeholder": "תאר את הסיבה...",
+      "watcher_placeholder": "בחר צופה"
+    },
+    "module": {
+      "general": "כללי",
+      "education": "חינוך",
+      "staff": "צוות",
+      "quality_control": "בקרת איכות"
+    },
+    "empty": {
+      "assigned": "אין משימות מוקצות לך",
+      "created": "לא יצרת משימות עדיין",
+      "department": "אין משימות בתור המחלקה שלך",
+      "watching": "אינך צופה במשימות כרגע"
+    }
+  },
+  "staff": {
+    "title": "צוות",
+    "create_button": "קלוט עובד",
+    "add_employee": "הוסף עובד",
+    "add_dept": "הוסף מחלקה",
+    "search_placeholder": "חפש עובדים...",
+    "search_by": "חפש לפי שם, תפקיד...",
+    "all_depts": "כל המחלקות",
+    "tabs": {
+      "structure": "מבנה ארגוני",
+      "staff": "עובדים"
+    },
+    "table": {
+      "full_name": "שם מלא",
+      "position": "תפקיד",
+      "department": "מחלקה",
+      "email": "אימייל",
+      "phone": "טלפון",
+      "hired_at": "תאריך קבלה",
+      "name": "שם",
+      "status": "סטטוס",
+      "actions": "פעולות"
+    },
+    "status": {
+      "active": "פעיל",
+      "sick_leave": "בחופשת מחלה",
+      "vacation": "בחופשה",
+      "fired": "פוטר"
+    },
+    "employment": {
+      "staff": "קבוע",
+      "intern": "מתמחה",
+      "volunteer": "מתנדב",
+      "contractor": "קבלן"
+    },
+    "form": {
+      "personal": "נתונים אישיים",
+      "position": "תפקיד",
+      "contacts": "אנשי קשר"
+    },
+    "dept": {
+      "name_col": "שם",
+      "head_col": "מנהל",
+      "staff_col": "עובדים",
+      "actions_col": "פעולות",
+      "head_label": "מנהל"
+    },
+    "actions": {
+      "edit": "ערוך",
+      "delete": "מחק",
+      "deactivate": "השבת"
+    },
+    "loading": "טוען...",
+    "no_staff": "אין עובדים",
+    "no_depts": "אין מחלקות",
+    "no_results": "לא נמצא",
+    "no_employees": "לא נוספו עובדים"
+  },
+  "quality": {
+    "title": "בקרת איכות"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "system_title": "הגדרות מערכת",
+    "tabs": {
+      "users": "משתמשים",
+      "roles": "תפקידים והרשאות",
+      "departments": "מחלקות",
+      "communities": "קהילות",
+      "directions": "כיוונים",
+      "reference_cities": "מדריך ערים",
+      "reference_positions": "מדריך תפקידים"
+    },
+    "users": {
+      "create_button": "הוסף משתמש",
+      "full_name": "שם מלא",
+      "email": "אימייל",
+      "active": "פעיל",
+      "inactive": "לא פעיל",
+      "desc": "ניהול חשבונות והקצאת תפקידים"
+    },
+    "roles": {
+      "code": "קוד",
+      "name": "שם",
+      "category": "קטגוריה",
+      "is_system": "מערכת",
+      "desc": "הגדרת תפקידים וזכויות גישה למודולים"
+    },
+    "reference_cities": {
+      "title": "מדריך ערים",
+      "desc": "ניהול רשימת ערים לפי מדינה"
+    },
+    "reference_positions": {
+      "title": "מדריך תפקידים",
+      "desc": "תפקידי עובדים: הוראה, ניהול, תמיכה"
+    }
   }
 }
