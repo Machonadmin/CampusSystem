@@ -1,7 +1,8 @@
 'use client'
 
 import type { TaskRow } from '@/types/database'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateShort } from '@/lib/i18n/format-date'
 
 interface Props {
   tasks: TaskRow[]
@@ -37,9 +38,10 @@ export default function TasksList({ tasks, onTaskClick }: Props) {
 
 function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
   const t = useTranslations('tasks')
+  const { lang } = useLang()
   const status = STATUS_COLORS[task.status]
   const priorityColor = PRIORITY_COLORS[task.priority]
-  const dueText = formatDue(task.due_date, task.due_time, task.due_all_day)
+  const dueText = formatDue(task.due_date, task.due_time, task.due_all_day, lang)
   const isOverdue =
     !!task.due_date &&
     task.due_date < new Date().toISOString().slice(0, 10) &&
@@ -118,10 +120,9 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
   )
 }
 
-function formatDue(date: string | null, time: string | null, allDay: boolean): string | null {
+function formatDue(date: string | null, time: string | null, allDay: boolean, lang: string): string | null {
   if (!date) return null
-  const d = new Date(date + 'T00:00:00')
-  const ru = d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
-  if (allDay || !time) return ru
-  return `${ru} ${time.slice(0, 5)}`
+  const short = formatDateShort(date, lang)
+  if (allDay || !time) return short
+  return `${short} ${time.slice(0, 5)}`
 }

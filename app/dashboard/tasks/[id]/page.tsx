@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 interface Comment {
@@ -73,6 +74,7 @@ export default function TaskPage() {
   const t = useTranslations('tasks')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
 
   const [task,     setTask]     = useState<TaskDetail | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
@@ -402,9 +404,7 @@ export default function TaskPage() {
                 </span>
                 {task.due_date && (
                   <span style={{ fontSize: 12, color: '#6B7280' }}>
-                    • {t('card.due_prefix')} {new Date(task.due_date).toLocaleDateString('ru-RU', {
-                      day: '2-digit', month: 'long', year: 'numeric',
-                    })}{(!task.due_all_day && task.due_time) ? ` к ${task.due_time.slice(0, 5)}` : ''}
+                    • {t('card.due_prefix')} {formatDateLong(task.due_date, lang)}{(!task.due_all_day && task.due_time) ? ` к ${task.due_time.slice(0, 5)}` : ''}
                   </span>
                 )}
                 {task.recurrence_series_id && (
@@ -439,9 +439,9 @@ export default function TaskPage() {
                 ?? (task.department ? `${t('card.dept_prefix')} ${task.department.name}` : '—')
             } />
             <Field label={t('card.created_by')} value={task.creator?.full_name ?? '—'} />
-            <Field label={t('card.created_at')} value={new Date(task.created_at).toLocaleDateString('ru-RU')} />
+            <Field label={t('card.created_at')} value={formatDate(task.created_at, lang)} />
             {task.completed_at && (
-              <Field label={t('card.completed_at')} value={new Date(task.completed_at).toLocaleDateString('ru-RU')} />
+              <Field label={t('card.completed_at')} value={formatDate(task.completed_at, lang)} />
             )}
           </div>
 
@@ -800,10 +800,7 @@ export default function TaskPage() {
                         </div>
                       )}
                       <div style={{ color: '#9CA3AF', marginTop: 2, fontSize: 11 }}>
-                        {new Date(h.created_at).toLocaleString('ru-RU', {
-                          day: '2-digit', month: '2-digit', year: 'numeric',
-                          hour: '2-digit', minute: '2-digit',
-                        })}
+                        {formatDateTime(h.created_at, lang)}
                       </div>
                     </div>
                   </div>
@@ -828,6 +825,7 @@ function Field({ label, value }: { label: string; value: string }) {
 
 function CommentItem({ comment }: { comment: Comment }) {
   const t = useTranslations('tasks')
+  const { lang } = useLang()
   const typeBg     = comment.comment_type === 'decline_reason' ? '#FEE2E2'
                    : comment.comment_type === 'status_note'    ? '#EFF6FF'
                    : '#fff'
@@ -845,9 +843,7 @@ function CommentItem({ comment }: { comment: Comment }) {
           {comment.author?.full_name ?? t('card.user_fallback')}
         </span>
         <span style={{ fontSize: 11, color: '#9CA3AF' }}>
-          {new Date(comment.created_at).toLocaleString('ru-RU', {
-            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-          })}
+          {formatDateTime(comment.created_at, lang)}
         </span>
       </div>
       {typeLabel && (

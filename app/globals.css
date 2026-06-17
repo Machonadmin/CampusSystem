@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+html[lang="he"] {
+  font-family: var(--font-heebo), system-ui, sans-serif;
+}

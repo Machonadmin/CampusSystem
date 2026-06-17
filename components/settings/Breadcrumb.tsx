@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Fragment } from 'react'
+import { useLang } from '@/lib/i18n/LanguageContext'
 
 interface Item {
   label: string
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function Breadcrumb({ items }: Props) {
+  const { isRTL } = useLang()
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -27,7 +29,7 @@ export function Breadcrumb({ items }: Props) {
         return (
           <Fragment key={idx}>
             {idx > 0 && (
-              <span style={{ color: '#D1D5DB', fontSize: 12 }}>›</span>
+              <span style={{ color: '#D1D5DB', fontSize: 12 }}>{isRTL ? '‹' : '›'}</span>
             )}
             {isLast ? (
               <span style={{ color: '#111827', fontWeight: 600 }}>

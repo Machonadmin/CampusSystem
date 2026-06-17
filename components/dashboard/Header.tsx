@@ -61,7 +61,7 @@ export default function Header({ userName, roles }: HeaderProps) {
       {/* ── Logo + Campus name ── */}
       <div
         className="flex items-center gap-3 flex-shrink-0"
-        style={{ borderLeft: '3px solid #4BAED4', paddingLeft: 12 }}
+        style={{ borderInlineStart: '3px solid #4BAED4', paddingInlineStart: 12 }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="Махон Хамеш" style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
@@ -115,7 +115,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full ring-2 ring-white" />
+          <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-red-400 rounded-full ring-2 ring-white" />
         </button>
 
         {/* Language switcher */}
@@ -140,7 +140,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             onClick={() => setUserMenuOpen(v => !v)}
             className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition"
           >
-            <div className="hidden sm:block text-left" style={{ minWidth: 140 }}>
+            <div className="hidden sm:block text-start" style={{ minWidth: 140 }}>
               <p className="text-[13px] font-medium text-gray-900 truncate leading-tight" style={{ maxWidth: 160 }}>
                 {userName ?? '—'}
               </p>
