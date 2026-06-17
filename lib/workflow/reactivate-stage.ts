@@ -92,6 +92,19 @@ export async function reactivateStage(
     }
   }
 
+  // System event: stage reactivated manually
+  {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: _evErr } = await sb.from('process_events').insert({
+      stage_instance_id: stageInstanceId,
+      event_type: 'system',
+      content: 'Подэтап активирован вручную',
+      author_id: actorId,
+      metadata: null,
+    } as any)
+    void _evErr
+  }
+
   // 4. Создать стартовые задачи подэтапа (createStartingTasks сам выйдет,
   //    если у подэтапа нет шаблонов задач).
   await createStartingTasks(sb, si.stage_template_id, stageInstanceId, actorId, personFullName)

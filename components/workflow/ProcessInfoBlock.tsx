@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
+import StageEventsFeed from './StageEventsFeed'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const router = useRouter()
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
+  const tEv = useTranslations('events')
 
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -166,6 +168,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [loadingFinals, setLoadingFinals] = useState(false)
   const [closing, setClosing] = useState(false)
   const [closeError, setCloseError] = useState('')
+
+  const [stageTab, setStageTab] = useState<'tasks' | 'events'>('tasks')
 
   const accent = getModuleColor('education')
 
@@ -228,6 +232,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     setSelectedStageId(stageId)
     setStageDetail(null)
     setCompleteError('')
+    setStageTab('tasks')
     setLoadingDetail(true)
     try {
       const res = await fetch(`/api/workflow/stages/${stageId}`)
@@ -241,6 +246,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     setSelectedStageId(null)
     setStageDetail(null)
     setCompleteError('')
+    setStageTab('tasks')
   }
 
   async function completeStage(finalCode: string) {
@@ -470,6 +476,36 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
               {!loadingDetail && stageDetail && (
                 <>
+                  {/* Tab bar — only for active/completed stages */}
+                  {(stageDetail.status === 'active' || stageDetail.status === 'completed') && (
+                    <div style={{ display: 'flex', borderBottom: '1px solid #F3F4F6', marginBottom: 16, gap: 0 }}>
+                      {(['tasks', 'events'] as const).map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => setStageTab(tab)}
+                          style={{
+                            padding: '6px 16px', fontSize: 12, fontWeight: 500,
+                            border: 'none', background: 'none', cursor: 'pointer',
+                            borderBottom: stageTab === tab ? `2px solid ${accent}` : '2px solid transparent',
+                            color: stageTab === tab ? accent : '#6B7280',
+                            marginBottom: -1,
+                          }}
+                        >
+                          {tab === 'tasks' ? tEv('tab_tasks') : tEv('tab_events')}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Events tab */}
+                  {stageTab === 'events' && selectedStageId && (
+                    <StageEventsFeed stageInstanceId={selectedStageId} canManage={stageDetail.can_manage} />
+                  )}
+
+                  {/* Tasks tab (default) */}
+                  {stageTab === 'tasks' && (
+                  <>
+
                   {stageDetail.stage_template?.description && (
                     <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
                       {stageDetail.stage_template.description}
@@ -557,6 +593,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                           stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code)}
                       </strong>
                     </div>
+                  )}
+                  </>
                   )}
                 </>
               )}

@@ -604,5 +604,24 @@
       "title": "מדריך תפקידים",
       "desc": "תפקידי עובדים: הוראה, ניהול, תמיכה"
     }
+  },
+  "events": {
+    "title": "יומן אירועים",
+    "empty": "אין רשומות",
+    "add_title": "הוסף רשומה",
+    "add_button": "שמור",
+    "type_label": "סוג",
+    "content_placeholder": "טקסט הרשומה...",
+    "types": {
+      "system": "מערכת",
+      "note": "הערה",
+      "call": "שיחה",
+      "meeting": "פגישה",
+      "message": "הודעה",
+      "email": "אימייל"
+    },
+    "system_prefix": "[מע]",
+    "tab_tasks": "משימות",
+    "tab_events": "יומן"
   }
 }

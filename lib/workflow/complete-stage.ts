@@ -59,6 +59,19 @@ export async function completeStage(
     .eq('id', stageInstanceId)
   if (updateErr) throw updateErr
 
+  // System event: stage completed
+  {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: _evErr } = await sb.from('process_events').insert({
+      stage_instance_id: stageInstanceId,
+      event_type: 'system',
+      content: `Подэтап завершён: ${finalCode}`,
+      author_id: actorId,
+      metadata: { final_code: finalCode },
+    } as any)
+    void _evErr
+  }
+
   // 3. Complete all pending tasks for this stage
   const { error: taskErr } = await sb
     .from('tasks')
@@ -83,6 +96,13 @@ export async function completeStage(
       const processFinishReason = final.process_finish_reason ?? finalCode
 
       // а. Отменить оставшиеся active/waiting подэтапы (текущий уже completed)
+      // Сначала соберём ID для event-записей
+      const { data: stagesToCancel } = await sb
+        .from('stage_instances')
+        .select('id')
+        .eq('process_instance_id', processInstance.id)
+        .in('status', ['active', 'waiting'])
+
       const { error: siCancelErr } = await sb
         .from('stage_instances')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,6 +110,19 @@ export async function completeStage(
         .eq('process_instance_id', processInstance.id)
         .in('status', ['active', 'waiting'])
       if (siCancelErr) throw siCancelErr
+
+      // System events: stage cancelled
+      for (const s of stagesToCancel ?? []) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: _evErr } = await sb.from('process_events').insert({
+          stage_instance_id: s.id,
+          event_type: 'system',
+          content: 'Подэтап отменён',
+          author_id: actorId,
+          metadata: { reason: 'closes_process', final_code: finalCode },
+        } as any)
+        void _evErr
+      }
 
       // б. Отменить незавершённые задачи всех подэтапов процесса
       const { data: allSi, error: allSiErr } = await sb
@@ -223,6 +256,19 @@ export async function completeStage(
       .eq('id', targetSi.id)
     if (activateErr) throw activateErr
     activatedStageIds.push(targetSi.id)
+
+    // System event: stage activated via transition
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: _evErr } = await sb.from('process_events').insert({
+        stage_instance_id: targetSi.id,
+        event_type: 'system',
+        content: 'Подэтап активирован',
+        author_id: actorId,
+        metadata: null,
+      } as any)
+      void _evErr
+    }
 
     // Create tasks if the newly activated stage has them
     const { data: targetTemplate } = await sb

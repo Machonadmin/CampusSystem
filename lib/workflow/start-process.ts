@@ -40,7 +40,7 @@ export async function startProcess(
   // 1. Шаблон процесса
   const { data: template, error: tErr } = await sb
     .from('process_templates')
-    .select('id')
+    .select('id, name_ru')
     .eq('code', processCode)
     .maybeSingle()
   if (tErr) throw tErr
@@ -149,6 +149,19 @@ export async function startProcess(
       .single()
     if (siErr || !si) throw siErr ?? new Error('Ошибка создания stage_instance')
     stageInstanceIds.push(si.id)
+
+    if (isActive) {
+      const processName = (template as unknown as { name_ru: string }).name_ru ?? processCode
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: _evErr } = await sb.from('process_events').insert({
+        stage_instance_id: si.id,
+        event_type: 'system',
+        content: `Процесс «${processName}» запущен`,
+        author_id: actorId,
+        metadata: { process_code: processCode },
+      } as any)
+      void _evErr
+    }
 
     if (!isActive || !stage.has_tasks) continue
 

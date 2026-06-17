@@ -33,7 +33,7 @@ export async function handleTaskCompletion(
   const { data: task, error: tErr } = await sb
     .from('tasks')
     .select(`
-      id, stage_instance_id, stage_task_template_id,
+      id, title, stage_instance_id, stage_task_template_id,
       template:stage_task_templates!tasks_stage_task_template_id_fkey(id, code, stage_template_id)
     `)
     .eq('id', taskId)
@@ -45,6 +45,20 @@ export async function handleTaskCompletion(
     { id: string; code: string; stage_template_id: string } | null
   // Legacy-задача без шаблона или задача вне подэтапа — переходов нет
   if (!template || !task.stage_instance_id) return
+
+  // System event: task completed
+  {
+    const taskTitle = (task as unknown as { title: string }).title
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: _evErr } = await sb.from('process_events').insert({
+      stage_instance_id: task.stage_instance_id as string,
+      event_type: 'system',
+      content: `Задача «${taskTitle}» завершена`,
+      author_id: actorId,
+      metadata: { task_id: taskId },
+    } as any)
+    void _evErr
+  }
 
   const stageInstanceId = task.stage_instance_id as string
   const stageTemplateId = template.stage_template_id

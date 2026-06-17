@@ -187,6 +187,18 @@ export interface EducationJourneyRow {
   deleted_by: string | null
 }
 
+export type ProcessEventType = 'system' | 'note' | 'call' | 'meeting' | 'message' | 'email'
+
+export interface ProcessEventRow {
+  id: string
+  stage_instance_id: string
+  event_type: ProcessEventType
+  content: string
+  author_id: string | null
+  metadata: Json
+  created_at: string
+}
+
 /**
  * Insert: только person_id обязателен. Остальные поля имеют DB-defaults
  * (opened_at, status, education_status, application_date) или nullable.

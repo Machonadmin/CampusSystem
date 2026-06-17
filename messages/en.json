@@ -604,5 +604,24 @@
       "title": "Positions Reference",
       "desc": "Staff positions: teaching, administrative, support"
     }
+  },
+  "events": {
+    "title": "EVENT FEED",
+    "empty": "No entries",
+    "add_title": "Add entry",
+    "add_button": "Save",
+    "type_label": "Type",
+    "content_placeholder": "Entry text...",
+    "types": {
+      "system": "System",
+      "note": "Note",
+      "call": "Call",
+      "meeting": "Meeting",
+      "message": "Message",
+      "email": "Email"
+    },
+    "system_prefix": "[SYS]",
+    "tab_tasks": "Tasks",
+    "tab_events": "Feed"
   }
 }

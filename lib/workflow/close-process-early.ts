@@ -95,6 +95,13 @@ export async function closeProcessEarly(
   const finish_reason = mapFinishReason(finalCode)
 
   // 5. Отменить (skip) незавершённые подэтапы
+  // Сначала соберём ID активных для event-записей
+  const { data: activeStages } = await sb
+    .from('stage_instances')
+    .select('id')
+    .eq('process_instance_id', pi.id)
+    .in('status', ['active', 'waiting'])
+
   const { error: siErr } = await sb
     .from('stage_instances')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,6 +109,19 @@ export async function closeProcessEarly(
     .eq('process_instance_id', pi.id)
     .in('status', ['active', 'waiting'])
   if (siErr) throw siErr
+
+  // System events: stages cancelled on early close
+  for (const s of activeStages ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: _evErr } = await sb.from('process_events').insert({
+      stage_instance_id: s.id,
+      event_type: 'system',
+      content: 'Подэтап отменён',
+      author_id: actorId,
+      metadata: { reason: 'close_early', final_code: finalCode },
+    } as any)
+    void _evErr
+  }
 
   // 6. Отменить незавершённые задачи всех подэтапов процесса.
   //    tasks не ссылаются напрямую на process_instance — идём через stage_instances.
