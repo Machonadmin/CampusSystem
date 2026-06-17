@@ -71,7 +71,7 @@ export default function TasksPage() {
     } finally {
       setLoading(false)
     }
-  }, [view, statusFilter, priorityFilter, tCommon])
+  }, [view, statusFilter, priorityFilter])
 
   useEffect(() => { load() }, [load])
 

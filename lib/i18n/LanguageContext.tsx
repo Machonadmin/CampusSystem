@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useMemo, useCallback, type ReactNode } from 'react'
 import { translations, type Lang, type Translations } from './translations'
 import ruMessages from '@/messages/ru.json'
 import heMessages from '@/messages/he.json'
@@ -47,7 +47,7 @@ export function LanguageProvider({
 }) {
   const [lang, setLangState] = useState<Lang>(initialLocale)
 
-  function setLang(next: Lang) {
+  const setLang = useCallback((next: Lang) => {
     setLangState(next)
     document.cookie = `campus_locale=${next};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`
     fetch('/api/auth/locale', {
@@ -55,14 +55,18 @@ export function LanguageProvider({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ locale: next }),
     })
-  }
+  }, [])
 
-  const t = translations[lang]
-  const isRTL = lang === 'he'
+  const value = useMemo(() => ({
+    lang,
+    setLang,
+    t: translations[lang],
+    isRTL: lang === 'he',
+  }), [lang, setLang])
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, isRTL }}>
-      <div dir={isRTL ? 'rtl' : 'ltr'} className="contents">
+    <LanguageContext.Provider value={value}>
+      <div dir={lang === 'he' ? 'rtl' : 'ltr'} className="contents">
         {children}
       </div>
     </LanguageContext.Provider>
@@ -74,11 +78,10 @@ export const useLang = () => useContext(LanguageContext)
 export function useTranslations(namespace?: string) {
   const { lang } = useLang()
   const messages = allMessages[lang]
-  return (key: string, fallback?: string): string => {
+  return useCallback((key: string, fallback?: string): string => {
     const fullPath = namespace ? `${namespace}.${key}` : key
     const result = lookupKey(messages, fullPath)
-    // lookupKey returns fullPath when key not found
     if (result === fullPath) return fallback ?? key
     return result
-  }
+  }, [lang, namespace, messages])
 }
