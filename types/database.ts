@@ -273,6 +273,50 @@ export type JourneyCommunityInsert =
   & { added_at?: string }
 export type JourneyCommunityUpdate = Partial<JourneyCommunityInsert>
 
+// ─── Documents module ─────────────────────────────────────────────────────────
+
+export type PersonDocumentStatus = 'pending' | 'received' | 'verified' | 'rejected' | 'expired'
+
+export interface DocumentCategoryRow {
+  id: string
+  code: string
+  name_ru: string
+  sort_order: number
+  created_at: string
+}
+
+export interface DocumentTypeRow {
+  id: string
+  category_id: string
+  code: string
+  name_ru: string
+  description: string | null
+  is_required: boolean
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface PersonDocumentRow {
+  id: string
+  person_id: string
+  document_type_id: string
+  status: PersonDocumentStatus
+  file_url: string | null
+  notes: string | null
+  received_at: string | null
+  received_by: string | null
+  verified_at: string | null
+  verified_by: string | null
+  created_at: string
+  updated_at: string
+}
+export type PersonDocumentInsert = Omit<PersonDocumentRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+  status?: PersonDocumentStatus
+}
+export type PersonDocumentUpdate = Partial<PersonDocumentInsert>
+
 export type JourneyDocumentStatus = 'pending' | 'received' | 'verified' | 'rejected' | 'expired'
 
 export interface JourneyDocumentRow {
@@ -1131,6 +1175,9 @@ export interface Database {
       process_instances:         T<ProcessInstanceRow,           ProcessInstanceInsert,           ProcessInstanceUpdate>
       stage_instances:           T<StageInstanceRow,             StageInstanceInsert,             StageInstanceUpdate>
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
+      document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
+      document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
+      person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
     }
     Views: Record<string, never>
     Functions: {

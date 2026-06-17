@@ -6,11 +6,13 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
+import DocumentsTab from '@/components/education/DocumentsTab'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface LeadViewData {
   journeyId: string
+  personId: string
   status: string | null
   createdAt: string | null
   departmentName: string | null
@@ -72,7 +74,7 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'extra'
+type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -111,6 +113,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     { key: 'family',     labelKey: 'family' },
     { key: 'community',  labelKey: 'community' },
     { key: 'directions', labelKey: 'directions' },
+    { key: 'documents',  labelKey: 'documents' },
     { key: 'extra',      labelKey: 'extra' },
   ]
 
@@ -204,6 +207,10 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               </span>
             ))}
           </div>
+        )
+      case 'documents':
+        return (
+          <DocumentsTab personId={data.personId} canManage={canManage} />
         )
       case 'extra':
         return (

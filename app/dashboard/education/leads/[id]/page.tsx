@@ -109,6 +109,7 @@ export default async function LeadViewPage({ params }: Props) {
 
   const data: LeadViewData = {
     journeyId: j.id,
+    personId: j.person_id,
     status: j.education_status,
     createdAt: j.opened_at ?? j.application_date,
     departmentName: j.primary_department?.name ?? null,

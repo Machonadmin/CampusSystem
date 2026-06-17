@@ -306,6 +306,7 @@
         "family": "Family",
         "community": "Community",
         "directions": "Directions",
+        "documents": "Documents",
         "extra": "Additional"
       },
       "status": {
