@@ -45,7 +45,7 @@ function isStudentStatus(s: string | null): boolean {
 
 const JOURNEY_SELECT = `
   *,
-  person:persons(id, full_name, hebrew_name, email, phones, gender, birth_date),
+  person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, gender, birth_date),
   primary_department:departments!education_journeys_primary_department_id_fkey(id, name),
   specialty:specialties!education_journeys_specialty_id_fkey(id, name, code),
   main_group:study_groups(id, name, year_level),

@@ -64,7 +64,7 @@ export async function GET(
     if (journeyIds.length > 0) {
       const { data: jRows, error: jErr } = await sb
         .from('education_journeys')
-        .select('id, person_id, person:persons(id, full_name, hebrew_name)')
+        .select('id, person_id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)')
         .in('id', journeyIds)
       if (jErr) throw jErr
       students = (jRows ?? []).map(j => {

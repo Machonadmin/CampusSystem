@@ -40,7 +40,7 @@ export default async function LeadViewPage({ params }: Props) {
     .select(`
       id, person_id, education_status, primary_department_id,
       referral_source, notes, opened_at, application_date,
-      person:persons(id, full_name, first_name, last_name, middle_name, hebrew_name,
+      person:persons!applicant_profiles_person_id_fkey(id, full_name, first_name, last_name, middle_name, hebrew_name,
         email, phones, gender, birth_date, address, marital_status, nationality, passport_number, photo_url),
       primary_department:departments!education_journeys_primary_department_id_fkey(id, name)
     `)

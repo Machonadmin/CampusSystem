@@ -11,7 +11,7 @@ export default async function LeadEditPage({ params }: Props) {
 
   const { data: journey } = await sb
     .from('education_journeys')
-    .select('id, person:persons(full_name)')
+    .select('id, person:persons!applicant_profiles_person_id_fkey(full_name)')
     .eq('id', params.id)
     .maybeSingle()
 
