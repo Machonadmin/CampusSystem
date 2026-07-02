@@ -1219,6 +1219,10 @@ export interface Database {
         Args: { p_task_id: string; p_actor_id: string }
         Returns: { created_task_ids: string[] }
       }
+      close_process_early: {
+        Args: { p_process_instance_id: string; p_final_code: string; p_actor_id: string | null }
+        Returns: { process_instance_id: string; final_code: string; finish_reason: string; journey_converted: boolean }
+      }
     }
     Enums: Record<string, never>
   }
