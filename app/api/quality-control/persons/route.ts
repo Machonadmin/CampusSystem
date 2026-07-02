@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
+import { jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    await requireFeaturePrivilege('quality_control', 'planned', 'can_create')
 
     const q = request.nextUrl.searchParams.get('q') ?? ''
     if (q.length < 2) return NextResponse.json([])
@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

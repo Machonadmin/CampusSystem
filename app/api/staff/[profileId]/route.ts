@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { jsonError } from '@/lib/api/handler'
 
-async function guard() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-}
-
+/**
+ * DELETE /api/staff/[profileId] — увольнение (end_date на staff_positions).
+ * Право: persons.delete (сейчас scope=all только superadmin/tech_admin —
+ * см. 20260702140000_persons_documents_privileges.sql, п.5).
+ */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: { profileId: string } }
 ) {
   try {
-    await guard()
+    await requirePrivilege('persons', 'delete')
     const sb = createServerClient()
 
     const { data: profile, error: profileErr } = await sb
@@ -35,7 +36,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

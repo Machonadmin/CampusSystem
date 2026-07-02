@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
-
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
+import { jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
-    const sb = createServerClient()
     const params = request.nextUrl.searchParams
     const tab = params.get('tab') ?? 'planned'
     const teacherId = params.get('teacher_id')
     const search = params.get('search') ?? ''
 
+    await requireFeaturePrivilege('quality_control', tab === 'planned' ? 'planned' : 'history', 'can_view')
+
+    const sb = createServerClient()
     let query = sb
       .from('quality_checks')
       .select('*')
@@ -68,14 +64,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAuth()
+    const session = await requireFeaturePrivilege('quality_control', 'planned', 'can_create')
     const sb = createServerClient()
     const body = await request.json() as {
       template_id?: string
@@ -114,7 +109,6 @@ export async function POST(request: NextRequest) {
     if (error) throw error
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

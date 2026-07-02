@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireFeaturePrivilege, type FeatureAction } from '@/lib/auth/feature-privileges'
+import { jsonError } from '@/lib/api/handler'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
+/** completed-записи относятся к вкладке/фиче 'history', остальные — 'planned'. */
+function featureForStatus(status: string): 'planned' | 'history' {
+  return status === 'completed' ? 'history' : 'planned'
+}
+
+async function requireQcAccess(sb: ReturnType<typeof createServerClient>, id: string, action: FeatureAction) {
+  const { data: row, error } = await sb
+    .from('quality_checks')
+    .select('status')
+    .eq('id', id)
+    .single()
+  if (error || !row) throw Object.assign(new Error('Не найдено'), { status: 404 })
+
+  await requireFeaturePrivilege('quality_control', featureForStatus(row.status), action)
 }
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
     const sb = createServerClient()
+    await requireQcAccess(sb, params.id, 'can_view')
 
     const { data: check, error } = await sb
       .from('quality_checks')
@@ -35,15 +46,14 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       teacher_name: pm.get(check.teacher_person_id) ?? null,
     })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
     const sb = createServerClient()
+    await requireQcAccess(sb, params.id, 'can_edit')
     const body = await request.json() as Record<string, unknown>
 
     const allowed = [
@@ -71,15 +81,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (error) throw error
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
     const sb = createServerClient()
+    await requireQcAccess(sb, params.id, 'can_delete')
 
     const { error } = await sb
       .from('quality_checks')
@@ -89,7 +98,6 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     if (error) throw error
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
