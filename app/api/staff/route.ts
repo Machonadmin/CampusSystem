@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
 import type { EmploymentType } from '@/types/database'
 
 async function guard() {
@@ -110,7 +111,6 @@ function toEmploymentType(input: string | undefined): EmploymentType {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await guard()
     const sb = createServerClient()
 
     const body = await request.json() as {
@@ -157,6 +157,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'position или position_id обязательны' }, { status: 400 })
     if (!body.hire_date)
       return NextResponse.json({ error: 'Дата приёма обязательна' }, { status: 400 })
+
+    // department_id уже провалидирован выше — проверяем именно на него, не в общем.
+    await requirePrivilege('persons', 'create', { department_id: body.department_id })
 
     // ── Resolve / create person ─────────────────────────────────────────────
     let personId: string

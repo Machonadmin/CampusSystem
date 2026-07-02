@@ -297,7 +297,6 @@ export async function POST(request: NextRequest) {
           phones: np.phones ?? [],
           address: {},
           notes: null,
-          education_status: status,
         } as any)
         .select('id')
         .single()
@@ -351,11 +350,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    // Если использовали существующий person — синхронизируем его education_status
-    if (body.person_id) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('persons').update({ education_status: status } as any).eq('id', personId)
-    }
 
     return NextResponse.json(journey, { status: 201 })
   } catch (err: unknown) {

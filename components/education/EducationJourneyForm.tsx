@@ -479,7 +479,9 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       }
 
       if (mode === 'lead') {
-        // POST /api/education/leads — existing format
+        // POST /api/applications — same request/response contract as the old
+        // /api/education/leads (see app/api/applications/route.ts), but person+
+        // journey+interests+status_history are created atomically via RPC.
         const body: Record<string, unknown> = {
           interests: interests
             .filter(i => i.direction_id || (i.free_text && i.free_text.trim()))
@@ -513,7 +515,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         }
         if (validCommunities.length > 0) body.communities = validCommunities
 
-        const res = await fetch('/api/education/leads', {
+        const res = await fetch('/api/applications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),

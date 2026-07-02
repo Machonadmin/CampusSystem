@@ -252,8 +252,6 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
       if (!person) return NextResponse.json({ error: 'Человек не найден' }, { status: 404 })
       personId = person.id
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('persons').update({ education_status: 'lead' } as any).eq('id', personId)
     } else {
       const leadFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
       if (!leadFirstName) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
@@ -280,7 +278,6 @@ export async function POST(request: NextRequest) {
           photo_url: null,
           address: (body.address && Object.values(body.address).some(v => v)) ? body.address : null,
           notes: null,
-          education_status: 'lead',
           marital_status: body.marital_status || null,
           nationality: body.citizenship || null,
           passport_number: body.passport_number?.trim() || null,

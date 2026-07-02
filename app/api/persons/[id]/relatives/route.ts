@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
 import type { PersonRelativeInsert, RelationType } from '@/types/database'
-
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 function mapDbError(error: { code?: string; message?: string }) {
   if (error.code === '23505') return { status: 409, message: 'Такая связь уже существует' }
@@ -29,7 +23,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    await requirePrivilege('persons', 'view')
     const sb = createServerClient()
 
     let qb = sb
@@ -84,14 +78,14 @@ export async function GET(
 /**
  * POST /api/persons/[id]/relatives
  * Body: { relative_id, relation_type, notes? }
- * Право: любой авторизованный.
+ * Право: persons.edit
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    await requirePrivilege('persons', 'edit')
     const body = await request.json() as {
       relative_id?: string
       relation_type?: RelationType

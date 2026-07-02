@@ -58,21 +58,14 @@ export async function PATCH(
       .eq('education_status', 'lead')
     if (updErr) throw updErr
 
-    await Promise.all([
-      // Legacy: persons.education_status (удалим в Part 2 миграции)
-      sb.from('persons')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update({ education_status: 'applicant' } as any)
-        .eq('id', journey.person_id),
-      sb.from('person_status_history')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: journey.person_id,
-          from_status: 'lead',
-          to_status: 'applicant',
-          changed_by: session.person_id,
-        } as any),
-    ])
+    await sb.from('person_status_history')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert({
+        person_id: journey.person_id,
+        from_status: 'lead',
+        to_status: 'applicant',
+        changed_by: session.person_id,
+      } as any)
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,9 +75,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
-
     const body = await request.json() as {
       // Новый формат
       last_name?: string | null
@@ -101,6 +99,11 @@ export async function POST(request: NextRequest) {
     if (enroll_as_teacher && !department_id) {
       return NextResponse.json({ error: 'Для оформления укажите подразделение' }, { status: 400 })
     }
+
+    // Без enroll_as_teacher — создание "голой" персоны (create, без department-таргета).
+    // С enroll_as_teacher — департамент проверяется явно: раньше можно было указать
+    // любой department_id без проверки прав на него.
+    await requirePrivilege('persons', 'create', enroll_as_teacher ? { department_id } : undefined)
 
     const sb = createServerClient()
     const phones = phone?.trim() ? [{ type: 'mobile', number: phone.trim() }] : []

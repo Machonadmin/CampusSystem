@@ -34,8 +34,6 @@ export type PersonRelativeInsert =
   & { id?: string }
 export type PersonRelativeUpdate = Partial<Omit<PersonRelativeInsert, 'person_id' | 'relative_id'>>
 export type ApplicantStatus = 'new' | 'reviewing' | 'accepted' | 'rejected'
-export type Institution = 'university' | 'touro' | 'college' | 'school' | 'emuna' | 'other'
-export type EnrollmentStatus = 'active' | 'graduated' | 'expelled' | 'academic_leave'
 export type EmploymentType = 'staff' | 'intern' | 'volunteer' | 'contractor'
 export type SponsorType = 'individual' | 'organization'
 export type RoleCategory = 'system' | 'campus' | 'education' | 'medical' | 'custom' | 'external'
@@ -92,7 +90,6 @@ export interface PersonRow {
   notes: string | null
   created_at: string
   updated_at: string
-  education_status: PersonEducationStatus | null
   marital_status: string | null
   nationality: string | null
   passport_number: string | null
@@ -317,6 +314,21 @@ export type PersonDocumentInsert = Omit<PersonDocumentRow, 'id' | 'created_at' |
 }
 export type PersonDocumentUpdate = Partial<PersonDocumentInsert>
 
+/** Заполняется триггером audit_log_trigger — приложение не пишет сюда напрямую. */
+export interface AuditLogRow {
+  id: string
+  entity_type: string
+  entity_id: string
+  action: 'create' | 'update' | 'delete'
+  old_data: Json | null
+  new_data: Json | null
+  changed_fields: string[] | null
+  changed_by: string | null
+  changed_at: string
+}
+export type AuditLogInsert = Omit<AuditLogRow, 'id' | 'changed_at'> & { id?: string }
+export type AuditLogUpdate = Partial<AuditLogInsert>
+
 export type JourneyDocumentStatus = 'pending' | 'received' | 'verified' | 'rejected' | 'expired'
 
 export interface JourneyDocumentRow {
@@ -355,19 +367,6 @@ export interface PersonStatusHistoryRow {
   changed_at: string
   changed_by: string | null
   comment: string | null
-  created_at: string
-}
-
-export interface EnrollmentRow {
-  id: string
-  person_id: string
-  institution: Institution
-  direction: string | null
-  level: string | null
-  enrollment_date: string | null
-  graduation_date: string | null
-  status: EnrollmentStatus
-  notes: string | null
   created_at: string
 }
 
@@ -491,13 +490,12 @@ export interface PersonPrivilegeRow {
 // ─── Insert types (omit server-generated fields) ─────────────────────────────
 
 export type PersonInsert =
-  Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'full_name' | 'education_status' | 'marital_status' | 'nationality' | 'passport_number'>
-  & { education_status?: PersonEducationStatus | null; marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
+  Omit<PersonRow, 'id' | 'created_at' | 'updated_at' | 'full_name' | 'marital_status' | 'nationality' | 'passport_number'>
+  & { marital_status?: string | null; nationality?: string | null; passport_number?: string | null }
 export type PersonAccountInsert = Omit<PersonAccountRow, 'id' | 'created_at' | 'updated_at'>
 export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id' | 'created_at'>
 /** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
 export type ApplicantProfileInsert = EducationJourneyInsert
-export type EnrollmentInsert = Omit<EnrollmentRow, 'id' | 'created_at'>
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id' | 'created_at' | 'updated_at'>
 export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'> & {
   is_educational_institution?: boolean
@@ -1101,7 +1099,6 @@ export type PersonUpdate = Partial<PersonInsert>
 export type PersonAccountUpdate = Partial<PersonAccountInsert>
 export type PersonFamilyUpdate = Partial<PersonFamilyInsert>
 export type ApplicantProfileUpdate = Partial<ApplicantProfileInsert>
-export type EnrollmentUpdate = Partial<EnrollmentInsert>
 export type StaffProfileUpdate = Partial<StaffProfileInsert>
 export type DepartmentUpdate = Partial<DepartmentInsert>
 export type StaffPositionUpdate = Partial<StaffPositionInsert>
@@ -1135,7 +1132,6 @@ export interface Database {
       communities:       T<CommunityRow,        CommunityInsert,        CommunityUpdate>
       journey_communities:T<JourneyCommunityRow,JourneyCommunityInsert, JourneyCommunityUpdate>
       journey_documents: T<JourneyDocumentRow,  JourneyDocumentInsert,  JourneyDocumentUpdate>
-      enrollments:       T<EnrollmentRow,       EnrollmentInsert,       EnrollmentUpdate>
       staff_profiles:    T<StaffProfileRow,     StaffProfileInsert,     StaffProfileUpdate>
       departments:       T<DepartmentRow,       DepartmentInsert,       DepartmentUpdate>
       staff_positions:   T<StaffPositionRow,    StaffPositionInsert,    StaffPositionUpdate>
@@ -1178,6 +1174,7 @@ export interface Database {
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
+      audit_log:                 T<AuditLogRow,                  AuditLogInsert,                  AuditLogUpdate>
     }
     Views: Record<string, never>
     Functions: {
@@ -1195,6 +1192,10 @@ export interface Database {
       update_last_login: {
         Args: { p_person_id: string }
         Returns: void
+      }
+      create_application: {
+        Args: { payload: Record<string, unknown> }
+        Returns: { person_id: string; journey_id: string }
       }
     }
     Enums: Record<string, never>

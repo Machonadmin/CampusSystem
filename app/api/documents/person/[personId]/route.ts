@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
 
 type Params = { params: { personId: string } }
 
@@ -10,8 +10,7 @@ type Params = { params: { personId: string } }
  */
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    await requirePrivilege('documents', 'view')
 
     const sb = createServerClient()
     const { data, error } = await sb
@@ -23,8 +22,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
-    const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: 500 })
+    const e = err as { status?: number; message?: string }
+    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
   }
 }
 
@@ -35,8 +34,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
  */
 export async function POST(req: NextRequest, { params }: Params) {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    const session = await requirePrivilege('documents', 'create')
 
     const body = await req.json() as {
       document_type_id?: string
@@ -118,7 +116,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
-    const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: 500 })
+    const e = err as { status?: number; message?: string }
+    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
   }
 }

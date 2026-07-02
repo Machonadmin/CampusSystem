@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requirePrivilege } from '@/lib/auth/module-privileges'
 import type { PersonRelativeUpdate, RelationType } from '@/types/database'
-
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 function mapDbError(error: { code?: string; message?: string }) {
   if (error.code === '23505') return { status: 409, message: 'Такая связь уже существует' }
@@ -30,7 +24,7 @@ export async function DELETE(
   { params }: { params: { id: string; relativeId: string } }
 ) {
   try {
-    await requireAuth()
+    await requirePrivilege('persons', 'edit')
     const sb = createServerClient()
 
     let qb = sb
@@ -69,7 +63,7 @@ export async function PATCH(
   { params }: { params: { id: string; relativeId: string } }
 ) {
   try {
-    await requireAuth()
+    await requirePrivilege('persons', 'edit')
     const body = await request.json() as {
       relation_type?: RelationType
       notes?: string | null
