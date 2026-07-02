@@ -1215,6 +1215,10 @@ export interface Database {
         Args: { p_process_code: string; p_journey_id: string; p_actor_id: string | null }
         Returns: { process_instance_id: string; stage_instance_ids: string[]; already_existed: boolean }
       }
+      handle_task_completion: {
+        Args: { p_task_id: string; p_actor_id: string }
+        Returns: { created_task_ids: string[] }
+      }
     }
     Enums: Record<string, never>
   }

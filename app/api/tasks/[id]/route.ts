@@ -3,7 +3,6 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
-import { handleTaskCompletion } from '@/lib/workflow/handle-task-completion'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 async function requireAuth() {
@@ -214,13 +213,16 @@ export async function PATCH(
       }
     }
 
-    // Завершение задачи → активировать следующие задачи подэтапа.
+    // Завершение задачи → активировать следующие задачи подэтапа, атомарно
+    // через RPC handle_task_completion (см. migrations/20260702220000_*.sql).
     // Ошибки перехода не должны валить уже выполненную смену статуса.
     if (statusChange?.to === 'completed') {
-      try {
-        await handleTaskCompletion(sb, params.id, session.person_id)
-      } catch (chainErr) {
-        console.error('[handleTaskCompletion] не удалось активировать следующие задачи:', chainErr)
+      const { error: chainErr } = await sb.rpc('handle_task_completion', {
+        p_task_id: params.id,
+        p_actor_id: session.person_id,
+      })
+      if (chainErr) {
+        console.error('[handle_task_completion] не удалось активировать следующие задачи:', chainErr)
       }
     }
 
