@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { parseBody, jsonError } from '@/lib/api/handler'
 import type { EmploymentType } from '@/types/database'
 
 async function guard() {
@@ -109,107 +111,75 @@ function toEmploymentType(input: string | undefined): EmploymentType {
   return EMPLOYMENT_MAP[input] ?? 'staff'
 }
 
+const staffSchema = z.object({
+  person_id: z.string().uuid().optional(),
+  last_name: z.string().trim().nullish(),
+  first_name: z.string().trim().optional(),
+  middle_name: z.string().trim().nullish(),
+  full_name: z.string().trim().optional(), // legacy fallback → first_name
+  hebrew_name: z.string().trim().optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  birth_date: z.string().optional(),
+  marital_status: z.string().optional(),
+  citizenship: z.string().optional(),
+  phone: z.string().trim().optional(),
+  phones: z.array(z.string().trim()).optional(),
+  email: z.string().trim().optional(),
+  address: z.record(z.string(), z.string()).optional(),
+  contacts: z.array(z.object({ type: z.string(), value: z.string() })).optional(),
+  department_id: z.string().uuid(),
+  position: z.string().trim().optional(),
+  position_id: z.string().uuid().optional(),
+  hire_date: z.string().min(1, 'Дата приёма обязательна'),
+  employment_type: z.string().optional(),
+  work_schedule: z.string().optional(),
+  passport: z.object({
+    series: z.string().optional(), number: z.string().optional(),
+    issue_date: z.string().optional(), issued_by: z.string().optional(),
+  }).optional(),
+  education: z.object({
+    level: z.string().optional(), specialty: z.string().optional(),
+    graduation_year: z.number().optional(), certificates: z.string().optional(),
+  }).optional(),
+  contract: z.object({
+    number: z.string().optional(), date: z.string().optional(),
+    salary: z.number().optional(), currency: z.string().optional(), file_name: z.string().optional(),
+  }).optional(),
+  comment: z.string().optional(),
+}).refine(d => d.person_id || d.first_name?.trim() || d.full_name?.trim(), {
+  message: 'ФИО обязательно',
+}).refine(d => d.position_id || d.position?.trim(), {
+  message: 'position или position_id обязательны',
+})
+
+/**
+ * POST /api/staff
+ *
+ * Создаёт сотрудника целиком: person (новый или существующий) +
+ * staff_profiles + staff_positions — атомарно, одной транзакцией через RPC
+ * create_staff_member (см. migrations/20260702180000_*.sql). Раньше это были
+ * 3 последовательных insert-а без отката при частичном сбое.
+ *
+ * Право: persons.create, department-scoped по department_id.
+ */
 export async function POST(request: NextRequest) {
   try {
     const sb = createServerClient()
+    const body = await parseBody(request, staffSchema)
 
-    const body = await request.json() as {
-      // Existing person
-      person_id?: string
-      // New person fields (split format, preferred)
-      last_name?: string | null
-      first_name?: string
-      middle_name?: string | null
-      // Legacy single-string format (fallback → first_name)
-      full_name?: string
-      hebrew_name?: string
-      gender?: string
-      birth_date?: string
-      marital_status?: string
-      citizenship?: string
-      phone?: string
-      phones?: string[]
-      email?: string
-      address?: Record<string, string>
-      contacts?: { type: string; value: string }[]
-      // Employment
-      department_id?: string
-      position?: string
-      position_id?: string
-      hire_date?: string
-      employment_type?: string
-      work_schedule?: string
-      // Documents
-      passport?: { series?: string; number?: string; issue_date?: string; issued_by?: string }
-      education?: { level?: string; specialty?: string; graduation_year?: number; certificates?: string }
-      contract?: { number?: string; date?: string; salary?: number; currency?: string; file_name?: string }
-      comment?: string
+    if (!body.person_id) {
+      const hasPhone = !!body.phone?.trim() || !!(body.phones && body.phones.some(p => p.trim()))
+      if (!hasPhone) {
+        throw Object.assign(new Error('Телефон обязателен'), { status: 400 })
+      }
     }
 
-    // ── Validation ──────────────────────────────────────────────────────────
-    if (!body.person_id && !body.first_name?.trim() && !body.full_name?.trim())
-      return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
-    if (!body.person_id && !body.phone?.trim() && !(body.phones?.some(p => p.trim())))
-      return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
-    if (!body.department_id)
-      return NextResponse.json({ error: 'Отдел обязателен' }, { status: 400 })
-    if (!body.position_id && !body.position?.trim())
-      return NextResponse.json({ error: 'position или position_id обязательны' }, { status: 400 })
-    if (!body.hire_date)
-      return NextResponse.json({ error: 'Дата приёма обязательна' }, { status: 400 })
+    const session = await requirePrivilege('persons', 'create', { department_id: body.department_id })
 
-    // department_id уже провалидирован выше — проверяем именно на него, не в общем.
-    await requirePrivilege('persons', 'create', { department_id: body.department_id })
+    const allPhones = (body.phones?.filter(p => p.trim()) ?? [])
+    if (allPhones.length === 0 && body.phone?.trim()) allPhones.push(body.phone.trim())
 
-    // ── Resolve / create person ─────────────────────────────────────────────
-    let personId: string
-    let personName: string
-
-    if (body.person_id) {
-      const { data: existing } = await sb
-        .from('persons')
-        .select('id, full_name')
-        .eq('id', body.person_id)
-        .single()
-      if (!existing) return NextResponse.json({ error: 'Человек не найден' }, { status: 404 })
-      personId = existing.id
-      personName = existing.full_name
-    } else {
-      const allPhones = (body.phones?.filter(p => p.trim()) ?? [])
-      if (allPhones.length === 0 && body.phone?.trim()) allPhones.push(body.phone.trim())
-
-      const newFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
-      const newLastName  = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
-      const newMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
-
-      const { data: newPerson, error: personErr } = await sb
-        .from('persons')
-        .insert({
-          last_name: newLastName,
-          first_name: newFirstName,
-          middle_name: newMiddleName,
-          hebrew_name: body.hebrew_name?.trim() || null,
-          gender: (body.gender as 'male' | 'female' | 'other') || null,
-          birth_date: body.birth_date || null,
-          marital_status: body.marital_status || null,
-          nationality: body.citizenship?.trim() || null,
-          passport_number: body.passport?.number?.trim() || null,
-          phones: allPhones,
-          email: body.email?.trim() || null,
-          photo_url: null,
-          address: body.address ?? {},
-          notes: null,
-        })
-        .select('id, full_name')
-        .single()
-
-      if (personErr || !newPerson) throw personErr ?? new Error('Ошибка создания человека')
-      personId = newPerson.id
-      personName = newPerson.full_name
-    }
-
-    // ── Staff profile ───────────────────────────────────────────────────────
-    // Extra fields that have no dedicated column go into notes as JSON
+    // Дополнительные поля без выделенной колонки уходят в notes как JSON
     const extra: Record<string, unknown> = {}
     if (body.work_schedule) extra.work_schedule = body.work_schedule
     if (body.passport?.series || body.passport?.issue_date || body.passport?.issued_by) {
@@ -224,80 +194,53 @@ export async function POST(request: NextRequest) {
     if (body.contacts?.length) extra.contacts = body.contacts
     if (body.comment) extra.comment = body.comment
 
-    const { data: profile, error: profileErr } = await sb
-      .from('staff_profiles')
-      .insert({
-        person_id: personId,
-        employment_type: toEmploymentType(body.employment_type),
+    const { data: rpcResult, error: rpcErr } = await sb.rpc('create_staff_member', {
+      payload: {
+        person_id: body.person_id ?? null,
+        last_name: body.last_name?.trim() || null,
+        first_name: body.first_name?.trim() || body.full_name?.trim() || null,
+        middle_name: body.middle_name?.trim() || null,
+        hebrew_name: body.hebrew_name?.trim() || null,
+        gender: body.gender ?? null,
+        birth_date: body.birth_date || null,
+        marital_status: body.marital_status || null,
+        nationality: body.citizenship?.trim() || null,
+        passport_number: body.passport?.number?.trim() || null,
+        phones: allPhones,
+        email: body.email?.trim() || null,
+        address: body.address ?? {},
+        department_id: body.department_id,
+        position_id: body.position_id ?? null,
+        position: body.position?.trim() || null,
         hire_date: body.hire_date,
-        fire_date: null,
+        employment_type: toEmploymentType(body.employment_type),
         notes: Object.keys(extra).length > 0 ? JSON.stringify(extra) : null,
-      })
-      .select('id')
-      .single()
-
-    if (profileErr) {
-      // Ignore duplicate (person already has a staff profile)
-      if ((profileErr as { code?: string }).code !== '23505') throw profileErr
-    }
-
-    const profileId = profile?.id ?? null
-
-    // ── Resolve position ────────────────────────────────────────────────────
-    let positionName = body.position?.trim() || null
-    let resolvedPositionId: string | null = body.position_id ?? null
-
-    if (resolvedPositionId) {
-      const { data: refPos } = await sb
-        .from('reference_positions')
-        .select('name_ru')
-        .eq('id', resolvedPositionId)
-        .maybeSingle()
-      if (!refPos) return NextResponse.json({ error: 'Должность не найдена' }, { status: 400 })
-      positionName = refPos.name_ru
-    }
-
-    // ── Staff position ──────────────────────────────────────────────────────
-    const { error: posErr } = await sb.from('staff_positions').insert({
-      person_id: personId,
-      department_id: body.department_id,
-      position_ru: positionName!,
-      position_he: null,
-      position_id: resolvedPositionId,
-      is_head: false,
-      start_date: body.hire_date,
-      end_date: null,
+        actor_id: session.person_id,
+      },
     })
-    if (posErr) throw posErr
+    if (rpcErr) throw rpcErr
+    const r = rpcResult as {
+      profile_id: string | null
+      person_id: string
+      full_name: string
+      position: string
+      department_id: string
+    }
 
-    // ── Fetch department name for response ──────────────────────────────────
     const { data: dept } = await sb
       .from('departments')
       .select('name')
-      .eq('id', body.department_id)
+      .eq('id', r.department_id)
       .single()
 
-    // ── Status history (education_status enum doesn't include 'staff';
-    //    only record if person has no prior education status) ─────────────
-    const { data: existingHistory } = await sb
-      .from('person_status_history')
-      .select('id')
-      .eq('person_id', personId)
-      .limit(1)
-
-    if (!existingHistory?.length) {
-      // Person has no education history — safe to ignore; no valid 'staff' enum value
-    }
-
     return NextResponse.json({
-      profile_id: profileId,
-      person_id: personId,
-      full_name: personName,
-      position: positionName,
+      profile_id: r.profile_id,
+      person_id: r.person_id,
+      full_name: r.full_name,
+      position: r.position,
       department: dept?.name ?? null,
     }, { status: 201 })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

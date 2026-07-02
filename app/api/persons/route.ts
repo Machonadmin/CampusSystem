@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { parseBody, jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,107 +75,105 @@ export async function GET(request: NextRequest) {
   }
 }
 
+const personQuickAddSchema = z.object({
+  last_name: z.string().trim().nullish(),
+  first_name: z.string().trim().optional(),
+  middle_name: z.string().trim().nullish(),
+  full_name: z.string().trim().optional(), // legacy fallback → first_name (PersonSelect)
+  email: z.string().trim().optional(),
+  phone: z.string().trim().optional(),
+  enroll_as_teacher: z.boolean().optional(),
+  department_id: z.string().uuid().optional(),
+  position_id: z.string().uuid().optional(),
+}).refine(d => d.first_name?.trim() || d.full_name?.trim(), { message: 'Имя обязательно' })
+
+/**
+ * POST /api/persons
+ *
+ * Без enroll_as_teacher: создаёт "голую" персону одним insert — не нужна
+ * транзакция, один statement уже атомарен.
+ *
+ * С enroll_as_teacher: person + staff_profiles + staff_positions — переиспользует
+ * тот же RPC create_staff_member, что и /api/staff, вместо отдельной
+ * последовательности insert-ов с "warning" вместо отката при сбое.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
-      // Новый формат
-      last_name?: string | null
-      first_name?: string
-      middle_name?: string | null
-      // Легаси-формат (PersonSelect создаёт через full_name)
-      full_name?: string
-      email?: string
-      phone?: string
-      enroll_as_teacher?: boolean
-      department_id?: string
-      position_id?: string
-    }
-    const { email, phone, enroll_as_teacher, department_id, position_id: positionIdParam } = body
+    const body = await parseBody(request, personQuickAddSchema)
 
     const firstName = body.first_name?.trim() || body.full_name?.trim() || ''
-    if (!firstName) {
-      return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
-    }
-    const lastName  = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
+    const lastName = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
     const middleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
-    if (enroll_as_teacher && !department_id) {
-      return NextResponse.json({ error: 'Для оформления укажите подразделение' }, { status: 400 })
+
+    if (body.enroll_as_teacher && !body.department_id) {
+      throw Object.assign(new Error('Для оформления укажите подразделение'), { status: 400 })
     }
 
     // Без enroll_as_teacher — создание "голой" персоны (create, без department-таргета).
     // С enroll_as_teacher — департамент проверяется явно: раньше можно было указать
     // любой department_id без проверки прав на него.
-    await requirePrivilege('persons', 'create', enroll_as_teacher ? { department_id } : undefined)
+    const session = await requirePrivilege(
+      'persons', 'create',
+      body.enroll_as_teacher ? { department_id: body.department_id } : undefined
+    )
 
     const sb = createServerClient()
-    const phones = phone?.trim() ? [{ type: 'mobile', number: phone.trim() }] : []
 
-    const { data, error } = await sb
-      .from('persons')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert({ last_name: lastName, first_name: firstName, middle_name: middleName, email: email?.trim() || null, phones } as any)
-      .select('id, full_name, email')
-      .single()
-
-    if (error) throw error
-
-    const personId = data.id
-    let warning: string | undefined
-
-    if (enroll_as_teacher && department_id) {
-      try {
-        const today = new Date().toISOString().split('T')[0]
-
-        // Resolve position
-        let resolvedPositionId: string | null = positionIdParam ?? null
-        let resolvedPositionRu = 'Преподаватель'
-
-        if (resolvedPositionId) {
-          const { data: rp } = await sb.from('reference_positions').select('name_ru').eq('id', resolvedPositionId).maybeSingle()
-          if (rp) resolvedPositionRu = rp.name_ru
-        } else {
-          const { data: defaultPos } = await sb
-            .from('reference_positions')
-            .select('id, name_ru')
-            .eq('name_ru', 'Преподаватель')
-            .eq('is_active', true)
-            .maybeSingle()
-          if (defaultPos) { resolvedPositionId = defaultPos.id; resolvedPositionRu = defaultPos.name_ru }
-        }
-
-        // Staff profile (ignore duplicate)
+    if (!body.enroll_as_teacher) {
+      const phones = body.phone?.trim() ? [{ type: 'mobile', number: body.phone.trim() }] : []
+      const { data, error } = await sb
+        .from('persons')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: _spErr } = await sb.from('staff_profiles')
-          .insert({ person_id: personId, employment_type: 'staff', hire_date: today, fire_date: null, notes: null } as any)
-        void _spErr // дубль игнорируется намеренно
+        .insert({ last_name: lastName, first_name: firstName, middle_name: middleName, email: body.email?.trim() || null, phones } as any)
+        .select('id, full_name, email')
+        .single()
+      if (error) throw error
 
-        // Staff position
-        const { error: posErr } = await sb.from('staff_positions').insert({
-          person_id: personId,
-          department_id,
-          position_id: resolvedPositionId,
-          position_ru: resolvedPositionRu,
-          position_he: null,
-          is_head: false,
-          start_date: today,
-          end_date: null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any)
-        if (posErr) warning = 'Человек создан, но оформить как преподавателя не удалось'
-      } catch {
-        warning = 'Человек создан, но оформить как преподавателя не удалось'
-      }
+      return NextResponse.json({
+        id: data.id,
+        full_name: data.full_name,
+        email: data.email ?? null,
+        phone: body.phone?.trim() || null,
+      }, { status: 201 })
     }
 
+    let resolvedPositionId = body.position_id ?? null
+    if (!resolvedPositionId) {
+      const { data: defaultPos } = await sb
+        .from('reference_positions')
+        .select('id')
+        .eq('name_ru', 'Преподаватель')
+        .eq('is_active', true)
+        .maybeSingle()
+      resolvedPositionId = defaultPos?.id ?? null
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const { data: rpcResult, error: rpcErr } = await sb.rpc('create_staff_member', {
+      payload: {
+        first_name: firstName,
+        last_name: lastName,
+        middle_name: middleName,
+        email: body.email?.trim() || null,
+        phones: body.phone?.trim() ? [{ type: 'mobile', number: body.phone.trim() }] : [],
+        department_id: body.department_id,
+        position_id: resolvedPositionId,
+        position: resolvedPositionId ? null : 'Преподаватель',
+        hire_date: today,
+        employment_type: 'staff',
+        actor_id: session.person_id,
+      },
+    })
+    if (rpcErr) throw rpcErr
+    const r = rpcResult as { person_id: string; full_name: string }
+
     return NextResponse.json({
-      id: data.id,
-      full_name: data.full_name,
-      email: data.email ?? null,
-      phone: phone?.trim() || null,
-      ...(warning ? { warning } : {}),
+      id: r.person_id,
+      full_name: r.full_name,
+      email: body.email?.trim() || null,
+      phone: body.phone?.trim() || null,
     }, { status: 201 })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

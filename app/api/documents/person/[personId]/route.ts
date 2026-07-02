@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { parseBody, jsonError } from '@/lib/api/handler'
 
 type Params = { params: { personId: string } }
 
@@ -22,10 +24,15 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
+
+const personDocumentSchema = z.object({
+  document_type_id: z.string().uuid(),
+  status: z.enum(['pending', 'received', 'verified', 'rejected', 'expired']),
+  notes: z.string().optional(),
+})
 
 /**
  * POST /api/documents/person/[personId]
@@ -35,21 +42,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await requirePrivilege('documents', 'create')
-
-    const body = await req.json() as {
-      document_type_id?: string
-      status?: string
-      notes?: string
-    }
-
-    if (!body.document_type_id) {
-      return NextResponse.json({ error: 'document_type_id обязателен' }, { status: 400 })
-    }
-
-    const ALLOWED_STATUSES = ['pending', 'received', 'verified', 'rejected', 'expired']
-    if (!body.status || !ALLOWED_STATUSES.includes(body.status)) {
-      return NextResponse.json({ error: 'Недопустимый статус' }, { status: 400 })
-    }
+    const body = await parseBody(req, personDocumentSchema)
 
     const now = new Date().toISOString()
     const sb = createServerClient()
@@ -116,7 +109,6 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }

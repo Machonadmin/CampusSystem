@@ -1197,6 +1197,16 @@ export interface Database {
         Args: { payload: Record<string, unknown> }
         Returns: { person_id: string; journey_id: string }
       }
+      create_staff_member: {
+        Args: { payload: Record<string, unknown> }
+        Returns: {
+          profile_id: string | null
+          person_id: string
+          full_name: string
+          position: string
+          department_id: string
+        }
+      }
     }
     Enums: Record<string, never>
   }

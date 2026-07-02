@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { parseBody } from '@/lib/api/handler'
 import type { PersonRelativeInsert, RelationType } from '@/types/database'
+
+const RELATION_TYPES = [
+  'mother', 'father', 'parent', 'spouse', 'child', 'sibling', 'grandparent',
+  'guardian', 'community_contact', 'emergency_contact', 'other',
+] as const
 
 function mapDbError(error: { code?: string; message?: string }) {
   if (error.code === '23505') return { status: 409, message: 'Такая связь уже существует' }
@@ -75,6 +82,12 @@ export async function GET(
   }
 }
 
+const relativeSchema = z.object({
+  relative_id: z.string().uuid(),
+  relation_type: z.enum(RELATION_TYPES),
+  notes: z.string().optional(),
+})
+
 /**
  * POST /api/persons/[id]/relatives
  * Body: { relative_id, relation_type, notes? }
@@ -86,18 +99,8 @@ export async function POST(
 ) {
   try {
     await requirePrivilege('persons', 'edit')
-    const body = await request.json() as {
-      relative_id?: string
-      relation_type?: RelationType
-      notes?: string
-    }
+    const body = await parseBody(request, relativeSchema)
 
-    if (!body.relative_id) {
-      return NextResponse.json({ error: 'relative_id обязателен' }, { status: 400 })
-    }
-    if (!body.relation_type) {
-      return NextResponse.json({ error: 'relation_type обязателен' }, { status: 400 })
-    }
     if (body.relative_id === params.id) {
       return NextResponse.json({ error: 'Нельзя добавить самого себя как relative' }, { status: 400 })
     }
