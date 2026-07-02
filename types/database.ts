@@ -1211,6 +1211,10 @@ export interface Database {
         Args: { p_stage_instance_id: string; p_actor_id: string }
         Returns: { stage_instance_id: string }
       }
+      start_process: {
+        Args: { p_process_code: string; p_journey_id: string; p_actor_id: string | null }
+        Returns: { process_instance_id: string; stage_instance_ids: string[]; already_existed: boolean }
+      }
     }
     Enums: Record<string, never>
   }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
-import { startProcess, type StartProcessResult } from '@/lib/workflow/start-process'
+import type { StartProcessResult } from '@/lib/workflow/start-process'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import type { CommunityInsert, JourneyCommunityInsert } from '@/types/database'
 
@@ -56,8 +56,10 @@ const applicationSchema = z.object({
  *      через RPC create_application (см. migrations/20260702130000_*.sql).
  *   2. communities/journey_communities — best-effort после транзакции
  *      (как и раньше: параллельная гонка на create допустима, не блокирует заявку).
- *   3. Автостарт процесса «Набор» (startProcess) — best-effort, ошибка не блокирует
- *      создание заявки (тот же принцип, что уже был в /api/education/leads).
+ *   3. Автостарт процесса «Набор» — атомарно через RPC start_process
+ *      (см. migrations/20260702210000_*.sql), но сам вызов остаётся
+ *      best-effort: ошибка не блокирует создание заявки (тот же принцип,
+ *      что уже был в /api/education/leads).
  *
  * Право: manage_leads (без department — у заявки ещё нет привязки к подразделению).
  *
@@ -187,12 +189,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание заявки.
+    // Атомарно через RPC start_process (см. migrations/20260702210000_*.sql).
     let workflowResult: StartProcessResult | null = null
     let workflowError: string | null = null
-    try {
-      workflowResult = await startProcess(sb, 'recruitment', journeyId, session.person_id)
-    } catch (wfErr: unknown) {
-      workflowError = (wfErr as { message?: string }).message ?? 'Ошибка запуска процесса'
+    const { data: startResult, error: startErr } = await sb.rpc('start_process', {
+      p_process_code: 'recruitment',
+      p_journey_id: journeyId,
+      p_actor_id: session.person_id,
+    })
+    if (startErr) {
+      workflowError = startErr.message ?? 'Ошибка запуска процесса'
+    } else {
+      workflowResult = startResult as StartProcessResult
     }
 
     return NextResponse.json(

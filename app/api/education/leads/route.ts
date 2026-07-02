@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
-import { startProcess, type StartProcessResult } from '@/lib/workflow/start-process'
+import type { StartProcessResult } from '@/lib/workflow/start-process'
 import type {
   EducationJourneyInsert,
   CommunityInsert,
@@ -430,13 +430,19 @@ export async function POST(request: NextRequest) {
       changed_by: session.person_id,
     } as any)
 
-    // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание лида
+    // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание лида.
+    // Атомарно через RPC start_process (см. migrations/20260702210000_*.sql).
     let workflowResult: StartProcessResult | null = null
     let workflowError: string | null = null
-    try {
-      workflowResult = await startProcess(sb, 'recruitment', journeyId, session.person_id)
-    } catch (wfErr: unknown) {
-      workflowError = (wfErr as { message?: string }).message ?? 'Ошибка запуска процесса'
+    const { data: startResult, error: startErr } = await sb.rpc('start_process', {
+      p_process_code: 'recruitment',
+      p_journey_id: journeyId,
+      p_actor_id: session.person_id,
+    })
+    if (startErr) {
+      workflowError = startErr.message ?? 'Ошибка запуска процесса'
+    } else {
+      workflowResult = startResult as StartProcessResult
     }
 
     return NextResponse.json(
