@@ -1207,6 +1207,10 @@ export interface Database {
           department_id: string
         }
       }
+      reactivate_stage: {
+        Args: { p_stage_instance_id: string; p_actor_id: string }
+        Returns: { stage_instance_id: string }
+      }
     }
     Enums: Record<string, never>
   }

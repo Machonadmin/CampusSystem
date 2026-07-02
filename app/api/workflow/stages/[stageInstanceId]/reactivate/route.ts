@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { reactivateStage } from '@/lib/workflow/reactivate-stage'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { jsonError } from '@/lib/api/handler'
 
 type EduWriteScope = 'view' | 'manage'
 
@@ -18,6 +18,12 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
  *
  * Возвращает пропущенный (skipped) подэтап к выполнению. Право — по
  * education_status journey (manage scope): лид→manage_leads и т.д.
+ *
+ * Сам возврат подэтапа + создание его стартовых задач — атомарно, одной
+ * транзакцией через RPC reactivate_stage
+ * (см. migrations/20260702200000_*.sql). Раньше это были последовательные
+ * insert/update без отката при частичном сбое (см.
+ * docs/workflow-transaction-risk-analysis.md, §1).
  */
 export async function POST(
   _request: NextRequest,
@@ -53,7 +59,11 @@ export async function POST(
 
     await requireEducationPrivilege(pickPrivilege(eduStatus, 'manage'), target)
 
-    await reactivateStage(sb, params.stageInstanceId, session.person_id)
+    const { error: rpcErr } = await sb.rpc('reactivate_stage', {
+      p_stage_instance_id: params.stageInstanceId,
+      p_actor_id: session.person_id,
+    })
+    if (rpcErr) throw rpcErr
 
     // Возврат обновлённого stage_instance
     const { data: updated } = await sb
@@ -64,7 +74,6 @@ export async function POST(
 
     return NextResponse.json({ ok: true, stage_instance: updated })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
