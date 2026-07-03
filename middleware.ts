@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken } from '@/lib/auth/jwt'
 
-const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login']
+const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/']
 const PUBLIC_PAGES = ['/login']
 
 // Module routes that require an explicit access privilege
