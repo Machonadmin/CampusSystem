@@ -1223,6 +1223,10 @@ export interface Database {
         Args: { p_process_instance_id: string; p_final_code: string; p_actor_id: string | null }
         Returns: { process_instance_id: string; final_code: string; finish_reason: string; journey_converted: boolean }
       }
+      complete_stage: {
+        Args: { p_stage_instance_id: string; p_final_code: string; p_actor_id: string | null; p_result_data?: Record<string, unknown> | null }
+        Returns: { stage_instance_id: string; activated_stage_ids: string[]; process_completed: boolean; finish_reason: string | null }
+      }
     }
     Enums: Record<string, never>
   }

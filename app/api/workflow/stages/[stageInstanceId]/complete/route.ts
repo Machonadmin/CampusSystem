@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { completeStage } from '@/lib/workflow/complete-stage'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { jsonError } from '@/lib/api/handler'
 
+interface CompleteStageResult {
+  stage_instance_id: string
+  activated_stage_ids: string[]
+  process_completed: boolean
+  finish_reason: string | null
+}
+
+/**
+ * POST /api/workflow/stages/[stageInstanceId]/complete
+ *
+ * Завершение подэтапа + продвижение процесса — атомарно через RPC
+ * complete_stage (см. migrations/20260703120000_*.sql). Раньше это были 15+
+ * последовательных update без отката — самая сложная функция движка
+ * (docs/complete-stage-conversion-prep.md, docs/complete-stage-baseline.md).
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: { stageInstanceId: string } }
@@ -48,17 +63,16 @@ export async function POST(
       await requireEducationPrivilege('convert_lead', target)
     }
 
-    const result = await completeStage(
-      sb,
-      params.stageInstanceId,
-      body.final_code,
-      session.person_id,
-      body.result_data,
-    )
+    const { data: result, error: rpcErr } = await sb.rpc('complete_stage', {
+      p_stage_instance_id: params.stageInstanceId,
+      p_final_code: body.final_code,
+      p_actor_id: session.person_id,
+      p_result_data: body.result_data ?? null,
+    })
+    if (rpcErr) throw rpcErr
 
-    return NextResponse.json({ ok: true, ...result })
+    return NextResponse.json({ ok: true, ...(result as CompleteStageResult) })
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return jsonError(err)
   }
 }
