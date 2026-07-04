@@ -44,6 +44,7 @@ interface ApplicantJourney {
   desired_department: { name: string } | null
   desired_specialty: { name: string } | null
   interests?: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
+  active_stages_with_tasks?: { stage_name: string; tasks: string[] }[]
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ export default function EducationPage() {
 
   const loadApplicants = useCallback(async () => {
     setLoadingApplicants(true)
-    const res = await fetch('/api/education/journeys?status=applicant')
+    const res = await fetch('/api/education/journeys?status=applicant&with_stages=1')
     if (res.ok) {
       const data = await res.json() as { journeys?: ApplicantJourney[] }
       setApplicants(data.journeys ?? [])
@@ -458,6 +459,7 @@ export default function EducationPage() {
                     t('applicants.table.institution'),
                     t('applicants.table.direction'),
                     t('applicants.table.status'),
+                    t('applicants.table.current_stage'),
                   ].map(h => (
                     <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
                       {h}
@@ -512,6 +514,26 @@ export default function EducationPage() {
                         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EDE9FE', color: '#6D28D9', fontWeight: 500 }}>
                           {t('applicants.status_label')}
                         </span>
+                      </td>
+                      <td style={{ padding: '11px 14px', minWidth: 200 }}>
+                        {(app.active_stages_with_tasks ?? []).length === 0 ? (
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('applicants.no_stages')}</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {(app.active_stages_with_tasks ?? []).map(stage => (
+                              <div key={stage.stage_name}>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{stage.stage_name}</div>
+                                {stage.tasks.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
+                                    {stage.tasks.map((task, idx) => (
+                                      <div key={idx} style={{ fontSize: 11, color: '#6B7280' }}>• {task}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )

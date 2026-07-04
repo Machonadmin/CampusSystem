@@ -81,6 +81,7 @@
       "title": "Admission",
       "create_button": "Add Applicant",
       "no_data": "No applicants",
+      "no_stages": "Not in progress",
       "status_label": "Applicant",
       "table": {
         "full_name": "NAME",
@@ -89,7 +90,8 @@
         "email": "EMAIL",
         "institution": "INSTITUTION",
         "direction": "DIRECTION",
-        "status": "STATUS"
+        "status": "STATUS",
+        "current_stage": "CURRENT STAGE & TASKS"
       }
     },
     "form": {

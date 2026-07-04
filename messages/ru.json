@@ -81,6 +81,7 @@
       "title": "Приём",
       "create_button": "Добавить абитуриента",
       "no_data": "Нет абитуриентов",
+      "no_stages": "Не в работе",
       "status_label": "Абитуриент",
       "table": {
         "full_name": "ИМЯ",
@@ -89,7 +90,8 @@
         "email": "EMAIL",
         "institution": "УЧРЕЖДЕНИЕ",
         "direction": "НАПРАВЛЕНИЕ",
-        "status": "СТАТУС"
+        "status": "СТАТУС",
+        "current_stage": "ТЕКУЩИЙ ЭТАП И ЗАДАЧИ"
       }
     },
     "form": {

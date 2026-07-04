@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import type { StartProcessResult } from '@/lib/workflow/start-process'
+import { getActiveStagesWithTasks } from '@/lib/workflow/active-stages'
 import type {
   EducationJourneyInsert,
   CommunityInsert,
@@ -117,53 +118,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Fetch active stages with their tasks, grouped per journey
-    type StageEntry = { stageName: string; tasks: string[] }
-    const journeyStages = new Map<string, StageEntry[]>()
-    for (const j of filteredJourneys) journeyStages.set(j.id, [])
-
-    // Только активные process_instances (для stages/tasks)
-    const activePiToJourney = new Map<string, string>()
-    for (const pi of allPi ?? []) {
-      if ((pi.status as string) === 'active' && filteredJourneyIds.includes(pi.journey_id as string)) {
-        activePiToJourney.set(pi.id as string, pi.journey_id as string)
-      }
-    }
-
-    const piToJourney = activePiToJourney
-    const piIds = [...piToJourney.keys()]
-
-    if (piIds.length > 0) {
-      const { data: stageInstances } = await sb
-        .from('stage_instances')
-        .select('id, process_instance_id, stage_template:stage_templates(name_ru)')
-        .in('process_instance_id', piIds)
-        .eq('status', 'active')
-
-      const siToEntry = new Map<string, StageEntry>()
-      for (const si of stageInstances ?? []) {
-        const journeyId = piToJourney.get(si.process_instance_id as string)
-        if (!journeyId) continue
-        const name = (si.stage_template as unknown as { name_ru: string } | null)?.name_ru
-        if (!name) continue
-        const entry: StageEntry = { stageName: name, tasks: [] }
-        siToEntry.set(si.id as string, entry)
-        journeyStages.get(journeyId)!.push(entry)
-      }
-
-      const siIds = [...siToEntry.keys()]
-      if (siIds.length > 0) {
-        const { data: tasks } = await sb
-          .from('tasks')
-          .select('title, stage_instance_id')
-          .in('stage_instance_id', siIds)
-          .in('status', ['unassigned', 'pending', 'in_progress'])
-
-        for (const t of tasks ?? []) {
-          siToEntry.get(t.stage_instance_id as string)?.tasks.push(t.title as string)
-        }
-      }
-    }
+    // Активные подэтапы с открытыми задачами по каждому journey
+    const journeyStages = await getActiveStagesWithTasks(sb, filteredJourneyIds)
 
     const result = filteredJourneys.map(j => {
       const person = personMap.get(j.person_id)
@@ -179,10 +135,7 @@ export async function GET(request: NextRequest) {
         updated_at: j.updated_at ?? null,
         is_deleted: (j as unknown as { is_deleted: boolean }).is_deleted ?? false,
         interests: interestMap.get(j.person_id) ?? [],
-        active_stages_with_tasks: (journeyStages.get(j.id) ?? []).map(s => ({
-          stage_name: s.stageName,
-          tasks: s.tasks,
-        })),
+        active_stages_with_tasks: journeyStages.get(j.id) ?? [],
       }
     })
 

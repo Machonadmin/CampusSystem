@@ -81,6 +81,7 @@
       "title": "קבלה",
       "create_button": "הוסף מועמד",
       "no_data": "אין מועמדים",
+      "no_stages": "לא בעבודה",
       "status_label": "מועמד",
       "table": {
         "full_name": "שם",
@@ -89,7 +90,8 @@
         "email": "אימייל",
         "institution": "מוסד",
         "direction": "תוכנית",
-        "status": "סטטוס"
+        "status": "סטטוס",
+        "current_stage": "שלב נוכחי ומשימות"
       }
     },
     "form": {

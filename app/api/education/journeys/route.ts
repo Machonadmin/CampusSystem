@@ -8,6 +8,7 @@ import {
   getUserDepartmentIds,
   type EducationPrivilege,
 } from '@/lib/education/permissions'
+import { getActiveStagesWithTasks } from '@/lib/workflow/active-stages'
 import type {
   EducationJourneyInsert,
   JourneyStatus,
@@ -62,6 +63,8 @@ const JOURNEY_SELECT = `
  *   ?department_id=...   — primary_department для студентов, desired_department иначе
  *   ?main_group_id=...
  *   ?search=...          — app-side filter по persons.full_name/hebrew/email/phones
+ *   ?with_stages=1       — добавить active_stages_with_tasks (активные подэтапы
+ *                          процессов + открытые задачи; колонка в списке «Приём»)
  *
  * Право: view_students (упрощение шага 2A — единое право на любой статус).
  */
@@ -164,6 +167,16 @@ export async function GET(request: NextRequest) {
         const pid = (j.person as { id?: string } | null)?.id ?? (j as { person_id?: string }).person_id
         return { ...j, interests: (pid && interestMap.get(pid)) || [] }
       })
+    }
+
+    // Активные подэтапы с задачами — только по запросу (?with_stages=1),
+    // чтобы не нагружать другие списки (студенты и т.п.)
+    if (params.get('with_stages') === '1' && filtered.length > 0) {
+      const stagesMap = await getActiveStagesWithTasks(sb, filtered.map(j => j.id))
+      filtered = filtered.map(j => ({
+        ...j,
+        active_stages_with_tasks: stagesMap.get(j.id) ?? [],
+      }))
     }
 
     return NextResponse.json({ journeys: filtered })

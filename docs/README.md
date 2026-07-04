@@ -12,6 +12,7 @@ CRM-система образовательного кампуса: работа
 | [permissions.md](./permissions.md) | Система прав (RBAC): роли, привилегии, scope, middleware |
 | [workflow-engine.md](./workflow-engine.md) | Движок процессов: шаблоны, инстансы, переходы, helpers |
 | [recruitment-template.md](./recruitment-template.md) | Шаблон процесса «Набор»: подэтапы, финалы, переходы |
+| [admission-template.md](./admission-template.md) | Шаблон процесса «Приём»: абитуриент → студент |
 | [education-module.md](./education-module.md) | Модуль «Образование»: journey лид → абитуриент → студент |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
 | [conventions.md](./conventions.md) | Соглашения проекта и типичные подводные камни |

@@ -17,6 +17,11 @@ lead  ──►  applicant  ──►  student   (→ graduated / expelled / los
   параллельные направления).
 - Переход `lead → applicant` выполняется финалом `convert_to_applicant`
   процесса «Набор» (см. [recruitment-template.md](./recruitment-template.md)).
+  При конверсии автоматически запускается процесс «Приём».
+- Переход `applicant → student` выполняется финалами `admitted` /
+  `admitted_conditional` процесса «Приём»
+  (см. [admission-template.md](./admission-template.md)); при условном
+  зачислении ставится флаг `education_journeys.is_conditional_admission`.
 - `JourneyStatus` (тип в `types/database.ts`):
   `lead | applicant | student | graduated | expelled | lost | on_leave`.
 
@@ -90,7 +95,7 @@ API `GET /api/education/leads` собирает интересы и отдаёт
 | Вкладка | Содержимое | Источник данных |
 |---------|-----------|-----------------|
 | Набор | Лиды (`education_status = 'lead'`) | `GET /api/education/leads` |
-| Приём | Абитуриенты (`status = 'applicant'`) | `GET /api/education/journeys?status=applicant` |
+| Приём | Абитуриенты (`status = 'applicant'`) | `GET /api/education/journeys?status=applicant&with_stages=1` |
 | Учёба | Студенты/группы | `components/.../StudyTab` |
 
 ### Список лидов (вкладка «Набор»)
@@ -115,3 +120,17 @@ API `GET /api/education/leads` собирает интересы и отдаёт
 
 Список сортируется по `application_date` (по убыванию по умолчанию).
 Кликабельные заголовки: ИМЯ, ДАТА ПОДАЧИ.
+
+### Список абитуриентов (вкладка «Приём»)
+
+Колонки: **ФИО** / **Дата заявки** / **Телефон** / **Email** /
+**Учреждение** / **Направление** / **Статус** / **Текущий этап и задачи**.
+
+Колонка «Текущий этап и задачи» — та же, что в списке лидов: активные
+подэтапы процесса «Приём» с незавершёнными задачами; если активных
+подэтапов нет — «Не в работе». Данные добавляет параметр `with_stages=1`
+эндпоинта `GET /api/education/journeys` (общий helper
+`lib/workflow/active-stages.ts`, используется и в `GET /api/education/leads`).
+
+Клик по ФИО открывает ту же карточку `leads/[id]`, что и для лида, — блок
+`ProcessInfoBlock` показывает оба процесса journey («Набор» и «Приём»).
