@@ -71,6 +71,18 @@ export async function POST(
     })
     if (rpcErr) throw rpcErr
 
+    // Автозапуск процесса «Приём» при переходе лида в абитуриенты.
+    // Best-effort: ошибка не должна валить уже выполненное завершение подэтапа.
+    // start_process идемпотентен — повторный запуск вернёт существующий инстанс.
+    if ((result as CompleteStageResult).finish_reason === 'converted' && journeyId) {
+      const { error: admErr } = await sb.rpc('start_process', {
+        p_process_code: 'admission',
+        p_journey_id: journeyId,
+        p_actor_id: session.person_id,
+      })
+      if (admErr) console.error('[complete] авто-запуск «Приём»:', admErr)
+    }
+
     return NextResponse.json({ ok: true, ...(result as CompleteStageResult) })
   } catch (err: unknown) {
     return jsonError(err)
