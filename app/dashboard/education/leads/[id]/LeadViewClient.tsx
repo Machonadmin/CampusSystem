@@ -67,6 +67,23 @@ interface Props {
   studyLifecycle?: { history: StatusHistoryEntry[] } | null
   /** База ссылки редактирования/списка: 'leads' (по умолчанию) или 'students'. */
   routeBase?: 'leads' | 'students'
+  /**
+   * Контекст модуля для переиспользования карточки вне «Образования»
+   * (например, «Выпускники»). По умолчанию — education. Переопределяет
+   * хлебные крошки, кнопку «назад» и цвет шапки; поведение education не меняется.
+   */
+  navContext?: {
+    moduleLabel: string
+    moduleHref: string
+    colorKey: string
+    /** Средняя крошка (раздел). Если не задана — не отображается. */
+    sectionLabel?: string
+  } | null
+  /**
+   * Дополнительная панель — на всю ширину под основной сеткой.
+   * Используется для редактируемой панели профиля выпускника.
+   */
+  extraPanel?: React.ReactNode
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -114,12 +131,17 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, routeBase = 'leads' }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, routeBase = 'leads', navContext, extraPanel }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const { person } = data
   const [tab, setTab] = useState<TabKey>('personal')
+
+  // Контекст модуля: по умолчанию — «Образование» (поведение не меняется).
+  const moduleLabel = navContext?.moduleLabel ?? tNav('education')
+  const moduleHref = navContext?.moduleHref ?? '/dashboard/education'
+  const headerColorKey = navContext?.colorKey ?? 'education'
 
   const TABS: { key: TabKey; labelKey: string }[] = [
     { key: 'personal',   labelKey: 'personal' },
@@ -269,14 +291,17 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        { label: sectionLabel, href: '/dashboard/education' },
+        { label: moduleLabel, href: moduleHref },
+        ...(() => {
+          const crumb = navContext ? navContext.sectionLabel : sectionLabel
+          return crumb ? [{ label: crumb, href: moduleHref }] : []
+        })(),
         { label: person.full_name || cardTypeLabel },
       ]} />
 
       {/* Header with avatar */}
       <div style={{
-        background: getModuleHeaderGradient('education'),
+        background: getModuleHeaderGradient(headerColorKey),
         borderRadius: 12, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
       }}>
@@ -319,7 +344,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               </button>
             )}
             <button
-              onClick={() => router.push('/dashboard/education')}
+              onClick={() => router.push(moduleHref)}
               style={{
                 padding: '8px 14px', fontSize: 13, fontWeight: 500,
                 background: 'rgba(255,255,255,0.2)', color: '#fff',
@@ -368,6 +393,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
         </div>
       </div>
+
+      {/* Дополнительная панель на всю ширину (профиль выпускника) */}
+      {extraPanel}
     </div>
   )
 }

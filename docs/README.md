@@ -14,6 +14,7 @@ CRM-система образовательного кампуса: работа
 | [recruitment-template.md](./recruitment-template.md) | Шаблон процесса «Набор»: подэтапы, финалы, переходы |
 | [admission-template.md](./admission-template.md) | Шаблон процесса «Приём»: абитуриент → студент |
 | [education-module.md](./education-module.md) | Модуль «Образование»: journey лид → абитуриент → студент |
+| [alumni-module.md](./alumni-module.md) | Модуль «Выпускники»: авто-наполнение при выпуске, API, карточка |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
 | [conventions.md](./conventions.md) | Соглашения проекта и типичные подводные камни |
 | [onboarding.md](./onboarding.md) | Запуск проекта и навигация для нового разработчика |

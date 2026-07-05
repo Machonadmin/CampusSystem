@@ -11,7 +11,8 @@
   "navigation": {
     "home": "Home",
     "education": "Education",
-    "settings": "Settings"
+    "settings": "Settings",
+    "alumni": "Alumni"
   },
   "auth": {
     "login": "Sign In",
@@ -1252,5 +1253,37 @@
     "system_prefix": "[SYS]",
     "tab_tasks": "Tasks",
     "tab_events": "Feed"
+  },
+  "alumni": {
+    "list": {
+      "subtitle": "Campus alumni database",
+      "search_placeholder": "Search by name, email, institution…",
+      "count": "Total",
+      "empty": "No alumni found",
+      "forbidden": "You don't have permission to view alumni",
+      "load_error": "Failed to load the list",
+      "col_name": "Name",
+      "col_graduation_year": "Graduation year",
+      "col_institution": "Institution",
+      "col_direction": "Direction",
+      "col_occupation": "Occupation",
+      "col_location": "Location"
+    },
+    "card": {
+      "section": "Graduate",
+      "profile_title": "Alumni profile",
+      "no_profile": "Alumni profile not created yet",
+      "graduation_year": "Graduation year",
+      "institution": "Institution",
+      "direction": "Direction",
+      "current_location": "Current location",
+      "current_occupation": "Current occupation",
+      "notes": "Notes",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "save_error": "Failed to save"
+    }
   }
 }
