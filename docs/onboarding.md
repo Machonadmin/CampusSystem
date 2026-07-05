@@ -39,10 +39,10 @@ npm run dev          # дев-сервер Next.js (по умолчанию http
 ```
 app/        — страницы (dashboard/*) и API (api/*)
 lib/auth/   — аутентификация и сессии
-lib/workflow/ — движок процессов (helpers)
+lib/workflow/ — тип StartProcessResult + read-only UI-helper (сам движок — RPC в supabase/migrations/)
 lib/education/ — права education-модуля
 types/database.ts — типы всех таблиц
-supabase/migrations/ — SQL-миграции
+supabase/migrations/ — SQL-миграции (включая RPC движка процессов)
 scripts/    — seed-скрипты
 middleware.ts — авторизация и доступ к модулям
 ```
@@ -55,7 +55,9 @@ middleware.ts — авторизация и доступ к модулям
    (`SessionPayload`, cookie `campus_session`).
 2. **`middleware.ts`** — как защищены маршруты и модули.
 3. **`lib/education/permissions.ts`** — модель прав со scope.
-4. **`lib/workflow/start-process.ts`** + остальные `lib/workflow/*` —
+4. **[workflow-engine.md](./workflow-engine.md)** + RPC-функции в
+   `supabase/migrations/` (`start_process`, `complete_stage`,
+   `close_process_early`, `handle_task_completion`, `reactivate_stage`) —
    движок процессов.
 5. **`types/database.ts`** — структура БД.
 6. **`components/workflow/ProcessInfoBlock.tsx`** — как процессы

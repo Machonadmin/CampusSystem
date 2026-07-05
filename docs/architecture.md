@@ -31,7 +31,7 @@ app/                 # Next.js App Router
 lib/
   auth/              # config, jwt, session, password, permissions
   education/         # permissions.ts (education-привилегии)
-  workflow/          # движок процессов (см. workflow-engine.md)
+  workflow/          # тип StartProcessResult + read-only UI-helper (движок — RPC, см. workflow-engine.md)
   supabase/          # server-клиент
   tasks/  sidebar/  i18n/  geo.ts  module-colors.ts  utils.ts
 components/          # React-компоненты (education, workflow, ui, settings…)

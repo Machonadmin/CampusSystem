@@ -218,47 +218,55 @@ function pickPrivilege(status: string | null, scope: 'view' | 'manage'): Educati
 Аналогично, но внутри подэтапа. `from_task_code IS NULL` = стартовая задача.
 Связь задачи с шаблоном — `tasks.stage_task_template_id`.
 
-### Helpers (`lib/workflow/`)
+### RPC-функции движка (PL/pgSQL, `supabase/migrations/`)
 
-| Функция | Файл | Что делает |
-|---------|------|-----------|
-| `startProcess(sb, code, journeyId, actorId)` | `start-process.ts` | Создаёт `process_instance`, все `stage_instances`, стартовые задачи. Идемпотентно. |
-| `completeStage(sb, stageInstanceId, finalCode, actorId, resultData?)` | `complete-stage.ts` | Завершает подэтап, проверяет `closes_process`, активирует следующие подэтапы или закрывает процесс. |
-| `closeProcessEarly(sb, processInstanceId, finalCode, actorId)` | `close-process-early.ts` | Принудительно закрывает процесс: подэтапы → `skipped`, задачи → `cancelled`. `finalCode` — из финалов последнего подэтапа. |
-| `handleTaskCompletion(sb, taskId, actorId)` | `handle-task-completion.ts` | По завершении задачи создаёт следующие задачи по `task_transitions`. |
-| `reactivateStage(sb, stageInstanceId, actorId)` | `reactivate-stage.ts` | Возвращает `skipped`-подэтап в `active`, создаёт стартовые задачи. |
+Вся логика исполнения — атомарные PL/pgSQL-функции в Postgres, не
+TypeScript. Прежние helpers `lib/workflow/*.ts` (`startProcess`,
+`completeStage`, `closeProcessEarly`, `handleTaskCompletion`,
+`reactivateStage`) удалены.
 
-Вспомогательные (в `start-process.ts`):
-- `mapTaskTemplate(tt, stageInstanceId, actorId, personFullName?)` — шаблон → `TaskInsert`.
-  Title: `"<tt.title>: <personFullName>"`, если ФИО известно.
-- `createStartingTasks(...)` — создаёт стартовые задачи подэтапа.
+| Функция | Вызывается из | Что делает |
+|---------|---------------|-----------|
+| `start_process(p_process_code, p_journey_id, p_actor_id)` | `POST /api/education/leads`, `POST /api/applications` (автозапуск «Набора»); `complete`/`close-early` (автозапуск «Приёма») | Создаёт `process_instance`, все `stage_instances`, стартовые задачи. Идемпотентно. |
+| `complete_stage(p_stage_instance_id, p_final_code, p_actor_id, p_result_data)` | `POST /api/workflow/stages/[id]/complete` | Завершает подэтап, проверяет `closes_process`, активирует следующие подэтапы или закрывает процесс. |
+| `close_process_early(p_process_instance_id, p_final_code, p_actor_id)` | `POST /api/workflow/processes/[id]/close-early` | Принудительно закрывает процесс: подэтапы → `skipped`, задачи → `cancelled`. `p_final_code` — из финалов последнего подэтапа. |
+| `handle_task_completion(p_task_id, p_actor_id)` | `PATCH /api/tasks/[id]` (при переходе в `completed`) | По завершении задачи создаёт следующие задачи по `task_transitions`. |
+| `reactivate_stage(p_stage_instance_id, p_actor_id)` | `POST /api/workflow/stages/[id]/reactivate` | Возвращает `skipped`-подэтап в `active`, создаёт стартовые задачи. |
 
-> Транзакций нет — при ошибке возможно частичное состояние.
+Title задач формируется внутри RPC как `"<шаблон.title>: <person.full_name>"`.
+Каждая функция — одна транзакция целиком (частичное состояние при ошибке
+больше невозможно). Оставшийся TS-код: `lib/workflow/start-process.ts`
+(только тип `StartProcessResult`) и `lib/workflow/active-stages.ts`
+(read-only helper для UI, не часть движка). Подробно —
+[workflow-engine.md](./workflow-engine.md).
 
 ### Закрытие процесса финалом (`closes_process`)
 
 `stage_finals.closes_process = true` + `process_finish_reason` — при таком финале
-`completeStage` (шаг 3b) закрывает процесс не через transitions:
+`complete_stage` закрывает процесс не через transitions:
 
 1. Оставшиеся `active/waiting` подэтапы → `cancelled`.
 2. Незавершённые задачи → `cancelled`.
 3. `process_instance.status = 'cancelled'`, `finish_reason = process_finish_reason`.
-4. Если `process_finish_reason = 'converted'` → `education_journeys.education_status = 'applicant'`.
+4. Конверсия journey по `finish_reason`: `converted` → `education_status = 'applicant'`
+   (+ автозапуск «Приёма»); `admitted`/`admitted_conditional` → `education_status = 'student'`.
 
-> `closeProcessEarly` не подходит для промежуточных подэтапов — он валидирует
-> `finalCode` по финалам последнего подэтапа и упадёт ошибкой 400.
+> `close_process_early` не подходит для промежуточных подэтапов — он валидирует
+> `p_final_code` по финалам последнего подэтапа и упадёт ошибкой 400.
 
 ### Автоматический перевод `waiting → skipped`
 
-После каждого `completeStage` движок проверяет оставшиеся `waiting`-подэтапы:
+После каждого `complete_stage` движок проверяет оставшиеся `waiting`-подэтапы:
 если все их предшественники в `completed | skipped` → подэтап помечается `skipped`.
-Вернуть в работу: `reactivateStage`.
+Вернуть в работу: RPC `reactivate_stage`.
 
-### Конверсия лида
+### Конверсия journey
 
-Финал с `process_finish_reason = 'converted'` (через `closes_process`) или финал
-`convert_to_applicant` в обычном потоке переводят:
-`education_journeys.education_status = 'applicant'`.
+lead → applicant: финал `convert_to_applicant` процесса «Набор» →
+`education_journeys.education_status = 'applicant'`, затем автозапуск
+процесса «Приём». applicant → student: финалы `admitted` /
+`admitted_conditional` процесса «Приём» → `education_status = 'student'`
+(см. [admission-template.md](./admission-template.md)).
 
 ### Флаг `has_tasks`
 
@@ -531,7 +539,8 @@ npm run dev      # localhost:3000
 1. `lib/auth/jwt.ts`, `lib/auth/session.ts` — сессия
 2. `middleware.ts` — защита маршрутов
 3. `lib/education/permissions.ts` — права со scope
-4. `lib/workflow/` — движок процессов
+4. RPC-функции движка процессов в `supabase/migrations/` (`start_process`,
+   `complete_stage` и др.) — см. workflow-engine.md
 5. `types/database.ts` — структура БД
 6. `components/workflow/ProcessInfoBlock.tsx` — UI процессов
 

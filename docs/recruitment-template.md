@@ -54,9 +54,10 @@
 | `rejected` | Отказ | ✗ | **true** | `rejected` |
 | `postponed` | Отложено | ✗ | **true** | `postponed` |
 
-Финалы с `closes_process = true` закрывают весь процесс через `completeStage`
+Финалы с `closes_process = true` закрывают весь процесс через `complete_stage`
 (см. [workflow-engine.md](./workflow-engine.md)). При `process_finish_reason = 'converted'`
-дополнительно: `education_journeys.education_status = 'applicant'`.
+дополнительно: `education_journeys.education_status = 'applicant'` и
+автозапуск процесса «Приём» (см. [admission-template.md](./admission-template.md)).
 
 ## Переходы между подэтапами
 
@@ -79,7 +80,7 @@ event     ──(feedback_received|no_show|refused)──►  decision  [after_a
 - Мероприятие не получает перехода, остаётся `waiting`.
 - При завершении Документов движок помечает Мероприятие → `skipped`
   (все предшественники Решения в terminal-состоянии → Решение активируется).
-- Мероприятие можно вернуть кнопкой «▶ Активировать» (`reactivateStage`).
+- Мероприятие можно вернуть кнопкой «▶ Активировать» (RPC `reactivate_stage`).
 
 ## Задачи и переходы между задачами
 
@@ -112,8 +113,8 @@ event     ──(feedback_received|no_show|refused)──►  decision  [after_a
 | `arrange_trip` | Организовать приезд | `creator` | `invite_event` |
 | `get_feedback` | Получить обратную связь | `creator` | `arrange_trip` |
 
-При активации подэтапа создаётся только `invite_event`. `handleTaskCompletion`
-создаёт следующую задачу после завершения предыдущей.
+При активации подэтапа создаётся только `invite_event`. RPC
+`handle_task_completion` создаёт следующую задачу после завершения предыдущей.
 
 ### Решение (`decision`)
 

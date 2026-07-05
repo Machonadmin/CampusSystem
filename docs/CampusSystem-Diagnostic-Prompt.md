@@ -1,5 +1,14 @@
 # CampusSystem — Documentation-vs-Code Diagnostic Brief
 
+> **Historical artifact — point 5 below is RESOLVED.** This brief was written
+> before the workflow engine was converted from `lib/workflow/*.ts` helpers to
+> atomic PL/pgSQL RPC functions (`start_process`, `complete_stage`,
+> `close_process_early`, `handle_task_completion`, `reactivate_stage` — see
+> [workflow-engine.md](./workflow-engine.md)). The "no transactions" risk in
+> point 5 no longer exists; those TS files have been deleted. Kept here as a
+> record of the original diagnostic — don't re-run point 5 expecting an open
+> issue.
+>
 > **How to use this file:** Paste this whole document as your first message in Claude Code, alongside the project's documentation files (`architecture.md`, `permissions.md`, `workflow-engine.md`, `recruitment-template.md`, `education-module.md`, `db-schema.md`, `conventions.md`, `onboarding.md`, `README.md`). Then let Claude Code read the actual source and verify each point.
 
 ---

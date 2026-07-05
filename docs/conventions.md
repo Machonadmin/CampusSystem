@@ -64,9 +64,9 @@ Middleware закрывает доступ к модулю целиком, но 
 ## `has_tasks` и шаблоны задач
 
 При добавлении первого `stage_task_templates` к подэтапу нужно выставить
-`stage_templates.has_tasks = true`. Иначе движок (`startProcess` /
-`completeStage`) не создаст задачи для подэтапа. Эти поля должны быть
-синхронизированы.
+`stage_templates.has_tasks = true`. Иначе движок (RPC `start_process` /
+`complete_stage` / `reactivate_stage`) не создаст задачи для подэтапа.
+Эти поля должны быть синхронизированы.
 
 ## FK-имена не меняются при переименовании таблицы
 
