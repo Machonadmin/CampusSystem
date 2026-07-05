@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
-import { getClassGroupTarget } from '@/lib/education/lesson-access'
+import { getClassGroupTarget, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { LessonInsert } from '@/types/database'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -14,6 +14,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
 /**
  * GET /api/education/class-groups/[id]/lessons
  * Список уроков учебной группы по убыванию даты.
+ * Каждый урок дополнен marked_count (сколько отметок посещаемости),
+ * а ответ — enrolled_count (сколько студентов записано в группу).
  * Право: view_students в контексте группы.
  */
 export async function GET(
@@ -36,7 +38,28 @@ export async function GET(
       .order('scheduled_time', { ascending: false, nullsFirst: false })
     if (error) throw error
 
-    return NextResponse.json({ lessons: data ?? [] })
+    const lessons = data ?? []
+
+    // Сводка посещаемости: сколько отметок у каждого урока + сколько записано в группу
+    const enrolledIds = await getEnrolledJourneyIds(sb, params.id)
+
+    const markedByLesson = new Map<string, number>()
+    if (lessons.length > 0) {
+      const lessonIds = lessons.map(l => l.id)
+      const { data: attRows, error: attErr } = await sb
+        .from('attendance')
+        .select('lesson_id')
+        .in('lesson_id', lessonIds)
+      if (attErr) throw attErr
+      for (const row of attRows ?? []) {
+        markedByLesson.set(row.lesson_id, (markedByLesson.get(row.lesson_id) ?? 0) + 1)
+      }
+    }
+
+    return NextResponse.json({
+      lessons: lessons.map(l => ({ ...l, marked_count: markedByLesson.get(l.id) ?? 0 })),
+      enrolled_count: enrolledIds.size,
+    })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
