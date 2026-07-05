@@ -137,7 +137,17 @@ COMMENT ON FUNCTION transition_education_status(uuid, text, uuid, text, date) IS
 -- По образцу 20260511175354_education_privileges.sql (блок 4.1). Без этого
 -- гранта НИ ОДИН пользователь (включая superadmin) не проходит проверку
 -- requireAlumniPrivilege — модуль недоступен. module_privileges для
--- ('alumni','view'/'manage') уже засеяны в 002_roles_and_privileges.sql.
+-- ('alumni','view'/'manage') объявлены в 002_roles_and_privileges.sql, но
+-- на проверке выяснилось, что этот сид не был применён к целевой БД —
+-- каталог там пуст. Поэтому 3a досеивает его здесь же, идемпотентно.
+
+-- 3a. Каталог привилегий модуля 'alumni' — на случай, если сид 002
+-- не был применён к целевой БД (иначе цикл ниже находит 0 строк и не выдаёт прав).
+INSERT INTO module_privileges (module, privilege_code, privilege_name, sort_order) VALUES
+  ('alumni', 'view',   'Просмотр',   1),
+  ('alumni', 'manage', 'Управление', 2)
+ON CONFLICT (module, privilege_code) DO NOTHING;
+
 DO $$
 DECLARE
   rcode TEXT;
