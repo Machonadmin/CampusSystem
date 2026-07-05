@@ -928,6 +928,56 @@ export interface ClassTeacherInsert {
   is_primary?: boolean
 }
 
+// ─── Lessons & Attendance (управление учёбой, фаза A) ──────────────────────────
+
+export type AttendanceStatus = 'present' | 'absent' | 'excused' | 'late'
+
+export interface LessonRow {
+  id: string
+  class_group_id: string
+  scheduled_date: string          // ISO date 'YYYY-MM-DD'
+  scheduled_time: string | null   // 'HH:MM:SS'
+  topic: string | null
+  description: string | null
+  location: string | null
+  is_cancelled: boolean
+  created_at: string
+  updated_at: string
+  created_by: string | null
+}
+export interface LessonInsert {
+  id?: string
+  class_group_id: string
+  scheduled_date: string
+  scheduled_time?: string | null
+  topic?: string | null
+  description?: string | null
+  location?: string | null
+  is_cancelled?: boolean
+  created_by?: string | null
+}
+export type LessonUpdate = Partial<Omit<LessonInsert, 'class_group_id' | 'created_by'>>
+
+export interface AttendanceRow {
+  id: string
+  lesson_id: string
+  journey_id: string
+  status: AttendanceStatus
+  created_at: string
+  updated_at: string
+  marked_by: string | null
+  marked_at: string | null
+}
+export interface AttendanceInsert {
+  id?: string
+  lesson_id: string
+  journey_id: string
+  status: AttendanceStatus
+  marked_by?: string | null
+  marked_at?: string | null
+}
+export type AttendanceUpdate = Partial<Omit<AttendanceInsert, 'lesson_id' | 'journey_id'>>
+
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
 export interface ProcessTemplateRow {
@@ -1162,6 +1212,8 @@ export interface Database {
       class_groups:              T<ClassGroupRow,                ClassGroupInsert,                ClassGroupUpdate>
       class_enrollments:         T<ClassEnrollmentRow,           ClassEnrollmentInsert,           ClassEnrollmentUpdate>
       class_teachers:            T<ClassTeacherRow,              ClassTeacherInsert,              ClassTeacherInsert>
+      lessons:                   T<LessonRow,                    LessonInsert,                    LessonUpdate>
+      attendance:                T<AttendanceRow,                AttendanceInsert,                AttendanceUpdate>
       process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
       stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
