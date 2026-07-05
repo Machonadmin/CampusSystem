@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SpecialtyModal from './SpecialtyModal'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department {
   id: string
@@ -25,6 +26,7 @@ interface Specialty {
 const accent = getModuleColor('education')
 
 export default function SpecialtiesTab() {
+  const t = useTranslations('education.study')
   const [specialties, setSpecialties] = useState<Specialty[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,33 +46,33 @@ export default function SpecialtiesTab() {
         fetch(`/api/education/specialties?active_only=${showInactive ? 'false' : 'true'}`),
         fetch('/api/settings/departments'),
       ])
-      if (!sResp.ok) throw new Error(`Ошибка загрузки специальностей: ${sResp.status}`)
-      if (!dResp.ok) throw new Error(`Ошибка загрузки подразделений: ${dResp.status}`)
+      if (!sResp.ok) throw new Error(t('specialties.load_error').replace('{status}', String(sResp.status)))
+      if (!dResp.ok) throw new Error(t('common.error_generic'))
       const sJson = await sResp.json()
       const dJson = await dResp.json()
       setSpecialties(sJson.specialties ?? [])
       setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
       setLoading(false)
     }
-  }, [showInactive])
+  }, [showInactive, t])
 
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (spec: Specialty) => {
-    if (!confirm(`Удалить специальность «${spec.name}»?`)) return
+    if (!confirm(t('specialties.confirm_delete').replace('{name}', spec.name))) return
     try {
       const resp = await fetch(`/api/education/specialties/${spec.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Не удалось удалить')
+        alert(err.error ?? t('common.error_delete_failed'))
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка удаления')
+      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
     }
   }
 
@@ -99,7 +101,7 @@ export default function SpecialtiesTab() {
           onChange={e => setFilterDept(e.target.value)}
           style={inp}
         >
-          <option value="">Все подразделения</option>
+          <option value="">{t('common.all_departments')}</option>
           {departments.map(d => (
             <option key={d.id} value={d.id}>{d.name}</option>
           ))}
@@ -111,20 +113,20 @@ export default function SpecialtiesTab() {
             checked={showInactive}
             onChange={e => setShowInactive(e.target.checked)}
           />
-          Показать неактивные
+          {t('common.show_inactive')}
         </label>
 
         <div style={{ flex: 1 }} />
 
         <PageActionButton
-          label="Специальность"
+          label={t('specialties.add_button')}
           onClick={() => { setEditingSpecialty(null); setModalMode('create') }}
           accentColor={accent}
         />
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>
+        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>
       )}
 
       {error && (
@@ -136,19 +138,19 @@ export default function SpecialtiesTab() {
       {!loading && !error && (
         filtered.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {specialties.length === 0 ? 'Специальностей пока нет' : 'Ничего не найдено'}
+            {specialties.length === 0 ? t('specialties.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
-                  <th style={{ ...thStyle, width: 80 }}>Код</th>
-                  <th style={thStyle}>Название</th>
-                  <th style={thStyle}>Подразделение</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Порядок</th>
-                  <th style={{ ...thStyle, width: 100 }}>Статус</th>
-                  <th style={{ ...thStyle, width: 160 }}>Действия</th>
+                  <th style={{ ...thStyle, width: 80 }}>{t('specialties.table_code')}</th>
+                  <th style={thStyle}>{t('specialties.table_name')}</th>
+                  <th style={thStyle}>{t('specialties.table_department')}</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('specialties.table_sort_order')}</th>
+                  <th style={{ ...thStyle, width: 100 }}>{t('specialties.table_status')}</th>
+                  <th style={{ ...thStyle, width: 160 }}>{t('specialties.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,9 +169,9 @@ export default function SpecialtiesTab() {
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>{s.sort_order}</td>
                     <td style={tdStyle}>
                       {s.is_active ? (
-                        <span style={{ color: '#10B981', fontWeight: 500 }}>Активна</span>
+                        <span style={{ color: '#10B981', fontWeight: 500 }}>{t('specialties.status_active')}</span>
                       ) : (
-                        <span style={{ color: '#9CA3AF' }}>Неактивна</span>
+                        <span style={{ color: '#9CA3AF' }}>{t('specialties.status_inactive')}</span>
                       )}
                     </td>
                     <td style={tdStyle}>
@@ -178,13 +180,13 @@ export default function SpecialtiesTab() {
                           onClick={() => { setEditingSpecialty(s); setModalMode('edit') }}
                           style={btnSecondary}
                         >
-                          Изменить
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDelete(s)}
                           style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
                         >
-                          Удалить
+                          {t('common.delete')}
                         </button>
                       </div>
                     </td>

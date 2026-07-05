@@ -109,7 +109,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       const resp = await fetch(`/api/tasks/${taskId}`)
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        throw new Error(err.error ?? `Не удалось загрузить задачу (${resp.status})`)
+        throw new Error(err.error ?? `${t('detail.load_error')} (${resp.status})`)
       }
       const data = await resp.json()
       setTask(data.task as TaskDetail)
@@ -117,7 +117,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       setWatchers((data.watchers ?? []) as Watcher[])
       setHistory((data.history ?? []) as HistoryEntry[])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     } finally {
       setLoading(false)
     }
@@ -193,13 +193,13 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       const resp = await fetch(url, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setError(err.error ?? 'Не удалось отменить серию')
+        setError(err.error ?? t('detail.cancel_series_failed'))
         return
       }
       onChanged()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     } finally {
       setActionInProgress(false)
       setShowCancelSeriesDialog(false)
@@ -215,7 +215,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       return
     }
     if (withReason && !declineReason.trim()) {
-      setError('Укажите причину отклонения')
+      setError(t('detail.decline_reason_required'))
       return
     }
     setActionInProgress(true)
@@ -249,14 +249,14 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
 
       if (!resp.ok) {
         const errData = await resp.json().catch(() => ({}))
-        setError(errData.error ?? 'Не удалось выполнить действие')
+        setError(errData.error ?? t('detail.action_failed'))
         return
       }
 
       onChanged()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     } finally {
       setActionInProgress(false)
       setShowDeclineInput(false)
@@ -276,13 +276,13 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setError(err.error ?? 'Не удалось добавить комментарий')
+        setError(err.error ?? t('detail.comment_failed'))
         return
       }
       setNewCommentText('')
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     } finally {
       setPostingComment(false)
     }
@@ -299,14 +299,14 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setError(err.error ?? 'Не удалось добавить наблюдателя')
+        setError(err.error ?? t('detail.add_watcher_failed'))
         return
       }
       setNewWatcherId(null)
       setAddingWatcher(false)
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     }
   }
 
@@ -318,12 +318,12 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setError(err.error ?? 'Не удалось снять наблюдателя')
+        setError(err.error ?? t('detail.remove_watcher_failed'))
         return
       }
       await load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : tCommon('error'))
     }
   }
 
@@ -354,7 +354,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   const dueDateText = task.due_date
     ? formatDateLong(task.due_date, lang)
     : null
-  const timeText = (task.due_all_day || !task.due_time) ? '' : ` к ${task.due_time.slice(0, 5)}`
+  const timeText = (task.due_all_day || !task.due_time) ? '' : ` ${t('card.time_prefix')} ${task.due_time.slice(0, 5)}`
 
   return (
     <ModalShell onClose={onClose}>
@@ -377,7 +377,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
             </span>
             {dueDateText && (
               <span style={{ fontSize: 12, color: '#6B7280' }}>
-                • Срок: {dueDateText}{timeText}
+                • {t('card.due_prefix')} {dueDateText}{timeText}
               </span>
             )}
             {task.recurrence_series_id && (
@@ -456,7 +456,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                     background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 14, color: '#1E40AF', lineHeight: 1, padding: 0,
                   }}
-                  title="Снять наблюдателя"
+                  title={t('card.remove_watcher')}
                 >×</button>
               </div>
             ))}
@@ -469,7 +469,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               <PersonSelect
                 value={newWatcherId}
                 onChange={id => setNewWatcherId(id)}
-                placeholder="Выберите наблюдателя"
+                placeholder={t('card.watcher_placeholder')}
                 accentColor={accent}
               />
             </div>
@@ -536,7 +536,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               <textarea
                 value={declineReason}
                 onChange={e => setDeclineReason(e.target.value)}
-                placeholder="Опишите причину…"
+                placeholder={t('card.decline_placeholder')}
                 style={{
                   width: '100%', padding: '8px 10px', fontSize: 13,
                   border: '1px solid #FCA5A5', borderRadius: 6, minHeight: 60,
@@ -574,7 +574,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
           border: '1px solid #FCA5A5', borderRadius: 8,
         }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#991B1B', marginBottom: 12 }}>
-            Отменить серию задач?
+            {t('cancel_series.title')}
           </div>
 
           {/* Выбор режима */}
@@ -592,10 +592,10 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
-                  Только будущие задачи
+                  {t('cancel_series.mode_future_label')}
                 </div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-                  Начиная с этой задачи и далее
+                  {t('cancel_series.mode_future_hint')}
                 </div>
               </div>
             </label>
@@ -613,10 +613,10 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
-                  Всю серию
+                  {t('cancel_series.mode_all_label')}
                 </div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-                  Все задачи серии, включая прошедшие активные
+                  {t('cancel_series.mode_all_hint')}
                 </div>
               </div>
             </label>
@@ -628,10 +628,10 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
             border: '1px solid #FECACA',
           }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-              Что произойдёт:
+              {t('cancel_series.preview_title')}
             </div>
             {loadingPreview && (
-              <div style={{ fontSize: 12, color: '#9CA3AF' }}>Подсчёт...</div>
+              <div style={{ fontSize: 12, color: '#9CA3AF' }}>{t('cancel_series.counting')}</div>
             )}
             {!loadingPreview && seriesPreview && (() => {
               const bs = seriesPreview.by_status
@@ -642,37 +642,37 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
                   {willDelete > 0 && (
                     <div style={{ color: '#991B1B' }}>
-                      ✓ Будет удалено: <strong>{willDelete}</strong>
+                      ✓ {t('cancel_series.will_delete')} <strong>{willDelete}</strong>
                       <span style={{ color: '#6B7280', fontSize: 11 }}>
                         {' '}({[
-                          bs.unassigned ? `${bs.unassigned} в пуле` : '',
-                          bs.pending    ? `${bs.pending} к выполнению` : '',
-                          bs.declined   ? `${bs.declined} отклонены` : '',
+                          bs.unassigned ? `${bs.unassigned} ${t('cancel_series.breakdown_unassigned')}` : '',
+                          bs.pending    ? `${bs.pending} ${t('cancel_series.breakdown_pending')}` : '',
+                          bs.declined   ? `${bs.declined} ${t('cancel_series.breakdown_declined')}` : '',
                         ].filter(Boolean).join(', ')})
                       </span>
                     </div>
                   )}
                   {willPreserve > 0 && (
                     <div style={{ color: '#92400E', fontWeight: 500 }}>
-                      ⚠ Сохранятся: <strong>{willPreserve}</strong>
+                      ⚠ {t('cancel_series.will_preserve')} <strong>{willPreserve}</strong>
                       <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 400 }}>
                         {' '}({[
-                          bs.in_progress ? `${bs.in_progress} в работе` : '',
-                          bs.review      ? `${bs.review} на проверке` : '',
+                          bs.in_progress ? `${bs.in_progress} ${t('cancel_series.breakdown_in_progress')}` : '',
+                          bs.review      ? `${bs.review} ${t('cancel_series.breakdown_review')}` : '',
                         ].filter(Boolean).join(', ')})
                       </span>
                       <div style={{ color: '#6B7280', fontSize: 10, marginTop: 2 }}>
-                        Активные задачи нельзя удалить через эту операцию
+                        {t('cancel_series.cannot_delete_active')}
                       </div>
                     </div>
                   )}
                   {alreadyDone > 0 && (
                     <div style={{ color: '#6B7280', fontSize: 11 }}>
-                      Не затронуто: {alreadyDone} (завершено или ранее отменено)
+                      {t('cancel_series.not_affected')} {alreadyDone} ({t('cancel_series.not_affected_reason')})
                     </div>
                   )}
                   {willDelete === 0 && willPreserve === 0 && alreadyDone === 0 && (
-                    <div style={{ color: '#6B7280' }}>Нет задач в выбранном диапазоне</div>
+                    <div style={{ color: '#6B7280' }}>{t('cancel_series.empty_range')}</div>
                   )}
                 </div>
               )
@@ -689,7 +689,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                 background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
                 cursor: 'pointer',
               }}
-            >Отмена</button>
+            >{tCommon('cancel')}</button>
             <button
               onClick={handleCancelSeries}
               disabled={actionInProgress || loadingPreview}
@@ -700,7 +700,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                 opacity: actionInProgress || loadingPreview ? 0.6 : 1,
               }}
             >
-              {actionInProgress ? 'Удаление…' : 'Отменить серию'}
+              {actionInProgress ? t('cancel_series.deleting') : t('cancel_series.confirm_button')}
             </button>
           </div>
         </div>

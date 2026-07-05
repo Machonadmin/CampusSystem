@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Teacher {
   person_id: string
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function ClassGroupTeachers({ groupId, departmentId, teachers, onChange, accentColor }: Props) {
+  const t = useTranslations('education.study')
   const [adding, setAdding] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -35,33 +37,33 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setActionError(err.error ?? `Ошибка ${resp.status}`)
+        setActionError(err.error ?? `${t('common.error_generic')} ${resp.status}`)
         return
       }
       setAdding(false)
       setSelectedId(null)
       onChange()
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Ошибка')
+      setActionError(e instanceof Error ? e.message : t('common.error_generic'))
     } finally {
       setSaving(false)
     }
   }
 
   const handleRemove = async (personId: string) => {
-    if (!confirm('Снять преподавателя с группы?')) return
+    if (!confirm(t('class_groups.remove_teacher_confirm'))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${groupId}/teachers/${personId}`, {
         method: 'DELETE',
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Ошибка')
+        alert(err.error ?? t('common.error_generic'))
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка')
+      alert(e instanceof Error ? e.message : t('common.error_generic'))
     }
   }
 
@@ -74,12 +76,12 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Ошибка')
+        alert(err.error ?? t('common.error_generic'))
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка')
+      alert(e instanceof Error ? e.message : t('common.error_generic'))
     }
   }
 
@@ -92,14 +94,14 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
     <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
-          Преподаватели
+          {t('class_groups.teachers_section_title')}
         </h2>
         {!adding && (
           <button
             onClick={() => { setAdding(true); setActionError(null) }}
             style={{ ...btnSmall, color: accentColor, borderColor: accentColor }}
           >
-            + Добавить
+            {t('class_groups.add_teacher_button')}
           </button>
         )}
       </div>
@@ -111,13 +113,13 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
             <PersonSelect
               value={selectedId}
               onChange={id => setSelectedId(id)}
-              placeholder="Выберите или создайте преподавателя…"
+              placeholder={t('class_groups.teacher_select_placeholder')}
               accentColor={accentColor}
               roleFilter="teacher"
               allowShowAll
               {...(departmentId ? {
                 enrollOption: {
-                  label: 'Оформить как преподавателя',
+                  label: t('class_groups.enroll_as_teacher_label'),
                   departmentId,
                   defaultChecked: true,
                 },
@@ -138,14 +140,14 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
                 opacity: (!selectedId || saving) ? 0.6 : 1,
               }}
             >
-              {saving ? 'Сохранение…' : 'Добавить'}
+              {saving ? t('common.saving') : t('class_groups.add_confirm_button')}
             </button>
             <button
               onClick={() => { setAdding(false); setSelectedId(null); setActionError(null) }}
               disabled={saving}
               style={btnSmall}
             >
-              Отмена
+              {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -153,12 +155,12 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
 
       {/* Список */}
       {teachers.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>Преподаватели не назначены</div>
+        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('class_groups.no_teachers')}</div>
       ) : (
         <div>
-          {teachers.map((t, i) => (
+          {teachers.map((tc, i) => (
             <div
-              key={t.person_id}
+              key={tc.person_id}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '10px 0', borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
@@ -166,28 +168,28 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
-                  {t.full_name ?? '—'}
+                  {tc.full_name ?? '—'}
                 </span>
-                {t.is_primary && (
+                {tc.is_primary && (
                   <span style={{
                     fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
                     background: `${accentColor}18`, color: accentColor,
                   }}>
-                    Основной
+                    {t('class_groups.primary_badge')}
                   </span>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                {!t.is_primary && (
-                  <button onClick={() => handleSetPrimary(t.person_id)} style={btnSmall}>
-                    Сделать основным
+                {!tc.is_primary && (
+                  <button onClick={() => handleSetPrimary(tc.person_id)} style={btnSmall}>
+                    {t('class_groups.make_primary_button')}
                   </button>
                 )}
                 <button
-                  onClick={() => handleRemove(t.person_id)}
+                  onClick={() => handleRemove(tc.person_id)}
                   style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
                 >
-                  Снять
+                  {t('class_groups.remove_button')}
                 </button>
               </div>
             </div>

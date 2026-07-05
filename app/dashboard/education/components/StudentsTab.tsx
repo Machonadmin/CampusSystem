@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department { id: string; name: string }
 interface StudyGroup { id: string; name: string; department_id: string }
@@ -35,12 +36,6 @@ interface Student {
   department: { id: string; name: string } | null
 }
 
-const STATUS_LABEL: Record<StudentStatus, string> = {
-  active:    'Активен',
-  on_leave:  'Академотпуск',
-  graduated: 'Выпускник',
-  expelled:  'Отчислен',
-}
 const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
   active:    { background: '#ECFDF5', color: '#065F46' },
   on_leave:  { background: '#FFFBEB', color: '#92400E' },
@@ -51,6 +46,7 @@ const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
 const accent = getModuleColor('education')
 
 export default function StudentsTab() {
+  const t = useTranslations('education.study')
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([])
@@ -66,6 +62,13 @@ export default function StudentsTab() {
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const STATUS_LABEL: Record<StudentStatus, string> = {
+    active:    t('students.status_active'),
+    on_leave:  t('students.status_on_leave'),
+    graduated: t('students.status_graduated'),
+    expelled:  t('students.status_expelled'),
+  }
+
   const loadStudents = useCallback(async (q: string) => {
     setLoading(true)
     setError(null)
@@ -77,15 +80,15 @@ export default function StudentsTab() {
       if (filterStatus) params.set('status', filterStatus)
 
       const resp = await fetch(`/api/education/students?${params}`)
-      if (!resp.ok) throw new Error(`Ошибка загрузки студентов: ${resp.status}`)
+      if (!resp.ok) throw new Error(t('students.load_error').replace('{status}', String(resp.status)))
       const json = await resp.json()
       setStudents(json.students ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
       setLoading(false)
     }
-  }, [filterDept, filterGroup, filterStatus])
+  }, [filterDept, filterGroup, filterStatus, t])
 
   // Загрузка справочников один раз
   useEffect(() => {
@@ -111,18 +114,18 @@ export default function StudentsTab() {
   useEffect(() => { setFilterGroup('') }, [filterDept])
 
   const handleExpel = async (student: Student) => {
-    const name = student.person?.full_name ?? 'студента'
-    if (!confirm(`Отчислить ${name}?\n\nСтатус будет изменён на «Отчислен».`)) return
+    const name = student.person?.full_name ?? t('students.expel_fallback_name')
+    if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
     try {
       const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Не удалось отчислить')
+        alert(err.error ?? t('students.expel_failed'))
         return
       }
       loadStudents(search)
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка')
+      alert(e instanceof Error ? e.message : t('common.error_generic'))
     }
   }
 
@@ -148,11 +151,11 @@ export default function StudentsTab() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Поиск по имени, телефону, email…"
+          placeholder={t('students.search_placeholder')}
           style={{ ...inp, minWidth: 220, flex: '1 1 220px' }}
         />
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
-          <option value="">Все подразделения</option>
+          <option value="">{t('students.all_departments')}</option>
           {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
         <select
@@ -161,22 +164,22 @@ export default function StudentsTab() {
           disabled={filteredGroups.length === 0}
           style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
         >
-          <option value="">Все группы</option>
+          <option value="">{t('students.all_groups')}</option>
           {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
-          <option value="">Активные и в отпуске</option>
-          <option value="active">Только активные</option>
-          <option value="all">Все статусы</option>
+          <option value="">{t('students.filter_active_on_leave')}</option>
+          <option value="active">{t('students.filter_active_only')}</option>
+          <option value="all">{t('students.filter_all')}</option>
         </select>
         <PageActionButton
-          label="Студент"
+          label={t('students.add_button')}
           onClick={() => setModalOpen(true)}
           accentColor={accent}
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
         <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -187,21 +190,21 @@ export default function StudentsTab() {
       {!loading && !error && (
         students.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {search || filterDept || filterGroup || filterStatus ? 'Ничего не найдено' : 'Студентов пока нет'}
+            {search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')}
           </div>
         ) : (
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
-                  <th style={thStyle}>ФИО</th>
-                  <th style={thStyle}>Контакты</th>
-                  <th style={thStyle}>Подразделение</th>
-                  <th style={thStyle}>Группа</th>
-                  <th style={thStyle}>Специальность</th>
-                  <th style={{ ...thStyle, width: 60, textAlign: 'center' }}>Курс</th>
-                  <th style={{ ...thStyle, width: 110 }}>Статус</th>
-                  <th style={{ ...thStyle, width: 160 }}>Действия</th>
+                  <th style={thStyle}>{t('students.table_name')}</th>
+                  <th style={thStyle}>{t('students.table_contacts')}</th>
+                  <th style={thStyle}>{t('students.table_department')}</th>
+                  <th style={thStyle}>{t('students.table_group')}</th>
+                  <th style={thStyle}>{t('students.table_specialty')}</th>
+                  <th style={{ ...thStyle, width: 60, textAlign: 'center' }}>{t('students.table_year')}</th>
+                  <th style={{ ...thStyle, width: 110 }}>{t('students.table_status')}</th>
+                  <th style={{ ...thStyle, width: 160 }}>{t('students.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,15 +249,15 @@ export default function StudentsTab() {
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => alert('Редактирование пока через карточку студента, в разработке')} style={btnSecondary}>
-                            Изменить
+                          <button onClick={() => alert(t('students.edit_wip_alert'))} style={btnSecondary}>
+                            {t('common.edit')}
                           </button>
                           {!expelled && (
                             <button
                               onClick={() => handleExpel(s)}
                               style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
                             >
-                              Отчислить
+                              {t('students.expel_button')}
                             </button>
                           )}
                         </div>

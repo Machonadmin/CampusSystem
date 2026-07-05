@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import ClassGroupModal from './ClassGroupModal'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 
 interface Department { id: string; name: string }
 interface Subject { id: string; name: string; department_id: string }
@@ -33,21 +34,19 @@ interface ClassGroup {
 
 const accent = getModuleColor('education')
 
-const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-
-function formatPeriod(start: string | null, end: string | null): string {
+function formatPeriod(lang: string, start: string | null, end: string | null): string {
   if (!start && !end) return '—'
-  const fmt = (d: string) => {
-    const dt = new Date(d + 'T00:00:00')
-    return `${MONTH_SHORT[dt.getMonth()]} ${dt.getFullYear()}`
-  }
+  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale, { month: 'short', year: 'numeric' })
   if (start && end) return `${fmt(start)} — ${fmt(end)}`
-  if (start) return `с ${fmt(start)}`
-  return `до ${fmt(end!)}`
+  if (start) return `${fmt(start)} →`
+  return `→ ${fmt(end!)}`
 }
 
 export default function ClassGroupsTab() {
   const router = useRouter()
+  const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [groups, setGroups] = useState<ClassGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
@@ -76,8 +75,8 @@ export default function ClassGroupsTab() {
         fetch('/api/settings/departments'),
         fetch('/api/education/subjects?active_only=false'),
       ])
-      if (!gResp.ok) throw new Error(`Ошибка загрузки групп: ${gResp.status}`)
-      if (!dResp.ok) throw new Error(`Ошибка загрузки подразделений: ${dResp.status}`)
+      if (!gResp.ok) throw new Error(t('class_groups.load_error').replace('{status}', String(gResp.status)))
+      if (!dResp.ok) throw new Error(t('common.error_generic'))
       const gJson = await gResp.json()
       const dJson = await dResp.json()
       const sJson = sResp.ok ? await sResp.json() : { subjects: [] }
@@ -85,27 +84,27 @@ export default function ClassGroupsTab() {
       setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
       setSubjects(sJson.subjects ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
       setLoading(false)
     }
-  }, [showInactive, filterDept, filterSubject])
+  }, [showInactive, filterDept, filterSubject, t])
 
   useEffect(() => { loadData() }, [loadData])
   useEffect(() => { setFilterSubject('') }, [filterDept])
 
   const handleDelete = async (group: ClassGroup) => {
-    if (!confirm(`Удалить учебную группу «${group.name}»?`)) return
+    if (!confirm(t('class_groups.confirm_delete').replace('{name}', group.name))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Не удалось удалить')
+        alert(err.error ?? t('common.error_delete_failed'))
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка удаления')
+      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
     }
   }
 
@@ -130,7 +129,7 @@ export default function ClassGroupsTab() {
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
-          <option value="">Все подразделения</option>
+          <option value="">{t('common.all_departments')}</option>
           {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
         <select
@@ -139,22 +138,22 @@ export default function ClassGroupsTab() {
           disabled={filteredSubjects.length === 0}
           style={{ ...inp, opacity: filteredSubjects.length === 0 ? 0.5 : 1 }}
         >
-          <option value="">Все предметы</option>
+          <option value="">{t('class_groups.all_subjects')}</option>
           {filteredSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
           <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
-          Показать неактивные
+          {t('common.show_inactive')}
         </label>
         <div style={{ flex: 1 }} />
         <PageActionButton
-          label="Учебная группа"
+          label={t('class_groups.add_button')}
           onClick={() => { setEditingGroup(null); setModalMode('create') }}
           accentColor={accent}
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
         <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -165,27 +164,27 @@ export default function ClassGroupsTab() {
       {!loading && !error && (
         groups.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {filterDept || filterSubject ? 'Ничего не найдено' : 'Учебных групп пока нет'}
+            {filterDept || filterSubject ? t('common.nothing_found') : t('class_groups.empty_none')}
           </div>
         ) : (
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
-                  <th style={thStyle}>Название</th>
-                  <th style={thStyle}>Предмет</th>
-                  <th style={thStyle}>Подразделение</th>
-                  <th style={{ ...thStyle, width: 100 }}>Уровень</th>
-                  <th style={{ ...thStyle, width: 180 }}>Период</th>
-                  <th style={thStyle}>Преподаватели</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Студентов</th>
-                  <th style={{ ...thStyle, width: 90 }}>Статус</th>
-                  <th style={{ ...thStyle, width: 190 }}>Действия</th>
+                  <th style={thStyle}>{t('class_groups.table_name')}</th>
+                  <th style={thStyle}>{t('class_groups.table_subject')}</th>
+                  <th style={thStyle}>{t('class_groups.table_department')}</th>
+                  <th style={{ ...thStyle, width: 100 }}>{t('class_groups.table_level')}</th>
+                  <th style={{ ...thStyle, width: 180 }}>{t('class_groups.table_period')}</th>
+                  <th style={thStyle}>{t('class_groups.table_teachers')}</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('class_groups.table_students')}</th>
+                  <th style={{ ...thStyle, width: 90 }}>{t('class_groups.table_status')}</th>
+                  <th style={{ ...thStyle, width: 190 }}>{t('class_groups.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {groups.map(g => {
-                  const primary = g.teachers.find(t => t.is_primary)
+                  const primary = g.teachers.find(tc => tc.is_primary)
                   const extraCount = g.teachers.length - (primary ? 1 : 0)
                   return (
                     <tr
@@ -201,7 +200,7 @@ export default function ClassGroupsTab() {
                         {g.level ?? <span style={{ color: '#D1D5DB' }}>—</span>}
                       </td>
                       <td style={{ ...tdStyle, color: '#6B7280', whiteSpace: 'nowrap' }}>
-                        {formatPeriod(g.period_start, g.period_end)}
+                        {formatPeriod(lang, g.period_start, g.period_end)}
                       </td>
                       <td style={tdStyle}>
                         {g.teachers.length === 0 ? (
@@ -210,7 +209,7 @@ export default function ClassGroupsTab() {
                           <span>
                             {primary?.full_name
                               ? <strong>{primary.full_name}</strong>
-                              : <span style={{ color: '#6B7280' }}>Не назначен</span>}
+                              : <span style={{ color: '#6B7280' }}>{t('class_groups.no_teacher_assigned')}</span>}
                             {extraCount > 0 && (
                               <span style={{ color: '#9CA3AF', marginLeft: 4 }}>+{extraCount}</span>
                             )}
@@ -228,8 +227,8 @@ export default function ClassGroupsTab() {
                       </td>
                       <td style={tdStyle}>
                         {g.is_active
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>Активна</span>
-                          : <span style={{ color: '#9CA3AF' }}>Неактивна</span>}
+                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('class_groups.status_active')}</span>
+                          : <span style={{ color: '#9CA3AF' }}>{t('class_groups.status_inactive')}</span>}
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 5 }}>
@@ -237,16 +236,16 @@ export default function ClassGroupsTab() {
                             onClick={() => router.push(`/dashboard/education/class-groups/${g.id}`)}
                             style={{ ...btnSecondary, color: accent, borderColor: accent }}
                           >
-                            Карточка
+                            {t('class_groups.card_button')}
                           </button>
                           <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
-                            Изменить
+                            {t('common.edit')}
                           </button>
                           <button
                             onClick={() => handleDelete(g)}
                             style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
                           >
-                            Удалить
+                            {t('common.delete')}
                           </button>
                         </div>
                       </td>

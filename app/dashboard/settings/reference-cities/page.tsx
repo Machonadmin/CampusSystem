@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { CountrySelect } from '@/components/ui/country-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface CityRow { id: string; country: string; city: string }
 
@@ -11,6 +12,8 @@ const accent = getModuleColor('settings')
 const accentLight = getModuleColor('settings', 'light')
 
 export default function ReferenceCitiesPage() {
+  const t = useTranslations('settings.reference_cities')
+  const tNav = useTranslations('navigation')
   const [country, setCountry] = useState('Израиль')
   const [cities, setCities] = useState<CityRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -32,7 +35,7 @@ export default function ReferenceCitiesPage() {
         setCities(data.cities ?? [])
       } else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка загрузки')
+        setErrMsg(e.error ?? t('error_load'))
       }
     } finally {
       setLoading(false)
@@ -58,7 +61,7 @@ export default function ReferenceCitiesPage() {
         await load()
       } else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка добавления')
+        setErrMsg(e.error ?? t('error_add'))
       }
     } finally {
       setBusy(false)
@@ -81,7 +84,7 @@ export default function ReferenceCitiesPage() {
         await load()
       } else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка сохранения')
+        setErrMsg(e.error ?? t('error_save'))
       }
     } finally {
       setBusy(false)
@@ -89,7 +92,7 @@ export default function ReferenceCitiesPage() {
   }
 
   async function deleteCity(id: string, cityName: string) {
-    if (!confirm(`Удалить город «${cityName}»?`)) return
+    if (!confirm(t('confirm_delete').replace('{name}', cityName))) return
     setBusy(true)
     setErrMsg('')
     try {
@@ -97,7 +100,7 @@ export default function ReferenceCitiesPage() {
       if (res.ok) await load()
       else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка удаления')
+        setErrMsg(e.error ?? t('error_delete'))
       }
     } finally {
       setBusy(false)
@@ -107,9 +110,9 @@ export default function ReferenceCitiesPage() {
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Настройки', href: '/dashboard/settings' },
-        { label: 'Справочник городов' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('settings'), href: '/dashboard/settings' },
+        { label: t('title') },
       ]} />
 
       <div
@@ -121,13 +124,13 @@ export default function ReferenceCitiesPage() {
         }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>
-          Справочник городов
+          {t('title')}
         </h1>
       </div>
 
       <div style={{ maxWidth: 420 }}>
         <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-          Страна
+          {t('country_label')}
         </label>
         <CountrySelect
           value={country}
@@ -145,7 +148,7 @@ export default function ReferenceCitiesPage() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>
-            Города ({cities.length})
+            {t('cities_title')} ({cities.length})
           </h2>
           {!showAdd && (
             <button
@@ -156,7 +159,7 @@ export default function ReferenceCitiesPage() {
                 cursor: 'pointer',
               }}
             >
-              + Добавить город
+              {t('add_city_button')}
             </button>
           )}
         </div>
@@ -174,7 +177,7 @@ export default function ReferenceCitiesPage() {
             borderRadius: 8, padding: 14, marginBottom: 16,
           }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-              Название города в стране «{country}»
+              {t('city_name_in_country_label').replace('{country}', country)}
             </label>
             <input
               autoFocus
@@ -184,7 +187,7 @@ export default function ReferenceCitiesPage() {
                 if (e.key === 'Enter') addCity()
                 if (e.key === 'Escape') { setShowAdd(false); setNewCity('') }
               }}
-              placeholder="Например: Петах-Тиква"
+              placeholder={t('city_name_placeholder')}
               style={{
                 width: '100%', padding: '8px 10px', fontSize: 13,
                 border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none',
@@ -203,7 +206,7 @@ export default function ReferenceCitiesPage() {
                   cursor: newCity.trim() && !busy ? 'pointer' : 'not-allowed',
                 }}
               >
-                {busy ? 'Сохранение...' : 'Добавить'}
+                {busy ? t('saving') : t('save_button')}
               </button>
               <button
                 onClick={() => { setShowAdd(false); setNewCity(''); setErrMsg('') }}
@@ -212,7 +215,7 @@ export default function ReferenceCitiesPage() {
                   background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
                 }}
               >
-                Отмена
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -220,11 +223,11 @@ export default function ReferenceCitiesPage() {
 
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
-            Загрузка...
+            {t('loading')}
           </div>
         ) : cities.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
-            Для этой страны пока нет городов
+            {t('empty_none')}
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 6 }}>
@@ -260,14 +263,14 @@ export default function ReferenceCitiesPage() {
                         background: accent, color: '#fff', border: 'none',
                         borderRadius: 4, cursor: busy ? 'not-allowed' : 'pointer',
                       }}
-                    >Сохранить</button>
+                    >{t('edit_save_button')}</button>
                     <button
                       onClick={() => setEditingId(null)}
                       style={{
                         padding: '5px 10px', fontSize: 12, color: '#6B7280',
                         background: '#fff', border: '1px solid #D1D5DB', borderRadius: 4, cursor: 'pointer',
                       }}
-                    >Отмена</button>
+                    >{t('cancel')}</button>
                   </>
                 ) : (
                   <>
@@ -278,14 +281,14 @@ export default function ReferenceCitiesPage() {
                         padding: '5px 10px', fontSize: 12, color: accent,
                         background: '#fff', border: `1px solid ${accent}66`, borderRadius: 4, cursor: 'pointer',
                       }}
-                    >Изменить</button>
+                    >{t('edit_button')}</button>
                     <button
                       onClick={() => deleteCity(c.id, c.city)}
                       style={{
                         padding: '5px 10px', fontSize: 12, color: '#DC2626',
                         background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 4, cursor: 'pointer',
                       }}
-                    >Удалить</button>
+                    >{t('delete_button')}</button>
                   </>
                 )}
               </div>

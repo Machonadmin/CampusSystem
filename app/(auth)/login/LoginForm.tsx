@@ -30,14 +30,14 @@ export default function LoginForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Ошибка входа в систему')
+        setError(data.error ?? t('error_login_failed'))
         return
       }
 
       router.push(from)
       router.refresh()
     } catch {
-      setError('Ошибка соединения с сервером. Попробуйте ещё раз')
+      setError(t('error_connection'))
     } finally {
       setLoading(false)
     }
@@ -45,7 +45,7 @@ export default function LoginForm() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">Вход в систему</h2>
+      <h2 className="text-lg font-semibold text-gray-800 mb-6">{t('heading')}</h2>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
 
@@ -105,7 +105,7 @@ export default function LoginForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Вход...
+              {t('logging_in')}
             </span>
           ) : t('login')}
         </button>

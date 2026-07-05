@@ -56,7 +56,7 @@ export default function TasksPage() {
       const resp = await fetch(`/api/tasks?${params.toString()}`)
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({}))
-        throw new Error(e.error ?? `Ошибка ${resp.status}`)
+        throw new Error(e.error ?? `${tCommon('error')} ${resp.status}`)
       }
       const json = await resp.json()
       let list: TaskRow[] = json.tasks ?? []

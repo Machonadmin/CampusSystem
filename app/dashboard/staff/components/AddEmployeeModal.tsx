@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department {
   id: string
@@ -19,19 +20,6 @@ interface PositionOption {
 }
 
 interface PersonResult { id: string; full_name: string; email: string | null }
-
-const MODAL_TABS = ['Личные данные', 'Контакты и адрес', 'Должность и отдел', 'Документы и образование', 'Трудовой договор', 'Дополнительно']
-const CONTACT_TYPES = [
-  { value: 'phone', label: 'Телефон' },
-  { value: 'email', label: 'Email' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-  { value: 'telegram', label: 'Telegram' },
-  { value: 'address', label: 'Адрес' },
-  { value: 'facebook', label: 'Facebook' },
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'vk', label: 'VK' },
-  { value: 'other', label: 'Другое' },
-]
 
 function getPhoneFlag(phone: string): string {
   if (phone.startsWith('+972')) return '🇮🇱'
@@ -87,6 +75,25 @@ export default function AddEmployeeModal({
   onSaved: () => void
   defaultDepartmentId?: string
 }) {
+  const t = useTranslations('staff')
+  const tCommon = useTranslations('common')
+
+  const MODAL_TABS = [
+    t('add_modal.tab_personal'), t('add_modal.tab_contacts'), t('add_modal.tab_position'),
+    t('add_modal.tab_documents'), t('add_modal.tab_contract'), t('add_modal.tab_extra'),
+  ]
+  const CONTACT_TYPES = [
+    { value: 'phone', label: t('add_modal.contact_type_phone') },
+    { value: 'email', label: t('add_modal.contact_type_email') },
+    { value: 'whatsapp', label: t('add_modal.contact_type_whatsapp') },
+    { value: 'telegram', label: t('add_modal.contact_type_telegram') },
+    { value: 'address', label: t('add_modal.contact_type_address') },
+    { value: 'facebook', label: t('add_modal.contact_type_facebook') },
+    { value: 'instagram', label: t('add_modal.contact_type_instagram') },
+    { value: 'vk', label: t('add_modal.contact_type_vk') },
+    { value: 'other', label: t('add_modal.contact_type_other') },
+  ]
+
   const [view, setView] = useState<ModalView>('new')
   const [selected, setSelected] = useState<PersonResult | null>(null)
   const [tabIdx, setTabIdx] = useState(0)
@@ -215,14 +222,14 @@ export default function AddEmployeeModal({
   function goNext() {
     setError('')
     if (view === 'new') {
-      if (tabIdx === 0 && !lastName.trim()) { setError('Фамилия обязательна'); return }
-      if (tabIdx === 0 && !firstName.trim()) { setError('Имя обязательно'); return }
-      if (tabIdx === 1 && !phones.some(p => p.trim())) { setError('Введите хотя бы один телефон'); return }
+      if (tabIdx === 0 && !lastName.trim()) { setError(t('add_modal.error_last_name_required')); return }
+      if (tabIdx === 0 && !firstName.trim()) { setError(t('add_modal.error_first_name_required')); return }
+      if (tabIdx === 1 && !phones.some(p => p.trim())) { setError(t('add_modal.error_phone_required')); return }
     }
     if (tabIdx === 2) {
-      if (!departmentId) { setError('Выберите отдел'); return }
-      if (!positionId) { setError('Выберите должность'); return }
-      if (!hireDate) { setError('Дата приёма обязательна'); return }
+      if (!departmentId) { setError(t('add_modal.error_department_required')); return }
+      if (!positionId) { setError(t('add_modal.error_position_required')); return }
+      if (!hireDate) { setError(t('add_modal.error_hire_date_required')); return }
     }
     setTabIdx(t => Math.min(t + 1, 5))
   }
@@ -231,9 +238,9 @@ export default function AddEmployeeModal({
 
   async function handleSave() {
     setError('')
-    if (!departmentId) { setError('Выберите отдел'); setTabIdx(2); return }
-    if (!positionId) { setError('Выберите должность'); setTabIdx(2); return }
-    if (!hireDate) { setError('Дата приёма обязательна'); setTabIdx(2); return }
+    if (!departmentId) { setError(t('add_modal.error_department_required')); setTabIdx(2); return }
+    if (!positionId) { setError(t('add_modal.error_position_required')); setTabIdx(2); return }
+    if (!hireDate) { setError(t('add_modal.error_hire_date_required')); setTabIdx(2); return }
 
     setSaving(true)
     try {
@@ -247,10 +254,10 @@ export default function AddEmployeeModal({
       if (view === 'existing' && selected) {
         body.person_id = selected.id
       } else {
-        if (!lastName.trim()) { setError('Фамилия обязательна'); setSaving(false); setTabIdx(0); return }
-        if (!firstName.trim()) { setError('Имя обязательно'); setSaving(false); setTabIdx(0); return }
+        if (!lastName.trim()) { setError(t('add_modal.error_last_name_required')); setSaving(false); setTabIdx(0); return }
+        if (!firstName.trim()) { setError(t('add_modal.error_first_name_required')); setSaving(false); setTabIdx(0); return }
         const validPhones = phones.filter(p => p.trim())
-        if (validPhones.length === 0) { setError('Телефон обязателен'); setSaving(false); setTabIdx(1); return }
+        if (validPhones.length === 0) { setError(t('add_modal.error_single_phone_required')); setSaving(false); setTabIdx(1); return }
         body.last_name = lastName.trim()
         body.first_name = firstName.trim()
         body.middle_name = middleName.trim() || null
@@ -303,7 +310,7 @@ export default function AddEmployeeModal({
       })
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error ?? 'Ошибка')
+        setError(data.error ?? tCommon('error'))
         return
       }
       onSaved()
@@ -333,7 +340,7 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
-                {loadingPerson ? 'Загрузка данных...' : '📋 Данные загружены из профиля · только для просмотра'}
+                {loadingPerson ? t('add_modal.readonly_hint_loading') : t('add_modal.readonly_hint')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -344,24 +351,24 @@ export default function AddEmployeeModal({
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
-                  Загрузить фото
+                  {t('add_modal.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · JPG, PNG</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 {!searchExpanded ? (
                   <button onClick={() => setSearchExpanded(true)}
                     style={{ fontSize: 12, color: '#4BAED4', border: '1px solid #4BAED4', borderRadius: 8, padding: '6px 12px', background: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    🔍 Найти существующего человека
+                    {t('add_modal.find_existing_person')}
                   </button>
                 ) : (
                   <div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
-                        placeholder="Имя или email..." style={{ ...inp, width: 220 }} />
+                        placeholder={t('add_modal.search_placeholder')} style={{ ...inp, width: 220 }} />
                       <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                         ×
@@ -369,7 +376,7 @@ export default function AddEmployeeModal({
                     </div>
                     {(searching || results.length > 0) && (
                       <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>Поиск...</div>}
+                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}
                             style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
@@ -388,46 +395,46 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div>
-                <label style={lbl}>Фамилия *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Иванов" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('add_modal.last_name')} *</label>
+                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
-                <label style={lbl}>Имя *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Иван" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('add_modal.first_name')} *</label>
+                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('add_modal.first_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
-                <label style={lbl}>Отчество</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder="Иванович" disabled={ro} style={{ ...inp, ...dis }} />
+                <label style={lbl}>{t('add_modal.middle_name')}</label>
+                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('add_modal.middle_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Еврейское имя</label>
+              <label style={lbl}>{t('add_modal.hebrew_name')}</label>
               <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="Avraham" dir="ltr" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Пол</label>
+              <label style={lbl}>{t('add_modal.gender')}</label>
               <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
-                <option value="male">Мужской</option>
-                <option value="female">Женский</option>
+                <option value="male">{t('add_modal.gender_male')}</option>
+                <option value="female">{t('add_modal.gender_female')}</option>
               </select>
             </div>
             <div>
-              <label style={lbl}>Дата рождения</label>
+              <label style={lbl}>{t('add_modal.birth_date')}</label>
               <DateInput value={birthDate} onChange={setBirthDate} maxDate={new Date()} minDate={new Date(1940, 0, 1)} disabled={ro} style={dis} />
             </div>
             <div>
-              <label style={lbl}>Семейное положение</label>
+              <label style={lbl}>{t('add_modal.marital_status')}</label>
               <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
-                <option value="single">Не женат / Не замужем</option>
-                <option value="married">Женат / Замужем</option>
-                <option value="divorced">Разведён(а)</option>
-                <option value="widowed">Вдовец / Вдова</option>
+                <option value="single">{t('add_modal.marital_single')}</option>
+                <option value="married">{t('add_modal.marital_married')}</option>
+                <option value="divorced">{t('add_modal.marital_divorced')}</option>
+                <option value="widowed">{t('add_modal.marital_widowed')}</option>
               </select>
             </div>
             <div>
-              <label style={lbl}>Гражданство</label>
+              <label style={lbl}>{t('add_modal.citizenship')}</label>
               <CountrySelect
                 value={citizenship}
                 onChange={setCitizenship}
@@ -443,15 +450,15 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
-                📋 Данные загружены из профиля · только для просмотра
+                {t('add_modal.readonly_hint')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>Телефоны{view === 'new' ? ' *' : ''}</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('add_modal.phones')}{view === 'new' ? ' *' : ''}</label>
                 {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                  + Добавить телефон
+                  {t('add_modal.add_phone')}
                 </button>}
               </div>
               {phones.map((p, i) => (
@@ -466,49 +473,49 @@ export default function AddEmployeeModal({
               ))}
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Email</label>
+              <label style={lbl}>{t('add_modal.email')}</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Страна</label>
+              <label style={lbl}>{t('add_modal.country')}</label>
               <CountrySelect value={country} onChange={setCountry} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Город</label>
+              <label style={lbl}>{t('add_modal.city')}</label>
               <CitySelect country={country} value={city} onChange={setCity} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Улица</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder="Дизенгоф" disabled={ro} style={{ ...inp, ...dis }} />
+              <label style={lbl}>{t('add_modal.street')}</label>
+              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('add_modal.street_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Дом</label>
+              <label style={lbl}>{t('add_modal.house')}</label>
               <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Квартира</label>
+              <label style={lbl}>{t('add_modal.apartment')}</label>
               <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
-              <label style={lbl}>Индекс</label>
+              <label style={lbl}>{t('add_modal.postal_code')}</label>
               <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>Дополнительные контакты</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('add_modal.extra_contacts')}</label>
                 {!ro && <button onClick={() => setExtraContacts(prev => [...prev, { type: 'whatsapp', value: '' }])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                  + Добавить контакт
+                  {t('add_modal.add_contact')}
                 </button>}
               </div>
               {extraContacts.map((c, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
                   <select value={c.type} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, type: e.target.value } : x))}
                     disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
-                    {CONTACT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    {CONTACT_TYPES.map(ct => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
                   </select>
                   <input value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
-                    placeholder="Значение..." disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
+                    placeholder={t('add_modal.contact_value_placeholder')} disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
                   {!ro && <button onClick={() => setExtraContacts(prev => prev.filter((_, xi) => xi !== i))}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
                 </div>
@@ -521,32 +528,32 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Отдел *</label>
+              <label style={lbl}>{t('add_modal.department')} *</label>
               <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
-                <option value="">— Выберите отдел —</option>
+                <option value="">{t('add_modal.select_department')}</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Должность *</label>
+              <label style={lbl}>{t('add_modal.position')} *</label>
               <select value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
-                <option value="">— выберите должность —</option>
+                <option value="">{t('add_modal.select_position')}</option>
                 {positions.filter(p => p.category === 'academic').length > 0 && (
-                  <optgroup label="Преподавательские">
+                  <optgroup label={t('add_modal.category_academic')}>
                     {positions.filter(p => p.category === 'academic').map(p => (
                       <option key={p.id} value={p.id}>{p.name_ru}</option>
                     ))}
                   </optgroup>
                 )}
                 {positions.filter(p => p.category === 'administrative').length > 0 && (
-                  <optgroup label="Управленческие">
+                  <optgroup label={t('add_modal.category_administrative')}>
                     {positions.filter(p => p.category === 'administrative').map(p => (
                       <option key={p.id} value={p.id}>{p.name_ru}</option>
                     ))}
                   </optgroup>
                 )}
                 {positions.filter(p => p.category === 'support').length > 0 && (
-                  <optgroup label="Вспомогательные">
+                  <optgroup label={t('add_modal.category_support')}>
                     {positions.filter(p => p.category === 'support').map(p => (
                       <option key={p.id} value={p.id}>{p.name_ru}</option>
                     ))}
@@ -555,26 +562,26 @@ export default function AddEmployeeModal({
               </select>
             </div>
             <div>
-              <label style={lbl}>Дата приёма на работу *</label>
+              <label style={lbl}>{t('add_modal.hire_date')} *</label>
               <DateInput value={hireDate} onChange={setHireDate} />
             </div>
             <div>
-              <label style={lbl}>Тип занятости</label>
+              <label style={lbl}>{t('add_modal.employment_type')}</label>
               <select value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>
-                <option value="staff">Полная ставка</option>
-                <option value="part_time">Частичная ставка</option>
-                <option value="hourly">Почасовая</option>
-                <option value="intern">Стажёр</option>
+                <option value="staff">{t('add_modal.employment_staff')}</option>
+                <option value="part_time">{t('add_modal.employment_part_time')}</option>
+                <option value="hourly">{t('add_modal.employment_hourly')}</option>
+                <option value="intern">{t('add_modal.employment_intern')}</option>
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>График работы</label>
+              <label style={lbl}>{t('add_modal.work_schedule')}</label>
               <select value={workSchedule} onChange={e => setWorkSchedule(e.target.value)} style={inp}>
                 <option value="">—</option>
-                <option value="5_2">5/2</option>
-                <option value="shift">Сменный</option>
-                <option value="flexible">Гибкий</option>
-                <option value="remote">Дистанционный</option>
+                <option value="5_2">{t('add_modal.schedule_5_2')}</option>
+                <option value="shift">{t('add_modal.schedule_shift')}</option>
+                <option value="flexible">{t('add_modal.schedule_flexible')}</option>
+                <option value="remote">{t('add_modal.schedule_remote')}</option>
               </select>
             </div>
           </div>
@@ -584,51 +591,51 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Паспорт</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.passport_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
-                  <label style={lbl}>Серия паспорта</label>
+                  <label style={lbl}>{t('add_modal.passport_series')}</label>
                   <input value={passportSeries} onChange={e => setPassportSeries(e.target.value)} placeholder="1234" style={inp} />
                 </div>
                 <div>
-                  <label style={lbl}>Номер паспорта</label>
+                  <label style={lbl}>{t('add_modal.passport_number')}</label>
                   <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="567890" style={inp} />
                 </div>
                 <div>
-                  <label style={lbl}>Дата выдачи</label>
+                  <label style={lbl}>{t('add_modal.passport_issue_date')}</label>
                   <DateInput value={passportIssueDate} onChange={setPassportIssueDate} />
                 </div>
                 <div>
-                  <label style={lbl}>Кем выдан</label>
-                  <input value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder="МВД..." style={inp} />
+                  <label style={lbl}>{t('add_modal.passport_issued_by')}</label>
+                  <input value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder={t('add_modal.passport_issued_by_placeholder')} style={inp} />
                 </div>
               </div>
             </div>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Образование</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.education_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
-                  <label style={lbl}>Образование</label>
+                  <label style={lbl}>{t('add_modal.education_level')}</label>
                   <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} style={inp}>
                     <option value="">—</option>
-                    <option value="higher">Высшее</option>
-                    <option value="incomplete_higher">Незаконченное высшее</option>
-                    <option value="vocational">Среднее специальное</option>
-                    <option value="secondary">Среднее</option>
+                    <option value="higher">{t('add_modal.education_higher')}</option>
+                    <option value="incomplete_higher">{t('add_modal.education_incomplete_higher')}</option>
+                    <option value="vocational">{t('add_modal.education_vocational')}</option>
+                    <option value="secondary">{t('add_modal.education_secondary')}</option>
                   </select>
                 </div>
                 <div>
-                  <label style={lbl}>Год окончания</label>
+                  <label style={lbl}>{t('add_modal.graduation_year')}</label>
                   <input type="number" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} placeholder="2020" style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={lbl}>Специальность</label>
-                  <input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder="Менеджмент" style={inp} />
+                  <label style={lbl}>{t('add_modal.specialty')}</label>
+                  <input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder={t('add_modal.specialty_placeholder')} style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={lbl}>Сертификаты</label>
+                  <label style={lbl}>{t('add_modal.certificates')}</label>
                   <textarea value={certificates} onChange={e => setCertificates(e.target.value)} rows={3}
-                    placeholder="Список сертификатов и дополнительного обучения..." style={{ ...inp, resize: 'vertical' }} />
+                    placeholder={t('add_modal.certificates_placeholder')} style={{ ...inp, resize: 'vertical' }} />
                 </div>
               </div>
             </div>
@@ -639,19 +646,19 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Номер договора</label>
-              <input value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder="ТД-2026-001" style={inp} />
+              <label style={lbl}>{t('add_modal.contract_number')}</label>
+              <input value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder={t('add_modal.contract_number_placeholder')} style={inp} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Дата заключения</label>
+              <label style={lbl}>{t('add_modal.contract_date')}</label>
               <DateInput value={contractDate} onChange={setContractDate} />
             </div>
             <div>
-              <label style={lbl}>Оклад / Ставка</label>
+              <label style={lbl}>{t('add_modal.salary')}</label>
               <input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="10000" style={inp} />
             </div>
             <div>
-              <label style={lbl}>Валюта</label>
+              <label style={lbl}>{t('add_modal.currency')}</label>
               <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
                 <option value="ILS">ILS (₪)</option>
                 <option value="USD">USD ($)</option>
@@ -660,18 +667,18 @@ export default function AddEmployeeModal({
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={lbl}>Прикрепить файл договора</label>
+              <label style={lbl}>{t('add_modal.attach_contract_file')}</label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed #D1D5DB', borderRadius: 8, cursor: 'pointer', background: '#F9FAFB' }}>
                 <span style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', padding: '4px 12px', border: '1px solid #3B82F6', borderRadius: 6, background: '#fff' }}>
-                  Выбрать файл
+                  {t('add_modal.choose_file')}
                 </span>
                 <span style={{ fontSize: 12, color: contractFile ? '#1F2937' : '#9CA3AF' }}>
-                  {contractFile ? contractFile.name : 'Файл не выбран'}
+                  {contractFile ? contractFile.name : t('add_modal.no_file_chosen')}
                 </span>
                 <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
                   onChange={e => setContractFile(e.target.files?.[0] ?? null)} />
               </label>
-              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Необязательно · PDF, DOC, DOCX</div>
+              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.file_optional_hint')}</div>
             </div>
           </div>
         )
@@ -679,9 +686,9 @@ export default function AddEmployeeModal({
       case 5:
         return (
           <div>
-            <label style={lbl}>Комментарий</label>
+            <label style={lbl}>{t('add_modal.comment')}</label>
             <textarea value={comment} onChange={e => setComment(e.target.value)} rows={6}
-              style={{ ...inp, resize: 'vertical' }} placeholder="Дополнительные заметки о сотруднике..." />
+              style={{ ...inp, resize: 'vertical' }} placeholder={t('add_modal.comment_placeholder')} />
           </div>
         )
 
@@ -695,7 +702,7 @@ export default function AddEmployeeModal({
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>Добавить сотрудника</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{t('add_modal.title')}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
@@ -704,11 +711,11 @@ export default function AddEmployeeModal({
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#6B7280' }}>
-                Человек: <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+                {t('add_modal.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                изменить
+                {t('add_modal.change_person')}
               </button>
             </div>
           )}
@@ -747,26 +754,26 @@ export default function AddEmployeeModal({
         {/* Footer */}
         <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
-            Отмена
+            {tCommon('cancel')}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
                 style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-                Назад
+                {t('add_modal.back_button')}
               </button>
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
-                Далее
+                {t('add_modal.next_button')}
               </button>
             )}
             {tabIdx === 5 && (
               <button onClick={handleSave} disabled={saving}
                 style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-                {saving ? 'Сохранение...' : 'Сохранить'}
+                {saving ? t('add_modal.saving') : t('add_modal.save_button')}
               </button>
             )}
           </div>

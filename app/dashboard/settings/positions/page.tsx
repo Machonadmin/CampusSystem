@@ -4,15 +4,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 
 const accent = getModuleColor('settings')
 
-const CATEGORY_LABELS: Record<PositionCategory, string> = {
-  academic:       'Преподавательская',
-  administrative: 'Управленческая',
-  support:        'Вспомогательная',
-}
 const CATEGORY_COLORS: Record<PositionCategory, { bg: string; fg: string }> = {
   academic:       { bg: '#EEF2FF', fg: '#3730A3' },
   administrative: { bg: '#FEF3C7', fg: '#92400E' },
@@ -25,6 +21,8 @@ interface ModalState {
 }
 
 export default function PositionsPage() {
+  const t = useTranslations('settings.reference_positions')
+  const tNav = useTranslations('navigation')
   const [positions, setPositions] = useState<ReferencePositionRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -34,6 +32,12 @@ export default function PositionsPage() {
 
   const [modal, setModal] = useState<ModalState | null>(null)
 
+  const CATEGORY_LABELS: Record<PositionCategory, string> = {
+    academic: t('cat_academic'),
+    administrative: t('cat_administrative'),
+    support: t('cat_support'),
+  }
+
   const loadData = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -42,30 +46,30 @@ export default function PositionsPage() {
       if (filterCategory) params.set('category', filterCategory)
       params.set('active_only', showInactive ? 'false' : 'true')
       const resp = await fetch(`/api/settings/positions?${params}`)
-      if (!resp.ok) throw new Error(`Ошибка загрузки: ${resp.status}`)
+      if (!resp.ok) throw new Error(t('error_load').replace('{status}', String(resp.status)))
       const json = await resp.json()
       setPositions(json.positions ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : t('error_generic'))
     } finally {
       setLoading(false)
     }
-  }, [filterCategory, showInactive])
+  }, [filterCategory, showInactive, t])
 
   useEffect(() => { loadData() }, [loadData])
 
   const handleDeactivate = async (pos: ReferencePositionRow) => {
-    if (!confirm(`Деактивировать должность «${pos.name_ru}»?`)) return
+    if (!confirm(t('deactivate_confirm').replace('{name}', pos.name_ru))) return
     try {
       const resp = await fetch(`/api/settings/positions/${pos.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Ошибка')
+        alert(err.error ?? t('error_generic'))
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка')
+      alert(e instanceof Error ? e.message : t('error_generic'))
     }
   }
 
@@ -78,12 +82,12 @@ export default function PositionsPage() {
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Ошибка')
+        alert(err.error ?? t('error_generic'))
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка')
+      alert(e instanceof Error ? e.message : t('error_generic'))
     }
   }
 
@@ -99,9 +103,9 @@ export default function PositionsPage() {
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Настройки', href: '/dashboard/settings' },
-        { label: 'Справочник должностей' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('settings'), href: '/dashboard/settings' },
+        { label: t('title') },
       ]} />
 
       <div
@@ -113,35 +117,35 @@ export default function PositionsPage() {
         }}
       >
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>
-          Справочник должностей
+          {t('title')}
         </h1>
       </div>
 
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={filterCategory} onChange={e => setFilterCategory(e.target.value as PositionCategory | '')} style={inp}>
-          <option value="">Все категории</option>
-          <option value="academic">Преподавательские</option>
-          <option value="administrative">Управленческие</option>
-          <option value="support">Вспомогательные</option>
+          <option value="">{t('all_categories')}</option>
+          <option value="academic">{t('cat_academic')}</option>
+          <option value="administrative">{t('cat_administrative')}</option>
+          <option value="support">{t('cat_support')}</option>
         </select>
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
           <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
-          Показать неактивные
+          {t('show_inactive')}
         </label>
 
         <div style={{ flex: 1 }} />
 
         <PageActionButton
-          label="Добавить должность"
+          label={t('add_button')}
           onClick={() => setModal({ mode: 'create', item: null })}
           accentColor={accent}
         />
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>
+        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('loading')}</div>
       )}
 
       {error && (
@@ -153,20 +157,20 @@ export default function PositionsPage() {
       {!loading && !error && (
         positions.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {filterCategory ? 'Ничего не найдено' : 'Должностей пока нет'}
+            {filterCategory ? t('empty_search') : t('empty_none')}
           </div>
         ) : (
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
-                  <th style={thStyle}>Должность</th>
-                  <th style={thStyle}>Иврит</th>
-                  <th style={thStyle}>Категория</th>
-                  <th style={{ ...thStyle, width: 110, textAlign: 'center' }}>Преподавательская</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Порядок</th>
-                  <th style={{ ...thStyle, width: 100 }}>Статус</th>
-                  <th style={{ ...thStyle, width: 200 }}>Действия</th>
+                  <th style={thStyle}>{t('table_position')}</th>
+                  <th style={thStyle}>{t('table_hebrew')}</th>
+                  <th style={thStyle}>{t('table_category')}</th>
+                  <th style={{ ...thStyle, width: 110, textAlign: 'center' }}>{t('table_teaching')}</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('table_sort_order')}</th>
+                  <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
+                  <th style={{ ...thStyle, width: 200 }}>{t('table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -193,7 +197,7 @@ export default function PositionsPage() {
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
                         {pos.is_teaching
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>Да</span>
+                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('yes')}</span>
                           : <span style={{ color: '#D1D5DB' }}>—</span>}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>
@@ -201,27 +205,27 @@ export default function PositionsPage() {
                       </td>
                       <td style={tdStyle}>
                         {pos.is_active
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>Активна</span>
-                          : <span style={{ color: '#9CA3AF' }}>Неактивна</span>}
+                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('status_active')}</span>
+                          : <span style={{ color: '#9CA3AF' }}>{t('status_inactive')}</span>}
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 5 }}>
                           <button onClick={() => setModal({ mode: 'edit', item: pos })} style={btnSecondary}>
-                            Изменить
+                            {t('edit')}
                           </button>
                           {pos.is_active ? (
                             <button
                               onClick={() => handleDeactivate(pos)}
                               style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
                             >
-                              Деактивировать
+                              {t('deactivate')}
                             </button>
                           ) : (
                             <button
                               onClick={() => handleRestore(pos)}
                               style={{ ...btnSecondary, color: '#059669', borderColor: '#6EE7B7' }}
                             >
-                              Восстановить
+                              {t('restore')}
                             </button>
                           )}
                         </div>
@@ -257,6 +261,7 @@ interface ModalProps {
 }
 
 function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
+  const t = useTranslations('settings.reference_positions')
   const [nameRu, setNameRu] = useState(initial?.name_ru ?? '')
   const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
   const [category, setCategory] = useState<PositionCategory>(initial?.category ?? 'academic')
@@ -265,13 +270,19 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const CATEGORY_LABELS: Record<PositionCategory, string> = {
+    academic: t('cat_academic'),
+    administrative: t('cat_administrative'),
+    support: t('cat_support'),
+  }
+
   useEffect(() => {
     if (category !== 'academic') setIsTeaching(false)
   }, [category])
 
   const handleSubmit = async () => {
     const trimmed = nameRu.trim()
-    if (!trimmed) { setError('Название обязательно'); return }
+    if (!trimmed) { setError(t('name_required')); return }
 
     setSaving(true)
     setError(null)
@@ -294,12 +305,12 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        setError(err.error ?? 'Ошибка сохранения')
+        setError(err.error ?? t('save_error'))
         return
       }
       onSaved()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка')
+      setError(e instanceof Error ? e.message : t('error_generic'))
     } finally {
       setSaving(false)
     }
@@ -333,22 +344,22 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
         }}>×</button>
 
         <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px 0', color: '#111827' }}>
-          {mode === 'create' ? 'Новая должность' : 'Редактировать должность'}
+          {mode === 'create' ? t('modal_create_title') : t('modal_edit_title')}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={lbl}>Название (русский) *</label>
-            <input value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder="Преподаватель" style={inp} />
+            <label style={lbl}>{t('name_ru_label')} *</label>
+            <input value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder={t('name_ru_placeholder')} style={inp} />
           </div>
 
           <div>
-            <label style={lbl}>Название (иврит)</label>
+            <label style={lbl}>{t('name_he_label')}</label>
             <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder="מורה" dir="rtl" style={inp} />
           </div>
 
           <div>
-            <label style={lbl}>Категория *</label>
+            <label style={lbl}>{t('category_label')} *</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {(['academic', 'administrative', 'support'] as PositionCategory[]).map(cat => (
                 <label key={cat} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
@@ -375,14 +386,14 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
               disabled={category !== 'academic'}
               onChange={e => setIsTeaching(e.target.checked)}
             />
-            Преподавательская должность
+            {t('is_teaching_label')}
             {category !== 'academic' && (
-              <span style={{ fontSize: 11, color: '#9CA3AF' }}>(только для «Преподавательской»)</span>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t('is_teaching_hint')}</span>
             )}
           </label>
 
           <div>
-            <label style={lbl}>Порядок сортировки</label>
+            <label style={lbl}>{t('sort_order_label')}</label>
             <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inp, width: 100 }} />
           </div>
         </div>
@@ -398,7 +409,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             padding: '8px 16px', fontSize: 13, color: '#6B7280',
             background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer',
           }}>
-            Отмена
+            {t('cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -409,7 +420,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
               cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
             }}
           >
-            {saving ? 'Сохранение…' : mode === 'create' ? 'Добавить' : 'Сохранить'}
+            {saving ? t('saving') : mode === 'create' ? t('add_confirm_button') : t('save_button')}
           </button>
         </div>
       </div>

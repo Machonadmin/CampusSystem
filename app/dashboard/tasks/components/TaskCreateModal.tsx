@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -14,88 +15,33 @@ type SeriesEnd    = 'never' | 'until_date' | 'after_count'
 interface Department { id: string; name: string }
 interface Watcher   { id: string; full_name: string }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Locale-aware calendar helpers (Intl instead of hand-rolled name tables) ──
 
-const WEEKDAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-const MONTH_LABELS   = [
-  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
-]
-const PRIORITIES = [
-  { value: 'urgent', label: 'Срочно',   color: '#DC2626' },
-  { value: 'high',   label: 'Высокий',  color: '#D97706' },
-  { value: 'normal', label: 'Обычный',  color: '#2563EB' },
-  { value: 'low',    label: 'Низкий',   color: '#6B7280' },
-] as const
+function localeFor(lang: string): string {
+  return lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+}
 
-const FREQ_OPTIONS: { value: RecurrenceFrequency; label: string; sub: string }[] = [
-  { value: 'daily',   label: 'Каждый день',   sub: 'Ежедневные задачи' },
-  { value: 'weekly',  label: 'Каждую неделю', sub: 'В выбранные дни' },
-  { value: 'monthly', label: 'Каждый месяц',  sub: 'В конкретное число' },
-  { value: 'yearly',  label: 'Каждый год',    sub: 'В конкретную дату' },
-]
+// 2024-01-01 is a Monday — used as a stable anchor week to derive localized weekday names.
+function weekdayLabel(lang: string, wd: number, format: 'short' | 'long'): string {
+  const d = new Date(Date.UTC(2024, 0, wd))
+  return d.toLocaleDateString(localeFor(lang), { weekday: format, timeZone: 'UTC' })
+}
+
+function monthLabel(lang: string, month1to12: number): string {
+  const d = new Date(Date.UTC(2024, month1to12 - 1, 1))
+  return d.toLocaleDateString(localeFor(lang), { month: 'long', timeZone: 'UTC' })
+}
+
+function formatFullDate(lang: string, iso: string): string {
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
+
+const PRIORITY_VALUES = ['urgent', 'high', 'normal', 'low'] as const
+const PRIORITY_COLORS: Record<typeof PRIORITY_VALUES[number], string> = {
+  urgent: '#DC2626', high: '#D97706', normal: '#2563EB', low: '#6B7280',
+}
 
 const today = () => new Date().toISOString().slice(0, 10)
-
-// ── Helper: human-readable preview ───────────────────────────────────────────
-
-function computeNextOccurrence(
-  kind: TaskKind,
-  dueDate: string,
-  dueTimeType: DueTimeType,
-  dueTime: string,
-  frequency: RecurrenceFrequency,
-  recurrenceStartDate: string,
-  weekdays: number[],
-  monthDay: string,
-  yearMonth: string,
-  yearDay: string,
-  enableTime: boolean,
-  recurrenceTime: string,
-): string {
-  const RU_DAYS  = ['', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-  const RU_MONTHS = [
-    '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
-  ]
-  const timeStr = (t: string) => t ? ` в ${t}` : ''
-
-  if (kind === 'once') {
-    if (!dueDate) return '—'
-    const d = new Date(dueDate + 'T00:00:00Z')
-    const day   = d.getUTCDate()
-    const month = RU_MONTHS[d.getUTCMonth() + 1]
-    const year  = d.getUTCFullYear()
-    const t = dueTimeType === 'exact' && dueTime ? ` в ${dueTime}` : ''
-    return `${day} ${month} ${year}${t}`
-  }
-
-  // Recurring
-  if (!recurrenceStartDate) return '—'
-  const sd  = new Date(recurrenceStartDate + 'T00:00:00Z')
-  const day = sd.getUTCDate()
-  const mon = RU_MONTHS[sd.getUTCMonth() + 1]
-  const yr  = sd.getUTCFullYear()
-  const t   = enableTime && recurrenceTime ? timeStr(recurrenceTime) : ''
-
-  if (frequency === 'daily') {
-    return `${day} ${mon} ${yr}${t}`
-  }
-  if (frequency === 'weekly') {
-    const wdNames = weekdays.sort((a, b) => a - b).map(w => RU_DAYS[w]).join(', ')
-    return wdNames ? `${wdNames}${t}, начиная с ${day} ${mon} ${yr}` : '—'
-  }
-  if (frequency === 'monthly') {
-    const d = parseInt(monthDay, 10)
-    return d ? `${d}-го числа каждого месяца${t}` : '—'
-  }
-  if (frequency === 'yearly') {
-    const m = parseInt(yearMonth, 10)
-    const d = parseInt(yearDay, 10)
-    return m && d ? `${d} ${RU_MONTHS[m]} каждого года${t}` : '—'
-  }
-  return '—'
-}
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -108,6 +54,16 @@ interface TaskCreateModalProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function TaskCreateModal({ currentUserId, onClose, onSaved }: TaskCreateModalProps) {
+  const t = useTranslations('tasks')
+  const tCommon = useTranslations('common')
+  const { lang } = useLang()
+
+  const FREQ_OPTIONS: { value: RecurrenceFrequency; label: string; sub: string }[] = [
+    { value: 'daily',   label: t('create_modal.freq_daily_label'),   sub: t('create_modal.freq_daily_sub') },
+    { value: 'weekly',  label: t('create_modal.freq_weekly_label'),  sub: t('create_modal.freq_weekly_sub') },
+    { value: 'monthly', label: t('create_modal.freq_monthly_label'), sub: t('create_modal.freq_monthly_sub') },
+    { value: 'yearly',  label: t('create_modal.freq_yearly_label'),  sub: t('create_modal.freq_yearly_sub') },
+  ]
 
   // ── core fields ──
   const [title,       setTitle]       = useState('')
@@ -176,18 +132,18 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
     e.preventDefault()
     setError(null)
 
-    if (!title.trim()) { setError('Введите название задачи'); return }
-    if (assigneeMode === 'person' && !assigneePersonId) { setError('Выберите исполнителя'); return }
-    if (assigneeMode === 'department' && !assigneeDepartmentId) { setError('Выберите отдел'); return }
+    if (!title.trim()) { setError(t('create_modal.error_title_required')); return }
+    if (assigneeMode === 'person' && !assigneePersonId) { setError(t('create_modal.error_assignee_required')); return }
+    if (assigneeMode === 'department' && !assigneeDepartmentId) { setError(t('create_modal.error_department_required')); return }
 
     if (kind === 'recurring' && frequency === 'weekly' && weekdays.length === 0) {
-      setError('Выберите хотя бы один день недели'); return
+      setError(t('create_modal.error_weekday_required')); return
     }
     if (kind === 'recurring' && frequency === 'monthly' && !monthDay) {
-      setError('Укажите день месяца'); return
+      setError(t('create_modal.error_month_day_required')); return
     }
     if (kind === 'recurring' && frequency === 'yearly' && (!yearMonth || !yearDay)) {
-      setError('Укажите месяц и день для ежегодной задачи'); return
+      setError(t('create_modal.error_yearly_required')); return
     }
 
     setSaving(true)
@@ -244,23 +200,57 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
       if (!resp.ok) {
         const j = await resp.json().catch(() => ({}))
-        throw new Error(j.error ?? `Ошибка ${resp.status}`)
+        throw new Error(j.error ?? `${t('create_modal.error_unknown')} ${resp.status}`)
       }
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+      setError(err instanceof Error ? err.message : t('create_modal.error_unknown'))
     } finally {
       setSaving(false)
     }
   }
 
   // ── preview ──
-  const preview = computeNextOccurrence(
-    kind, dueDate, dueTimeType, dueTime,
-    frequency, recurrenceStartDate, weekdays,
-    monthDay, yearMonth, yearDay,
-    enableTime, recurrenceTime,
-  )
+  function computePreview(): string {
+    const timeStr = (time: string) => time ? ` ${t('create_modal.preview_at_time').replace('{time}', time)}` : ''
+
+    if (kind === 'once') {
+      if (!dueDate) return t('create_modal.preview_no_date')
+      const timePart = dueTimeType === 'exact' && dueTime ? timeStr(dueTime) : ''
+      return `${formatFullDate(lang, dueDate)}${timePart}`
+    }
+
+    if (!recurrenceStartDate) return t('create_modal.preview_no_date')
+    const timePart = enableTime && recurrenceTime ? timeStr(recurrenceTime) : ''
+
+    if (frequency === 'daily') {
+      return `${formatFullDate(lang, recurrenceStartDate)}${timePart}`
+    }
+    if (frequency === 'weekly') {
+      const names = [...weekdays].sort((a, b) => a - b).map(w => weekdayLabel(lang, w, 'long')).join(', ')
+      if (!names) return t('create_modal.preview_no_date')
+      return t('create_modal.preview_weekly')
+        .replace('{days}', names)
+        .replace('{time}', timePart)
+        .replace('{date}', formatFullDate(lang, recurrenceStartDate))
+    }
+    if (frequency === 'monthly') {
+      const d = parseInt(monthDay, 10)
+      if (!d) return t('create_modal.preview_no_date')
+      return t('create_modal.preview_monthly').replace('{day}', String(d)).replace('{time}', timePart)
+    }
+    if (frequency === 'yearly') {
+      const m = parseInt(yearMonth, 10)
+      const d = parseInt(yearDay, 10)
+      if (!m || !d) return t('create_modal.preview_no_date')
+      return t('create_modal.preview_yearly')
+        .replace('{day}', String(d))
+        .replace('{month}', monthLabel(lang, m))
+        .replace('{time}', timePart)
+    }
+    return t('create_modal.preview_no_date')
+  }
+  const preview = computePreview()
 
   // ── styles ──
   const inp: React.CSSProperties = {
@@ -303,7 +293,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', margin: 0 }}>
-            Новая задача
+            {t('create_modal.title')}
           </h2>
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#6B7280', lineHeight: 1 }}>×</button>
         </div>
@@ -313,11 +303,11 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Title */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>НАЗВАНИЕ *</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="Что нужно сделать?"
+              placeholder={t('create_modal.name_placeholder')}
               style={inp}
               autoFocus
             />
@@ -325,11 +315,11 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Description */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>ОПИСАНИЕ</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Подробности (необязательно)"
+              placeholder={t('create_modal.description_placeholder')}
               rows={2}
               style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }}
             />
@@ -337,32 +327,32 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Kind toggle */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ТИП ЗАДАЧИ</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.type_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={() => setKind('once')}      style={segBtn(kind === 'once')}>Разовая</button>
-              <button type="button" onClick={() => setKind('recurring')} style={segBtn(kind === 'recurring')}>Регулярная</button>
+              <button type="button" onClick={() => setKind('once')}      style={segBtn(kind === 'once')}>{t('create_modal.type_once')}</button>
+              <button type="button" onClick={() => setKind('recurring')} style={segBtn(kind === 'recurring')}>{t('create_modal.type_recurring')}</button>
             </div>
           </div>
 
           {/* Assignee */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ИСПОЛНИТЕЛЬ</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.assignee_label')}</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <button type="button" onClick={() => setAssigneeMode('me')}         style={assigneeBtn('me')}>Себя</button>
-              <button type="button" onClick={() => setAssigneeMode('person')}     style={assigneeBtn('person')}>Сотрудника</button>
-              <button type="button" onClick={() => setAssigneeMode('department')} style={assigneeBtn('department')}>Отдел</button>
+              <button type="button" onClick={() => setAssigneeMode('me')}         style={assigneeBtn('me')}>{t('create_modal.assignee_me')}</button>
+              <button type="button" onClick={() => setAssigneeMode('person')}     style={assigneeBtn('person')}>{t('create_modal.assignee_person')}</button>
+              <button type="button" onClick={() => setAssigneeMode('department')} style={assigneeBtn('department')}>{t('create_modal.assignee_department')}</button>
             </div>
             {assigneeMode === 'person' && (
               <PersonSelect
                 value={assigneePersonId}
                 onChange={id => setAssigneePersonId(id)}
-                placeholder="Выберите исполнителя…"
+                placeholder={t('create_modal.assignee_select_placeholder')}
                 accentColor="#F59E0B"
               />
             )}
             {assigneeMode === 'department' && (
               <select value={assigneeDepartmentId} onChange={e => setAssigneeDepartmentId(e.target.value)} style={inp}>
-                <option value="">Выберите отдел…</option>
+                <option value="">{t('create_modal.department_select_placeholder')}</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             )}
@@ -371,10 +361,10 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           {/* ── ONE-TIME DUE ── */}
           {kind === 'once' && (
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>СРОК</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.due_label')}</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <button type="button" onClick={() => setDueTimeType('allday')} style={segBtn(dueTimeType === 'allday')}>До конца дня</button>
-                <button type="button" onClick={() => setDueTimeType('exact')}  style={segBtn(dueTimeType === 'exact')}>Точное время</button>
+                <button type="button" onClick={() => setDueTimeType('allday')} style={segBtn(dueTimeType === 'allday')}>{t('create_modal.due_allday')}</button>
+                <button type="button" onClick={() => setDueTimeType('exact')}  style={segBtn(dueTimeType === 'exact')}>{t('create_modal.due_exact')}</button>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={{ ...inp, flex: 1 }} />
@@ -390,13 +380,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             <>
               {/* Start date */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>НАЧАТЬ С</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
                 <input type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
               </div>
 
               {/* Frequency cards */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ЧАСТОТА</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {FREQ_OPTIONS.map(opt => {
                     const active = frequency === opt.value
@@ -423,10 +413,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Weekly weekdays */}
               {frequency === 'weekly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ДНИ НЕДЕЛИ</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.weekdays_label')}</label>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    {WEEKDAY_LABELS.map((label, i) => {
-                      const wd = i + 1  // 1=Пн..7=Вс
+                    {Array.from({ length: 7 }, (_, i) => i + 1).map(wd => {
                       const on = weekdays.includes(wd)
                       return (
                         <button
@@ -441,7 +430,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                             cursor: 'pointer',
                           }}
                         >
-                          {label}
+                          {weekdayLabel(lang, wd, 'short')}
                         </button>
                       )
                     })}
@@ -452,11 +441,11 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Monthly day */}
               {frequency === 'monthly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>ЧИСЛО МЕСЯЦА</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
                   <input
                     type="number" min={1} max={31} value={monthDay}
                     onChange={e => setMonthDay(e.target.value)}
-                    placeholder="1–31"
+                    placeholder={t('create_modal.month_day_placeholder')}
                     style={{ ...inp, maxWidth: 100 }}
                   />
                 </div>
@@ -466,17 +455,17 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {frequency === 'yearly' && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>МЕСЯЦ</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
                     <select value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
-                      {MONTH_LABELS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthLabel(lang, m)}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>ДЕНЬ</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
                     <input
                       type="number" min={1} max={31} value={yearDay}
                       onChange={e => setYearDay(e.target.value)}
-                      placeholder="1–31"
+                      placeholder={t('create_modal.day_placeholder')}
                       style={inp}
                     />
                   </div>
@@ -487,7 +476,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                   <input type="checkbox" checked={enableTime} onChange={e => setEnableTime(e.target.checked)} />
-                  С конкретным временем
+                  {t('create_modal.specific_time_label')}
                 </label>
                 {enableTime && (
                   <input type="time" value={recurrenceTime} onChange={e => setRecurrenceTime(e.target.value)}
@@ -497,12 +486,12 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
               {/* Series end */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ЗАВЕРШЕНИЕ СЕРИИ</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   {([
-                    ['never',       'Никогда'],
-                    ['until_date',  'До даты'],
-                    ['after_count', 'После N'],
+                    ['never',       t('create_modal.series_end_never')],
+                    ['until_date',  t('create_modal.series_end_until')],
+                    ['after_count', t('create_modal.series_end_after_count')],
                   ] as const).map(([val, lbl]) => (
                     <button
                       key={val}
@@ -524,14 +513,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                       onChange={e => setSeriesCount(e.target.value)}
                       style={{ ...inp, maxWidth: 100 }}
                     />
-                    <span style={{ fontSize: 13, color: '#6B7280' }}>повторений</span>
+                    <span style={{ fontSize: 13, color: '#6B7280' }}>{t('create_modal.occurrences_suffix')}</span>
                   </div>
                 )}
               </div>
 
               {/* Preview */}
               <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#374151' }}>
-                <span style={{ fontWeight: 600, color: '#6B7280', fontSize: 12 }}>БЛИЖАЙШИЙ СРОК: </span>
+                <span style={{ fontWeight: 600, color: '#6B7280', fontSize: 12 }}>{t('create_modal.next_occurrence_label')} </span>
                 {preview}
               </div>
             </>
@@ -539,24 +528,25 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Priority */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>ПРИОРИТЕТ</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.priority_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              {PRIORITIES.map(p => {
-                const active = priority === p.value
+              {PRIORITY_VALUES.map(p => {
+                const active = priority === p
+                const color = PRIORITY_COLORS[p]
                 return (
                   <button
-                    key={p.value}
+                    key={p}
                     type="button"
-                    onClick={() => setPriority(p.value)}
+                    onClick={() => setPriority(p)}
                     style={{
                       flex: 1, padding: '6px 0', fontSize: 12, fontWeight: active ? 700 : 400,
-                      border: '1px solid ' + (active ? p.color : '#D1D5DB'),
+                      border: '1px solid ' + (active ? color : '#D1D5DB'),
                       borderRadius: 8, cursor: 'pointer',
-                      background: active ? p.color + '18' : '#fff',
-                      color: active ? p.color : '#6B7280',
+                      background: active ? color + '18' : '#fff',
+                      color: active ? color : '#6B7280',
                     }}
                   >
-                    {p.label}
+                    {t(`priority.${p}`, p)}
                   </button>
                 )
               })}
@@ -565,7 +555,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Watchers */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>НАБЛЮДАТЕЛИ</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.watchers_label')}</label>
             {watchers.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {watchers.map(w => (
@@ -587,7 +577,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             <PersonSelect
               value={watcherPersonId}
               onChange={(id, data) => addWatcher(id, data as { id: string; full_name: string })}
-              placeholder="Добавить наблюдателя…"
+              placeholder={t('create_modal.watcher_placeholder')}
               accentColor="#F59E0B"
             />
           </div>
@@ -607,7 +597,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         }}>
           <button type="button" onClick={onClose}
             style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', color: '#374151' }}>
-            Отмена
+            {tCommon('cancel')}
           </button>
           <button
             type="submit"
@@ -620,7 +610,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               background: '#F59E0B', color: '#fff', opacity: saving ? 0.7 : 1,
             }}
           >
-            {saving ? 'Создание…' : (kind === 'once' ? 'Создать задачу' : 'Создать серию')}
+            {saving ? t('create_modal.creating_button') : (kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button'))}
           </button>
         </div>
       </div>

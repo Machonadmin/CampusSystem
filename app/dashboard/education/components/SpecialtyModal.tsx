@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department {
   id: string
@@ -28,6 +29,7 @@ interface Props {
 const accent = getModuleColor('education')
 
 export default function SpecialtyModal({ mode, initial, departments, onClose, onSaved }: Props) {
+  const t = useTranslations('education.study')
   const [name, setName] = useState(initial?.name ?? '')
   const [code, setCode] = useState(initial?.code ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
@@ -38,8 +40,8 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError('Название обязательно'); return }
-    if (!departmentId) { setError('Выберите подразделение'); return }
+    if (!name.trim()) { setError(t('common.name_required')); return }
+    if (!departmentId) { setError(t('common.department_required')); return }
 
     setSaving(true)
     setError(null)
@@ -63,13 +65,13 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
       })
       if (!resp.ok) {
         const errJson = await resp.json().catch(() => ({}))
-        setError(errJson.error ?? `Ошибка ${resp.status}`)
+        setError(errJson.error ?? `${t('common.error_generic')} ${resp.status}`)
         setSaving(false)
         return
       }
       onSaved()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка отправки')
+      setError(e instanceof Error ? e.message : t('common.error_send_generic'))
       setSaving(false)
     }
   }
@@ -100,37 +102,37 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
-            {mode === 'create' ? 'Новая специальность' : 'Редактирование специальности'}
+            {mode === 'create' ? t('specialties.modal_create_title') : t('specialties.modal_edit_title')}
           </h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Название *</label>
+            <label style={lbl}>{t('common.name_label')} *</label>
             <input
               type="text" value={name} onChange={e => setName(e.target.value)}
-              style={inp} autoFocus placeholder="Программирование"
+              style={inp} autoFocus placeholder={t('specialties.name_placeholder')}
             />
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Код <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(необязательно)</span></label>
+            <label style={lbl}>{t('specialties.code_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
             <input
               type="text" value={code} onChange={e => setCode(e.target.value)}
-              style={inp} placeholder="PR"
+              style={inp} placeholder={t('specialties.code_placeholder')}
               maxLength={50}
             />
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Подразделение *</label>
+            <label style={lbl}>{t('common.department_label')} *</label>
             <select
               value={departmentId}
               onChange={e => setDepartmentId(e.target.value)}
               style={inp}
             >
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
@@ -139,7 +141,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
 
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>Порядок сортировки</label>
+              <label style={lbl}>{t('common.sort_order_label')}</label>
               <input
                 type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)}
                 style={inp} min={0}
@@ -153,7 +155,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
                     checked={isActive}
                     onChange={e => setIsActive(e.target.checked)}
                   />
-                  Активная
+                  {t('specialties.active_checkbox')}
                 </label>
               </div>
             )}
@@ -178,7 +180,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
                 background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer',
               }}
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -190,7 +192,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
                 opacity: saving ? 0.6 : 1,
               }}
             >
-              {saving ? 'Сохранение…' : (mode === 'create' ? 'Создать' : 'Сохранить')}
+              {saving ? t('common.saving') : (mode === 'create' ? t('common.create') : t('common.save'))}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department { id: string; name: string }
 interface Specialty { id: string; name: string; code: string | null }
@@ -28,6 +29,7 @@ interface Props {
 const accent = getModuleColor('education')
 
 export default function StudyGroupModal({ mode, initial, departments, onClose, onSaved }: Props) {
+  const t = useTranslations('education.study')
   const [name, setName] = useState(initial?.name ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
   const [specialtyId, setSpecialtyId] = useState(initial?.specialty_id ?? '')
@@ -64,8 +66,8 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError('Название обязательно'); return }
-    if (!departmentId) { setError('Выберите подразделение'); return }
+    if (!name.trim()) { setError(t('common.name_required')); return }
+    if (!departmentId) { setError(t('common.department_required')); return }
 
     setSaving(true)
     setError(null)
@@ -91,13 +93,13 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
       })
       if (!resp.ok) {
         const errJson = await resp.json().catch(() => ({}))
-        setError(errJson.error ?? `Ошибка ${resp.status}`)
+        setError(errJson.error ?? `${t('common.error_generic')} ${resp.status}`)
         setSaving(false)
         return
       }
       onSaved()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка отправки')
+      setError(e instanceof Error ? e.message : t('common.error_send_generic'))
       setSaving(false)
     }
   }
@@ -129,45 +131,45 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
-            {mode === 'create' ? 'Новая базовая группа' : 'Редактирование группы'}
+            {mode === 'create' ? t('groups.modal_create_title') : t('groups.modal_edit_title')}
           </h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Название *</label>
+            <label style={lbl}>{t('common.name_label')} *</label>
             <input
               type="text" value={name} onChange={e => setName(e.target.value)}
-              style={inp} autoFocus placeholder="Группа А"
+              style={inp} autoFocus placeholder={t('groups.name_placeholder')}
             />
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Подразделение *</label>
+            <label style={lbl}>{t('common.department_label')} *</label>
             <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Специальность <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(необязательно)</span></label>
+            <label style={lbl}>{t('groups.specialty_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
             {!departmentId ? (
               <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
-                Сначала выберите подразделение
+                {t('groups.select_dept_first')}
               </div>
             ) : specLoading ? (
               <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
-                Загрузка…
+                {t('common.loading')}
               </div>
             ) : specialties.length === 0 ? (
               <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
-                У этого подразделения нет специальностей
+                {t('groups.specialty_none_for_dept')}
               </div>
             ) : (
               <select value={specialtyId} onChange={e => setSpecialtyId(e.target.value)} style={inp}>
-                <option value="">— без специальности —</option>
+                <option value="">{t('groups.specialty_none_option')}</option>
                 {specialties.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.code ? `[${s.code}] ${s.name}` : s.name}
@@ -179,27 +181,27 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
 
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>Курс / Класс <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(необяз.)</span></label>
+              <label style={lbl}>{t('groups.year_level_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
               <input
                 type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
-                style={inp} placeholder="1, 2, 10…" min={1} max={99}
+                style={inp} placeholder={t('groups.year_level_placeholder')} min={1} max={99}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>Год набора <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(необяз.)</span></label>
+              <label style={lbl}>{t('groups.year_start_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
               <input
                 type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
-                style={inp} placeholder="2025" min={2000} max={2100}
+                style={inp} placeholder={t('groups.year_start_placeholder')} min={2000} max={2100}
               />
             </div>
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Заметки <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(необязательно)</span></label>
+            <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
             <textarea
               value={notes} onChange={e => setNotes(e.target.value)}
               rows={3} style={{ ...inp, resize: 'vertical' }}
-              placeholder="Дополнительная информация…"
+              placeholder={t('common.notes_placeholder')}
             />
           </div>
 
@@ -207,7 +209,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
                 <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
-                Активная
+                {t('groups.active_checkbox')}
               </label>
             </div>
           )}
@@ -223,13 +225,13 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
               type="button" onClick={onClose} disabled={saving}
               style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               type="submit" disabled={saving}
               style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}
             >
-              {saving ? 'Сохранение…' : (mode === 'create' ? 'Создать' : 'Сохранить')}
+              {saving ? t('common.saving') : (mode === 'create' ? t('common.create') : t('common.save'))}
             </button>
           </div>
         </form>

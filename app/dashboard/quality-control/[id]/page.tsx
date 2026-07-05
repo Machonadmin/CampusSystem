@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,10 +57,11 @@ function ScaleInput({ value, onChange, disabled, err }: {
 function YNPInput({ value, onChange, disabled, err }: {
   value: string | null; onChange: (v: string) => void; disabled?: boolean; err?: boolean
 }) {
+  const t = useTranslations('quality')
   const opts = [
-    { v: 'yes',     l: 'Да',        c: '#16A34A', bg: '#F0FDF4' },
-    { v: 'no',      l: 'Нет',       c: '#DC2626', bg: '#FEF2F2' },
-    { v: 'partial', l: 'Частично',  c: '#D97706', bg: '#FFFBEB' },
+    { v: 'yes',     l: t('fill.option_yes'),     c: '#16A34A', bg: '#F0FDF4' },
+    { v: 'no',      l: t('fill.option_no'),      c: '#DC2626', bg: '#FEF2F2' },
+    { v: 'partial', l: t('fill.option_partial'), c: '#D97706', bg: '#FFFBEB' },
   ] as const
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -85,6 +87,7 @@ function YNPInput({ value, onChange, disabled, err }: {
 function QuestionRow({ q, entry, onChange, disabled, err }: {
   q: TQ; entry: AEntry; onChange: (e: AEntry) => void; disabled?: boolean; err?: boolean
 }) {
+  const t = useTranslations('quality')
   const [commentOpen, setCommentOpen] = useState(!!entry.comment)
   const val = entry.value
   const comment = entry.comment ?? ''
@@ -107,14 +110,14 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
       case 'text_short':
         return (
           <input type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
-            placeholder="Введите ответ..."
+            placeholder={t('fill.answer_placeholder_short')}
             onChange={e => updateVal(e.target.value)}
             style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? '#F9FAFB' : '#fff' }} />
         )
       case 'text_long':
         return (
           <textarea value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
-            placeholder="Введите развёрнутый ответ..."
+            placeholder={t('fill.answer_placeholder_long')}
             onChange={e => updateVal(e.target.value)}
             style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? '#F9FAFB' : '#fff' }} />
         )
@@ -129,7 +132,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
           {q.required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
         </span>
         {!disabled && (
-          <button type="button" onClick={() => setCommentOpen(o => !o)} title="Добавить комментарий"
+          <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px 4px', borderRadius: 4, color: entry.comment ? '#3B82F6' : '#D1D5DB', flexShrink: 0, transition: 'color 0.15s' }}>
             💬
           </button>
@@ -138,11 +141,11 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
 
       {inputEl()}
 
-      {err && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>Обязательное поле</p>}
+      {err && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
 
       {(commentOpen || (disabled && entry.comment)) && (
         <textarea value={comment} disabled={disabled} rows={2}
-          placeholder="Комментарий к вопросу..."
+          placeholder={t('fill.comment_placeholder')}
           onChange={e => updateComment(e.target.value)}
           style={{ marginTop: 8, width: '100%', padding: '7px 10px', fontSize: 12, color: '#374151', border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', resize: 'vertical', backgroundColor: '#F9FAFB', boxSizing: 'border-box' }} />
       )}
@@ -165,9 +168,6 @@ function BlockCard({ title, children }: { title: string; children: React.ReactNo
 
 // ── Status constants ──────────────────────────────────────────────────────────
 
-const STATUS_LABEL: Record<string, string> = {
-  planned: 'Запланировано', in_progress: 'В процессе', completed: 'Завершено',
-}
 const STATUS_COLOR: Record<string, [string, string]> = {
   planned:     ['#EFF6FF', '#3B82F6'],
   in_progress: ['#FFFBEB', '#D97706'],
@@ -179,6 +179,9 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 export default function FillCheckPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const t = useTranslations('quality')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { isOpen, isMobile } = useSidebar()
   const footerLeft = isMobile ? 0 : isOpen ? 240 : 56
 
@@ -281,7 +284,7 @@ export default function FillCheckPage() {
       const e = validate()
       if (Object.keys(e).length > 0) {
         setErrs(e)
-        setSaveError('Заполните все обязательные поля')
+        setSaveError(t('fill.fill_required_error'))
         window.scrollTo({ top: 0, behavior: 'smooth' })
         return
       }
@@ -309,7 +312,7 @@ export default function FillCheckPage() {
       })
       if (!res.ok) {
         const j = await res.json()
-        setSaveError(j.error ?? 'Ошибка сохранения')
+        setSaveError(j.error ?? t('fill.save_error'))
         return
       }
       if (complete) {
@@ -325,10 +328,10 @@ export default function FillCheckPage() {
 
   // ── Render guards ──
   if (loading) {
-    return <div style={{ padding: 48, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
+    return <div style={{ padding: 48, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
   }
   if (!check) {
-    return <div style={{ padding: 48, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>Проверка не найдена</div>
+    return <div style={{ padding: 48, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{t('fill.not_found')}</div>
   }
 
   const blocks = tmpl?.structure.blocks ?? []
@@ -348,19 +351,19 @@ export default function FillCheckPage() {
     <div style={{ paddingBottom: 80 }}>
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '24px 16px' }}>
         <Breadcrumb items={[
-          { label: 'Главная', href: '/dashboard' },
-          { label: 'Контроль качества', href: '/dashboard/quality-control' },
-          { label: 'Проверка урока' },
+          { label: tNav('home'), href: '/dashboard' },
+          { label: t('title'), href: '/dashboard/quality-control' },
+          { label: t('fill.breadcrumb_title') },
         ]} />
 
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', margin: '16px 0 20px', flexWrap: 'wrap', gap: 10 }}>
           <div>
-            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Проверка урока</h1>
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>{t('fill.page_title')}</h1>
             {tmpl && <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3 }}>{tmpl.name}</p>}
           </div>
           <span style={{ padding: '4px 14px', borderRadius: 20, backgroundColor: sBg, color: sColor, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-            {STATUS_LABEL[check.status] ?? check.status}
+            {t(`status.${check.status}`, check.status)}
           </span>
         </div>
 
@@ -371,15 +374,15 @@ export default function FillCheckPage() {
         )}
 
         {/* ── Info card ── */}
-        <BlockCard title={adminBlock?.title ?? 'Информация о проверке'}>
+        <BlockCard title={adminBlock?.title ?? t('fill.info_title')}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
             {[
-              ['Преподаватель', check.teacher_name ?? '—'],
-              ['Наблюдатель', check.observer_name ?? '—'],
-              ['Дата урока', fmtDate(check.lesson_date)],
-              ['Время', check.lesson_time.slice(0, 5)],
-              ['Группа', check.group_name ?? '—'],
-              ['Курс / Предмет', check.course_name ?? '—'],
+              [t('fill.field_teacher'), check.teacher_name ?? '—'],
+              [t('fill.field_observer'), check.observer_name ?? '—'],
+              [t('fill.field_lesson_date'), fmtDate(check.lesson_date)],
+              [t('fill.field_time'), check.lesson_time.slice(0, 5)],
+              [t('fill.field_group'), check.group_name ?? '—'],
+              [t('fill.field_course_subject'), check.course_name ?? '—'],
             ].map(([label, value]) => (
               <div key={label}>
                 <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 2, fontWeight: 600 }}>{label}</p>
@@ -390,19 +393,19 @@ export default function FillCheckPage() {
         </BlockCard>
 
         {/* ── Organizational section ── */}
-        <BlockCard title="Организационные вопросы">
+        <BlockCard title={t('fill.org_title')}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: isRO ? 'default' : 'pointer', marginBottom: 14 }}>
             <input type="checkbox" checked={startedOnTime} disabled={isRO}
               onChange={e => setStartedOnTime(e.target.checked)}
               style={{ width: 16, height: 16, accentColor: '#BE185D' }} />
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Урок начался вовремя</span>
+            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('fill.started_on_time')}</span>
           </label>
 
           {!startedOnTime && (
             <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, marginBottom: 14 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-                  Опоздание (мин.)
+                  {t('fill.delay_minutes_label')}
                   {errs['delayMin'] && <span style={{ color: '#EF4444' }}> *</span>}
                 </label>
                 <input type="number" min={1} value={delayMin ?? ''} disabled={isRO}
@@ -410,8 +413,8 @@ export default function FillCheckPage() {
                   style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: `1px solid ${errs['delayMin'] ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Причина опоздания</label>
-                <input type="text" value={delayReason} disabled={isRO} placeholder="Укажите причину..."
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.delay_reason_label')}</label>
+                <input type="text" value={delayReason} disabled={isRO} placeholder={t('fill.delay_reason_placeholder')}
                   onChange={e => setDelayReason(e.target.value)}
                   style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
@@ -419,9 +422,9 @@ export default function FillCheckPage() {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Технические проблемы</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.tech_issues_label')}</label>
             <textarea value={techIssues} disabled={isRO} rows={2}
-              placeholder="Опишите технические проблемы, если были..."
+              placeholder={t('fill.tech_issues_placeholder')}
               onChange={e => setTechIssues(e.target.value)}
               style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? '#F9FAFB' : '#fff' }} />
           </div>
@@ -431,7 +434,7 @@ export default function FillCheckPage() {
         {contentBlocks.map(block => (
           <BlockCard key={block.id} title={block.title}>
             {(block.questions ?? []).length === 0 ? (
-              <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>Нет вопросов</p>
+              <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>{t('fill.no_questions_block')}</p>
             ) : (
               (block.questions ?? []).map(q => (
                 <QuestionRow key={q.id} q={q} entry={getEntry(q)} onChange={e => setEntry(q, e)} disabled={isRO} err={errs[q.id]} />
@@ -442,12 +445,12 @@ export default function FillCheckPage() {
 
         {!tmpl && (
           <div style={{ backgroundColor: '#F9FAFB', borderRadius: 10, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16, textAlign: 'center' }}>
-            <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>Шаблон не выбран — заполните итоговый раздел ниже</p>
+            <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>{t('fill.no_template_hint')}</p>
           </div>
         )}
 
         {/* ── Summary section ── */}
-        <BlockCard title={summaryBlock?.title ?? 'Итог проверки'}>
+        <BlockCard title={summaryBlock?.title ?? t('fill.summary_title')}>
           {summaryBlock?.questions ? (
             summaryBlock.questions.map(q => (
               <QuestionRow key={q.id} q={q} entry={getEntry(q)} onChange={e => setEntry(q, e)} disabled={isRO} err={errs[q.id]} />
@@ -455,9 +458,9 @@ export default function FillCheckPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {[
-                { key: 'strengths',  label: 'Сильные стороны урока',         val: strengths,   set: setStrengths, req: true },
-                { key: 'areas',      label: 'Области для улучшения',          val: areas,       set: setAreas,     req: true },
-                { key: 'actionItem', label: 'Рекомендации / план действий',   val: actionItem,  set: setActionItem,req: false },
+                { key: 'strengths',  label: t('fill.strengths_label'),   val: strengths,   set: setStrengths, req: true },
+                { key: 'areas',      label: t('fill.areas_label'),       val: areas,       set: setAreas,     req: true },
+                { key: 'actionItem', label: t('fill.action_item_label'), val: actionItem,  set: setActionItem,req: false },
               ].map(f => (
                 <div key={f.key}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
@@ -472,16 +475,16 @@ export default function FillCheckPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
-                  Общая оценка урока <span style={{ color: '#EF4444' }}>*</span>
+                  {t('fill.overall_rating_label')} <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <ScaleInput value={rating} onChange={setRating} disabled={isRO} err={!!errs['rating']} />
-                {errs['rating'] && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>Обязательное поле</p>}
+                {errs['rating'] && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Обратная связь преподавателю</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.feedback_label')}</label>
                 <textarea value={feedback} disabled={isRO} rows={3}
-                  placeholder="Личное сообщение преподавателю..."
+                  placeholder={t('fill.feedback_placeholder')}
                   onChange={e => setFeedback(e.target.value)}
                   style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? '#F9FAFB' : '#fff' }} />
               </div>
@@ -504,17 +507,17 @@ export default function FillCheckPage() {
         )}
         <Link href="/dashboard/quality-control"
           style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, color: '#374151', textDecoration: 'none', backgroundColor: '#fff' }}>
-          Назад
+          {tCommon('back')}
         </Link>
         {!isRO && (
           <>
             <button type="button" onClick={() => handleSave(false)} disabled={saving}
               style={{ padding: '8px 18px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: saving ? 'not-allowed' : 'pointer', color: '#374151', fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
-              {saving ? 'Сохранение...' : 'Сохранить черновик'}
+              {saving ? t('fill.saving') : t('fill.save_draft')}
             </button>
             <button type="button" onClick={() => handleSave(true)} disabled={saving}
               style={{ padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6, background: saving ? '#F9A8D4' : '#BE185D', cursor: saving ? 'not-allowed' : 'pointer', color: '#fff', fontWeight: 600 }}>
-              {saving ? 'Сохранение...' : 'Завершить проверку'}
+              {saving ? t('fill.saving') : t('fill.complete_check')}
             </button>
           </>
         )}

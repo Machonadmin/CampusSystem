@@ -50,16 +50,6 @@ const ICONS: Record<string, string> = {
     'M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z M9 12.75l1.5 1.5 3-4.5',
 }
 
-// Fallback names for modules not in translations
-const MODULE_NAMES: Record<string, string> = {
-  persons: 'База людей',
-  staff: 'Персонал',
-}
-const MODULE_DESCS: Record<string, string> = {
-  persons: 'Профили людей, контакты',
-  staff: 'Сотрудники, структура организации',
-}
-
 // Module keys whose URL path differs from the key (underscore vs hyphen etc.)
 const HREF_OVERRIDES: Record<string, string> = {
   quality_control: '/dashboard/quality-control',
@@ -138,8 +128,8 @@ export default function DashboardPage() {
             const ready = isModuleImplemented(key)
             const primary = getModuleColor(key, 'primary')
             const lightBg = getModuleColor(key, 'light')
-            const name = MODULE_NAMES[key] ?? t.nav[key as keyof typeof t.nav] ?? key
-            const desc = MODULE_DESCS[key] ?? t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
+            const name = t.nav[key as keyof typeof t.nav] ?? key
+            const desc = t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               padding: 20,
@@ -158,7 +148,7 @@ export default function DashboardPage() {
                 fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
               }}>
-                СКОРО
+                {t.soon}
               </span>
             )
             const inner = (

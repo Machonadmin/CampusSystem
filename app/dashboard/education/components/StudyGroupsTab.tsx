@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import StudyGroupModal from './StudyGroupModal'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Department { id: string; name: string }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
@@ -25,6 +26,7 @@ interface StudyGroup {
 const accent = getModuleColor('education')
 
 export default function StudyGroupsTab() {
+  const t = useTranslations('education.study')
   const [groups, setGroups] = useState<StudyGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [specialties, setSpecialties] = useState<Specialty[]>([])
@@ -47,8 +49,8 @@ export default function StudyGroupsTab() {
         fetch('/api/settings/departments'),
         fetch('/api/education/specialties?active_only=false'),
       ])
-      if (!gResp.ok) throw new Error(`Ошибка загрузки групп: ${gResp.status}`)
-      if (!dResp.ok) throw new Error(`Ошибка загрузки подразделений: ${dResp.status}`)
+      if (!gResp.ok) throw new Error(t('groups.load_error').replace('{status}', String(gResp.status)))
+      if (!dResp.ok) throw new Error(t('common.error_generic'))
       const gJson = await gResp.json()
       const dJson = await dResp.json()
       const sJson = sResp.ok ? await sResp.json() : { specialties: [] }
@@ -56,11 +58,11 @@ export default function StudyGroupsTab() {
       setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
       setSpecialties(sJson.specialties ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Неизвестная ошибка')
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
       setLoading(false)
     }
-  }, [showInactive])
+  }, [showInactive, t])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -70,17 +72,17 @@ export default function StudyGroupsTab() {
   }, [filterDept])
 
   const handleDelete = async (group: StudyGroup) => {
-    if (!confirm(`Удалить базовую группу «${group.name}»?`)) return
+    if (!confirm(t('groups.confirm_delete').replace('{name}', group.name))) return
     try {
       const resp = await fetch(`/api/education/study-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? 'Не удалось удалить')
+        alert(err.error ?? t('common.error_delete_failed'))
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Ошибка удаления')
+      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
     }
   }
 
@@ -113,7 +115,7 @@ export default function StudyGroupsTab() {
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
-          <option value="">Все подразделения</option>
+          <option value="">{t('common.all_departments')}</option>
           {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
 
@@ -123,7 +125,7 @@ export default function StudyGroupsTab() {
           disabled={filteredSpecOptions.length === 0}
           style={{ ...inp, color: filterSpec ? '#1F2937' : '#9CA3AF', opacity: filteredSpecOptions.length === 0 ? 0.5 : 1 }}
         >
-          <option value="">Все специальности</option>
+          <option value="">{t('groups.all_specialties')}</option>
           {filteredSpecOptions.map(s => (
             <option key={s.id} value={s.id}>
               {s.code ? `[${s.code}] ${s.name}` : s.name}
@@ -133,19 +135,19 @@ export default function StudyGroupsTab() {
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
           <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
-          Показать неактивные
+          {t('common.show_inactive')}
         </label>
 
         <div style={{ flex: 1 }} />
 
         <PageActionButton
-          label="Группа"
+          label={t('groups.add_button')}
           onClick={() => { setEditingGroup(null); setModalMode('create') }}
           accentColor={accent}
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка…</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
         <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -156,21 +158,21 @@ export default function StudyGroupsTab() {
       {!loading && !error && (
         filtered.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {groups.length === 0 ? 'Базовых групп пока нет' : 'Ничего не найдено'}
+            {groups.length === 0 ? t('groups.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
           <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
-                  <th style={thStyle}>Название</th>
-                  <th style={thStyle}>Подразделение</th>
-                  <th style={thStyle}>Специальность</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Курс</th>
-                  <th style={{ ...thStyle, width: 90, textAlign: 'center' }}>Год набора</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>Студентов</th>
-                  <th style={{ ...thStyle, width: 100 }}>Статус</th>
-                  <th style={{ ...thStyle, width: 160 }}>Действия</th>
+                  <th style={thStyle}>{t('groups.table_name')}</th>
+                  <th style={thStyle}>{t('groups.table_department')}</th>
+                  <th style={thStyle}>{t('groups.table_specialty')}</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('groups.table_year_level')}</th>
+                  <th style={{ ...thStyle, width: 90, textAlign: 'center' }}>{t('groups.table_year_start')}</th>
+                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('groups.table_students')}</th>
+                  <th style={{ ...thStyle, width: 100 }}>{t('groups.table_status')}</th>
+                  <th style={{ ...thStyle, width: 160 }}>{t('groups.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,19 +208,19 @@ export default function StudyGroupsTab() {
                     </td>
                     <td style={tdStyle}>
                       {g.is_active
-                        ? <span style={{ color: '#10B981', fontWeight: 500 }}>Активна</span>
-                        : <span style={{ color: '#9CA3AF' }}>Неактивна</span>}
+                        ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('groups.status_active')}</span>
+                        : <span style={{ color: '#9CA3AF' }}>{t('groups.status_inactive')}</span>}
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
-                          Изменить
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDelete(g)}
                           style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
                         >
-                          Удалить
+                          {t('common.delete')}
                         </button>
                       </div>
                     </td>

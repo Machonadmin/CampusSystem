@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface PersonOption { id: string; full_name: string }
 interface TemplateOption { id: string; name: string }
@@ -25,6 +26,7 @@ function PersonAutocomplete({
   value: { id: string; name: string } | null
   onChange: (v: { id: string; name: string } | null) => void
 }) {
+  const t = useTranslations('quality')
   const [query, setQuery] = useState(value?.name ?? '')
   const [options, setOptions] = useState<PersonOption[]>([])
   const [open, setOpen] = useState(false)
@@ -67,7 +69,7 @@ function PersonAutocomplete({
         value={query}
         onChange={e => handleInput(e.target.value)}
         onFocus={() => { if (options.length > 0 && !value) setOpen(true) }}
-        placeholder="Начните вводить имя..."
+        placeholder={t('create_modal.observer_placeholder')}
         style={{
           width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
           borderRadius: 6, outline: 'none', backgroundColor: value ? '#F0FDF4' : '#fff',
@@ -106,6 +108,8 @@ function PersonAutocomplete({
 }
 
 export default function CreateCheckModal({ onClose, onCreated }: Props) {
+  const t = useTranslations('quality')
+  const tCommon = useTranslations('common')
   const [templates, setTemplates] = useState<TemplateOption[]>([])
   const [templateId, setTemplateId] = useState('')
   const [lessonDate, setLessonDate] = useState<Date | null>(new Date())
@@ -176,8 +180,8 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!observer) { setError('Укажите наблюдателя'); return }
-    if (!teacher) { setError('Укажите преподавателя'); return }
+    if (!observer) { setError(t('create_modal.error_observer_required')); return }
+    if (!teacher) { setError(t('create_modal.error_teacher_required')); return }
 
     setSaving(true)
     try {
@@ -197,10 +201,10 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         }),
       })
       const json = await res.json()
-      if (!res.ok) { setError(json.error ?? 'Ошибка'); return }
+      if (!res.ok) { setError(json.error ?? tCommon('error')); return }
       onCreated()
     } catch {
-      setError('Ошибка сети')
+      setError(t('create_modal.error_network'))
     } finally {
       setSaving(false)
     }
@@ -224,7 +228,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>Новая проверка урока</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{t('create_modal.title')}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
         </div>
 
@@ -234,15 +238,15 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
 
             {/* Template */}
             <div>
-              <label style={labelStyle}>Шаблон проверки</label>
+              <label style={labelStyle}>{t('create_modal.template_label')}</label>
               <select
                 value={templateId}
                 onChange={e => setTemplateId(e.target.value)}
                 style={{ ...inputStyle, backgroundColor: '#fff' }}
               >
-                <option value="">— без шаблона —</option>
-                {templates.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                <option value="">{t('create_modal.no_template_option')}</option>
+                {templates.map(tpl => (
+                  <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
                 ))}
               </select>
             </div>
@@ -251,13 +255,13 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
                 <label style={labelStyle}>
-                  Дата урока <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.lesson_date_label')} <span style={{ color: '#EF4444' }}>*</span>
                 </label>
-                <DateInput value={lessonDate} onChange={setLessonDate} placeholder="Выберите дату" />
+                <DateInput value={lessonDate} onChange={setLessonDate} placeholder={t('create_modal.lesson_date_placeholder')} />
               </div>
               <div>
                 <label style={labelStyle}>
-                  Время <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.time_label')} <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <input
                   type="time"
@@ -270,12 +274,12 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             </div>
 
             {/* Observer */}
-            <PersonAutocomplete label="Наблюдатель" value={observer} onChange={setObserver} />
+            <PersonAutocomplete label={t('create_modal.observer_label')} value={observer} onChange={setObserver} />
 
             {/* Group — dropdown or free input */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                <label style={{ ...labelStyle, marginBottom: 0 }}>Учебная группа</label>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>{t('create_modal.group_label')}</label>
                 <button
                   type="button"
                   onClick={toggleFreeInput}
@@ -284,7 +288,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                     cursor: 'pointer', textDecoration: 'underline', padding: 0,
                   }}
                 >
-                  {freeInput ? '← Выбрать из списка' : 'Свободный ввод'}
+                  {freeInput ? t('create_modal.select_list_toggle') : t('create_modal.free_input_toggle')}
                 </button>
               </div>
 
@@ -292,7 +296,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                 <input
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
-                  placeholder="Название группы"
+                  placeholder={t('create_modal.group_name_placeholder')}
                   style={inputStyle}
                 />
               ) : (
@@ -302,7 +306,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   disabled={classGroupsLoading}
                   style={{ ...inputStyle, backgroundColor: '#fff', opacity: classGroupsLoading ? 0.6 : 1 }}
                 >
-                  <option value="">{classGroupsLoading ? 'Загрузка…' : '— выберите группу —'}</option>
+                  <option value="">{classGroupsLoading ? t('create_modal.loading_groups') : t('create_modal.select_group_placeholder')}</option>
                   {classGroups.map(g => (
                     <option key={g.id} value={g.id}>
                       {g.name}{g.subject?.name ? ` — ${g.subject.name}` : ''}
@@ -314,11 +318,11 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
 
             {/* Course / Subject */}
             <div>
-              <label style={labelStyle}>Курс / Предмет</label>
+              <label style={labelStyle}>{t('create_modal.course_subject_label')}</label>
               <input
                 value={courseName}
                 onChange={e => setCourseName(e.target.value)}
-                placeholder="Название курса"
+                placeholder={t('create_modal.course_name_placeholder')}
                 readOnly={groupSelected}
                 style={{
                   ...inputStyle,
@@ -328,16 +332,16 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               />
               {groupSelected && (
                 <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>
-                  Заполняется автоматически из учебной группы
+                  {t('create_modal.autofilled_hint')}
                 </div>
               )}
             </div>
 
             {/* Teacher */}
-            <PersonAutocomplete label="Преподаватель" value={teacher} onChange={setTeacher} />
+            <PersonAutocomplete label={t('create_modal.teacher_label')} value={teacher} onChange={setTeacher} />
             {groupSelected && classGroups.find(g => g.id === classGroupId)?.teachers.length ? (
               <div style={{ marginTop: -10, fontSize: 11, color: '#9CA3AF' }}>
-                Преподаватель подставлен из группы — можно изменить
+                {t('create_modal.teacher_autofilled_hint')}
               </div>
             ) : null}
 
@@ -356,7 +360,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               onClick={onClose}
               style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151' }}
             >
-              Отмена
+              {tCommon('cancel')}
             </button>
             <button
               type="submit"
@@ -367,7 +371,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                 color: '#fff', fontWeight: 600,
               }}
             >
-              {saving ? 'Сохранение...' : 'Создать проверку'}
+              {saving ? t('fill.saving', 'Saving...') : t('create_modal.submit_button')}
             </button>
           </div>
         </form>

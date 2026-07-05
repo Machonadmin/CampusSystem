@@ -8,10 +8,12 @@ const ru = {
   welcome: 'Добро пожаловать',
   welcomeSubtitle: 'Система управления кампусом',
   availableModules: 'Доступные модули',
+  soon: 'СКОРО',
   nav: {
     home: 'Главная',
     tasks: 'Задачи',
     modulesSection: 'ДОСТУПНЫЕ МОДУЛИ',
+    persons: 'База людей',
     education: 'Образование',
     finance: 'Финансы',
     dormitory: 'Общежитие',
@@ -31,6 +33,7 @@ const ru = {
   },
   moduleDesc: {
     quality_control: 'Проверки уроков, оценки',
+    persons: 'Профили людей, контакты',
     education: 'Учащиеся, группы, расписание',
     tasks: 'Назначение и контроль исполнения',
     finance: 'Счета, платежи, бюджет',
@@ -97,10 +100,12 @@ const he: typeof ru = {
   welcome: 'ברוך הבא',
   welcomeSubtitle: 'מערכת ניהול קמפוס',
   availableModules: 'מודולים זמינים',
+  soon: 'בקרוב',
   nav: {
     home: 'ראשי',
     tasks: 'משימות',
     modulesSection: 'מודולים זמינים',
+    persons: 'מאגר אנשים',
     education: 'חינוך',
     finance: 'כספים',
     dormitory: 'מעונות',
@@ -120,6 +125,7 @@ const he: typeof ru = {
   },
   moduleDesc: {
     quality_control: 'בדיקות שיעורים, הערכות',
+    persons: 'פרופילים של אנשים, אנשי קשר',
     education: 'תלמידים, קבוצות, לוח זמנים',
     tasks: 'הקצאה ובקרה על ביצוע',
     finance: 'חשבוניות, תשלומים, תקציב',
@@ -186,10 +192,12 @@ const en: typeof ru = {
   welcome: 'Welcome',
   welcomeSubtitle: 'Campus Management System',
   availableModules: 'Available Modules',
+  soon: 'SOON',
   nav: {
     home: 'Home',
     tasks: 'Tasks',
     modulesSection: 'AVAILABLE MODULES',
+    persons: 'People Directory',
     education: 'Education',
     finance: 'Finance',
     dormitory: 'Dormitory',
@@ -209,6 +217,7 @@ const en: typeof ru = {
   },
   moduleDesc: {
     quality_control: 'Lesson checks, ratings',
+    persons: 'People profiles, contacts',
     education: 'Students, groups, schedule',
     tasks: 'Assignment and execution tracking',
     finance: 'Invoices, payments, budget',

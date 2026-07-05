@@ -28,11 +28,6 @@ interface CheckRow {
   completed_at: string | null
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  planned: 'Запланировано',
-  in_progress: 'В процессе',
-  completed: 'Завершено',
-}
 const STATUS_COLOR: Record<string, [string, string]> = {
   planned:     ['#EFF6FF', '#3B82F6'],
   in_progress: ['#FFFBEB', '#D97706'],
@@ -41,11 +36,11 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 
 const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?: string) => string }) {
   const [bg, color] = STATUS_COLOR[status] ?? ['#F3F4F6', '#6B7280']
   return (
     <span style={{ padding: '2px 10px', borderRadius: 20, backgroundColor: bg, color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
-      {STATUS_LABEL[status] ?? status}
+      {t(`status.${status}`, status)}
     </span>
   )
 }
@@ -65,6 +60,7 @@ type Tab = 'planned' | 'history' | 'templates'
 export default function QualityControlPage() {
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
   const [tab, setTab] = useState<Tab>('planned')
   const [checks, setChecks] = useState<CheckRow[]>([])
@@ -103,7 +99,7 @@ export default function QualityControlPage() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(id: string, date: string) {
-    if (!confirm(`Удалить проверку от ${date}?`)) return
+    if (!confirm(t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date))) return
     setDeletingId(id)
     try {
       await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })
@@ -120,9 +116,9 @@ export default function QualityControlPage() {
   }
 
   const tabs: { key: Tab; label: string; visible: boolean }[] = [
-    { key: 'planned',   label: 'Запланированные',  visible: canViewPlanned },
-    { key: 'history',   label: 'История проверок',  visible: canViewHistory },
-    { key: 'templates', label: 'Шаблоны проверок',  visible: canViewTemplates },
+    { key: 'planned',   label: t('list.tab_planned'),   visible: canViewPlanned },
+    { key: 'history',   label: t('list.tab_history'),   visible: canViewHistory },
+    { key: 'templates', label: t('list.tab_templates'), visible: canViewTemplates },
   ]
 
   return (
@@ -170,13 +166,13 @@ export default function QualityControlPage() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Поиск по группе или курсу..."
+                placeholder={t('list.search_placeholder')}
                 style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
               />
               <div style={{ flex: 1 }} />
               {canCreateCheck && (
                 <PageActionButton
-                  label="Новая проверка"
+                  label={t('list.new_check_button')}
                   onClick={() => setShowCreate(true)}
                   accentColor={getModuleColor('quality_control')}
                 />
@@ -186,16 +182,16 @@ export default function QualityControlPage() {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>Загрузка...</div>
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
               ) : checks.length === 0 ? (
                 <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
-                  {tab === 'planned' ? 'Нет запланированных проверок' : 'История проверок пуста'}
+                  {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#F9FAFB' }}>
-                      {['Дата / Время', 'Преподаватель', 'Группа / Курс', 'Наблюдатель', 'Статус', 'Оценка', 'Действия'].map(h => (
+                      {[t('list.table_date_time'), t('list.table_teacher'), t('list.table_group_course'), t('list.table_observer'), t('list.table_status'), t('list.table_rating'), t('list.table_actions')].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                           {h}
                         </th>
@@ -221,7 +217,7 @@ export default function QualityControlPage() {
                           <div style={{ fontSize: 13, color: '#374151' }}>{c.observer_name ?? '—'}</div>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <StatusBadge status={c.status} />
+                          <StatusBadge status={c.status} t={t} />
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <RatingStars rating={c.overall_rating} />
@@ -237,14 +233,14 @@ export default function QualityControlPage() {
                                 color: c.status === 'completed' ? '#374151' : '#1D4ED8',
                               }}
                             >
-                              {c.status === 'completed' ? 'Просмотр' : 'Заполнить'}
+                              {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}
                             </Link>
                             <button
                               onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
                               disabled={deletingId === c.id}
                               style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
                             >
-                              Удалить
+                              {tCommon('delete')}
                             </button>
                           </div>
                         </td>

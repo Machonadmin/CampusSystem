@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupTeachers'
 import ClassGroupStudents from '@/app/dashboard/education/components/ClassGroupStudents'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 
 interface Teacher {
   person_id: string
@@ -39,23 +40,22 @@ interface ClassGroupDetail {
   students: StudentMini[]
 }
 
-const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-
-function formatPeriod(start: string | null, end: string | null): string | null {
+function formatPeriod(lang: string, start: string | null, end: string | null): string | null {
   if (!start && !end) return null
-  const fmt = (d: string) => {
-    const dt = new Date(d + 'T00:00:00')
-    return `${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]} ${dt.getFullYear()}`
-  }
+  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
   if (start && end) return `${fmt(start)} — ${fmt(end)}`
-  if (start) return `с ${fmt(start)}`
-  return `до ${fmt(end!)}`
+  if (start) return `${fmt(start)} →`
+  return `→ ${fmt(end!)}`
 }
 
 export default function ClassGroupCardPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const groupId = params.id
+  const t = useTranslations('education.study')
+  const tNav = useTranslations('navigation')
+  const { lang } = useLang()
 
   const [group, setGroup] = useState<ClassGroupDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -68,21 +68,21 @@ export default function ClassGroupCardPage() {
       const resp = await fetch(`/api/education/class-groups/${groupId}`)
       if (!resp.ok) {
         if (resp.status === 404) {
-          setError('Учебная группа не найдена')
+          setError(t('class_groups.card_not_found'))
           setLoading(false)
           return
         }
         const err = await resp.json().catch(() => ({}))
-        throw new Error(err.error ?? `Ошибка ${resp.status}`)
+        throw new Error(err.error ?? `${t('common.error_generic')} ${resp.status}`)
       }
       const data = await resp.json()
       setGroup(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
       setLoading(false)
     }
-  }, [groupId])
+  }, [groupId, t])
 
   useEffect(() => { load() }, [load])
 
@@ -91,7 +91,7 @@ export default function ClassGroupCardPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div style={{ color: '#6B7280', textAlign: 'center', padding: 48 }}>Загрузка…</div>
+        <div style={{ color: '#6B7280', textAlign: 'center', padding: 48 }}>{t('common.loading')}</div>
       </div>
     )
   }
@@ -100,15 +100,15 @@ export default function ClassGroupCardPage() {
     return (
       <div className="p-6 space-y-4">
         <Breadcrumb items={[
-          { label: 'Главная', href: '/dashboard' },
-          { label: 'Образование', href: '/dashboard/education' },
-          { label: 'Карточка группы' },
+          { label: tNav('home'), href: '/dashboard' },
+          { label: tNav('education'), href: '/dashboard/education' },
+          { label: t('class_groups.card_not_found') },
         ]} />
         <div style={{
           padding: 24, background: '#FEE2E2', color: '#991B1B',
           borderRadius: 8, fontSize: 14,
         }}>
-          {error ?? 'Группа не найдена'}
+          {error ?? t('class_groups.group_not_found_short')}
         </div>
         <button
           onClick={() => router.push('/dashboard/education')}
@@ -117,19 +117,19 @@ export default function ClassGroupCardPage() {
             background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer',
           }}
         >
-          ← К списку
+          {t('class_groups.back_to_list')}
         </button>
       </div>
     )
   }
 
-  const period = formatPeriod(group.period_start, group.period_end)
+  const period = formatPeriod(lang, group.period_start, group.period_end)
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
-        { label: 'Главная', href: '/dashboard' },
-        { label: 'Образование', href: '/dashboard/education' },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education'), href: '/dashboard/education' },
         { label: group.name },
       ]} />
 
@@ -149,7 +149,7 @@ export default function ClassGroupCardPage() {
               {group.department?.name && <span> · {group.department.name}</span>}
               {!group.is_active && (
                 <span style={{ marginLeft: 8, padding: '2px 8px', background: 'rgba(255,255,255,0.2)', borderRadius: 6, fontSize: 11 }}>
-                  Неактивна
+                  {t('class_groups.inactive_badge')}
                 </span>
               )}
             </div>
@@ -163,7 +163,7 @@ export default function ClassGroupCardPage() {
               cursor: 'pointer',
             }}
           >
-            ← К списку
+            {t('class_groups.back_to_list')}
           </button>
         </div>
       </div>
@@ -174,10 +174,10 @@ export default function ClassGroupCardPage() {
         padding: 20,
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16,
       }}>
-        <InfoCell label="Уровень" value={group.level ?? '—'} />
-        <InfoCell label="Период обучения" value={period ?? '—'} />
-        <InfoCell label="Преподавателей" value={String(group.teachers?.length ?? 0)} />
-        <InfoCell label="Студентов" value={String(group.students?.length ?? 0)} />
+        <InfoCell label={t('class_groups.info_level')} value={group.level ?? '—'} />
+        <InfoCell label={t('class_groups.info_period')} value={period ?? '—'} />
+        <InfoCell label={t('class_groups.info_teachers')} value={String(group.teachers?.length ?? 0)} />
+        <InfoCell label={t('class_groups.info_students')} value={String(group.students?.length ?? 0)} />
       </div>
 
       {/* Заметки */}
@@ -186,7 +186,7 @@ export default function ClassGroupCardPage() {
           background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
           padding: '12px 16px', fontSize: 13, color: '#92400E',
         }}>
-          <strong style={{ marginRight: 6 }}>Заметки:</strong>{group.notes}
+          <strong style={{ marginRight: 6 }}>{t('class_groups.notes_prefix')}</strong>{group.notes}
         </div>
       )}
 

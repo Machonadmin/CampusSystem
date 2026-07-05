@@ -2,50 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useLang } from '@/lib/i18n/LanguageContext'
-
-const CAT_RU: Record<string, string> = {
-  system: 'Системные',
-  campus_management: 'Управление кампусом',
-  finance: 'Финансы',
-  legal: 'Юридический отдел',
-  education: 'Образование',
-  dormitory: 'Общежитие',
-  medical: 'Медицина',
-  security: 'Безопасность',
-  maintenance: 'Эксплуатация',
-  food: 'Питание',
-  technical: 'Технический персонал',
-  external: 'Внешние',
-}
-const CAT_HE: Record<string, string> = {
-  system: 'מערכת',
-  campus_management: 'ניהול קמפוס',
-  finance: 'כספים',
-  legal: 'משפטי',
-  education: 'חינוך',
-  dormitory: 'מעונות',
-  medical: 'רפואה',
-  security: 'ביטחון',
-  maintenance: 'תחזוקה',
-  food: 'מזון',
-  technical: 'טכני',
-  external: 'חיצוני',
-}
-const CAT_EN: Record<string, string> = {
-  system: 'System',
-  campus_management: 'Campus Management',
-  finance: 'Finance',
-  legal: 'Legal',
-  education: 'Education',
-  dormitory: 'Dormitory',
-  medical: 'Medical',
-  security: 'Security',
-  maintenance: 'Maintenance',
-  food: 'Food',
-  technical: 'Technical Staff',
-  external: 'External',
-}
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Role {
   id: string
@@ -66,113 +23,7 @@ interface UserRow {
   roles: { id: string; name: string; code: string }[]
 }
 
-const T = {
-  ru: {
-    title: 'Пользователи и доступ',
-    search: 'Поиск по имени или email...',
-    addUser: 'Добавить',
-    name: 'Имя',
-    email: 'Email',
-    roles: 'Роли',
-    status: 'Статус',
-    lastLogin: 'Последний вход',
-    actions: 'Действия',
-    active: 'Активен',
-    inactive: 'Неактивен',
-    never: 'Никогда',
-    manageRoles: 'Роли',
-    deactivate: 'Деактивировать',
-    activate: 'Активировать',
-    save: 'Сохранить',
-    cancel: 'Отмена',
-    rolesModal: 'Управление ролями',
-    addUserModal: 'Новый пользователь',
-    fullName: 'Полное имя',
-    password: 'Пароль',
-    selectRoles: 'Роли',
-    loading: 'Загрузка...',
-    error: 'Ошибка загрузки',
-    noUsers: 'Пользователи не найдены',
-    all: 'Все',
-    edit: 'Редактировать',
-    editModal: 'Редактировать пользователя',
-    resetPwd: 'Сбросить пароль',
-    resetPwdModal: 'Сброс пароля',
-    newPassword: 'Новый пароль',
-    confirmPassword: 'Подтвердить пароль',
-    passwordMismatch: 'Пароли не совпадают',
-  },
-  he: {
-    title: 'משתמשים וגישה',
-    search: 'חיפוש לפי שם או אימייל...',
-    addUser: 'הוסף',
-    name: 'שם',
-    email: 'אימייל',
-    roles: 'תפקידים',
-    status: 'סטטוס',
-    lastLogin: 'כניסה אחרונה',
-    actions: 'פעולות',
-    active: 'פעיל',
-    inactive: 'לא פעיל',
-    never: 'אף פעם',
-    manageRoles: 'תפקידים',
-    deactivate: 'השבת',
-    activate: 'הפעל',
-    save: 'שמור',
-    cancel: 'בטל',
-    rolesModal: 'ניהול תפקידים',
-    addUserModal: 'משתמש חדש',
-    fullName: 'שם מלא',
-    password: 'סיסמה',
-    selectRoles: 'תפקידים',
-    loading: 'טוען...',
-    error: 'שגיאת טעינה',
-    noUsers: 'לא נמצאו משתמשים',
-    all: 'הכל',
-    edit: 'ערוך',
-    editModal: 'ערוך משתמש',
-    resetPwd: 'אפס סיסמה',
-    resetPwdModal: 'איפוס סיסמה',
-    newPassword: 'סיסמה חדשה',
-    confirmPassword: 'אמת סיסמה',
-    passwordMismatch: 'הסיסמאות אינן תואמות',
-  },
-  en: {
-    title: 'Users & Access',
-    search: 'Search by name or email...',
-    addUser: 'Add User',
-    name: 'Name',
-    email: 'Email',
-    roles: 'Roles',
-    status: 'Status',
-    lastLogin: 'Last Login',
-    actions: 'Actions',
-    active: 'Active',
-    inactive: 'Inactive',
-    never: 'Never',
-    manageRoles: 'Roles',
-    deactivate: 'Deactivate',
-    activate: 'Activate',
-    save: 'Save',
-    cancel: 'Cancel',
-    rolesModal: 'Manage Roles',
-    addUserModal: 'New User',
-    fullName: 'Full Name',
-    password: 'Password',
-    selectRoles: 'Roles',
-    loading: 'Loading...',
-    error: 'Load error',
-    noUsers: 'No users found',
-    all: 'All',
-    edit: 'Edit',
-    editModal: 'Edit User',
-    resetPwd: 'Reset Password',
-    resetPwdModal: 'Reset Password',
-    newPassword: 'New Password',
-    confirmPassword: 'Confirm Password',
-    passwordMismatch: 'Passwords do not match',
-  },
-}
+type T = (key: string, fallback?: string) => string
 
 function Avatar({ name, photo }: { name: string; photo: string | null }) {
   if (photo) return <img src={photo} alt={name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
@@ -195,18 +46,16 @@ function RoleBadge({ name }: { name: string }) {
 interface RolesModalProps {
   user: UserRow
   allRoles: Role[]
-  t: typeof T.ru
+  t: T
+  tCat: T
+  tCommon: T
   onClose: () => void
   onSaved: () => void
 }
 
-function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
+function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
   const [saving, setSaving] = useState(false)
-
-  const { lang } = useLang()
-  const catLabel = (cat: string) =>
-    lang === 'he' ? (CAT_HE[cat] ?? cat) : lang === 'en' ? (CAT_EN[cat] ?? cat) : (CAT_RU[cat] ?? cat)
 
   async function save() {
     setSaving(true)
@@ -230,13 +79,13 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.rolesModal}: {user.full_name}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('roles_modal_title')}: {user.full_name}</p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
           {Object.entries(grouped).map(([cat, roles]) => (
             <div key={cat} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{catLabel(cat)}</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{tCat(cat, cat)}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {roles.map(r => (
                   <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
@@ -258,8 +107,8 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
           ))}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
         </div>
       </div>
     </div>
@@ -268,18 +117,16 @@ function RolesModal({ user, allRoles, t, onClose, onSaved }: RolesModalProps) {
 
 interface AddUserModalProps {
   allRoles: Role[]
-  t: typeof T.ru
+  t: T
+  tCat: T
+  tCommon: T
   onClose: () => void
   onSaved: () => void
 }
 
 interface PersonResult { id: string; full_name: string; email: string | null }
 
-function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
-  const { lang } = useLang()
-  const catLabel = (cat: string) =>
-    lang === 'he' ? (CAT_HE[cat] ?? cat) : lang === 'en' ? (CAT_EN[cat] ?? cat) : (CAT_RU[cat] ?? cat)
-
+function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserModalProps) {
   // Person search
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PersonResult[]>([])
@@ -326,10 +173,10 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
   }
 
   async function save() {
-    if (!email || !password) { setErr('Email и пароль обязательны'); return }
-    if (password.length < 8) { setErr('Пароль минимум 8 символов'); return }
-    if (!selectedPerson && !createNew) { setErr('Выберите человека или создайте нового'); return }
-    if (createNew && !fullName.trim()) { setErr('Введите имя'); return }
+    if (!email || !password) { setErr(t('err_email_password_required')); return }
+    if (password.length < 8) { setErr(t('err_password_min')); return }
+    if (!selectedPerson && !createNew) { setErr(t('err_select_person')); return }
+    if (createNew && !fullName.trim()) { setErr(t('err_enter_name')); return }
 
     setSaving(true); setErr('')
     const body = selectedPerson
@@ -344,7 +191,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
     const data = await res.json()
     setSaving(false)
     if (res.ok) { onSaved(); onClose() }
-    else setErr(data.error ?? 'Ошибка')
+    else setErr(data.error ?? tCommon('error'))
   }
 
   const toggleRole = (id: string) =>
@@ -364,7 +211,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
 
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.addUserModal}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('add_modal_title')}</p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
@@ -373,7 +220,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
 
           <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-            Поиск существующего человека
+            {t('search_existing_person_hint')}
           </p>
 
           {selectedPerson && (
@@ -388,7 +235,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
 
           {createNew && !selectedPerson && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}>
-              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>Новый человек</p>
+              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{t('new_person_badge')}</p>
               <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
             </div>
           )}
@@ -398,14 +245,14 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
               <input
                 value={query}
                 onChange={e => handleSearch(e.target.value)}
-                placeholder="Введите имя или email..."
+                placeholder={t('search_name_email_placeholder')}
                 autoComplete="off"
                 style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
               {(results.length > 0 || searching || query.length >= 2) && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
                   {searching && (
-                    <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
+                    <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>{t('searching')}</div>
                   )}
                   {!searching && results.map(p => (
                     <div
@@ -426,7 +273,7 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
                     >
-                      + Создать нового человека
+                      {t('create_new_person_link')}
                     </div>
                   )}
                 </div>
@@ -439,11 +286,10 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
         <div style={{ overflowY: 'auto', padding: '14px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {createNew && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName} *</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('full_name')} *</span>
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Полное имя"
                 style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
               />
             </label>
@@ -461,21 +307,21 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
                 />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.password} *</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('password_label')} *</span>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Минимум 8 символов"
+                  placeholder={t('password_hint_placeholder')}
                   autoComplete="new-password"
                   style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
                 />
               </label>
               <div>
-                <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t.selectRoles}</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t('select_roles_title')}</p>
                 {Object.entries(grouped).map(([cat, roles]) => (
                   <div key={cat} style={{ marginBottom: 12 }}>
-                    <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{catLabel(cat)}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{tCat(cat, cat)}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {roles.map(r => (
                         <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
@@ -493,13 +339,13 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
 
         {/* Footer */}
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
           <button
             onClick={save}
             disabled={saving || !personChosen}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
           >
-            {t.save}
+            {tCommon('save', 'Save')}
           </button>
         </div>
       </div>
@@ -511,19 +357,20 @@ function AddUserModal({ allRoles, t, onClose, onSaved }: AddUserModalProps) {
 
 interface ResetPasswordModalProps {
   user: UserRow
-  t: typeof T.ru
+  t: T
+  tCommon: T
   onClose: () => void
 }
 
-function ResetPasswordModal({ user, t, onClose }: ResetPasswordModalProps) {
+function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalProps) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
   async function save() {
-    if (password.length < 8) { setErr('Пароль минимум 8 символов'); return }
-    if (password !== confirm) { setErr(t.passwordMismatch); return }
+    if (password.length < 8) { setErr(t('err_password_min')); return }
+    if (password !== confirm) { setErr(t('password_mismatch')); return }
     setSaving(true); setErr('')
     const res = await fetch(`/api/settings/users/${user.account_id}/password`, {
       method: 'PATCH',
@@ -532,44 +379,44 @@ function ResetPasswordModal({ user, t, onClose }: ResetPasswordModalProps) {
     })
     setSaving(false)
     if (res.ok) onClose()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.resetPwdModal}: {user.full_name}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('reset_password_modal_title')}: {user.full_name}</p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.newPassword} *</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('new_password_label')} *</span>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="Минимум 8 символов"
+              placeholder={t('password_hint_placeholder')}
               autoComplete="new-password"
               style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
             />
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.confirmPassword} *</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('confirm_password_label')} *</span>
             <input
               type="password"
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
-              placeholder="Повторите пароль"
+              placeholder={t('confirm_password_placeholder')}
               autoComplete="new-password"
               style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : '#D1D5DB'}`, fontSize: 13, outline: 'none' }}
             />
           </label>
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.resetPwd}</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</button>
         </div>
       </div>
     </div>
@@ -580,12 +427,13 @@ function ResetPasswordModal({ user, t, onClose }: ResetPasswordModalProps) {
 
 interface EditUserModalProps {
   user: UserRow
-  t: typeof T.ru
+  t: T
+  tCommon: T
   onClose: () => void
   onSaved: () => void
 }
 
-function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
+function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProps) {
   const [fullName, setFullName] = useState(user.full_name)
   const [email, setEmail] = useState(user.login_email)
   const [saving, setSaving] = useState(false)
@@ -593,7 +441,7 @@ function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
   const [pwdOpen, setPwdOpen] = useState(false)
 
   async function save() {
-    if (!fullName.trim() || !email.trim()) { setErr('Поля не могут быть пустыми'); return }
+    if (!fullName.trim() || !email.trim()) { setErr(t('err_fields_empty')); return }
     setSaving(true); setErr('')
     const res = await fetch(`/api/settings/users/${user.account_id}`, {
       method: 'PATCH',
@@ -602,7 +450,7 @@ function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
     })
     setSaving(false)
     if (res.ok) { onSaved(); onClose() }
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
   }
 
   return (
@@ -610,13 +458,13 @@ function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t.editModal}</p>
+            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('edit_modal_title')}</p>
             <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t.fullName}</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('full_name')}</span>
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
@@ -638,24 +486,26 @@ function EditUserModal({ user, t, onClose, onSaved }: EditUserModalProps) {
               onClick={() => setPwdOpen(true)}
               style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2', fontSize: 12, cursor: 'pointer', color: '#DC2626' }}
             >
-              {t.resetPwd}
+              {t('reset_password_button')}
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t.cancel}</button>
-              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t.save}</button>
+              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
+              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
             </div>
           </div>
         </div>
       </div>
 
-      {pwdOpen && <ResetPasswordModal user={user} t={t} onClose={() => setPwdOpen(false)} />}
+      {pwdOpen && <ResetPasswordModal user={user} t={t} tCommon={tCommon} onClose={() => setPwdOpen(false)} />}
     </>
   )
 }
 
 export default function UsersPage() {
-  const { lang } = useLang()
-  const t = T[lang] ?? T.ru
+  const t = useTranslations('settings.users')
+  const tCat = useTranslations('settings.categories')
+  const tCommon = useTranslations('common')
+  const tNav = useTranslations('navigation')
 
   const [users, setUsers] = useState<UserRow[]>([])
   const [allRoles, setAllRoles] = useState<Role[]>([])
@@ -672,12 +522,12 @@ export default function UsersPage() {
       fetch('/api/settings/users'),
       fetch('/api/settings/roles'),
     ])
-    if (!usersRes.ok || !rolesRes.ok) { setError(t.error); setLoading(false); return }
+    if (!usersRes.ok || !rolesRes.ok) { setError(tCommon('error')); setLoading(false); return }
     const [usersData, rolesData] = await Promise.all([usersRes.json(), rolesRes.json()])
     setUsers(usersData)
     setAllRoles(rolesData)
     setLoading(false)
-  }, [t.error])
+  }, [tCommon])
 
   useEffect(() => { load() }, [load])
 
@@ -699,16 +549,16 @@ export default function UsersPage() {
     <div className="p-6 space-y-5">
       {/* Breadcrumb */}
       <Breadcrumb items={[
-        { label: lang === 'he' ? 'ראשי' : lang === 'en' ? 'Home' : 'Главная', href: '/dashboard' },
-        { label: lang === 'he' ? 'הגדרות' : lang === 'en' ? 'Settings' : 'Настройки', href: '/dashboard/settings' },
-        { label: t.title },
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('settings'), href: '/dashboard/settings' },
+        { label: t('title') },
       ]} />
 
       <div
         className="flex items-center rounded-xl overflow-hidden"
         style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '12px 24px' }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>{t.title}</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>{t('title')}</h1>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -719,7 +569,7 @@ export default function UsersPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={t.search}
+            placeholder={t('search_placeholder')}
             style={{ width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 8, paddingBottom: 8, borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, backgroundColor: '#F9FAFB', outline: 'none' }}
           />
         </div>
@@ -730,22 +580,22 @@ export default function UsersPage() {
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          {t.addUser}
+          {t('create_button')}
         </button>
       </div>
 
       <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t.loading}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
         ) : error ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t.noUsers}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('no_users')}</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
-                {[t.name, t.email, t.roles, t.status, t.lastLogin, t.actions].map(h => (
+                {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
                   <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -775,11 +625,11 @@ export default function UsersPage() {
                       backgroundColor: user.is_active ? '#D1FAE5' : '#FEE2E2',
                       color: user.is_active ? '#065F46' : '#991B1B',
                     }}>
-                      {user.is_active ? t.active : t.inactive}
+                      {user.is_active ? t('active') : t('inactive')}
                     </span>
                   </td>
                   <td style={{ padding: '10px 14px', fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
-                    {user.last_login ? new Date(user.last_login).toLocaleDateString() : t.never}
+                    {user.last_login ? new Date(user.last_login).toLocaleDateString() : t('never')}
                   </td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -787,13 +637,13 @@ export default function UsersPage() {
                         onClick={() => setEditTarget(user)}
                         style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
                       >
-                        {t.edit}
+                        {t('edit_button')}
                       </button>
                       <button
                         onClick={() => setRolesTarget(user)}
                         style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
                       >
-                        {t.manageRoles}
+                        {t('manage_roles_button')}
                       </button>
                       {!user.roles.some(r => r.code === 'superadmin') && (
                         <button
@@ -804,7 +654,7 @@ export default function UsersPage() {
                             color: user.is_active ? '#DC2626' : '#16A34A',
                           }}
                         >
-                          {user.is_active ? t.deactivate : t.activate}
+                          {user.is_active ? t('deactivate_button') : t('activate_button')}
                         </button>
                       )}
                     </div>
@@ -817,13 +667,13 @@ export default function UsersPage() {
       </div>
 
       {editTarget && (
-        <EditUserModal user={editTarget} t={t} onClose={() => setEditTarget(null)} onSaved={load} />
+        <EditUserModal user={editTarget} t={t} tCommon={tCommon} onClose={() => setEditTarget(null)} onSaved={load} />
       )}
       {rolesTarget && (
-        <RolesModal user={rolesTarget} allRoles={allRoles} t={t} onClose={() => setRolesTarget(null)} onSaved={load} />
+        <RolesModal user={rolesTarget} allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setRolesTarget(null)} onSaved={load} />
       )}
       {addOpen && (
-        <AddUserModal allRoles={allRoles} t={t} onClose={() => setAddOpen(false)} onSaved={load} />
+        <AddUserModal allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setAddOpen(false)} onSaved={load} />
       )}
     </div>
   )
