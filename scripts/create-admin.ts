@@ -7,8 +7,12 @@ const supabaseKey = process.env.SUPABASE_SECRET_KEY!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function createAdmin() {
-  const email = 'oficepresident@gmail.com'
-  const password = 'Campus2026!'
+  const email = process.env.ADMIN_EMAIL
+  const password = process.env.ADMIN_PASSWORD
+
+  if (!email || !password) {
+    throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD env vars before running this script')
+  }
 
   const passwordHash = await bcrypt.hash(password, 12)
 
@@ -48,7 +52,7 @@ async function createAdmin() {
 
   if (roleError) throw roleError
   console.log('✅ Роль назначена')
-  console.log('✅ Готово! Email:', email, '| Пароль: Campus2026!')
+  console.log('✅ Готово! Email:', email)
 }
 
 createAdmin().catch(console.error)

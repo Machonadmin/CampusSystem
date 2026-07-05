@@ -546,7 +546,9 @@ npm run dev      # localhost:3000
 
 ### Доступы
 
-- **Суперадмин:** `oficepresident@gmail.com` — обходит module-guard в middleware.
+- **Суперадмин:** аккаунт офис-администратора (создаётся через
+  `scripts/create-admin.ts`, email/пароль — через переменные окружения) —
+  обходит module-guard в middleware.
 - Роль `superadmin` — полный доступ без записей в `role_privileges`.
 
 ### Рабочий процесс

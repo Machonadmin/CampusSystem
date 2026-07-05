@@ -5,11 +5,15 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SECRET_KEY!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-const EMAIL = 'levineli770@gmail.com'
-const FULL_NAME = 'Eli Levine'
-const TEMP_PASSWORD = 'Levine2026!'
+const EMAIL = process.env.ADMIN_EMAIL
+const FULL_NAME = process.env.ADMIN_FULL_NAME
+const TEMP_PASSWORD = process.env.ADMIN_PASSWORD
 
 async function createPersonalAdmin() {
+  if (!EMAIL || !FULL_NAME || !TEMP_PASSWORD) {
+    throw new Error('Set ADMIN_EMAIL, ADMIN_FULL_NAME and ADMIN_PASSWORD env vars before running this script')
+  }
+
   const { data: existing } = await supabase
     .from('person_accounts')
     .select('id')
@@ -51,7 +55,7 @@ async function createPersonalAdmin() {
     .insert({ person_id: person.id, role_id: role.id })
   if (prErr) throw prErr
 
-  console.log('Готово. Email:', EMAIL, '| Временный пароль:', TEMP_PASSWORD)
+  console.log('Готово. Email:', EMAIL)
 }
 
 createPersonalAdmin().catch(err => {
