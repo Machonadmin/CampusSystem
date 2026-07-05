@@ -11,7 +11,8 @@
   "navigation": {
     "home": "ראשי",
     "education": "חינוך",
-    "settings": "הגדרות"
+    "settings": "הגדרות",
+    "alumni": "בוגרים"
   },
   "auth": {
     "login": "כניסה",
@@ -1252,5 +1253,37 @@
     "system_prefix": "[מע]",
     "tab_tasks": "משימות",
     "tab_events": "יומן"
+  },
+  "alumni": {
+    "list": {
+      "subtitle": "מאגר בוגרי הקמפוס",
+      "search_placeholder": "חיפוש לפי שם, אימייל, מוסד…",
+      "count": "סך הכול",
+      "empty": "לא נמצאו בוגרים",
+      "forbidden": "אין הרשאה לצפייה בבוגרים",
+      "load_error": "טעינת הרשימה נכשלה",
+      "col_name": "שם",
+      "col_graduation_year": "שנת סיום",
+      "col_institution": "מוסד",
+      "col_direction": "מסלול",
+      "col_occupation": "עיסוק",
+      "col_location": "מיקום"
+    },
+    "card": {
+      "section": "בוגר",
+      "profile_title": "פרופיל בוגר",
+      "no_profile": "פרופיל הבוגר טרם נוצר",
+      "graduation_year": "שנת סיום",
+      "institution": "מוסד",
+      "direction": "מסלול",
+      "current_location": "מיקום נוכחי",
+      "current_occupation": "עיסוק נוכחי",
+      "notes": "הערות",
+      "edit": "עריכה",
+      "save": "שמירה",
+      "saving": "שומר…",
+      "cancel": "ביטול",
+      "save_error": "השמירה נכשלה"
+    }
   }
 }

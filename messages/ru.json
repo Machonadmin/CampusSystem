@@ -11,7 +11,8 @@
   "navigation": {
     "home": "Главная",
     "education": "Образование",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "alumni": "Выпускники"
   },
   "auth": {
     "login": "Войти",
@@ -1252,5 +1253,37 @@
     "system_prefix": "[СИС]",
     "tab_tasks": "Задачи",
     "tab_events": "Лента"
+  },
+  "alumni": {
+    "list": {
+      "subtitle": "База выпускников кампуса",
+      "search_placeholder": "Поиск по имени, email, учреждению…",
+      "count": "Всего",
+      "empty": "Выпускники не найдены",
+      "forbidden": "Нет прав на просмотр выпускников",
+      "load_error": "Не удалось загрузить список",
+      "col_name": "Имя",
+      "col_graduation_year": "Год выпуска",
+      "col_institution": "Учреждение",
+      "col_direction": "Направление",
+      "col_occupation": "Занятость",
+      "col_location": "Местоположение"
+    },
+    "card": {
+      "section": "Выпускник",
+      "profile_title": "Профиль выпускника",
+      "no_profile": "Профиль выпускника ещё не создан",
+      "graduation_year": "Год выпуска",
+      "institution": "Учреждение",
+      "direction": "Направление",
+      "current_location": "Текущее местоположение",
+      "current_occupation": "Текущая занятость",
+      "notes": "Заметки",
+      "edit": "Редактировать",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "cancel": "Отмена",
+      "save_error": "Не удалось сохранить"
+    }
   }
 }
