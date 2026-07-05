@@ -7,6 +7,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import DocumentsTab from '@/components/education/DocumentsTab'
+import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,6 +47,15 @@ export interface LeadViewData {
   relatives: { relation_type: string; full_name: string; notes: string | null }[]
   referral_source: string | null
   comment: string | null
+  /** Академические данные — только для карточки студента. */
+  academic?: {
+    departmentName: string | null
+    specialtyName: string | null
+    groupName: string | null
+    yearLevel: number | null
+    yearStart: number | null
+    enrolledAt: string | null
+  } | null
 }
 
 interface Props {
@@ -53,6 +63,10 @@ interface Props {
   showEditButton: boolean
   canManage: boolean
   canConvert: boolean
+  /** Когда задано — показывается вкладка «Учебный цикл» (карточка студента). */
+  studyLifecycle?: { history: StatusHistoryEntry[] } | null
+  /** База ссылки редактирования/списка: 'leads' (по умолчанию) или 'students'. */
+  routeBase?: 'leads' | 'students'
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -74,7 +88,7 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra'
+type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -100,7 +114,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, routeBase = 'leads' }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
@@ -115,6 +129,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     { key: 'directions', labelKey: 'directions' },
     { key: 'documents',  labelKey: 'documents' },
     { key: 'extra',      labelKey: 'extra' },
+    ...(studyLifecycle ? [{ key: 'study' as TabKey, labelKey: 'study' }] : []),
   ]
 
   const statusLabel = data.status ? t(`card.status.${data.status}`, data.status) : '—'
@@ -219,6 +234,32 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.comment')} value={data.comment} />
           </>
         )
+      case 'study':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Академические данные */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                {t('card.lifecycle.academic_title')}
+              </div>
+              <Field label={t('card.labels.department')} value={data.academic?.departmentName} />
+              <Field label={t('card.labels.specialty')} value={data.academic?.specialtyName} />
+              <Field label={t('card.labels.group')} value={data.academic?.groupName} />
+              <Field label={t('card.labels.year_level')} value={data.academic?.yearLevel ?? '—'} />
+              <Field label={t('card.labels.year_start')} value={data.academic?.yearStart ?? '—'} />
+              <Field label={t('card.labels.enrolled_at')} value={formatDate(data.academic?.enrolledAt ?? null)} />
+            </div>
+            {/* Учебный цикл */}
+            {studyLifecycle && (
+              <StudentLifecyclePanel
+                journeyId={data.journeyId}
+                currentStatus={data.status}
+                canManage={canManage}
+                history={studyLifecycle.history}
+              />
+            )}
+          </div>
+        )
       default:
         return null
     }
@@ -267,7 +308,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <div style={{ display: 'flex', gap: 8 }}>
             {showEditButton && (
               <button
-                onClick={() => router.push(`/dashboard/education/leads/${data.journeyId}/edit`)}
+                onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
                 style={{
                   padding: '8px 14px', fontSize: 13, fontWeight: 500,
                   background: '#fff', color: '#065F46',

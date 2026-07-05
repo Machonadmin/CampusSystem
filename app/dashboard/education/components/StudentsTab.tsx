@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
@@ -9,12 +10,13 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 interface Department { id: string; name: string }
 interface StudyGroup { id: string; name: string; department_id: string }
 
-type StudentStatus = 'active' | 'on_leave' | 'graduated' | 'expelled'
+/** Статусы учебного цикла (education_status в education_journeys). */
+type StudentStatus = 'student' | 'on_leave' | 'graduated' | 'expelled'
 
 interface Student {
   id: string
   person_id: string
-  status: StudentStatus
+  education_status: StudentStatus
   primary_department_id: string
   specialty_id: string | null
   main_group_id: string | null
@@ -33,11 +35,11 @@ interface Student {
   } | null
   main_group: { id: string; name: string; year_level: number | null } | null
   specialty: { id: string; name: string; code: string | null } | null
-  department: { id: string; name: string } | null
+  primary_department: { id: string; name: string } | null
 }
 
 const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
-  active:    { background: '#ECFDF5', color: '#065F46' },
+  student:   { background: '#ECFDF5', color: '#065F46' },
   on_leave:  { background: '#FFFBEB', color: '#92400E' },
   graduated: { background: '#EFF6FF', color: '#1E40AF' },
   expelled:  { background: '#F3F4F6', color: '#6B7280' },
@@ -47,6 +49,7 @@ const accent = getModuleColor('education')
 
 export default function StudentsTab() {
   const t = useTranslations('education.study')
+  const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([])
@@ -63,7 +66,7 @@ export default function StudentsTab() {
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const STATUS_LABEL: Record<StudentStatus, string> = {
-    active:    t('students.status_active'),
+    student:   t('students.status_student'),
     on_leave:  t('students.status_on_leave'),
     graduated: t('students.status_graduated'),
     expelled:  t('students.status_expelled'),
@@ -77,7 +80,12 @@ export default function StudentsTab() {
       if (q) params.set('search', q)
       if (filterDept) params.set('department_id', filterDept)
       if (filterGroup) params.set('main_group_id', filterGroup)
-      if (filterStatus) params.set('status', filterStatus)
+      // Фильтр статуса → набор education_status учебного цикла.
+      const statusSet =
+        filterStatus === 'active' ? 'student'
+        : filterStatus === 'all'  ? 'student,on_leave,graduated,expelled'
+        : 'student,on_leave'  // по умолчанию: учатся + в отпуске
+      params.set('status', statusSet)
 
       const resp = await fetch(`/api/education/students?${params}`)
       if (!resp.ok) throw new Error(t('students.load_error').replace('{status}', String(resp.status)))
@@ -210,7 +218,8 @@ export default function StudentsTab() {
               <tbody>
                 {students.map(s => {
                   const phone = s.person?.phones?.[0]?.number ?? null
-                  const expelled = s.status === 'expelled'
+                  const expelled = s.education_status === 'expelled'
+                  const cardHref = `/dashboard/education/students/${s.id}`
                   return (
                     <tr
                       key={s.id}
@@ -219,7 +228,12 @@ export default function StudentsTab() {
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                     >
                       <td style={{ ...tdStyle, fontWeight: 500 }}>
-                        {s.person?.full_name ?? '—'}
+                        <button
+                          onClick={() => router.push(cardHref)}
+                          style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: '#2563EB', fontWeight: 500, fontSize: 13, textAlign: 'inherit' }}
+                        >
+                          {s.person?.full_name ?? '—'}
+                        </button>
                         {s.person?.hebrew_name && (
                           <div style={{ fontSize: 11, color: '#9CA3AF', direction: 'rtl', textAlign: 'left' }}>{s.person.hebrew_name}</div>
                         )}
@@ -229,7 +243,7 @@ export default function StudentsTab() {
                         {phone && <div style={{ color: '#6B7280', fontSize: 12 }}>{phone}</div>}
                         {!s.person?.email && !phone && <span style={{ color: '#D1D5DB' }}>—</span>}
                       </td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
+                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.primary_department?.name ?? '—'}</td>
                       <td style={{ ...tdStyle, color: '#6B7280' }}>{s.main_group?.name ?? <span style={{ color: '#D1D5DB' }}>—</span>}</td>
                       <td style={{ ...tdStyle, color: '#6B7280' }}>
                         {s.specialty
@@ -242,15 +256,15 @@ export default function StudentsTab() {
                       <td style={tdStyle}>
                         <span style={{
                           fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
-                          ...STATUS_STYLE[s.status],
+                          ...(STATUS_STYLE[s.education_status] ?? { background: '#F3F4F6', color: '#6B7280' }),
                         }}>
-                          {STATUS_LABEL[s.status]}
+                          {STATUS_LABEL[s.education_status] ?? s.education_status}
                         </span>
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => alert(t('students.edit_wip_alert'))} style={btnSecondary}>
-                            {t('common.edit')}
+                          <button onClick={() => router.push(cardHref)} style={btnSecondary}>
+                            {t('students.open_card')}
                           </button>
                           {!expelled && (
                             <button

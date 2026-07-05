@@ -284,7 +284,8 @@
         "community": "קהילה",
         "directions": "כיוונים",
         "documents": "מסמכים",
-        "extra": "נוסף"
+        "extra": "נוסף",
+        "study": "מחזור לימודים"
       },
       "status": {
         "lead": "ליד",
@@ -362,12 +363,39 @@
         "back_to_list": "→ לרשימה",
         "back_to_view": "→ חזרה לצפייה",
         "lead_editing": "עריכת ליד",
-        "data_saved": "הנתונים נשמרו"
+        "data_saved": "הנתונים נשמרו",
+        "department": "מחלקה",
+        "specialty": "התמחות",
+        "group": "קבוצת בסיס",
+        "year_level": "שנה / כיתה",
+        "year_start": "שנת קבלה",
+        "enrolled_at": "תאריך רישום"
       },
       "section": {
         "lead": "גיוס",
         "applicant": "קבלה",
         "student": "לימודים"
+      },
+      "lifecycle": {
+        "academic_title": "נתונים אקדמיים",
+        "current_label": "סטטוס נוכחי",
+        "action_on_leave": "רישום חופשה",
+        "action_return": "חזרה מחופשה",
+        "action_graduate": "סיום לימודים",
+        "action_expel": "הרחקה",
+        "return_confirm": "להחזיר את הסטודנט מחופשת לימודים?",
+        "terminal_note": "סטטוס סופי — אין מעברים זמינים.",
+        "history_title": "היסטוריית סטטוסים",
+        "no_history": "אין היסטוריה",
+        "modal_title": "שינוי סטטוס",
+        "reason_label": "סיבה",
+        "reason_placeholder": "תאר את הסיבה…",
+        "date_label": "תאריך",
+        "submit": "אישור",
+        "cancel": "ביטול",
+        "error_reason_required": "יש לציין סיבה",
+        "error_date_required": "יש לציין תאריך",
+        "error_generic": "שינוי הסטטוס נכשל"
       }
     },
     "cascade": {
@@ -569,13 +597,13 @@
         "table_year": "שנה",
         "table_status": "סטטוס",
         "table_actions": "פעולות",
-        "edit_wip_alert": "עריכה זמינה כרגע רק דרך כרטיס הסטודנט (בפיתוח)",
-        "expel_button": "הרחק",
-        "expel_confirm": "להרחיק את {name}?\n\nהסטטוס ישתנה ל\"הורחק\".",
+        "open_card": "כרטיס",
+        "expel_button": "סגירת מסלול",
+        "expel_confirm": "לסגור את מסלול הלימודים של {name}?\n\nהרשומה תוסתר מהרשימה (הסטטוס education_status לא משתנה).",
         "expel_fallback_name": "הסטודנט",
-        "expel_failed": "ההרחקה נכשלה",
+        "expel_failed": "הסגירה נכשלה",
         "load_error": "שגיאה בטעינת סטודנטים: {status}",
-        "status_active": "פעיל",
+        "status_student": "סטודנט",
         "status_on_leave": "חופשת לימודים",
         "status_graduated": "בוגר",
         "status_expelled": "הורחק"

@@ -44,6 +44,14 @@ function isStudentStatus(s: string | null): boolean {
   return !!s && (STUDENT_STATUSES as readonly string[]).includes(s)
 }
 
+/**
+ * Значения enum person_education_status, существовавшие ДО миграции
+ * 20260705120000 (расширение учебного цикла). Используются как безопасный
+ * fallback фильтра, если миграция ещё не применена (см. GET).
+ */
+const BASE_ENUM_STATUSES: ReadonlyArray<JourneyStatus> =
+  ['lead', 'applicant', 'student']
+
 const JOURNEY_SELECT = `
   *,
   person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, gender, birth_date),
@@ -79,41 +87,63 @@ export async function GET(request: NextRequest) {
     }
 
     const sb = createServerClient()
-    let qb = sb.from('education_journeys').select(JOURNEY_SELECT)
 
-    const status = params.get('status') as JourneyStatus | null
-    if (status) qb = qb.eq('education_status', status)
+    // status может быть одиночным ('applicant') или списком через запятую
+    // ('student,on_leave,graduated,expelled') — для карточек учебного цикла.
+    const statusRaw = params.get('status')
+    const statusList = (statusRaw
+      ? statusRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : []) as JourneyStatus[]
+
+    // Департамент для скоупа/фильтра: primary_department, если все статусы —
+    // студенческого цикла, иначе desired_department.
+    const scopedByPrimary = statusList.length > 0 && statusList.every(s => isStudentStatus(s))
 
     const personId = params.get('person_id')
-    if (personId) qb = qb.eq('person_id', personId)
-
     const deptFilter = params.get('department_id')
-    if (deptFilter) {
-      if (isStudentStatus(status)) {
-        qb = qb.eq('primary_department_id', deptFilter)
-      } else {
-        qb = qb.eq('desired_department_id', deptFilter)
-      }
-    }
-
     const mainGroupId = params.get('main_group_id')
-    if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
 
+    let myDepts: string[] | null = null
     if (scope === 'department') {
-      const myDepts = await getUserDepartmentIds(session.person_id)
+      myDepts = await getUserDepartmentIds(session.person_id)
       if (myDepts.length === 0) return NextResponse.json({ journeys: [] })
-
-      if (isStudentStatus(status)) {
-        qb = qb.in('primary_department_id', myDepts)
-      } else {
-        qb = qb.in('desired_department_id', myDepts)
-      }
     }
     // 'own' scope для journeys пока не реализуем (упрощение шага 2A)
 
-    qb = qb.order('opened_at', { ascending: false })
+    // Собирает запрос заново под конкретный набор статусов (нужно для fallback,
+    // т.к. PostgrestBuilder одноразовый).
+    function buildQuery(statuses: JourneyStatus[]) {
+      let qb = sb.from('education_journeys').select(JOURNEY_SELECT)
+      if (statuses.length === 1) qb = qb.eq('education_status', statuses[0])
+      else if (statuses.length > 1) qb = qb.in('education_status', statuses)
+      if (personId) qb = qb.eq('person_id', personId)
+      if (deptFilter) {
+        qb = scopedByPrimary
+          ? qb.eq('primary_department_id', deptFilter)
+          : qb.eq('desired_department_id', deptFilter)
+      }
+      if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
+      if (myDepts) {
+        qb = scopedByPrimary
+          ? qb.in('primary_department_id', myDepts)
+          : qb.in('desired_department_id', myDepts)
+      }
+      return qb.order('opened_at', { ascending: false })
+    }
 
-    const { data, error } = await qb
+    let { data, error } = await buildQuery(statusList)
+
+    // Устойчивость к не-расширенному enum: если БД ещё не знает значения
+    // учебного цикла (on_leave/graduated/expelled — до применения миграции
+    // 20260705120000), PostgREST вернёт 22P02 на литерал в фильтре. В этом
+    // случае повторяем запрос только с базовыми (гарантированно существующими)
+    // статусами, чтобы список студентов не падал целиком.
+    if (error && error.code === '22P02' && statusList.length > 0) {
+      const safe = statusList.filter(s => BASE_ENUM_STATUSES.includes(s))
+      if (safe.length !== statusList.length) {
+        ;({ data, error } = await buildQuery(safe))
+      }
+    }
     if (error) throw error
 
     const search = params.get('search')?.trim().toLowerCase()

@@ -284,7 +284,8 @@
         "community": "Община",
         "directions": "Направления",
         "documents": "Документы",
-        "extra": "Дополнительно"
+        "extra": "Дополнительно",
+        "study": "Учебный цикл"
       },
       "status": {
         "lead": "Лид",
@@ -362,12 +363,39 @@
         "back_to_list": "← К списку",
         "back_to_view": "← Назад к просмотру",
         "lead_editing": "Редактирование лида",
-        "data_saved": "Данные сохранены"
+        "data_saved": "Данные сохранены",
+        "department": "Подразделение",
+        "specialty": "Специальность",
+        "group": "Базовая группа",
+        "year_level": "Курс / Класс",
+        "year_start": "Год набора",
+        "enrolled_at": "Дата зачисления"
       },
       "section": {
         "lead": "Набор",
         "applicant": "Приём",
         "student": "Учёба"
+      },
+      "lifecycle": {
+        "academic_title": "Академические данные",
+        "current_label": "Текущий статус",
+        "action_on_leave": "Оформить отпуск",
+        "action_return": "Вернуть из отпуска",
+        "action_graduate": "Выпустить",
+        "action_expel": "Отчислить",
+        "return_confirm": "Вернуть студента из академического отпуска?",
+        "terminal_note": "Завершающий статус — переходы недоступны.",
+        "history_title": "История статусов",
+        "no_history": "История пуста",
+        "modal_title": "Смена статуса",
+        "reason_label": "Причина",
+        "reason_placeholder": "Опишите причину…",
+        "date_label": "Дата",
+        "submit": "Подтвердить",
+        "cancel": "Отмена",
+        "error_reason_required": "Укажите причину",
+        "error_date_required": "Укажите дату",
+        "error_generic": "Не удалось изменить статус"
       }
     },
     "cascade": {
@@ -569,13 +597,13 @@
         "table_year": "Курс",
         "table_status": "Статус",
         "table_actions": "Действия",
-        "edit_wip_alert": "Редактирование пока через карточку студента, в разработке",
-        "expel_button": "Отчислить",
-        "expel_confirm": "Отчислить {name}?\n\nСтатус будет изменён на «Отчислен».",
+        "open_card": "Карточка",
+        "expel_button": "Закрыть journey",
+        "expel_confirm": "Закрыть учебную траекторию {name}?\n\nЗапись будет скрыта из списка (education_status не меняется).",
         "expel_fallback_name": "студента",
-        "expel_failed": "Не удалось отчислить",
+        "expel_failed": "Не удалось закрыть",
         "load_error": "Ошибка загрузки студентов: {status}",
-        "status_active": "Активен",
+        "status_student": "Студент",
         "status_on_leave": "Академотпуск",
         "status_graduated": "Выпускник",
         "status_expelled": "Отчислен"

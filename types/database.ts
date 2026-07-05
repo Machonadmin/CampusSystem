@@ -1227,6 +1227,16 @@ export interface Database {
         Args: { p_stage_instance_id: string; p_final_code: string; p_actor_id: string | null; p_result_data?: Record<string, unknown> | null }
         Returns: { stage_instance_id: string; activated_stage_ids: string[]; process_completed: boolean; finish_reason: string | null }
       }
+      transition_education_status: {
+        Args: {
+          p_journey_id: string
+          p_to_status: string
+          p_actor_id: string | null
+          p_reason?: string | null
+          p_effective_date?: string | null
+        }
+        Returns: { journey_id: string; from_status: string; to_status: string }
+      }
     }
     Enums: Record<string, never>
   }

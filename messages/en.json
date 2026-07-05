@@ -284,7 +284,8 @@
         "community": "Community",
         "directions": "Directions",
         "documents": "Documents",
-        "extra": "Additional"
+        "extra": "Additional",
+        "study": "Study lifecycle"
       },
       "status": {
         "lead": "Lead",
@@ -362,12 +363,39 @@
         "back_to_list": "← Back to list",
         "back_to_view": "← Back to view",
         "lead_editing": "Edit lead",
-        "data_saved": "Data saved"
+        "data_saved": "Data saved",
+        "department": "Department",
+        "specialty": "Specialty",
+        "group": "Base group",
+        "year_level": "Year / Grade",
+        "year_start": "Enrollment year",
+        "enrolled_at": "Enrollment date"
       },
       "section": {
         "lead": "Recruitment",
         "applicant": "Admission",
         "student": "Study"
+      },
+      "lifecycle": {
+        "academic_title": "Academic details",
+        "current_label": "Current status",
+        "action_on_leave": "Set academic leave",
+        "action_return": "Return from leave",
+        "action_graduate": "Graduate",
+        "action_expel": "Expel",
+        "return_confirm": "Return the student from academic leave?",
+        "terminal_note": "Final status — no transitions available.",
+        "history_title": "Status history",
+        "no_history": "No history",
+        "modal_title": "Change status",
+        "reason_label": "Reason",
+        "reason_placeholder": "Describe the reason…",
+        "date_label": "Date",
+        "submit": "Confirm",
+        "cancel": "Cancel",
+        "error_reason_required": "Reason is required",
+        "error_date_required": "Date is required",
+        "error_generic": "Failed to change status"
       }
     },
     "cascade": {
@@ -569,13 +597,13 @@
         "table_year": "Year",
         "table_status": "Status",
         "table_actions": "Actions",
-        "edit_wip_alert": "Editing is only available through the student card for now (in development)",
-        "expel_button": "Expel",
-        "expel_confirm": "Expel {name}?\n\nStatus will change to \"Expelled\".",
+        "open_card": "Card",
+        "expel_button": "Close journey",
+        "expel_confirm": "Close the study journey of {name}?\n\nThe record will be hidden from the list (education_status is not changed).",
         "expel_fallback_name": "the student",
-        "expel_failed": "Failed to expel",
+        "expel_failed": "Failed to close",
         "load_error": "Error loading students: {status}",
-        "status_active": "Active",
+        "status_student": "Student",
         "status_on_leave": "On Leave",
         "status_graduated": "Graduate",
         "status_expelled": "Expelled"

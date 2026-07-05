@@ -6,10 +6,22 @@ import { NextRequest, NextResponse } from 'next/server'
  * Будет удалён в Part 2 миграции; пока сохраняем для обратной совместимости UI.
  */
 
+/** Полный набор статусов учебного цикла (для эндпоинта «студенты»). */
+const STUDENT_LIFECYCLE = ['student', 'on_leave', 'graduated', 'expelled']
+
 export async function GET(request: NextRequest) {
   const url = new URL('/api/education/journeys', request.url)
-  request.nextUrl.searchParams.forEach((v, k) => url.searchParams.append(k, v))
-  url.searchParams.set('status', 'student')
+  request.nextUrl.searchParams.forEach((v, k) => {
+    if (k === 'status') return // status обрабатываем отдельно ниже
+    url.searchParams.append(k, v)
+  })
+
+  // Ограничиваем статус подмножеством учебного цикла: что бы ни запросил
+  // клиент, эндпоинт «студенты» не отдаёт лидов/абитуриентов.
+  const requested = (request.nextUrl.searchParams.get('status') ?? '')
+    .split(',').map(s => s.trim()).filter(Boolean)
+  const allowed = requested.filter(s => STUDENT_LIFECYCLE.includes(s))
+  url.searchParams.set('status', (allowed.length > 0 ? allowed : STUDENT_LIFECYCLE).join(','))
 
   const resp = await fetch(url.toString(), {
     headers: { cookie: request.headers.get('cookie') ?? '' },
