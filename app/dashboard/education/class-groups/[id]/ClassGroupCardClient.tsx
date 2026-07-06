@@ -8,6 +8,7 @@ import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupT
 import ClassGroupStudents from '@/app/dashboard/education/components/ClassGroupStudents'
 import LessonsJournalTab from '@/app/dashboard/education/components/LessonsJournalTab'
 import GradesTab from '@/app/dashboard/education/components/GradesTab'
+import ScheduleTab from '@/app/dashboard/education/components/ScheduleTab'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 
 interface Teacher {
@@ -65,13 +66,14 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
   const t = useTranslations('education.study')
   const tJournal = useTranslations('education.journal')
   const tGrades = useTranslations('education.grades')
+  const tSchedule = useTranslations('education.schedule')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
 
   const [group, setGroup] = useState<ClassGroupDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'journal' | 'grades'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'journal' | 'grades' | 'schedule'>('overview')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -138,9 +140,10 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
   const period = formatPeriod(lang, group.period_start, group.period_end)
 
   const showTabs = canViewLessons || canViewGrades
-  let currentTab: 'overview' | 'journal' | 'grades' = activeTab
+  let currentTab: 'overview' | 'journal' | 'grades' | 'schedule' = activeTab
   if (currentTab === 'journal' && !canViewLessons) currentTab = 'overview'
   if (currentTab === 'grades' && !canViewGrades) currentTab = 'overview'
+  if (currentTab === 'schedule' && !canViewLessons) currentTab = 'overview'
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '9px 16px', fontSize: 13, fontWeight: active ? 600 : 500,
@@ -209,6 +212,11 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
               {tGrades('tab_grades')}
             </button>
           )}
+          {canViewLessons && (
+            <button onClick={() => setActiveTab('schedule')} style={tabBtn(currentTab === 'schedule')}>
+              {tSchedule('tab_schedule')}
+            </button>
+          )}
         </div>
       )}
 
@@ -270,6 +278,16 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
           groupId={group.id}
           canSetGrades={canSetGrades}
           accentColor={accent}
+        />
+      )}
+
+      {currentTab === 'schedule' && canViewLessons && (
+        <ScheduleTab
+          groupId={group.id}
+          canManageLessons={canManageLessons}
+          accentColor={accent}
+          periodStart={group.period_start}
+          periodEnd={group.period_end}
         />
       )}
     </div>
