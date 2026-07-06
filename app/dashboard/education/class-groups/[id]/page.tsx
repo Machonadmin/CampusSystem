@@ -18,6 +18,8 @@ interface Props {
  *   canViewLessons    — education.view_students
  *   canManageLessons  — education.set_lesson_topics
  *   canMarkAttendance — education.mark_attendance
+ *   canViewGrades     — education.view_students (то же право, что и журнал)
+ *   canSetGrades      — education.set_grades
  * и передаёт их клиентскому компоненту.
  */
 export default async function ClassGroupCardPage({ params }: Props) {
@@ -29,6 +31,7 @@ export default async function ClassGroupCardPage({ params }: Props) {
   let canViewLessons = false
   let canManageLessons = false
   let canMarkAttendance = false
+  let canSetGrades = false
 
   let target = null
   try {
@@ -39,12 +42,16 @@ export default async function ClassGroupCardPage({ params }: Props) {
   }
 
   if (target) {
-    ;[canViewLessons, canManageLessons, canMarkAttendance] = await Promise.all([
+    ;[canViewLessons, canManageLessons, canMarkAttendance, canSetGrades] = await Promise.all([
       hasEducationPrivilege(session, 'view_students', target),
       hasEducationPrivilege(session, 'set_lesson_topics', target),
       hasEducationPrivilege(session, 'mark_attendance', target),
+      hasEducationPrivilege(session, 'set_grades', target),
     ])
   }
+
+  // Просмотр оценок — то же право, что и просмотр журнала (view_students).
+  const canViewGrades = canViewLessons
 
   return (
     <ClassGroupCardClient
@@ -52,6 +59,8 @@ export default async function ClassGroupCardPage({ params }: Props) {
       canViewLessons={canViewLessons}
       canManageLessons={canManageLessons}
       canMarkAttendance={canMarkAttendance}
+      canViewGrades={canViewGrades}
+      canSetGrades={canSetGrades}
     />
   )
 }

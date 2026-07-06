@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupTeachers'
 import ClassGroupStudents from '@/app/dashboard/education/components/ClassGroupStudents'
 import LessonsJournalTab from '@/app/dashboard/education/components/LessonsJournalTab'
+import GradesTab from '@/app/dashboard/education/components/GradesTab'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 
 interface Teacher {
@@ -46,6 +47,8 @@ interface Props {
   canViewLessons: boolean
   canManageLessons: boolean
   canMarkAttendance: boolean
+  canViewGrades: boolean
+  canSetGrades: boolean
 }
 
 function formatPeriod(lang: string, start: string | null, end: string | null): string | null {
@@ -57,17 +60,18 @@ function formatPeriod(lang: string, start: string | null, end: string | null): s
   return `→ ${fmt(end!)}`
 }
 
-export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canMarkAttendance }: Props) {
+export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canMarkAttendance, canViewGrades, canSetGrades }: Props) {
   const router = useRouter()
   const t = useTranslations('education.study')
   const tJournal = useTranslations('education.journal')
+  const tGrades = useTranslations('education.grades')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
 
   const [group, setGroup] = useState<ClassGroupDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'journal'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'journal' | 'grades'>('overview')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -133,8 +137,10 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
 
   const period = formatPeriod(lang, group.period_start, group.period_end)
 
-  const showJournalTab = canViewLessons
-  const currentTab = showJournalTab ? activeTab : 'overview'
+  const showTabs = canViewLessons || canViewGrades
+  let currentTab: 'overview' | 'journal' | 'grades' = activeTab
+  if (currentTab === 'journal' && !canViewLessons) currentTab = 'overview'
+  if (currentTab === 'grades' && !canViewGrades) currentTab = 'overview'
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '9px 16px', fontSize: 13, fontWeight: active ? 600 : 500,
@@ -188,14 +194,21 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
       </div>
 
       {/* Табы */}
-      {showJournalTab && (
+      {showTabs && (
         <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #E5E7EB' }}>
           <button onClick={() => setActiveTab('overview')} style={tabBtn(currentTab === 'overview')}>
             {tJournal('tab_overview')}
           </button>
-          <button onClick={() => setActiveTab('journal')} style={tabBtn(currentTab === 'journal')}>
-            {tJournal('tab_journal')}
-          </button>
+          {canViewLessons && (
+            <button onClick={() => setActiveTab('journal')} style={tabBtn(currentTab === 'journal')}>
+              {tJournal('tab_journal')}
+            </button>
+          )}
+          {canViewGrades && (
+            <button onClick={() => setActiveTab('grades')} style={tabBtn(currentTab === 'grades')}>
+              {tGrades('tab_grades')}
+            </button>
+          )}
         </div>
       )}
 
@@ -243,11 +256,19 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         </>
       )}
 
-      {currentTab === 'journal' && showJournalTab && (
+      {currentTab === 'journal' && canViewLessons && (
         <LessonsJournalTab
           groupId={group.id}
           canManageLessons={canManageLessons}
           canMarkAttendance={canMarkAttendance}
+          accentColor={accent}
+        />
+      )}
+
+      {currentTab === 'grades' && canViewGrades && (
+        <GradesTab
+          groupId={group.id}
+          canSetGrades={canSetGrades}
           accentColor={accent}
         />
       )}
