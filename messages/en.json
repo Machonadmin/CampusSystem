@@ -120,6 +120,23 @@
       "status_excused": "Excused",
       "status_late": "Late"
     },
+    "report": {
+      "loading": "Loading…",
+      "load_error": "Failed to load performance",
+      "empty": "Student is not enrolled in any class group",
+      "overall_attendance": "Overall attendance",
+      "overall_grade": "Average grade",
+      "coverage": "{done} of {total}",
+      "col_group": "Group",
+      "col_attendance": "Attendance",
+      "col_grades": "Grades",
+      "status_present": "Present",
+      "status_absent": "Absent",
+      "status_excused": "Excused",
+      "status_late": "Late",
+      "assessments_title": "Assessments",
+      "no_assessments": "No assessments yet"
+    },
     "tabs": {
       "leads": "Recruitment",
       "applicants": "Admission",
@@ -380,7 +397,8 @@
         "directions": "Directions",
         "documents": "Documents",
         "extra": "Additional",
-        "study": "Study lifecycle"
+        "study": "Study lifecycle",
+        "report": "Performance"
       },
       "status": {
         "lead": "Lead",

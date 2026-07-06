@@ -120,6 +120,23 @@
       "status_excused": "Уважительная причина",
       "status_late": "Опоздал"
     },
+    "report": {
+      "loading": "Загрузка…",
+      "load_error": "Не удалось загрузить успеваемость",
+      "empty": "Студент не записан ни в одну учебную группу",
+      "overall_attendance": "Общая посещаемость",
+      "overall_grade": "Средний балл",
+      "coverage": "{done} из {total}",
+      "col_group": "Группа",
+      "col_attendance": "Посещаемость",
+      "col_grades": "Оценки",
+      "status_present": "Присутствовал",
+      "status_absent": "Отсутствовал",
+      "status_excused": "Уважительная причина",
+      "status_late": "Опоздал",
+      "assessments_title": "Задания",
+      "no_assessments": "Заданий пока нет"
+    },
     "tabs": {
       "leads": "Набор",
       "applicants": "Приём",
@@ -380,7 +397,8 @@
         "directions": "Направления",
         "documents": "Документы",
         "extra": "Дополнительно",
-        "study": "Учебный цикл"
+        "study": "Учебный цикл",
+        "report": "Успеваемость"
       },
       "status": {
         "lead": "Лид",

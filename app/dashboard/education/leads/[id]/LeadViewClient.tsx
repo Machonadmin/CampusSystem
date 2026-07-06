@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import DocumentsTab from '@/components/education/DocumentsTab'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
+import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,6 +66,8 @@ interface Props {
   canConvert: boolean
   /** Когда задано — показывается вкладка «Учебный цикл» (карточка студента). */
   studyLifecycle?: { history: StatusHistoryEntry[] } | null
+  /** Когда true — показывается вкладка «Успеваемость» (посещаемость + оценки). */
+  showReport?: boolean
   /** База ссылки редактирования/списка: 'leads' (по умолчанию) или 'students'. */
   routeBase?: 'leads' | 'students'
   /**
@@ -105,7 +108,7 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study'
+type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -131,7 +134,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, routeBase = 'leads', navContext, extraPanel }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, routeBase = 'leads', navContext, extraPanel }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
@@ -152,6 +155,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     { key: 'documents',  labelKey: 'documents' },
     { key: 'extra',      labelKey: 'extra' },
     ...(studyLifecycle ? [{ key: 'study' as TabKey, labelKey: 'study' }] : []),
+    ...(showReport ? [{ key: 'report' as TabKey, labelKey: 'report' }] : []),
   ]
 
   const statusLabel = data.status ? t(`card.status.${data.status}`, data.status) : '—'
@@ -282,6 +286,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             )}
           </div>
         )
+      case 'report':
+        return <StudentReportTab journeyId={data.journeyId} />
       default:
         return null
     }

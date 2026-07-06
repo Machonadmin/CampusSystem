@@ -120,6 +120,23 @@
       "status_excused": "נעדר באישור",
       "status_late": "איחר"
     },
+    "report": {
+      "loading": "טוען…",
+      "load_error": "טעינת נתוני הביצועים נכשלה",
+      "empty": "הסטודנט אינו רשום לאף קבוצת לימוד",
+      "overall_attendance": "נוכחות כללית",
+      "overall_grade": "ציון ממוצע",
+      "coverage": "{done} מתוך {total}",
+      "col_group": "קבוצה",
+      "col_attendance": "נוכחות",
+      "col_grades": "ציונים",
+      "status_present": "נוכח",
+      "status_absent": "נעדר",
+      "status_excused": "נעדר באישור",
+      "status_late": "איחר",
+      "assessments_title": "מטלות",
+      "no_assessments": "עדיין אין מטלות"
+    },
     "tabs": {
       "leads": "גיוס",
       "applicants": "קבלה",
@@ -380,7 +397,8 @@
         "directions": "כיוונים",
         "documents": "מסמכים",
         "extra": "נוסף",
-        "study": "מחזור לימודים"
+        "study": "מחזור לימודים",
+        "report": "ביצועים אקדמיים"
       },
       "status": {
         "lead": "ליד",
