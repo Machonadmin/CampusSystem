@@ -978,6 +978,53 @@ export interface AttendanceInsert {
 }
 export type AttendanceUpdate = Partial<Omit<AttendanceInsert, 'lesson_id' | 'journey_id'>>
 
+
+// ─── Assessments & Grades (управление учёбой, фаза B: оценки) ──────────────────
+
+export interface AssessmentRow {
+  id: string
+  class_group_id: string
+  title: string
+  max_score: number
+  assessment_date: string | null   // ISO date 'YYYY-MM-DD'
+  description: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+}
+export interface AssessmentInsert {
+  id?: string
+  class_group_id: string
+  title: string
+  max_score?: number
+  assessment_date?: string | null
+  description?: string | null
+  created_by?: string | null
+}
+export type AssessmentUpdate = Partial<Omit<AssessmentInsert, 'class_group_id' | 'created_by'>>
+
+export interface GradeRow {
+  id: string
+  assessment_id: string
+  journey_id: string
+  score: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+  graded_by: string | null
+  graded_at: string | null
+}
+export interface GradeInsert {
+  id?: string
+  assessment_id: string
+  journey_id: string
+  score: number
+  comment?: string | null
+  graded_by?: string | null
+  graded_at?: string | null
+}
+export type GradeUpdate = Partial<Omit<GradeInsert, 'assessment_id' | 'journey_id'>>
+
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
 export interface ProcessTemplateRow {
@@ -1214,6 +1261,8 @@ export interface Database {
       class_teachers:            T<ClassTeacherRow,              ClassTeacherInsert,              ClassTeacherInsert>
       lessons:                   T<LessonRow,                    LessonInsert,                    LessonUpdate>
       attendance:                T<AttendanceRow,                AttendanceInsert,                AttendanceUpdate>
+      assessments:               T<AssessmentRow,                AssessmentInsert,                AssessmentUpdate>
+      grades:                    T<GradeRow,                     GradeInsert,                     GradeUpdate>
       process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
       stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>

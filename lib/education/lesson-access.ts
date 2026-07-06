@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, LessonRow } from '@/types/database'
+import type { Database, LessonRow, AssessmentRow } from '@/types/database'
 import type { PrivilegeTarget } from './permissions'
 
 // ─── Общее ─────────────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ export async function getLessonAccess(
 
 /**
  * Возвращает множество journey_id, записанных в учебную группу.
- * Используется для валидации отметок посещаемости.
+ * Используется для валидации отметок посещаемости и оценок.
  */
 export async function getEnrolledJourneyIds(
   sb: SB,
@@ -85,4 +85,32 @@ export async function getEnrolledJourneyIds(
     .eq('class_group_id', classGroupId)
   if (error) throw error
   return new Set((data ?? []).map(r => r.journey_id))
+}
+
+export interface AssessmentAccess {
+  assessment: AssessmentRow
+  target: PrivilegeTarget
+}
+
+/**
+ * Загружает задание (assessment) и строит PrivilegeTarget его учебной группы.
+ * Возвращает null, если задание не найдено. Полная аналогия getLessonAccess.
+ */
+export async function getAssessmentAccess(
+  sb: SB,
+  assessmentId: string,
+): Promise<AssessmentAccess | null> {
+  const { data: assessment, error } = await sb
+    .from('assessments')
+    .select('*')
+    .eq('id', assessmentId)
+    .maybeSingle()
+  if (error) throw error
+  if (!assessment) return null
+
+  const row = assessment as AssessmentRow
+  const target = await getClassGroupTarget(sb, row.class_group_id)
+  // Группа обязана существовать (FK), но на всякий случай отдаём {} —
+  // тогда scope='own' даст отказ, а scope='all' сработает как обычно.
+  return { assessment: row, target: target ?? {} }
 }
