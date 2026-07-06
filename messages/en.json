@@ -28,7 +28,7 @@
   "education": {
     "journal": {
       "tab_overview": "Overview",
-      "tab_journal": "Journal / Lessons",
+      "tab_journal": "Lessons & Attendance",
       "section_title": "Lessons",
       "add_lesson": "Add lesson",
       "col_date": "Date",
@@ -43,7 +43,7 @@
       "load_error": "Failed to load lessons",
       "action_edit": "Edit",
       "action_attendance": "Attendance",
-      "action_cancel": "Cancel",
+      "action_cancel": "Cancel lesson",
       "action_restore": "Restore",
       "action_delete": "Delete",
       "delete_confirm": "Delete this lesson? Attendance records will be removed.",

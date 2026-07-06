@@ -65,7 +65,7 @@
       "att_empty": "В группе нет записанных студентов",
       "att_loading": "Загрузка…",
       "att_load_error": "Не удалось загрузить посещаемость",
-      "att_mark_all_present": "Отметить всех: присутствовал",
+      "att_mark_all_present": "Отметить всех присутствующими",
       "att_not_marked": "Не отмечен",
       "att_marked_of": "Отмечено: {marked} из {total}",
       "att_save": "Сохранить",
@@ -76,7 +76,7 @@
       "att_close": "Закрыть",
       "status_present": "Присутствовал",
       "status_absent": "Отсутствовал",
-      "status_excused": "Уважительная",
+      "status_excused": "Уважительная причина",
       "status_late": "Опоздал"
     },
     "tabs": {
