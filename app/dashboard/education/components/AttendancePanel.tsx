@@ -1,0 +1,284 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import type { LessonItem } from './LessonsJournalTab'
+
+// ── Типы ──────────────────────────────────────────────────────────────────────
+
+type AttendanceStatus = 'present' | 'absent' | 'excused' | 'late'
+
+interface StudentEntry {
+  journey_id: string
+  full_name: string | null
+  hebrew_name: string | null
+  status: AttendanceStatus | null
+  marked_by: string | null
+  marked_at: string | null
+}
+
+interface Props {
+  lesson: LessonItem
+  canMarkAttendance: boolean
+  accentColor: string
+  onClose: () => void
+  onSaved: () => void
+}
+
+// ── Цвета статусов ────────────────────────────────────────────────────────────
+
+const STATUS_ORDER: AttendanceStatus[] = ['present', 'absent', 'excused', 'late']
+
+const STATUS_COLORS: Record<AttendanceStatus, { color: string; bg: string; border: string }> = {
+  present: { color: '#065F46', bg: '#D1FAE5', border: '#059669' },
+  absent:  { color: '#991B1B', bg: '#FEE2E2', border: '#DC2626' },
+  excused: { color: '#1E40AF', bg: '#EFF6FF', border: '#3B82F6' },
+  late:    { color: '#92400E', bg: '#FEF3C7', border: '#D97706' },
+}
+
+function formatDate(lang: string, iso: string): string {
+  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  return new Date(iso + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// ── Компонент ─────────────────────────────────────────────────────────────────
+
+export default function AttendancePanel({ lesson, canMarkAttendance, accentColor, onClose, onSaved }: Props) {
+  const t = useTranslations('education.journal')
+  const { lang } = useLang()
+
+  const [students, setStudents] = useState<StudentEntry[]>([])
+  const [statuses, setStatuses] = useState<Map<string, AttendanceStatus | null>>(new Map())
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [banner, setBanner] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  const STATUS_LABEL: Record<AttendanceStatus, string> = {
+    present: t('status_present'),
+    absent: t('status_absent'),
+    excused: t('status_excused'),
+    late: t('status_late'),
+  }
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/education/lessons/${lesson.id}/attendance`)
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.error ?? t('att_load_error'))
+      }
+      const data = await resp.json()
+      const list: StudentEntry[] = data.students ?? []
+      setStudents(list)
+      setStatuses(new Map(list.map(s => [s.journey_id, s.status])))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('att_load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [lesson.id, t])
+
+  useEffect(() => { load() }, [load])
+
+  const setStudentStatus = (journeyId: string, status: AttendanceStatus) => {
+    if (!canMarkAttendance) return
+    setBanner(null)
+    setStatuses(prev => {
+      const next = new Map(prev)
+      // Повторный клик по выбранному статусу снимает локальный выбор
+      next.set(journeyId, prev.get(journeyId) === status ? null : status)
+      return next
+    })
+  }
+
+  const markAllPresent = () => {
+    if (!canMarkAttendance) return
+    setBanner(null)
+    setStatuses(new Map(students.map(s => [s.journey_id, 'present' as AttendanceStatus])))
+  }
+
+  const markedCount = Array.from(statuses.values()).filter(Boolean).length
+
+  const handleSave = async () => {
+    const entries = students
+      .map(s => ({ journey_id: s.journey_id, status: statuses.get(s.journey_id) ?? null }))
+      .filter((e): e is { journey_id: string; status: AttendanceStatus } => e.status !== null)
+    if (entries.length === 0) return
+    setSaving(true)
+    setBanner(null)
+    try {
+      const resp = await fetch(`/api/education/lessons/${lesson.id}/attendance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setBanner({ kind: 'err', text: err.error ?? t('att_save_failed') })
+        return
+      }
+      setBanner({ kind: 'ok', text: t('att_saved') })
+      onSaved()
+    } catch {
+      setBanner({ kind: 'err', text: t('att_save_failed') })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 50, padding: 16,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 12, padding: 24,
+          width: '100%', maxWidth: 640,
+          maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        }}
+      >
+        {/* Заголовок */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+          <div>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+              {t('att_title')} · {formatDate(lang, lesson.scheduled_date)}
+              {lesson.scheduled_time && <span style={{ color: '#6B7280', fontWeight: 400 }}> · {lesson.scheduled_time.slice(0, 5)}</span>}
+            </h2>
+            {lesson.topic && (
+              <div style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{lesson.topic}</div>
+            )}
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        </div>
+
+        {!canMarkAttendance && (
+          <div style={{ fontSize: 12, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
+            {t('att_readonly_hint')}
+          </div>
+        )}
+
+        {/* Быстрые действия */}
+        {canMarkAttendance && students.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <button
+              onClick={markAllPresent}
+              style={{
+                padding: '4px 10px', fontSize: 12,
+                color: STATUS_COLORS.present.color, background: STATUS_COLORS.present.bg,
+                border: `1px solid ${STATUS_COLORS.present.border}`, borderRadius: 6, cursor: 'pointer',
+              }}
+            >
+              {t('att_mark_all_present')}
+            </button>
+          </div>
+        )}
+
+        {/* Список студентов */}
+        <div style={{ flex: 1, overflowY: 'auto', marginTop: 12, borderRadius: 8, border: '1px solid #E5E7EB' }}>
+          {loading ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('att_loading')}</div>
+          ) : error ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
+          ) : students.length === 0 ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('att_empty')}</div>
+          ) : (
+            students.map((s, i) => {
+              const current = statuses.get(s.journey_id) ?? null
+              return (
+                <div
+                  key={s.journey_id}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    padding: '9px 12px', flexWrap: 'wrap',
+                    borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
+                  }}
+                >
+                  <div style={{ minWidth: 140 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                      {s.full_name ?? '—'}
+                    </div>
+                    {!current && (
+                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{t('att_not_marked')}</div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {STATUS_ORDER.map(status => {
+                      const active = current === status
+                      const c = STATUS_COLORS[status]
+                      return (
+                        <button
+                          key={status}
+                          onClick={() => setStudentStatus(s.journey_id, status)}
+                          disabled={!canMarkAttendance}
+                          style={{
+                            padding: '3px 10px', fontSize: 12, borderRadius: 99, fontWeight: active ? 600 : 400,
+                            color: active ? c.color : '#6B7280',
+                            background: active ? c.bg : '#fff',
+                            border: `1px solid ${active ? c.border : '#D1D5DB'}`,
+                            cursor: canMarkAttendance ? 'pointer' : 'default',
+                          }}
+                        >
+                          {STATUS_LABEL[status]}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Баннер результата */}
+        {banner && (
+          <div style={{
+            marginTop: 10, padding: '8px 12px', borderRadius: 8, fontSize: 13,
+            background: banner.kind === 'ok' ? '#D1FAE5' : '#FEE2E2',
+            color: banner.kind === 'ok' ? '#065F46' : '#991B1B',
+          }}>
+            {banner.text}
+          </div>
+        )}
+
+        {/* Футер */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+          <span style={{ fontSize: 12, color: '#6B7280' }}>
+            {t('att_marked_of').replace('{marked}', String(markedCount)).replace('{total}', String(students.length))}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={onClose}
+              style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+            >
+              {t('att_close')}
+            </button>
+            {canMarkAttendance && (
+              <button
+                onClick={handleSave}
+                disabled={saving || markedCount === 0}
+                style={{
+                  padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
+                  background: accentColor, border: 'none', borderRadius: 8,
+                  cursor: (saving || markedCount === 0) ? 'not-allowed' : 'pointer',
+                  opacity: (saving || markedCount === 0) ? 0.55 : 1,
+                }}
+              >
+                {saving ? t('att_saving') : t('att_save')}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
