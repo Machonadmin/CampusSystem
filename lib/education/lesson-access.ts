@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database, LessonRow, AssessmentRow } from '@/types/database'
+import type { Database, LessonRow, AssessmentRow, ScheduleSlotRow } from '@/types/database'
 import type { PrivilegeTarget } from './permissions'
 
 // ─── Общее ─────────────────────────────────────────────────────────────────────
@@ -113,4 +113,32 @@ export async function getAssessmentAccess(
   // Группа обязана существовать (FK), но на всякий случай отдаём {} —
   // тогда scope='own' даст отказ, а scope='all' сработает как обычно.
   return { assessment: row, target: target ?? {} }
+}
+
+export interface SlotAccess {
+  slot: ScheduleSlotRow
+  target: PrivilegeTarget
+}
+
+/**
+ * Загружает слот расписания и строит PrivilegeTarget его учебной группы.
+ * Возвращает null, если слот не найден. Полная аналогия getAssessmentAccess.
+ */
+export async function getSlotAccess(
+  sb: SB,
+  slotId: string,
+): Promise<SlotAccess | null> {
+  const { data: slot, error } = await sb
+    .from('class_schedule_slots')
+    .select('*')
+    .eq('id', slotId)
+    .maybeSingle()
+  if (error) throw error
+  if (!slot) return null
+
+  const row = slot as ScheduleSlotRow
+  const target = await getClassGroupTarget(sb, row.class_group_id)
+  // Группа обязана существовать (FK), но на всякий случай отдаём {} —
+  // тогда scope='own' даст отказ, а scope='all' сработает как обычно.
+  return { slot: row, target: target ?? {} }
 }

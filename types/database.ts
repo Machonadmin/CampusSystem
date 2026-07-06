@@ -1025,6 +1025,30 @@ export interface GradeInsert {
 }
 export type GradeUpdate = Partial<Omit<GradeInsert, 'assessment_id' | 'journey_id'>>
 
+// ─── Class schedule slots (управление учёбой: расписание) ─────────────────────
+
+export interface ScheduleSlotRow {
+  id: string
+  class_group_id: string
+  day_of_week: number             // ISO: 1=Mon .. 7=Sun
+  start_time: string              // 'HH:MM:SS'
+  end_time: string                // 'HH:MM:SS'
+  room: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+}
+export interface ScheduleSlotInsert {
+  id?: string
+  class_group_id: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  room?: string | null
+  created_by?: string | null
+}
+export type ScheduleSlotUpdate = Partial<Omit<ScheduleSlotInsert, 'class_group_id' | 'created_by'>>
+
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
 export interface ProcessTemplateRow {
@@ -1263,6 +1287,7 @@ export interface Database {
       attendance:                T<AttendanceRow,                AttendanceInsert,                AttendanceUpdate>
       assessments:               T<AssessmentRow,                AssessmentInsert,                AssessmentUpdate>
       grades:                    T<GradeRow,                     GradeInsert,                     GradeUpdate>
+      class_schedule_slots:      T<ScheduleSlotRow,              ScheduleSlotInsert,              ScheduleSlotUpdate>
       process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
       stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
