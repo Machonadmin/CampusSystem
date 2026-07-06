@@ -48,7 +48,7 @@ export async function GET(
           journey_id,
           journey:education_journeys(
             id,
-            person:persons(id, full_name, hebrew_name)
+            person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)
           )
         `)
         .eq('class_group_id', classGroupId),

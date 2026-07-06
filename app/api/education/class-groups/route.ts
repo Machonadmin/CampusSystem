@@ -40,7 +40,7 @@ async function buildTeachersAndCounts(
   const [enrollsRes, teachersRes] = await Promise.all([
     sb.from('class_enrollments').select('class_group_id').in('class_group_id', groupIds),
     sb.from('class_teachers')
-      .select('class_group_id, teacher_id, is_primary, person:persons(id, full_name)')
+      .select('class_group_id, teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
       .in('class_group_id', groupIds),
   ])
 

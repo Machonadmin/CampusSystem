@@ -39,7 +39,7 @@ export async function GET(
 
     const [teachersRes, enrollsRes] = await Promise.all([
       sb.from('class_teachers')
-        .select('teacher_id, is_primary, person:persons(id, full_name)')
+        .select('teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
         .eq('class_group_id', params.id),
       sb.from('class_enrollments')
         .select('journey_id')

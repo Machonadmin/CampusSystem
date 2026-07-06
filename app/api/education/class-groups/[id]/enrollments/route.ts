@@ -34,7 +34,7 @@ export async function GET(
           specialty_id,
           main_group_id,
           year_level,
-          person:persons(id, full_name, hebrew_name, email),
+          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email),
           main_group:study_groups(id, name)
         )
       `)
