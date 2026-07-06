@@ -1324,8 +1324,8 @@
     },
     "card": {
       "section": "Graduate",
-      "profile_title": "Alumni profile",
-      "no_profile": "Alumni profile not created yet",
+      "profile_title": "Graduate profile",
+      "no_profile": "Graduate profile not created yet",
       "graduation_year": "Graduation year",
       "institution": "Institution",
       "direction": "Direction",

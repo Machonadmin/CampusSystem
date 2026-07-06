@@ -1319,7 +1319,7 @@
       "col_graduation_year": "Год выпуска",
       "col_institution": "Учреждение",
       "col_direction": "Направление",
-      "col_occupation": "Занятость",
+      "col_occupation": "Род занятий",
       "col_location": "Местоположение"
     },
     "card": {
@@ -1330,7 +1330,7 @@
       "institution": "Учреждение",
       "direction": "Направление",
       "current_location": "Текущее местоположение",
-      "current_occupation": "Текущая занятость",
+      "current_occupation": "Текущий род занятий",
       "notes": "Заметки",
       "edit": "Редактировать",
       "save": "Сохранить",
