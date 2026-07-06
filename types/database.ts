@@ -1049,6 +1049,60 @@ export interface ScheduleSlotInsert {
 }
 export type ScheduleSlotUpdate = Partial<Omit<ScheduleSlotInsert, 'class_group_id' | 'created_by'>>
 
+// ─── Finance (биллинг обучения) ───────────────────────────────────────────────
+
+export interface FinanceChargeRow {
+  id: string
+  journey_id: string
+  amount: number
+  description: string
+  period_label: string | null
+  due_date: string | null          // ISO date 'YYYY-MM-DD'
+  status: 'active' | 'cancelled'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface FinanceChargeInsert {
+  id?: string
+  journey_id: string
+  amount: number
+  description: string
+  period_label?: string | null
+  due_date?: string | null
+  status?: 'active' | 'cancelled'
+  created_by?: string | null
+}
+export type FinanceChargeUpdate = Partial<Omit<FinanceChargeInsert, 'journey_id' | 'created_by'>>
+
+export interface FinancePaymentRow {
+  id: string
+  journey_id: string
+  amount: number
+  paid_at: string                  // ISO date 'YYYY-MM-DD'
+  method: string | null
+  reference: string | null
+  status: 'pending' | 'approved' | 'cancelled'
+  recorded_by: string | null
+  approved_by: string | null
+  approved_at: string | null
+  created_at: string
+  updated_at: string
+}
+export interface FinancePaymentInsert {
+  id?: string
+  journey_id: string
+  amount: number
+  paid_at: string
+  method?: string | null
+  reference?: string | null
+  status?: 'pending' | 'approved' | 'cancelled'
+  recorded_by?: string | null
+  approved_by?: string | null
+  approved_at?: string | null
+}
+export type FinancePaymentUpdate = Partial<Omit<FinancePaymentInsert, 'journey_id' | 'recorded_by'>>
+
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
 export interface ProcessTemplateRow {
@@ -1288,6 +1342,8 @@ export interface Database {
       assessments:               T<AssessmentRow,                AssessmentInsert,                AssessmentUpdate>
       grades:                    T<GradeRow,                     GradeInsert,                     GradeUpdate>
       class_schedule_slots:      T<ScheduleSlotRow,              ScheduleSlotInsert,              ScheduleSlotUpdate>
+      finance_charges:           T<FinanceChargeRow,             FinanceChargeInsert,             FinanceChargeUpdate>
+      finance_payments:          T<FinancePaymentRow,            FinancePaymentInsert,            FinancePaymentUpdate>
       process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
       stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
