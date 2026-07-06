@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface StudentMini {
@@ -101,9 +102,14 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                  <Link
+                    href={`/dashboard/education/students/${s.id}`}
+                    style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', textDecoration: 'none' }}
+                    onMouseEnter={e => { const el = e.currentTarget; el.style.color = accentColor; el.style.textDecoration = 'underline' }}
+                    onMouseLeave={e => { const el = e.currentTarget; el.style.color = '#1F2937'; el.style.textDecoration = 'none' }}
+                  >
                     {s.person?.full_name ?? '—'}
-                  </span>
+                  </Link>
                   {s.main_group && (
                     <span style={{ fontSize: 12, color: '#6B7280', marginLeft: 8 }}>
                       {s.main_group.name}

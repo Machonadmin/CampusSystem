@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import GradeEntryPanel from './GradeEntryPanel'
 
@@ -230,7 +231,14 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                 students.map(s => (
                   <tr key={s.journey_id}>
                     <td style={{ ...td, ...stickyLeft, fontWeight: 500, whiteSpace: 'nowrap' }}>
-                      {s.full_name ?? s.hebrew_name ?? '—'}
+                      <Link
+                        href={`/dashboard/education/students/${s.journey_id}`}
+                        style={{ color: '#1F2937', textDecoration: 'none' }}
+                        onMouseEnter={e => { const el = e.currentTarget; el.style.color = accentColor; el.style.textDecoration = 'underline' }}
+                        onMouseLeave={e => { const el = e.currentTarget; el.style.color = '#1F2937'; el.style.textDecoration = 'none' }}
+                      >
+                        {s.full_name ?? s.hebrew_name ?? '—'}
+                      </Link>
                     </td>
                     {assessments.map(a => {
                       const sc = scores.get(`${s.journey_id}|${a.id}`)
