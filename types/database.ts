@@ -1459,6 +1459,62 @@ export interface MaintenanceRequestInsert {
 }
 export type MaintenanceRequestUpdate = Partial<Omit<MaintenanceRequestInsert, 'reported_by'>>
 
+// ─── Doctor / Clinic (медпункт: медкарты и приёмы) ───────────────────────────
+
+export interface MedicalProfileRow {
+  id: string
+  journey_id: string
+  blood_type: string | null
+  chronic_conditions: string | null
+  allergies: string | null
+  medications: string | null
+  emergency_contact: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MedicalProfileInsert {
+  id?: string
+  journey_id: string
+  blood_type?: string | null
+  chronic_conditions?: string | null
+  allergies?: string | null
+  medications?: string | null
+  emergency_contact?: string | null
+  notes?: string | null
+}
+export type MedicalProfileUpdate = Partial<Omit<MedicalProfileInsert, 'journey_id'>>
+
+export interface MedicalVisitRow {
+  id: string
+  journey_id: string
+  visit_date: string               // ISO date 'YYYY-MM-DD'
+  reason: string | null
+  diagnosis: string | null
+  treatment: string | null
+  attended_by: string | null
+  follow_up_date: string | null    // ISO date | null
+  status: 'open' | 'closed'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MedicalVisitInsert {
+  id?: string
+  journey_id: string
+  visit_date: string
+  reason?: string | null
+  diagnosis?: string | null
+  treatment?: string | null
+  attended_by?: string | null
+  follow_up_date?: string | null
+  status?: 'open' | 'closed'
+  notes?: string | null
+  created_by?: string | null
+}
+export type MedicalVisitUpdate = Partial<Omit<MedicalVisitInsert, 'journey_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1538,6 +1594,8 @@ export interface Database {
       meal_enrollments:          T<MealEnrollmentRow,            MealEnrollmentInsert,            MealEnrollmentUpdate>
       dietary_profiles:          T<DietaryProfileRow,            DietaryProfileInsert,            DietaryProfileUpdate>
       maintenance_requests:      T<MaintenanceRequestRow,        MaintenanceRequestInsert,        MaintenanceRequestUpdate>
+      medical_profiles:          T<MedicalProfileRow,            MedicalProfileInsert,            MedicalProfileUpdate>
+      medical_visits:            T<MedicalVisitRow,              MedicalVisitInsert,              MedicalVisitUpdate>
     }
     Views: Record<string, never>
     Functions: {

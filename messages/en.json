@@ -1666,5 +1666,63 @@
       "assign_to_me": "Assign to me",
       "unassign": "Unassign"
     }
+  },
+  "doctor": {
+    "title": "Doctor",
+    "list": {
+      "subtitle": "Student health records and clinic visits",
+      "search_placeholder": "Search student",
+      "empty": "No students found",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to the clinic",
+      "student": "Student",
+      "health": "Health",
+      "open_visits": "open visits",
+      "allergies": "allergy",
+      "open_card": "Open record"
+    },
+    "followups": {
+      "title": "Follow-up visits",
+      "upcoming": "Upcoming",
+      "overdue": "Overdue",
+      "none": "No visits",
+      "follow_up": "Follow-up"
+    },
+    "profile": {
+      "title": "Medical record",
+      "blood_type": "Blood type",
+      "chronic_conditions": "Chronic conditions",
+      "allergies": "Allergies",
+      "medications": "Medications",
+      "emergency_contact": "Emergency contact",
+      "notes": "Notes",
+      "save_error": "Failed to save",
+      "saved": "Saved"
+    },
+    "visit": {
+      "history_title": "Visit history",
+      "record_title": "Record a visit",
+      "visit_date": "Visit date",
+      "reason": "Reason",
+      "diagnosis": "Diagnosis",
+      "treatment": "Treatment",
+      "follow_up_date": "Follow-up date",
+      "notes": "Notes",
+      "status": "Status",
+      "record": "Record visit",
+      "record_error": "Failed to record visit",
+      "no_visits": "No visits yet",
+      "close": "Close",
+      "reopen": "Reopen",
+      "close_confirm": "Close this visit?",
+      "reopen_confirm": "Reopen this visit?",
+      "action_error": "Action failed",
+      "required": "Enter a visit date",
+      "load_error": "Failed to load record"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    }
   }
 }

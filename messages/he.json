@@ -1666,5 +1666,63 @@
       "assign_to_me": "הקצה אליי",
       "unassign": "בטל הקצאה"
     }
+  },
+  "doctor": {
+    "title": "רופא",
+    "list": {
+      "subtitle": "רשומות רפואיות וביקורים של סטודנטים",
+      "search_placeholder": "חיפוש סטודנט",
+      "empty": "לא נמצאו סטודנטים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה למרפאה",
+      "student": "סטודנט",
+      "health": "בריאות",
+      "open_visits": "ביקורים פתוחים",
+      "allergies": "אלרגיה",
+      "open_card": "פתח רשומה רפואית"
+    },
+    "followups": {
+      "title": "ביקורי מעקב",
+      "upcoming": "קרובים",
+      "overdue": "באיחור",
+      "none": "אין ביקורים",
+      "follow_up": "מעקב"
+    },
+    "profile": {
+      "title": "רשומה רפואית",
+      "blood_type": "סוג דם",
+      "chronic_conditions": "מחלות כרוניות",
+      "allergies": "אלרגיות",
+      "medications": "תרופות",
+      "emergency_contact": "איש קשר לחירום",
+      "notes": "הערות",
+      "save_error": "השמירה נכשלה",
+      "saved": "נשמר"
+    },
+    "visit": {
+      "history_title": "היסטוריית ביקורים",
+      "record_title": "רישום ביקור",
+      "visit_date": "תאריך ביקור",
+      "reason": "סיבה",
+      "diagnosis": "אבחנה",
+      "treatment": "טיפול",
+      "follow_up_date": "תאריך מעקב",
+      "notes": "הערות",
+      "status": "סטטוס",
+      "record": "רשום ביקור",
+      "record_error": "רישום הביקור נכשל",
+      "no_visits": "אין עדיין ביקורים",
+      "close": "סגור",
+      "reopen": "פתח מחדש",
+      "close_confirm": "לסגור ביקור זה?",
+      "reopen_confirm": "לפתוח ביקור זה מחדש?",
+      "action_error": "הפעולה נכשלה",
+      "required": "יש לציין תאריך ביקור",
+      "load_error": "טעינת הרשומה נכשלה"
+    },
+    "status": {
+      "open": "פתוח",
+      "closed": "סגור"
+    }
   }
 }
