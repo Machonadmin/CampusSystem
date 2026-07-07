@@ -18,6 +18,7 @@ CRM-система образовательного кампуса: работа
 | [finance-module.md](./finance-module.md) | Модуль «Финансы»: биллинг обучения (ПНК), начисления/платежи, баланс |
 | [study-management.md](./study-management.md) | Управление учёбой, этап 1: журнал класса — уроки и посещаемость |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
+| [staging.md](./staging.md) | Решётка безопасности: staging + E2E Playwright, шаги в аккаунтах, стоимость |
 | [conventions.md](./conventions.md) | Соглашения проекта и типичные подводные камни |
 | [onboarding.md](./onboarding.md) | Запуск проекта и навигация для нового разработчика |
 
