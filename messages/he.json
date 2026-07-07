@@ -14,7 +14,8 @@
     "settings": "הגדרות",
     "alumni": "בוגרים",
     "finance": "כספים",
-    "dormitory": "מעונות"
+    "dormitory": "מעונות",
+    "food": "אוכל"
   },
   "auth": {
     "login": "כניסה",
@@ -1549,6 +1550,58 @@
     "status": {
       "active": "פעיל",
       "ended": "הסתיים"
+    }
+  },
+  "food": {
+    "list": {
+      "subtitle": "תוכניות הזנה ושיבוץ סטודנטים",
+      "add_plan": "תוכנית",
+      "empty": "אין עדיין תוכניות הזנה",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לצפייה בהזנה",
+      "enrolled": "רשומים",
+      "inactive": "לא פעיל"
+    },
+    "meal": {
+      "breakfast": "בוקר",
+      "lunch": "צהריים",
+      "dinner": "ערב"
+    },
+    "plan": {
+      "enroll_student": "שיבוץ סטודנט",
+      "enroll": "שבץ",
+      "search_student": "חיפוש סטודנט לפי שם או אימייל…",
+      "no_plan": "ללא תוכנית",
+      "enrolled_section": "סטודנטים רשומים",
+      "no_enrollments": "עדיין אין רשומים לתוכנית",
+      "student": "סטודנט",
+      "status": "סטטוס",
+      "end_enrollment": "סיום",
+      "end_confirm": "לסיים את הרישום הזה?",
+      "enroll_error": "השיבוץ נכשל",
+      "action_error": "הפעולה נכשלה"
+    },
+    "form": {
+      "name": "שם",
+      "code": "קוד",
+      "price": "מחיר",
+      "period": "תקופה",
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "required": "יש למלא את שדות החובה",
+      "save_error": "השמירה נכשלה"
+    },
+    "status": {
+      "active": "פעיל",
+      "ended": "הסתיים"
+    },
+    "dietary": {
+      "title": "פרופיל תזונה",
+      "restrictions": "הגבלות",
+      "allergies": "אלרגיות",
+      "notes": "הערות",
+      "edit": "תזונה",
+      "save_error": "שמירת פרופיל התזונה נכשלה"
     }
   }
 }

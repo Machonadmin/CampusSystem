@@ -14,7 +14,8 @@
     "settings": "Settings",
     "alumni": "Alumni",
     "finance": "Finance",
-    "dormitory": "Dormitory"
+    "dormitory": "Dormitory",
+    "food": "Dining"
   },
   "auth": {
     "login": "Sign In",
@@ -1549,6 +1550,58 @@
     "status": {
       "active": "Active",
       "ended": "Ended"
+    }
+  },
+  "food": {
+    "list": {
+      "subtitle": "Meal plans and student enrollment",
+      "add_plan": "Plan",
+      "empty": "No meal plans yet",
+      "load_error": "Failed to load data",
+      "forbidden": "You don't have permission to view dining",
+      "enrolled": "Enrolled",
+      "inactive": "Inactive"
+    },
+    "meal": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    },
+    "plan": {
+      "enroll_student": "Enroll a student",
+      "enroll": "Enroll",
+      "search_student": "Search student by name or email…",
+      "no_plan": "No plan",
+      "enrolled_section": "Enrolled students",
+      "no_enrollments": "No students enrolled yet",
+      "student": "Student",
+      "status": "Status",
+      "end_enrollment": "End",
+      "end_confirm": "End this enrollment?",
+      "enroll_error": "Enrollment failed",
+      "action_error": "Action failed"
+    },
+    "form": {
+      "name": "Name",
+      "code": "Code",
+      "price": "Price",
+      "period": "Period",
+      "from": "From",
+      "to": "To",
+      "required": "Fill in the required fields",
+      "save_error": "Failed to save"
+    },
+    "status": {
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "dietary": {
+      "title": "Dietary profile",
+      "restrictions": "Restrictions",
+      "allergies": "Allergies",
+      "notes": "Notes",
+      "edit": "Diet",
+      "save_error": "Failed to save the dietary profile"
     }
   }
 }

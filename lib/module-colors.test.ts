@@ -3,14 +3,13 @@ import { isModuleImplemented, getModuleColor, getModuleHeaderGradient } from './
 
 describe('isModuleImplemented', () => {
   it('реализованные модули → true', () => {
-    for (const m of ['education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory']) {
+    for (const m of ['education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food']) {
       expect(isModuleImplemented(m)).toBe(true)
     }
   })
 
   it('пока не реализованные модули → false', () => {
     expect(isModuleImplemented('sponsors')).toBe(false)
-    expect(isModuleImplemented('food')).toBe(false)
     expect(isModuleImplemented('nonexistent')).toBe(false)
   })
 })
