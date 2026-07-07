@@ -18,6 +18,7 @@ CRM-система образовательного кампуса: работа
 | [finance-module.md](./finance-module.md) | Модуль «Финансы»: биллинг обучения (ПНК), начисления/платежи, баланс |
 | [dormitory-module.md](./dormitory-module.md) | Модуль «Общежитие»: здания, комнаты, заселение, расчёт занятости |
 | [food-module.md](./food-module.md) | Модуль «Питание»: планы питания, запись студентов, диет-профили |
+| [maintenance-module.md](./maintenance-module.md) | Модуль «Эксплуатация»: заявки на обслуживание, SLA/просрочка, машина статусов |
 | [study-management.md](./study-management.md) | Управление учёбой, этап 1: журнал класса — уроки и посещаемость |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
 | [staging.md](./staging.md) | Решётка безопасности: staging + E2E Playwright, шаги в аккаунтах, стоимость |

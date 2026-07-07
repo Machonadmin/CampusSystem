@@ -15,7 +15,8 @@
     "alumni": "Выпускники",
     "finance": "Финансы",
     "dormitory": "Общежитие",
-    "food": "Питание"
+    "food": "Питание",
+    "maintenance": "Эксплуатация"
   },
   "auth": {
     "login": "Войти",
@@ -1602,6 +1603,68 @@
       "notes": "Заметки",
       "edit": "Диета",
       "save_error": "Не удалось сохранить диет-профиль"
+    }
+  },
+  "maintenance": {
+    "list": {
+      "subtitle": "Заявки на обслуживание и ремонт помещений",
+      "new_ticket": "Новая заявка",
+      "empty": "Заявок на обслуживание пока нет",
+      "load_error": "Не удалось загрузить данные",
+      "forbidden": "Нет доступа к разделу обслуживания",
+      "overdue": "Просрочено",
+      "filter_status": "Все статусы",
+      "filter_priority": "Все приоритеты"
+    },
+    "category": {
+      "plumbing": "Сантехника",
+      "electrical": "Электрика",
+      "furniture": "Мебель",
+      "cleaning": "Уборка",
+      "appliance": "Техника",
+      "other": "Другое"
+    },
+    "priority": {
+      "low": "Низкий",
+      "normal": "Обычный",
+      "high": "Высокий",
+      "urgent": "Срочный"
+    },
+    "status": {
+      "open": "Открыта",
+      "in_progress": "В работе",
+      "resolved": "Решена",
+      "closed": "Закрыта",
+      "cancelled": "Отменена"
+    },
+    "form": {
+      "title": "Заголовок",
+      "description": "Описание",
+      "room": "Комната",
+      "select_building": "Выберите здание",
+      "select_room": "Выберите комнату",
+      "location_text": "Локация текстом",
+      "required": "Заполните обязательные поля",
+      "save_error": "Не удалось сохранить"
+    },
+    "detail": {
+      "load_error": "Не удалось загрузить заявку",
+      "action_error": "Не удалось выполнить действие",
+      "room": "Комната",
+      "location": "Локация",
+      "reported_at": "Подана",
+      "resolved_at": "Решена",
+      "assignee": "Ответственный",
+      "you": "Вы",
+      "unassigned": "Не назначен",
+      "description": "Описание",
+      "actions": "Действия",
+      "change_status": "Сменить статус",
+      "no_actions": "Нет доступных действий",
+      "set_priority": "Приоритет",
+      "assign": "Назначение",
+      "assign_to_me": "Назначить на меня",
+      "unassign": "Снять назначение"
     }
   }
 }

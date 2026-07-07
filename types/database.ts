@@ -69,7 +69,7 @@ export type RoleCode =
 
 export type PrivilegeModule =
   | 'persons' | 'applicants' | 'education' | 'finance'
-  | 'dormitory' | 'food' | 'security' | 'doctor' | 'psychologist'
+  | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
   | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
 
 // ─── Row types ───────────────────────────────────────────────────────────────
@@ -1423,6 +1423,42 @@ export interface DietaryProfileInsert {
 }
 export type DietaryProfileUpdate = Partial<Omit<DietaryProfileInsert, 'journey_id'>>
 
+// ─── Maintenance (эксплуатация / обслуживание) ───────────────────────────────
+
+export interface MaintenanceRequestRow {
+  id: string
+  title: string
+  description: string | null
+  building_id: string | null
+  room_id: string | null
+  location_text: string | null
+  category: 'plumbing' | 'electrical' | 'furniture' | 'cleaning' | 'appliance' | 'other'
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+  reported_by: string | null
+  assigned_to: string | null
+  reported_at: string              // ISO timestamp
+  resolved_at: string | null       // ISO timestamp | null
+  created_at: string
+  updated_at: string
+}
+export interface MaintenanceRequestInsert {
+  id?: string
+  title: string
+  description?: string | null
+  building_id?: string | null
+  room_id?: string | null
+  location_text?: string | null
+  category?: 'plumbing' | 'electrical' | 'furniture' | 'cleaning' | 'appliance' | 'other'
+  priority?: 'low' | 'normal' | 'high' | 'urgent'
+  status?: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+  reported_by?: string | null
+  assigned_to?: string | null
+  reported_at?: string
+  resolved_at?: string | null
+}
+export type MaintenanceRequestUpdate = Partial<Omit<MaintenanceRequestInsert, 'reported_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1501,6 +1537,7 @@ export interface Database {
       meal_plans:                T<MealPlanRow,                  MealPlanInsert,                  MealPlanUpdate>
       meal_enrollments:          T<MealEnrollmentRow,            MealEnrollmentInsert,            MealEnrollmentUpdate>
       dietary_profiles:          T<DietaryProfileRow,            DietaryProfileInsert,            DietaryProfileUpdate>
+      maintenance_requests:      T<MaintenanceRequestRow,        MaintenanceRequestInsert,        MaintenanceRequestUpdate>
     }
     Views: Record<string, never>
     Functions: {

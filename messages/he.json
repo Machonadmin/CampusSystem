@@ -15,7 +15,8 @@
     "alumni": "בוגרים",
     "finance": "כספים",
     "dormitory": "מעונות",
-    "food": "אוכל"
+    "food": "אוכל",
+    "maintenance": "תחזוקה"
   },
   "auth": {
     "login": "כניסה",
@@ -1602,6 +1603,68 @@
       "notes": "הערות",
       "edit": "תזונה",
       "save_error": "שמירת פרופיל התזונה נכשלה"
+    }
+  },
+  "maintenance": {
+    "list": {
+      "subtitle": "בקשות תחזוקה ותיקונים במתקנים",
+      "new_ticket": "בקשה חדשה",
+      "empty": "אין עדיין בקשות תחזוקה",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לצפייה בתחזוקה",
+      "overdue": "באיחור",
+      "filter_status": "כל הסטטוסים",
+      "filter_priority": "כל העדיפויות"
+    },
+    "category": {
+      "plumbing": "אינסטלציה",
+      "electrical": "חשמל",
+      "furniture": "ריהוט",
+      "cleaning": "ניקיון",
+      "appliance": "מכשירים",
+      "other": "אחר"
+    },
+    "priority": {
+      "low": "נמוכה",
+      "normal": "רגילה",
+      "high": "גבוהה",
+      "urgent": "דחופה"
+    },
+    "status": {
+      "open": "פתוחה",
+      "in_progress": "בטיפול",
+      "resolved": "טופלה",
+      "closed": "סגורה",
+      "cancelled": "בוטלה"
+    },
+    "form": {
+      "title": "כותרת",
+      "description": "תיאור",
+      "room": "חדר",
+      "select_building": "בחר בניין",
+      "select_room": "בחר חדר",
+      "location_text": "מיקום חופשי",
+      "required": "יש למלא את שדות החובה",
+      "save_error": "השמירה נכשלה"
+    },
+    "detail": {
+      "load_error": "טעינת הבקשה נכשלה",
+      "action_error": "הפעולה נכשלה",
+      "room": "חדר",
+      "location": "מיקום",
+      "reported_at": "דווח בתאריך",
+      "resolved_at": "טופל בתאריך",
+      "assignee": "אחראי",
+      "you": "אתה",
+      "unassigned": "לא הוקצה",
+      "description": "תיאור",
+      "actions": "פעולות",
+      "change_status": "שינוי סטטוס",
+      "no_actions": "אין פעולות זמינות",
+      "set_priority": "עדיפות",
+      "assign": "הקצאה",
+      "assign_to_me": "הקצה אליי",
+      "unassign": "בטל הקצאה"
     }
   }
 }

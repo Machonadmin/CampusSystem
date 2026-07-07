@@ -1,5 +1,5 @@
 export const IMPLEMENTED_MODULES = new Set([
-  'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food',
+  'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance',
 ])
 
 export function isModuleImplemented(moduleCode: string): boolean {

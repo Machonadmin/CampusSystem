@@ -15,7 +15,8 @@
     "alumni": "Alumni",
     "finance": "Finance",
     "dormitory": "Dormitory",
-    "food": "Dining"
+    "food": "Dining",
+    "maintenance": "Maintenance"
   },
   "auth": {
     "login": "Sign In",
@@ -1602,6 +1603,68 @@
       "notes": "Notes",
       "edit": "Diet",
       "save_error": "Failed to save the dietary profile"
+    }
+  },
+  "maintenance": {
+    "list": {
+      "subtitle": "Facility maintenance requests and repairs",
+      "new_ticket": "New ticket",
+      "empty": "No maintenance requests yet",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to the maintenance module",
+      "overdue": "Overdue",
+      "filter_status": "All statuses",
+      "filter_priority": "All priorities"
+    },
+    "category": {
+      "plumbing": "Plumbing",
+      "electrical": "Electrical",
+      "furniture": "Furniture",
+      "cleaning": "Cleaning",
+      "appliance": "Appliance",
+      "other": "Other"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "room": "Room",
+      "select_building": "Select building",
+      "select_room": "Select room",
+      "location_text": "Free-text location",
+      "required": "Please fill in the required fields",
+      "save_error": "Failed to save"
+    },
+    "detail": {
+      "load_error": "Failed to load the ticket",
+      "action_error": "Action failed",
+      "room": "Room",
+      "location": "Location",
+      "reported_at": "Reported",
+      "resolved_at": "Resolved",
+      "assignee": "Assignee",
+      "you": "You",
+      "unassigned": "Unassigned",
+      "description": "Description",
+      "actions": "Actions",
+      "change_status": "Change status",
+      "no_actions": "No actions available",
+      "set_priority": "Priority",
+      "assign": "Assign",
+      "assign_to_me": "Assign to me",
+      "unassign": "Unassign"
     }
   }
 }
