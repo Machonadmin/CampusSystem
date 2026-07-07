@@ -13,7 +13,8 @@ import type { MaintenanceRequestUpdate } from '@/types/database'
  * PATCH /api/maintenance/requests/[id] — смена статуса (валидируется через
  *   canTransition → 409 на недопустимом переходе), назначение assigned_to,
  *   приоритет, описание. При status='resolved' проставляется resolved_at=now();
- *   при выходе из resolved — очищается. Право: maintenance.manage.
+ *   сохраняется при resolved→closed, очищается только при переоткрытии
+ *   resolved→in_progress. Право: maintenance.manage.
  */
 
 const COLS =
@@ -112,10 +113,13 @@ export async function PATCH(
         )
       }
       update.status = body.status
-      // resolved_at: вход в resolved — ставим now(); выход из resolved — очищаем.
+      // resolved_at — постоянная отметка о моменте выполнения работ.
+      // Ставим при входе в resolved. Сохраняем при resolved → closed (закрытие
+      // выполненной заявки не должно терять время выполнения). Очищаем ТОЛЬКО
+      // при переоткрытии resolved → in_progress.
       if (body.status === 'resolved') {
         update.resolved_at = new Date().toISOString()
-      } else if (existing.status === 'resolved') {
+      } else if (existing.status === 'resolved' && body.status === 'in_progress') {
         update.resolved_at = null
       }
     }
