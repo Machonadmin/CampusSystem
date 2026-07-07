@@ -1724,5 +1724,73 @@
       "open": "Open",
       "closed": "Closed"
     }
+  },
+  "psychologist": {
+    "title": "Psychologist",
+    "list": {
+      "subtitle": "Student mental-health support and counseling",
+      "search_placeholder": "Search student",
+      "empty": "No students found",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to the psychologist module",
+      "student": "Student",
+      "status": "Status",
+      "open_sessions": "open sessions",
+      "open_card": "Open record"
+    },
+    "followups": {
+      "title": "Follow-up sessions",
+      "upcoming": "Upcoming",
+      "overdue": "Overdue",
+      "none": "No sessions",
+      "follow_up": "Follow-up"
+    },
+    "risk": {
+      "label": "Risk",
+      "none": "None",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "profile": {
+      "title": "Counseling record",
+      "presenting_concerns": "Presenting concerns",
+      "background": "Background",
+      "risk_level": "Risk level",
+      "referral_source": "Referral source",
+      "notes": "Notes",
+      "save_error": "Failed to save",
+      "saved": "Saved"
+    },
+    "session": {
+      "history_title": "Session history",
+      "record_title": "Record a session",
+      "session_date": "Session date",
+      "session_type": "Session type",
+      "summary": "Summary",
+      "follow_up_date": "Follow-up date",
+      "status": "Status",
+      "record": "Record session",
+      "record_error": "Failed to record session",
+      "no_sessions": "No sessions yet",
+      "close": "Close",
+      "reopen": "Reopen",
+      "close_confirm": "Close this session?",
+      "reopen_confirm": "Reopen this session?",
+      "action_error": "Action failed",
+      "required": "Enter a session date",
+      "load_error": "Failed to load record",
+      "types": {
+        "intake": "Intake",
+        "followup": "Follow-up",
+        "crisis": "Crisis",
+        "group": "Group",
+        "other": "Other"
+      }
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    }
   }
 }

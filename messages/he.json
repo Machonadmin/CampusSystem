@@ -1724,5 +1724,73 @@
       "open": "פתוח",
       "closed": "סגור"
     }
+  },
+  "psychologist": {
+    "title": "פסיכולוג",
+    "list": {
+      "subtitle": "ליווי פסיכולוגי של סטודנטים וייעוץ",
+      "search_placeholder": "חיפוש סטודנט",
+      "empty": "לא נמצאו סטודנטים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה למודול הפסיכולוג",
+      "student": "סטודנט",
+      "status": "מצב",
+      "open_sessions": "ייעוצים פתוחים",
+      "open_card": "פתח כרטיס"
+    },
+    "followups": {
+      "title": "ייעוצי מעקב",
+      "upcoming": "קרובים",
+      "overdue": "באיחור",
+      "none": "אין ייעוצים",
+      "follow_up": "מעקב"
+    },
+    "risk": {
+      "label": "סיכון",
+      "none": "אין",
+      "low": "נמוך",
+      "medium": "בינוני",
+      "high": "גבוה"
+    },
+    "profile": {
+      "title": "כרטיס ליווי",
+      "presenting_concerns": "סיבת הפנייה",
+      "background": "רקע",
+      "risk_level": "רמת סיכון",
+      "referral_source": "מקור ההפניה",
+      "notes": "הערות",
+      "save_error": "השמירה נכשלה",
+      "saved": "נשמר"
+    },
+    "session": {
+      "history_title": "היסטוריית ייעוצים",
+      "record_title": "רישום ייעוץ",
+      "session_date": "תאריך ייעוץ",
+      "session_type": "סוג ייעוץ",
+      "summary": "סיכום",
+      "follow_up_date": "תאריך מעקב",
+      "status": "סטטוס",
+      "record": "רשום ייעוץ",
+      "record_error": "רישום הייעוץ נכשל",
+      "no_sessions": "אין עדיין ייעוצים",
+      "close": "סגור",
+      "reopen": "פתח מחדש",
+      "close_confirm": "לסגור ייעוץ זה?",
+      "reopen_confirm": "לפתוח ייעוץ זה מחדש?",
+      "action_error": "הפעולה נכשלה",
+      "required": "יש לציין תאריך ייעוץ",
+      "load_error": "טעינת הכרטיס נכשלה",
+      "types": {
+        "intake": "ראשוני",
+        "followup": "מעקב",
+        "crisis": "משברי",
+        "group": "קבוצתי",
+        "other": "אחר"
+      }
+    },
+    "status": {
+      "open": "פתוח",
+      "closed": "סגור"
+    }
   }
 }

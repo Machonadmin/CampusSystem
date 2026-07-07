@@ -1515,6 +1515,56 @@ export interface MedicalVisitInsert {
 }
 export type MedicalVisitUpdate = Partial<Omit<MedicalVisitInsert, 'journey_id' | 'created_by'>>
 
+// ─── Psychologist / Counseling (психолог: карты сопровождения и консультации) ─
+
+export interface PsychProfileRow {
+  id: string
+  journey_id: string
+  presenting_concerns: string | null
+  background: string | null
+  risk_level: 'none' | 'low' | 'medium' | 'high'
+  referral_source: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface PsychProfileInsert {
+  id?: string
+  journey_id: string
+  presenting_concerns?: string | null
+  background?: string | null
+  risk_level?: 'none' | 'low' | 'medium' | 'high'
+  referral_source?: string | null
+  notes?: string | null
+}
+export type PsychProfileUpdate = Partial<Omit<PsychProfileInsert, 'journey_id'>>
+
+export interface PsychSessionRow {
+  id: string
+  journey_id: string
+  session_date: string             // ISO date 'YYYY-MM-DD'
+  session_type: 'intake' | 'followup' | 'crisis' | 'group' | 'other'
+  summary: string | null
+  follow_up_date: string | null    // ISO date | null
+  status: 'open' | 'closed'
+  counselor_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface PsychSessionInsert {
+  id?: string
+  journey_id: string
+  session_date: string
+  session_type?: 'intake' | 'followup' | 'crisis' | 'group' | 'other'
+  summary?: string | null
+  follow_up_date?: string | null
+  status?: 'open' | 'closed'
+  counselor_id?: string | null
+  created_by?: string | null
+}
+export type PsychSessionUpdate = Partial<Omit<PsychSessionInsert, 'journey_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1596,6 +1646,8 @@ export interface Database {
       maintenance_requests:      T<MaintenanceRequestRow,        MaintenanceRequestInsert,        MaintenanceRequestUpdate>
       medical_profiles:          T<MedicalProfileRow,            MedicalProfileInsert,            MedicalProfileUpdate>
       medical_visits:            T<MedicalVisitRow,              MedicalVisitInsert,              MedicalVisitUpdate>
+      psych_profiles:            T<PsychProfileRow,              PsychProfileInsert,              PsychProfileUpdate>
+      psych_sessions:            T<PsychSessionRow,              PsychSessionInsert,              PsychSessionUpdate>
     }
     Views: Record<string, never>
     Functions: {
