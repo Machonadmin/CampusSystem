@@ -13,7 +13,8 @@
     "education": "Education",
     "settings": "Settings",
     "alumni": "Alumni",
-    "finance": "Finance"
+    "finance": "Finance",
+    "dormitory": "Dormitory"
   },
   "auth": {
     "login": "Sign In",
@@ -1494,6 +1495,60 @@
       "delete_charge": "Delete this charge permanently?",
       "approve_payment": "Approve this payment?",
       "cancel_payment": "Cancel this payment?"
+    }
+  },
+  "dormitory": {
+    "list": {
+      "subtitle": "Buildings, rooms and student housing",
+      "add_building": "Building",
+      "empty": "No buildings yet",
+      "load_error": "Failed to load data",
+      "forbidden": "You don't have permission to view the dormitory",
+      "rooms": "Rooms",
+      "occupied": "Occupied",
+      "free": "Free"
+    },
+    "building": {
+      "rooms_section": "Rooms",
+      "add_room": "Room",
+      "no_rooms": "No rooms yet"
+    },
+    "room": {
+      "title": "Room",
+      "full": "Full",
+      "assign_student": "Assign a student",
+      "assign": "Assign",
+      "search_student": "Search student by name or email…",
+      "unassigned": "Unassigned",
+      "no_assignments": "No housing records yet",
+      "student": "Student",
+      "status": "Status",
+      "end_assignment": "End",
+      "end_confirm": "End this housing assignment?",
+      "load_error": "Failed to load assignments",
+      "assign_error": "Assignment failed",
+      "action_error": "Action failed"
+    },
+    "form": {
+      "name": "Name",
+      "code": "Code",
+      "address": "Address",
+      "room_number": "Room number",
+      "floor": "Floor",
+      "capacity": "Capacity",
+      "from": "From",
+      "to": "To",
+      "required": "Fill in the required fields",
+      "save_error": "Failed to save"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "mixed": "Mixed"
+    },
+    "status": {
+      "active": "Active",
+      "ended": "Ended"
     }
   }
 }
