@@ -1,4 +1,34 @@
 {
+  "student_overview": {
+    "loading": "Loading…",
+    "load_error": "Failed to load the overview",
+    "empty": "Nothing to show",
+    "no_data": "No data",
+    "open": "Open in module",
+    "section_education": "Studies",
+    "section_finance": "Finance",
+    "section_dormitory": "Dormitory",
+    "section_food": "Dining",
+    "section_medical": "Medical",
+    "section_counseling": "Counseling",
+    "label_department": "Department",
+    "label_specialty": "Specialty",
+    "label_opened_at": "Opened",
+    "label_charged": "Charged",
+    "label_collected": "Collected",
+    "label_outstanding": "Outstanding",
+    "label_building": "Building",
+    "label_room": "Room",
+    "label_since": "Since",
+    "label_plan": "Plan",
+    "label_open_visits": "Open visits",
+    "label_last_visit": "Last visit",
+    "label_allergies": "Allergies",
+    "yes": "Yes",
+    "no": "No",
+    "label_open_sessions": "Open sessions",
+    "label_risk_level": "Risk level"
+  },
   "common": {
     "cancel": "Cancel",
     "delete": "Delete",
@@ -438,7 +468,8 @@
         "documents": "Documents",
         "extra": "Additional",
         "study": "Study lifecycle",
-        "report": "Performance"
+        "report": "Performance",
+        "overview": "360 Overview"
       },
       "status": {
         "lead": "Lead",

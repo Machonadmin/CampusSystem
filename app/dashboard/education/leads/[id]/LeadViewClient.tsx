@@ -9,6 +9,7 @@ import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import DocumentsTab from '@/components/education/DocumentsTab'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
+import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,8 @@ interface Props {
   studyLifecycle?: { history: StatusHistoryEntry[] } | null
   /** Когда true — показывается вкладка «Успеваемость» (посещаемость + оценки). */
   showReport?: boolean
+  /** Когда true — первой показывается вкладка «Обзор 360» (сводка по всем модулям). */
+  showOverview?: boolean
   /** База ссылки редактирования/списка: 'leads' (по умолчанию) или 'students'. */
   routeBase?: 'leads' | 'students'
   /**
@@ -108,7 +111,7 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
+type TabKey = 'overview' | 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -134,12 +137,12 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, routeBase = 'leads', navContext, extraPanel }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const { person } = data
-  const [tab, setTab] = useState<TabKey>('personal')
+  const [tab, setTab] = useState<TabKey>(showOverview ? 'overview' : 'personal')
 
   // Контекст модуля: по умолчанию — «Образование» (поведение не меняется).
   const moduleLabel = navContext?.moduleLabel ?? tNav('education')
@@ -147,6 +150,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const headerColorKey = navContext?.colorKey ?? 'education'
 
   const TABS: { key: TabKey; labelKey: string }[] = [
+    ...(showOverview ? [{ key: 'overview' as TabKey, labelKey: 'overview' }] : []),
     { key: 'personal',   labelKey: 'personal' },
     { key: 'contacts',   labelKey: 'contacts' },
     { key: 'family',     labelKey: 'family' },
@@ -286,6 +290,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             )}
           </div>
         )
+      case 'overview':
+        return <StudentOverviewTab journeyId={data.journeyId} />
       case 'report':
         return <StudentReportTab journeyId={data.journeyId} />
       default:

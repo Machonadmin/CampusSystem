@@ -1,4 +1,34 @@
 {
+  "student_overview": {
+    "loading": "Загрузка…",
+    "load_error": "Ошибка загрузки обзора",
+    "empty": "Нет данных для отображения",
+    "no_data": "Нет данных",
+    "open": "Открыть в модуле",
+    "section_education": "Учёба",
+    "section_finance": "Финансы",
+    "section_dormitory": "Общежитие",
+    "section_food": "Питание",
+    "section_medical": "Медпункт",
+    "section_counseling": "Консультации",
+    "label_department": "Отделение",
+    "label_specialty": "Специальность",
+    "label_opened_at": "Открыт",
+    "label_charged": "Начислено",
+    "label_collected": "Оплачено",
+    "label_outstanding": "Остаток",
+    "label_building": "Здание",
+    "label_room": "Комната",
+    "label_since": "С",
+    "label_plan": "План",
+    "label_open_visits": "Открытые приёмы",
+    "label_last_visit": "Последний приём",
+    "label_allergies": "Аллергии",
+    "yes": "Да",
+    "no": "Нет",
+    "label_open_sessions": "Открытые консультации",
+    "label_risk_level": "Уровень риска"
+  },
   "common": {
     "cancel": "Отмена",
     "delete": "Удалить",
@@ -438,7 +468,8 @@
         "documents": "Документы",
         "extra": "Дополнительно",
         "study": "Учебный цикл",
-        "report": "Успеваемость"
+        "report": "Успеваемость",
+        "overview": "Обзор 360"
       },
       "status": {
         "lead": "Лид",

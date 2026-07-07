@@ -209,6 +209,7 @@ export default async function StudentViewPage({ params }: Props) {
       canConvert={false}
       studyLifecycle={{ history: historyEntries }}
       showReport
+      showOverview
       routeBase="students"
     />
   )

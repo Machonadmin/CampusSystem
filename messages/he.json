@@ -1,4 +1,34 @@
 {
+  "student_overview": {
+    "loading": "טוען…",
+    "load_error": "שגיאה בטעינת הסקירה",
+    "empty": "אין נתונים להצגה",
+    "no_data": "אין נתונים",
+    "open": "מעבר למודול",
+    "section_education": "לימודים",
+    "section_finance": "כספים",
+    "section_dormitory": "מעונות",
+    "section_food": "אוכל",
+    "section_medical": "רפואה",
+    "section_counseling": "ייעוץ",
+    "label_department": "מחלקה",
+    "label_specialty": "התמחות",
+    "label_opened_at": "נפתח",
+    "label_charged": "חויב",
+    "label_collected": "נגבה",
+    "label_outstanding": "יתרה",
+    "label_building": "בניין",
+    "label_room": "חדר",
+    "label_since": "מאז",
+    "label_plan": "תוכנית",
+    "label_open_visits": "ביקורים פתוחים",
+    "label_last_visit": "ביקור אחרון",
+    "label_allergies": "אלרגיות",
+    "yes": "כן",
+    "no": "לא",
+    "label_open_sessions": "פגישות פתוחות",
+    "label_risk_level": "רמת סיכון"
+  },
   "common": {
     "cancel": "ביטול",
     "delete": "מחק",
@@ -438,7 +468,8 @@
         "documents": "מסמכים",
         "extra": "נוסף",
         "study": "מחזור לימודים",
-        "report": "ביצועים אקדמיים"
+        "report": "ביצועים אקדמיים",
+        "overview": "סקירה 360"
       },
       "status": {
         "lead": "ליד",
