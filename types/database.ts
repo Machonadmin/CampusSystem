@@ -1110,6 +1110,74 @@ export type PersonRoleUpdate = Partial<PersonRoleInsert>
 export type ModulePrivilegeUpdate = Partial<ModulePrivilegeInsert>
 export type PersonPrivilegeUpdate = Partial<PersonPrivilegeInsert>
 
+// ─── Dormitory (общежитие) ───────────────────────────────────────────────────
+
+export interface DormBuildingRow {
+  id: string
+  name: string
+  code: string | null
+  gender: 'male' | 'female' | 'mixed'
+  address: string | null
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface DormBuildingInsert {
+  id?: string
+  name: string
+  code?: string | null
+  gender?: 'male' | 'female' | 'mixed'
+  address?: string | null
+  notes?: string | null
+  is_active?: boolean
+}
+export type DormBuildingUpdate = Partial<DormBuildingInsert>
+
+export interface DormRoomRow {
+  id: string
+  building_id: string
+  room_number: string
+  floor: number | null
+  capacity: number
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface DormRoomInsert {
+  id?: string
+  building_id: string
+  room_number: string
+  floor?: number | null
+  capacity: number
+  notes?: string | null
+  is_active?: boolean
+}
+export type DormRoomUpdate = Partial<Omit<DormRoomInsert, 'building_id'>>
+
+export interface DormAssignmentRow {
+  id: string
+  room_id: string
+  journey_id: string
+  assigned_from: string            // ISO date 'YYYY-MM-DD'
+  assigned_to: string | null       // ISO date | null (open-ended)
+  status: 'active' | 'ended'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DormAssignmentInsert {
+  id?: string
+  room_id: string
+  journey_id: string
+  assigned_from: string
+  assigned_to?: string | null
+  status?: 'active' | 'ended'
+  created_by?: string | null
+}
+export type DormAssignmentUpdate = Partial<Omit<DormAssignmentInsert, 'room_id' | 'journey_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1175,6 +1243,9 @@ export interface Database {
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
       audit_log:                 T<AuditLogRow,                  AuditLogInsert,                  AuditLogUpdate>
+      dorm_buildings:            T<DormBuildingRow,              DormBuildingInsert,              DormBuildingUpdate>
+      dorm_rooms:                T<DormRoomRow,                  DormRoomInsert,                  DormRoomUpdate>
+      dorm_assignments:          T<DormAssignmentRow,            DormAssignmentInsert,            DormAssignmentUpdate>
     }
     Views: Record<string, never>
     Functions: {
