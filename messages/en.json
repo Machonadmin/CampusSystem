@@ -1949,5 +1949,68 @@
       "add": "Failed to add document",
       "action": "Action failed"
     }
+  },
+  "contacts": {
+    "title": "Contacts",
+    "list": {
+      "subtitle": "Directory of external contacts and organizations",
+      "search_placeholder": "Search by name, email, phone",
+      "empty": "No contacts found",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to contacts",
+      "name": "Name",
+      "type": "Type",
+      "category": "Category",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "new_contact": "New contact",
+      "all_categories": "All categories"
+    },
+    "stats": {
+      "total": "total",
+      "active": "active"
+    },
+    "fields": {
+      "name": "Name",
+      "contact_type": "Type",
+      "category": "Category",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "website": "Website",
+      "contact_person": "Contact person",
+      "notes": "Notes",
+      "is_active": "Active"
+    },
+    "types": {
+      "organization": "Organization",
+      "person": "Person"
+    },
+    "categories": {
+      "supplier": "Supplier",
+      "government": "Government office",
+      "partner": "Partner",
+      "emergency": "Emergency",
+      "medical": "Medical",
+      "financial": "Financial",
+      "education": "Education",
+      "other": "Other"
+    },
+    "form": {
+      "new_title": "New contact",
+      "edit_title": "Edit contact",
+      "name_required": "Enter a contact name",
+      "email_invalid": "Invalid email"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "delete_confirm": "Delete this contact? This cannot be undone.",
+    "errors": {
+      "save": "Failed to save contact",
+      "action": "Action failed"
+    }
   }
 }

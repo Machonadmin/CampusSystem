@@ -71,6 +71,7 @@ export type PrivilegeModule =
   | 'persons' | 'applicants' | 'education' | 'finance'
   | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
   | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
+  | 'contacts'
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 
@@ -1599,6 +1600,42 @@ export interface DocumentRecordInsert {
 }
 export type DocumentRecordUpdate = Partial<Omit<DocumentRecordInsert, 'journey_id' | 'created_by'>>
 
+// ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
+//
+// САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
+
+export interface ContactRow {
+  id: string
+  name: string
+  contact_type: 'organization' | 'person'
+  category: 'supplier' | 'government' | 'partner' | 'emergency' | 'medical' | 'financial' | 'education' | 'other'
+  email: string | null
+  phone: string | null
+  address: string | null
+  website: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface ContactInsert {
+  id?: string
+  name: string
+  contact_type?: 'organization' | 'person'
+  category?: 'supplier' | 'government' | 'partner' | 'emergency' | 'medical' | 'financial' | 'education' | 'other'
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  website?: string | null
+  contact_person?: string | null
+  notes?: string | null
+  is_active?: boolean
+  created_by?: string | null
+}
+export type ContactUpdate = Partial<Omit<ContactInsert, 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1683,6 +1720,7 @@ export interface Database {
       psych_profiles:            T<PsychProfileRow,              PsychProfileInsert,              PsychProfileUpdate>
       psych_sessions:            T<PsychSessionRow,              PsychSessionInsert,              PsychSessionUpdate>
       document_records:          T<DocumentRecordRow,            DocumentRecordInsert,            DocumentRecordUpdate>
+      contacts:                  T<ContactRow,                   ContactInsert,                   ContactUpdate>
     }
     Views: Record<string, never>
     Functions: {

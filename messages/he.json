@@ -1949,5 +1949,68 @@
       "add": "הוספת המסמך נכשלה",
       "action": "הפעולה נכשלה"
     }
+  },
+  "contacts": {
+    "title": "אנשי קשר",
+    "list": {
+      "subtitle": "ספר אנשי קשר וארגונים חיצוניים",
+      "search_placeholder": "חיפוש לפי שם, אימייל או טלפון",
+      "empty": "לא נמצאו אנשי קשר",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לאנשי קשר",
+      "name": "שם",
+      "type": "סוג",
+      "category": "קטגוריה",
+      "email": "אימייל",
+      "phone": "טלפון",
+      "status": "סטטוס",
+      "new_contact": "איש קשר חדש",
+      "all_categories": "כל הקטגוריות"
+    },
+    "stats": {
+      "total": "סך הכל",
+      "active": "פעילים"
+    },
+    "fields": {
+      "name": "שם",
+      "contact_type": "סוג",
+      "category": "קטגוריה",
+      "email": "אימייל",
+      "phone": "טלפון",
+      "address": "כתובת",
+      "website": "אתר",
+      "contact_person": "איש קשר",
+      "notes": "הערות",
+      "is_active": "פעיל"
+    },
+    "types": {
+      "organization": "ארגון",
+      "person": "אדם"
+    },
+    "categories": {
+      "supplier": "ספק",
+      "government": "רשות ממשלתית",
+      "partner": "שותף",
+      "emergency": "חירום",
+      "medical": "רפואה",
+      "financial": "פיננסים",
+      "education": "חינוך",
+      "other": "אחר"
+    },
+    "form": {
+      "new_title": "איש קשר חדש",
+      "edit_title": "עריכת איש קשר",
+      "name_required": "יש לציין שם לאיש הקשר",
+      "email_invalid": "אימייל לא תקין"
+    },
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
+    "delete_confirm": "למחוק איש קשר זה? הפעולה בלתי הפיכה.",
+    "errors": {
+      "save": "שמירת איש הקשר נכשלה",
+      "action": "הפעולה נכשלה"
+    }
   }
 }

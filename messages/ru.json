@@ -1949,5 +1949,68 @@
       "add": "Не удалось добавить документ",
       "action": "Действие не выполнено"
     }
+  },
+  "contacts": {
+    "title": "Контакты",
+    "list": {
+      "subtitle": "Справочник внешних контактов и организаций",
+      "search_placeholder": "Поиск по имени, email, телефону",
+      "empty": "Контакты не найдены",
+      "load_error": "Не удалось загрузить данные",
+      "forbidden": "Нет доступа к контактам",
+      "name": "Имя",
+      "type": "Тип",
+      "category": "Категория",
+      "email": "Email",
+      "phone": "Телефон",
+      "status": "Статус",
+      "new_contact": "Новый контакт",
+      "all_categories": "Все категории"
+    },
+    "stats": {
+      "total": "всего",
+      "active": "активных"
+    },
+    "fields": {
+      "name": "Имя",
+      "contact_type": "Тип",
+      "category": "Категория",
+      "email": "Email",
+      "phone": "Телефон",
+      "address": "Адрес",
+      "website": "Сайт",
+      "contact_person": "Контактное лицо",
+      "notes": "Заметки",
+      "is_active": "Активен"
+    },
+    "types": {
+      "organization": "Организация",
+      "person": "Человек"
+    },
+    "categories": {
+      "supplier": "Поставщик",
+      "government": "Госорган",
+      "partner": "Партнёр",
+      "emergency": "Экстренный",
+      "medical": "Медицина",
+      "financial": "Финансы",
+      "education": "Образование",
+      "other": "Другое"
+    },
+    "form": {
+      "new_title": "Новый контакт",
+      "edit_title": "Правка контакта",
+      "name_required": "Укажите имя контакта",
+      "email_invalid": "Неверный email"
+    },
+    "status": {
+      "active": "Активен",
+      "inactive": "Неактивен"
+    },
+    "delete_confirm": "Удалить этот контакт? Действие необратимо.",
+    "errors": {
+      "save": "Не удалось сохранить контакт",
+      "action": "Действие не выполнено"
+    }
   }
 }
