@@ -12,7 +12,8 @@
     "home": "Home",
     "education": "Education",
     "settings": "Settings",
-    "alumni": "Alumni"
+    "alumni": "Alumni",
+    "finance": "Finance"
   },
   "auth": {
     "login": "Sign In",
@@ -1432,6 +1433,67 @@
       "saving": "Saving…",
       "cancel": "Cancel",
       "save_error": "Failed to save"
+    }
+  },
+  "finance": {
+    "list": {
+      "subtitle": "Student tuition billing",
+      "search_placeholder": "Search by name or email…",
+      "count": "Total",
+      "empty": "No students found",
+      "load_error": "Failed to load the list",
+      "forbidden": "You don't have permission to view finance",
+      "col_name": "Student",
+      "col_charges": "Charged",
+      "col_payments": "Paid",
+      "col_balance": "Balance"
+    },
+    "ledger": {
+      "load_error": "Failed to load the finance card",
+      "action_failed": "Action failed",
+      "balance": "Balance",
+      "charges_total": "Charged",
+      "payments_approved": "Paid (approved)",
+      "payments_pending": "Awaiting approval",
+      "charges_section": "Charges",
+      "payments_section": "Payments",
+      "no_charges": "No charges yet",
+      "no_payments": "No payments yet",
+      "charge_desc": "Description",
+      "charge_period": "Period",
+      "charge_due": "Due",
+      "charge_amount": "Amount",
+      "col_status": "Status",
+      "pay_date": "Date",
+      "pay_method": "Method",
+      "pay_reference": "Reference",
+      "pay_amount": "Amount"
+    },
+    "action": {
+      "add_charge": "Charge",
+      "record_payment": "Payment",
+      "approve": "Approve",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "amount": "Amount",
+      "description": "Description",
+      "period": "Period (e.g. 2026 term 1)",
+      "method": "Payment method",
+      "reference": "Reference / no.",
+      "required": "Fill in the required fields"
+    },
+    "status": {
+      "active": "Active",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "approved": "Approved"
+    },
+    "confirm": {
+      "cancel_charge": "Cancel this charge?",
+      "delete_charge": "Delete this charge permanently?",
+      "approve_payment": "Approve this payment?",
+      "cancel_payment": "Cancel this payment?"
     }
   }
 }

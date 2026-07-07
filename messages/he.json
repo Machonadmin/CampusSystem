@@ -12,7 +12,8 @@
     "home": "ראשי",
     "education": "חינוך",
     "settings": "הגדרות",
-    "alumni": "בוגרים"
+    "alumni": "בוגרים",
+    "finance": "כספים"
   },
   "auth": {
     "login": "כניסה",
@@ -1432,6 +1433,67 @@
       "saving": "שומר…",
       "cancel": "ביטול",
       "save_error": "השמירה נכשלה"
+    }
+  },
+  "finance": {
+    "list": {
+      "subtitle": "חיוב שכר לימוד של סטודנטים",
+      "search_placeholder": "חיפוש לפי שם או אימייל…",
+      "count": "סה״כ",
+      "empty": "לא נמצאו סטודנטים",
+      "load_error": "טעינת הרשימה נכשלה",
+      "forbidden": "אין הרשאה לצפייה בכספים",
+      "col_name": "סטודנט",
+      "col_charges": "חויב",
+      "col_payments": "שולם",
+      "col_balance": "יתרה"
+    },
+    "ledger": {
+      "load_error": "טעינת כרטיס הכספים נכשלה",
+      "action_failed": "הפעולה נכשלה",
+      "balance": "יתרה",
+      "charges_total": "חויב",
+      "payments_approved": "שולם (מאושר)",
+      "payments_pending": "ממתין לאישור",
+      "charges_section": "חיובים",
+      "payments_section": "תשלומים",
+      "no_charges": "אין חיובים עדיין",
+      "no_payments": "אין תשלומים עדיין",
+      "charge_desc": "תיאור",
+      "charge_period": "תקופה",
+      "charge_due": "תאריך יעד",
+      "charge_amount": "סכום",
+      "col_status": "סטטוס",
+      "pay_date": "תאריך",
+      "pay_method": "אמצעי",
+      "pay_reference": "אסמכתא",
+      "pay_amount": "סכום"
+    },
+    "action": {
+      "add_charge": "חיוב",
+      "record_payment": "תשלום",
+      "approve": "אישור",
+      "cancel": "ביטול"
+    },
+    "form": {
+      "amount": "סכום",
+      "description": "תיאור",
+      "period": "תקופה (למשל 2026 סמסטר א׳)",
+      "method": "אמצעי תשלום",
+      "reference": "אסמכתא / מס׳",
+      "required": "יש למלא את שדות החובה"
+    },
+    "status": {
+      "active": "פעיל",
+      "cancelled": "מבוטל",
+      "pending": "ממתין",
+      "approved": "מאושר"
+    },
+    "confirm": {
+      "cancel_charge": "לבטל את החיוב הזה?",
+      "delete_charge": "למחוק את החיוב לצמיתות?",
+      "approve_payment": "לאשר את התשלום הזה?",
+      "cancel_payment": "לבטל את התשלום הזה?"
     }
   }
 }

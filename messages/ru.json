@@ -12,7 +12,8 @@
     "home": "Главная",
     "education": "Образование",
     "settings": "Настройки",
-    "alumni": "Выпускники"
+    "alumni": "Выпускники",
+    "finance": "Финансы"
   },
   "auth": {
     "login": "Войти",
@@ -1432,6 +1433,67 @@
       "saving": "Сохранение…",
       "cancel": "Отмена",
       "save_error": "Не удалось сохранить"
+    }
+  },
+  "finance": {
+    "list": {
+      "subtitle": "Биллинг обучения студентов",
+      "search_placeholder": "Поиск по имени или email…",
+      "count": "Всего",
+      "empty": "Студенты не найдены",
+      "load_error": "Не удалось загрузить список",
+      "forbidden": "Нет прав на просмотр финансов",
+      "col_name": "Студент",
+      "col_charges": "Начислено",
+      "col_payments": "Оплачено",
+      "col_balance": "Баланс"
+    },
+    "ledger": {
+      "load_error": "Не удалось загрузить финансовую карточку",
+      "action_failed": "Не удалось выполнить действие",
+      "balance": "Баланс",
+      "charges_total": "Начислено",
+      "payments_approved": "Оплачено (подтверждено)",
+      "payments_pending": "Ожидает подтверждения",
+      "charges_section": "Начисления",
+      "payments_section": "Платежи",
+      "no_charges": "Начислений пока нет",
+      "no_payments": "Платежей пока нет",
+      "charge_desc": "Описание",
+      "charge_period": "Период",
+      "charge_due": "Срок",
+      "charge_amount": "Сумма",
+      "col_status": "Статус",
+      "pay_date": "Дата",
+      "pay_method": "Способ",
+      "pay_reference": "Референс",
+      "pay_amount": "Сумма"
+    },
+    "action": {
+      "add_charge": "Начисление",
+      "record_payment": "Платёж",
+      "approve": "Подтвердить",
+      "cancel": "Отменить"
+    },
+    "form": {
+      "amount": "Сумма",
+      "description": "Описание",
+      "period": "Период (напр. 2026 семестр 1)",
+      "method": "Способ оплаты",
+      "reference": "Референс / №",
+      "required": "Заполните обязательные поля"
+    },
+    "status": {
+      "active": "Активно",
+      "cancelled": "Отменено",
+      "pending": "Ожидает",
+      "approved": "Подтверждено"
+    },
+    "confirm": {
+      "cancel_charge": "Отменить это начисление?",
+      "delete_charge": "Удалить это начисление безвозвратно?",
+      "approve_payment": "Подтвердить этот платёж?",
+      "cancel_payment": "Отменить этот платёж?"
     }
   }
 }
