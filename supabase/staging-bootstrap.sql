@@ -159,7 +159,7 @@ CREATE TABLE roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   code TEXT NOT NULL UNIQUE,
-  category TEXT CHECK (category IN ('system','campus','education','medical','custom','external')),
+  category TEXT CHECK (category IN ('system','campus','campus_management','education','medical','finance','legal','dormitory','security','maintenance','food','technical','custom','external')),
   description TEXT,
   is_system BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -262,7 +262,7 @@ INSERT INTO roles (name, code, category, is_system, description) VALUES
 -- ─────────────────────────────────────────────
 ALTER TABLE roles DROP CONSTRAINT IF EXISTS roles_category_check;
 ALTER TABLE roles ADD CONSTRAINT roles_category_check
-  CHECK (category IN ('system','campus','education','medical','custom','external'));
+  CHECK (category IN ('system','campus','campus_management','education','medical','finance','legal','dormitory','security','maintenance','food','technical','custom','external'));
 
 -- ─────────────────────────────────────────────
 -- 1. Clear existing roles and re-seed

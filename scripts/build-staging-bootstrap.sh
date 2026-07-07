@@ -30,6 +30,18 @@ MIG_DIR="supabase/migrations"
   done
 } > "$OUT"
 
+# ── Пост-обработка: сделать историю реплеябельной одним прогоном ──────────────
+# Проблема: roles_category_check в 001/002 задаёт УЗКИЙ набор категорий
+# ('system','campus','education','medical','custom','external'), а миграция
+# 008 позже переводит роли в НОВЫЕ категории ('campus_management','finance',...)
+# ДО того, как более поздняя миграция расширит constraint. В реальном проде это
+# пережило только из-за ручных правок (дрейф). При чистом линейном реплее 008
+# падает 23514. Расширяем этот constraint до самого широкого набора ВЕЗДЕ —
+# исходные миграции не трогаем, правим только сгенерированный bootstrap.
+NARROW="'system','campus','education','medical','custom','external'"
+WIDE="'system','campus','campus_management','education','medical','finance','legal','dormitory','security','maintenance','food','technical','custom','external'"
+sed -i "s/$NARROW/$WIDE/g" "$OUT"
+
 lines=$(wc -l < "$OUT")
 files=$(ls "$MIG_DIR"/*.sql | wc -l)
 echo "Готово: $OUT ($files миграций, $lines строк)."
