@@ -1884,5 +1884,70 @@
         "high": "High"
       }
     }
+  },
+  "documents": {
+    "title": "Documents",
+    "list": {
+      "subtitle": "Student document registry with expiry tracking",
+      "search_placeholder": "Search student",
+      "empty": "No students found",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to documents",
+      "student": "Student",
+      "documents": "Documents",
+      "count": "documents",
+      "expired_flag": "expired",
+      "expiring_flag": "expiring",
+      "open_card": "Open",
+      "manage_hint": "You can add and edit documents"
+    },
+    "expiring": {
+      "title": "Expiring documents",
+      "expired": "Expired",
+      "expiring_soon": "Expiring soon",
+      "none": "No documents"
+    },
+    "fields": {
+      "doc_type": "Type",
+      "title": "Title",
+      "issued_date": "Issued date",
+      "expiry_date": "Expiry date",
+      "file_url": "File link",
+      "status": "Status",
+      "notes": "Notes"
+    },
+    "types": {
+      "id_card": "ID card",
+      "passport": "Passport",
+      "certificate": "Certificate",
+      "medical": "Medical document",
+      "financial": "Financial document",
+      "contract": "Contract",
+      "visa": "Visa",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "add": {
+      "title": "Add document",
+      "submit": "Add"
+    },
+    "registry": {
+      "title": "Document registry",
+      "empty": "No documents yet"
+    },
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "archive_confirm": "Archive this document?",
+    "unarchive_confirm": "Restore this document from the archive?",
+    "delete_confirm": "Delete this document? This cannot be undone.",
+    "errors": {
+      "load": "Failed to load documents",
+      "title_required": "Enter a document title",
+      "add": "Failed to add document",
+      "action": "Action failed"
+    }
   }
 }

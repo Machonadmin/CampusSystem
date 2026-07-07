@@ -1884,5 +1884,70 @@
         "high": "גבוה"
       }
     }
+  },
+  "documents": {
+    "title": "מסמכים",
+    "list": {
+      "subtitle": "מרשם מסמכים של סטודנטים ומעקב תוקף",
+      "search_placeholder": "חיפוש סטודנט",
+      "empty": "לא נמצאו סטודנטים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה למסמכים",
+      "student": "סטודנט",
+      "documents": "מסמכים",
+      "count": "מסמכים",
+      "expired_flag": "פג תוקף",
+      "expiring_flag": "עומד לפוג",
+      "open_card": "פתח",
+      "manage_hint": "יש לך הרשאה להוספה ועדכון של מסמכים"
+    },
+    "expiring": {
+      "title": "מסמכים שתוקפם פג או עומד לפוג",
+      "expired": "פג תוקף",
+      "expiring_soon": "עומדים לפוג",
+      "none": "אין מסמכים"
+    },
+    "fields": {
+      "doc_type": "סוג",
+      "title": "כותרת",
+      "issued_date": "תאריך הנפקה",
+      "expiry_date": "תאריך תפוגה",
+      "file_url": "קישור לקובץ",
+      "status": "סטטוס",
+      "notes": "הערות"
+    },
+    "types": {
+      "id_card": "תעודת זהות",
+      "passport": "דרכון",
+      "certificate": "תעודה",
+      "medical": "מסמך רפואי",
+      "financial": "מסמך פיננסי",
+      "contract": "חוזה",
+      "visa": "ויזה",
+      "other": "אחר"
+    },
+    "status": {
+      "active": "פעיל",
+      "archived": "בארכיון"
+    },
+    "add": {
+      "title": "הוספת מסמך",
+      "submit": "הוסף"
+    },
+    "registry": {
+      "title": "מרשם מסמכים",
+      "empty": "אין עדיין מסמכים"
+    },
+    "archive": "העבר לארכיון",
+    "unarchive": "שחזר",
+    "archive_confirm": "להעביר מסמך זה לארכיון?",
+    "unarchive_confirm": "לשחזר מסמך זה מהארכיון?",
+    "delete_confirm": "למחוק מסמך זה? הפעולה בלתי הפיכה.",
+    "errors": {
+      "load": "טעינת המסמכים נכשלה",
+      "title_required": "יש לציין כותרת למסמך",
+      "add": "הוספת המסמך נכשלה",
+      "action": "הפעולה נכשלה"
+    }
   }
 }

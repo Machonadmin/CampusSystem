@@ -1565,6 +1565,40 @@ export interface PsychSessionInsert {
 }
 export type PsychSessionUpdate = Partial<Omit<PsychSessionInsert, 'journey_id' | 'created_by'>>
 
+// ─── Documents (документы: пер-студенческий реестр с контролем срока) ─────────
+//
+// НОВАЯ чистая таблица document_records. НЕ путать с legacy-таблицами
+// document_types / document_categories / person_documents / journey_documents
+// (старый дизайн шаблонов/категорий) — они не используются этим модулем.
+
+export interface DocumentRecordRow {
+  id: string
+  journey_id: string
+  doc_type: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  title: string
+  issued_date: string | null       // ISO date 'YYYY-MM-DD' | null
+  expiry_date: string | null        // ISO date 'YYYY-MM-DD' | null
+  file_url: string | null
+  status: 'active' | 'archived'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DocumentRecordInsert {
+  id?: string
+  journey_id: string
+  doc_type?: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  title: string
+  issued_date?: string | null
+  expiry_date?: string | null
+  file_url?: string | null
+  status?: 'active' | 'archived'
+  notes?: string | null
+  created_by?: string | null
+}
+export type DocumentRecordUpdate = Partial<Omit<DocumentRecordInsert, 'journey_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1648,6 +1682,7 @@ export interface Database {
       medical_visits:            T<MedicalVisitRow,              MedicalVisitInsert,              MedicalVisitUpdate>
       psych_profiles:            T<PsychProfileRow,              PsychProfileInsert,              PsychProfileUpdate>
       psych_sessions:            T<PsychSessionRow,              PsychSessionInsert,              PsychSessionUpdate>
+      document_records:          T<DocumentRecordRow,            DocumentRecordInsert,            DocumentRecordUpdate>
     }
     Views: Record<string, never>
     Functions: {
