@@ -21,6 +21,7 @@ CRM-система образовательного кампуса: работа
 | [maintenance-module.md](./maintenance-module.md) | Модуль «Эксплуатация»: заявки на обслуживание, SLA/просрочка, машина статусов |
 | [doctor-module.md](./doctor-module.md) | Модуль «Врач / Медпункт»: медкарты студентов, приёмы, контрольные визиты, статусы |
 | [psychologist-module.md](./psychologist-module.md) | Модуль «Психолог / Консультации»: карты сопровождения, консультации, контрольные визиты, уровень риска |
+| [reports-module.md](./reports-module.md) | Модуль «Отчёты / Обзор»: READ-ONLY дашборд сводок по всем модулям, корректная агрегация без обрезки db-max-rows |
 | [study-management.md](./study-management.md) | Управление учёбой, этап 1: журнал класса — уроки и посещаемость |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
 | [staging.md](./staging.md) | Решётка безопасности: staging + E2E Playwright, шаги в аккаунтах, стоимость |

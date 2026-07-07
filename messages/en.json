@@ -1792,5 +1792,66 @@
       "open": "Open",
       "closed": "Closed"
     }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Key metrics across all modules",
+    "loading": "Loading…",
+    "error": "Failed to load",
+    "empty": "No data",
+    "cards": {
+      "students": "Students",
+      "finance": "Finance",
+      "dormitory": "Dormitory",
+      "food": "Food",
+      "maintenance": "Maintenance",
+      "clinic": "Clinic",
+      "counseling": "Counseling"
+    },
+    "metrics": {
+      "total": "Total",
+      "charged": "Charged",
+      "collected": "Collected",
+      "outstanding": "Outstanding",
+      "collection_rate": "Collection rate",
+      "debtor_count": "Debtors",
+      "capacity": "Capacity",
+      "occupied": "Occupied",
+      "free": "Free",
+      "occupancy_percent": "Occupancy",
+      "building_count": "Buildings",
+      "room_count": "Rooms",
+      "enrolled": "Enrolled",
+      "unenrolled": "Not enrolled",
+      "open": "Open",
+      "in_progress": "In progress",
+      "overdue": "Overdue",
+      "open_visits": "Open visits",
+      "upcoming_followups": "Upcoming follow-ups",
+      "overdue_followups": "Overdue follow-ups",
+      "open_sessions": "Open sessions",
+      "status": {
+        "lead": "Lead",
+        "applicant": "Applicant",
+        "student": "Student",
+        "on_leave": "On leave",
+        "graduated": "Graduated",
+        "expelled": "Expelled",
+        "alumni": "Alumni",
+        "lost": "Lost"
+      },
+      "priority": {
+        "urgent": "Urgent",
+        "high": "High",
+        "normal": "Normal",
+        "low": "Low"
+      },
+      "risk": {
+        "none": "None",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    }
   }
 }

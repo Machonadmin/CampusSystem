@@ -1792,5 +1792,66 @@
       "open": "פתוח",
       "closed": "סגור"
     }
+  },
+  "reports": {
+    "title": "דוחות",
+    "subtitle": "סיכום מדדים מרכזיים מכל המודולים",
+    "loading": "טוען…",
+    "error": "הטעינה נכשלה",
+    "empty": "אין נתונים",
+    "cards": {
+      "students": "סטודנטים",
+      "finance": "כספים",
+      "dormitory": "מעונות",
+      "food": "מזון",
+      "maintenance": "תחזוקה",
+      "clinic": "מרפאה",
+      "counseling": "פסיכולוג"
+    },
+    "metrics": {
+      "total": "סך הכול",
+      "charged": "חויב",
+      "collected": "נגבה",
+      "outstanding": "חוב",
+      "collection_rate": "אחוז גבייה",
+      "debtor_count": "חייבים",
+      "capacity": "מקומות",
+      "occupied": "מאוכלס",
+      "free": "פנוי",
+      "occupancy_percent": "תפוסה",
+      "building_count": "בניינים",
+      "room_count": "חדרים",
+      "enrolled": "רשומים לתפריט",
+      "unenrolled": "לא רשומים",
+      "open": "פתוחות",
+      "in_progress": "בטיפול",
+      "overdue": "באיחור",
+      "open_visits": "ביקורים פתוחים",
+      "upcoming_followups": "מעקב קרוב",
+      "overdue_followups": "מעקב באיחור",
+      "open_sessions": "פגישות פתוחות",
+      "status": {
+        "lead": "ליד",
+        "applicant": "מועמד",
+        "student": "סטודנט",
+        "on_leave": "בחופשה",
+        "graduated": "בוגר",
+        "expelled": "מודח",
+        "alumni": "בוגר ארכיון",
+        "lost": "אבוד"
+      },
+      "priority": {
+        "urgent": "דחוף",
+        "high": "גבוה",
+        "normal": "רגיל",
+        "low": "נמוך"
+      },
+      "risk": {
+        "none": "אין",
+        "low": "נמוך",
+        "medium": "בינוני",
+        "high": "גבוה"
+      }
+    }
   }
 }

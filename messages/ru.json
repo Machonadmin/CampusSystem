@@ -1792,5 +1792,66 @@
       "open": "Открыта",
       "closed": "Закрыта"
     }
+  },
+  "reports": {
+    "title": "Отчёты",
+    "subtitle": "Сводка ключевых показателей по всем модулям",
+    "loading": "Загрузка…",
+    "error": "Не удалось загрузить",
+    "empty": "Нет данных",
+    "cards": {
+      "students": "Студенты",
+      "finance": "Финансы",
+      "dormitory": "Общежитие",
+      "food": "Питание",
+      "maintenance": "Эксплуатация",
+      "clinic": "Медпункт",
+      "counseling": "Психолог"
+    },
+    "metrics": {
+      "total": "Всего",
+      "charged": "Начислено",
+      "collected": "Собрано",
+      "outstanding": "Задолженность",
+      "collection_rate": "Собираемость",
+      "debtor_count": "Должников",
+      "capacity": "Мест",
+      "occupied": "Заселено",
+      "free": "Свободно",
+      "occupancy_percent": "Занятость",
+      "building_count": "Зданий",
+      "room_count": "Комнат",
+      "enrolled": "С планом питания",
+      "unenrolled": "Без плана",
+      "open": "Открытые",
+      "in_progress": "В работе",
+      "overdue": "Просрочено",
+      "open_visits": "Открытых приёмов",
+      "upcoming_followups": "Предстоящий контроль",
+      "overdue_followups": "Просроченный контроль",
+      "open_sessions": "Открытых консультаций",
+      "status": {
+        "lead": "Лид",
+        "applicant": "Абитуриент",
+        "student": "Студент",
+        "on_leave": "В отпуске",
+        "graduated": "Выпускник",
+        "expelled": "Отчислен",
+        "alumni": "Выпускник архив",
+        "lost": "Потерян"
+      },
+      "priority": {
+        "urgent": "Срочный",
+        "high": "Высокий",
+        "normal": "Обычный",
+        "low": "Низкий"
+      },
+      "risk": {
+        "none": "Нет",
+        "low": "Низкий",
+        "medium": "Средний",
+        "high": "Высокий"
+      }
+    }
   }
 }
