@@ -12,7 +12,8 @@
     "home": "ראשי",
     "education": "חינוך",
     "settings": "הגדרות",
-    "alumni": "בוגרים"
+    "alumni": "בוגרים",
+    "dormitory": "מעונות"
   },
   "auth": {
     "login": "כניסה",
@@ -1284,6 +1285,60 @@
       "saving": "שומר…",
       "cancel": "ביטול",
       "save_error": "השמירה נכשלה"
+    }
+  },
+  "dormitory": {
+    "list": {
+      "subtitle": "מבנים, חדרים ושיבוץ סטודנטים",
+      "add_building": "מבנה",
+      "empty": "אין עדיין מבנים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לצפייה במעונות",
+      "rooms": "חדרים",
+      "occupied": "תפוסים",
+      "free": "פנויים"
+    },
+    "building": {
+      "rooms_section": "חדרים",
+      "add_room": "חדר",
+      "no_rooms": "אין עדיין חדרים"
+    },
+    "room": {
+      "title": "חדר",
+      "full": "מלא",
+      "assign_student": "שיבוץ סטודנט",
+      "assign": "שבץ",
+      "search_student": "חיפוש סטודנט לפי שם או אימייל…",
+      "unassigned": "לא משובץ",
+      "no_assignments": "אין עדיין שיבוצים בחדר",
+      "student": "סטודנט",
+      "status": "סטטוס",
+      "end_assignment": "סיום שיבוץ",
+      "end_confirm": "לסיים את השיבוץ הזה?",
+      "load_error": "טעינת השיבוצים נכשלה",
+      "assign_error": "השיבוץ נכשל",
+      "action_error": "הפעולה נכשלה"
+    },
+    "form": {
+      "name": "שם",
+      "code": "קוד",
+      "address": "כתובת",
+      "room_number": "מספר חדר",
+      "floor": "קומה",
+      "capacity": "תפוסה",
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "required": "יש למלא את שדות החובה",
+      "save_error": "השמירה נכשלה"
+    },
+    "gender": {
+      "male": "גברים",
+      "female": "נשים",
+      "mixed": "מעורב"
+    },
+    "status": {
+      "active": "פעיל",
+      "ended": "הסתיים"
     }
   }
 }
