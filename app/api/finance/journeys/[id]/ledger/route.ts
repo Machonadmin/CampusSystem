@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
-import { sumCents, centsToNumber } from '@/lib/finance/money'
+import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 
 /**
@@ -60,20 +60,11 @@ export async function GET(
     const chargeRows = charges ?? []
     const paymentRows = payments ?? []
 
-    const chargesActiveCents = sumCents(chargeRows.filter(c => c.status === 'active'))
-    const paymentsApprovedCents = sumCents(paymentRows.filter(p => p.status === 'approved'))
-    const paymentsPendingCents = sumCents(paymentRows.filter(p => p.status === 'pending'))
-
     return NextResponse.json({
       journey,
       charges: chargeRows,
       payments: paymentRows,
-      totals: {
-        charges_active: centsToNumber(chargesActiveCents),
-        payments_approved: centsToNumber(paymentsApprovedCents),
-        payments_pending: centsToNumber(paymentsPendingCents),
-        balance: centsToNumber(chargesActiveCents - paymentsApprovedCents),
-      },
+      totals: computeLedgerTotals(chargeRows, paymentRows),
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { round1, attendancePercent } from '@/lib/education/metrics'
 
 async function requireAuth() {
   const session = await getSession()
@@ -14,8 +15,6 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
   if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
   return { status: 500, message: error.message ?? 'Ошибка БД' }
 }
-
-const round1 = (x: number) => Math.round(x * 10) / 10
 
 // Учебная группа студента (из class_enrollments → class_groups + справочники).
 type EnrolledGroup = {
@@ -207,8 +206,7 @@ export async function GET(
       const marked = a.present + a.absent + a.excused + a.late
       const totalLessons = totalLessonsByGroup.get(g.id) ?? 0
       // excused и late засчитываются КАК посещение; снижает процент только absent.
-      const attended = a.present + a.late + a.excused
-      const attendancePercent = marked === 0 ? null : Math.round((attended / marked) * 100)
+      const attendancePct = attendancePercent(a)
 
       const groupAssessments = assessmentsByGroup.get(g.id) ?? []
       const totalAssessments = groupAssessments.length
@@ -244,7 +242,7 @@ export async function GET(
         attendance: {
           present: a.present, absent: a.absent, excused: a.excused, late: a.late,
           marked, total_lessons: totalLessons,
-          percent: attendancePercent,
+          percent: attendancePct,
         },
         grades: {
           graded_count: gradedCount,
@@ -260,7 +258,7 @@ export async function GET(
       attendance: {
         present: sumPresent, absent: sumAbsent, excused: sumExcused, late: sumLate,
         marked: sumMarked, total_lessons: sumTotalLessons,
-        percent: sumMarked === 0 ? null : Math.round(((sumPresent + sumLate + sumExcused) / sumMarked) * 100),
+        percent: attendancePercent({ present: sumPresent, absent: sumAbsent, excused: sumExcused, late: sumLate }),
       },
       grades: {
         graded_count: sumGraded,

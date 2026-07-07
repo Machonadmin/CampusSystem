@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
+import { reduceScopes, grantsAccess, type Scope } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ export type EducationPrivilege =
   | 'set_grades'
   | 'set_lesson_topics'
 
-export type Scope = 'all' | 'department' | 'own'
+export type { Scope }
 
 /**
  * Цель проверки прав. Что именно мы пытаемся сделать.
@@ -132,18 +133,7 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
   if (privsErr || !privs) return {}
 
   // 3. Сложить, выбирая максимальный scope
-  const scopeRank: Record<Scope, number> = { all: 3, department: 2, own: 1 }
-  const result: PrivilegesMap = {}
-
-  for (const row of privs) {
-    const pc = row.privilege_code as EducationPrivilege
-    const sc = row.scope as Scope
-    const existing = result[pc]
-    if (!existing || scopeRank[sc] > scopeRank[existing]) {
-      result[pc] = sc
-    }
-  }
-  return result
+  return reduceScopes<EducationPrivilege>(privs)
 }
 
 /**
@@ -191,24 +181,11 @@ export async function hasEducationPrivilege(
 
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
-  if (!scope) return false
 
-  if (scope === 'all') return true
-
-  if (scope === 'department') {
-    // Если объект не привязан к конкретному department
-    // (например, лид ещё не определился с учреждением) —
-    // доступ разрешён как для общего пула.
-    if (!target?.department_id) return true
-    return access.departmentIds.includes(target.department_id)
-  }
-
-  if (scope === 'own') {
-    if (!target?.teacher_ids || target.teacher_ids.length === 0) return false
-    return target.teacher_ids.includes(session.person_id)
-  }
-
-  return false
+  return grantsAccess(scope, target, {
+    departmentIds: access.departmentIds,
+    personId: session.person_id,
+  })
 }
 
 /**

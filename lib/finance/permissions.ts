@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
+import { reduceScopes, type Scope } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 //
@@ -17,7 +18,7 @@ export type FinancePrivilege =
   | 'manage_budget'
   | 'export_reports'
 
-export type Scope = 'all' | 'department' | 'own'
+export type { Scope }
 
 // ─── In-memory кэш ────────────────────────────────────────────────────────────
 
@@ -81,18 +82,7 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
 
   if (privsErr || !privs) return {}
 
-  const scopeRank: Record<Scope, number> = { all: 3, department: 2, own: 1 }
-  const result: PrivilegesMap = {}
-
-  for (const row of privs) {
-    const pc = row.privilege_code as FinancePrivilege
-    const sc = row.scope as Scope
-    const existing = result[pc]
-    if (!existing || scopeRank[sc] > scopeRank[existing]) {
-      result[pc] = sc
-    }
-  }
-  return result
+  return reduceScopes<FinancePrivilege>(privs)
 }
 
 async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {

@@ -18,3 +18,32 @@ export function sumCents(rows: { amount: number | string }[]): number {
 export function centsToNumber(cents: number): number {
   return Math.round(cents) / 100
 }
+
+interface ChargeRow { amount: number | string; status: string }
+interface PaymentRow { amount: number | string; status: string }
+
+/**
+ * Итоги ПНК студента по правилу баланса:
+ *   balance = Σ(charges active) − Σ(payments approved)
+ * Всё считается в целых копейках (без float-дрейфа), на выходе — числа с двумя
+ * знаками. Извлечено из ledger-роута для юнит-покрытия ключевого правила.
+ */
+export function computeLedgerTotals(
+  charges: ChargeRow[],
+  payments: PaymentRow[],
+): {
+  charges_active: number
+  payments_approved: number
+  payments_pending: number
+  balance: number
+} {
+  const chargesActiveCents = sumCents(charges.filter(c => c.status === 'active'))
+  const paymentsApprovedCents = sumCents(payments.filter(p => p.status === 'approved'))
+  const paymentsPendingCents = sumCents(payments.filter(p => p.status === 'pending'))
+  return {
+    charges_active: centsToNumber(chargesActiveCents),
+    payments_approved: centsToNumber(paymentsApprovedCents),
+    payments_pending: centsToNumber(paymentsPendingCents),
+    balance: centsToNumber(chargesActiveCents - paymentsApprovedCents),
+  }
+}
