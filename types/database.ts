@@ -1353,6 +1353,76 @@ export interface DormAssignmentInsert {
 }
 export type DormAssignmentUpdate = Partial<Omit<DormAssignmentInsert, 'room_id' | 'journey_id' | 'created_by'>>
 
+// ─── Food & Dining (питание) ─────────────────────────────────────────────────
+
+export interface MealPlanRow {
+  id: string
+  name: string
+  code: string | null
+  description: string | null
+  includes_breakfast: boolean
+  includes_lunch: boolean
+  includes_dinner: boolean
+  price: number | null
+  period_label: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface MealPlanInsert {
+  id?: string
+  name: string
+  code?: string | null
+  description?: string | null
+  includes_breakfast?: boolean
+  includes_lunch?: boolean
+  includes_dinner?: boolean
+  price?: number | null
+  period_label?: string | null
+  is_active?: boolean
+}
+export type MealPlanUpdate = Partial<MealPlanInsert>
+
+export interface MealEnrollmentRow {
+  id: string
+  meal_plan_id: string
+  journey_id: string
+  enrolled_from: string            // ISO date 'YYYY-MM-DD'
+  enrolled_to: string | null       // ISO date | null (open-ended)
+  status: 'active' | 'ended'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MealEnrollmentInsert {
+  id?: string
+  meal_plan_id: string
+  journey_id: string
+  enrolled_from: string
+  enrolled_to?: string | null
+  status?: 'active' | 'ended'
+  created_by?: string | null
+}
+export type MealEnrollmentUpdate = Partial<Omit<MealEnrollmentInsert, 'meal_plan_id' | 'journey_id' | 'created_by'>>
+
+export interface DietaryProfileRow {
+  id: string
+  journey_id: string
+  restrictions: string | null
+  allergies: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DietaryProfileInsert {
+  id?: string
+  journey_id: string
+  restrictions?: string | null
+  allergies?: string | null
+  notes?: string | null
+}
+export type DietaryProfileUpdate = Partial<Omit<DietaryProfileInsert, 'journey_id'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1428,6 +1498,9 @@ export interface Database {
       dorm_buildings:            T<DormBuildingRow,              DormBuildingInsert,              DormBuildingUpdate>
       dorm_rooms:                T<DormRoomRow,                  DormRoomInsert,                  DormRoomUpdate>
       dorm_assignments:          T<DormAssignmentRow,            DormAssignmentInsert,            DormAssignmentUpdate>
+      meal_plans:                T<MealPlanRow,                  MealPlanInsert,                  MealPlanUpdate>
+      meal_enrollments:          T<MealEnrollmentRow,            MealEnrollmentInsert,            MealEnrollmentUpdate>
+      dietary_profiles:          T<DietaryProfileRow,            DietaryProfileInsert,            DietaryProfileUpdate>
     }
     Views: Record<string, never>
     Functions: {
