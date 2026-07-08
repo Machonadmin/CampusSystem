@@ -2263,6 +2263,20 @@
     "confirm_delete": "למחוק את הפגישה",
     "hebrew_dates": "תאריכים עבריים",
     "hebrew_short": "א׳",
-    "booked_by": "נקבע על ידי"
+    "booked_by": "נקבע על ידי",
+    "lesson": "שיעור",
+    "my_lessons": "השיעורים שלי",
+    "lesson_readonly": "לקריאה בלבד",
+    "lesson_cancelled": "השיעור בוטל",
+    "lesson_details": "פרטי שיעור",
+    "lesson_class_group": "קבוצת לימוד",
+    "lesson_subject": "מקצוע",
+    "lesson_location": "מיקום",
+    "legend": {
+      "title": "מקרא",
+      "appointment": "פגישה",
+      "lesson": "שיעור",
+      "day_off": "יום היעדרות"
+    }
   }
 }

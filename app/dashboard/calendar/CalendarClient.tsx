@@ -6,9 +6,10 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import {
   monthGrid,
-  appointmentsForDay,
   isBlocked,
   minutesBetween,
+  mergeDayEvents,
+  toHHmm,
 } from '@/lib/calendar/calendar'
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 
@@ -35,6 +36,17 @@ interface Block {
   id: string
   block_date: string
   reason: string | null
+}
+// Урок преподавателя — read-only на календаре (управляется в модуле Education).
+interface Lesson {
+  id: string
+  date: string                 // scheduled_date 'YYYY-MM-DD'
+  time: string | null          // scheduled_time 'HH:mm:ss' или null
+  class_group_name: string
+  subject: string
+  subject_he: string | null
+  location: string | null
+  is_cancelled: boolean
 }
 interface StudentOption {
   journey_id: string
@@ -75,6 +87,19 @@ function startOfWeekISO(iso: string): string {
   return addDaysISO(iso, -dow)
 }
 
+/** Название предмета урока: иврит, если язык he и name_he задан — как в Education. */
+function subjectLabel(l: Lesson, lang: string): string {
+  if (lang === 'he' && l.subject_he) return l.subject_he
+  return l.subject
+}
+
+// Палитра урока — education-зелёный. Намеренно светлее «завершённой» встречи
+// (#D1FAE5) плюс сплошная левая полоса, чтобы урок не путался ни с одним
+// статусом встречи.
+const LESSON_BG = '#ECFDF5'
+const LESSON_FG = '#047857'
+const LESSON_ACCENT = '#10B981'
+
 export default function CalendarClient() {
   const { lang, isRTL } = useLang()
   const t = useTranslations('calendar')
@@ -93,6 +118,7 @@ export default function CalendarClient() {
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [blocks, setBlocks] = useState<Block[]>([])
+  const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -122,6 +148,7 @@ export default function CalendarClient() {
   const [formDate, setFormDate] = useState<string>(TODAY)     // предзаполненный день
   const [editing, setEditing] = useState<Appointment | null>(null) // редактируемая встреча
   const [detail, setDetail] = useState<Appointment | null>(null)   // открытая встреча
+  const [detailLesson, setDetailLesson] = useState<Lesson | null>(null) // read-only урок
 
   const anchorYear = Number(anchor.slice(0, 4))
   const anchorMonth = Number(anchor.slice(5, 7))
@@ -148,19 +175,27 @@ export default function CalendarClient() {
     setLoading(true); setError(null)
     try {
       const qs = `from=${range.from}&to=${range.to}`
-      const [aRes, bRes] = await Promise.all([
+      const [aRes, bRes, lRes] = await Promise.all([
         fetch(`/api/calendar/appointments?${qs}`),
         fetch(`/api/calendar/blocks?${qs}`),
+        fetch(`/api/calendar/lessons?${qs}`),
       ])
       if (!aRes.ok) {
         const b = await aRes.json().catch(() => ({}))
-        setError(b.error ?? t('load_error')); setAppointments([]); setBlocks([]); return
+        setError(b.error ?? t('load_error')); setAppointments([]); setBlocks([]); setLessons([]); return
       }
       const aBody = await aRes.json()
       setAppointments(aBody.appointments ?? [])
       if (bRes.ok) {
         const bBody = await bRes.json()
         setBlocks(bBody.blocks ?? [])
+      }
+      // Уроки — вспомогательный read-only слой: их сбой не рушит календарь.
+      if (lRes.ok) {
+        const lBody = await lRes.json()
+        setLessons(lBody.lessons ?? [])
+      } else {
+        setLessons([])
       }
     } catch {
       setError(t('load_error'))
@@ -367,6 +402,8 @@ export default function CalendarClient() {
         </div>
       </div>
 
+      <Legend t={t} primary={primary} />
+
       {error && (
         <div style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px' }}>
           {error}
@@ -381,6 +418,7 @@ export default function CalendarClient() {
           weekdayLabels={weekdayLabels}
           appointments={appointments}
           blocks={blocks}
+          lessons={lessons}
           today={TODAY}
           primary={primary}
           light={light}
@@ -389,6 +427,7 @@ export default function CalendarClient() {
           onDayNew={openNew}
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
+          onOpenLesson={setDetailLesson}
           t={t}
         />
       ) : (
@@ -396,13 +435,16 @@ export default function CalendarClient() {
           days={weekDays}
           appointments={appointments}
           blocks={blocks}
+          lessons={lessons}
           today={TODAY}
           primary={primary}
           locale={locale}
           hebrewDates={hebrewDates}
+          lang={lang}
           onDayNew={openNew}
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
+          onOpenLesson={setDetailLesson}
           t={t}
         />
       )}
@@ -434,6 +476,17 @@ export default function CalendarClient() {
           hebrewDates={hebrewDates}
         />
       )}
+
+      {detailLesson && (
+        <LessonDetail
+          l={detailLesson}
+          onClose={() => setDetailLesson(null)}
+          t={t}
+          tCommon={tCommon}
+          locale={locale}
+          lang={lang}
+        />
+      )}
     </div>
   )
 }
@@ -456,13 +509,14 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 // ─────────────────────────────────────────────
 
 function MonthView({
-  weeks, weekdayLabels, appointments, blocks, today, primary, light, isRTL, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, t,
+  weeks, weekdayLabels, appointments, blocks, lessons, today, primary, light, isRTL, hebrewDates,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
   weekdayLabels: string[]
   appointments: Appointment[]
   blocks: Block[]
+  lessons: Lesson[]
   today: string
   primary: string
   light: string
@@ -471,6 +525,7 @@ function MonthView({
   onDayNew: (d: string) => void
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
+  onOpenLesson: (l: Lesson) => void
   t: (k: string, f?: string) => string
 }) {
   return (
@@ -488,7 +543,7 @@ function MonthView({
       {weeks.map((week, wi) => (
         <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {week.map(cell => {
-            const dayAppts = appointmentsForDay(appointments, cell.dateISO)
+            const events = mergeDayEvents(appointments, lessons, cell.dateISO)
             const blocked = isBlocked(blocks, cell.dateISO)
             const isToday = cell.dateISO === today
             const dayNum = Number(cell.dateISO.slice(8, 10))
@@ -536,12 +591,34 @@ function MonthView({
                 </div>
 
                 <div style={{ marginTop: 4, display: 'grid', gap: 3 }}>
-                  {dayAppts.slice(0, 3).map(a => {
+                  {events.slice(0, 3).map(ev => {
+                    // Урок — read-only, education-зелёный чип с левой полосой.
+                    if (ev.kind === 'lesson' && ev.lesson) {
+                      const l = ev.lesson
+                      return (
+                        <button
+                          key={`l-${l.id}`}
+                          onClick={() => onOpenLesson(l)}
+                          title={`${t('lesson')} · ${l.class_group_name}`}
+                          style={{
+                            textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
+                            background: LESSON_BG, color: LESSON_FG, borderInlineStart: `3px solid ${LESSON_ACCENT}`,
+                            borderRadius: 5, padding: '2px 6px',
+                            fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                            textDecoration: l.is_cancelled ? 'line-through' : 'none',
+                            opacity: l.is_cancelled ? 0.55 : 1,
+                          }}
+                        >
+                          {ev.time && `${ev.time} `}{l.class_group_name}
+                        </button>
+                      )
+                    }
+                    const a = ev.appointment!
                     const st = statusStyle(a.status, primary, light)
                     const isParticipant = a.role === 'participant'
                     return (
                       <button
-                        key={a.id}
+                        key={`a-${a.id}`}
                         onClick={() => onOpen(a)}
                         title={isParticipant && a.provider_name ? `${t('booked_by')} ${a.provider_name}` : undefined}
                         style={{
@@ -556,9 +633,9 @@ function MonthView({
                       </button>
                     )
                   })}
-                  {dayAppts.length > 3 && (
+                  {events.length > 3 && (
                     <span style={{ fontSize: 10, color: '#9CA3AF', paddingInlineStart: 2 }}>
-                      +{dayAppts.length - 3}
+                      +{events.length - 3}
                     </span>
                   )}
                 </div>
@@ -588,25 +665,28 @@ function MonthView({
 // ─────────────────────────────────────────────
 
 function WeekView({
-  days, appointments, blocks, today, primary, locale, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, t,
+  days, appointments, blocks, lessons, today, primary, locale, hebrewDates, lang,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, t,
 }: {
   days: string[]
   appointments: Appointment[]
   blocks: Block[]
+  lessons: Lesson[]
   today: string
   primary: string
   locale: string
   hebrewDates: boolean
+  lang: string
   onDayNew: (d: string) => void
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
+  onOpenLesson: (l: Lesson) => void
   t: (k: string, f?: string) => string
 }) {
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {days.map(day => {
-        const dayAppts = appointmentsForDay(appointments, day)
+        const events = mergeDayEvents(appointments, lessons, day)
         const blocked = isBlocked(blocks, day)
         const isToday = day === today
         const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short', timeZone: 'UTC' })
@@ -638,11 +718,44 @@ function WeekView({
                 </button>
               </div>
             </div>
-            {dayAppts.length === 0 ? (
+            {events.length === 0 ? (
               <div style={{ fontSize: 12, color: '#9CA3AF' }}>{t('empty_day')}</div>
             ) : (
               <div style={{ display: 'grid', gap: 6 }}>
-                {dayAppts.map(a => {
+                {events.map(ev => {
+                  // Урок — read-only строка, education-зелёная, с меткой «שיעור».
+                  if (ev.kind === 'lesson' && ev.lesson) {
+                    const l = ev.lesson
+                    const subj = subjectLabel(l, lang)
+                    return (
+                      <button
+                        key={`l-${l.id}`}
+                        onClick={() => onOpenLesson(l)}
+                        style={{
+                          textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                          background: LESSON_BG, border: '1px solid #A7F3D0', borderInlineStart: `3px solid ${LESSON_ACCENT}`,
+                          borderRadius: 8, padding: '8px 12px', opacity: l.is_cancelled ? 0.6 : 1,
+                        }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 700, color: LESSON_FG, minWidth: 92 }}>
+                          {ev.time || '—'}
+                        </span>
+                        <span style={{
+                          fontSize: 13, fontWeight: 600, color: LESSON_FG, flex: 1,
+                          textDecoration: l.is_cancelled ? 'line-through' : 'none',
+                        }}>
+                          <span style={lessonTag}>{t('lesson')}</span>
+                          {' '}{l.class_group_name}
+                          {subj && <span style={{ fontWeight: 400, color: '#6B7280' }}> · {subj}</span>}
+                        </span>
+                        {l.location && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{l.location}</span>}
+                        {l.is_cancelled && (
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>{t('lesson_cancelled')}</span>
+                        )}
+                      </button>
+                    )
+                  }
+                  const a = ev.appointment!
                   const st = statusStyle(a.status, primary, '#DBEAFE')
                   const mins = minutesBetween(a.starts_at, a.ends_at)
                   const isParticipant = a.role === 'participant'
@@ -651,7 +764,7 @@ function WeekView({
                     : (a.student_name || a.student_hebrew_name)
                   return (
                     <button
-                      key={a.id}
+                      key={`a-${a.id}`}
                       onClick={() => onOpen(a)}
                       style={{
                         textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
@@ -938,6 +1051,89 @@ function AppointmentDetail({
 }
 
 // ─────────────────────────────────────────────
+// Легенда: пометки типов событий (пометка выходного / встреча / урок)
+// ─────────────────────────────────────────────
+
+function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary: string }) {
+  const item = (swatch: React.ReactNode, label: string) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280' }}>
+      {swatch}<span>{label}</span>
+    </span>
+  )
+  const box: React.CSSProperties = { width: 14, height: 14, borderRadius: 4, flexShrink: 0 }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>{t('legend.title')}</span>
+      {item(<span style={{ ...box, background: primary }} />, t('legend.appointment'))}
+      {item(
+        <span style={{ ...box, background: LESSON_BG, border: '1px solid #A7F3D0', borderInlineStart: `3px solid ${LESSON_ACCENT}` }} />,
+        t('legend.lesson'),
+      )}
+      {item(
+        <span style={{
+          ...box, background: '#FAFAF9', border: '1px solid #E5E7EB',
+          backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(107,114,128,0.25) 3px, rgba(107,114,128,0.25) 6px)',
+        }} />,
+        t('legend.day_off'),
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Диалог просмотра урока — ТОЛЬКО чтение (урок ведётся в модуле Education)
+// ─────────────────────────────────────────────
+
+function LessonDetail({
+  l, onClose, t, tCommon, locale, lang,
+}: {
+  l: Lesson
+  onClose: () => void
+  t: (k: string, f?: string) => string
+  tCommon: (k: string, f?: string) => string
+  locale: string
+  lang: string
+}) {
+  const subj = subjectLabel(l, lang)
+  const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${l.date}T00:00:00Z`))
+  const time = toHHmm(l.time)
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={dialog} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: LESSON_ACCENT, letterSpacing: 0.3, marginBottom: 6 }}>
+          {t('my_lessons')} · {t('lesson_readonly')}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <h2 style={{ ...dialogTitle, marginBottom: 4, textDecoration: l.is_cancelled ? 'line-through' : 'none' }}>
+            {l.class_group_name}
+          </h2>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: LESSON_ACCENT, borderRadius: 999, padding: '2px 10px', whiteSpace: 'nowrap' }}>
+            {t('lesson')}
+          </span>
+        </div>
+
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        {time && <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>{time}</div>}
+        {subj && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {l.class_group_name}</div>
+        {l.location && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_location')}:</b> {l.location}</div>}
+        {l.is_cancelled && (
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', background: '#F3F4F6', borderRadius: 999, padding: '3px 12px', marginTop: 12, display: 'inline-block' }}>
+            {t('lesson_cancelled')}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+          <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
+        </div>
+      </div>
+    </Overlay>
+  )
+}
+
+// ─────────────────────────────────────────────
 // Мелкие переиспользуемые куски
 // ─────────────────────────────────────────────
 
@@ -976,6 +1172,11 @@ const dayAddBtn: React.CSSProperties = {
 }
 const smallLink: React.CSSProperties = {
   fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer',
+}
+// Метка «שיעור» на строке урока в недельном виде.
+const lessonTag: React.CSSProperties = {
+  fontSize: 10, fontWeight: 700, color: '#fff', background: LESSON_ACCENT,
+  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
 }
 const dialog: React.CSSProperties = {
   background: '#fff', borderRadius: 14, padding: 20, width: '100%', maxWidth: 460,

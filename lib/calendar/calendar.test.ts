@@ -7,6 +7,9 @@ import {
   appointmentsForDay,
   isBlocked,
   minutesBetween,
+  lessonsForDay,
+  toHHmm,
+  mergeDayEvents,
 } from './calendar'
 
 // ─────────────────────────────────────────────
@@ -227,5 +230,129 @@ describe('minutesBetween', () => {
 
   it('0 for unparseable input', () => {
     expect(minutesBetween('nope', '2026-07-08T10:30:00Z')).toBe(0)
+  })
+})
+
+// ─────────────────────────────────────────────
+// lessonsForDay
+// ─────────────────────────────────────────────
+
+describe('lessonsForDay', () => {
+  const lessons = [
+    { id: 'l1', date: '2026-07-08', time: '09:00:00' },
+    { id: 'l2', date: '2026-07-08', time: null },
+    { id: 'l3', date: '2026-07-09', time: '10:00:00' },
+  ]
+
+  it('returns only lessons on the given day', () => {
+    const r = lessonsForDay(lessons, '2026-07-08')
+    expect(r.map(l => l.id)).toEqual(['l1', 'l2'])
+  })
+
+  it('preserves input order', () => {
+    expect(lessonsForDay(lessons, '2026-07-08')[0].id).toBe('l1')
+  })
+
+  it('empty input → empty output', () => {
+    expect(lessonsForDay([], '2026-07-08')).toEqual([])
+  })
+
+  it('no matches → empty output', () => {
+    expect(lessonsForDay(lessons, '2026-01-01')).toEqual([])
+  })
+
+  it('keeps time-less lessons on their day', () => {
+    expect(lessonsForDay(lessons, '2026-07-08').some(l => l.id === 'l2')).toBe(true)
+  })
+})
+
+// ─────────────────────────────────────────────
+// toHHmm
+// ─────────────────────────────────────────────
+
+describe('toHHmm', () => {
+  it('extracts HH:mm from an ISO timestamp (with TZ)', () => {
+    expect(toHHmm('2026-07-08T09:05:00Z')).toBe('09:05')
+  })
+
+  it('extracts HH:mm from an ISO timestamp without TZ', () => {
+    expect(toHHmm('2026-07-08T14:30')).toBe('14:30')
+  })
+
+  it("normalizes bare 'HH:mm:ss' to 'HH:mm'", () => {
+    expect(toHHmm('09:00:00')).toBe('09:00')
+  })
+
+  it("keeps bare 'HH:mm' as is", () => {
+    expect(toHHmm('16:45')).toBe('16:45')
+  })
+
+  it('null / undefined / empty → empty string', () => {
+    expect(toHHmm(null)).toBe('')
+    expect(toHHmm(undefined)).toBe('')
+    expect(toHHmm('')).toBe('')
+  })
+
+  it('date-only or unparseable → empty string', () => {
+    expect(toHHmm('2026-07-08')).toBe('')
+    expect(toHHmm('nope')).toBe('')
+  })
+})
+
+// ─────────────────────────────────────────────
+// mergeDayEvents
+// ─────────────────────────────────────────────
+
+describe('mergeDayEvents', () => {
+  const appts = [
+    { id: 'a1', starts_at: '2026-07-08T11:00:00Z' },
+    { id: 'a2', starts_at: '2026-07-08T08:00:00Z' },
+    { id: 'a3', starts_at: '2026-07-09T09:00:00Z' },
+  ]
+  const lessons = [
+    { id: 'l1', date: '2026-07-08', time: '10:00:00' },
+    { id: 'l2', date: '2026-07-08', time: null },
+    { id: 'l3', date: '2026-07-10', time: '08:00:00' },
+  ]
+
+  it('merges appointments and lessons of the day, sorted by time', () => {
+    const r = mergeDayEvents(appts, lessons, '2026-07-08')
+    // 08:00 appt, 10:00 lesson, 11:00 appt, then the time-less lesson last.
+    expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson', 'appointment', 'lesson'])
+    expect(r.map(e => e.time)).toEqual(['08:00', '10:00', '11:00', ''])
+  })
+
+  it('tags each event with its source object', () => {
+    const r = mergeDayEvents(appts, lessons, '2026-07-08')
+    const first = r[0]
+    expect(first.kind).toBe('appointment')
+    expect(first.appointment?.id).toBe('a2')
+    expect(first.lesson).toBeNull()
+    const lessonEv = r.find(e => e.kind === 'lesson' && e.time === '10:00')
+    expect(lessonEv?.lesson?.id).toBe('l1')
+    expect(lessonEv?.appointment).toBeNull()
+  })
+
+  it('includes only events of the requested day', () => {
+    const r = mergeDayEvents(appts, lessons, '2026-07-08')
+    expect(r).toHaveLength(4)
+    expect(r.some(e => e.appointment?.id === 'a3')).toBe(false)
+    expect(r.some(e => e.lesson?.id === 'l3')).toBe(false)
+  })
+
+  it('time-less lessons sort after timed events', () => {
+    const r = mergeDayEvents(appts, lessons, '2026-07-08')
+    expect(r[r.length - 1].lesson?.id).toBe('l2')
+  })
+
+  it('empty day → empty output', () => {
+    expect(mergeDayEvents(appts, lessons, '2026-01-01')).toEqual([])
+  })
+
+  it('is stable for equal times: appointment before lesson', () => {
+    const a = [{ id: 'a', starts_at: '2026-07-08T09:00:00Z' }]
+    const l = [{ id: 'l', date: '2026-07-08', time: '09:00:00' }]
+    const r = mergeDayEvents(a, l, '2026-07-08')
+    expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson'])
   })
 })

@@ -2263,6 +2263,20 @@
     "confirm_delete": "Удалить встречу?",
     "hebrew_dates": "Еврейские даты",
     "hebrew_short": "א׳",
-    "booked_by": "Назначил"
+    "booked_by": "Назначил",
+    "lesson": "Урок",
+    "my_lessons": "Мои уроки",
+    "lesson_readonly": "Только просмотр",
+    "lesson_cancelled": "Урок отменён",
+    "lesson_details": "Детали урока",
+    "lesson_class_group": "Учебная группа",
+    "lesson_subject": "Предмет",
+    "lesson_location": "Место",
+    "legend": {
+      "title": "Легенда",
+      "appointment": "Встреча",
+      "lesson": "Урок",
+      "day_off": "Выходной"
+    }
   }
 }

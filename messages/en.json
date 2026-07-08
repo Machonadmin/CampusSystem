@@ -2263,6 +2263,20 @@
     "confirm_delete": "Delete this appointment?",
     "hebrew_dates": "Hebrew dates",
     "hebrew_short": "א׳",
-    "booked_by": "Booked by"
+    "booked_by": "Booked by",
+    "lesson": "Lesson",
+    "my_lessons": "My lessons",
+    "lesson_readonly": "Read only",
+    "lesson_cancelled": "Lesson cancelled",
+    "lesson_details": "Lesson details",
+    "lesson_class_group": "Class group",
+    "lesson_subject": "Subject",
+    "lesson_location": "Location",
+    "legend": {
+      "title": "Legend",
+      "appointment": "Appointment",
+      "lesson": "Lesson",
+      "day_off": "Day off"
+    }
   }
 }

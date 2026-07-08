@@ -154,6 +154,82 @@ export function isBlocked(blocks: BlockLike[], dateISO: string): boolean {
 }
 
 // ─────────────────────────────────────────────
+// Уроки преподавателя (read-only слой поверх встреч)
+// ─────────────────────────────────────────────
+
+export interface LessonLike {
+  /** Календарная дата урока ISO 'YYYY-MM-DD' (scheduled_date). */
+  date: string
+  /** Время урока 'HH:mm' / 'HH:mm:ss' или null (scheduled_time). */
+  time: string | null
+}
+
+/**
+ * Уроки, приходящиеся на календарный день dateISO. Дата урока уже 'YYYY-MM-DD',
+ * поэтому сравниваем напрямую. Сохраняет исходный порядок массива.
+ */
+export function lessonsForDay<T extends LessonLike>(lessons: T[], dateISO: string): T[] {
+  return lessons.filter(l => l.date === dateISO)
+}
+
+/**
+ * Нормализует время к 'HH:mm' для сортировки и показа. Принимает и «голое»
+ * время ('09:00', '09:00:00'), и ISO-таймстемп ('2026-07-08T09:00:00Z') —
+ * берёт первые HH:mm после начала строки либо после 'T'. '' — если времени нет
+ * (null / неразбираемо / только дата).
+ */
+export function toHHmm(value: string | null | undefined): string {
+  if (!value) return ''
+  const m = /(?:^|T)(\d{2}):(\d{2})/.exec(value)
+  return m ? `${m[1]}:${m[2]}` : ''
+}
+
+/** Тип события дня: пользовательская встреча либо read-only урок. */
+export type DayEventKind = 'appointment' | 'lesson'
+
+/**
+ * Единое событие дня для расписания: либо встреча, либо урок. Ровно одно из
+ * appointment / lesson непусто, kind соответствует ему. time — 'HH:mm' или ''.
+ */
+export interface DayEvent<A, L> {
+  kind: DayEventKind
+  time: string
+  appointment: A | null
+  lesson: L | null
+}
+
+/**
+ * Сливает встречи и уроки одного дня в единую ленту, отсортированную по времени
+ * (по возрастанию). События без времени ('') уходят в конец. Сортировка
+ * стабильна: при равном времени сохраняется исходный порядок (встречи идут в том
+ * порядке, что пришли, затем уроки). Чистая: без Date.now.
+ */
+export function mergeDayEvents<A extends AppointmentLike, L extends LessonLike>(
+  appointments: A[],
+  lessons: L[],
+  dateISO: string,
+): DayEvent<A, L>[] {
+  const events: DayEvent<A, L>[] = []
+  for (const a of appointmentsForDay(appointments, dateISO)) {
+    events.push({ kind: 'appointment', time: toHHmm(a.starts_at), appointment: a, lesson: null })
+  }
+  for (const l of lessonsForDay(lessons, dateISO)) {
+    events.push({ kind: 'lesson', time: toHHmm(l.time), appointment: null, lesson: l })
+  }
+  // Стабильная сортировка по времени; пустое время ('') — в конец.
+  return events
+    .map((e, i) => ({ e, i }))
+    .sort((x, y) => {
+      const kx = x.e.time || '99:99'
+      const ky = y.e.time || '99:99'
+      if (kx < ky) return -1
+      if (kx > ky) return 1
+      return x.i - y.i
+    })
+    .map(({ e }) => e)
+}
+
+// ─────────────────────────────────────────────
 // Длительность
 // ─────────────────────────────────────────────
 
