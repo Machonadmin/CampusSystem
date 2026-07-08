@@ -2260,6 +2260,9 @@
     "err_end_after_start": "End must be after start",
     "overlap_error": "The appointment overlaps another scheduled one",
     "load_error": "Failed to load data",
-    "confirm_delete": "Delete this appointment?"
+    "confirm_delete": "Delete this appointment?",
+    "hebrew_dates": "Hebrew dates",
+    "hebrew_short": "א׳",
+    "booked_by": "Booked by"
   }
 }

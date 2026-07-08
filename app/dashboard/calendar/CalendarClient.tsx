@@ -10,6 +10,7 @@ import {
   isBlocked,
   minutesBetween,
 } from '@/lib/calendar/calendar'
+import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 
 // ─── Типы данных с API ───────────────────────────────────────────────────────
 
@@ -24,6 +25,11 @@ interface Appointment {
   notes: string | null
   student_name: string | null
   student_hebrew_name: string | null
+  // Синхронизация: 'provider' — моя встреча (редактируемая), 'participant' —
+  // назначена мне кем-то (READ-ONLY). У participant заполнен provider_name.
+  role: 'provider' | 'participant'
+  provider_name: string | null
+  provider_hebrew_name: string | null
 }
 interface Block {
   id: string
@@ -89,6 +95,27 @@ export default function CalendarClient() {
   const [blocks, setBlocks] = useState<Block[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Персональный тумблер еврейских дат. Хранится в localStorage per-user, читается
+  // после монтирования (SSR-safe: typeof window). БД/миграции не нужны.
+  const [hebrewDates, setHebrewDates] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      setHebrewDates(window.localStorage.getItem('calendar:hebrewDates') === '1')
+    } catch { /* localStorage недоступен — оставляем выкл. */ }
+  }, [])
+  function toggleHebrewDates() {
+    setHebrewDates(prev => {
+      const next = !prev
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('calendar:hebrewDates', next ? '1' : '0')
+        }
+      } catch { /* игнорируем недоступность localStorage */ }
+      return next
+    })
+  }
 
   // Диалоги
   const [formOpen, setFormOpen] = useState(false)
@@ -178,6 +205,13 @@ export default function CalendarClient() {
         .format(new Date(`${iso}T00:00:00Z`))
     return `${fmt(weekDays[0])} — ${fmt(weekDays[6])}`
   }, [view, anchorYear, anchorMonth, weekDays, locale])
+
+  // Еврейская подпись периода (ДОПОЛНИТЕЛЬНО к григорианской), когда тумблер вкл.
+  const hebrewPeriodLabel = useMemo(() => {
+    if (!hebrewDates) return ''
+    if (view === 'month') return formatHebrewDate(`${anchorYear}-${pad2(anchorMonth)}-01`)
+    return `${formatHebrewDate(weekDays[0])} — ${formatHebrewDate(weekDays[6])}`
+  }, [hebrewDates, view, anchorYear, anchorMonth, weekDays])
 
   // Короткие названия дней недели (вс…сб), из Intl.
   const weekdayLabels = useMemo(() => {
@@ -289,26 +323,47 @@ export default function CalendarClient() {
           <button onClick={goNext} style={navBtn} aria-label={t('next')}>
             <span style={{ fontSize: 16 }}>{isRTL ? '‹' : '›'}</span>
           </button>
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginInlineStart: 6, textTransform: 'capitalize' }}>
-            {periodLabel}
+          <span style={{ display: 'inline-flex', flexDirection: 'column', marginInlineStart: 6 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827', textTransform: 'capitalize' }}>
+              {periodLabel}
+            </span>
+            {hebrewPeriodLabel && (
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>{hebrewPeriodLabel}</span>
+            )}
           </span>
         </div>
 
-        <div style={{ display: 'inline-flex', background: '#F3F4F6', borderRadius: 8, padding: 3 }}>
-          {(['month', 'week'] as View[]).map(v => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              style={{
-                fontSize: 13, fontWeight: 600, padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                background: view === v ? '#fff' : 'transparent',
-                color: view === v ? primary : '#6B7280',
-                boxShadow: view === v ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
-              }}
-            >
-              {t(`view.${v}`)}
-            </button>
-          ))}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={toggleHebrewDates}
+            title={t('hebrew_dates')}
+            aria-pressed={hebrewDates}
+            style={{
+              fontSize: 14, fontWeight: 700, padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+              border: `1px solid ${hebrewDates ? primary : '#E5E7EB'}`,
+              background: hebrewDates ? light : '#fff',
+              color: hebrewDates ? primary : '#6B7280',
+            }}
+          >
+            {t('hebrew_short')}
+          </button>
+
+          <div style={{ display: 'inline-flex', background: '#F3F4F6', borderRadius: 8, padding: 3 }}>
+            {(['month', 'week'] as View[]).map(v => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                style={{
+                  fontSize: 13, fontWeight: 600, padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                  background: view === v ? '#fff' : 'transparent',
+                  color: view === v ? primary : '#6B7280',
+                  boxShadow: view === v ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                }}
+              >
+                {t(`view.${v}`)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -330,6 +385,7 @@ export default function CalendarClient() {
           primary={primary}
           light={light}
           isRTL={isRTL}
+          hebrewDates={hebrewDates}
           onDayNew={openNew}
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
@@ -343,6 +399,7 @@ export default function CalendarClient() {
           today={TODAY}
           primary={primary}
           locale={locale}
+          hebrewDates={hebrewDates}
           onDayNew={openNew}
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
@@ -374,6 +431,7 @@ export default function CalendarClient() {
           tCommon={tCommon}
           locale={locale}
           primary={primary}
+          hebrewDates={hebrewDates}
         />
       )}
     </div>
@@ -398,7 +456,7 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 // ─────────────────────────────────────────────
 
 function MonthView({
-  weeks, weekdayLabels, appointments, blocks, today, primary, light, isRTL,
+  weeks, weekdayLabels, appointments, blocks, today, primary, light, isRTL, hebrewDates,
   onDayNew, onToggleDayOff, onOpen, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
@@ -409,6 +467,7 @@ function MonthView({
   primary: string
   light: string
   isRTL: boolean
+  hebrewDates: boolean
   onDayNew: (d: string) => void
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
@@ -446,15 +505,22 @@ function MonthView({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span
-                    style={{
-                      fontSize: 12, fontWeight: isToday ? 700 : 500,
-                      color: isToday ? '#fff' : '#374151',
-                      background: isToday ? primary : 'transparent',
-                      borderRadius: 999, width: 22, height: 22,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >{dayNum}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span
+                      style={{
+                        fontSize: 12, fontWeight: isToday ? 700 : 500,
+                        color: isToday ? '#fff' : '#374151',
+                        background: isToday ? primary : 'transparent',
+                        borderRadius: 999, width: 22, height: 22,
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >{dayNum}</span>
+                    {hebrewDates && (
+                      <span style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF' }}>
+                        {hebrewDayNumber(cell.dateISO)}
+                      </span>
+                    )}
+                  </span>
                   <span style={{ display: 'inline-flex', gap: 2 }}>
                     {blocked && (
                       <span title={t('day_off')} style={{ fontSize: 9, fontWeight: 700, color: '#9CA3AF', letterSpacing: 0.3 }}>
@@ -472,15 +538,18 @@ function MonthView({
                 <div style={{ marginTop: 4, display: 'grid', gap: 3 }}>
                   {dayAppts.slice(0, 3).map(a => {
                     const st = statusStyle(a.status, primary, light)
+                    const isParticipant = a.role === 'participant'
                     return (
                       <button
                         key={a.id}
                         onClick={() => onOpen(a)}
+                        title={isParticipant && a.provider_name ? `${t('booked_by')} ${a.provider_name}` : undefined}
                         style={{
-                          textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
-                          background: st.bg, color: st.color, borderRadius: 5, padding: '2px 6px',
+                          textAlign: isRTL ? 'right' : 'left', cursor: 'pointer',
+                          background: isParticipant ? 'transparent' : st.bg, color: st.color, borderRadius: 5, padding: '2px 6px',
                           fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           textDecoration: st.strike ? 'line-through' : 'none',
+                          border: isParticipant ? `1px dashed ${st.color}` : 'none',
                         }}
                       >
                         {isoTime(a.starts_at)} {a.title}
@@ -519,7 +588,7 @@ function MonthView({
 // ─────────────────────────────────────────────
 
 function WeekView({
-  days, appointments, blocks, today, primary, locale,
+  days, appointments, blocks, today, primary, locale, hebrewDates,
   onDayNew, onToggleDayOff, onOpen, t,
 }: {
   days: string[]
@@ -528,6 +597,7 @@ function WeekView({
   today: string
   primary: string
   locale: string
+  hebrewDates: boolean
   onDayNew: (d: string) => void
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
@@ -550,6 +620,9 @@ function WeekView({
                 <span style={{ fontSize: 14, fontWeight: 600, color: isToday ? primary : '#111827', textTransform: 'capitalize' }}>
                   {label}
                 </span>
+                {hebrewDates && (
+                  <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>{formatHebrewDate(day)}</span>
+                )}
                 {blocked && (
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FEF3C7', borderRadius: 999, padding: '1px 8px' }}>
                     {t('day_off')}
@@ -572,14 +645,18 @@ function WeekView({
                 {dayAppts.map(a => {
                   const st = statusStyle(a.status, primary, '#DBEAFE')
                   const mins = minutesBetween(a.starts_at, a.ends_at)
-                  const who = a.student_name || a.student_hebrew_name
+                  const isParticipant = a.role === 'participant'
+                  const who = isParticipant
+                    ? (a.provider_name || a.provider_hebrew_name)
+                    : (a.student_name || a.student_hebrew_name)
                   return (
                     <button
                       key={a.id}
                       onClick={() => onOpen(a)}
                       style={{
                         textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                        background: '#F9FAFB', border: '1px solid #F3F4F6', borderRadius: 8, padding: '8px 12px',
+                        background: '#F9FAFB', borderRadius: 8, padding: '8px 12px',
+                        border: isParticipant ? `1px dashed ${primary}` : '1px solid #F3F4F6',
                       }}
                     >
                       <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', minWidth: 92 }}>
@@ -590,7 +667,11 @@ function WeekView({
                         textDecoration: st.strike ? 'line-through' : 'none',
                       }}>
                         {a.title}
-                        {who && <span style={{ fontWeight: 400, color: '#6B7280' }}> · {who}</span>}
+                        {who && (
+                          <span style={{ fontWeight: 400, color: '#6B7280' }}>
+                            {' · '}{isParticipant ? `${t('booked_by')} ${who}` : who}
+                          </span>
+                        )}
                       </span>
                       <span style={{ fontSize: 11, color: '#9CA3AF' }}>{mins} {t('minutes')}</span>
                     </button>
@@ -780,7 +861,7 @@ function AppointmentForm({
 // ─────────────────────────────────────────────
 
 function AppointmentDetail({
-  a, onClose, onEdit, onStatus, onDelete, t, tCommon, locale, primary,
+  a, onClose, onEdit, onStatus, onDelete, t, tCommon, locale, primary, hebrewDates,
 }: {
   a: Appointment
   onClose: () => void
@@ -791,12 +872,16 @@ function AppointmentDetail({
   tCommon: (k: string, f?: string) => string
   locale: string
   primary: string
+  hebrewDates: boolean
 }) {
   const st = statusStyle(a.status, primary, '#DBEAFE')
+  const dayISO = a.starts_at.slice(0, 10)
   const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
-    .format(new Date(`${a.starts_at.slice(0, 10)}T00:00:00Z`))
+    .format(new Date(`${dayISO}T00:00:00Z`))
   const mins = minutesBetween(a.starts_at, a.ends_at)
   const who = a.student_name || a.student_hebrew_name
+  const isParticipant = a.role === 'participant'
+  const providerWho = a.provider_name || a.provider_hebrew_name
 
   return (
     <Overlay onClose={onClose}>
@@ -809,29 +894,44 @@ function AppointmentDetail({
         </div>
 
         <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        {hebrewDates && (
+          <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{formatHebrewDate(dayISO)}</div>
+        )}
         <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
           {isoTime(a.starts_at)}–{isoTime(a.ends_at)} · {mins} {t('minutes')}
         </div>
-        {who && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('form_student')}:</b> {who}</div>}
+        {/* Для participant студент — это сам пользователь; показываем, КТО назначил. */}
+        {isParticipant
+          ? <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('booked_by')}:</b> {providerWho ?? '—'}</div>
+          : who && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('form_student')}:</b> {who}</div>}
         {a.reason && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('form_reason')}:</b> {a.reason}</div>}
 
-        {/* Status actions */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
-          <button onClick={() => onStatus('completed')} style={statusBtn('#047857', '#D1FAE5')}>{t('mark_completed')}</button>
-          <button onClick={() => onStatus('cancelled')} style={statusBtn('#6B7280', '#F3F4F6')}>{t('mark_cancelled')}</button>
-          <button onClick={() => onStatus('no_show')} style={statusBtn('#B45309', '#FEF3C7')}>{t('mark_no_show')}</button>
-          {a.status !== 'scheduled' && (
-            <button onClick={() => onStatus('scheduled')} style={statusBtn(primary, '#DBEAFE')}>{t('mark_scheduled')}</button>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
-          <button onClick={onDelete} style={{ ...btnGhost, color: '#DC2626' }}>{tCommon('delete')}</button>
-          <div style={{ display: 'flex', gap: 8 }}>
+        {isParticipant ? (
+          // READ-ONLY: назначено мне кем-то другим — без правки/удаления/статусов.
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
             <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
-            <button onClick={onEdit} style={btnPrimary(primary)}>{tCommon('edit')}</button>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Status actions */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
+              <button onClick={() => onStatus('completed')} style={statusBtn('#047857', '#D1FAE5')}>{t('mark_completed')}</button>
+              <button onClick={() => onStatus('cancelled')} style={statusBtn('#6B7280', '#F3F4F6')}>{t('mark_cancelled')}</button>
+              <button onClick={() => onStatus('no_show')} style={statusBtn('#B45309', '#FEF3C7')}>{t('mark_no_show')}</button>
+              {a.status !== 'scheduled' && (
+                <button onClick={() => onStatus('scheduled')} style={statusBtn(primary, '#DBEAFE')}>{t('mark_scheduled')}</button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+              <button onClick={onDelete} style={{ ...btnGhost, color: '#DC2626' }}>{tCommon('delete')}</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
+                <button onClick={onEdit} style={btnPrimary(primary)}>{tCommon('edit')}</button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Overlay>
   )

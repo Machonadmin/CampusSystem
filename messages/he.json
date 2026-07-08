@@ -2260,6 +2260,9 @@
     "err_end_after_start": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
     "overlap_error": "הפגישה חופפת לפגישה מתוכננת אחרת",
     "load_error": "שגיאה בטעינת הנתונים",
-    "confirm_delete": "למחוק את הפגישה"
+    "confirm_delete": "למחוק את הפגישה",
+    "hebrew_dates": "תאריכים עבריים",
+    "hebrew_short": "א׳",
+    "booked_by": "נקבע על ידי"
   }
 }
