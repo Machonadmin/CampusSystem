@@ -13,6 +13,9 @@ import { centsToNumber } from '@/lib/finance/money'
 import { isOverdue, PRIORITY_RANK } from '@/lib/maintenance/tickets'
 import { visitStats, type VisitLike } from '@/lib/doctor/medical'
 import { sessionStats, type SessionLike } from '@/lib/psychologist/counseling'
+import { documentStats, type DocLike } from '@/lib/documents/expiry'
+import { donationStats, type DonationStatLike } from '@/lib/sponsors/donations'
+import { incidentStats } from '@/lib/security/incidents'
 
 // ─── Студенты: разбивка по статусу обучения ──────────────────────────────────
 
@@ -183,4 +186,52 @@ export function foodSummary(
     enrolled: activeEnrollments,
     unenrolled: Math.max(0, totalStudents - activeEnrollments),
   }
+}
+
+// ─── Документы: реестр и срок годности ───────────────────────────────────────
+
+/**
+ * Сводка реестра документов (reuse documents/expiry documentStats): всего,
+ * активных, сколько просрочено и сколько истекает скоро. todayISO — ДАТА
+ * 'YYYY-MM-DD' (сравнение дат), поэтому роут передаёт date, а не полный таймстамп.
+ */
+export function documentsSummary(
+  docs: DocLike[],
+  todayISO: string,
+): { total: number; active: number; expired: number; expiring_soon: number } {
+  const s = documentStats(docs, todayISO)
+  return { total: s.total, active: s.active, expired: s.expired, expiring_soon: s.expiring_soon }
+}
+
+// ─── Спонсоры: пожертвования ─────────────────────────────────────────────────
+
+/**
+ * Сводка по спонсорам (reuse sponsors/donations donationStats): число доноров
+ * (посчитано HEAD-COUNT в роуте) и суммы received / pledged в валюте (2 знака,
+ * в копейках через money.ts — без float-дрейфа). Устойчиво к amount-строкам.
+ */
+export function sponsorsSummary(
+  donations: DonationStatLike[],
+  sponsorCount: number,
+): { sponsor_count: number; total_received: number; total_pledged: number } {
+  const s = donationStats(donations)
+  return {
+    sponsor_count: sponsorCount,
+    total_received: s.total_received,
+    total_pledged: s.total_pledged,
+  }
+}
+
+// ─── Безопасность: инциденты ─────────────────────────────────────────────────
+
+/**
+ * Сводка по инцидентам (reuse security/incidents incidentStats): активные
+ * (open+investigating) требуют внимания, плюс open отдельно и разбивка по
+ * серьёзности. Пустой список → нули и {}.
+ */
+export function securitySummary(
+  incidents: { status: string; severity: string }[],
+): { active: number; open: number; investigating: number; by_severity: Record<string, number> } {
+  const s = incidentStats(incidents)
+  return { active: s.active, open: s.open, investigating: s.investigating, by_severity: s.by_severity }
 }

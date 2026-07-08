@@ -29,11 +29,22 @@ interface CounselingSummary {
   open_sessions: number; upcoming_followups: number; overdue_followups: number
   by_risk: Record<string, number>
 }
+interface DocumentsSummary {
+  total: number; active: number; expired: number; expiring_soon: number
+}
+interface SponsorsSummary {
+  sponsor_count: number; total_received: number; total_pledged: number
+}
+interface SecuritySummary {
+  active: number; open: number; investigating: number
+  by_severity: Record<string, number>
+}
 
 // Порядок отображения ключей разбивок (остальные — по алфавиту в конце).
 const STATUS_ORDER = ['student', 'applicant', 'lead', 'on_leave', 'graduated', 'expelled', 'alumni', 'lost']
 const PRIORITY_ORDER = ['urgent', 'high', 'normal', 'low']
 const RISK_ORDER = ['high', 'medium', 'low', 'none']
+const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low']
 
 function orderedEntries(obj: Record<string, number>, order: string[]): [string, number][] {
   const known = order.filter(k => k in obj).map(k => [k, obj[k]] as [string, number])
@@ -295,6 +306,52 @@ export default function ReportsClient() {
               <Breakdown
                 entries={orderedEntries(d.by_risk, RISK_ORDER)}
                 labelFor={(k) => label(`metrics.risk.${k}`, k)}
+              />
+            </>
+          )}
+        />
+
+        {/* Документы */}
+        <ReportCard<DocumentsSummary>
+          title={t('cards.documents')}
+          colorKey="documents"
+          endpoint="/api/reports/documents"
+          render={(d) => (
+            <>
+              <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('documents', 'primary')} />
+              <Metric label={t('metrics.expiring_soon')} value={fmt(d.expiring_soon)} accent={d.expiring_soon > 0 ? '#B45309' : undefined} />
+              <Metric label={t('metrics.expired')} value={fmt(d.expired)} accent={d.expired > 0 ? '#B91C1C' : undefined} />
+            </>
+          )}
+        />
+
+        {/* Спонсоры */}
+        <ReportCard<SponsorsSummary>
+          title={t('cards.sponsors')}
+          colorKey="sponsors"
+          endpoint="/api/reports/sponsors"
+          render={(d) => (
+            <>
+              <Metric label={t('metrics.sponsor_count')} value={fmt(d.sponsor_count)} />
+              <Metric label={t('metrics.total_received')} value={fmt(d.total_received)} strong accent={getModuleColor('sponsors', 'primary')} />
+              <Metric label={t('metrics.total_pledged')} value={fmt(d.total_pledged)} />
+            </>
+          )}
+        />
+
+        {/* Безопасность */}
+        <ReportCard<SecuritySummary>
+          title={t('cards.security')}
+          colorKey="security"
+          endpoint="/api/reports/security"
+          render={(d) => (
+            <>
+              <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? '#B91C1C' : getModuleColor('security', 'primary')} />
+              <Metric label={t('metrics.open')} value={fmt(d.open)} />
+              <Metric label={t('metrics.investigating')} value={fmt(d.investigating)} />
+              <Breakdown
+                entries={orderedEntries(d.by_severity, SEVERITY_ORDER)}
+                labelFor={(k) => label(`metrics.severity.${k}`, k)}
               />
             </>
           )}

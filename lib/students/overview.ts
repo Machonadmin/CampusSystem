@@ -56,6 +56,13 @@ export interface OverviewCounseling {
   risk_level: string | null
 }
 
+/** Документы: сколько всего активных, из них истекает скоро и просрочено. */
+export interface OverviewDocuments {
+  total: number
+  expiring_soon: number
+  expired: number
+}
+
 export interface StudentOverview {
   person: OverviewPerson
   education: OverviewEducation
@@ -64,6 +71,7 @@ export interface StudentOverview {
   food: OverviewFood | null
   medical: OverviewMedical | null
   counseling: OverviewCounseling | null
+  documents: OverviewDocuments | null
   /** Секции, которые смотрящему в принципе разрешено видеть (по привилегиям). */
   visible_sections: string[]
 }
@@ -77,6 +85,7 @@ export interface OverviewPerms {
   food: boolean
   doctor: boolean
   psychologist: boolean
+  documents: boolean
 }
 
 /**
@@ -90,6 +99,7 @@ const SECTION_BY_PERM: { perm: keyof OverviewPerms; section: string }[] = [
   { perm: 'food',         section: 'food' },
   { perm: 'doctor',       section: 'medical' },
   { perm: 'psychologist', section: 'counseling' },
+  { perm: 'documents',    section: 'documents' },
 ]
 
 /**

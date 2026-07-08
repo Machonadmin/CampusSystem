@@ -13,6 +13,7 @@ const PERMS = (over: Partial<OverviewPerms> = {}): OverviewPerms => ({
   food: false,
   doctor: false,
   psychologist: false,
+  documents: false,
   ...over,
 })
 
@@ -30,6 +31,13 @@ describe('visibleSections', () => {
   it('maps doctor → medical and psychologist → counseling', () => {
     expect(visibleSections(PERMS({ doctor: true }))).toEqual(['medical'])
     expect(visibleSections(PERMS({ psychologist: true }))).toEqual(['counseling'])
+  })
+
+  it('includes documents when granted, after counseling in canonical order', () => {
+    expect(visibleSections(PERMS({ documents: true }))).toEqual(['documents'])
+    expect(
+      visibleSections(PERMS({ doctor: true, psychologist: true, documents: true })),
+    ).toEqual(['medical', 'counseling', 'documents'])
   })
 
   it('includes only the granted sections and keeps their fixed order', () => {

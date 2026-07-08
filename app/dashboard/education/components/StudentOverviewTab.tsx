@@ -38,10 +38,11 @@ const MODULE_HREF: Record<string, string> = {
   food: 'food',
   medical: 'doctor',
   counseling: 'psychologist',
+  documents: 'documents',
 }
 
 // Порядок секций в сетке (education всегда первым).
-const SECTION_ORDER = ['finance', 'dormitory', 'food', 'medical', 'counseling'] as const
+const SECTION_ORDER = ['finance', 'dormitory', 'food', 'medical', 'counseling', 'documents'] as const
 
 // ── Компонент ─────────────────────────────────────────────────────────────────
 
@@ -164,17 +165,28 @@ export default function StudentOverviewTab({ journeyId }: Props) {
                 </>
               )
             }
-            // counseling
-            const c = data.counseling
-            if (!c) return null
+            if (section === 'counseling') {
+              const c = data.counseling
+              if (!c) return null
+              return (
+                <>
+                  <Row label={t('label_open_sessions')} value={String(c.open_sessions)} />
+                  <Row
+                    label={t('label_risk_level')}
+                    value={c.risk_level ? tPsy(`risk.${c.risk_level}`, c.risk_level) : '—'}
+                    valueColor={riskColor(c.risk_level)}
+                  />
+                </>
+              )
+            }
+            // documents
+            const dc = data.documents
+            if (!dc) return null
             return (
               <>
-                <Row label={t('label_open_sessions')} value={String(c.open_sessions)} />
-                <Row
-                  label={t('label_risk_level')}
-                  value={c.risk_level ? tPsy(`risk.${c.risk_level}`, c.risk_level) : '—'}
-                  valueColor={riskColor(c.risk_level)}
-                />
+                <Row label={t('label_doc_total')} value={String(dc.total)} />
+                <Row label={t('label_doc_expiring')} value={String(dc.expiring_soon)} valueColor={dc.expiring_soon > 0 ? '#D97706' : undefined} />
+                <Row label={t('label_doc_expired')} value={String(dc.expired)} strong valueColor={dc.expired > 0 ? '#DC2626' : undefined} />
               </>
             )
           }

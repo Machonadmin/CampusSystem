@@ -27,7 +27,11 @@
     "yes": "כן",
     "no": "לא",
     "label_open_sessions": "פגישות פתוחות",
-    "label_risk_level": "רמת סיכון"
+    "label_risk_level": "רמת סיכון",
+    "section_documents": "מסמכים",
+    "label_doc_total": "מסמכים פעילים",
+    "label_doc_expiring": "עומדים לפוג",
+    "label_doc_expired": "פג תוקף"
   },
   "common": {
     "cancel": "ביטול",
@@ -1902,7 +1906,10 @@
       "food": "מזון",
       "maintenance": "תחזוקה",
       "clinic": "מרפאה",
-      "counseling": "פסיכולוג"
+      "counseling": "פסיכולוג",
+      "documents": "מסמכים",
+      "sponsors": "תורמים",
+      "security": "אבטחה"
     },
     "metrics": {
       "total": "סך הכול",
@@ -1947,6 +1954,19 @@
         "low": "נמוך",
         "medium": "בינוני",
         "high": "גבוה"
+      },
+      "expiring_soon": "עומד לפוג",
+      "expired": "פג תוקף",
+      "sponsor_count": "תורמים",
+      "total_received": "התקבל",
+      "total_pledged": "התחייבות",
+      "active_incidents": "אירועים פעילים",
+      "investigating": "בבדיקה",
+      "severity": {
+        "critical": "קריטי",
+        "high": "גבוה",
+        "medium": "בינוני",
+        "low": "נמוך"
       }
     }
   },

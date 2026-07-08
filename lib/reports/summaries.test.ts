@@ -269,3 +269,66 @@ describe('foodSummary', () => {
     expect(foodSummary(120, 100)).toEqual({ enrolled: 120, unenrolled: 0 })
   })
 })
+
+// ─── Домены, добавленные при завершении дашборда (documents/sponsors/security) ──
+
+import {
+  documentsSummary,
+  sponsorsSummary,
+  securitySummary,
+} from './summaries'
+
+describe('documentsSummary', () => {
+  const T = '2026-07-08'
+  it('считает активные, просроченные и истекающие', () => {
+    const s = documentsSummary(
+      [
+        { doc_type: 'visa', status: 'active', expiry_date: '2026-06-01' }, // expired
+        { doc_type: 'id_card', status: 'active', expiry_date: '2026-07-20' }, // expiring soon
+        { doc_type: 'id_card', status: 'active', expiry_date: '2027-01-01' }, // fine
+        { doc_type: 'certificate', status: 'archived', expiry_date: '2020-01-01' }, // archived, ignored
+      ],
+      T,
+    )
+    expect(s).toEqual({ total: 4, active: 3, expired: 1, expiring_soon: 1 })
+  })
+  it('пустой список → нули', () => {
+    expect(documentsSummary([], T)).toEqual({ total: 0, active: 0, expired: 0, expiring_soon: 0 })
+  })
+})
+
+describe('sponsorsSummary', () => {
+  it('суммирует received/pledged в валюте без float-дрейфа', () => {
+    const s = sponsorsSummary(
+      [
+        { amount: '0.10', status: 'received' },
+        { amount: '0.20', status: 'received' },
+        { amount: '100', status: 'pledged' },
+        { amount: '5', status: 'cancelled' },
+      ],
+      7,
+    )
+    expect(s).toEqual({ sponsor_count: 7, total_received: 0.3, total_pledged: 100 })
+  })
+  it('пустой список → нули, но число доноров сохраняется', () => {
+    expect(sponsorsSummary([], 3)).toEqual({ sponsor_count: 3, total_received: 0, total_pledged: 0 })
+  })
+})
+
+describe('securitySummary', () => {
+  it('активные = open + investigating, плюс разбивка по серьёзности', () => {
+    const s = securitySummary([
+      { status: 'open', severity: 'critical' },
+      { status: 'investigating', severity: 'high' },
+      { status: 'resolved', severity: 'low' },
+      { status: 'closed', severity: 'low' },
+    ])
+    expect(s.active).toBe(2)
+    expect(s.open).toBe(1)
+    expect(s.investigating).toBe(1)
+    expect(s.by_severity).toEqual({ critical: 1, high: 1, low: 2 })
+  })
+  it('пустой список → нули и {}', () => {
+    expect(securitySummary([])).toEqual({ active: 0, open: 0, investigating: 0, by_severity: {} })
+  })
+})

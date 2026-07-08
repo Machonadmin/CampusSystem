@@ -27,7 +27,11 @@
     "yes": "Yes",
     "no": "No",
     "label_open_sessions": "Open sessions",
-    "label_risk_level": "Risk level"
+    "label_risk_level": "Risk level",
+    "section_documents": "Documents",
+    "label_doc_total": "Active",
+    "label_doc_expiring": "Expiring soon",
+    "label_doc_expired": "Expired"
   },
   "common": {
     "cancel": "Cancel",
@@ -1902,7 +1906,10 @@
       "food": "Food",
       "maintenance": "Maintenance",
       "clinic": "Clinic",
-      "counseling": "Counseling"
+      "counseling": "Counseling",
+      "documents": "Documents",
+      "sponsors": "Sponsors",
+      "security": "Security"
     },
     "metrics": {
       "total": "Total",
@@ -1947,6 +1954,19 @@
         "low": "Low",
         "medium": "Medium",
         "high": "High"
+      },
+      "expiring_soon": "Expiring soon",
+      "expired": "Expired",
+      "sponsor_count": "Donors",
+      "total_received": "Received",
+      "total_pledged": "Pledged",
+      "active_incidents": "Active incidents",
+      "investigating": "Investigating",
+      "severity": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
       }
     }
   },

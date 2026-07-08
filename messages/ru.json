@@ -27,7 +27,11 @@
     "yes": "Да",
     "no": "Нет",
     "label_open_sessions": "Открытые консультации",
-    "label_risk_level": "Уровень риска"
+    "label_risk_level": "Уровень риска",
+    "section_documents": "Документы",
+    "label_doc_total": "Активных",
+    "label_doc_expiring": "Истекают скоро",
+    "label_doc_expired": "Просрочено"
   },
   "common": {
     "cancel": "Отмена",
@@ -1902,7 +1906,10 @@
       "food": "Питание",
       "maintenance": "Эксплуатация",
       "clinic": "Медпункт",
-      "counseling": "Психолог"
+      "counseling": "Психолог",
+      "documents": "Документы",
+      "sponsors": "Спонсоры",
+      "security": "Безопасность"
     },
     "metrics": {
       "total": "Всего",
@@ -1947,6 +1954,19 @@
         "low": "Низкий",
         "medium": "Средний",
         "high": "Высокий"
+      },
+      "expiring_soon": "Истекает скоро",
+      "expired": "Просрочено",
+      "sponsor_count": "Доноров",
+      "total_received": "Получено",
+      "total_pledged": "Обещано",
+      "active_incidents": "Активные инциденты",
+      "investigating": "Расследуется",
+      "severity": {
+        "critical": "Критический",
+        "high": "Высокий",
+        "medium": "Средний",
+        "low": "Низкий"
       }
     }
   },

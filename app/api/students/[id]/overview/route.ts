@@ -7,10 +7,12 @@ import { hasDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { hasFoodPrivilege } from '@/lib/food/permissions'
 import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { hasPsychologistPrivilege } from '@/lib/psychologist/permissions'
+import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { pageAll } from '@/lib/reports/paging'
 import { toCents, centsToNumber } from '@/lib/finance/money'
 import { isActiveOn as isDormActiveOn } from '@/lib/dormitory/occupancy'
 import { isActiveOn as isFoodActiveOn } from '@/lib/food/enrollment'
+import { documentStats } from '@/lib/documents/expiry'
 import {
   visibleSections,
   pickCurrentActive,
@@ -22,6 +24,7 @@ import {
   type OverviewFood,
   type OverviewMedical,
   type OverviewCounseling,
+  type OverviewDocuments,
 } from '@/lib/students/overview'
 
 type Sb = ReturnType<typeof createServerClient>
@@ -187,6 +190,22 @@ async function loadCounseling(sb: Sb, journeyId: string): Promise<OverviewCounse
   }
 }
 
+/** Документы: активных в реестре, из них истекает скоро и просрочено. */
+async function loadDocuments(sb: Sb, journeyId: string, today: string): Promise<OverviewDocuments | null> {
+  const docs = await pageAll<{ expiry_date: string | null; status: string; doc_type: string }>(
+    (from, to) =>
+      sb
+        .from('document_records')
+        .select('expiry_date, status, doc_type')
+        .eq('journey_id', journeyId)
+        .order('id', { ascending: true })
+        .range(from, to),
+  )
+  if (docs.length === 0) return null
+  const s = documentStats(docs, today)
+  return { total: s.active, expiring_soon: s.expiring_soon, expired: s.expired }
+}
+
 /**
  * GET /api/students/[id]/overview   ([id] = education_journeys.id)
  *
@@ -241,23 +260,25 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     if (!eduGate) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
 
     // 3. Привилегии 'view' по чувствительным модулям.
-    const [pFin, pDorm, pFood, pDoc, pPsy] = await Promise.all([
+    const [pFin, pDorm, pFood, pDoc, pPsy, pDocs] = await Promise.all([
       hasFinancePrivilege(session, 'view'),
       hasDormitoryPrivilege(session, 'view'),
       hasFoodPrivilege(session, 'view'),
       hasDoctorPrivilege(session, 'view'),
       hasPsychologistPrivilege(session, 'view'),
+      hasDocumentsPrivilege(session, 'view'),
     ])
 
     const today = new Date().toISOString().slice(0, 10)
 
     // 4. Данные разрешённых секций — параллельно. Null, если нет права ИЛИ данных.
-    const [finance, dormitory, food, medical, counseling] = await Promise.all([
+    const [finance, dormitory, food, medical, counseling, documents] = await Promise.all([
       pFin ? loadFinance(sb, id) : Promise.resolve(null),
       pDorm ? loadDormitory(sb, id, today) : Promise.resolve(null),
       pFood ? loadFood(sb, id, today) : Promise.resolve(null),
       pDoc ? loadMedical(sb, id) : Promise.resolve(null),
       pPsy ? loadCounseling(sb, id) : Promise.resolve(null),
+      pDocs ? loadDocuments(sb, id, today) : Promise.resolve(null),
     ])
 
     const p = journey.person
@@ -284,12 +305,14 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       food,
       medical,
       counseling,
+      documents,
       visible_sections: visibleSections({
         finance: pFin,
         dormitory: pDorm,
         food: pFood,
         doctor: pDoc,
         psychologist: pPsy,
+        documents: pDocs,
       }),
     }
 
