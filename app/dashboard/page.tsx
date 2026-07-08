@@ -90,10 +90,14 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  // Implemented modules first, then coming-soon modules
+  // Show ONLY the modules the user actually has access to — same source as the
+  // sidebar (accessible_modules from /api/auth/me). A user must not see, or even
+  // know about, modules they cannot open. superadmin gets all module codes.
+  const accessible = user?.accessible_modules ?? []
+  const accessibleCards = ALL_MODULE_CARDS.filter(k => accessible.includes(k))
   const visibleModules = [
-    ...ALL_MODULE_CARDS.filter(k => isModuleImplemented(k)),
-    ...ALL_MODULE_CARDS.filter(k => !isModuleImplemented(k)),
+    ...accessibleCards.filter(k => isModuleImplemented(k)),
+    ...accessibleCards.filter(k => !isModuleImplemented(k)),
   ]
 
   return (
