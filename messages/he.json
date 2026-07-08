@@ -2012,5 +2012,86 @@
       "save": "שמירת איש הקשר נכשלה",
       "action": "הפעולה נכשלה"
     }
+  },
+  "sponsors": {
+    "title": "תורמים",
+    "list": {
+      "subtitle": "ספר תורמים ורישום תרומות",
+      "search_placeholder": "חיפוש לפי שם, אימייל או טלפון",
+      "empty": "לא נמצאו תורמים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לתורמים",
+      "name": "שם",
+      "type": "סוג",
+      "phone": "טלפון",
+      "received": "התקבל",
+      "status": "סטטוס",
+      "new_sponsor": "תורם חדש",
+      "all_types": "כל הסוגים"
+    },
+    "stats": {
+      "total_received": "סך התקבל",
+      "total_pledged": "סך התחייבויות",
+      "total_cancelled": "סך שבוטל",
+      "donors": "תורמים"
+    },
+    "fields": {
+      "name": "שם",
+      "sponsor_type": "סוג",
+      "email": "אימייל",
+      "phone": "טלפון",
+      "address": "כתובת",
+      "contact_person": "איש קשר",
+      "notes": "הערות",
+      "is_active": "פעיל",
+      "amount": "סכום",
+      "donation_date": "תאריך",
+      "purpose": "מטרה",
+      "campaign": "קמפיין",
+      "method": "אמצעי",
+      "status": "סטטוס"
+    },
+    "types": {
+      "individual": "יחיד",
+      "organization": "ארגון",
+      "foundation": "קרן"
+    },
+    "statuses": {
+      "pledged": "התחייבות",
+      "received": "התקבל",
+      "cancelled": "בוטל"
+    },
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
+    "form": {
+      "new_title": "תורם חדש",
+      "name_required": "יש לציין שם לתורם",
+      "required": "יש למלא סכום ותאריך",
+      "amount_invalid": "סכום לא תקין"
+    },
+    "detail": {
+      "load_error": "טעינת התרומות נכשלה",
+      "sponsor_info": "פרטי התורם",
+      "campaigns": "קמפיינים",
+      "donations_section": "תרומות",
+      "record_donation": "רישום תרומה",
+      "edit_donation": "עריכת תרומה",
+      "no_donations": "אין תרומות",
+      "col_date": "תאריך",
+      "col_amount": "סכום",
+      "col_purpose": "מטרה",
+      "col_campaign": "קמפיין",
+      "col_method": "אמצעי",
+      "col_status": "סטטוס",
+      "mark_received": "סמן כהתקבל",
+      "mark_cancelled": "סמן כבוטל",
+      "delete_confirm": "למחוק תורם זה? כל תרומותיו יימחקו. הפעולה בלתי הפיכה."
+    },
+    "errors": {
+      "save": "השמירה נכשלה",
+      "action": "הפעולה נכשלה"
+    }
   }
 }

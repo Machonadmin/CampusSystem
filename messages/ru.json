@@ -2012,5 +2012,86 @@
       "save": "Не удалось сохранить контакт",
       "action": "Действие не выполнено"
     }
+  },
+  "sponsors": {
+    "title": "Спонсоры",
+    "list": {
+      "subtitle": "Справочник доноров и их пожертвований",
+      "search_placeholder": "Поиск по имени, email, телефону",
+      "empty": "Доноры не найдены",
+      "load_error": "Не удалось загрузить данные",
+      "forbidden": "Нет доступа к спонсорам",
+      "name": "Имя",
+      "type": "Тип",
+      "phone": "Телефон",
+      "received": "Получено",
+      "status": "Статус",
+      "new_sponsor": "Новый донор",
+      "all_types": "Все типы"
+    },
+    "stats": {
+      "total_received": "Получено всего",
+      "total_pledged": "Обещано всего",
+      "total_cancelled": "Отменено всего",
+      "donors": "Доноров"
+    },
+    "fields": {
+      "name": "Имя",
+      "sponsor_type": "Тип",
+      "email": "Email",
+      "phone": "Телефон",
+      "address": "Адрес",
+      "contact_person": "Контактное лицо",
+      "notes": "Заметки",
+      "is_active": "Активен",
+      "amount": "Сумма",
+      "donation_date": "Дата",
+      "purpose": "Назначение",
+      "campaign": "Кампания",
+      "method": "Способ",
+      "status": "Статус"
+    },
+    "types": {
+      "individual": "Физлицо",
+      "organization": "Организация",
+      "foundation": "Фонд"
+    },
+    "statuses": {
+      "pledged": "Обещано",
+      "received": "Получено",
+      "cancelled": "Отменено"
+    },
+    "status": {
+      "active": "Активен",
+      "inactive": "Неактивен"
+    },
+    "form": {
+      "new_title": "Новый донор",
+      "name_required": "Укажите имя донора",
+      "required": "Укажите сумму и дату",
+      "amount_invalid": "Неверная сумма"
+    },
+    "detail": {
+      "load_error": "Не удалось загрузить пожертвования",
+      "sponsor_info": "Данные донора",
+      "campaigns": "Кампании",
+      "donations_section": "Пожертвования",
+      "record_donation": "Записать пожертвование",
+      "edit_donation": "Правка пожертвования",
+      "no_donations": "Пожертвований нет",
+      "col_date": "Дата",
+      "col_amount": "Сумма",
+      "col_purpose": "Назначение",
+      "col_campaign": "Кампания",
+      "col_method": "Способ",
+      "col_status": "Статус",
+      "mark_received": "Отметить получено",
+      "mark_cancelled": "Отметить отменено",
+      "delete_confirm": "Удалить этого донора? Все его пожертвования будут удалены. Действие необратимо."
+    },
+    "errors": {
+      "save": "Не удалось сохранить",
+      "action": "Действие не выполнено"
+    }
   }
 }

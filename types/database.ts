@@ -1636,6 +1636,68 @@ export interface ContactInsert {
 }
 export type ContactUpdate = Partial<Omit<ContactInsert, 'created_by'>>
 
+// ─── Sponsors / Donations (спонсоры-доноры: справочник + реестр пожертвований) ─
+//
+// НОВЫЕ чистые таблицы `sponsors` и `donations`. НЕ путать с legacy
+// `sponsor_profiles` (SponsorProfileRow ниже/выше) от прежнего дизайна — тот
+// модуль их НЕ трогает. donations.sponsor_id → sponsors(id) ON DELETE CASCADE.
+
+export interface SponsorRow {
+  id: string
+  name: string
+  sponsor_type: 'individual' | 'organization' | 'foundation'
+  email: string | null
+  phone: string | null
+  address: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface SponsorInsert {
+  id?: string
+  name: string
+  sponsor_type?: 'individual' | 'organization' | 'foundation'
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  contact_person?: string | null
+  notes?: string | null
+  is_active?: boolean
+  created_by?: string | null
+}
+export type SponsorUpdate = Partial<Omit<SponsorInsert, 'created_by'>>
+
+export interface DonationRow {
+  id: string
+  sponsor_id: string
+  amount: number
+  donation_date: string            // ISO date 'YYYY-MM-DD'
+  purpose: string | null
+  campaign: string | null
+  method: string | null
+  status: 'pledged' | 'received' | 'cancelled'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DonationInsert {
+  id?: string
+  sponsor_id: string
+  amount: number
+  donation_date: string
+  purpose?: string | null
+  campaign?: string | null
+  method?: string | null
+  status?: 'pledged' | 'received' | 'cancelled'
+  notes?: string | null
+  created_by?: string | null
+}
+export type DonationUpdate = Partial<Omit<DonationInsert, 'sponsor_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1721,6 +1783,8 @@ export interface Database {
       psych_sessions:            T<PsychSessionRow,              PsychSessionInsert,              PsychSessionUpdate>
       document_records:          T<DocumentRecordRow,            DocumentRecordInsert,            DocumentRecordUpdate>
       contacts:                  T<ContactRow,                   ContactInsert,                   ContactUpdate>
+      sponsors:                  T<SponsorRow,                   SponsorInsert,                   SponsorUpdate>
+      donations:                 T<DonationRow,                  DonationInsert,                  DonationUpdate>
     }
     Views: Record<string, never>
     Functions: {

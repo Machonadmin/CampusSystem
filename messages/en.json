@@ -2012,5 +2012,86 @@
       "save": "Failed to save contact",
       "action": "Action failed"
     }
+  },
+  "sponsors": {
+    "title": "Sponsors",
+    "list": {
+      "subtitle": "Directory of donors and their donations",
+      "search_placeholder": "Search by name, email, phone",
+      "empty": "No sponsors found",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to sponsors",
+      "name": "Name",
+      "type": "Type",
+      "phone": "Phone",
+      "received": "Received",
+      "status": "Status",
+      "new_sponsor": "New sponsor",
+      "all_types": "All types"
+    },
+    "stats": {
+      "total_received": "Total received",
+      "total_pledged": "Total pledged",
+      "total_cancelled": "Total cancelled",
+      "donors": "Donors"
+    },
+    "fields": {
+      "name": "Name",
+      "sponsor_type": "Type",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "contact_person": "Contact person",
+      "notes": "Notes",
+      "is_active": "Active",
+      "amount": "Amount",
+      "donation_date": "Date",
+      "purpose": "Purpose",
+      "campaign": "Campaign",
+      "method": "Method",
+      "status": "Status"
+    },
+    "types": {
+      "individual": "Individual",
+      "organization": "Organization",
+      "foundation": "Foundation"
+    },
+    "statuses": {
+      "pledged": "Pledged",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "new_title": "New sponsor",
+      "name_required": "Enter a sponsor name",
+      "required": "Enter amount and date",
+      "amount_invalid": "Invalid amount"
+    },
+    "detail": {
+      "load_error": "Failed to load donations",
+      "sponsor_info": "Sponsor details",
+      "campaigns": "Campaigns",
+      "donations_section": "Donations",
+      "record_donation": "Record donation",
+      "edit_donation": "Edit donation",
+      "no_donations": "No donations",
+      "col_date": "Date",
+      "col_amount": "Amount",
+      "col_purpose": "Purpose",
+      "col_campaign": "Campaign",
+      "col_method": "Method",
+      "col_status": "Status",
+      "mark_received": "Mark received",
+      "mark_cancelled": "Mark cancelled",
+      "delete_confirm": "Delete this sponsor? All their donations will be removed. This cannot be undone."
+    },
+    "errors": {
+      "save": "Failed to save",
+      "action": "Action failed"
+    }
   }
 }
