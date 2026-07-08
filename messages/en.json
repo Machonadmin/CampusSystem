@@ -2180,5 +2180,41 @@
       "save": "Failed to save",
       "action": "Action failed"
     }
+  },
+  "persons": {
+    "title": "People",
+    "tabs": {
+      "staff": "Staff",
+      "students": "Students"
+    },
+    "list": {
+      "subtitle": "Directory of staff and students — look someone up and find their contacts",
+      "search_placeholder": "Search by name, email or phone",
+      "empty": "Nothing found",
+      "load_error": "Failed to load data",
+      "forbidden": "You do not have permission to view this",
+      "count": "Total: {count}"
+    },
+    "fields": {
+      "email": "Email",
+      "phone": "Phone",
+      "department": "Department",
+      "roles": "Roles",
+      "gender": "Gender",
+      "birth_date": "Date of birth"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "education_status": {
+      "student": "Student"
+    },
+    "detail": {
+      "title": "Profile",
+      "not_found": "Person not found",
+      "student_card_link": "Open student card"
+    }
   }
 }

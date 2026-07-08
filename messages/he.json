@@ -2180,5 +2180,41 @@
       "save": "השמירה נכשלה",
       "action": "הפעולה נכשלה"
     }
+  },
+  "persons": {
+    "title": "אנשים",
+    "tabs": {
+      "staff": "צוות",
+      "students": "תלמידים"
+    },
+    "list": {
+      "subtitle": "מאגר צוות ותלמידים — חיפוש אדם ופרטי הקשר שלו",
+      "search_placeholder": "חיפוש לפי שם, אימייל או טלפון",
+      "empty": "לא נמצאו תוצאות",
+      "load_error": "שגיאה בטעינת הנתונים",
+      "forbidden": "אין הרשאה לצפייה",
+      "count": "סך הכול: {count}"
+    },
+    "fields": {
+      "email": "אימייל",
+      "phone": "טלפון",
+      "department": "מחלקה",
+      "roles": "תפקידים",
+      "gender": "מגדר",
+      "birth_date": "תאריך לידה"
+    },
+    "gender": {
+      "male": "זכר",
+      "female": "נקבה",
+      "other": "אחר"
+    },
+    "education_status": {
+      "student": "תלמיד"
+    },
+    "detail": {
+      "title": "פרופיל",
+      "not_found": "האדם לא נמצא",
+      "student_card_link": "לכרטיס הסטודנט"
+    }
   }
 }
