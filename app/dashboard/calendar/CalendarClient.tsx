@@ -11,6 +11,12 @@ import {
   mergeDayEvents,
   toHHmm,
 } from '@/lib/calendar/calendar'
+import {
+  expandScheduleSlots,
+  suppressCoveredInstances,
+  type ScheduleSlot,
+  type ScheduleInstance,
+} from '@/lib/calendar/schedule'
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 
 // ─── Типы данных с API ───────────────────────────────────────────────────────
@@ -37,9 +43,10 @@ interface Block {
   block_date: string
   reason: string | null
 }
-// Урок преподавателя — read-only на календаре (управляется в модуле Education).
+// Урок преподавателя/студента — read-only на календаре (ведётся в Education).
 interface Lesson {
   id: string
+  class_group_id: string       // нужен для подавления перекрытых слотов
   date: string                 // scheduled_date 'YYYY-MM-DD'
   time: string | null          // scheduled_time 'HH:mm:ss' или null
   class_group_name: string
@@ -47,6 +54,15 @@ interface Lesson {
   subject_he: string | null
   location: string | null
   is_cancelled: boolean
+}
+// Задача с дедлайном — read-only (ведётся в модуле Tasks).
+interface Task {
+  id: string
+  title: string
+  due_date: string             // 'YYYY-MM-DD'
+  due_time: string | null      // 'HH:mm:ss' или null
+  due_all_day: boolean
+  status: string
 }
 interface StudentOption {
   journey_id: string
@@ -100,6 +116,23 @@ const LESSON_BG = '#ECFDF5'
 const LESSON_FG = '#047857'
 const LESSON_ACCENT = '#10B981'
 
+// Палитра повторяющегося слота расписания («плановое занятие») — тот же зелёный,
+// но легче и ПУНКТИРНОЙ полосой, чтобы читалось как «шаблон/повтор», а не урок.
+const SCHEDULE_BG = '#F6FEFB'
+const SCHEDULE_FG = '#059669'
+const SCHEDULE_ACCENT = '#6EE7B7'
+
+// Палитра задачи — амбер модуля Tasks (getModuleColor('tasks')).
+const TASK_BG = getModuleColor('tasks', 'light')      // #FEF3C7
+const TASK_ACCENT = getModuleColor('tasks', 'primary') // #F59E0B
+const TASK_FG = '#B45309'
+
+// Название предмета слота расписания: иврит, если язык he и он задан.
+function scheduleSubjectLabel(s: ScheduleInstance, lang: string): string {
+  if (lang === 'he' && s.subject_name_he) return s.subject_name_he
+  return s.subject_name
+}
+
 export default function CalendarClient() {
   const { lang, isRTL } = useLang()
   const t = useTranslations('calendar')
@@ -119,6 +152,8 @@ export default function CalendarClient() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [blocks, setBlocks] = useState<Block[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [slots, setSlots] = useState<ScheduleSlot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -149,6 +184,8 @@ export default function CalendarClient() {
   const [editing, setEditing] = useState<Appointment | null>(null) // редактируемая встреча
   const [detail, setDetail] = useState<Appointment | null>(null)   // открытая встреча
   const [detailLesson, setDetailLesson] = useState<Lesson | null>(null) // read-only урок
+  const [detailTask, setDetailTask] = useState<Task | null>(null)  // read-only задача
+  const [detailSchedule, setDetailSchedule] = useState<ScheduleInstance | null>(null) // слот
 
   const anchorYear = Number(anchor.slice(0, 4))
   const anchorMonth = Number(anchor.slice(5, 7))
@@ -169,20 +206,34 @@ export default function CalendarClient() {
     return { from: weekDays[0], to: weekDays[6] }
   }, [view, weeks, weekDays])
 
+  // Повторяющиеся слоты → конкретные экземпляры на видимый диапазон, минус те,
+  // что уже перекрыты реальным уроком той же группы/даты/времени. Обе операции
+  // чистые (schedule.ts) и покрыты юнит-тестами.
+  const scheduleInstances = useMemo(() => {
+    const expanded = expandScheduleSlots(slots, range.from, range.to)
+    return suppressCoveredInstances(
+      expanded,
+      lessons.map(l => ({ class_group_id: l.class_group_id, date: l.date, time: l.time })),
+    )
+  }, [slots, range.from, range.to, lessons])
+
   // ─── Загрузка данных ────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
       const qs = `from=${range.from}&to=${range.to}`
-      const [aRes, bRes, lRes] = await Promise.all([
+      const [aRes, bRes, lRes, tRes, sRes] = await Promise.all([
         fetch(`/api/calendar/appointments?${qs}`),
         fetch(`/api/calendar/blocks?${qs}`),
         fetch(`/api/calendar/lessons?${qs}`),
+        fetch(`/api/calendar/tasks?${qs}`),
+        fetch(`/api/calendar/schedule?${qs}`),
       ])
       if (!aRes.ok) {
         const b = await aRes.json().catch(() => ({}))
-        setError(b.error ?? t('load_error')); setAppointments([]); setBlocks([]); setLessons([]); return
+        setError(b.error ?? t('load_error'))
+        setAppointments([]); setBlocks([]); setLessons([]); setTasks([]); setSlots([]); return
       }
       const aBody = await aRes.json()
       setAppointments(aBody.appointments ?? [])
@@ -190,12 +241,25 @@ export default function CalendarClient() {
         const bBody = await bRes.json()
         setBlocks(bBody.blocks ?? [])
       }
-      // Уроки — вспомогательный read-only слой: их сбой не рушит календарь.
+      // Уроки/задачи/расписание — вспомогательные read-only слои: сбой любого
+      // из них НЕ рушит календарь, просто этот слой пуст.
       if (lRes.ok) {
         const lBody = await lRes.json()
         setLessons(lBody.lessons ?? [])
       } else {
         setLessons([])
+      }
+      if (tRes.ok) {
+        const tBody = await tRes.json()
+        setTasks(tBody.tasks ?? [])
+      } else {
+        setTasks([])
+      }
+      if (sRes.ok) {
+        const sBody = await sRes.json()
+        setSlots(sBody.slots ?? [])
+      } else {
+        setSlots([])
       }
     } catch {
       setError(t('load_error'))
@@ -419,6 +483,8 @@ export default function CalendarClient() {
           appointments={appointments}
           blocks={blocks}
           lessons={lessons}
+          schedule={scheduleInstances}
+          tasks={tasks}
           today={TODAY}
           primary={primary}
           light={light}
@@ -428,6 +494,8 @@ export default function CalendarClient() {
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
           onOpenLesson={setDetailLesson}
+          onOpenTask={setDetailTask}
+          onOpenSchedule={setDetailSchedule}
           t={t}
         />
       ) : (
@@ -436,6 +504,8 @@ export default function CalendarClient() {
           appointments={appointments}
           blocks={blocks}
           lessons={lessons}
+          schedule={scheduleInstances}
+          tasks={tasks}
           today={TODAY}
           primary={primary}
           locale={locale}
@@ -445,6 +515,8 @@ export default function CalendarClient() {
           onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
           onOpenLesson={setDetailLesson}
+          onOpenTask={setDetailTask}
+          onOpenSchedule={setDetailSchedule}
           t={t}
         />
       )}
@@ -487,6 +559,28 @@ export default function CalendarClient() {
           lang={lang}
         />
       )}
+
+      {detailTask && (
+        <TaskDetail
+          task={detailTask}
+          onClose={() => setDetailTask(null)}
+          t={t}
+          tCommon={tCommon}
+          locale={locale}
+          hebrewDates={hebrewDates}
+        />
+      )}
+
+      {detailSchedule && (
+        <ScheduleDetail
+          s={detailSchedule}
+          onClose={() => setDetailSchedule(null)}
+          t={t}
+          tCommon={tCommon}
+          locale={locale}
+          lang={lang}
+        />
+      )}
     </div>
   )
 }
@@ -509,14 +603,16 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 // ─────────────────────────────────────────────
 
 function MonthView({
-  weeks, weekdayLabels, appointments, blocks, lessons, today, primary, light, isRTL, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, t,
+  weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, today, primary, light, isRTL, hebrewDates,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
   weekdayLabels: string[]
   appointments: Appointment[]
   blocks: Block[]
   lessons: Lesson[]
+  schedule: ScheduleInstance[]
+  tasks: Task[]
   today: string
   primary: string
   light: string
@@ -526,6 +622,8 @@ function MonthView({
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
   onOpenLesson: (l: Lesson) => void
+  onOpenTask: (task: Task) => void
+  onOpenSchedule: (s: ScheduleInstance) => void
   t: (k: string, f?: string) => string
 }) {
   return (
@@ -543,7 +641,7 @@ function MonthView({
       {weeks.map((week, wi) => (
         <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {week.map(cell => {
-            const events = mergeDayEvents(appointments, lessons, cell.dateISO)
+            const events = mergeDayEvents(appointments, lessons, schedule, tasks, cell.dateISO)
             const blocked = isBlocked(blocks, cell.dateISO)
             const isToday = cell.dateISO === today
             const dayNum = Number(cell.dateISO.slice(8, 10))
@@ -613,6 +711,45 @@ function MonthView({
                         </button>
                       )
                     }
+                    // Повторяющийся слот — read-only, зелёный с ПУНКТИРНОЙ полосой.
+                    if (ev.kind === 'schedule' && ev.schedule) {
+                      const s = ev.schedule
+                      return (
+                        <button
+                          key={`s-${s.slot_id}-${s.dateISO}`}
+                          onClick={() => onOpenSchedule(s)}
+                          title={`${t('planned_lesson')} · ${s.class_group_name}`}
+                          style={{
+                            textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
+                            background: SCHEDULE_BG, color: SCHEDULE_FG,
+                            borderInlineStart: `3px dashed ${SCHEDULE_ACCENT}`,
+                            borderRadius: 5, padding: '2px 6px',
+                            fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {ev.time && `${ev.time} `}{s.class_group_name}
+                        </button>
+                      )
+                    }
+                    // Задача — read-only, амбер-чип с левой полосой.
+                    if (ev.kind === 'task' && ev.task) {
+                      const tk = ev.task
+                      return (
+                        <button
+                          key={`t-${tk.id}`}
+                          onClick={() => onOpenTask(tk)}
+                          title={`${t('task')} · ${tk.title}`}
+                          style={{
+                            textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
+                            background: TASK_BG, color: TASK_FG, borderInlineStart: `3px solid ${TASK_ACCENT}`,
+                            borderRadius: 5, padding: '2px 6px',
+                            fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {ev.time && `${ev.time} `}{tk.title}
+                        </button>
+                      )
+                    }
                     const a = ev.appointment!
                     const st = statusStyle(a.status, primary, light)
                     const isParticipant = a.role === 'participant'
@@ -665,13 +802,15 @@ function MonthView({
 // ─────────────────────────────────────────────
 
 function WeekView({
-  days, appointments, blocks, lessons, today, primary, locale, hebrewDates, lang,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, t,
+  days, appointments, blocks, lessons, schedule, tasks, today, primary, locale, hebrewDates, lang,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
 }: {
   days: string[]
   appointments: Appointment[]
   blocks: Block[]
   lessons: Lesson[]
+  schedule: ScheduleInstance[]
+  tasks: Task[]
   today: string
   primary: string
   locale: string
@@ -681,12 +820,14 @@ function WeekView({
   onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
   onOpenLesson: (l: Lesson) => void
+  onOpenTask: (task: Task) => void
+  onOpenSchedule: (s: ScheduleInstance) => void
   t: (k: string, f?: string) => string
 }) {
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {days.map(day => {
-        const events = mergeDayEvents(appointments, lessons, day)
+        const events = mergeDayEvents(appointments, lessons, schedule, tasks, day)
         const blocked = isBlocked(blocks, day)
         const isToday = day === today
         const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short', timeZone: 'UTC' })
@@ -752,6 +893,55 @@ function WeekView({
                         {l.is_cancelled && (
                           <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>{t('lesson_cancelled')}</span>
                         )}
+                      </button>
+                    )
+                  }
+                  // Повторяющийся слот — read-only строка, зелёная ПУНКТИРНАЯ.
+                  if (ev.kind === 'schedule' && ev.schedule) {
+                    const s = ev.schedule
+                    const subj = scheduleSubjectLabel(s, lang)
+                    return (
+                      <button
+                        key={`s-${s.slot_id}-${s.dateISO}`}
+                        onClick={() => onOpenSchedule(s)}
+                        style={{
+                          textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                          background: SCHEDULE_BG, border: `1px dashed ${SCHEDULE_ACCENT}`, borderInlineStart: `3px dashed ${SCHEDULE_ACCENT}`,
+                          borderRadius: 8, padding: '8px 12px',
+                        }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 700, color: SCHEDULE_FG, minWidth: 92 }}>
+                          {ev.time || '—'}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: SCHEDULE_FG, flex: 1 }}>
+                          <span style={scheduleTag}>{t('recurring')}</span>
+                          {' '}{s.class_group_name}
+                          {subj && <span style={{ fontWeight: 400, color: '#6B7280' }}> · {subj}</span>}
+                        </span>
+                        {s.room && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{s.room}</span>}
+                      </button>
+                    )
+                  }
+                  // Задача — read-only строка, амбер.
+                  if (ev.kind === 'task' && ev.task) {
+                    const tk = ev.task
+                    return (
+                      <button
+                        key={`t-${tk.id}`}
+                        onClick={() => onOpenTask(tk)}
+                        style={{
+                          textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                          background: TASK_BG, border: '1px solid #FDE68A', borderInlineStart: `3px solid ${TASK_ACCENT}`,
+                          borderRadius: 8, padding: '8px 12px',
+                        }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 700, color: TASK_FG, minWidth: 92 }}>
+                          {ev.time || t('all_day')}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: TASK_FG, flex: 1 }}>
+                          <span style={taskTag}>{t('task')}</span>
+                          {' '}{tk.title}
+                        </span>
                       </button>
                     )
                   }
@@ -1070,6 +1260,14 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
         t('legend.lesson'),
       )}
       {item(
+        <span style={{ ...box, background: SCHEDULE_BG, border: `1px dashed ${SCHEDULE_ACCENT}`, borderInlineStart: `3px dashed ${SCHEDULE_ACCENT}` }} />,
+        t('legend.recurring'),
+      )}
+      {item(
+        <span style={{ ...box, background: TASK_BG, border: '1px solid #FDE68A', borderInlineStart: `3px solid ${TASK_ACCENT}` }} />,
+        t('legend.task'),
+      )}
+      {item(
         <span style={{
           ...box, background: '#FAFAF9', border: '1px solid #E5E7EB',
           backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(107,114,128,0.25) 3px, rgba(107,114,128,0.25) 6px)',
@@ -1134,6 +1332,116 @@ function LessonDetail({
 }
 
 // ─────────────────────────────────────────────
+// Диалог просмотра задачи — ТОЛЬКО чтение (задача ведётся в модуле Tasks)
+// ─────────────────────────────────────────────
+
+function TaskDetail({
+  task, onClose, t, tCommon, locale, hebrewDates,
+}: {
+  task: Task
+  onClose: () => void
+  t: (k: string, f?: string) => string
+  tCommon: (k: string, f?: string) => string
+  locale: string
+  hebrewDates: boolean
+}) {
+  const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${task.due_date}T00:00:00Z`))
+  const time = task.due_all_day ? '' : toHHmm(task.due_time)
+  // Известные статусы задачи переводим; иначе показываем сырое значение.
+  const knownStatus = ['pending', 'in_progress', 'review'].includes(task.status)
+  const statusLabel = knownStatus ? t(`task_status.${task.status}`) : task.status
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={dialog} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: TASK_ACCENT, letterSpacing: 0.3, marginBottom: 6 }}>
+          {t('my_tasks')} · {t('task_readonly')}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <h2 style={{ ...dialogTitle, marginBottom: 4 }}>{task.title}</h2>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: TASK_ACCENT, borderRadius: 999, padding: '2px 10px', whiteSpace: 'nowrap' }}>
+            {t('task')}
+          </span>
+        </div>
+
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        {hebrewDates && (
+          <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{formatHebrewDate(task.due_date)}</div>
+        )}
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
+          {time || t('all_day')}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: TASK_FG, background: TASK_BG, border: '1px solid #FDE68A', borderRadius: 999, padding: '3px 12px' }}>
+            {statusLabel}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+          <a
+            href={`/dashboard/tasks/${task.id}`}
+            style={{ ...btnPrimary(TASK_ACCENT), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+          >
+            {t('task_open')}
+          </a>
+          <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
+        </div>
+      </div>
+    </Overlay>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Диалог просмотра слота расписания — ТОЛЬКО чтение (ведётся в Education)
+// ─────────────────────────────────────────────
+
+function ScheduleDetail({
+  s, onClose, t, tCommon, locale, lang,
+}: {
+  s: ScheduleInstance
+  onClose: () => void
+  t: (k: string, f?: string) => string
+  tCommon: (k: string, f?: string) => string
+  locale: string
+  lang: string
+}) {
+  const subj = scheduleSubjectLabel(s, lang)
+  const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${s.dateISO}T00:00:00Z`))
+  const start = toHHmm(s.start_time)
+  const end = toHHmm(s.end_time)
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={dialog} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: SCHEDULE_FG, letterSpacing: 0.3, marginBottom: 6 }}>
+          {t('planned_lesson')} · {t('recurring')}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <h2 style={{ ...dialogTitle, marginBottom: 4 }}>{s.class_group_name}</h2>
+          <span style={{ fontSize: 11, fontWeight: 700, color: SCHEDULE_FG, background: SCHEDULE_BG, border: `1px dashed ${SCHEDULE_ACCENT}`, borderRadius: 999, padding: '2px 10px', whiteSpace: 'nowrap' }}>
+            {t('recurring')}
+          </span>
+        </div>
+
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        {(start || end) && (
+          <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>{start}{end && `–${end}`}</div>
+        )}
+        {subj && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {s.class_group_name}</div>
+        {s.room && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_location')}:</b> {s.room}</div>}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+          <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
+        </div>
+      </div>
+    </Overlay>
+  )
+}
+
+// ─────────────────────────────────────────────
 // Мелкие переиспользуемые куски
 // ─────────────────────────────────────────────
 
@@ -1176,6 +1484,16 @@ const smallLink: React.CSSProperties = {
 // Метка «שיעור» на строке урока в недельном виде.
 const lessonTag: React.CSSProperties = {
   fontSize: 10, fontWeight: 700, color: '#fff', background: LESSON_ACCENT,
+  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
+}
+// Метка повторяющегося слота на строке недельного вида.
+const scheduleTag: React.CSSProperties = {
+  fontSize: 10, fontWeight: 700, color: SCHEDULE_FG, background: '#fff',
+  border: `1px dashed ${SCHEDULE_ACCENT}`, borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
+}
+// Метка задачи на строке недельного вида.
+const taskTag: React.CSSProperties = {
+  fontSize: 10, fontWeight: 700, color: '#fff', background: TASK_ACCENT,
   borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
 }
 const dialog: React.CSSProperties = {

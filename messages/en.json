@@ -2272,10 +2272,24 @@
     "lesson_class_group": "Class group",
     "lesson_subject": "Subject",
     "lesson_location": "Location",
+    "task": "Task",
+    "my_tasks": "My tasks",
+    "task_readonly": "Read only",
+    "task_open": "Open task",
+    "all_day": "All day",
+    "recurring": "Recurring",
+    "planned_lesson": "Planned lesson",
+    "task_status": {
+      "pending": "Pending",
+      "in_progress": "In progress",
+      "review": "In review"
+    },
     "legend": {
       "title": "Legend",
       "appointment": "Appointment",
       "lesson": "Lesson",
+      "recurring": "Planned lesson",
+      "task": "Task",
       "day_off": "Day off"
     }
   }

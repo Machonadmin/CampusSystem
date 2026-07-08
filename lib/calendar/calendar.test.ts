@@ -314,45 +314,68 @@ describe('mergeDayEvents', () => {
     { id: 'l2', date: '2026-07-08', time: null },
     { id: 'l3', date: '2026-07-10', time: '08:00:00' },
   ]
+  const schedule = [
+    { slot_id: 's1', dateISO: '2026-07-08', start_time: '09:00:00' },
+    { slot_id: 's2', dateISO: '2026-07-10', start_time: '08:00:00' },
+  ]
+  const tasks = [
+    { id: 't1', due_date: '2026-07-08', due_time: '13:00:00', due_all_day: false },
+    { id: 't2', due_date: '2026-07-08', due_time: null, due_all_day: true },
+    { id: 't3', due_date: '2026-07-09', due_time: null, due_all_day: true },
+  ]
 
-  it('merges appointments and lessons of the day, sorted by time', () => {
-    const r = mergeDayEvents(appts, lessons, '2026-07-08')
-    // 08:00 appt, 10:00 lesson, 11:00 appt, then the time-less lesson last.
-    expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson', 'appointment', 'lesson'])
-    expect(r.map(e => e.time)).toEqual(['08:00', '10:00', '11:00', ''])
+  it('merges all four kinds of the day, sorted by time', () => {
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
+    // 08:00 appt, 09:00 schedule, 10:00 lesson, 11:00 appt, 13:00 task,
+    // then time-less lesson and all-day task last (insertion order lesson→task).
+    expect(r.map(e => e.kind)).toEqual([
+      'appointment', 'schedule', 'lesson', 'appointment', 'task', 'lesson', 'task',
+    ])
+    expect(r.map(e => e.time)).toEqual(['08:00', '09:00', '10:00', '11:00', '13:00', '', ''])
   })
 
   it('tags each event with its source object', () => {
-    const r = mergeDayEvents(appts, lessons, '2026-07-08')
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
     const first = r[0]
     expect(first.kind).toBe('appointment')
     expect(first.appointment?.id).toBe('a2')
     expect(first.lesson).toBeNull()
+    expect(first.schedule).toBeNull()
+    expect(first.task).toBeNull()
     const lessonEv = r.find(e => e.kind === 'lesson' && e.time === '10:00')
     expect(lessonEv?.lesson?.id).toBe('l1')
-    expect(lessonEv?.appointment).toBeNull()
+    const schedEv = r.find(e => e.kind === 'schedule')
+    expect(schedEv?.schedule?.slot_id).toBe('s1')
+    const taskEv = r.find(e => e.kind === 'task' && e.time === '13:00')
+    expect(taskEv?.task?.id).toBe('t1')
   })
 
   it('includes only events of the requested day', () => {
-    const r = mergeDayEvents(appts, lessons, '2026-07-08')
-    expect(r).toHaveLength(4)
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
+    expect(r).toHaveLength(7)
     expect(r.some(e => e.appointment?.id === 'a3')).toBe(false)
     expect(r.some(e => e.lesson?.id === 'l3')).toBe(false)
+    expect(r.some(e => e.schedule?.slot_id === 's2')).toBe(false)
+    expect(r.some(e => e.task?.id === 't3')).toBe(false)
   })
 
-  it('time-less lessons sort after timed events', () => {
-    const r = mergeDayEvents(appts, lessons, '2026-07-08')
-    expect(r[r.length - 1].lesson?.id).toBe('l2')
+  it('all-day tasks and time-less lessons sort after timed events', () => {
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
+    const tail = r.slice(-2)
+    expect(tail.map(e => e.kind)).toEqual(['lesson', 'task'])
+    expect(tail.every(e => e.time === '')).toBe(true)
   })
 
   it('empty day → empty output', () => {
-    expect(mergeDayEvents(appts, lessons, '2026-01-01')).toEqual([])
+    expect(mergeDayEvents(appts, lessons, schedule, tasks, '2026-01-01')).toEqual([])
   })
 
-  it('is stable for equal times: appointment before lesson', () => {
+  it('is stable for equal times: appointment → lesson → schedule → task', () => {
     const a = [{ id: 'a', starts_at: '2026-07-08T09:00:00Z' }]
     const l = [{ id: 'l', date: '2026-07-08', time: '09:00:00' }]
-    const r = mergeDayEvents(a, l, '2026-07-08')
-    expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson'])
+    const s = [{ slot_id: 's', dateISO: '2026-07-08', start_time: '09:00:00' }]
+    const tk = [{ id: 't', due_date: '2026-07-08', due_time: '09:00:00', due_all_day: false }]
+    const r = mergeDayEvents(a, l, s, tk, '2026-07-08')
+    expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson', 'schedule', 'task'])
   })
 })

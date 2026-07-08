@@ -2272,10 +2272,24 @@
     "lesson_class_group": "קבוצת לימוד",
     "lesson_subject": "מקצוע",
     "lesson_location": "מיקום",
+    "task": "משימה",
+    "my_tasks": "המשימות שלי",
+    "task_readonly": "לקריאה בלבד",
+    "task_open": "פתיחת המשימה",
+    "all_day": "כל היום",
+    "recurring": "חוזר",
+    "planned_lesson": "שיעור מתוכנן",
+    "task_status": {
+      "pending": "ממתינה",
+      "in_progress": "בביצוע",
+      "review": "בבדיקה"
+    },
     "legend": {
       "title": "מקרא",
       "appointment": "פגישה",
       "lesson": "שיעור",
+      "recurring": "שיעור מתוכנן",
+      "task": "משימה",
       "day_off": "יום היעדרות"
     }
   }

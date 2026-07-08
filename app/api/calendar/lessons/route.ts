@@ -3,24 +3,29 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isIsoDate } from '@/lib/calendar/validation'
+import { resolveMyClassGroupIds } from '@/lib/calendar/my-classes'
 
 /**
- * ЛИЧНЫЙ календарь — уроки залогиненного преподавателя. ТОЛЬКО чтение.
+ * ЛИЧНЫЙ календарь — уроки моих учебных групп. ТОЛЬКО чтение.
  *
  * GET /api/calendar/lessons?from=YYYY-MM-DD&to=YYYY-MM-DD
- *   — уроки тех учебных групп (class_groups), где session.person_id числится
- *     преподавателем (class_teachers). Self-scoped ровно как остальной календарь:
- *     чужие уроки НЕ отдаём. Если пользователь не ведёт ни одной группы — [].
- *     from/to опциональны (фильтр по scheduled_date, to — включительно).
+ *   — уроки тех учебных групп (class_groups), которые касаются меня как:
+ *       • преподавателя (class_teachers.teacher_id = я), ИЛИ
+ *       • студента (записан через journey: class_enrollments.journey_id ∈ мои
+ *         journeys, education_journeys.person_id = я).
+ *     Множество групп — ОБЪЕДИНЕНИЕ обоих (resolveMyClassGroupIds). Self-scoped
+ *     ровно как остальной календарь: чужие уроки НЕ отдаём. Если ни одной моей
+ *     группы — []. from/to опциональны (фильтр по scheduled_date, to — включ.).
  *
  * Уроки на календаре read-only: они создаются и меняются в модуле «Education».
  * Отменённые уроки НЕ исключаем, а помечаем (is_cancelled) — UI показывает их
  * приглушённо / зачёркнуто.
  *
- * Каждый элемент: { id, date, time, class_group_name, subject, subject_he,
- * location, is_cancelled }. subject — name предмета, subject_he — name_he
- * (может быть null): UI выбирает иврит, если язык he и он задан — тот же приём,
- * что в модуле Education (StudentReportTab).
+ * Каждый элемент: { id, class_group_id, date, time, class_group_name, subject,
+ * subject_he, location, is_cancelled }. class_group_id нужен календарю, чтобы
+ * подавлять повторяющиеся слоты расписания, перекрытые реальным уроком. subject —
+ * name предмета, subject_he — name_he (может быть null): UI выбирает иврит, если
+ * язык he и он задан — тот же приём, что в модуле Education (StudentReportTab).
  */
 
 // Читаем постранично, чтобы не упереться в db-max-rows у активного
@@ -41,30 +46,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'to должен быть датой YYYY-MM-DD' }, { status: 400 })
     }
 
-    // 1. Учебные группы, где текущий пользователь — преподаватель (постранично).
-    const groupIds = new Set<string>()
-    {
-      let offset = 0
-      for (;;) {
-        const { data, error } = await sb
-          .from('class_teachers')
-          .select('class_group_id')
-          .eq('teacher_id', session.person_id)
-          .order('class_group_id', { ascending: true })
-          .range(offset, offset + PAGE - 1)
-        if (error) throw error
-        const page = data ?? []
-        for (const r of page) groupIds.add(r.class_group_id)
-        if (page.length < PAGE) break
-        offset += PAGE
-      }
-    }
+    // 1. Мои учебные группы: объединение «преподаватель ∪ студент» (постранично).
+    const ids = await resolveMyClassGroupIds(sb, session.person_id)
 
-    // Не ведёт ни одной группы → пусто. Никогда не отдаём чужие уроки.
-    if (groupIds.size === 0) {
+    // Ни одной моей группы → пусто. Никогда не отдаём чужие уроки.
+    if (ids.length === 0) {
       return NextResponse.json({ lessons: [] })
     }
-    const ids = Array.from(groupIds)
 
     // 2. Уроки этих групп в диапазоне дат (постранично). Порядок с тай-брейком
     //    по id — чтобы страницы не пересекались и не теряли строк.
@@ -126,12 +114,26 @@ export async function GET(request: NextRequest) {
       for (const s of data ?? []) subjectById.set(s.id, { name: s.name, name_he: s.name_he })
     }
 
-    // 5. Сборка ответа.
-    const lessons = lessonRows.map(l => {
+    // 5. Сборка ответа. Дедуп по id (страницы не должны пересекаться, но
+    //    страхуемся: один урок = одна строка).
+    const byId = new Map<string, {
+      id: string
+      class_group_id: string
+      date: string
+      time: string | null
+      class_group_name: string
+      subject: string
+      subject_he: string | null
+      location: string | null
+      is_cancelled: boolean
+    }>()
+    for (const l of lessonRows) {
+      if (byId.has(l.id)) continue
       const g = groupById.get(l.class_group_id)
       const s = g ? subjectById.get(g.subject_id) : undefined
-      return {
+      byId.set(l.id, {
         id: l.id,
+        class_group_id: l.class_group_id,
         date: l.scheduled_date,
         time: l.scheduled_time,
         class_group_name: g?.name ?? '',
@@ -139,10 +141,10 @@ export async function GET(request: NextRequest) {
         subject_he: s?.name_he ?? null,
         location: l.location,
         is_cancelled: l.is_cancelled,
-      }
-    })
+      })
+    }
 
-    return NextResponse.json({ lessons })
+    return NextResponse.json({ lessons: [...byId.values()] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

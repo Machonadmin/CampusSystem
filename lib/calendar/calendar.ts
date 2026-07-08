@@ -184,37 +184,98 @@ export function toHHmm(value: string | null | undefined): string {
   return m ? `${m[1]}:${m[2]}` : ''
 }
 
-/** Тип события дня: пользовательская встреча либо read-only урок. */
-export type DayEventKind = 'appointment' | 'lesson'
+// ─────────────────────────────────────────────
+// Задачи с дедлайном (read-only слой)
+// ─────────────────────────────────────────────
+
+export interface TaskLike {
+  /** Дата дедлайна ISO 'YYYY-MM-DD' (due_date). */
+  due_date: string
+  /** Время дедлайна 'HH:mm[:ss]' или null (due_time). */
+  due_time: string | null
+  /** true — задача «на весь день», времени нет (due_all_day). */
+  due_all_day: boolean
+}
 
 /**
- * Единое событие дня для расписания: либо встреча, либо урок. Ровно одно из
- * appointment / lesson непусто, kind соответствует ему. time — 'HH:mm' или ''.
+ * Задачи, чей дедлайн (due_date) приходится на день dateISO. Дата уже
+ * 'YYYY-MM-DD', сравниваем напрямую. Сохраняет исходный порядок массива.
  */
-export interface DayEvent<A, L> {
+export function tasksForDay<T extends TaskLike>(tasks: T[], dateISO: string): T[] {
+  return tasks.filter(t => t.due_date === dateISO)
+}
+
+// ─────────────────────────────────────────────
+// Повторяющееся расписание (read-only слой)
+// ─────────────────────────────────────────────
+
+export interface ScheduleLike {
+  /** Дата конкретного экземпляра слота ISO 'YYYY-MM-DD'. */
+  dateISO: string
+  /** Время начала 'HH:mm[:ss]' (start_time). */
+  start_time: string
+}
+
+/**
+ * Экземпляры расписания, приходящиеся на день dateISO. Сохраняет исходный
+ * порядок массива.
+ */
+export function scheduleForDay<S extends ScheduleLike>(schedule: S[], dateISO: string): S[] {
+  return schedule.filter(s => s.dateISO === dateISO)
+}
+
+// ─────────────────────────────────────────────
+// Единая лента событий дня
+// ─────────────────────────────────────────────
+
+/** Тип события дня: встреча | урок | повторяющийся слот | задача. */
+export type DayEventKind = 'appointment' | 'lesson' | 'schedule' | 'task'
+
+/**
+ * Единое событие дня. Ровно одно из appointment / lesson / schedule / task
+ * непусто, kind соответствует ему. time — 'HH:mm' или '' (нет времени).
+ */
+export interface DayEvent<A, L, S, T> {
   kind: DayEventKind
   time: string
   appointment: A | null
   lesson: L | null
+  schedule: S | null
+  task: T | null
 }
 
 /**
- * Сливает встречи и уроки одного дня в единую ленту, отсортированную по времени
- * (по возрастанию). События без времени ('') уходят в конец. Сортировка
- * стабильна: при равном времени сохраняется исходный порядок (встречи идут в том
- * порядке, что пришли, затем уроки). Чистая: без Date.now.
+ * Сливает встречи, уроки, повторяющиеся слоты и задачи одного дня в ЕДИНУЮ
+ * ленту, отсортированную по времени (по возрастанию). События без времени ('')
+ * уходят в конец — сюда же попадают «на весь день» задачи. Сортировка стабильна:
+ * при равном времени сохраняется исходный порядок вставки, а порядок вставки —
+ * встреча → урок → слот → задача. Чистая: без Date.now.
  */
-export function mergeDayEvents<A extends AppointmentLike, L extends LessonLike>(
+export function mergeDayEvents<
+  A extends AppointmentLike,
+  L extends LessonLike,
+  S extends ScheduleLike,
+  T extends TaskLike,
+>(
   appointments: A[],
   lessons: L[],
+  schedule: S[],
+  tasks: T[],
   dateISO: string,
-): DayEvent<A, L>[] {
-  const events: DayEvent<A, L>[] = []
+): DayEvent<A, L, S, T>[] {
+  const events: DayEvent<A, L, S, T>[] = []
   for (const a of appointmentsForDay(appointments, dateISO)) {
-    events.push({ kind: 'appointment', time: toHHmm(a.starts_at), appointment: a, lesson: null })
+    events.push({ kind: 'appointment', time: toHHmm(a.starts_at), appointment: a, lesson: null, schedule: null, task: null })
   }
   for (const l of lessonsForDay(lessons, dateISO)) {
-    events.push({ kind: 'lesson', time: toHHmm(l.time), appointment: null, lesson: l })
+    events.push({ kind: 'lesson', time: toHHmm(l.time), appointment: null, lesson: l, schedule: null, task: null })
+  }
+  for (const s of scheduleForDay(schedule, dateISO)) {
+    events.push({ kind: 'schedule', time: toHHmm(s.start_time), appointment: null, lesson: null, schedule: s, task: null })
+  }
+  for (const tk of tasksForDay(tasks, dateISO)) {
+    // «На весь день» → без времени: уходит в конец ленты, как time-less урок.
+    events.push({ kind: 'task', time: tk.due_all_day ? '' : toHHmm(tk.due_time), appointment: null, lesson: null, schedule: null, task: tk })
   }
   // Стабильная сортировка по времени; пустое время ('') — в конец.
   return events

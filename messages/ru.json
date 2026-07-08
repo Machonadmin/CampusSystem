@@ -2272,10 +2272,24 @@
     "lesson_class_group": "Учебная группа",
     "lesson_subject": "Предмет",
     "lesson_location": "Место",
+    "task": "Задача",
+    "my_tasks": "Мои задачи",
+    "task_readonly": "Только просмотр",
+    "task_open": "Открыть задачу",
+    "all_day": "Весь день",
+    "recurring": "Повторяется",
+    "planned_lesson": "Плановое занятие",
+    "task_status": {
+      "pending": "Ожидает",
+      "in_progress": "В работе",
+      "review": "На проверке"
+    },
     "legend": {
       "title": "Легенда",
       "appointment": "Встреча",
       "lesson": "Урок",
+      "recurring": "Плановое занятие",
+      "task": "Задача",
       "day_off": "Выходной"
     }
   }
