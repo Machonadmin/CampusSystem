@@ -14,6 +14,23 @@ import type { MealEnrollmentInsert } from '@/types/database'
  *   409 при конфликте с понятным сообщением.
  */
 
+// PostgREST молча обрезает выдачу на db-max-rows (~1000). Список записей плана
+// читаем постранично: он и рендерится таблицей, и питает клиентский счётчик
+// активных (FoodPlanDetailClient). Зеркалит пагинацию lib/food/enrollment-server.ts.
+const PAGE = 1000
+
+interface EnrollmentRow {
+  id: string
+  meal_plan_id: string
+  journey_id: string
+  enrolled_from: string
+  enrolled_to: string | null
+  status: string
+  created_at: string
+  updated_at: string
+  journey: unknown
+}
+
 function studentName(row: { journey?: unknown }): { journey_id: string | null; full_name: string; hebrew_name: string | null } {
   const j = row.journey as {
     id?: string
@@ -40,19 +57,29 @@ export async function GET(
     if (pErr) throw pErr
     if (!plan) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
 
-    const { data, error } = await sb
-      .from('meal_enrollments')
-      .select(`
-        id, meal_plan_id, journey_id, enrolled_from, enrolled_to, status, created_at, updated_at,
-        journey:education_journeys!meal_enrollments_journey_id_fkey(
-          id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)
-        )
-      `)
-      .eq('meal_plan_id', params.id)
-      .order('enrolled_from', { ascending: false })
-    if (error) throw error
+    const rows: EnrollmentRow[] = []
+    let offset = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('meal_enrollments')
+        .select(`
+          id, meal_plan_id, journey_id, enrolled_from, enrolled_to, status, created_at, updated_at,
+          journey:education_journeys!meal_enrollments_journey_id_fkey(
+            id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)
+          )
+        `)
+        .eq('meal_plan_id', params.id)
+        .order('enrolled_from', { ascending: false })
+        .order('id', { ascending: true })
+        .range(offset, offset + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as EnrollmentRow[]
+      rows.push(...page)
+      if (page.length < PAGE) break
+      offset += PAGE
+    }
 
-    const enrollments = (data ?? []).map(e => {
+    const enrollments = rows.map(e => {
       const s = studentName(e)
       return {
         id: e.id,

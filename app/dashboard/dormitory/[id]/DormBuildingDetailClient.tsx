@@ -62,6 +62,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
   const [selected, setSelected] = useState<Room | null>(null)
   const [assignments, setAssignments] = useState<RoomAssignment[]>([])
   const [panelError, setPanelError] = useState<string | null>(null)
+  const [panelLoading, setPanelLoading] = useState(false)
 
   // assign form
   const [query, setQuery] = useState('')
@@ -90,7 +91,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
   useEffect(() => { loadRooms() }, [loadRooms])
 
   const loadAssignments = useCallback(async (roomId: string) => {
-    setPanelError(null)
+    setPanelError(null); setPanelLoading(true)
     try {
       const res = await fetch(`/api/dormitory/rooms/${roomId}/assignments`)
       if (!res.ok) {
@@ -101,6 +102,8 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
       setAssignments(b.assignments ?? [])
     } catch {
       setPanelError(t('room.load_error'))
+    } finally {
+      setPanelLoading(false)
     }
   }, [t])
 
@@ -336,7 +339,9 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
           )}
 
           {/* Assignments list */}
-          {assignments.length === 0 ? (
+          {panelLoading ? (
+            <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          ) : assignments.length === 0 ? (
             <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('room.no_assignments')}</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>

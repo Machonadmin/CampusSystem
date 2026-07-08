@@ -1229,6 +1229,7 @@
       "remove_block_button": "מחק",
       "save_changes": "שמור שינויים",
       "create_template": "צור תבנית",
+      "saving": "שומר...",
       "name_required_error": "הזן שם תבנית",
       "save_error": "שגיאת שמירה",
       "new_block_title": "בלוק חדש",
@@ -1341,7 +1342,8 @@
       "available_modules_title": "מודולים זמינים",
       "err_required_fields": "מלא את השדות הנדרשים",
       "err_both_fields": "מלא את שני השדות",
-      "priv_name_placeholder": "צפייה ברשומות"
+      "priv_name_placeholder": "צפייה ברשומות",
+      "error": "שגיאה"
     },
     "reference_cities": {
       "title": "מדריך ערים",

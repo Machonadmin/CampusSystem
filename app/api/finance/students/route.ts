@@ -78,17 +78,30 @@ export async function GET(request: NextRequest) {
 
     const sb = createServerClient()
 
-    const { data: journeys, error } = await sb
-      .from('education_journeys')
-      .select(`
-        id, person_id, opened_at,
-        person:persons!applicant_profiles_person_id_fkey(${PERSON_SELECT})
-      `)
-      .eq('education_status', 'student')
-      .order('opened_at', { ascending: false })
-    if (error) throw error
-
-    const rows = journeys ?? []
+    // Список студентов читаем постранично: единый select без .range() молча
+    // обрезался бы на db-max-rows (~1000), теряя студентов из списка И из
+    // агрегации баланса (journeyIds строится из этих строк). Тот же приём, что
+    // sumCentsByJourney ниже; вторичная сортировка по id — стабильная пагинация.
+    type JourneyRow = { id: string; person_id: string; opened_at: string; person: unknown }
+    const rows: JourneyRow[] = []
+    let jFrom = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('education_journeys')
+        .select(`
+          id, person_id, opened_at,
+          person:persons!applicant_profiles_person_id_fkey(${PERSON_SELECT})
+        `)
+        .eq('education_status', 'student')
+        .order('opened_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(jFrom, jFrom + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as JourneyRow[]
+      rows.push(...page)
+      if (page.length < PAGE) break
+      jFrom += PAGE
+    }
     const journeyIds = rows.map(j => j.id)
 
     // Баланс пакетно (без N+1, без float-дрейфа): активные начисления и

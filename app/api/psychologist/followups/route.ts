@@ -54,6 +54,7 @@ export async function GET() {
         .eq('status', 'open')
         .not('follow_up_date', 'is', null)
         .order('follow_up_date', { ascending: true })
+        .order('id', { ascending: true })
         .range(offset, offset + PAGE - 1)
       if (error) throw error
       const batch = (data ?? []) as unknown as SessionRow[]

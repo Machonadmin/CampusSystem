@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         `)
         .eq('education_status', 'student')
         .order('opened_at', { ascending: false })
+        .order('id', { ascending: true })
         .range(offset, offset + PAGE - 1)
       if (error) throw error
       const batch = data ?? []

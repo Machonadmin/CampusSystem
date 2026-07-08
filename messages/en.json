@@ -1229,6 +1229,7 @@
       "remove_block_button": "Remove",
       "save_changes": "Save Changes",
       "create_template": "Create Template",
+      "saving": "Saving...",
       "name_required_error": "Enter a template name",
       "save_error": "Save error",
       "new_block_title": "New Block",
@@ -1341,7 +1342,8 @@
       "available_modules_title": "Available Modules",
       "err_required_fields": "Fill in the required fields",
       "err_both_fields": "Fill in both fields",
-      "priv_name_placeholder": "View records"
+      "priv_name_placeholder": "View records",
+      "error": "Error"
     },
     "reference_cities": {
       "title": "Cities Reference",

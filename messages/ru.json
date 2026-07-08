@@ -1229,6 +1229,7 @@
       "remove_block_button": "Удалить",
       "save_changes": "Сохранить изменения",
       "create_template": "Создать шаблон",
+      "saving": "Сохранение...",
       "name_required_error": "Введите название шаблона",
       "save_error": "Ошибка сохранения",
       "new_block_title": "Новый блок",
@@ -1341,7 +1342,8 @@
       "available_modules_title": "Доступные модули",
       "err_required_fields": "Заполните обязательные поля",
       "err_both_fields": "Заполните оба поля",
-      "priv_name_placeholder": "Просмотр записей"
+      "priv_name_placeholder": "Просмотр записей",
+      "error": "Ошибка"
     },
     "reference_cities": {
       "title": "Справочник городов",

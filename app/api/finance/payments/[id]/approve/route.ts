@@ -11,7 +11,8 @@ import { mapDbError } from '@/lib/finance/http'
  * Право: finance.approve_payment.
  *
  * 404 — платёж не найден.
- * 400 — платёж не в статусе 'pending' (уже подтверждён или отменён).
+ * 409 — платёж не в статусе 'pending' (уже подтверждён или отменён): недопустимый
+ *   переход статуса, как в PATCH payments/[id] (правка подтверждённого — тоже 409).
  */
 
 export async function POST(
@@ -34,7 +35,7 @@ export async function POST(
     if (payment.status !== 'pending') {
       return NextResponse.json(
         { error: `Подтвердить можно только платёж в статусе 'pending' (текущий: '${payment.status}')` },
-        { status: 400 }
+        { status: 409 }
       )
     }
 

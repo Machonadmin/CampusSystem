@@ -29,17 +29,30 @@ export async function GET(request: NextRequest) {
 
     const sb = createServerClient()
 
-    const { data: journeys, error } = await sb
-      .from('education_journeys')
-      .select(`
-        id, person_id, opened_at,
-        person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url)
-      `)
-      .eq('education_status', 'student')
-      .order('opened_at', { ascending: false })
-    if (error) throw error
-
-    const rows = journeys ?? []
+    // Список студентов читаем постранично: единый select без .range() молча
+    // обрезался бы на db-max-rows (~1000), и студенты сверх 1000 никогда бы не
+    // попали в пикер записи на план и в поиск. Вторичная сортировка по id даёт
+    // стабильную пагинацию (как в цикле meal_enrollments ниже).
+    type JourneyRow = { id: string; person_id: string; opened_at: string | null; person: unknown }
+    const rows: JourneyRow[] = []
+    let jOffset = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('education_journeys')
+        .select(`
+          id, person_id, opened_at,
+          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url)
+        `)
+        .eq('education_status', 'student')
+        .order('opened_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(jOffset, jOffset + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as JourneyRow[]
+      rows.push(...page)
+      if (page.length < PAGE) break
+      jOffset += PAGE
+    }
     const journeyIds = rows.map(j => j.id)
 
     // Текущий план каждого студента: активные записи (постранично),
