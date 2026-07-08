@@ -1,0 +1,135 @@
+# Модуль «Календарь» (личный календарь сотрудника)
+
+Google-подобный **личный** календарь: каждый залогиненный сотрудник видит
+**свой** график, ставит встречи со студентами и отмечает выходные дни.
+
+## Ключевое отличие: self-scoped, без привилегий
+
+Календарь **персональный** и self-scoped. Провайдер — всегда залогиненный
+пользователь: `provider_id = session.person_id`. Страница живёт по адресу
+`/dashboard/calendar` и защищена **только auth-gate**: любой залогиненный
+сотрудник получает свой календарь.
+
+Это **НЕ** модуль из `PROTECTED_MODULES` и он **НЕ владеет** привилегиями
+`module_privileges` — поэтому:
+
+- миграция **НЕ содержит** блока прав;
+- изменений в `IMPLEMENTED_MODULES` и middleware **НЕТ**;
+- изоляция между пользователями обеспечивается не привилегией, а фильтром
+  `provider_id = session.person_id` в **каждом** запросе API.
+
+`requireCalendarUser()` (`lib/calendar/permissions.ts`) лишь возвращает сессию
+или бросает 401.
+
+## Данные
+
+Две таблицы (миграция `supabase/migrations/20260708160000_calendar.sql`):
+
+### `appointments` — встречи
+
+| Поле | Тип | Заметки |
+|------|-----|---------|
+| `id` | uuid pk | |
+| `provider_id` | uuid → `persons(id)` ON DELETE CASCADE | владелец календаря |
+| `journey_id` | uuid → `education_journeys(id)` ON DELETE SET NULL | **опциональный** студент |
+| `title` | text NOT NULL | |
+| `reason` | text | |
+| `starts_at` / `ends_at` | timestamptz NOT NULL | `CHECK (ends_at > starts_at)` |
+| `status` | text | `scheduled` / `completed` / `cancelled` / `no_show`, default `scheduled` |
+| `notes` | text | |
+| `created_by`, `created_at`, `updated_at` | | триггер `updated_at` |
+
+Индексы: `provider_id`, `journey_id`, `starts_at`.
+
+### `calendar_blocks` — выходные дни
+
+| Поле | Тип | Заметки |
+|------|-----|---------|
+| `id` | uuid pk | |
+| `provider_id` | uuid → `persons(id)` ON DELETE CASCADE | |
+| `block_date` | date NOT NULL | |
+| `reason` | text | |
+| `created_by`, `created_at`, `updated_at` | | триггер `updated_at` |
+
+`UNIQUE (provider_id, block_date)` → пометка выходного **идемпотентна**.
+Индексы: `provider_id`, `block_date`.
+
+## Чистая логика — `lib/calendar/calendar.ts`
+
+Без обращений к БД и без `Date.now()` (опорные даты — параметры), целиком под
+vitest (`calendar.test.ts`):
+
+- `monthGrid(year, month, weekStartsOn=0)` — недели по 7 ячеек `{ dateISO, inMonth }`,
+  с ведущими/замыкающими днями до полных недель; месяц 1-12.
+- `rangesOverlap(aStart, aEnd, bStart, bEnd)` — пересечение таймстемпов;
+  касание границами — **НЕ** пересечение (полуоткрытые интервалы).
+- `appointmentsForDay(appointments, dateISO)` — встречи, чьё `starts_at` в этом дне.
+- `isBlocked(blocks, dateISO)` — выходной ли день.
+- `minutesBetween(startISO, endISO)` — длительность в минутах.
+
+## Защита от двойного бронирования
+
+`lib/calendar/overlap.ts::hasOverlappingAppointment()` читает **свои**
+`scheduled`-встречи узким SQL-фильтром постранично и подтверждает пересечение
+чистой `rangesOverlap`. Проверка вызывается:
+
+- при **создании** встречи (POST);
+- при **редактировании**, если меняются времена и итоговый статус остаётся
+  `scheduled`.
+
+При пересечении API отвечает **409**. Отменённые / завершённые / `no_show`
+встречи слот **не занимают**.
+
+### Выходные дни: allow, не block
+
+Создание встречи на день, помеченный выходным, **разрешено** (мягкое
+предупреждение на уровне UI, не жёсткий запрет): выходной — личная пометка
+доступности, а не инвариант данных, и сотрудник вправе поставить встречу в свой
+выходной. Двойное бронирование при этом всё равно запрещено (409).
+
+## API — `app/api/calendar/**` (auth-gate, self-scoped, `mapDbError`, пагинация)
+
+| Метод | Путь | Назначение |
+|-------|------|-----------|
+| GET | `/api/calendar/appointments?from=&to=` | свои встречи в диапазоне + имя студента |
+| POST | `/api/calendar/appointments` | создать; валидация ISO, `ends_at>starts_at`, overlap→409 |
+| PATCH | `/api/calendar/appointments/[id]` | правка / смена статуса; повторная проверка overlap; только владелец |
+| DELETE | `/api/calendar/appointments/[id]` | удалить; только владелец |
+| GET | `/api/calendar/blocks?from=&to=` | свои выходные дни в диапазоне |
+| POST | `/api/calendar/blocks` | пометить выходной; идемпотентно по UNIQUE |
+| DELETE | `/api/calendar/blocks/[id]` | снять пометку; только владелец |
+
+Пикер студентов берёт данные из существующего `/api/persons/students`.
+
+## UI — `app/dashboard/calendar/**`
+
+- **Месяц** — сетка 7×N из `monthGrid`, сегодня подсвечен, в ячейках — цветные
+  чипы встреч (цвет по статусу) и штриховка на выходных днях; навигация
+  назад / сегодня / вперёд.
+- **Неделя / agenda** — переключатель вида: список дней недели со временами
+  встреч и длительностью.
+- Диалог **«Новая встреча»**: название, поиск студента, дата + время начала /
+  конца, причина. Пересечение → понятное сообщение из 409.
+- Клик по встрече — просмотр: правка, статусы завершена / отменена / не явился,
+  удаление.
+- **«Отметить выходной»** на дне и снятие пометки; выходные визуально отличимы.
+- RTL-иврит, без скобок; синий заголовок `getModuleColor('dashboard')`.
+- Пункт **«Календарь»** добавлен в верх сайдбара (`TOP_ITEMS`) рядом с
+  «Главная» / «Задачи» — доступен всем.
+
+## i18n
+
+Полный namespace `calendar` в `messages/ru.json`, `he.json`, `en.json` (ключи
+идентичны — тест паритета зелёный). Метка сайдбара — `nav.calendar` в
+`lib/i18n/translations.ts` (ru/he/en).
+
+## Применение миграции
+
+Таблицы `appointments` / `calendar_blocks` **не существуют**, пока человек не
+выполнит вручную в Supabase (production):
+
+```
+supabase/migrations/20260708160000_calendar.sql
+```
+
+`tsc` / `build` / тесты проходят **без** применённой миграции.

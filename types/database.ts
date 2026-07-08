@@ -1736,6 +1736,54 @@ export interface DonationInsert {
 }
 export type DonationUpdate = Partial<Omit<DonationInsert, 'sponsor_id' | 'created_by'>>
 
+// ─── Календарь (личный, self-scoped по provider_id) ──────────────────────────
+
+export interface AppointmentRow {
+  id: string
+  provider_id: string
+  journey_id: string | null       // опциональный студент
+  title: string
+  reason: string | null
+  starts_at: string               // ISO timestamptz
+  ends_at: string                 // ISO timestamptz
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface AppointmentInsert {
+  id?: string
+  provider_id: string
+  journey_id?: string | null
+  title: string
+  reason?: string | null
+  starts_at: string
+  ends_at: string
+  status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
+  notes?: string | null
+  created_by?: string | null
+}
+export type AppointmentUpdate = Partial<Omit<AppointmentInsert, 'provider_id' | 'created_by'>>
+
+export interface CalendarBlockRow {
+  id: string
+  provider_id: string
+  block_date: string              // ISO date 'YYYY-MM-DD'
+  reason: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface CalendarBlockInsert {
+  id?: string
+  provider_id: string
+  block_date: string
+  reason?: string | null
+  created_by?: string | null
+}
+export type CalendarBlockUpdate = Partial<Omit<CalendarBlockInsert, 'provider_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1824,6 +1872,8 @@ export interface Database {
       contacts:                  T<ContactRow,                   ContactInsert,                   ContactUpdate>
       sponsors:                  T<SponsorRow,                   SponsorInsert,                   SponsorUpdate>
       donations:                 T<DonationRow,                  DonationInsert,                  DonationUpdate>
+      appointments:              T<AppointmentRow,               AppointmentInsert,               AppointmentUpdate>
+      calendar_blocks:           T<CalendarBlockRow,             CalendarBlockInsert,             CalendarBlockUpdate>
     }
     Views: Record<string, never>
     Functions: {

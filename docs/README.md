@@ -27,6 +27,7 @@ CRM-система образовательного кампуса: работа
 | [contacts-module.md](./contacts-module.md) | Модуль «Контакты»: самостоятельный справочник внешних контактов и организаций, поиск/фильтры/сводка, без привязки к студентам |
 | [sponsors-module.md](./sponsors-module.md) | Модуль «Спонсоры / Доноры»: справочник доноров + реестр пожертвований, суммы в копейках, НОВЫЕ таблицы `sponsors`/`donations` (legacy `sponsor_profiles` не трогаем) |
 | [persons-module.md](./persons-module.md) | Модуль «Люди»: READ-ONLY справочник сотрудников и студентов для поиска человека и контактов, НЕ владеет таблицами (только читает `persons`/`staff_positions`/`education_journeys`/…), детальный путь `…/directory/[id]` во избежание конфликта с существующим `/api/persons/[id]` |
+| [calendar-module.md](./calendar-module.md) | «Календарь»: ЛИЧНЫЙ self-scoped календарь сотрудника — встречи с опциональным студентом и выходные дни, защита от двойного бронирования, auth-gate без привилегий, все операции по `provider_id = session.person_id` |
 | [student-overview.md](./student-overview.md) | «Обзор студента 360»: READ-ONLY вкладка карточки студента со сводкой по всем модулям, посекционный гейт по привилегиям, без миграции |
 | [study-management.md](./study-management.md) | Управление учёбой, этап 1: журнал класса — уроки и посещаемость |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |

@@ -2216,5 +2216,50 @@
       "not_found": "האדם לא נמצא",
       "student_card_link": "לכרטיס הסטודנט"
     }
+  },
+  "calendar": {
+    "title": "יומן",
+    "subtitle": "היומן האישי שלך פגישות וימי היעדרות",
+    "new_appointment": "פגישה חדשה",
+    "edit_appointment": "עריכת פגישה",
+    "prev": "הקודם",
+    "next": "הבא",
+    "today": "היום",
+    "view": {
+      "month": "חודש",
+      "week": "שבוע"
+    },
+    "status": {
+      "scheduled": "מתוכננת",
+      "completed": "הושלמה",
+      "cancelled": "בוטלה",
+      "no_show": "לא הופיע"
+    },
+    "day_off": "יום היעדרות",
+    "day_off_short": "חופש",
+    "mark_day_off": "סימון יום היעדרות",
+    "remove_day_off": "ביטול יום היעדרות",
+    "empty_day": "אין פגישות",
+    "minutes": "דקות",
+    "mark_completed": "סמן כהושלמה",
+    "mark_cancelled": "סמן כבוטלה",
+    "mark_no_show": "סמן כלא הופיע",
+    "mark_scheduled": "החזר למתוכננת",
+    "form_title": "כותרת",
+    "form_title_ph": "נושא הפגישה",
+    "form_student": "סטודנט",
+    "form_student_none": "ללא סטודנט",
+    "form_student_search": "חיפוש סטודנט",
+    "form_student_empty": "לא נמצאו סטודנטים",
+    "form_date": "תאריך",
+    "form_start": "שעת התחלה",
+    "form_end": "שעת סיום",
+    "form_reason": "סיבה",
+    "form_reason_ph": "תיאור קצר",
+    "err_title_required": "יש להזין כותרת",
+    "err_end_after_start": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
+    "overlap_error": "הפגישה חופפת לפגישה מתוכננת אחרת",
+    "load_error": "שגיאה בטעינת הנתונים",
+    "confirm_delete": "למחוק את הפגישה"
   }
 }

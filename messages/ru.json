@@ -2216,5 +2216,50 @@
       "not_found": "Человек не найден",
       "student_card_link": "К карточке студента"
     }
+  },
+  "calendar": {
+    "title": "Календарь",
+    "subtitle": "Ваш личный календарь: встречи и выходные дни",
+    "new_appointment": "Новая встреча",
+    "edit_appointment": "Редактировать встречу",
+    "prev": "Назад",
+    "next": "Вперёд",
+    "today": "Сегодня",
+    "view": {
+      "month": "Месяц",
+      "week": "Неделя"
+    },
+    "status": {
+      "scheduled": "Запланирована",
+      "completed": "Завершена",
+      "cancelled": "Отменена",
+      "no_show": "Не явился"
+    },
+    "day_off": "Выходной",
+    "day_off_short": "вых",
+    "mark_day_off": "Отметить выходной",
+    "remove_day_off": "Убрать выходной",
+    "empty_day": "Нет встреч",
+    "minutes": "мин",
+    "mark_completed": "Завершена",
+    "mark_cancelled": "Отменить",
+    "mark_no_show": "Не явился",
+    "mark_scheduled": "Вернуть в план",
+    "form_title": "Название",
+    "form_title_ph": "Тема встречи",
+    "form_student": "Студент",
+    "form_student_none": "Без студента",
+    "form_student_search": "Поиск студента",
+    "form_student_empty": "Студенты не найдены",
+    "form_date": "Дата",
+    "form_start": "Начало",
+    "form_end": "Окончание",
+    "form_reason": "Причина",
+    "form_reason_ph": "Короткое описание",
+    "err_title_required": "Укажите название",
+    "err_end_after_start": "Окончание должно быть позже начала",
+    "overlap_error": "Встреча пересекается с уже запланированной",
+    "load_error": "Ошибка загрузки данных",
+    "confirm_delete": "Удалить встречу?"
   }
 }

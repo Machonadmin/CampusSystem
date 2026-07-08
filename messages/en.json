@@ -2216,5 +2216,50 @@
       "not_found": "Person not found",
       "student_card_link": "Open student card"
     }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Your personal calendar: appointments and days off",
+    "new_appointment": "New appointment",
+    "edit_appointment": "Edit appointment",
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "view": {
+      "month": "Month",
+      "week": "Week"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No show"
+    },
+    "day_off": "Day off",
+    "day_off_short": "off",
+    "mark_day_off": "Mark day off",
+    "remove_day_off": "Remove day off",
+    "empty_day": "No appointments",
+    "minutes": "min",
+    "mark_completed": "Mark completed",
+    "mark_cancelled": "Mark cancelled",
+    "mark_no_show": "Mark no show",
+    "mark_scheduled": "Back to scheduled",
+    "form_title": "Title",
+    "form_title_ph": "Meeting subject",
+    "form_student": "Student",
+    "form_student_none": "No student",
+    "form_student_search": "Search student",
+    "form_student_empty": "No students found",
+    "form_date": "Date",
+    "form_start": "Start",
+    "form_end": "End",
+    "form_reason": "Reason",
+    "form_reason_ph": "Short description",
+    "err_title_required": "Title is required",
+    "err_end_after_start": "End must be after start",
+    "overlap_error": "The appointment overlaps another scheduled one",
+    "load_error": "Failed to load data",
+    "confirm_delete": "Delete this appointment?"
   }
 }

@@ -12,6 +12,7 @@ const ru = {
   nav: {
     home: 'Главная',
     tasks: 'Задачи',
+    calendar: 'Календарь',
     modulesSection: 'ДОСТУПНЫЕ МОДУЛИ',
     persons: 'База людей',
     education: 'Образование',
@@ -104,6 +105,7 @@ const he: typeof ru = {
   nav: {
     home: 'ראשי',
     tasks: 'משימות',
+    calendar: 'יומן',
     modulesSection: 'מודולים זמינים',
     persons: 'מאגר אנשים',
     education: 'חינוך',
@@ -196,6 +198,7 @@ const en: typeof ru = {
   nav: {
     home: 'Home',
     tasks: 'Tasks',
+    calendar: 'Calendar',
     modulesSection: 'AVAILABLE MODULES',
     persons: 'People Directory',
     education: 'Education',
