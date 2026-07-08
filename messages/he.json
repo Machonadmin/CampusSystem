@@ -46,7 +46,8 @@
     "finance": "כספים",
     "dormitory": "מעונות",
     "food": "אוכל",
-    "maintenance": "תחזוקה"
+    "maintenance": "תחזוקה",
+    "security": "אבטחה"
   },
   "auth": {
     "login": "כניסה",
@@ -1693,6 +1694,70 @@
       "change_status": "שינוי סטטוס",
       "no_actions": "אין פעולות זמינות",
       "set_priority": "עדיפות",
+      "assign": "הקצאה",
+      "assign_to_me": "הקצה אליי",
+      "unassign": "בטל הקצאה"
+    }
+  },
+  "security": {
+    "list": {
+      "subtitle": "יומן אירועי אבטחה בקמפוס",
+      "new_incident": "אירוע חדש",
+      "empty": "אין עדיין אירועים",
+      "load_error": "טעינת הנתונים נכשלה",
+      "forbidden": "אין הרשאה לצפייה באבטחה",
+      "active": "פעילים",
+      "filter_status": "כל הסטטוסים",
+      "filter_severity": "כל רמות החומרה",
+      "filter_category": "כל הקטגוריות"
+    },
+    "category": {
+      "theft": "גניבה",
+      "vandalism": "ונדליזם",
+      "trespassing": "הסגת גבול",
+      "altercation": "עימות",
+      "fire": "שריפה",
+      "medical": "מקרה רפואי",
+      "property_damage": "נזק לרכוש",
+      "other": "אחר"
+    },
+    "severity": {
+      "low": "נמוכה",
+      "medium": "בינונית",
+      "high": "גבוהה",
+      "critical": "קריטית"
+    },
+    "status": {
+      "open": "פתוח",
+      "investigating": "בחקירה",
+      "resolved": "טופל",
+      "closed": "סגור"
+    },
+    "form": {
+      "title": "כותרת",
+      "description": "תיאור",
+      "occurred_at": "תאריך ושעה",
+      "select_building": "בחר בניין",
+      "location_text": "מיקום חופשי",
+      "required": "יש למלא את שדות החובה",
+      "save_error": "השמירה נכשלה"
+    },
+    "detail": {
+      "load_error": "טעינת האירוע נכשלה",
+      "action_error": "הפעולה נכשלה",
+      "location": "מיקום",
+      "occurred_at": "אירע בתאריך",
+      "resolved_at": "טופל בתאריך",
+      "assignee": "אחראי",
+      "you": "אתה",
+      "unassigned": "לא הוקצה",
+      "description": "תיאור",
+      "resolution": "פתרון",
+      "resolution_placeholder": "תאר כיצד האירוע טופל",
+      "actions": "פעולות",
+      "change_status": "שינוי סטטוס",
+      "no_actions": "אין פעולות זמינות",
+      "set_severity": "חומרה",
       "assign": "הקצאה",
       "assign_to_me": "הקצה אליי",
       "unassign": "בטל הקצאה"

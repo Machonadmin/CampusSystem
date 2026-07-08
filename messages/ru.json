@@ -46,7 +46,8 @@
     "finance": "Финансы",
     "dormitory": "Общежитие",
     "food": "Питание",
-    "maintenance": "Эксплуатация"
+    "maintenance": "Эксплуатация",
+    "security": "Безопасность"
   },
   "auth": {
     "login": "Войти",
@@ -1693,6 +1694,70 @@
       "change_status": "Сменить статус",
       "no_actions": "Нет доступных действий",
       "set_priority": "Приоритет",
+      "assign": "Назначение",
+      "assign_to_me": "Назначить на меня",
+      "unassign": "Снять назначение"
+    }
+  },
+  "security": {
+    "list": {
+      "subtitle": "Журнал инцидентов безопасности кампуса",
+      "new_incident": "Новый инцидент",
+      "empty": "Инцидентов пока нет",
+      "load_error": "Не удалось загрузить данные",
+      "forbidden": "Нет доступа к разделу безопасности",
+      "active": "Активные",
+      "filter_status": "Все статусы",
+      "filter_severity": "Любая серьёзность",
+      "filter_category": "Все категории"
+    },
+    "category": {
+      "theft": "Кража",
+      "vandalism": "Вандализм",
+      "trespassing": "Проникновение",
+      "altercation": "Конфликт",
+      "fire": "Пожар",
+      "medical": "Медицинский случай",
+      "property_damage": "Порча имущества",
+      "other": "Другое"
+    },
+    "severity": {
+      "low": "Низкая",
+      "medium": "Средняя",
+      "high": "Высокая",
+      "critical": "Критическая"
+    },
+    "status": {
+      "open": "Открыт",
+      "investigating": "Расследование",
+      "resolved": "Решён",
+      "closed": "Закрыт"
+    },
+    "form": {
+      "title": "Заголовок",
+      "description": "Описание",
+      "occurred_at": "Дата и время",
+      "select_building": "Выберите здание",
+      "location_text": "Локация текстом",
+      "required": "Заполните обязательные поля",
+      "save_error": "Не удалось сохранить"
+    },
+    "detail": {
+      "load_error": "Не удалось загрузить инцидент",
+      "action_error": "Не удалось выполнить действие",
+      "location": "Локация",
+      "occurred_at": "Произошёл",
+      "resolved_at": "Решён",
+      "assignee": "Ответственный",
+      "you": "Вы",
+      "unassigned": "Не назначен",
+      "description": "Описание",
+      "resolution": "Разрешение",
+      "resolution_placeholder": "Опишите, как инцидент был разрешён",
+      "actions": "Действия",
+      "change_status": "Сменить статус",
+      "no_actions": "Нет доступных действий",
+      "set_severity": "Серьёзность",
       "assign": "Назначение",
       "assign_to_me": "Назначить на меня",
       "unassign": "Снять назначение"

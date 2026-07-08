@@ -46,7 +46,8 @@
     "finance": "Finance",
     "dormitory": "Dormitory",
     "food": "Dining",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "security": "Security"
   },
   "auth": {
     "login": "Sign In",
@@ -1693,6 +1694,70 @@
       "change_status": "Change status",
       "no_actions": "No actions available",
       "set_priority": "Priority",
+      "assign": "Assign",
+      "assign_to_me": "Assign to me",
+      "unassign": "Unassign"
+    }
+  },
+  "security": {
+    "list": {
+      "subtitle": "Campus security incident log",
+      "new_incident": "New incident",
+      "empty": "No incidents yet",
+      "load_error": "Failed to load data",
+      "forbidden": "No access to the security section",
+      "active": "Active",
+      "filter_status": "All statuses",
+      "filter_severity": "Any severity",
+      "filter_category": "All categories"
+    },
+    "category": {
+      "theft": "Theft",
+      "vandalism": "Vandalism",
+      "trespassing": "Trespassing",
+      "altercation": "Altercation",
+      "fire": "Fire",
+      "medical": "Medical",
+      "property_damage": "Property damage",
+      "other": "Other"
+    },
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "status": {
+      "open": "Open",
+      "investigating": "Investigating",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "occurred_at": "Date and time",
+      "select_building": "Select building",
+      "location_text": "Location text",
+      "required": "Fill in the required fields",
+      "save_error": "Failed to save"
+    },
+    "detail": {
+      "load_error": "Failed to load the incident",
+      "action_error": "Action failed",
+      "location": "Location",
+      "occurred_at": "Occurred",
+      "resolved_at": "Resolved",
+      "assignee": "Assignee",
+      "you": "You",
+      "unassigned": "Unassigned",
+      "description": "Description",
+      "resolution": "Resolution",
+      "resolution_placeholder": "Describe how the incident was resolved",
+      "actions": "Actions",
+      "change_status": "Change status",
+      "no_actions": "No actions available",
+      "set_severity": "Severity",
       "assign": "Assign",
       "assign_to_me": "Assign to me",
       "unassign": "Unassign"

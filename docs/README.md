@@ -19,6 +19,7 @@ CRM-система образовательного кампуса: работа
 | [dormitory-module.md](./dormitory-module.md) | Модуль «Общежитие»: здания, комнаты, заселение, расчёт занятости |
 | [food-module.md](./food-module.md) | Модуль «Питание»: планы питания, запись студентов, диет-профили |
 | [maintenance-module.md](./maintenance-module.md) | Модуль «Эксплуатация»: заявки на обслуживание, SLA/просрочка, машина статусов |
+| [security-module.md](./security-module.md) | Модуль «Безопасность»: журнал инцидентов кампуса, ранг серьёзности, машина статусов open→investigating→resolved→closed |
 | [doctor-module.md](./doctor-module.md) | Модуль «Врач / Медпункт»: медкарты студентов, приёмы, контрольные визиты, статусы |
 | [psychologist-module.md](./psychologist-module.md) | Модуль «Психолог / Консультации»: карты сопровождения, консультации, контрольные визиты, уровень риска |
 | [reports-module.md](./reports-module.md) | Модуль «Отчёты / Обзор»: READ-ONLY дашборд сводок по всем модулям, корректная агрегация без обрезки db-max-rows |

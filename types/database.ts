@@ -1460,6 +1460,44 @@ export interface MaintenanceRequestInsert {
 }
 export type MaintenanceRequestUpdate = Partial<Omit<MaintenanceRequestInsert, 'reported_by'>>
 
+// ─── Security (безопасность / אבטחה: журнал инцидентов) ──────────────────────
+
+export interface SecurityIncidentRow {
+  id: string
+  occurred_at: string              // ISO timestamp
+  building_id: string | null
+  location_text: string | null
+  category: 'theft' | 'vandalism' | 'trespassing' | 'altercation' | 'fire' | 'medical' | 'property_damage' | 'other'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string | null
+  status: 'open' | 'investigating' | 'resolved' | 'closed'
+  reported_by: string | null
+  assigned_to: string | null
+  resolution: string | null
+  resolved_at: string | null       // ISO timestamp | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface SecurityIncidentInsert {
+  id?: string
+  occurred_at?: string
+  building_id?: string | null
+  location_text?: string | null
+  category?: 'theft' | 'vandalism' | 'trespassing' | 'altercation' | 'fire' | 'medical' | 'property_damage' | 'other'
+  severity?: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description?: string | null
+  status?: 'open' | 'investigating' | 'resolved' | 'closed'
+  reported_by?: string | null
+  assigned_to?: string | null
+  resolution?: string | null
+  resolved_at?: string | null
+  created_by?: string | null
+}
+export type SecurityIncidentUpdate = Partial<Omit<SecurityIncidentInsert, 'reported_by' | 'created_by'>>
+
 // ─── Doctor / Clinic (медпункт: медкарты и приёмы) ───────────────────────────
 
 export interface MedicalProfileRow {
@@ -1777,6 +1815,7 @@ export interface Database {
       meal_enrollments:          T<MealEnrollmentRow,            MealEnrollmentInsert,            MealEnrollmentUpdate>
       dietary_profiles:          T<DietaryProfileRow,            DietaryProfileInsert,            DietaryProfileUpdate>
       maintenance_requests:      T<MaintenanceRequestRow,        MaintenanceRequestInsert,        MaintenanceRequestUpdate>
+      security_incidents:        T<SecurityIncidentRow,          SecurityIncidentInsert,          SecurityIncidentUpdate>
       medical_profiles:          T<MedicalProfileRow,            MedicalProfileInsert,            MedicalProfileUpdate>
       medical_visits:            T<MedicalVisitRow,              MedicalVisitInsert,              MedicalVisitUpdate>
       psych_profiles:            T<PsychProfileRow,              PsychProfileInsert,              PsychProfileUpdate>
