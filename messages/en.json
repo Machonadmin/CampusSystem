@@ -2260,6 +2260,20 @@
     "err_end_after_start": "End must be after start",
     "overlap_error": "The appointment overlaps another scheduled one",
     "load_error": "Failed to load data",
-    "confirm_delete": "Delete this appointment?"
+    "confirm_delete": "Delete this appointment?",
+    "lesson": "Lesson",
+    "my_lessons": "My lessons",
+    "lesson_readonly": "Read only",
+    "lesson_cancelled": "Lesson cancelled",
+    "lesson_details": "Lesson details",
+    "lesson_class_group": "Class group",
+    "lesson_subject": "Subject",
+    "lesson_location": "Location",
+    "legend": {
+      "title": "Legend",
+      "appointment": "Appointment",
+      "lesson": "Lesson",
+      "day_off": "Day off"
+    }
   }
 }

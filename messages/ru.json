@@ -2260,6 +2260,20 @@
     "err_end_after_start": "Окончание должно быть позже начала",
     "overlap_error": "Встреча пересекается с уже запланированной",
     "load_error": "Ошибка загрузки данных",
-    "confirm_delete": "Удалить встречу?"
+    "confirm_delete": "Удалить встречу?",
+    "lesson": "Урок",
+    "my_lessons": "Мои уроки",
+    "lesson_readonly": "Только просмотр",
+    "lesson_cancelled": "Урок отменён",
+    "lesson_details": "Детали урока",
+    "lesson_class_group": "Учебная группа",
+    "lesson_subject": "Предмет",
+    "lesson_location": "Место",
+    "legend": {
+      "title": "Легенда",
+      "appointment": "Встреча",
+      "lesson": "Урок",
+      "day_off": "Выходной"
+    }
   }
 }
