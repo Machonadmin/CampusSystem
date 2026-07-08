@@ -17,6 +17,7 @@ import {
   type ScheduleSlot,
   type ScheduleInstance,
 } from '@/lib/calendar/schedule'
+import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthday'
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 
 // ─── Типы данных с API ───────────────────────────────────────────────────────
@@ -127,6 +128,13 @@ const TASK_BG = getModuleColor('tasks', 'light')      // #FEF3C7
 const TASK_ACCENT = getModuleColor('tasks', 'primary') // #F59E0B
 const TASK_FG = '#B45309'
 
+// Палитра дня рождения — праздничный розовый с эмодзи-тортом. Намеренно вне
+// синей/зелёной/амбер гаммы остальных четырёх видов, чтобы читалось как «личный
+// праздник», а не рабочее событие. День рождения read-only (нередактируемый чип).
+const BIRTHDAY_BG = '#FCE7F3'
+const BIRTHDAY_FG = '#BE185D'
+const BIRTHDAY_ACCENT = '#EC4899'
+
 // Название предмета слота расписания: иврит, если язык he и он задан.
 function scheduleSubjectLabel(s: ScheduleInstance, lang: string): string {
   if (lang === 'he' && s.subject_name_he) return s.subject_name_he
@@ -154,6 +162,9 @@ export default function CalendarClient() {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [slots, setSlots] = useState<ScheduleSlot[]>([])
+  // Дата рождения владельца календаря (persons.birth_date). Статична — грузится
+  // ОДИН раз при монтировании, НЕ перезапрашивается при навигации по месяцам.
+  const [birthDate, setBirthDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -217,6 +228,14 @@ export default function CalendarClient() {
     )
   }, [slots, range.from, range.to, lessons])
 
+  // День рождения → экземпляры на видимый диапазон. Чистая логика (birthday.ts),
+  // покрыта юнит-тестами. birth_date статична, поэтому пересчёт зависит только от
+  // диапазона, а не от повторной загрузки данных.
+  const birthdays = useMemo(
+    () => birthdayInstances(birthDate, range.from, range.to),
+    [birthDate, range.from, range.to],
+  )
+
   // ─── Загрузка данных ────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -269,6 +288,21 @@ export default function CalendarClient() {
   }, [range.from, range.to, t])
 
   useEffect(() => { load() }, [load])
+
+  // Дата рождения — статичный личный факт: грузим ОДИН раз при монтировании и
+  // больше не трогаем при навигации. Сбой не рушит календарь: слой просто пуст.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/calendar/birthday')
+        if (!res.ok) return
+        const b = await res.json()
+        if (!cancelled) setBirthDate(b.birth_date ?? null)
+      } catch { /* ДР — вспомогательный слой: сбой игнорируем */ }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   // ─── Навигация ──────────────────────────────────────────────────────────────
 
@@ -485,6 +519,7 @@ export default function CalendarClient() {
           lessons={lessons}
           schedule={scheduleInstances}
           tasks={tasks}
+          birthdays={birthdays}
           today={TODAY}
           primary={primary}
           light={light}
@@ -506,6 +541,7 @@ export default function CalendarClient() {
           lessons={lessons}
           schedule={scheduleInstances}
           tasks={tasks}
+          birthdays={birthdays}
           today={TODAY}
           primary={primary}
           locale={locale}
@@ -603,7 +639,7 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 // ─────────────────────────────────────────────
 
 function MonthView({
-  weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, today, primary, light, isRTL, hebrewDates,
+  weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, birthdays, today, primary, light, isRTL, hebrewDates,
   onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
@@ -613,6 +649,7 @@ function MonthView({
   lessons: Lesson[]
   schedule: ScheduleInstance[]
   tasks: Task[]
+  birthdays: BirthdayInstance[]
   today: string
   primary: string
   light: string
@@ -641,7 +678,7 @@ function MonthView({
       {weeks.map((week, wi) => (
         <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {week.map(cell => {
-            const events = mergeDayEvents(appointments, lessons, schedule, tasks, cell.dateISO)
+            const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, cell.dateISO)
             const blocked = isBlocked(blocks, cell.dateISO)
             const isToday = cell.dateISO === today
             const dayNum = Number(cell.dateISO.slice(8, 10))
@@ -750,6 +787,25 @@ function MonthView({
                         </button>
                       )
                     }
+                    // День рождения — read-only, праздничный розовый чип с тортом.
+                    // Нередактируемый: обычный span, без onClick.
+                    if (ev.kind === 'birthday' && ev.birthday) {
+                      const b = ev.birthday
+                      return (
+                        <span
+                          key={`b-${b.dateISO}`}
+                          title={`${t('birthday')} · ${b.age}`}
+                          style={{
+                            display: 'block', textAlign: isRTL ? 'right' : 'left',
+                            background: BIRTHDAY_BG, color: BIRTHDAY_FG, borderInlineStart: `3px solid ${BIRTHDAY_ACCENT}`,
+                            borderRadius: 5, padding: '2px 6px',
+                            fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}
+                        >
+                          🎂 {t('birthday')} · {b.age}
+                        </span>
+                      )
+                    }
                     const a = ev.appointment!
                     const st = statusStyle(a.status, primary, light)
                     const isParticipant = a.role === 'participant'
@@ -802,7 +858,7 @@ function MonthView({
 // ─────────────────────────────────────────────
 
 function WeekView({
-  days, appointments, blocks, lessons, schedule, tasks, today, primary, locale, hebrewDates, lang,
+  days, appointments, blocks, lessons, schedule, tasks, birthdays, today, primary, locale, hebrewDates, lang,
   onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
 }: {
   days: string[]
@@ -811,6 +867,7 @@ function WeekView({
   lessons: Lesson[]
   schedule: ScheduleInstance[]
   tasks: Task[]
+  birthdays: BirthdayInstance[]
   today: string
   primary: string
   locale: string
@@ -827,7 +884,7 @@ function WeekView({
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {days.map(day => {
-        const events = mergeDayEvents(appointments, lessons, schedule, tasks, day)
+        const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, day)
         const blocked = isBlocked(blocks, day)
         const isToday = day === today
         const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short', timeZone: 'UTC' })
@@ -943,6 +1000,29 @@ function WeekView({
                           {' '}{tk.title}
                         </span>
                       </button>
+                    )
+                  }
+                  // День рождения — read-only строка, праздничная розовая с тортом.
+                  // Нередактируемая: обычный div, без onClick.
+                  if (ev.kind === 'birthday' && ev.birthday) {
+                    const b = ev.birthday
+                    return (
+                      <div
+                        key={`b-${b.dateISO}`}
+                        style={{
+                          textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12,
+                          background: BIRTHDAY_BG, border: `1px solid ${BIRTHDAY_ACCENT}`, borderInlineStart: `3px solid ${BIRTHDAY_ACCENT}`,
+                          borderRadius: 8, padding: '8px 12px',
+                        }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 700, color: BIRTHDAY_FG, minWidth: 92 }}>
+                          {t('all_day')}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: BIRTHDAY_FG, flex: 1 }}>
+                          <span style={birthdayTag}>🎂 {t('birthday')}</span>
+                          {' · '}{b.age}
+                        </span>
+                      </div>
                     )
                   }
                   const a = ev.appointment!
@@ -1268,6 +1348,10 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
         t('legend.task'),
       )}
       {item(
+        <span style={{ ...box, background: BIRTHDAY_BG, border: `1px solid ${BIRTHDAY_ACCENT}`, borderInlineStart: `3px solid ${BIRTHDAY_ACCENT}` }} />,
+        t('legend.birthday'),
+      )}
+      {item(
         <span style={{
           ...box, background: '#FAFAF9', border: '1px solid #E5E7EB',
           backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(107,114,128,0.25) 3px, rgba(107,114,128,0.25) 6px)',
@@ -1494,6 +1578,11 @@ const scheduleTag: React.CSSProperties = {
 // Метка задачи на строке недельного вида.
 const taskTag: React.CSSProperties = {
   fontSize: 10, fontWeight: 700, color: '#fff', background: TASK_ACCENT,
+  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
+}
+// Метка дня рождения на строке недельного вида.
+const birthdayTag: React.CSSProperties = {
+  fontSize: 10, fontWeight: 700, color: '#fff', background: BIRTHDAY_ACCENT,
   borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
 }
 const dialog: React.CSSProperties = {

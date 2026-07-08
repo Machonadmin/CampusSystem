@@ -2279,6 +2279,7 @@
     "all_day": "All day",
     "recurring": "Recurring",
     "planned_lesson": "Planned lesson",
+    "birthday": "Birthday",
     "task_status": {
       "pending": "Pending",
       "in_progress": "In progress",
@@ -2290,6 +2291,7 @@
       "lesson": "Lesson",
       "recurring": "Planned lesson",
       "task": "Task",
+      "birthday": "Birthday",
       "day_off": "Day off"
     }
   }

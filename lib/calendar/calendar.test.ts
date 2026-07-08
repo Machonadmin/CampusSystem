@@ -323,51 +323,60 @@ describe('mergeDayEvents', () => {
     { id: 't2', due_date: '2026-07-08', due_time: null, due_all_day: true },
     { id: 't3', due_date: '2026-07-09', due_time: null, due_all_day: true },
   ]
+  const birthdays = [
+    { dateISO: '2026-07-08', age: 30 },
+    { dateISO: '2026-07-11', age: 30 },
+  ]
 
-  it('merges all four kinds of the day, sorted by time', () => {
-    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
-    // 08:00 appt, 09:00 schedule, 10:00 lesson, 11:00 appt, 13:00 task,
-    // then time-less lesson and all-day task last (insertion order lesson→task).
+  it('merges all five kinds of the day, sorted by time', () => {
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, birthdays, '2026-07-08')
+    // 08:00 appt, 09:00 schedule, 10:00 lesson, 11:00 appt, 13:00 task, then the
+    // all-day tail (insertion order lesson→task→birthday) at the very end.
     expect(r.map(e => e.kind)).toEqual([
-      'appointment', 'schedule', 'lesson', 'appointment', 'task', 'lesson', 'task',
+      'appointment', 'schedule', 'lesson', 'appointment', 'task', 'lesson', 'task', 'birthday',
     ])
-    expect(r.map(e => e.time)).toEqual(['08:00', '09:00', '10:00', '11:00', '13:00', '', ''])
+    expect(r.map(e => e.time)).toEqual(['08:00', '09:00', '10:00', '11:00', '13:00', '', '', ''])
   })
 
   it('tags each event with its source object', () => {
-    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, birthdays, '2026-07-08')
     const first = r[0]
     expect(first.kind).toBe('appointment')
     expect(first.appointment?.id).toBe('a2')
     expect(first.lesson).toBeNull()
     expect(first.schedule).toBeNull()
     expect(first.task).toBeNull()
+    expect(first.birthday).toBeNull()
     const lessonEv = r.find(e => e.kind === 'lesson' && e.time === '10:00')
     expect(lessonEv?.lesson?.id).toBe('l1')
     const schedEv = r.find(e => e.kind === 'schedule')
     expect(schedEv?.schedule?.slot_id).toBe('s1')
     const taskEv = r.find(e => e.kind === 'task' && e.time === '13:00')
     expect(taskEv?.task?.id).toBe('t1')
+    const bdayEv = r.find(e => e.kind === 'birthday')
+    expect(bdayEv?.birthday?.age).toBe(30)
   })
 
   it('includes only events of the requested day', () => {
-    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
-    expect(r).toHaveLength(7)
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, birthdays, '2026-07-08')
+    expect(r).toHaveLength(8)
     expect(r.some(e => e.appointment?.id === 'a3')).toBe(false)
     expect(r.some(e => e.lesson?.id === 'l3')).toBe(false)
     expect(r.some(e => e.schedule?.slot_id === 's2')).toBe(false)
     expect(r.some(e => e.task?.id === 't3')).toBe(false)
+    // День рождения 11-го числа не попадает в день 8-го.
+    expect(r.some(e => e.birthday?.dateISO === '2026-07-11')).toBe(false)
   })
 
-  it('all-day tasks and time-less lessons sort after timed events', () => {
-    const r = mergeDayEvents(appts, lessons, schedule, tasks, '2026-07-08')
-    const tail = r.slice(-2)
-    expect(tail.map(e => e.kind)).toEqual(['lesson', 'task'])
+  it('all-day tasks, time-less lessons and the birthday sort after timed events', () => {
+    const r = mergeDayEvents(appts, lessons, schedule, tasks, birthdays, '2026-07-08')
+    const tail = r.slice(-3)
+    expect(tail.map(e => e.kind)).toEqual(['lesson', 'task', 'birthday'])
     expect(tail.every(e => e.time === '')).toBe(true)
   })
 
   it('empty day → empty output', () => {
-    expect(mergeDayEvents(appts, lessons, schedule, tasks, '2026-01-01')).toEqual([])
+    expect(mergeDayEvents(appts, lessons, schedule, tasks, birthdays, '2026-01-01')).toEqual([])
   })
 
   it('is stable for equal times: appointment → lesson → schedule → task', () => {
@@ -375,7 +384,7 @@ describe('mergeDayEvents', () => {
     const l = [{ id: 'l', date: '2026-07-08', time: '09:00:00' }]
     const s = [{ slot_id: 's', dateISO: '2026-07-08', start_time: '09:00:00' }]
     const tk = [{ id: 't', due_date: '2026-07-08', due_time: '09:00:00', due_all_day: false }]
-    const r = mergeDayEvents(a, l, s, tk, '2026-07-08')
+    const r = mergeDayEvents(a, l, s, tk, [], '2026-07-08')
     expect(r.map(e => e.kind)).toEqual(['appointment', 'lesson', 'schedule', 'task'])
   })
 })

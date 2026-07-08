@@ -225,57 +225,82 @@ export function scheduleForDay<S extends ScheduleLike>(schedule: S[], dateISO: s
 }
 
 // ─────────────────────────────────────────────
+// День рождения (read-only слой, повтор раз в год)
+// ─────────────────────────────────────────────
+
+export interface BirthdayLike {
+  /** Календарная дата экземпляра дня рождения ISO 'YYYY-MM-DD'. */
+  dateISO: string
+}
+
+/**
+ * Экземпляры дня рождения, приходящиеся на день dateISO. Дата уже 'YYYY-MM-DD',
+ * сравниваем напрямую. Сохраняет исходный порядок массива.
+ */
+export function birthdaysForDay<B extends BirthdayLike>(birthdays: B[], dateISO: string): B[] {
+  return birthdays.filter(b => b.dateISO === dateISO)
+}
+
+// ─────────────────────────────────────────────
 // Единая лента событий дня
 // ─────────────────────────────────────────────
 
-/** Тип события дня: встреча | урок | повторяющийся слот | задача. */
-export type DayEventKind = 'appointment' | 'lesson' | 'schedule' | 'task'
+/** Тип события дня: встреча | урок | повторяющийся слот | задача | день рождения. */
+export type DayEventKind = 'appointment' | 'lesson' | 'schedule' | 'task' | 'birthday'
 
 /**
- * Единое событие дня. Ровно одно из appointment / lesson / schedule / task
- * непусто, kind соответствует ему. time — 'HH:mm' или '' (нет времени).
+ * Единое событие дня. Ровно одно из appointment / lesson / schedule / task /
+ * birthday непусто, kind соответствует ему. time — 'HH:mm' или '' (нет времени).
  */
-export interface DayEvent<A, L, S, T> {
+export interface DayEvent<A, L, S, T, B> {
   kind: DayEventKind
   time: string
   appointment: A | null
   lesson: L | null
   schedule: S | null
   task: T | null
+  birthday: B | null
 }
 
 /**
- * Сливает встречи, уроки, повторяющиеся слоты и задачи одного дня в ЕДИНУЮ
- * ленту, отсортированную по времени (по возрастанию). События без времени ('')
- * уходят в конец — сюда же попадают «на весь день» задачи. Сортировка стабильна:
- * при равном времени сохраняется исходный порядок вставки, а порядок вставки —
- * встреча → урок → слот → задача. Чистая: без Date.now.
+ * Сливает встречи, уроки, повторяющиеся слоты, задачи и дни рождения одного дня
+ * в ЕДИНУЮ ленту, отсортированную по времени (по возрастанию). События без
+ * времени ('') уходят в конец — сюда же попадают «на весь день» задачи и день
+ * рождения (он всегда all-day). Сортировка стабильна: при равном времени
+ * сохраняется исходный порядок вставки, а порядок вставки — встреча → урок →
+ * слот → задача → день рождения. Чистая: без Date.now.
  */
 export function mergeDayEvents<
   A extends AppointmentLike,
   L extends LessonLike,
   S extends ScheduleLike,
   T extends TaskLike,
+  B extends BirthdayLike,
 >(
   appointments: A[],
   lessons: L[],
   schedule: S[],
   tasks: T[],
+  birthdays: B[],
   dateISO: string,
-): DayEvent<A, L, S, T>[] {
-  const events: DayEvent<A, L, S, T>[] = []
+): DayEvent<A, L, S, T, B>[] {
+  const events: DayEvent<A, L, S, T, B>[] = []
   for (const a of appointmentsForDay(appointments, dateISO)) {
-    events.push({ kind: 'appointment', time: toHHmm(a.starts_at), appointment: a, lesson: null, schedule: null, task: null })
+    events.push({ kind: 'appointment', time: toHHmm(a.starts_at), appointment: a, lesson: null, schedule: null, task: null, birthday: null })
   }
   for (const l of lessonsForDay(lessons, dateISO)) {
-    events.push({ kind: 'lesson', time: toHHmm(l.time), appointment: null, lesson: l, schedule: null, task: null })
+    events.push({ kind: 'lesson', time: toHHmm(l.time), appointment: null, lesson: l, schedule: null, task: null, birthday: null })
   }
   for (const s of scheduleForDay(schedule, dateISO)) {
-    events.push({ kind: 'schedule', time: toHHmm(s.start_time), appointment: null, lesson: null, schedule: s, task: null })
+    events.push({ kind: 'schedule', time: toHHmm(s.start_time), appointment: null, lesson: null, schedule: s, task: null, birthday: null })
   }
   for (const tk of tasksForDay(tasks, dateISO)) {
     // «На весь день» → без времени: уходит в конец ленты, как time-less урок.
-    events.push({ kind: 'task', time: tk.due_all_day ? '' : toHHmm(tk.due_time), appointment: null, lesson: null, schedule: null, task: tk })
+    events.push({ kind: 'task', time: tk.due_all_day ? '' : toHHmm(tk.due_time), appointment: null, lesson: null, schedule: null, task: tk, birthday: null })
+  }
+  for (const b of birthdaysForDay(birthdays, dateISO)) {
+    // День рождения всегда all-day → без времени: уходит в конец ленты.
+    events.push({ kind: 'birthday', time: '', appointment: null, lesson: null, schedule: null, task: null, birthday: b })
   }
   // Стабильная сортировка по времени; пустое время ('') — в конец.
   return events

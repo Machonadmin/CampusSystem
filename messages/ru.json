@@ -2279,6 +2279,7 @@
     "all_day": "Весь день",
     "recurring": "Повторяется",
     "planned_lesson": "Плановое занятие",
+    "birthday": "День рождения",
     "task_status": {
       "pending": "Ожидает",
       "in_progress": "В работе",
@@ -2290,6 +2291,7 @@
       "lesson": "Урок",
       "recurring": "Плановое занятие",
       "task": "Задача",
+      "birthday": "День рождения",
       "day_off": "Выходной"
     }
   }

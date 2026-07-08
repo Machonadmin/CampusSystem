@@ -2279,6 +2279,7 @@
     "all_day": "כל היום",
     "recurring": "חוזר",
     "planned_lesson": "שיעור מתוכנן",
+    "birthday": "יום הולדת",
     "task_status": {
       "pending": "ממתינה",
       "in_progress": "בביצוע",
@@ -2290,6 +2291,7 @@
       "lesson": "שיעור",
       "recurring": "שיעור מתוכנן",
       "task": "משימה",
+      "birthday": "יום הולדת",
       "day_off": "יום היעדרות"
     }
   }
