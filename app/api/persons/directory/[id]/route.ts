@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requirePersonsPrivilege } from '@/lib/persons/permissions'
+import { requirePersonsPrivilege, hasPersonsPrivilege } from '@/lib/persons/permissions'
+import { redactSensitivePerson } from '@/lib/persons/redact'
 import { mapDbError } from '@/lib/persons/http'
 
 /**
@@ -30,7 +31,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    await requirePersonsPrivilege('view')
+    const session = await requirePersonsPrivilege('view')
 
     const sb = createServerClient()
 
@@ -82,8 +83,11 @@ export async function GET(
       .limit(1)
       .maybeSingle()
 
+    // Чувствительные PII-поля (здесь применимо birth_date) обнуляем, если у
+    // вызывающего нет 'persons.view_sensitive'.
+    const canSeeSensitive = await hasPersonsPrivilege(session, 'view_sensitive')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const p = person as any
+    const p = redactSensitivePerson(person as Record<string, unknown>, canSeeSensitive) as any
     return NextResponse.json({
       id: p.id,
       full_name: p.full_name ?? '',

@@ -24,6 +24,7 @@ export type EducationPrivilege =
   | 'mark_attendance'
   | 'set_grades'
   | 'set_lesson_topics'
+  | 'manage_communities'
 
 export type { Scope }
 

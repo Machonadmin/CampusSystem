@@ -15,7 +15,7 @@ import { reduceScopes, type Scope } from '@/lib/permissions/scope'
 // requirePersonsPrivilege('view'). 'manage' объявлена для полноты/совместимости
 // с каталогом, но API её не требует.
 
-export type PersonsPrivilege = 'view' | 'manage'
+export type PersonsPrivilege = 'view' | 'manage' | 'view_sensitive'
 export type { Scope }
 
 // ─── In-memory кэш ────────────────────────────────────────────────────────────

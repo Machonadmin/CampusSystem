@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { CommunityInsert } from '@/types/database'
 
 async function requireAuth() {
@@ -56,12 +57,13 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/education/communities
- * Создать новую общину. Право: любой авторизованный.
+ * Создать новую общину. Право: education.manage_communities.
+ * Общины не привязаны к подразделению → проверка без target (scope='all').
  * Идемпотентен: при дубле (UNIQUE name+city+country) возвращает существующую.
  */
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth()
+    await requireEducationPrivilege('manage_communities')
     const body = await request.json() as Partial<CommunityInsert>
 
     if (!body.name?.trim()) return NextResponse.json({ error: 'name обязателен' }, { status: 400 })

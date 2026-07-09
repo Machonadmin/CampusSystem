@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { CommunityUpdate } from '@/types/database'
 
 async function requireAuth() {
@@ -47,14 +48,15 @@ export async function GET(
 
 /**
  * PATCH /api/education/communities/[id]
- * Право: любой авторизованный (общины — общий ресурс).
+ * Право: education.manage_communities (общины — общий ресурс без подразделения,
+ * проверка без target → нужен scope='all').
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    await requireEducationPrivilege('manage_communities')
     const body = await request.json() as Partial<CommunityUpdate>
     const sb = createServerClient()
 
@@ -104,6 +106,7 @@ export async function PATCH(
 /**
  * DELETE /api/education/communities/[id]
  * Мягкое удаление: is_active = false.
+ * Право: education.manage_communities (проверка без target → нужен scope='all').
  * Физически удалить нельзя, пока есть связанные journey_communities
  * (FK ON DELETE RESTRICT). Мягкое удаление безопасно.
  */
@@ -112,7 +115,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    await requireEducationPrivilege('manage_communities')
     const sb = createServerClient()
 
     const { data: current, error: fetchErr } = await sb
