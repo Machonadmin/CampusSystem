@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload as JosePayload } from 'jose'
-import { AUTH_CONFIG } from './config'
+import { AUTH_CONFIG, getJwtSecret } from './config'
 
 export interface SessionPayload extends JosePayload {
   person_id: string
@@ -9,7 +9,7 @@ export interface SessionPayload extends JosePayload {
 }
 
 function getSecret(): Uint8Array {
-  return new TextEncoder().encode(AUTH_CONFIG.jwtSecret)
+  return new TextEncoder().encode(getJwtSecret())
 }
 
 export async function signToken(payload: Omit<SessionPayload, keyof JosePayload>): Promise<string> {
