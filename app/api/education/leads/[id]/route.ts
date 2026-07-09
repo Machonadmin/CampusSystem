@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 
 /**
  * DELETE /api/education/leads/[id]
@@ -29,9 +29,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'Лид уже удалён' }, { status: 409 })
     }
 
+    const leadDept = (journey as unknown as { primary_department_id: string | null }).primary_department_id
     await requireEducationPrivilege('manage_leads', {
-      department_id: (journey as unknown as { primary_department_id: string | null }).primary_department_id ?? undefined,
+      department_id: leadDept ?? undefined,
     })
+
+    // F3: правка/удаление СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead)
+    // разрешена только при scope='all'. Иначе department-scoped пользователь смог
+    // бы удалять ЛЮБОГО «ничьего» лида. На создание это НЕ распространяется.
+    if (leadDept == null) {
+      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      if (scope !== 'all') {
+        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      }
+    }
 
     const { error } = await sb
       .from('education_journeys')
@@ -113,6 +124,15 @@ export async function PATCH(
     await requireEducationPrivilege('manage_leads', {
       department_id: journey.primary_department_id ?? undefined,
     })
+
+    // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead) разрешена
+    // только при scope='all' (см. DELETE выше). На создание не распространяется.
+    if (journey.primary_department_id == null) {
+      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      if (scope !== 'all') {
+        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      }
+    }
 
     const personId = journey.person_id
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 
 /**
  * POST /api/education/journeys/[id]/transition
@@ -61,9 +61,20 @@ export async function POST(
     if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
 
     // Право на управление студентами в его подразделении
+    const journeyDept = (journey as { primary_department_id: string | null }).primary_department_id
     await requireEducationPrivilege('manage_students', {
-      department_id: (journey as { primary_department_id: string | null }).primary_department_id ?? undefined,
+      department_id: journeyDept ?? undefined,
     })
+
+    // F3: смена статуса СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less journey)
+    // разрешена только при scope='all'. Иначе department-scoped пользователь смог
+    // бы менять статус ЛЮБОЙ «ничьей» записи.
+    if (journeyDept == null) {
+      const scope = await getEducationPrivilegeScope(session, 'manage_students')
+      if (scope !== 'all') {
+        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      }
+    }
 
     const needsDetails = (['on_leave', 'graduated', 'expelled'] as string[]).includes(toStatus as TargetStatus)
     const reason = body.reason?.trim() || null

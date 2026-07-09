@@ -65,10 +65,9 @@ export async function hasPrivilege(
   if (scope === 'all') return true
 
   if (scope === 'department') {
-    // Fail-closed: объект без department_id НЕЛЬЗЯ трактовать как «общий пул» —
-    // иначе department-scoped пользователь получил бы доступ к любому объекту с
-    // null-подразделением. Симметрично с grantsAccess в lib/permissions/scope.ts.
-    if (!target?.department_id) return false
+    // Объект ещё не привязан к конкретному подразделению — считаем допустимым
+    // (симметрично с hasEducationPrivilege в lib/education/permissions.ts).
+    if (!target?.department_id) return true
     const myDepts = await getUserDepartmentIds(session.person_id)
     return myDepts.includes(target.department_id)
   }

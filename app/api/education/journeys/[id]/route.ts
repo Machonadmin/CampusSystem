@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
   requireEducationPrivilege,
+  getEducationPrivilegeScope,
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import type { EducationJourneyUpdate, JourneyStatus } from '@/types/database'
@@ -153,9 +154,19 @@ export async function PATCH(
 
     const priv = pickPrivilege(current.education_status, 'manage')
 
-    await requireEducationPrivilege(priv, {
+    const session = await requireEducationPrivilege(priv, {
       department_id: currentDept ?? undefined,
     })
+
+    // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead/journey)
+    // разрешена только при scope='all'. Иначе department-scoped пользователь смог
+    // бы менять ЛЮБУЮ «ничью» запись. На создание это НЕ распространяется.
+    if (currentDept == null) {
+      const scope = await getEducationPrivilegeScope(session, priv)
+      if (scope !== 'all') {
+        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      }
+    }
 
     // Если меняется primary/desired department — проверить и новое подразделение
     const newPrimary = body.primary_department_id
@@ -255,9 +266,18 @@ export async function DELETE(
       : current.desired_department_id
 
     const priv = pickPrivilege(current.education_status, 'manage')
-    await requireEducationPrivilege(priv, {
+    const session = await requireEducationPrivilege(priv, {
       department_id: checkDept ?? undefined,
     })
+
+    // F3: удаление СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead/journey)
+    // разрешено только при scope='all' (см. PATCH выше).
+    if (checkDept == null) {
+      const scope = await getEducationPrivilegeScope(session, priv)
+      if (scope !== 'all') {
+        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      }
+    }
 
     const today = new Date().toISOString().slice(0, 10)
     const { error } = await sb
