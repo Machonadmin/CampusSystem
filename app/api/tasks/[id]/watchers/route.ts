@@ -81,9 +81,12 @@ export async function POST(
     if (!task) {
       return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
     }
+    // Добавлять наблюдателей может только тот, кто может РЕДАКТИРОВАТЬ задачу
+    // (canEdit — как в PATCH /api/tasks/[id]). Раньше хватало canView, из-за чего
+    // любой зритель мог инъектировать наблюдателей.
     const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) {
-      return NextResponse.json({ error: 'Нет доступа' }, { status: 403 })
+    if (!access.canEdit) {
+      return NextResponse.json({ error: 'Изменять задачу может только автор' }, { status: 403 })
     }
 
     const rows = personIds.map(person_id => ({

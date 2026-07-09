@@ -39,6 +39,9 @@ export async function POST(
       )
     }
 
+    // Условная запись (атомарно, без TOCTOU): подтверждаем ТОЛЬКО если платёж всё
+    // ещё 'pending'. Если между проверкой выше и записью статус сменился
+    // (параллельный approve/cancel) — 0 строк → 409, а не двойное подтверждение.
     const { data, error } = await sb
       .from('finance_payments')
       .update({
@@ -47,11 +50,18 @@ export async function POST(
         approved_at: new Date().toISOString(),
       })
       .eq('id', params.id)
+      .eq('status', 'pending')
       .select('*')
-      .single()
+      .maybeSingle()
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Платёж уже не в статусе pending (параллельное изменение)' },
+        { status: 409 }
+      )
     }
 
     return NextResponse.json(data)

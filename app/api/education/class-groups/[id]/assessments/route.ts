@@ -4,6 +4,9 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { AssessmentInsert } from '@/types/database'
 
+// Размер страницы для агрегаций (grades). PostgREST обрезает на db-max-rows.
+const PAGE = 1000
+
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
   if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
@@ -46,13 +49,23 @@ export async function GET(
     const gradedByAssessment = new Map<string, number>()
     if (assessments.length > 0) {
       const ids = assessments.map(a => a.id)
-      const { data: gradeRows, error: gErr } = await sb
-        .from('grades')
-        .select('assessment_id')
-        .in('assessment_id', ids)
-      if (gErr) throw gErr
-      for (const row of gradeRows ?? []) {
-        gradedByAssessment.set(row.assessment_id, (gradedByAssessment.get(row.assessment_id) ?? 0) + 1)
+      // Постранично: единый .in(...) молча обрезался бы на db-max-rows (~1000)
+      // и дал бы заниженный graded_count. Читаем все оценки страницами по PAGE.
+      let from = 0
+      for (;;) {
+        const { data: gradeRows, error: gErr } = await sb
+          .from('grades')
+          .select('assessment_id')
+          .in('assessment_id', ids)
+          .order('assessment_id', { ascending: true })
+          .range(from, from + PAGE - 1)
+        if (gErr) throw gErr
+        const rows = gradeRows ?? []
+        for (const row of rows) {
+          gradedByAssessment.set(row.assessment_id, (gradedByAssessment.get(row.assessment_id) ?? 0) + 1)
+        }
+        if (rows.length < PAGE) break
+        from += PAGE
       }
     }
 

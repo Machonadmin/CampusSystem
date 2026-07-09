@@ -16,6 +16,11 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
   return { status: 500, message: error.message ?? 'Ошибка БД' }
 }
 
+// Размер страницы для агрегаций. PostgREST молча обрезает выдачу на db-max-rows
+// (~1000). Уроков/заданий над видимыми группами может быть больше — тогда единый
+// select без .range() дал бы неверные суммарные счётчики. Читаем постранично.
+const PAGE = 1000
+
 // Учебная группа студента (из class_enrollments → class_groups + справочники).
 type EnrolledGroup = {
   id: string
@@ -129,16 +134,25 @@ export async function GET(
     const gradeByAssessment = new Map<string, number>()
 
     if (visibleGroupIds.length > 0) {
-      // Уроки (только не отменённые).
-      const { data: lessons, error: lErr } = await sb
-        .from('lessons')
-        .select('id, class_group_id')
-        .eq('is_cancelled', false)
-        .in('class_group_id', visibleGroupIds)
-      if (lErr) throw lErr
-      for (const l of lessons ?? []) {
-        lessonToGroup.set(l.id, l.class_group_id)
-        totalLessonsByGroup.set(l.class_group_id, (totalLessonsByGroup.get(l.class_group_id) ?? 0) + 1)
+      // Уроки (только не отменённые) — постранично, чтобы не обрезаться на
+      // db-max-rows и не занизить total_lessons.
+      let lFrom = 0
+      for (;;) {
+        const { data: lessons, error: lErr } = await sb
+          .from('lessons')
+          .select('id, class_group_id')
+          .eq('is_cancelled', false)
+          .in('class_group_id', visibleGroupIds)
+          .order('id', { ascending: true })
+          .range(lFrom, lFrom + PAGE - 1)
+        if (lErr) throw lErr
+        const rows = lessons ?? []
+        for (const l of rows) {
+          lessonToGroup.set(l.id, l.class_group_id)
+          totalLessonsByGroup.set(l.class_group_id, (totalLessonsByGroup.get(l.class_group_id) ?? 0) + 1)
+        }
+        if (rows.length < PAGE) break
+        lFrom += PAGE
       }
 
       // Посещаемость этого студента над этими уроками.
@@ -162,23 +176,32 @@ export async function GET(
         }
       }
 
-      // Задания видимых групп.
-      const { data: assessments, error: asErr } = await sb
-        .from('assessments')
-        .select('id, class_group_id, title, max_score, assessment_date')
-        .in('class_group_id', visibleGroupIds)
-        .order('assessment_date', { ascending: false, nullsFirst: false })
-      if (asErr) throw asErr
-      for (const a of assessments ?? []) {
-        assessmentGroup.set(a.id, a.class_group_id)
-        const arr = assessmentsByGroup.get(a.class_group_id) ?? []
-        arr.push({
-          assessment_id: a.id,
-          title: a.title,
-          max_score: Number(a.max_score),
-          assessment_date: a.assessment_date,
-        })
-        assessmentsByGroup.set(a.class_group_id, arr)
+      // Задания видимых групп — постранично, чтобы не обрезаться на db-max-rows
+      // и не потерять задания/занизить total_assessments.
+      let asFrom = 0
+      for (;;) {
+        const { data: assessments, error: asErr } = await sb
+          .from('assessments')
+          .select('id, class_group_id, title, max_score, assessment_date')
+          .in('class_group_id', visibleGroupIds)
+          .order('assessment_date', { ascending: false, nullsFirst: false })
+          .order('id', { ascending: true })
+          .range(asFrom, asFrom + PAGE - 1)
+        if (asErr) throw asErr
+        const rows = assessments ?? []
+        for (const a of rows) {
+          assessmentGroup.set(a.id, a.class_group_id)
+          const arr = assessmentsByGroup.get(a.class_group_id) ?? []
+          arr.push({
+            assessment_id: a.id,
+            title: a.title,
+            max_score: Number(a.max_score),
+            assessment_date: a.assessment_date,
+          })
+          assessmentsByGroup.set(a.class_group_id, arr)
+        }
+        if (rows.length < PAGE) break
+        asFrom += PAGE
       }
 
       // Оценки этого студента над этими заданиями.

@@ -4,6 +4,9 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { LessonInsert } from '@/types/database'
 
+// Размер страницы для агрегаций (attendance). PostgREST обрезает на db-max-rows.
+const PAGE = 1000
+
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
   if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
@@ -46,13 +49,23 @@ export async function GET(
     const markedByLesson = new Map<string, number>()
     if (lessons.length > 0) {
       const lessonIds = lessons.map(l => l.id)
-      const { data: attRows, error: attErr } = await sb
-        .from('attendance')
-        .select('lesson_id')
-        .in('lesson_id', lessonIds)
-      if (attErr) throw attErr
-      for (const row of attRows ?? []) {
-        markedByLesson.set(row.lesson_id, (markedByLesson.get(row.lesson_id) ?? 0) + 1)
+      // Постранично: единый .in(...) молча обрезался бы на db-max-rows (~1000)
+      // и дал бы заниженный marked_count. Читаем все отметки страницами по PAGE.
+      let from = 0
+      for (;;) {
+        const { data: attRows, error: attErr } = await sb
+          .from('attendance')
+          .select('lesson_id')
+          .in('lesson_id', lessonIds)
+          .order('lesson_id', { ascending: true })
+          .range(from, from + PAGE - 1)
+        if (attErr) throw attErr
+        const rows = attRows ?? []
+        for (const row of rows) {
+          markedByLesson.set(row.lesson_id, (markedByLesson.get(row.lesson_id) ?? 0) + 1)
+        }
+        if (rows.length < PAGE) break
+        from += PAGE
       }
     }
 

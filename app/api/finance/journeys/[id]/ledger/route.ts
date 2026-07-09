@@ -21,6 +21,12 @@ import { mapDbError } from '@/lib/finance/http'
 const PERSON_SELECT =
   'id, full_name, hebrew_name, email, phones, photo_url'
 
+// PostgREST молча обрезает выдачу на db-max-rows (~1000). Начислений/платежей у
+// одного студента может быть больше — тогда единый select без .range() дал бы
+// НЕВЕРНЫЙ баланс (часть строк потерялась бы). Читаем постранично и суммируем по
+// всему набору. Тот же приём, что в app/api/finance/students/route.ts.
+const PAGE = 1000
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
@@ -41,24 +47,54 @@ export async function GET(
     if (jErr) throw jErr
     if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 404 })
 
-    const { data: charges, error: cErr } = await sb
-      .from('finance_charges')
-      .select('id, journey_id, amount, description, period_label, due_date, status, created_by, created_at, updated_at')
-      .eq('journey_id', params.id)
-      .order('due_date', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
-    if (cErr) throw cErr
+    // Начисления — постранично (вторичная сортировка по id: стабильная пагинация).
+    type ChargeRow = {
+      id: string; journey_id: string; amount: number | string; description: string | null
+      period_label: string | null; due_date: string | null; status: string
+      created_by: string | null; created_at: string; updated_at: string
+    }
+    const chargeRows: ChargeRow[] = []
+    let cFrom = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('finance_charges')
+        .select('id, journey_id, amount, description, period_label, due_date, status, created_by, created_at, updated_at')
+        .eq('journey_id', params.id)
+        .order('due_date', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(cFrom, cFrom + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as ChargeRow[]
+      chargeRows.push(...page)
+      if (page.length < PAGE) break
+      cFrom += PAGE
+    }
 
-    const { data: payments, error: pErr } = await sb
-      .from('finance_payments')
-      .select('id, journey_id, amount, paid_at, method, reference, status, recorded_by, approved_by, approved_at, created_at, updated_at')
-      .eq('journey_id', params.id)
-      .order('paid_at', { ascending: false })
-      .order('created_at', { ascending: false })
-    if (pErr) throw pErr
-
-    const chargeRows = charges ?? []
-    const paymentRows = payments ?? []
+    // Платежи — постранично (вторичная сортировка по id: стабильная пагинация).
+    type PaymentRow = {
+      id: string; journey_id: string; amount: number | string; paid_at: string | null
+      method: string | null; reference: string | null; status: string
+      recorded_by: string | null; approved_by: string | null; approved_at: string | null
+      created_at: string; updated_at: string
+    }
+    const paymentRows: PaymentRow[] = []
+    let pFrom = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('finance_payments')
+        .select('id, journey_id, amount, paid_at, method, reference, status, recorded_by, approved_by, approved_at, created_at, updated_at')
+        .eq('journey_id', params.id)
+        .order('paid_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(pFrom, pFrom + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as PaymentRow[]
+      paymentRows.push(...page)
+      if (page.length < PAGE) break
+      pFrom += PAGE
+    }
 
     return NextResponse.json({
       journey,

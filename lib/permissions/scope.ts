@@ -45,8 +45,11 @@ export interface AccessContext {
  * без изменения поведения:
  *   - нет scope        → нет доступа
  *   - all              → доступ всегда
- *   - department       → без target.department_id доступ разрешён (общий пул);
- *                        иначе подразделение должно быть у пользователя
+ *   - department       → нужен target.department_id (иначе fail-closed: объект без
+ *                        подразделения нельзя трактовать как «общий пул», иначе
+ *                        department-scoped пользователь мог бы править ЛЮБОЙ
+ *                        объект с null-подразделением — например, lead/journey);
+ *                        подразделение должно быть у пользователя
  *   - own              → нужен непустой teacher_ids, и в нём должен быть personId
  */
 export function grantsAccess(
@@ -57,7 +60,7 @@ export function grantsAccess(
   if (!scope) return false
   if (scope === 'all') return true
   if (scope === 'department') {
-    if (!target?.department_id) return true
+    if (!target?.department_id) return false
     return ctx.departmentIds.includes(target.department_id)
   }
   if (scope === 'own') {

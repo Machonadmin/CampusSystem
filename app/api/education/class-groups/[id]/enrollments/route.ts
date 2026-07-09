@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
-
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+import { getClassGroupTarget } from '@/lib/education/lesson-access'
 
 /**
  * GET /api/education/class-groups/[id]/enrollments
  * Список journeys (студентов), записанных в учебную группу.
+ * Право: view_students в контексте группы (как сиблинги lessons/assessments).
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
     const sb = createServerClient()
+
+    const target = await getClassGroupTarget(sb, params.id)
+    if (!target) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+
+    await requireEducationPrivilege('view_students', target)
 
     const { data, error } = await sb
       .from('class_enrollments')
@@ -34,7 +33,7 @@ export async function GET(
           specialty_id,
           main_group_id,
           year_level,
-          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email),
+          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name),
           main_group:study_groups(id, name)
         )
       `)

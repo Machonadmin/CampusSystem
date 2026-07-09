@@ -65,21 +65,33 @@ export async function PATCH(
 
     const { data: existing, error: exErr } = await sb
       .from('finance_charges')
-      .select('id')
+      .select('id, status')
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
     if (!existing) return NextResponse.json({ error: 'Начисление не найдено' }, { status: 404 })
 
-    const { data, error } = await sb
+    // Условная запись при смене статуса (атомарно, без TOCTOU): применяем ТОЛЬКО
+    // если статус не изменился с момента чтения. Иначе 0 строк → 409.
+    let writeQuery = sb
       .from('finance_charges')
       .update(update)
       .eq('id', params.id)
+    if (update.status !== undefined) {
+      writeQuery = writeQuery.eq('status', existing.status)
+    }
+    const { data, error } = await writeQuery
       .select('*')
-      .single()
+      .maybeSingle()
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Статус начисления изменился (параллельное изменение), повторите' },
+        { status: 409 }
+      )
     }
 
     return NextResponse.json(data)

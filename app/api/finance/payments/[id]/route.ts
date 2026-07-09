@@ -94,15 +94,25 @@ export async function PATCH(
       }
     }
 
+    // Условная запись (атомарно, без TOCTOU): применяем правку ТОЛЬКО если статус
+    // не изменился с момента чтения existing. Иначе (напр. параллельный approve)
+    // проверка инварианта выше уже неактуальна — 0 строк → 409.
     const { data, error } = await sb
       .from('finance_payments')
       .update(update)
       .eq('id', params.id)
+      .eq('status', existing.status)
       .select('*')
-      .single()
+      .maybeSingle()
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Статус платежа изменился (параллельное изменение), повторите' },
+        { status: 409 }
+      )
     }
 
     return NextResponse.json(data)

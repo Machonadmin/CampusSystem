@@ -7,9 +7,10 @@ const PUBLIC_PAGES = ['/login']
 
 // Module routes that require an explicit access privilege
 const PROTECTED_MODULES = new Set([
-  'persons', 'applicants', 'education', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'applicants', 'education', 'finance', 'dormitory', 'food',
   'security', 'alumni', 'sponsors', 'documents', 'reports',
   'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
+  'quality_control',
 ])
 
 async function fetchAccessibleModules(roleCodes: string[]): Promise<string[]> {
@@ -62,7 +63,10 @@ export async function middleware(request: NextRequest) {
 
   // Module access guard — only for /dashboard/[moduleCode] page routes
   if (pathname.startsWith('/dashboard/')) {
-    const moduleCode = pathname.split('/')[2] // e.g. 'settings', 'education'
+    // Директория страницы использует дефис ('quality-control'), а код модуля в
+    // role_privileges — подчёркивание ('quality_control'). Нормализуем, иначе
+    // страница не сматчилась бы с PROTECTED_MODULES / accessible.
+    const moduleCode = pathname.split('/')[2]?.replace(/-/g, '_') // e.g. 'settings', 'quality_control'
 
     if (moduleCode && PROTECTED_MODULES.has(moduleCode) && !pathname.startsWith('/api/')) {
       if (!session.roles.includes('superadmin')) {

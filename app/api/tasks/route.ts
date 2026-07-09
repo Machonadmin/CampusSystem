@@ -12,6 +12,11 @@ async function requireAuth() {
   return session
 }
 
+// PostgREST молча обрезает выдачу на db-max-rows (~1000). Список задач читаем
+// постранично и суммируем, чтобы не терять задачи. Вторичная сортировка по id —
+// стабильная пагинация.
+const PAGE = 1000
+
 // ─── GET /api/tasks ───────────────────────────────────────────────────────────
 // ?view=assigned|created|department|watching  (default: assigned)
 // ?status=<TaskStatus>|active|all             (default: active)
@@ -32,56 +37,77 @@ export async function GET(request: NextRequest) {
 
     const sb = createServerClient()
 
-    let query = sb
-      .from('tasks')
-      .select(`
-        *,
-        assignee:persons!tasks_assignee_id_fkey(id, full_name),
-        creator:persons!tasks_creator_id_fkey(id, full_name),
-        department:departments(id, name)
-      `)
-      .order('created_at', { ascending: false })
-
-    // ─── Режим просмотра ───────────────────────────────────────────────────────
-    if (view === 'assigned') {
-      query = query.eq('assignee_id', personId)
-    } else if (view === 'created') {
-      query = query.eq('creator_id', personId)
-    } else if (view === 'department') {
-      const myDepts = await getPersonDepartments(personId)
-      if (myDepts.length === 0) return NextResponse.json({ tasks: [] })
-      query = query.in('department_id', myDepts)
-      if (departmentFilter) query = query.eq('department_id', departmentFilter)
+    // ─── Режим просмотра: предвычисляем фильтры (могут дать ранний пустой ответ) ─
+    let watchingTaskIds: string[] | null = null
+    let myDeptIds: string[] | null = null
+    if (view === 'department') {
+      myDeptIds = await getPersonDepartments(personId)
+      if (myDeptIds.length === 0) return NextResponse.json({ tasks: [] })
     } else if (view === 'watching') {
       const { data: watcherRows, error: wErr } = await sb
         .from('task_watchers')
         .select('task_id')
         .eq('person_id', personId)
       if (wErr) throw wErr
-      const taskIds = (watcherRows ?? []).map(r => r.task_id)
-      if (taskIds.length === 0) return NextResponse.json({ tasks: [] })
-      query = query.in('id', taskIds)
-    } else {
+      watchingTaskIds = (watcherRows ?? []).map(r => r.task_id)
+      if (watchingTaskIds.length === 0) return NextResponse.json({ tasks: [] })
+    } else if (view !== 'assigned' && view !== 'created') {
       throw Object.assign(new Error('Неизвестный режим просмотра'), { status: 400 })
     }
 
-    // ─── Фильтр по статусу ────────────────────────────────────────────────────
-    if (statusFilter === 'all') {
-      // без фильтра
-    } else if (statusFilter && statusFilter !== 'active') {
-      query = query.eq('status', statusFilter as TaskStatus)
-    } else {
-      // 'active' или не указан — всё кроме completed/cancelled
-      query = query.not('status', 'in', '("completed","cancelled")')
+    // Собираем запрос заново на каждой странице (нельзя переиспользовать один
+    // PostgrestBuilder для нескольких await-ов).
+    const buildQuery = () => {
+      let query = sb
+        .from('tasks')
+        .select(`
+          *,
+          assignee:persons!tasks_assignee_id_fkey(id, full_name),
+          creator:persons!tasks_creator_id_fkey(id, full_name),
+          department:departments(id, name)
+        `)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+
+      if (view === 'assigned') {
+        query = query.eq('assignee_id', personId)
+      } else if (view === 'created') {
+        query = query.eq('creator_id', personId)
+      } else if (view === 'department') {
+        query = query.in('department_id', myDeptIds!)
+        if (departmentFilter) query = query.eq('department_id', departmentFilter)
+      } else if (view === 'watching') {
+        query = query.in('id', watchingTaskIds!)
+      }
+
+      // ─── Фильтр по статусу ───────────────────────────────────────────────────
+      if (statusFilter === 'all') {
+        // без фильтра
+      } else if (statusFilter && statusFilter !== 'active') {
+        query = query.eq('status', statusFilter as TaskStatus)
+      } else {
+        // 'active' или не указан — всё кроме completed/cancelled
+        query = query.not('status', 'in', '("completed","cancelled")')
+      }
+
+      if (moduleFilter) query = query.eq('module', moduleFilter)
+      if (priorityFilter) query = query.eq('priority', priorityFilter)
+      return query
     }
 
-    if (moduleFilter) query = query.eq('module', moduleFilter)
-    if (priorityFilter) query = query.eq('priority', priorityFilter)
+    type TaskListRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
+    const tasks: TaskListRow[] = []
+    let from = 0
+    for (;;) {
+      const { data, error } = await buildQuery().range(from, from + PAGE - 1)
+      if (error) throw error
+      const rows = (data ?? []) as TaskListRow[]
+      tasks.push(...rows)
+      if (rows.length < PAGE) break
+      from += PAGE
+    }
 
-    const { data, error } = await query
-    if (error) throw error
-
-    return NextResponse.json({ tasks: data ?? [] })
+    return NextResponse.json({ tasks })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

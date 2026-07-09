@@ -7,6 +7,10 @@ import { canAssign } from '@/lib/dormitory/occupancy'
 import { countRoomActiveOverlaps, journeyHasActiveOverlap } from '@/lib/dormitory/occupancy-server'
 import type { DormAssignmentInsert } from '@/types/database'
 
+// PostgREST молча обрезает выдачу на db-max-rows (~1000). Назначения комнаты
+// читаем постранично; вторичная сортировка по id — стабильная пагинация.
+const PAGE = 1000
+
 /**
  * GET  /api/dormitory/rooms/[id]/assignments — назначения комнаты + имя студента.
  *   Право: dormitory.view.
@@ -41,7 +45,7 @@ export async function GET(
     if (rErr) throw rErr
     if (!room) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
 
-    const { data, error } = await sb
+    const buildQuery = () => sb
       .from('dorm_assignments')
       .select(`
         id, room_id, journey_id, assigned_from, assigned_to, status, created_at, updated_at,
@@ -51,9 +55,21 @@ export async function GET(
       `)
       .eq('room_id', params.id)
       .order('assigned_from', { ascending: false })
-    if (error) throw error
+      .order('id', { ascending: true })
 
-    const assignments = (data ?? []).map(a => {
+    type AssignmentRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
+    const data: AssignmentRow[] = []
+    let from = 0
+    for (;;) {
+      const { data: page, error } = await buildQuery().range(from, from + PAGE - 1)
+      if (error) throw error
+      const rows = (page ?? []) as AssignmentRow[]
+      data.push(...rows)
+      if (rows.length < PAGE) break
+      from += PAGE
+    }
+
+    const assignments = data.map(a => {
       const s = studentName(a)
       return {
         id: a.id,

@@ -65,10 +65,15 @@ describe('grantsAccess', () => {
     expect(grantsAccess('all', { department_id: 'other' }, ctx)).toBe(true)
   })
 
+  it('scope=all + null target → доступ (all не зависит от подразделения)', () => {
+    expect(grantsAccess('all', undefined, ctx)).toBe(true)
+    expect(grantsAccess('all', {}, ctx)).toBe(true)
+  })
+
   describe('scope=department', () => {
-    it('без target.department_id → доступ (общий пул)', () => {
-      expect(grantsAccess('department', undefined, ctx)).toBe(true)
-      expect(grantsAccess('department', {}, ctx)).toBe(true)
+    it('без target.department_id → НЕТ доступа (fail-closed, не «общий пул»)', () => {
+      expect(grantsAccess('department', undefined, ctx)).toBe(false)
+      expect(grantsAccess('department', {}, ctx)).toBe(false)
     })
 
     it('цель в моих подразделениях → доступ', () => {
