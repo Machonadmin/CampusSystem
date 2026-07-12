@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { mapDbError } from '@/lib/finance/http'
@@ -37,15 +38,15 @@ export async function PATCH(
     if (body.amount !== undefined) {
       const amount = Number(body.amount)
       if (!Number.isFinite(amount) || amount <= 0) {
-        return NextResponse.json({ error: 'amount должен быть числом > 0' }, { status: 400 })
+        return apiError('amount_number_gt_0', 400)
       }
       update.amount = amount
     }
     if (body.paid_at !== undefined) {
       const paidAt = body.paid_at?.trim()
-      if (!paidAt) return NextResponse.json({ error: 'paid_at не может быть пустым' }, { status: 400 })
+      if (!paidAt) return apiError('paid_at_not_empty', 400)
       if (!isIsoDate(paidAt)) {
-        return NextResponse.json({ error: 'paid_at должен быть датой в формате YYYY-MM-DD' }, { status: 400 })
+        return apiError('paid_at_must_be_date', 400)
       }
       update.paid_at = paidAt
     }
@@ -53,16 +54,13 @@ export async function PATCH(
     if (body.reference !== undefined) update.reference = body.reference?.trim() || null
     if (body.status !== undefined) {
       if (body.status !== 'pending' && body.status !== 'cancelled') {
-        return NextResponse.json(
-          { error: "status может быть только 'pending' или 'cancelled' (подтверждение — через /approve)" },
-          { status: 400 }
-        )
+        return apiError('status_pending_or_cancelled', 400)
       }
       update.status = body.status
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const sb = createServerClient()
@@ -73,7 +71,7 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Платёж не найден' }, { status: 404 })
+    if (!existing) return apiError('payment_not_found', 404)
 
     // Инвариант: сумму в баланс может добавить только approve_payment. Поэтому
     // ПОДТВЕРЖДЁННЫЙ платёж этим маршрутом (create_invoice) можно ТОЛЬКО
@@ -87,10 +85,7 @@ export async function PATCH(
         update.method === undefined &&
         update.reference === undefined
       if (!onlyCancelling) {
-        return NextResponse.json(
-          { error: "Подтверждённый платёж можно только отменить (status='cancelled'); правка суммы/полей — операция approve_payment" },
-          { status: 409 }
-        )
+        return apiError('confirmed_payment_cancel_only', 409)
       }
     }
 
@@ -109,10 +104,7 @@ export async function PATCH(
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
     if (!data) {
-      return NextResponse.json(
-        { error: 'Статус платежа изменился (параллельное изменение), повторите' },
-        { status: 409 }
-      )
+      return apiError('payment_status_changed_retry', 409)
     }
 
     return NextResponse.json(data)
@@ -122,6 +114,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

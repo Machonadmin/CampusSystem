@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { computeLedgerTotals } from '@/lib/finance/money'
@@ -45,7 +46,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 404 })
+    if (!journey) return apiError('student_not_found', 404)
 
     // Начисления — постранично (вторичная сортировка по id: стабильная пагинация).
     type ChargeRow = {
@@ -108,6 +109,6 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
