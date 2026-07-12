@@ -1,3 +1,4 @@
+import { serverT } from '@/lib/i18n/api-errors'
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 export type RecurrenceEndType = 'never' | 'until_date' | 'after_count'
 
@@ -21,16 +22,16 @@ export const NEVER_HORIZON_DAYS = 365
  */
 export function validateRecurrenceRule(rule: RecurrenceRule): void {
   if (!['daily', 'weekly', 'monthly', 'yearly'].includes(rule.frequency)) {
-    throw Object.assign(new Error('Неверная частота повторения'), { status: 400 })
+    throw Object.assign(new Error(serverT('invalid_recurrence_frequency')), { status: 400 })
   }
 
   if (rule.frequency === 'weekly') {
     if (!Array.isArray(rule.weekdays) || rule.weekdays.length === 0) {
-      throw Object.assign(new Error('Для еженедельной частоты укажите дни недели'), { status: 400 })
+      throw Object.assign(new Error(serverT('weekly_needs_weekdays')), { status: 400 })
     }
     for (const wd of rule.weekdays) {
       if (!Number.isInteger(wd) || wd < 1 || wd > 7) {
-        throw Object.assign(new Error('weekdays: значения 1-7 (1=Пн)'), { status: 400 })
+        throw Object.assign(new Error(serverT('recurrence_weekdays_1_7')), { status: 400 })
       }
     }
   }
@@ -51,15 +52,15 @@ export function validateRecurrenceRule(rule: RecurrenceRule): void {
   }
 
   if (!['never', 'until_date', 'after_count'].includes(rule.end_type)) {
-    throw Object.assign(new Error('Неверный end_type'), { status: 400 })
+    throw Object.assign(new Error(serverT('invalid_end_type')), { status: 400 })
   }
 
   if (rule.end_type === 'until_date' && !rule.end_date) {
-    throw Object.assign(new Error('end_date обязательно для end_type=until_date'), { status: 400 })
+    throw Object.assign(new Error(serverT('recurrence_end_date_required')), { status: 400 })
   }
   if (rule.end_type === 'after_count') {
     if (!Number.isInteger(rule.end_after_count) || rule.end_after_count! < 1) {
-      throw Object.assign(new Error('end_after_count: положительное число'), { status: 400 })
+      throw Object.assign(new Error(serverT('recurrence_end_after_count_positive')), { status: 400 })
     }
     if (rule.end_after_count! > SERIES_LIMIT) {
       throw Object.assign(new Error(`Максимум ${SERIES_LIMIT} повторений в серии`), { status: 400 })
@@ -108,7 +109,7 @@ export function generateSeriesDates(
   } else if (rule.end_type === 'until_date') {
     effectiveEndDate = rule.end_date!
     if (effectiveEndDate < startDate) {
-      throw Object.assign(new Error('end_date раньше startDate'), { status: 400 })
+      throw Object.assign(new Error(serverT('recurrence_end_date_before_start')), { status: 400 })
     }
   } else {
     effectiveEndDate = addDays(startDate, 365 * 10)
@@ -174,7 +175,7 @@ export function generateSeriesDates(
   }
 
   if (dates.length === 0) {
-    throw Object.assign(new Error('Серия не содержит ни одной даты'), { status: 400 })
+    throw Object.assign(new Error(serverT('series_no_dates')), { status: 400 })
   }
   if (dates.length > SERIES_LIMIT) {
     throw Object.assign(

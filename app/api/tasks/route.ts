@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
@@ -8,7 +9,7 @@ import type {
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       watchingTaskIds = (watcherRows ?? []).map(r => r.task_id)
       if (watchingTaskIds.length === 0) return NextResponse.json({ tasks: [] })
     } else if (view !== 'assigned' && view !== 'created') {
-      throw Object.assign(new Error('Неизвестный режим просмотра'), { status: 400 })
+      throw Object.assign(new Error(serverT('unknown_view_mode')), { status: 400 })
     }
 
     // Собираем запрос заново на каждой странице (нельзя переиспользовать один
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -147,9 +148,9 @@ export async function POST(request: NextRequest) {
 
     // ─── Валидация заголовка ───────────────────────────────────────────────────
     const title = body.title?.trim()
-    if (!title) return NextResponse.json({ error: 'Заголовок обязателен' }, { status: 400 })
-    if (title.length > 500) return NextResponse.json({ error: 'Заголовок не должен превышать 500 символов' }, { status: 400 })
-    if (body.description && body.description.length > 10000) return NextResponse.json({ error: 'Описание не должно превышать 10000 символов' }, { status: 400 })
+    if (!title) return apiError('heading_required', 400)
+    if (title.length > 500) return apiError('heading_max_500', 400)
+    if (body.description && body.description.length > 10000) return apiError('description_max_10000', 400)
 
     // ─── Режим назначения ──────────────────────────────────────────────────────
     const assigneeMode = body.assignee_mode ?? 'me'
@@ -162,23 +163,23 @@ export async function POST(request: NextRequest) {
       assignee_id = personId
       status = 'in_progress'
     } else if (assigneeMode === 'person') {
-      if (!body.assignee_id) return NextResponse.json({ error: 'Не указан исполнитель' }, { status: 400 })
+      if (!body.assignee_id) return apiError('assignee_not_specified', 400)
       assignee_id = body.assignee_id
       status = 'pending'
     } else if (assigneeMode === 'department') {
-      if (!body.department_id) return NextResponse.json({ error: 'Не указан отдел' }, { status: 400 })
+      if (!body.department_id) return apiError('department_not_specified', 400)
       assignee_type = 'department'
       department_id = body.department_id
       status = 'unassigned'
     } else {
-      return NextResponse.json({ error: 'Неизвестный режим назначения' }, { status: 400 })
+      return apiError('unknown_assignment_mode', 400)
     }
 
     // ─── Валидация сроков ──────────────────────────────────────────────────────
     const due_all_day = body.due_all_day ?? true
-    if (due_all_day && body.due_time) return NextResponse.json({ error: 'Если "весь день" — время не указывается' }, { status: 400 })
-    if (!due_all_day && !body.due_time) return NextResponse.json({ error: 'Если "весь день" выключен — нужно указать время' }, { status: 400 })
-    if (body.due_time && !body.due_date) return NextResponse.json({ error: 'Время указано без даты' }, { status: 400 })
+    if (due_all_day && body.due_time) return apiError('allday_no_time', 400)
+    if (!due_all_day && !body.due_time) return apiError('not_allday_time_required', 400)
+    if (body.due_time && !body.due_date) return apiError('time_without_date', 400)
 
     const insert: TaskInsert = {
       title,
@@ -233,6 +234,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

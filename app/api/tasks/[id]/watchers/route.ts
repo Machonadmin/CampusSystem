@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
@@ -7,7 +8,7 @@ import type { TaskRow } from '@/types/database'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -29,11 +30,11 @@ export async function GET(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
     const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
     if (!access.canView) {
-      return NextResponse.json({ error: 'Нет доступа' }, { status: 403 })
+      return apiError('no_access', 403)
     }
 
     const { data, error } = await sb
@@ -50,7 +51,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -69,7 +70,7 @@ export async function POST(
     const body = await request.json() as { person_id?: string; person_ids?: string[] }
     const personIds = body.person_ids ?? (body.person_id ? [body.person_id] : [])
     if (personIds.length === 0) {
-      return NextResponse.json({ error: 'Не указан наблюдатель' }, { status: 400 })
+      return apiError('observer_not_specified', 400)
     }
 
     const { data: task, error: tErr } = await sb
@@ -79,14 +80,14 @@ export async function POST(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
     // Добавлять наблюдателей может только тот, кто может РЕДАКТИРОВАТЬ задачу
     // (canEdit — как в PATCH /api/tasks/[id]). Раньше хватало canView, из-за чего
     // любой зритель мог инъектировать наблюдателей.
     const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
     if (!access.canEdit) {
-      return NextResponse.json({ error: 'Изменять задачу может только автор' }, { status: 403 })
+      return apiError('only_author_can_edit_task', 403)
     }
 
     const rows = personIds.map(person_id => ({
@@ -113,6 +114,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
