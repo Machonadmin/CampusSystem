@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
 async function requireSuperadmin() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('Доступ запрещён'), { status: 403 })
+    throw Object.assign(new Error(serverT('access_denied')), { status: 403 })
   return session
 }
 
@@ -30,7 +31,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (tErr) throw tErr
-    if (!template) return NextResponse.json({ error: 'Шаблон не найден' }, { status: 404 })
+    if (!template) return apiError('template_not_found', 404)
 
     const { data: stages, error: sErr } = await sb
       .from('stage_templates')
@@ -74,7 +75,7 @@ export async function GET(
     return NextResponse.json({ template, stages: stages ?? [], task_templates, finals, transitions })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -95,14 +96,14 @@ export async function PATCH(
     const patch: Record<string, unknown> = {}
     if (body.name_ru !== undefined) {
       if (!body.name_ru.trim())
-        return NextResponse.json({ error: 'name_ru не может быть пустым' }, { status: 400 })
+        return apiError('name_ru_not_empty', 400)
       patch.name_ru = body.name_ru.trim()
     }
     if (body.description !== undefined) patch.description = body.description?.trim() || null
     if (body.is_active !== undefined)   patch.is_active = body.is_active
 
     if (Object.keys(patch).length === 0)
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
 
     const { data, error } = await sb
       .from('process_templates')
@@ -111,12 +112,12 @@ export async function PATCH(
       .select('*')
       .maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Шаблон не найден' }, { status: 404 })
+    if (!data) return apiError('template_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -136,11 +137,11 @@ export async function DELETE(
       .select('id')
       .maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Шаблон не найден' }, { status: 404 })
+    if (!data) return apiError('template_not_found', 404)
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

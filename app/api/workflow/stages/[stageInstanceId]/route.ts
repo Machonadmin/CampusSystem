@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -9,7 +10,7 @@ export async function GET(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
 
@@ -23,7 +24,7 @@ export async function GET(
       .eq('id', params.stageInstanceId)
       .maybeSingle()
     if (sErr) throw sErr
-    if (!stage) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
+    if (!stage) return apiError('substage_not_found', 404)
 
     const stageTemplateId = (stage.stage_template as unknown as { id: string } | null)?.id ?? null
     const journeyId = (stage.process_instance as unknown as { journey_id: string } | null)?.journey_id ?? null
@@ -64,6 +65,6 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

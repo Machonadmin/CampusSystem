@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
 
@@ -30,6 +31,6 @@ export async function GET(
     return NextResponse.json({ processes: instances ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
