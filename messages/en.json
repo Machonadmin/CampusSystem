@@ -2294,5 +2294,27 @@
       "birthday": "Birthday",
       "day_off": "Day off"
     }
+  },
+  "apply": {
+    "campus_title": "Campus «Machon Hamesh»",
+    "form_subtitle": "Applicant Registration Form",
+    "honeypot_label": "Do not fill this field",
+    "label_first_name": "First Name",
+    "label_last_name": "Last Name",
+    "label_phone": "Phone",
+    "label_email": "Email",
+    "label_birth_date": "Date of Birth",
+    "label_city": "City of Residence",
+    "label_program": "Program / Track",
+    "program_placeholder": "— Select a program —",
+    "submit": "Submit Registration",
+    "submitting": "Sending…",
+    "success_title": "Thank you for registering!",
+    "success_body": "We've received your details. The campus team will contact you soon.",
+    "error_first_name_required": "Please enter your first name",
+    "error_phone_required": "Please enter your phone number",
+    "error_rate_limited": "Too many requests from this address. Please try again later.",
+    "error_generic": "An error occurred. Please try again.",
+    "error_network": "An error occurred while submitting. Please try again."
   }
 }
