@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -31,14 +32,14 @@ type Sb = ReturnType<typeof createServerClient>
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 // ─── Загрузчики секций (вызываются ТОЛЬКО при наличии привилегии 'view') ───────
@@ -234,7 +235,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .eq('id', id)
       .maybeSingle()
     if (jErr) throw jErr
-    if (!journeyRow) return NextResponse.json({ error: 'Студент не найден' }, { status: 404 })
+    if (!journeyRow) return apiError('student_not_found', 404)
 
     const journey = journeyRow as unknown as {
       id: string
@@ -257,7 +258,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     const eduGate = await hasEducationPrivilege(session, 'view_students', {
       department_id: journey.primary_department_id ?? undefined,
     })
-    if (!eduGate) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (!eduGate) return apiError('forbidden', 403)
 
     // 3. Привилегии 'view' по чувствительным модулям.
     const [pFin, pDorm, pFood, pDoc, pPsy, pDocs] = await Promise.all([
@@ -323,6 +324,6 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
