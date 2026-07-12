@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireContactsPrivilege } from '@/lib/contacts/permissions'
 import { mapDbError } from '@/lib/contacts/http'
@@ -28,15 +29,15 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams
     const category = params.get('category')
     if (category !== null && !isContactCategory(category)) {
-      return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+      return apiError('invalid_category', 400)
     }
     const type = params.get('type')
     if (type !== null && !isContactType(type)) {
-      return NextResponse.json({ error: 'Неверный тип контакта' }, { status: 400 })
+      return apiError('invalid_contact_type', 400)
     }
     const activeParam = params.get('active')
     if (activeParam !== null && activeParam !== 'true' && activeParam !== 'false') {
-      return NextResponse.json({ error: 'active должен быть true или false' }, { status: 400 })
+      return apiError('active_boolean', 400)
     }
 
     const sb = createServerClient()
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -102,14 +103,14 @@ export async function POST(request: NextRequest) {
 
     const name = body.name?.trim()
     if (!name) {
-      return NextResponse.json({ error: 'name обязателен' }, { status: 400 })
+      return apiError('name_field_required', 400)
     }
 
     // contact_type: не задан → 'organization'; задан → должен быть допустимым.
     let contactType: ContactInsert['contact_type'] = 'organization'
     if (body.contact_type !== undefined && body.contact_type !== null && body.contact_type !== '') {
       if (!isContactType(body.contact_type)) {
-        return NextResponse.json({ error: 'Неверный тип контакта' }, { status: 400 })
+        return apiError('invalid_contact_type', 400)
       }
       contactType = body.contact_type
     }
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
     let category: ContactInsert['category'] = 'other'
     if (body.category !== undefined && body.category !== null && body.category !== '') {
       if (!isContactCategory(body.category)) {
-        return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+        return apiError('invalid_category', 400)
       }
       category = body.category
     }
@@ -128,12 +129,12 @@ export async function POST(request: NextRequest) {
     if (body.email !== undefined && body.email !== null && body.email !== '') {
       email = body.email.trim()
       if (!isValidEmail(email)) {
-        return NextResponse.json({ error: 'Неверный email' }, { status: 400 })
+        return apiError('invalid_email', 400)
       }
     }
 
     if (body.is_active !== undefined && typeof body.is_active !== 'boolean') {
-      return NextResponse.json({ error: 'is_active должен быть boolean' }, { status: 400 })
+      return apiError('is_active_boolean', 400)
     }
 
     const sb = createServerClient()
@@ -170,6 +171,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

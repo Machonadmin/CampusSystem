@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireContactsPrivilege } from '@/lib/contacts/permissions'
 import { mapDbError } from '@/lib/contacts/http'
@@ -29,7 +30,7 @@ export async function GET(
     const { data, error } = await sb
       .from('contacts').select(CONTACT_COLS).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Контакт не найден' }, { status: 404 })
+    if (!data) return apiError('contact_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
@@ -38,7 +39,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -70,28 +71,28 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Контакт не найден' }, { status: 404 })
+    if (!existing) return apiError('contact_not_found', 404)
 
     const update: ContactUpdate = {}
 
     if (body.name !== undefined) {
       const name = body.name?.trim()
       if (!name) {
-        return NextResponse.json({ error: 'name не может быть пустым' }, { status: 400 })
+        return apiError('name_field_not_empty', 400)
       }
       update.name = name
     }
 
     if (body.contact_type !== undefined) {
       if (!isContactType(body.contact_type)) {
-        return NextResponse.json({ error: 'Неверный тип контакта' }, { status: 400 })
+        return apiError('invalid_contact_type', 400)
       }
       update.contact_type = body.contact_type
     }
 
     if (body.category !== undefined) {
       if (!isContactCategory(body.category)) {
-        return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+        return apiError('invalid_category', 400)
       }
       update.category = body.category
     }
@@ -103,7 +104,7 @@ export async function PATCH(
       } else {
         const email = body.email.trim()
         if (!isValidEmail(email)) {
-          return NextResponse.json({ error: 'Неверный email' }, { status: 400 })
+          return apiError('invalid_email', 400)
         }
         update.email = email
       }
@@ -111,7 +112,7 @@ export async function PATCH(
 
     if (body.is_active !== undefined) {
       if (typeof body.is_active !== 'boolean') {
-        return NextResponse.json({ error: 'is_active должен быть boolean' }, { status: 400 })
+        return apiError('is_active_boolean', 400)
       }
       update.is_active = body.is_active
     }
@@ -123,7 +124,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -144,7 +145,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -163,7 +164,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Контакт не найден' }, { status: 404 })
+    if (!existing) return apiError('contact_not_found', 404)
 
     const { error } = await sb
       .from('contacts')
@@ -181,6 +182,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
