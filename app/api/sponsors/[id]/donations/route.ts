@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
@@ -36,7 +37,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (sErr) throw sErr
-    if (!sponsor) return NextResponse.json({ error: 'Донор не найден' }, { status: 404 })
+    if (!sponsor) return apiError('donor_not_found', 404)
 
     // Читаем ВСЕ пожертвования донора ПОСТРАНИЧНО (устойчиво к db-max-rows
     // PostgREST): список, stats и campaigns считаются по полному набору, а не по
@@ -74,7 +75,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -96,23 +97,23 @@ export async function POST(
     }
 
     if (!isValidAmount(body.amount)) {
-      return NextResponse.json({ error: 'amount должен быть числом ≥ 0' }, { status: 400 })
+      return apiError('amount_number_gte_0', 400)
     }
     const amount = Number(body.amount)
 
     const donationDate = body.donation_date?.trim()
     if (!donationDate) {
-      return NextResponse.json({ error: 'donation_date обязателен' }, { status: 400 })
+      return apiError('donation_date_required', 400)
     }
     if (!isIsoDate(donationDate)) {
-      return NextResponse.json({ error: 'donation_date должен быть датой в формате YYYY-MM-DD' }, { status: 400 })
+      return apiError('donation_date_must_be_date', 400)
     }
 
     // status: не задан → 'pledged'; задан → должен быть допустимым.
     let status: DonationInsert['status'] = 'pledged'
     if (body.status !== undefined && body.status !== null && body.status !== '') {
       if (!isDonationStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус пожертвования' }, { status: 400 })
+        return apiError('invalid_donation_status', 400)
       }
       status = body.status
     }
@@ -125,7 +126,7 @@ export async function POST(
       .eq('id', params.id)
       .maybeSingle()
     if (sErr) throw sErr
-    if (!sponsor) return NextResponse.json({ error: 'Донор не найден' }, { status: 404 })
+    if (!sponsor) return apiError('donor_not_found', 404)
 
     const insert: DonationInsert = {
       sponsor_id: params.id,
@@ -159,6 +160,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
@@ -30,11 +31,11 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams
     const type = params.get('type')
     if (type !== null && !isSponsorType(type)) {
-      return NextResponse.json({ error: 'Неверный тип донора' }, { status: 400 })
+      return apiError('invalid_donor_type', 400)
     }
     const activeParam = params.get('active')
     if (activeParam !== null && activeParam !== 'true' && activeParam !== 'false') {
-      return NextResponse.json({ error: 'active должен быть true или false' }, { status: 400 })
+      return apiError('active_boolean', 400)
     }
 
     const sb = createServerClient()
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -103,20 +104,20 @@ export async function POST(request: NextRequest) {
 
     const name = body.name?.trim()
     if (!name) {
-      return NextResponse.json({ error: 'name обязателен' }, { status: 400 })
+      return apiError('name_field_required', 400)
     }
 
     // sponsor_type: не задан → 'individual'; задан → должен быть допустимым.
     let sponsorType: SponsorInsert['sponsor_type'] = 'individual'
     if (body.sponsor_type !== undefined && body.sponsor_type !== null && body.sponsor_type !== '') {
       if (!isSponsorType(body.sponsor_type)) {
-        return NextResponse.json({ error: 'Неверный тип донора' }, { status: 400 })
+        return apiError('invalid_donor_type', 400)
       }
       sponsorType = body.sponsor_type
     }
 
     if (body.is_active !== undefined && typeof body.is_active !== 'boolean') {
-      return NextResponse.json({ error: 'is_active должен быть boolean' }, { status: 400 })
+      return apiError('is_active_boolean', 400)
     }
 
     const sb = createServerClient()
@@ -151,6 +152,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

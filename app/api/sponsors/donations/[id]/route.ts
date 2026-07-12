@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
@@ -44,13 +45,13 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Пожертвование не найдено' }, { status: 404 })
+    if (!existing) return apiError('donation_not_found', 404)
 
     const update: DonationUpdate = {}
 
     if (body.amount !== undefined) {
       if (!isValidAmount(body.amount)) {
-        return NextResponse.json({ error: 'amount должен быть числом ≥ 0' }, { status: 400 })
+        return apiError('amount_number_gte_0', 400)
       }
       update.amount = Number(body.amount)
     }
@@ -58,14 +59,14 @@ export async function PATCH(
     if (body.donation_date !== undefined) {
       const donationDate = body.donation_date?.trim()
       if (!donationDate || !isIsoDate(donationDate)) {
-        return NextResponse.json({ error: 'donation_date должен быть датой в формате YYYY-MM-DD' }, { status: 400 })
+        return apiError('donation_date_must_be_date', 400)
       }
       update.donation_date = donationDate
     }
 
     if (body.status !== undefined) {
       if (!isDonationStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус пожертвования' }, { status: 400 })
+        return apiError('invalid_donation_status', 400)
       }
       update.status = body.status
     }
@@ -76,7 +77,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -99,6 +100,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
