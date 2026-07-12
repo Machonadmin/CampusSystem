@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
 import type { RoleCode } from '@/types/database'
@@ -24,7 +25,7 @@ const ALL_FEATURES: FeatureAccess = {
 
 export async function GET() {
   const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+  if (!session) return apiError('unauthorized', 401)
 
   let accessible_modules: string[]
   let feature_access: FeatureAccess
