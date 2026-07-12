@@ -83,9 +83,21 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
+// Локальная карта перевода для middleware: он выполняется в Edge-runtime, где
+// недоступен getCookieLocale() (next/headers), а импорт всех messages/*.json
+// раздул бы edge-бандл. Нужна ровно одна строка — 'unauthorized' на 3 языках;
+// значения совпадают с неймспейсом errors в messages/*.json.
+const UNAUTHORIZED_MSG: Record<string, string> = {
+  ru: 'Не авторизован',
+  he: 'לא מורשה',
+  en: 'Not authorized',
+}
+
 function unauthorized(request: NextRequest): NextResponse {
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    const loc = request.cookies.get('campus_locale')?.value
+    const lang = loc === 'he' || loc === 'en' ? loc : 'ru'
+    return NextResponse.json({ error: UNAUTHORIZED_MSG[lang], code: 'unauthorized' }, { status: 401 })
   }
   const loginUrl = new URL('/login', request.url)
   loginUrl.searchParams.set('from', request.nextUrl.pathname)
