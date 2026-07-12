@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
@@ -30,7 +31,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (error) throw error
-    if (!room) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
+    if (!room) return apiError('room_not_found', 404)
 
     const today = todayISO()
     const asgByRoom = await activeAssignmentsByRoom(sb, [params.id])
@@ -43,7 +44,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -65,13 +66,13 @@ export async function PATCH(
     const update: DormRoomUpdate = {}
     if (body.room_number !== undefined) {
       const n = body.room_number?.trim()
-      if (!n) return NextResponse.json({ error: 'room_number не может быть пустым' }, { status: 400 })
+      if (!n) return apiError('room_number_not_empty', 400)
       update.room_number = n
     }
     if (body.capacity !== undefined) {
       const c = Number(body.capacity)
       if (!Number.isInteger(c) || c <= 0) {
-        return NextResponse.json({ error: 'capacity должен быть целым числом больше 0' }, { status: 400 })
+        return apiError('capacity_positive_int', 400)
       }
       update.capacity = c
     }
@@ -79,7 +80,7 @@ export async function PATCH(
       if (body.floor === null) update.floor = null
       else {
         const f = Number(body.floor)
-        if (!Number.isInteger(f)) return NextResponse.json({ error: 'floor должен быть целым числом' }, { status: 400 })
+        if (!Number.isInteger(f)) return apiError('floor_integer', 400)
         update.floor = f
       }
     }
@@ -87,7 +88,7 @@ export async function PATCH(
     if (body.is_active !== undefined) update.is_active = !!body.is_active
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const sb = createServerClient()
@@ -95,7 +96,7 @@ export async function PATCH(
     const { data: existing, error: exErr } = await sb
       .from('dorm_rooms').select('id').eq('id', params.id).maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
+    if (!existing) return apiError('room_not_found', 404)
 
     const { data, error } = await sb
       .from('dorm_rooms')
@@ -118,7 +119,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -134,7 +135,7 @@ export async function DELETE(
     const { data: existing, error: exErr } = await sb
       .from('dorm_rooms').select('id').eq('id', params.id).maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
+    if (!existing) return apiError('room_not_found', 404)
 
     const { error } = await sb.from('dorm_rooms').delete().eq('id', params.id)
     if (error) throw error
@@ -146,6 +147,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

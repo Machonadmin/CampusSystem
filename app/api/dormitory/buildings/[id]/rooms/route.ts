@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
@@ -27,7 +28,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (bErr) throw bErr
-    if (!building) return NextResponse.json({ error: 'Здание не найдено' }, { status: 404 })
+    if (!building) return apiError('building_not_found', 404)
 
     const { data: rooms, error } = await sb
       .from('dorm_rooms')
@@ -52,7 +53,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -71,17 +72,17 @@ export async function POST(
     }
 
     const roomNumber = body.room_number?.trim()
-    if (!roomNumber) return NextResponse.json({ error: 'room_number обязателен' }, { status: 400 })
+    if (!roomNumber) return apiError('room_number_required', 400)
 
     const capacity = Number(body.capacity)
     if (!Number.isInteger(capacity) || capacity <= 0) {
-      return NextResponse.json({ error: 'capacity должен быть целым числом больше 0' }, { status: 400 })
+      return apiError('capacity_positive_int', 400)
     }
 
     let floor: number | null = null
     if (body.floor !== undefined && body.floor !== null) {
       const f = Number(body.floor)
-      if (!Number.isInteger(f)) return NextResponse.json({ error: 'floor должен быть целым числом' }, { status: 400 })
+      if (!Number.isInteger(f)) return apiError('floor_integer', 400)
       floor = f
     }
 
@@ -90,7 +91,7 @@ export async function POST(
     const { data: building, error: bErr } = await sb
       .from('dorm_buildings').select('id').eq('id', params.id).maybeSingle()
     if (bErr) throw bErr
-    if (!building) return NextResponse.json({ error: 'Здание не найдено' }, { status: 404 })
+    if (!building) return apiError('building_not_found', 404)
 
     const insert: DormRoomInsert = {
       building_id: params.id,
@@ -122,6 +123,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

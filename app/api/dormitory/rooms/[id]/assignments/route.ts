@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
@@ -43,7 +44,7 @@ export async function GET(
     const { data: room, error: rErr } = await sb
       .from('dorm_rooms').select('id, room_number, capacity, building_id').eq('id', params.id).maybeSingle()
     if (rErr) throw rErr
-    if (!room) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
+    if (!room) return apiError('room_not_found', 404)
 
     const buildQuery = () => sb
       .from('dorm_assignments')
@@ -90,7 +91,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -108,17 +109,17 @@ export async function POST(
     }
 
     const journeyId = body.journey_id?.trim()
-    if (!journeyId) return NextResponse.json({ error: 'journey_id обязателен' }, { status: 400 })
+    if (!journeyId) return apiError('journey_id_required', 400)
 
     const from = body.assigned_from?.trim()
     if (!from || !isIsoDate(from)) {
-      return NextResponse.json({ error: 'assigned_from обязателен и должен быть датой YYYY-MM-DD' }, { status: 400 })
+      return apiError('assigned_from_required_date', 400)
     }
     let to: string | null = null
     if (body.assigned_to !== undefined && body.assigned_to !== null && body.assigned_to !== '') {
       to = body.assigned_to.trim()
-      if (!isIsoDate(to)) return NextResponse.json({ error: 'assigned_to должен быть датой YYYY-MM-DD' }, { status: 400 })
-      if (to < from) return NextResponse.json({ error: 'assigned_to не может быть раньше assigned_from' }, { status: 400 })
+      if (!isIsoDate(to)) return apiError('assigned_to_must_be_date', 400)
+      if (to < from) return apiError('assigned_to_before_from', 400)
     }
 
     const sb = createServerClient()
@@ -126,12 +127,12 @@ export async function POST(
     const { data: room, error: rErr } = await sb
       .from('dorm_rooms').select('id, capacity').eq('id', params.id).maybeSingle()
     if (rErr) throw rErr
-    if (!room) return NextResponse.json({ error: 'Комната не найдена' }, { status: 404 })
+    if (!room) return apiError('room_not_found', 404)
 
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', journeyId).maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 400 })
+    if (!journey) return apiError('student_not_found', 400)
 
     // Enforce capacity + no student double-booking over the requested date range.
     const [existingOverlaps, studentOverlap] = await Promise.all([
@@ -177,6 +178,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
