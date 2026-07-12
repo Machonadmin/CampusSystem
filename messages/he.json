@@ -901,7 +901,7 @@
       "general": "כללי",
       "education": "חינוך",
       "staff": "צוות",
-      "quality_control": "בקרת איכות"
+      "quality_control": "הערכת הוראה"
     },
     "empty": {
       "assigned": "אין משימות מוקצות לך",
@@ -1193,7 +1193,7 @@
     "delete_dept_confirm": "למחוק את המחלקה? תת-המחלקות יועברו רמה אחת למעלה."
   },
   "quality": {
-    "title": "בקרת איכות",
+    "title": "הערכת הוראה",
     "status": {
       "planned": "מתוכננת",
       "in_progress": "בתהליך",
