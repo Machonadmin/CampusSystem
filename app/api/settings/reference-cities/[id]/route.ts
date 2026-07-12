@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
@@ -13,7 +14,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     await guard()
     const body = await request.json() as { city?: string }
     const city = body.city?.trim()
-    if (!city) return NextResponse.json({ error: 'Название города обязательно' }, { status: 400 })
+    if (!city) return apiError('city_name_required', 400)
 
     const sb = createServerClient()
     const { error } = await sb
@@ -23,14 +24,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     if (error) {
       if (error.code === '23505') {
-        return NextResponse.json({ error: 'Такой город уже есть' }, { status: 409 })
+        return apiError('city_exists', 409)
       }
       throw error
     }
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -43,6 +44,6 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

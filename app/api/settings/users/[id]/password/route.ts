@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hashPassword } from '@/lib/auth/password'
@@ -16,7 +17,7 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
     const { password } = await request.json() as { password: string }
 
     if (!password || password.length < 8)
-      return NextResponse.json({ error: 'Пароль должен быть не менее 8 символов' }, { status: 400 })
+      return apiError('password_min_8', 400)
 
     const password_hash = await hashPassword(password)
     const { error } = await sb.from('person_accounts')
@@ -27,7 +28,7 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 

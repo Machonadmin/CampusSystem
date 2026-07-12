@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hashPassword } from '@/lib/auth/password'
@@ -54,7 +55,7 @@ export async function GET() {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -75,9 +76,9 @@ export async function POST(request: NextRequest) {
     const { person_id, login_email, password, role_ids = [] } = body
 
     if (!login_email || !password)
-      return NextResponse.json({ error: 'Email и пароль обязательны' }, { status: 400 })
+      return apiError('email_password_required', 400)
     if (password.length < 8)
-      return NextResponse.json({ error: 'Пароль минимум 8 символов' }, { status: 400 })
+      return apiError('password_min_8_short', 400)
 
     const password_hash = await hashPassword(password)
 
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
       const userFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
       const userLastName   = body.last_name?.trim() || null
       const userMiddleName = body.middle_name?.trim() || null
-      if (!userFirstName) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
+      if (!userFirstName) return apiError('name_required', 400)
       const { data: person, error: e1 } = await sb.from('persons').insert({
         last_name: userLastName,
         first_name: userFirstName,
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ person_id: final_person_id, account_id: account.id }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '23505') return NextResponse.json({ error: 'Email уже используется' }, { status: 409 })
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    if (e.code === '23505') return apiError('email_in_use', 409)
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
