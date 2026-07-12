@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDoctorPrivilege } from '@/lib/doctor/permissions'
 import { mapDbError } from '@/lib/doctor/http'
@@ -28,7 +29,7 @@ export async function GET(
     const { data, error } = await sb
       .from('medical_visits').select(VISIT_COLS).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Приём не найден' }, { status: 404 })
+    if (!data) return apiError('visit_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
@@ -37,7 +38,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -66,17 +67,17 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Приём не найден' }, { status: 404 })
+    if (!existing) return apiError('visit_not_found', 404)
 
     const update: MedicalVisitUpdate = {}
 
     if (body.status !== undefined) {
       if (!isVisitStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+        return apiError('invalid_status', 400)
       }
       if (!canTransitionVisit(existing.status, body.status)) {
         return NextResponse.json(
-          { error: `Недопустимый переход статуса: ${existing.status} → ${body.status}` },
+          { error: `${serverT('invalid_status_transition')}: ${existing.status} → ${body.status}` },
           { status: 409 },
         )
       }
@@ -86,7 +87,7 @@ export async function PATCH(
     if (body.visit_date !== undefined) {
       const vd = body.visit_date?.trim()
       if (!vd || !isIsoDate(vd)) {
-        return NextResponse.json({ error: 'visit_date должен быть датой YYYY-MM-DD' }, { status: 400 })
+        return apiError('visit_date_must_be_date', 400)
       }
       update.visit_date = vd
     }
@@ -98,7 +99,7 @@ export async function PATCH(
       } else {
         const fu = body.follow_up_date.trim()
         if (!isIsoDate(fu)) {
-          return NextResponse.json({ error: 'follow_up_date должен быть датой YYYY-MM-DD' }, { status: 400 })
+          return apiError('follow_up_date_must_be_date', 400)
         }
         update.follow_up_date = fu
       }
@@ -110,7 +111,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -131,6 +132,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

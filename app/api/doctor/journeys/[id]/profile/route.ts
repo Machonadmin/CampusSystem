@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDoctorPrivilege } from '@/lib/doctor/permissions'
 import { mapDbError } from '@/lib/doctor/http'
@@ -38,7 +39,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -63,7 +64,7 @@ export async function PUT(
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', params.id).maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 400 })
+    if (!journey) return apiError('student_not_found', 400)
 
     const payload: MedicalProfileInsert = {
       journey_id: params.id,
@@ -93,6 +94,6 @@ export async function PUT(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
