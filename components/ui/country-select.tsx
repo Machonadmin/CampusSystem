@@ -1,6 +1,7 @@
 'use client'
 
 import { POPULAR_COUNTRIES, ALL_COUNTRIES } from '@/lib/geo'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 const OTHER_COUNTRIES = ALL_COUNTRIES.filter(c => !POPULAR_COUNTRIES.includes(c))
 
@@ -14,8 +15,10 @@ interface CountrySelectProps {
 }
 
 export function CountrySelect({
-  value, onChange, className, style, disabled, placeholder = '— Выберите страну —',
+  value, onChange, className, style, disabled, placeholder,
 }: CountrySelectProps) {
+  const t = useTranslations('common')
+  const effectivePlaceholder = placeholder ?? `— ${t('select_country')} —`
   return (
     <select
       value={value}
@@ -24,13 +27,13 @@ export function CountrySelect({
       style={style}
       disabled={disabled}
     >
-      <option value="">{placeholder}</option>
-      <optgroup label="Популярные страны">
+      <option value="">{effectivePlaceholder}</option>
+      <optgroup label={t('popular_countries')}>
         {POPULAR_COUNTRIES.map(c => (
           <option key={c} value={c}>{c}</option>
         ))}
       </optgroup>
-      <optgroup label="Все страны">
+      <optgroup label={t('all_countries')}>
         {OTHER_COUNTRIES.map(c => (
           <option key={c} value={c}>{c}</option>
         ))}

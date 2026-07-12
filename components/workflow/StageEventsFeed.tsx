@@ -31,6 +31,7 @@ interface Props {
 
 export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
   const t = useTranslations('events')
+  const tWf = useTranslations('workflow')
   const { lang } = useLang()
 
   const [events, setEvents] = useState<ProcessEvent[]>([])
@@ -64,7 +65,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
       })
       if (!res.ok) {
         const d = await res.json() as { error?: string }
-        setSaveError(d.error ?? 'Ошибка')
+        setSaveError(d.error ?? tWf('error'))
         return
       }
       setNewContent('')

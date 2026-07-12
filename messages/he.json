@@ -40,7 +40,15 @@
     "edit": "עריכה",
     "loading": "טוען…",
     "error": "שגיאה",
-    "save": "שמירה"
+    "save": "שמירה",
+    "city_input_placeholder": "הזינו שם עיר",
+    "city_choose_from_list": "בחרו מהרשימה",
+    "select_city": "בחרו עיר",
+    "other_city": "עיר אחרת",
+    "select_country": "בחרו מדינה",
+    "popular_countries": "מדינות נפוצות",
+    "all_countries": "כל המדינות",
+    "date_format_placeholder": "DD.MM.YYYY"
   },
   "navigation": {
     "home": "ראשי",
@@ -51,7 +59,8 @@
     "dormitory": "מעונות",
     "food": "הזנה",
     "maintenance": "תחזוקה",
-    "security": "אבטחה"
+    "security": "אבטחה",
+    "logo_alt": "מכון חמש"
   },
   "auth": {
     "login": "כניסה",
@@ -797,7 +806,26 @@
         "status_graduated": "בוגר",
         "status_expelled": "הורחק"
       }
-    }
+    },
+    "docs_error": "שגיאה",
+    "docs_loading": "טוען מסמכים…",
+    "docs_progress_label": "מסמכים שהתקבלו",
+    "docs_status_pending": "ממתין",
+    "docs_status_received": "התקבל",
+    "docs_status_verified": "אומת",
+    "docs_status_rejected": "נדחה",
+    "docs_status_expired": "פג תוקף",
+    "docs_action_mark_received": "סמן כהתקבל",
+    "docs_action_verify": "אשר",
+    "docs_action_verify_title": "אשר את המסמך",
+    "docs_action_reject": "דחה",
+    "docs_action_reject_title": "דחה את המסמך",
+    "docs_action_mark_expired": "סמן כפג תוקף",
+    "docs_action_reset": "איפוס",
+    "docs_action_reset_title": "אפס את הסטטוס",
+    "docs_empty": "לא הוגדרו סוגי מסמכים",
+    "page_status_deleted": "נמחק",
+    "page_actions_title": "פעולות"
   },
   "tasks": {
     "title": "משימות",
@@ -2682,5 +2710,8 @@
     "enroll_specify_department": "לצורך הרישום ציין מחלקה",
     "unknown_view_mode": "מצב תצוגה לא ידוע",
     "access_denied": "הגישה נדחתה"
+  },
+  "workflow": {
+    "error": "שגיאה"
   }
 }

@@ -40,7 +40,15 @@
     "edit": "Edit",
     "loading": "Loading...",
     "error": "Error",
-    "save": "Save"
+    "save": "Save",
+    "city_input_placeholder": "Enter city name",
+    "city_choose_from_list": "Choose from list",
+    "select_city": "Select city",
+    "other_city": "Other city",
+    "select_country": "Select country",
+    "popular_countries": "Popular countries",
+    "all_countries": "All countries",
+    "date_format_placeholder": "DD.MM.YYYY"
   },
   "navigation": {
     "home": "Home",
@@ -51,7 +59,8 @@
     "dormitory": "Dormitory",
     "food": "Dining",
     "maintenance": "Maintenance",
-    "security": "Security"
+    "security": "Security",
+    "logo_alt": "Machon Hamesh"
   },
   "auth": {
     "login": "Sign In",
@@ -797,7 +806,26 @@
         "status_graduated": "Graduate",
         "status_expelled": "Expelled"
       }
-    }
+    },
+    "docs_error": "Error",
+    "docs_loading": "Loading documents…",
+    "docs_progress_label": "Documents received",
+    "docs_status_pending": "Pending",
+    "docs_status_received": "Received",
+    "docs_status_verified": "Verified",
+    "docs_status_rejected": "Rejected",
+    "docs_status_expired": "Expired",
+    "docs_action_mark_received": "Mark as received",
+    "docs_action_verify": "Confirm",
+    "docs_action_verify_title": "Confirm document",
+    "docs_action_reject": "Reject",
+    "docs_action_reject_title": "Reject document",
+    "docs_action_mark_expired": "Mark as expired",
+    "docs_action_reset": "Reset",
+    "docs_action_reset_title": "Reset status",
+    "docs_empty": "Document types are not configured",
+    "page_status_deleted": "Deleted",
+    "page_actions_title": "Actions"
   },
   "tasks": {
     "title": "Tasks",
@@ -2682,5 +2710,8 @@
     "enroll_specify_department": "To enroll, specify a department",
     "unknown_view_mode": "Unknown view mode",
     "access_denied": "Access denied"
+  },
+  "workflow": {
+    "error": "Error"
   }
 }

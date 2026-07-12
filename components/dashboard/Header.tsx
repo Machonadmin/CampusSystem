@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 
@@ -13,6 +13,7 @@ interface HeaderProps {
 
 export default function Header({ userName, roles }: HeaderProps) {
   const { lang, setLang, t, isRTL } = useLang()
+  const tNav = useTranslations('navigation')
   const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
@@ -64,7 +65,7 @@ export default function Header({ userName, roles }: HeaderProps) {
         style={{ borderInlineStart: '3px solid #4BAED4', paddingInlineStart: 12 }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Махон Хамеш" style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
+        <img src="/logo.png" alt={tNav('logo_alt')} style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
           style={{ color: '#3B82F6', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}

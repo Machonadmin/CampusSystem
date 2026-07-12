@@ -40,7 +40,15 @@
     "edit": "Редактировать",
     "loading": "Загрузка...",
     "error": "Ошибка",
-    "save": "Сохранить"
+    "save": "Сохранить",
+    "city_input_placeholder": "Введите название города",
+    "city_choose_from_list": "Выбрать из списка",
+    "select_city": "Выберите город",
+    "other_city": "Другой город",
+    "select_country": "Выберите страну",
+    "popular_countries": "Популярные страны",
+    "all_countries": "Все страны",
+    "date_format_placeholder": "ДД.ММ.ГГГГ"
   },
   "navigation": {
     "home": "Главная",
@@ -51,7 +59,8 @@
     "dormitory": "Общежитие",
     "food": "Питание",
     "maintenance": "Эксплуатация",
-    "security": "Безопасность"
+    "security": "Безопасность",
+    "logo_alt": "Махон Хамеш"
   },
   "auth": {
     "login": "Войти",
@@ -797,7 +806,26 @@
         "status_graduated": "Выпускник",
         "status_expelled": "Отчислен"
       }
-    }
+    },
+    "docs_error": "Ошибка",
+    "docs_loading": "Загрузка документов…",
+    "docs_progress_label": "Получено документов",
+    "docs_status_pending": "Ожидается",
+    "docs_status_received": "Получен",
+    "docs_status_verified": "Проверен",
+    "docs_status_rejected": "Отклонён",
+    "docs_status_expired": "Просрочен",
+    "docs_action_mark_received": "Отметить как получен",
+    "docs_action_verify": "Подтвердить",
+    "docs_action_verify_title": "Подтвердить документ",
+    "docs_action_reject": "Отклонить",
+    "docs_action_reject_title": "Отклонить документ",
+    "docs_action_mark_expired": "Отметить как просроченный",
+    "docs_action_reset": "Сброс",
+    "docs_action_reset_title": "Сбросить статус",
+    "docs_empty": "Типы документов не настроены",
+    "page_status_deleted": "Удалён",
+    "page_actions_title": "Действия"
   },
   "tasks": {
     "title": "Задачи",
@@ -2682,5 +2710,8 @@
     "enroll_specify_department": "Для оформления укажите подразделение",
     "unknown_view_mode": "Неизвестный режим просмотра",
     "access_denied": "Доступ запрещён"
+  },
+  "workflow": {
+    "error": "Ошибка"
   }
 }
