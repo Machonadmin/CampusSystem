@@ -2574,6 +2574,7 @@
     "to_stage_template_id_not_empty": "to_stage_template_id cannot be empty",
     "generic_error": "Error",
     "db_error": "Database error",
+    "database_error": "Database error",
     "state_conflict": "State conflict",
     "invalid_input": "Invalid input data",
     "validation_error": "Validation error",
@@ -2597,6 +2598,18 @@
     "assign_only_active_account": "A task can only be assigned to a user with an active account",
     "unassigned_only_pool": "The unassigned status is only allowed for tasks in the department pool",
     "assignee_needs_person_or_department": "Type \"person\" requires an assignee; type \"department\" requires a department",
-    "time_requires_not_allday": "If a time is specified, the \"all day\" flag must be off (and vice versa)"
+    "time_requires_not_allday": "If a time is specified, the \"all day\" flag must be off (and vice versa)",
+    "process_start_error": "Process start error",
+    "invalid_transition": "Invalid transition",
+    "invalid_rule": "Invalid rule",
+    "date_generation_error": "Date generation error",
+    "invalid_status_transition": "Invalid status transition",
+    "invalid_locale": "Invalid locale",
+    "not_available": "Not available",
+    "person_creation_error": "Error creating person",
+    "journey_creation_error": "Error creating journey",
+    "enroll_specify_department": "To enroll, specify a department",
+    "unknown_view_mode": "Unknown view mode",
+    "access_denied": "Access denied"
   }
 }

@@ -2574,6 +2574,7 @@
     "to_stage_template_id_not_empty": "to_stage_template_id לא יכול להיות ריק",
     "generic_error": "שגיאה",
     "db_error": "שגיאת מסד נתונים",
+    "database_error": "שגיאת מסד נתונים",
     "state_conflict": "התנגשות מצב",
     "invalid_input": "נתוני קלט לא תקינים",
     "validation_error": "שגיאת אימות",
@@ -2597,6 +2598,18 @@
     "assign_only_active_account": "ניתן להקצות משימה רק למשתמש עם חשבון פעיל",
     "unassigned_only_pool": "סטטוס unassigned אפשרי רק למשימות במאגר המחלקה",
     "assignee_needs_person_or_department": "עבור סוג \"person\" נדרש אחראי, עבור \"department\" — מחלקה",
-    "time_requires_not_allday": "אם צוינה שעה — הדגל \"כל היום\" צריך להיות כבוי (ולהפך)"
+    "time_requires_not_allday": "אם צוינה שעה — הדגל \"כל היום\" צריך להיות כבוי (ולהפך)",
+    "process_start_error": "שגיאה בהפעלת התהליך",
+    "invalid_transition": "מעבר לא תקין",
+    "invalid_rule": "כלל לא תקין",
+    "date_generation_error": "שגיאה ביצירת תאריכים",
+    "invalid_status_transition": "מעבר סטטוס לא תקין",
+    "invalid_locale": "שפה לא תקינה",
+    "not_available": "לא זמין",
+    "person_creation_error": "שגיאה ביצירת person",
+    "journey_creation_error": "שגיאה ביצירת journey",
+    "enroll_specify_department": "לצורך הרישום ציין מחלקה",
+    "unknown_view_mode": "מצב תצוגה לא ידוע",
+    "access_denied": "הגישה נדחתה"
   }
 }

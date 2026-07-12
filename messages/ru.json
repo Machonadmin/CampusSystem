@@ -2574,6 +2574,7 @@
     "to_stage_template_id_not_empty": "to_stage_template_id не может быть пустым",
     "generic_error": "Ошибка",
     "db_error": "Ошибка БД",
+    "database_error": "Ошибка базы данных",
     "state_conflict": "Конфликт состояния",
     "invalid_input": "Некорректные входные данные",
     "validation_error": "Ошибка валидации",
@@ -2597,6 +2598,18 @@
     "assign_only_active_account": "Назначить задачу можно только на пользователя с активным аккаунтом",
     "unassigned_only_pool": "Статус unassigned возможен только для задач в пуле отдела",
     "assignee_needs_person_or_department": "Для типа \"person\" нужен исполнитель, для \"department\" — отдел",
-    "time_requires_not_allday": "Если указано время — флаг \"весь день\" должен быть выключен (и наоборот)"
+    "time_requires_not_allday": "Если указано время — флаг \"весь день\" должен быть выключен (и наоборот)",
+    "process_start_error": "Ошибка запуска процесса",
+    "invalid_transition": "Недопустимый переход",
+    "invalid_rule": "Невалидное правило",
+    "date_generation_error": "Ошибка генерации дат",
+    "invalid_status_transition": "Недопустимый переход статуса",
+    "invalid_locale": "Неверная локаль",
+    "not_available": "Недоступно",
+    "person_creation_error": "Ошибка создания person",
+    "journey_creation_error": "Ошибка создания journey",
+    "enroll_specify_department": "Для оформления укажите подразделение",
+    "unknown_view_mode": "Неизвестный режим просмотра",
+    "access_denied": "Доступ запрещён"
   }
 }

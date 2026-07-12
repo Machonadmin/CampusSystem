@@ -30,7 +30,16 @@ const errorsByLang: Record<Lang, ErrorMap> = {
  * если код опечатан).
  */
 export function serverT(code: string): string {
-  const locale = getCookieLocale()
+  // getCookieLocale() → cookies() (next/headers) бросает вне request-scope
+  // (юнит-тесты, любой вызов вне запроса). Мапперы ошибок (mapDbError и т.п.)
+  // тестируются напрямую, поэтому serverT обязан быть безопасным: при отсутствии
+  // request-scope молча берём 'ru' — язык-источник, поведение как раньше.
+  let locale: Lang = 'ru'
+  try {
+    locale = getCookieLocale()
+  } catch {
+    locale = 'ru'
+  }
   return errorsByLang[locale]?.[code] ?? errorsByLang.ru[code] ?? code
 }
 
