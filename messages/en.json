@@ -2713,5 +2713,20 @@
   },
   "workflow": {
     "error": "Error"
+  },
+  "change_password": {
+    "title": "Change password",
+    "success": "Password changed successfully",
+    "current_label": "Current password",
+    "new_label": "New password",
+    "new_placeholder": "At least 8 characters",
+    "confirm_label": "Confirm password",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save",
+    "err_current_required": "Enter your current password",
+    "err_min_8": "New password must be at least 8 characters",
+    "err_mismatch": "Passwords do not match",
+    "err_generic": "Error"
   }
 }

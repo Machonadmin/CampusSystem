@@ -2713,5 +2713,20 @@
   },
   "workflow": {
     "error": "שגיאה"
+  },
+  "change_password": {
+    "title": "שינוי סיסמה",
+    "success": "הסיסמה שונתה בהצלחה",
+    "current_label": "סיסמה נוכחית",
+    "new_label": "סיסמה חדשה",
+    "new_placeholder": "לפחות 8 תווים",
+    "confirm_label": "אימות סיסמה",
+    "cancel": "ביטול",
+    "saving": "שומר...",
+    "save": "שמור",
+    "err_current_required": "הזן את הסיסמה הנוכחית",
+    "err_min_8": "הסיסמה החדשה חייבת להכיל לפחות 8 תווים",
+    "err_mismatch": "הסיסמאות אינן תואמות",
+    "err_generic": "שגיאה"
   }
 }
