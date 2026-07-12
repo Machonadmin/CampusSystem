@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -143,9 +144,9 @@ const staffSchema = z.object({
   }).optional(),
   comment: z.string().optional(),
 }).refine(d => d.person_id || d.first_name?.trim() || d.full_name?.trim(), {
-  message: 'ФИО обязательно',
+  message: serverT('full_name_required'),
 }).refine(d => d.position_id || d.position?.trim(), {
-  message: 'position или position_id обязательны',
+  message: serverT('position_or_position_id_required'),
 })
 
 /**
@@ -166,7 +167,7 @@ export async function POST(request: NextRequest) {
     if (!body.person_id) {
       const hasPhone = !!body.phone?.trim() || !!(body.phones && body.phones.some(p => p.trim()))
       if (!hasPhone) {
-        throw Object.assign(new Error('Телефон обязателен'), { status: 400 })
+        throw Object.assign(new Error(serverT('phone_required')), { status: 400 })
       }
     }
 
