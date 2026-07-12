@@ -2728,5 +2728,27 @@
     "err_min_8": "הסיסמה החדשה חייבת להכיל לפחות 8 תווים",
     "err_mismatch": "הסיסמאות אינן תואמות",
     "err_generic": "שגיאה"
+  },
+  "apply": {
+    "campus_title": "קמפוס «מכון חמש»",
+    "form_subtitle": "טופס הרשמה למועמדים",
+    "honeypot_label": "אל תמלא שדה זה",
+    "label_first_name": "שם פרטי",
+    "label_last_name": "שם משפחה",
+    "label_phone": "טלפון",
+    "label_email": "אימייל",
+    "label_birth_date": "תאריך לידה",
+    "label_city": "עיר מגורים",
+    "label_program": "תוכנית / מסלול מבוקש",
+    "program_placeholder": "— בחר תוכנית —",
+    "submit": "שליחת הרשמה",
+    "submitting": "שולח…",
+    "success_title": "תודה על ההרשמה!",
+    "success_body": "קיבלנו את הפרטים שלך. צוות הקמפוס יצור איתך קשר בהקדם.",
+    "error_first_name_required": "נא למלא שם פרטי",
+    "error_phone_required": "נא למלא מספר טלפון",
+    "error_rate_limited": "נשלחו יותר מדי בקשות מכתובת זו. נסו שוב מאוחר יותר.",
+    "error_generic": "אירעה שגיאה. נסו שוב.",
+    "error_network": "אירעה שגיאה בשליחה. נסו שוב."
   }
 }
