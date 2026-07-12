@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess } from '@/lib/education/lesson-access'
 import type { AssessmentUpdate } from '@/types/database'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  if (error.code === '23514') return { status: 400, message: 'Нарушено ограничение БД (проверьте max_score)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  if (error.code === '23514') return { status: 400, message: serverT('db_constraint_max_score') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /**
@@ -24,7 +25,7 @@ export async function GET(
     const sb = createServerClient()
 
     const access = await getAssessmentAccess(sb, params.id)
-    if (!access) return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 })
+    if (!access) return apiError('assignment_not_found', 404)
 
     await requireEducationPrivilege('view_students', access.target)
 
@@ -41,7 +42,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -65,20 +66,20 @@ export async function PATCH(
     const sb = createServerClient()
 
     const access = await getAssessmentAccess(sb, params.id)
-    if (!access) return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 })
+    if (!access) return apiError('assignment_not_found', 404)
 
     await requireEducationPrivilege('set_grades', access.target)
 
     const update: AssessmentUpdate = {}
     if (body.title !== undefined) {
       const t = body.title?.trim()
-      if (!t) return NextResponse.json({ error: 'title не может быть пустым' }, { status: 400 })
+      if (!t) return apiError('title_field_not_empty', 400)
       update.title = t
     }
     if (body.max_score !== undefined) {
       const ms = Number(body.max_score)
       if (!Number.isFinite(ms) || ms <= 0) {
-        return NextResponse.json({ error: 'max_score должен быть больше 0' }, { status: 400 })
+        return apiError('max_score_gt_0', 400)
       }
       update.max_score = ms
     }
@@ -86,7 +87,7 @@ export async function PATCH(
     if (body.description !== undefined) update.description = body.description?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     // Понижение max_score недопустимо, если есть оценки, которые его превышают —
@@ -124,7 +125,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -141,7 +142,7 @@ export async function DELETE(
     const sb = createServerClient()
 
     const access = await getAssessmentAccess(sb, params.id)
-    if (!access) return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 })
+    if (!access) return apiError('assignment_not_found', 404)
 
     await requireEducationPrivilege('set_grades', access.target)
 
@@ -155,6 +156,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

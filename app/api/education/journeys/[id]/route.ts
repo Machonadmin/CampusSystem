@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
@@ -10,7 +11,7 @@ import type { EducationJourneyUpdate, JourneyStatus } from '@/types/database'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -24,11 +25,11 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Запись уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  if (error.code === '23514') return { status: 400, message: 'Нарушено ограничение БД' }
-  if (error.code === '22P02') return { status: 400, message: 'Неверное значение поля' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('record_exists') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  if (error.code === '23514') return { status: 400, message: serverT('db_constraint') }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_field_value') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 const STUDENT_STATUSES: ReadonlyArray<JourneyStatus> =
@@ -68,7 +69,7 @@ export async function GET(
       .maybeSingle()
 
     if (error) throw error
-    if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!journey) return apiError('journey_not_found', 404)
 
     const j = journey as unknown as {
       id: string
@@ -105,7 +106,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -146,7 +147,7 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!current) return apiError('journey_not_found', 404)
 
     const currentDept = isStudentStatus(current.education_status)
       ? current.primary_department_id
@@ -164,7 +165,7 @@ export async function PATCH(
     if (currentDept == null) {
       const scope = await getEducationPrivilegeScope(session, priv)
       if (scope !== 'all') {
-        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+        return apiError('forbidden', 403)
       }
     }
 
@@ -185,9 +186,9 @@ export async function PATCH(
         .select('department_id')
         .eq('id', body.specialty_id)
         .maybeSingle()
-      if (!spec) return NextResponse.json({ error: 'Специальность не найдена' }, { status: 400 })
+      if (!spec) return apiError('specialty_not_found', 400)
       if (targetDept && spec.department_id !== targetDept) {
-        return NextResponse.json({ error: 'Специальность принадлежит другому подразделению' }, { status: 400 })
+        return apiError('specialty_other_department', 400)
       }
     }
 
@@ -210,7 +211,7 @@ export async function PATCH(
     if (body.status !== undefined) update.status = body.status
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -233,7 +234,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -255,10 +256,10 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!current) return apiError('journey_not_found', 404)
 
     if (current.closed_at) {
-      return NextResponse.json({ error: 'Journey уже закрыт' }, { status: 409 })
+      return apiError('journey_already_closed', 409)
     }
 
     const checkDept = isStudentStatus(current.education_status)
@@ -275,7 +276,7 @@ export async function DELETE(
     if (checkDept == null) {
       const scope = await getEducationPrivilegeScope(session, priv)
       if (scope !== 'all') {
-        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+        return apiError('forbidden', 403)
       }
     }
 
@@ -294,6 +295,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

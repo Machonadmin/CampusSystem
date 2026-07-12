@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
@@ -12,7 +13,7 @@ import type {
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth()
     const ok = await canDoEducationInAny(session, 'view_leads')
-    if (!ok) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (!ok) return apiError('forbidden', 403)
     const sb = createServerClient()
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
     // Просмотр удалённых — только manage_leads + scope=all
     if (processStatus === 'deleted') {
       const scope = await getEducationPrivilegeScope(session, 'manage_leads')
-      if (scope !== 'all') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      if (scope !== 'all') return apiError('forbidden', 403)
     }
 
     let journeysQuery = sb
@@ -142,7 +143,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -203,14 +204,14 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('id', body.person_id)
         .maybeSingle()
-      if (!person) return NextResponse.json({ error: 'Человек не найден' }, { status: 404 })
+      if (!person) return apiError('person_not_found', 404)
       personId = person.id
     } else {
       const leadFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
-      if (!leadFirstName) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
+      if (!leadFirstName) return apiError('full_name_required', 400)
       const leadLastName   = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
       const leadMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
-      if (!body.phone?.trim()) return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
+      if (!body.phone?.trim()) return apiError('phone_required', 400)
 
       const phones = body.phones && body.phones.length > 0
         ? body.phones.map(p => p.trim()).filter(Boolean)
@@ -238,7 +239,7 @@ export async function POST(request: NextRequest) {
         .select('id')
         .single()
 
-      if (personErr || !newPerson) throw personErr ?? new Error('Ошибка создания person')
+      if (personErr || !newPerson) throw personErr ?? new Error(serverT('person_creation_error'))
       personId = newPerson.id
     }
 
@@ -253,10 +254,7 @@ export async function POST(request: NextRequest) {
     let journeyId: string
     if (existingJourney) {
       if (existingJourney.education_status !== 'lead') {
-        return NextResponse.json(
-          { error: 'У этого человека уже есть активный journey с другим статусом' },
-          { status: 409 }
-        )
+        return apiError('person_has_active_journey', 409)
       }
       journeyId = existingJourney.id
     } else {
@@ -276,7 +274,7 @@ export async function POST(request: NextRequest) {
         .insert(journeyInsert as any)
         .select('id')
         .single()
-      if (jErr || !newJourney) throw jErr ?? new Error('Ошибка создания journey')
+      if (jErr || !newJourney) throw jErr ?? new Error(serverT('journey_creation_error'))
       journeyId = newJourney.id
     }
 
@@ -393,7 +391,7 @@ export async function POST(request: NextRequest) {
       p_actor_id: session.person_id,
     })
     if (startErr) {
-      workflowError = startErr.message ?? 'Ошибка запуска процесса'
+      workflowError = startErr.message ?? serverT('process_start_error')
     } else {
       workflowResult = startResult as StartProcessResult
     }
@@ -404,6 +402,6 @@ export async function POST(request: NextRequest) {
     )
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

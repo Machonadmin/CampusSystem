@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 
@@ -23,7 +24,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (gErr) throw gErr
-    if (!group) return NextResponse.json({ error: 'Учебная группа не найдена' }, { status: 404 })
+    if (!group) return apiError('study_group_not_found', 404)
 
     await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
 
@@ -47,6 +48,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

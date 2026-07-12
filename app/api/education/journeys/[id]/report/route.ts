@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -6,14 +7,14 @@ import { round1, attendancePercent } from '@/lib/education/metrics'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 // Размер страницы для агрегаций. PostgREST молча обрезает выдачу на db-max-rows
@@ -62,7 +63,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!journey) return apiError('journey_not_found', 404)
 
     // 2. Группы, в которые записан студент (+ имена предмета/подразделения).
     const { data: enrollments, error: enErr } = await sb
@@ -117,7 +118,7 @@ export async function GET(
 
     // 403 только если ни верхний гейт, ни одна группа не доступны.
     if (!deptGate && visible.length === 0) {
-      return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      return apiError('forbidden', 403)
     }
 
     const visibleGroupIds = visible.map(g => g.id)
@@ -299,6 +300,6 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
