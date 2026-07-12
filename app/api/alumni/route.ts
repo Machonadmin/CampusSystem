@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasAlumniPrivilege } from '@/lib/alumni/permissions'
@@ -25,8 +26,8 @@ function flattenPhones(raw: unknown): string[] {
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '22P02') return { status: 400, message: 'Неверное значение поля' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_field_value') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 // PostgREST молча обрезает выдачу на db-max-rows (~1000). Выпускники копятся по
@@ -37,11 +38,11 @@ const PAGE = 1000
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const canView = await hasAlumniPrivilege(session, 'view')
     if (!canView) {
-      return NextResponse.json({ error: 'Нет прав на просмотр' }, { status: 403 })
+      return apiError('no_view_permission', 403)
     }
 
     const sb = createServerClient()
@@ -160,6 +161,6 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
