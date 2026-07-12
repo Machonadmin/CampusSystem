@@ -149,7 +149,7 @@ export default function AddEmployeeModal({
   const [contractNumber, setContractNumber] = useState('')
   const [contractDate, setContractDate] = useState<Date | null>(null)
   const [salary, setSalary] = useState('')
-  const [currency, setCurrency] = useState('ILS')
+  const [currency, setCurrency] = useState('RUB')
   const [contractFile, setContractFile] = useState<File | null>(null)
 
   // Tab 5 — Дополнительно
@@ -660,9 +660,9 @@ export default function AddEmployeeModal({
             <div>
               <label style={lbl}>{t('add_modal.currency')}</label>
               <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+                <option value="RUB">RUB (₽)</option>
                 <option value="ILS">ILS (₪)</option>
                 <option value="USD">USD ($)</option>
-                <option value="RUB">RUB (₽)</option>
                 <option value="EUR">EUR (€)</option>
               </select>
             </div>

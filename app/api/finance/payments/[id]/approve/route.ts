@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { mapDbError } from '@/lib/finance/http'
@@ -30,7 +31,7 @@ export async function POST(
       .eq('id', params.id)
       .maybeSingle()
     if (pErr) throw pErr
-    if (!payment) return NextResponse.json({ error: 'Платёж не найден' }, { status: 404 })
+    if (!payment) return apiError('payment_not_found', 404)
 
     if (payment.status !== 'pending') {
       return NextResponse.json(
@@ -58,10 +59,7 @@ export async function POST(
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
     if (!data) {
-      return NextResponse.json(
-        { error: 'Платёж уже не в статусе pending (параллельное изменение)' },
-        { status: 409 }
-      )
+      return apiError('payment_not_pending', 409)
     }
 
     return NextResponse.json(data)
@@ -71,6 +69,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

@@ -61,6 +61,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useTranslations('staff')
   const [name, setName] = useState('')
   const [selectedParent, setSelectedParent] = useState(parentId ?? '')
   const [sortOrder, setSortOrder] = useState('0')
@@ -84,7 +85,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   roots2.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walkParents(r, 0))
 
   async function save() {
-    if (!name.trim()) { setErr('Название обязательно'); return }
+    if (!name.trim()) { setErr(t('name_required')); return }
     setSaving(true)
     const res = await fetch('/api/settings/departments', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -92,27 +93,27 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
     })
     setSaving(false)
     if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? t('error')) }
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Новый отдел</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('new_dept')}</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={lbl}>Название (рус.) *</label>
+            <label style={lbl}>{t('name_ru_label')}</label>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
-              placeholder="Бухгалтерия" style={inp} />
+              placeholder={t('dept_name_placeholder')} style={inp} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12 }}>
             <div>
-              <label style={lbl}>Родительский отдел</label>
+              <label style={lbl}>{t('parent_dept')}</label>
               <select value={selectedParent} onChange={e => setSelectedParent(e.target.value)} style={inp}>
-                <option value="">Нет (корневой отдел)</option>
+                <option value="">{t('no_parent_root')}</option>
                 {parentOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
               </select>
             </div>
@@ -122,17 +123,17 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
             </div>
           </div>
           <div>
-            <label style={lbl}>Описание отдела</label>
+            <label style={lbl}>{t('dept_description')}</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
-              style={{ ...inp, resize: 'vertical' }} placeholder="Краткое описание..." />
+              style={{ ...inp, resize: 'vertical' }} placeholder={t('short_description_placeholder')} />
           </div>
           {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving || !name.trim()}
             style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -143,6 +144,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
 // ── Dept rename modal ─────────────────────────────────────────────────────────
 
 function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: () => void; onSaved: () => void }) {
+  const t = useTranslations('staff')
   const [name, setName] = useState(node.name)
   const [saving, setSaving] = useState(false)
 
@@ -159,17 +161,17 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Переименовать отдел</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('rename_dept')}</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px' }}>
           <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving || !name.trim()}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -184,6 +186,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useTranslations('staff')
   const [position, setPosition] = useState(member.position_ru)
   const [empType, setEmpType] = useState(member.employment_type ?? 'staff')
   const [isHead, setIsHead] = useState(member.is_head)
@@ -191,7 +194,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   const [err, setErr] = useState('')
 
   async function save() {
-    if (!position.trim()) { setErr('Должность обязательна'); return }
+    if (!position.trim()) { setErr(t('position_required')); return }
     setSaving(true)
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -199,7 +202,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
     })
     setSaving(false)
     if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? t('error')) }
   }
 
   return (
@@ -207,37 +210,37 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
       <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Изменить должность</p>
+            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('edit_position')}</p>
             <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{member.full_name}</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={lbl}>Должность *</label>
+            <label style={lbl}>{t('position_label')}</label>
             <input autoFocus value={position} onChange={e => setPosition(e.target.value)} style={inp} />
           </div>
           <div>
-            <label style={lbl}>Тип занятости</label>
+            <label style={lbl}>{t('employment_type')}</label>
             <select value={empType} onChange={e => setEmpType(e.target.value)} style={inp}>
-              <option value="staff">Штат</option>
-              <option value="part_time">Частичная ставка</option>
-              <option value="intern">Стажёр</option>
-              <option value="volunteer">Волонтёр</option>
-              <option value="contractor">Подрядчик</option>
+              <option value="staff">{t('employment.staff')}</option>
+              <option value="part_time">{t('employment.part_time')}</option>
+              <option value="intern">{t('employment.intern')}</option>
+              <option value="volunteer">{t('employment.volunteer')}</option>
+              <option value="contractor">{t('employment.contractor')}</option>
             </select>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
             <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
-            Руководитель отдела
+            {t('head_of_dept')}
           </label>
           {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -271,7 +274,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   }, [staffOpen, node.id, refreshSignal])
 
   async function deactivateMember(member: StaffMember) {
-    if (!confirm(`Деактивировать "${member.full_name}" (${member.position_ru})?\n\nСотрудник будет скрыт из списка, данные сохранятся.`)) return
+    if (!confirm(`${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`)) return
     const today = new Date().toISOString().split('T')[0]
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -309,7 +312,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
         <td style={{ padding: '7px 12px' }}>
           <button onClick={() => setStaffOpen(v => !v)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : '#F3F4F6', color: staffOpen ? '#1D4ED8' : '#6B7280', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-            {node.employee_count} сотр.
+            {node.employee_count} {tStaff('employees_short')}
             <svg style={{ width: 9, height: 9, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
@@ -320,19 +323,19 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <button onClick={() => onAddStaff(node.id)}
               style={{ ...btnBase, border: 'none', background: getModuleColor('staff'), color: '#fff' }}>
-              + Сотрудник
+              + {tStaff('employee')}
             </button>
             <button onClick={() => onAddChild(node.id)}
               style={{ ...btnBase, border: `1px solid ${getModuleColor('staff', 'medium')}`, background: getModuleColor('staff', 'light'), color: getModuleColor('staff') }}>
-              + Подотдел
+              + {tStaff('subdept')}
             </button>
             <button onClick={() => onRename(node)}
               style={{ ...btnBase, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-              Переименовать
+              {tStaff('rename')}
             </button>
             <button onClick={() => onDelete(node)}
               style={{ ...btnBase, border: 'none', background: '#FEF2F2', color: '#DC2626' }}>
-              Удалить
+              {tStaff('delete')}
             </button>
           </div>
         </td>
@@ -343,9 +346,9 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
           <td colSpan={4} style={{ padding: '6px 12px 10px' }}>
             <div style={{ paddingInlineStart: depth * 18 + 40 }}>
               {staffLoading ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Загрузка...</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{tStaff('loading')}</p>
               ) : staff.length === 0 ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Нет сотрудников</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{tStaff('no_staff_in_dept')}</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {staff.map(s => (
@@ -358,17 +361,17 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                         <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
                           {s.position_ru}
                           {s.employment_type && s.employment_type !== 'staff' && ` · ${tStaff(`employment.${s.employment_type}`, s.employment_type)}`}
-                          {s.is_head && ' · Руководитель'}
+                          {s.is_head && ` · ${tStaff('dept.head_label')}`}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         <button onClick={() => setEditingMember(s)}
                           style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid #BFDBFE', background: '#EFF6FF', fontSize: 11, cursor: 'pointer', color: '#1D4ED8' }}>
-                          Редактировать
+                          {tStaff('edit')}
                         </button>
                         <button onClick={() => deactivateMember(s)}
                           style={{ padding: '2px 8px', borderRadius: 5, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>
-                          Деактивировать
+                          {tStaff('deactivate')}
                         </button>
                       </div>
                     </div>
@@ -483,17 +486,17 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
   }
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
-    if (!confirm(`Вы уверены, что хотите удалить сотрудника ${fullName}?\n\nЭто действие нельзя отменить.`)) return
+    if (!confirm(`${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`)) return
     try {
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'Ошибка при удалении')
+        alert(data.error || t('delete_error'))
         return
       }
       setLocalRefresh(n => n + 1)
     } catch {
-      alert('Ошибка при удалении сотрудника')
+      alert(t('delete_employee_error'))
     }
   }
 
@@ -617,14 +620,14 @@ export default function StaffPage() {
   const load = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/settings/departments')
-    if (!res.ok) { setError('Ошибка загрузки'); setLoading(false); return }
+    if (!res.ok) { setError(t('load_error')); setLoading(false); return }
     setDepts(await res.json()); setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
   async function handleDelete(node: TreeNode) {
-    if (!confirm('Удалить отдел? Дочерние отделы будут перенесены выше.')) return
+    if (!confirm(t('delete_dept_confirm'))) return
     await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
     load()
   }

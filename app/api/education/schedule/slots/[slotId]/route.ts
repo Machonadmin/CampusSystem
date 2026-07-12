@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getSlotAccess } from '@/lib/education/lesson-access'
 import type { ScheduleSlotUpdate } from '@/types/database'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '22P02') return { status: 400, message: 'Неверный идентификатор' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  if (error.code === '23505') return { status: 409, message: 'Слот на этот день и время уже существует' }
-  if (error.code === '23514') return { status: 400, message: 'Нарушено ограничение БД (день недели 1–7, конец позже начала)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  if (error.code === '23505') return { status: 409, message: serverT('slot_exists_day_time') }
+  if (error.code === '23514') return { status: 400, message: serverT('db_constraint_slot') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /** 'HH:MM' | 'HH:MM:SS' → секунды от полуночи, или null если формат неверен. */
@@ -42,7 +43,7 @@ export async function PATCH(
     const sb = createServerClient()
 
     const access = await getSlotAccess(sb, params.slotId)
-    if (!access) return NextResponse.json({ error: 'Слот не найден' }, { status: 404 })
+    if (!access) return apiError('slot_not_found', 404)
 
     await requireEducationPrivilege('set_lesson_topics', access.target)
 
@@ -51,35 +52,35 @@ export async function PATCH(
     if (body.day_of_week !== undefined) {
       const dow = Number(body.day_of_week)
       if (!Number.isInteger(dow) || dow < 1 || dow > 7) {
-        return NextResponse.json({ error: 'day_of_week должен быть целым числом от 1 (Пн) до 7 (Вс)' }, { status: 400 })
+        return apiError('day_of_week_1_7', 400)
       }
       update.day_of_week = dow
     }
     if (body.start_time !== undefined) {
       const s = body.start_time?.trim()
       if (!s || timeToSeconds(s) === null) {
-        return NextResponse.json({ error: 'Неверный формат start_time (ожидается HH:MM)' }, { status: 400 })
+        return apiError('invalid_start_time_format', 400)
       }
       update.start_time = s
     }
     if (body.end_time !== undefined) {
       const e = body.end_time?.trim()
       if (!e || timeToSeconds(e) === null) {
-        return NextResponse.json({ error: 'Неверный формат end_time (ожидается HH:MM)' }, { status: 400 })
+        return apiError('invalid_end_time_format', 400)
       }
       update.end_time = e
     }
     if (body.room !== undefined) update.room = body.room?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     // Проверяем итоговую пару start/end (с учётом того, что меняется только часть).
     const effStart = timeToSeconds(update.start_time ?? access.slot.start_time)
     const effEnd = timeToSeconds(update.end_time ?? access.slot.end_time)
     if (effStart !== null && effEnd !== null && effEnd <= effStart) {
-      return NextResponse.json({ error: 'end_time должен быть позже start_time' }, { status: 400 })
+      return apiError('end_after_start', 400)
     }
 
     const { data, error } = await sb
@@ -100,7 +101,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -117,7 +118,7 @@ export async function DELETE(
     const sb = createServerClient()
 
     const access = await getSlotAccess(sb, params.slotId)
-    if (!access) return NextResponse.json({ error: 'Слот не найден' }, { status: 404 })
+    if (!access) return apiError('slot_not_found', 404)
 
     await requireEducationPrivilege('set_lesson_topics', access.target)
 
@@ -131,6 +132,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
@@ -43,28 +44,28 @@ export async function PATCH(
       .eq('provider_id', session.person_id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Встреча не найдена' }, { status: 404 })
+    if (!existing) return apiError('meeting_not_found', 404)
 
     const update: AppointmentUpdate = {}
 
     if (body.title !== undefined) {
       const title = body.title?.trim()
-      if (!title) return NextResponse.json({ error: 'title не может быть пустым' }, { status: 400 })
+      if (!title) return apiError('title_field_not_empty', 400)
       update.title = title
     }
 
     if (body.status !== undefined) {
       if (!isAppointmentStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+        return apiError('invalid_status', 400)
       }
       update.status = body.status
     }
 
     if (body.starts_at !== undefined && !isIsoDateTime(body.starts_at)) {
-      return NextResponse.json({ error: 'starts_at должен быть датой-временем ISO' }, { status: 400 })
+      return apiError('starts_at_iso', 400)
     }
     if (body.ends_at !== undefined && !isIsoDateTime(body.ends_at)) {
-      return NextResponse.json({ error: 'ends_at должен быть датой-временем ISO' }, { status: 400 })
+      return apiError('ends_at_iso', 400)
     }
 
     // Итоговые времена (учитываем частичное обновление одного из полей).
@@ -74,7 +75,7 @@ export async function PATCH(
 
     if (timesChanged) {
       if (Date.parse(nextEnds) <= Date.parse(nextStarts)) {
-        return NextResponse.json({ error: 'ends_at должен быть позже starts_at' }, { status: 400 })
+        return apiError('ends_after_starts', 400)
       }
       if (body.starts_at !== undefined) update.starts_at = body.starts_at
       if (body.ends_at !== undefined) update.ends_at = body.ends_at
@@ -86,7 +87,7 @@ export async function PATCH(
     if (nextStatus === 'scheduled' && (timesChanged || update.status === 'scheduled')) {
       const overlap = await hasOverlappingAppointment(sb, session.person_id, nextStarts, nextEnds, params.id)
       if (overlap) {
-        return NextResponse.json({ error: 'Встреча пересекается с уже запланированной' }, { status: 409 })
+        return apiError('meeting_overlap', 409)
       }
     }
 
@@ -95,7 +96,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -117,7 +118,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -140,7 +141,7 @@ export async function DELETE(
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    if (!data) return NextResponse.json({ error: 'Встреча не найдена' }, { status: 404 })
+    if (!data) return apiError('meeting_not_found', 404)
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
@@ -149,6 +150,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

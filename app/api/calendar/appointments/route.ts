@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
@@ -64,10 +65,10 @@ export async function GET(request: NextRequest) {
     const from = request.nextUrl.searchParams.get('from')?.trim()
     const to = request.nextUrl.searchParams.get('to')?.trim()
     if (from && !isIsoDate(from)) {
-      return NextResponse.json({ error: 'from должен быть датой YYYY-MM-DD' }, { status: 400 })
+      return apiError('from_must_be_date', 400)
     }
     if (to && !isIsoDate(to)) {
-      return NextResponse.json({ error: 'to должен быть датой YYYY-MM-DD' }, { status: 400 })
+      return apiError('to_must_be_date', 400)
     }
 
     // Постраничная выборка встреч по одному критерию отбора (provider или journey).
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -175,13 +176,13 @@ export async function POST(request: NextRequest) {
 
     const title = body.title?.trim()
     if (!title) {
-      return NextResponse.json({ error: 'title обязателен' }, { status: 400 })
+      return apiError('title_field_required', 400)
     }
     if (!isIsoDateTime(body.starts_at) || !isIsoDateTime(body.ends_at)) {
-      return NextResponse.json({ error: 'starts_at и ends_at должны быть датой-временем ISO' }, { status: 400 })
+      return apiError('starts_ends_at_iso', 400)
     }
     if (Date.parse(body.ends_at) <= Date.parse(body.starts_at)) {
-      return NextResponse.json({ error: 'ends_at должен быть позже starts_at' }, { status: 400 })
+      return apiError('ends_after_starts', 400)
     }
 
     const sb = createServerClient()
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
     // Защита от двойного бронирования: 409 при пересечении со СВОЕЙ scheduled.
     const overlap = await hasOverlappingAppointment(sb, session.person_id, body.starts_at, body.ends_at)
     if (overlap) {
-      return NextResponse.json({ error: 'Встреча пересекается с уже запланированной' }, { status: 409 })
+      return apiError('meeting_overlap', 409)
     }
 
     const insert: AppointmentInsert = {
@@ -220,6 +221,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

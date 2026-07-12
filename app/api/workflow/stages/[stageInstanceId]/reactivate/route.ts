@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
@@ -31,7 +32,7 @@ export async function POST(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
 

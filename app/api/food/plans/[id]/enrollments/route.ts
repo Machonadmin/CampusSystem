@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFoodPrivilege } from '@/lib/food/permissions'
 import { mapDbError } from '@/lib/food/http'
@@ -55,7 +56,7 @@ export async function GET(
     const { data: plan, error: pErr } = await sb
       .from('meal_plans').select('id, name').eq('id', params.id).maybeSingle()
     if (pErr) throw pErr
-    if (!plan) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
+    if (!plan) return apiError('plan_not_found', 404)
 
     const rows: EnrollmentRow[] = []
     let offset = 0
@@ -100,7 +101,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -118,17 +119,17 @@ export async function POST(
     }
 
     const journeyId = body.journey_id?.trim()
-    if (!journeyId) return NextResponse.json({ error: 'journey_id обязателен' }, { status: 400 })
+    if (!journeyId) return apiError('journey_id_required', 400)
 
     const from = body.enrolled_from?.trim()
     if (!from || !isIsoDate(from)) {
-      return NextResponse.json({ error: 'enrolled_from обязателен и должен быть датой YYYY-MM-DD' }, { status: 400 })
+      return apiError('enrolled_from_required_date', 400)
     }
     let to: string | null = null
     if (body.enrolled_to !== undefined && body.enrolled_to !== null && body.enrolled_to !== '') {
       to = body.enrolled_to.trim()
-      if (!isIsoDate(to)) return NextResponse.json({ error: 'enrolled_to должен быть датой YYYY-MM-DD' }, { status: 400 })
-      if (to < from) return NextResponse.json({ error: 'enrolled_to не может быть раньше enrolled_from' }, { status: 400 })
+      if (!isIsoDate(to)) return apiError('enrolled_to_must_be_date', 400)
+      if (to < from) return apiError('enrolled_to_before_from', 400)
     }
 
     const sb = createServerClient()
@@ -136,21 +137,18 @@ export async function POST(
     const { data: plan, error: pErr } = await sb
       .from('meal_plans').select('id').eq('id', params.id).maybeSingle()
     if (pErr) throw pErr
-    if (!plan) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
+    if (!plan) return apiError('plan_not_found', 404)
 
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', journeyId).maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 400 })
+    if (!journey) return apiError('student_not_found', 400)
 
     // Enforce: one active meal plan per student over any overlapping date range.
     const studentOverlap = await journeyHasActiveOverlap(sb, journeyId, from, to)
     const decision = canEnroll({ studentHasActiveOverlap: studentOverlap })
     if (!decision.ok) {
-      return NextResponse.json(
-        { error: 'У студента уже есть активный план питания на выбранные даты', reason: decision.reason },
-        { status: 409 }
-      )
+      return apiError('student_active_meal_plan_exists', 409, { reason: decision.reason })
     }
 
     const insert: MealEnrollmentInsert = {
@@ -180,6 +178,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

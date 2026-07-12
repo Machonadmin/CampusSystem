@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDoctorPrivilege } from '@/lib/doctor/permissions'
 import { mapDbError } from '@/lib/doctor/http'
@@ -40,7 +41,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -62,18 +63,14 @@ export async function POST(
 
     const visitDate = body.visit_date?.trim()
     if (!visitDate || !isIsoDate(visitDate)) {
-      return NextResponse.json(
-        { error: 'visit_date обязателен и должен быть датой YYYY-MM-DD' }, { status: 400 },
-      )
+      return apiError('visit_date_required_date', 400)
     }
 
     let followUp: string | null = null
     if (body.follow_up_date !== undefined && body.follow_up_date !== null && body.follow_up_date !== '') {
       followUp = body.follow_up_date.trim()
       if (!isIsoDate(followUp)) {
-        return NextResponse.json(
-          { error: 'follow_up_date должен быть датой YYYY-MM-DD' }, { status: 400 },
-        )
+        return apiError('follow_up_date_must_be_date', 400)
       }
     }
 
@@ -82,7 +79,7 @@ export async function POST(
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', params.id).maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 400 })
+    if (!journey) return apiError('student_not_found', 400)
 
     const insert: MedicalVisitInsert = {
       journey_id: params.id,
@@ -115,6 +112,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

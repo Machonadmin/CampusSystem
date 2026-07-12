@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
@@ -44,7 +45,7 @@ const applicationSchema = z.object({
   referral_source: z.string().optional(),
   comment: z.string().optional(),
 }).refine(d => d.person_id || d.first_name?.trim() || d.full_name?.trim(), {
-  message: 'Укажите person_id или ФИО',
+  message: serverT('person_id_or_full_name_required'),
 })
 
 /**
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (!body.person_id) {
       const hasPhone = !!body.phone?.trim() || !!(body.phones && body.phones.length > 0)
       if (!hasPhone) {
-        throw Object.assign(new Error('Телефон обязателен'), { status: 400 })
+        throw Object.assign(new Error(serverT('phone_required')), { status: 400 })
       }
     }
 
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
       p_actor_id: session.person_id,
     })
     if (startErr) {
-      workflowError = startErr.message ?? 'Ошибка запуска процесса'
+      workflowError = startErr.message ?? serverT('process_start_error')
     } else {
       workflowResult = startResult as StartProcessResult
     }

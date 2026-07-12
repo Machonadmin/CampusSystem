@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
@@ -128,11 +129,11 @@ export async function requireDocumentsPrivilege(
 ): Promise<SessionPayload> {
   const session = await getSession()
   if (!session) {
-    throw Object.assign(new Error('Не авторизован'), { status: 401 })
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
   const ok = await hasDocumentsPrivilege(session, privilege)
   if (!ok) {
-    throw Object.assign(new Error('Недостаточно прав'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   }
   return session
 }

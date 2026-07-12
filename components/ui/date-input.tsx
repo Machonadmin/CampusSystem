@@ -5,6 +5,7 @@ import DatePicker, { registerLocale } from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { ru, he, enUS } from 'date-fns/locale'
 import './date-input.css'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 registerLocale('ru', ru)
 registerLocale('he', he)
@@ -24,13 +25,14 @@ interface DateInputProps {
 export function DateInput({
   value,
   onChange,
-  placeholder = 'ДД.ММ.ГГГГ',
+  placeholder,
   disabled = false,
   maxDate,
   minDate,
   locale = 'ru',
   style,
 }: DateInputProps) {
+  const t = useTranslations('common')
   return (
     <DatePicker
       selected={value}
@@ -40,7 +42,7 @@ export function DateInput({
       showYearDropdown
       showMonthDropdown
       dropdownMode="select"
-      placeholderText={placeholder}
+      placeholderText={placeholder ?? t('date_format_placeholder')}
       disabled={disabled}
       maxDate={maxDate}
       minDate={minDate}

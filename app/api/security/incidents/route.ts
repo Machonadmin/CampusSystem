@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSecurityPrivilege } from '@/lib/security/permissions'
 import { mapDbError } from '@/lib/security/http'
@@ -52,13 +53,13 @@ export async function GET(request: NextRequest) {
     const buildingId = searchParams.get('building_id')
 
     if (status && !isStatus(status)) {
-      return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+      return apiError('invalid_status', 400)
     }
     if (severity && !isSeverity(severity)) {
-      return NextResponse.json({ error: 'Неверная серьёзность' }, { status: 400 })
+      return apiError('invalid_severity', 400)
     }
     if (category && !isCategory(category)) {
-      return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+      return apiError('invalid_category', 400)
     }
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1)
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -138,12 +139,12 @@ export async function POST(request: NextRequest) {
     }
 
     const title = body.title?.trim()
-    if (!title) return NextResponse.json({ error: 'title обязателен' }, { status: 400 })
+    if (!title) return apiError('title_field_required', 400)
 
     let category = 'other'
     if (body.category !== undefined && body.category !== null && body.category !== '') {
       if (!isCategory(body.category)) {
-        return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+        return apiError('invalid_category', 400)
       }
       category = body.category
     }
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
     let severity = 'medium'
     if (body.severity !== undefined && body.severity !== null && body.severity !== '') {
       if (!isSeverity(body.severity)) {
-        return NextResponse.json({ error: 'Неверная серьёзность' }, { status: 400 })
+        return apiError('invalid_severity', 400)
       }
       severity = body.severity
     }
@@ -189,6 +190,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

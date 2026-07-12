@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
@@ -60,7 +61,7 @@ export async function GET() {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -77,12 +78,12 @@ export async function POST(request: NextRequest) {
     }
 
     const name = body.name?.trim()
-    if (!name) return NextResponse.json({ error: 'name обязателен' }, { status: 400 })
+    if (!name) return apiError('name_field_required', 400)
 
     let gender: 'male' | 'female' | 'mixed' = 'mixed'
     if (body.gender !== undefined && body.gender !== null) {
       if (!(GENDERS as readonly string[]).includes(body.gender)) {
-        return NextResponse.json({ error: "gender должен быть 'male', 'female' или 'mixed'" }, { status: 400 })
+        return apiError('gender_enum', 400)
       }
       gender = body.gender as 'male' | 'female' | 'mixed'
     }
@@ -114,6 +115,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   onClose: () => void
@@ -63,6 +64,7 @@ function Field({
 }
 
 export default function ChangePasswordModal({ onClose }: Props) {
+  const t = useTranslations('change_password')
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -75,9 +77,9 @@ export default function ChangePasswordModal({ onClose }: Props) {
 
   async function submit() {
     setError('')
-    if (!current) { setError('Введите текущий пароль'); return }
-    if (next.length < 8) { setError('Новый пароль должен быть не менее 8 символов'); return }
-    if (next !== confirm) { setError('Пароли не совпадают'); return }
+    if (!current) { setError(t('err_current_required')); return }
+    if (next.length < 8) { setError(t('err_min_8')); return }
+    if (next !== confirm) { setError(t('err_mismatch')); return }
 
     setSaving(true)
     try {
@@ -87,7 +89,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
         body: JSON.stringify({ current_password: current, new_password: next }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Ошибка'); return }
+      if (!res.ok) { setError(data.error ?? t('err_generic')); return }
       setSuccess(true)
       setTimeout(() => onClose(), 1000)
     } finally {
@@ -109,7 +111,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
           padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>Сменить пароль</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('title')}</p>
           <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
@@ -123,28 +125,28 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p style={{ fontWeight: 600, color: '#065F46', fontSize: 14 }}>Пароль успешно изменён</p>
+            <p style={{ fontWeight: 600, color: '#065F46', fontSize: 14 }}>{t('success')}</p>
           </div>
         ) : (
           <>
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Field
-                label="Текущий пароль"
+                label={t('current_label')}
                 value={current}
                 onChange={setCurrent}
                 show={showCurrent}
                 onToggle={() => setShowCurrent(v => !v)}
               />
               <Field
-                label="Новый пароль"
+                label={t('new_label')}
                 value={next}
                 onChange={setNext}
                 show={showNext}
                 onToggle={() => setShowNext(v => !v)}
-                placeholder="Минимум 8 символов"
+                placeholder={t('new_placeholder')}
               />
               <Field
-                label="Подтвердите пароль"
+                label={t('confirm_label')}
                 value={confirm}
                 onChange={setConfirm}
                 show={showConfirm}
@@ -163,7 +165,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 onClick={onClose}
                 style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}
               >
-                Отмена
+                {t('cancel')}
               </button>
               <button
                 onClick={submit}
@@ -174,7 +176,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                   cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
                 }}
               >
-                {saving ? 'Сохранение...' : 'Сохранить'}
+                {saving ? t('saving') : t('save')}
               </button>
             </div>
           </>

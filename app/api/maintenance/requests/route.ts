@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireMaintenancePrivilege } from '@/lib/maintenance/permissions'
 import { mapDbError } from '@/lib/maintenance/http'
@@ -51,10 +52,10 @@ export async function GET(request: NextRequest) {
     const assignedMe = searchParams.get('assigned') === 'me'
 
     if (status && !isStatus(status)) {
-      return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+      return apiError('invalid_status', 400)
     }
     if (priority && !isPriority(priority)) {
-      return NextResponse.json({ error: 'Неверный приоритет' }, { status: 400 })
+      return apiError('invalid_priority', 400)
     }
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1)
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -138,12 +139,12 @@ export async function POST(request: NextRequest) {
     }
 
     const title = body.title?.trim()
-    if (!title) return NextResponse.json({ error: 'title обязателен' }, { status: 400 })
+    if (!title) return apiError('title_field_required', 400)
 
     let category = 'other'
     if (body.category !== undefined && body.category !== null && body.category !== '') {
       if (!isCategory(body.category)) {
-        return NextResponse.json({ error: 'Неверная категория' }, { status: 400 })
+        return apiError('invalid_category', 400)
       }
       category = body.category
     }
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
     let priority = 'normal'
     if (body.priority !== undefined && body.priority !== null && body.priority !== '') {
       if (!isPriority(body.priority)) {
-        return NextResponse.json({ error: 'Неверный приоритет' }, { status: 400 })
+        return apiError('invalid_priority', 400)
       }
       priority = body.priority
     }
@@ -186,6 +187,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

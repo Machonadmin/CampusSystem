@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireMaintenancePrivilege } from '@/lib/maintenance/permissions'
 import { mapDbError } from '@/lib/maintenance/http'
@@ -63,7 +64,7 @@ export async function GET(
     const { data, error } = await sb
       .from('maintenance_requests').select(COLS).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Заявка не найдена' }, { status: 404 })
+    if (!data) return apiError('application_not_found', 404)
 
     return NextResponse.json(await withMeta(sb, data as unknown as RequestRow))
   } catch (err: unknown) {
@@ -72,7 +73,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -98,17 +99,17 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Заявка не найдена' }, { status: 404 })
+    if (!existing) return apiError('application_not_found', 404)
 
     const update: MaintenanceRequestUpdate = {}
 
     if (body.status !== undefined) {
       if (!isStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+        return apiError('invalid_status', 400)
       }
       if (!canTransition(existing.status, body.status)) {
         return NextResponse.json(
-          { error: `Недопустимый переход статуса: ${existing.status} → ${body.status}` },
+          { error: `${serverT('invalid_status_transition')}: ${existing.status} → ${body.status}` },
           { status: 409 },
         )
       }
@@ -126,7 +127,7 @@ export async function PATCH(
 
     if (body.priority !== undefined) {
       if (!isPriority(body.priority)) {
-        return NextResponse.json({ error: 'Неверный приоритет' }, { status: 400 })
+        return apiError('invalid_priority', 400)
       }
       update.priority = body.priority
     }
@@ -140,7 +141,7 @@ export async function PATCH(
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -161,6 +162,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

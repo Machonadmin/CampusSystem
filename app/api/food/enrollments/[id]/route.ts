@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFoodPrivilege } from '@/lib/food/permissions'
 import { mapDbError } from '@/lib/food/http'
@@ -35,32 +36,32 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 })
+    if (!existing) return apiError('record_not_found', 404)
 
     const update: MealEnrollmentUpdate = {}
 
     if (body.enrolled_from !== undefined) {
       const f = body.enrolled_from?.trim()
-      if (!f || !isIsoDate(f)) return NextResponse.json({ error: 'enrolled_from должен быть датой YYYY-MM-DD' }, { status: 400 })
+      if (!f || !isIsoDate(f)) return apiError('enrolled_from_must_be_date', 400)
       update.enrolled_from = f
     }
     if (body.enrolled_to !== undefined) {
       if (body.enrolled_to === null || body.enrolled_to === '') update.enrolled_to = null
       else {
         const t = body.enrolled_to.trim()
-        if (!isIsoDate(t)) return NextResponse.json({ error: 'enrolled_to должен быть датой YYYY-MM-DD' }, { status: 400 })
+        if (!isIsoDate(t)) return apiError('enrolled_to_must_be_date', 400)
         update.enrolled_to = t
       }
     }
     if (body.status !== undefined) {
       if (body.status !== 'active' && body.status !== 'ended') {
-        return NextResponse.json({ error: "status должен быть 'active' или 'ended'" }, { status: 400 })
+        return apiError('status_active_or_ended', 400)
       }
       update.status = body.status
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     // Итоговые значения после правки.
@@ -69,7 +70,7 @@ export async function PATCH(
     const finalTo = update.enrolled_to !== undefined ? update.enrolled_to : existing.enrolled_to
 
     if (finalTo !== null && finalTo < finalFrom) {
-      return NextResponse.json({ error: 'enrolled_to не может быть раньше enrolled_from' }, { status: 400 })
+      return apiError('enrolled_to_before_from', 400)
     }
 
     // Пере-проверка правила ТОЛЬКО если запись остаётся активной.
@@ -77,10 +78,7 @@ export async function PATCH(
       const overlap = await journeyHasActiveOverlap(sb, existing.journey_id, finalFrom, finalTo, existing.id)
       const decision = canEnroll({ studentHasActiveOverlap: overlap })
       if (!decision.ok) {
-        return NextResponse.json(
-          { error: 'У студента уже есть активный план питания на выбранные даты', reason: decision.reason },
-          { status: 409 }
-        )
+        return apiError('student_active_meal_plan_exists', 409, { reason: decision.reason })
       }
     }
 
@@ -102,6 +100,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

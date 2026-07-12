@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { jsonError } from '@/lib/api/handler'
@@ -23,7 +24,7 @@ export async function DELETE(
       .single()
 
     if (profileErr || !profile) {
-      return NextResponse.json({ error: 'Сотрудник не найден' }, { status: 404 })
+      return apiError('employee_not_found', 404)
     }
 
     const today = new Date().toISOString().split('T')[0]

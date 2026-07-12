@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
@@ -28,7 +29,7 @@ export async function GET(
     const { data, error } = await sb
       .from('sponsors').select(SPONSOR_COLS).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Донор не найден' }, { status: 404 })
+    if (!data) return apiError('donor_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
@@ -37,7 +38,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -67,28 +68,28 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Донор не найден' }, { status: 404 })
+    if (!existing) return apiError('donor_not_found', 404)
 
     const update: SponsorUpdate = {}
 
     if (body.name !== undefined) {
       const name = body.name?.trim()
       if (!name) {
-        return NextResponse.json({ error: 'name не может быть пустым' }, { status: 400 })
+        return apiError('name_field_not_empty', 400)
       }
       update.name = name
     }
 
     if (body.sponsor_type !== undefined) {
       if (!isSponsorType(body.sponsor_type)) {
-        return NextResponse.json({ error: 'Неверный тип донора' }, { status: 400 })
+        return apiError('invalid_donor_type', 400)
       }
       update.sponsor_type = body.sponsor_type
     }
 
     if (body.is_active !== undefined) {
       if (typeof body.is_active !== 'boolean') {
-        return NextResponse.json({ error: 'is_active должен быть boolean' }, { status: 400 })
+        return apiError('is_active_boolean', 400)
       }
       update.is_active = body.is_active
     }
@@ -100,7 +101,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -121,7 +122,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -140,7 +141,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Донор не найден' }, { status: 404 })
+    if (!existing) return apiError('donor_not_found', 404)
 
     const { error } = await sb
       .from('sponsors')
@@ -158,6 +159,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

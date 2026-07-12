@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
 import { mapDbError } from '@/lib/documents/http'
@@ -28,7 +29,7 @@ export async function GET(
     const { data, error } = await sb
       .from('document_records').select(DOC_COLS).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Документ не найден' }, { status: 404 })
+    if (!data) return apiError('document_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
@@ -37,7 +38,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -66,20 +67,20 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Документ не найден' }, { status: 404 })
+    if (!existing) return apiError('document_not_found', 404)
 
     const update: DocumentRecordUpdate = {}
 
     if (body.doc_type !== undefined) {
       if (!isDocType(body.doc_type)) {
-        return NextResponse.json({ error: 'Неверный тип документа' }, { status: 400 })
+        return apiError('invalid_document_type', 400)
       }
       update.doc_type = body.doc_type
     }
 
     if (body.status !== undefined) {
       if (!isDocStatus(body.status)) {
-        return NextResponse.json({ error: 'Неверный статус' }, { status: 400 })
+        return apiError('invalid_status', 400)
       }
       update.status = body.status
     }
@@ -87,7 +88,7 @@ export async function PATCH(
     if (body.title !== undefined) {
       const title = body.title?.trim()
       if (!title) {
-        return NextResponse.json({ error: 'title не может быть пустым' }, { status: 400 })
+        return apiError('title_field_not_empty', 400)
       }
       update.title = title
     }
@@ -99,7 +100,7 @@ export async function PATCH(
       } else {
         const v = body.issued_date.trim()
         if (!isIsoDate(v)) {
-          return NextResponse.json({ error: 'issued_date должен быть датой YYYY-MM-DD' }, { status: 400 })
+          return apiError('issued_date_must_be_date', 400)
         }
         update.issued_date = v
       }
@@ -110,7 +111,7 @@ export async function PATCH(
       } else {
         const v = body.expiry_date.trim()
         if (!isIsoDate(v)) {
-          return NextResponse.json({ error: 'expiry_date должен быть датой YYYY-MM-DD' }, { status: 400 })
+          return apiError('expiry_date_must_be_date', 400)
         }
         update.expiry_date = v
       }
@@ -120,7 +121,7 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -141,7 +142,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -160,7 +161,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Документ не найден' }, { status: 404 })
+    if (!existing) return apiError('document_not_found', 404)
 
     const { error } = await sb
       .from('document_records')
@@ -178,6 +179,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

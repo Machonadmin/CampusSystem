@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFoodPrivilege } from '@/lib/food/permissions'
 import { mapDbError } from '@/lib/food/http'
@@ -26,7 +27,7 @@ export async function GET(
     const { data: plan, error } = await sb
       .from('meal_plans').select(PLAN_SELECT).eq('id', params.id).maybeSingle()
     if (error) throw error
-    if (!plan) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
+    if (!plan) return apiError('plan_not_found', 404)
 
     const counts = await activeCountByPlan(sb, [params.id], todayISO())
 
@@ -37,7 +38,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -63,7 +64,7 @@ export async function PATCH(
     const update: MealPlanUpdate = {}
     if (body.name !== undefined) {
       const n = body.name?.trim()
-      if (!n) return NextResponse.json({ error: 'name не может быть пустым' }, { status: 400 })
+      if (!n) return apiError('name_field_not_empty', 400)
       update.name = n
     }
     if (body.code !== undefined) update.code = body.code?.trim() || null
@@ -75,7 +76,7 @@ export async function PATCH(
       if (body.price === null) update.price = null
       else {
         const p = Number(body.price)
-        if (!Number.isFinite(p) || p < 0) return NextResponse.json({ error: 'price должен быть числом ≥ 0' }, { status: 400 })
+        if (!Number.isFinite(p) || p < 0) return apiError('price_number_gte_0', 400)
         update.price = p
       }
     }
@@ -83,7 +84,7 @@ export async function PATCH(
     if (body.is_active !== undefined) update.is_active = !!body.is_active
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const sb = createServerClient()
@@ -91,7 +92,7 @@ export async function PATCH(
     const { data: existing, error: exErr } = await sb
       .from('meal_plans').select('id').eq('id', params.id).maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
+    if (!existing) return apiError('plan_not_found', 404)
 
     const { data, error } = await sb
       .from('meal_plans')
@@ -111,7 +112,7 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -127,7 +128,7 @@ export async function DELETE(
     const { data: existing, error: exErr } = await sb
       .from('meal_plans').select('id').eq('id', params.id).maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'План не найден' }, { status: 404 })
+    if (!existing) return apiError('plan_not_found', 404)
 
     const { error } = await sb.from('meal_plans').delete().eq('id', params.id)
     if (error) throw error
@@ -139,6 +140,6 @@ export async function DELETE(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

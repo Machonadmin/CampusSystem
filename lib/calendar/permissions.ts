@@ -1,4 +1,5 @@
 import { getSession } from '@/lib/auth/session'
+import { serverT } from '@/lib/i18n/api-errors'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 // ─── Права модуля «Календарь» — лёгкая проверка ──────────────────────────────
@@ -19,7 +20,7 @@ import type { SessionPayload } from '@/lib/auth/jwt'
 export async function requireCalendarUser(): Promise<SessionPayload> {
   const session = await getSession()
   if (!session) {
-    throw Object.assign(new Error('Не авторизован'), { status: 401 })
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
   return session
 }

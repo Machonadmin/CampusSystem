@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
@@ -25,10 +26,10 @@ const ALLOWED_TARGETS = ['on_leave', 'student', 'graduated', 'expelled'] as cons
 type TargetStatus = (typeof ALLOWED_TARGETS)[number]
 
 function mapPgError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === 'P0002') return { status: 404, message: 'Journey не найден' }
-  if (error.code === '22023') return { status: 400, message: error.message ?? 'Недопустимый переход' }
-  if (error.code === '22P02') return { status: 400, message: 'Неподдерживаемый статус (проверьте, применена ли миграция enum)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === 'P0002') return { status: 404, message: serverT('journey_not_found') }
+  if (error.code === '22023') return { status: 400, message: error.message ?? serverT('invalid_transition') }
+  if (error.code === '22P02') return { status: 400, message: serverT('unsupported_status_enum_migration') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 export async function POST(
@@ -37,7 +38,7 @@ export async function POST(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const body = await request.json() as {
       to_status?: string
@@ -47,7 +48,7 @@ export async function POST(
 
     const toStatus = body.to_status
     if (!toStatus || !(ALLOWED_TARGETS as readonly string[]).includes(toStatus)) {
-      return NextResponse.json({ error: 'Недопустимый целевой статус' }, { status: 400 })
+      return apiError('invalid_target_status', 400)
     }
 
     const sb = createServerClient()
@@ -58,7 +59,7 @@ export async function POST(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!journey) return apiError('journey_not_found', 404)
 
     // Право на управление студентами в его подразделении
     const journeyDept = (journey as { primary_department_id: string | null }).primary_department_id
@@ -72,7 +73,7 @@ export async function POST(
     if (journeyDept == null) {
       const scope = await getEducationPrivilegeScope(session, 'manage_students')
       if (scope !== 'all') {
-        return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+        return apiError('forbidden', 403)
       }
     }
 
@@ -80,8 +81,8 @@ export async function POST(
     const reason = body.reason?.trim() || null
     const effectiveDate = body.effective_date || null
     if (needsDetails) {
-      if (!reason) return NextResponse.json({ error: 'Укажите причину' }, { status: 400 })
-      if (!effectiveDate) return NextResponse.json({ error: 'Укажите дату' }, { status: 400 })
+      if (!reason) return apiError('reason_required', 400)
+      if (!effectiveDate) return apiError('date_required', 400)
     }
 
     const { data: result, error: rpcErr } = await sb.rpc('transition_education_status', {
@@ -104,6 +105,6 @@ export async function POST(
       const m = mapPgError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

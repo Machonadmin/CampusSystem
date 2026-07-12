@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Person {
   id: string
@@ -34,7 +35,7 @@ const personCache = new Map<string, Person>()
 export function PersonSelect({
   value,
   onChange,
-  placeholder = 'Выберите или добавьте человека...',
+  placeholder,
   style,
   label,
   required = false,
@@ -44,6 +45,7 @@ export function PersonSelect({
   allowShowAll = false,
   enrollOption,
 }: PersonSelectProps) {
+  const t = useTranslations('persons')
   const [search, setSearch] = useState('')
   const [people, setPeople] = useState<Person[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -111,7 +113,7 @@ export function PersonSelect({
         setPeople(data.people ?? [])
       }
     } catch {
-      setErrMsg('Ошибка загрузки')
+      setErrMsg(t('error_loading'))
     } finally {
       setLoading(false)
     }
@@ -167,10 +169,10 @@ export function PersonSelect({
         setNewPhone(''); setNewEmail('')
       } else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка')
+        setErrMsg(e.error ?? t('error_generic'))
       }
     } catch {
-      setErrMsg('Ошибка при добавлении')
+      setErrMsg(t('error_adding'))
     } finally {
       setAdding(false)
     }
@@ -197,7 +199,7 @@ export function PersonSelect({
             if (!isOpen) setIsOpen(true)
           }}
           onFocus={openDropdown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('select_or_add_placeholder')}
           disabled={disabled}
           style={{
             width: '100%',
@@ -231,7 +233,7 @@ export function PersonSelect({
 
       {selected && (
         <div style={{ fontSize: 11, color: accentColor, marginTop: 2, paddingLeft: 2 }}>
-          ✓ Связано с записью в базе
+          ✓ {t('linked_to_record')}
         </div>
       )}
 
@@ -244,7 +246,7 @@ export function PersonSelect({
           {showAdd ? (
             <div style={{ padding: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 10 }}>
-                Новый человек
+                {t('new_person')}
               </div>
               {errMsg && (
                 <div style={{
@@ -259,33 +261,33 @@ export function PersonSelect({
                 autoFocus
                 value={newLastName}
                 onChange={e => setNewLastName(e.target.value)}
-                placeholder="Фамилия *"
+                placeholder={t('last_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Escape') setShowAdd(false) }}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newFirstName}
                 onChange={e => setNewFirstName(e.target.value)}
-                placeholder="Имя *"
+                placeholder={t('first_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowAdd(false) }}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newMiddleName}
                 onChange={e => setNewMiddleName(e.target.value)}
-                placeholder="Отчество (необяз.)"
+                placeholder={t('middle_name_placeholder')}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newPhone}
                 onChange={e => setNewPhone(e.target.value)}
-                placeholder="Телефон (необяз.)"
+                placeholder={t('phone_placeholder')}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
-                placeholder="Email (необяз.)"
+                placeholder={t('email_placeholder')}
                 type="email"
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
@@ -312,24 +314,24 @@ export function PersonSelect({
                     border: 'none', borderRadius: 5,
                     cursor: newLastName.trim() && newFirstName.trim() && !adding ? 'pointer' : 'not-allowed',
                   }}
-                >{adding ? 'Сохранение...' : 'Создать'}</button>
+                >{adding ? t('saving') : t('create')}</button>
                 <button
                   type="button"
                   onClick={() => { setShowAdd(false); setErrMsg('') }}
                   style={{ padding: '7px 12px', fontSize: 12, color: '#6B7280', background: '#F3F4F6', border: 'none', borderRadius: 5, cursor: 'pointer' }}
-                >Отмена</button>
+                >{t('cancel')}</button>
               </div>
             </div>
           ) : (
             <>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 {loading ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>{t('searching')}</div>
                 ) : errMsg ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: '#EF4444' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>
-                    {search.length >= 2 ? 'Ничего не найдено' : (roleFilter && !showAll ? 'Нет преподавателей' : 'Нет сохранённых людей')}
+                    {search.length >= 2 ? t('nothing_found') : (roleFilter && !showAll ? t('no_teachers') : t('no_saved_people'))}
                   </div>
                 ) : (
                   people.map(p => (
@@ -368,7 +370,7 @@ export function PersonSelect({
                     onChange={e => setShowAll(e.target.checked)}
                     style={{ width: 13, height: 13, accentColor: '#6B7280' }}
                   />
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>Показать всех</span>
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>{t('show_all')}</span>
                 </label>
               )}
               <button
@@ -382,7 +384,7 @@ export function PersonSelect({
                 }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F4F6')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-              >+ Добавить нового человека</button>
+              >+ {t('add_new_person')}</button>
             </>
           )}
         </div>

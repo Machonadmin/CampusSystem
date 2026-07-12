@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { parseBody, jsonError } from '@/lib/api/handler'
+import { serverT } from '@/lib/i18n/api-errors'
 import { rateLimit, clientIp } from '@/lib/public/rate-limit'
 
 /** Служебный «актёр» публичной формы (см. 20260703150000_*.sql). */
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     const rl = rateLimit(`public-application:${ip}`, 5, 10 * 60 * 1000)
     if (!rl.ok) {
       return NextResponse.json(
-        { error: 'Слишком много заявок. Попробуйте позже.' },
+        { error: serverT('rate_limited_applications') },
         { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
       )
     }

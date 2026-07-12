@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
@@ -35,32 +36,32 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (exErr) throw exErr
-    if (!existing) return NextResponse.json({ error: 'Назначение не найдено' }, { status: 404 })
+    if (!existing) return apiError('assignment_record_not_found', 404)
 
     const update: DormAssignmentUpdate = {}
 
     if (body.assigned_from !== undefined) {
       const f = body.assigned_from?.trim()
-      if (!f || !isIsoDate(f)) return NextResponse.json({ error: 'assigned_from должен быть датой YYYY-MM-DD' }, { status: 400 })
+      if (!f || !isIsoDate(f)) return apiError('assigned_from_must_be_date', 400)
       update.assigned_from = f
     }
     if (body.assigned_to !== undefined) {
       if (body.assigned_to === null || body.assigned_to === '') update.assigned_to = null
       else {
         const t = body.assigned_to.trim()
-        if (!isIsoDate(t)) return NextResponse.json({ error: 'assigned_to должен быть датой YYYY-MM-DD' }, { status: 400 })
+        if (!isIsoDate(t)) return apiError('assigned_to_must_be_date', 400)
         update.assigned_to = t
       }
     }
     if (body.status !== undefined) {
       if (body.status !== 'active' && body.status !== 'ended') {
-        return NextResponse.json({ error: "status должен быть 'active' или 'ended'" }, { status: 400 })
+        return apiError('status_active_or_ended', 400)
       }
       update.status = body.status
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     // Итоговые значения после правки.
@@ -69,7 +70,7 @@ export async function PATCH(
     const finalTo = update.assigned_to !== undefined ? update.assigned_to : existing.assigned_to
 
     if (finalTo !== null && finalTo < finalFrom) {
-      return NextResponse.json({ error: 'assigned_to не может быть раньше assigned_from' }, { status: 400 })
+      return apiError('assigned_to_before_from', 400)
     }
 
     // Пере-проверка конфликтов ТОЛЬКО если назначение остаётся активным.
@@ -113,6 +114,6 @@ export async function PATCH(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

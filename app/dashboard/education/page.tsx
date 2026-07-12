@@ -347,7 +347,7 @@ export default function EducationPage() {
                       <td style={{ padding: '11px 14px', minWidth: 200 }}>
                         {processStatus === 'deleted' ? (
                           <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#FEE2E2', color: '#991B1B', fontWeight: 500 }}>
-                            Удалён
+                            {t('page_status_deleted')}
                           </span>
                         ) : lead.active_stages_with_tasks.length === 0 ? (
                           <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('leads.no_stages')}</span>
@@ -378,7 +378,7 @@ export default function EducationPage() {
                             fontSize: 18, color: '#9CA3AF', padding: '2px 6px', borderRadius: 6,
                             lineHeight: 1,
                           }}
-                          title="Действия"
+                          title={t('page_actions_title')}
                         >
                           ···
                         </button>
@@ -553,7 +553,7 @@ export default function EducationPage() {
               {t('leads.delete_confirm.title')}
             </h2>
             <p style={{ fontSize: 14, color: '#374151', margin: '0 0 24px', lineHeight: 1.5 }}>
-              Лид <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message')}
+              {t('card.status.lead')} <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message')}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button

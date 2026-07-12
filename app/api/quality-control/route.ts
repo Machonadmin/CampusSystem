@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
 import { jsonError } from '@/lib/api/handler'
@@ -84,10 +85,10 @@ export async function POST(request: NextRequest) {
       status?: string
     }
 
-    if (!body.lesson_date) return NextResponse.json({ error: 'Дата урока обязательна' }, { status: 400 })
-    if (!body.lesson_time) return NextResponse.json({ error: 'Время урока обязательно' }, { status: 400 })
-    if (!body.observer_person_id) return NextResponse.json({ error: 'Наблюдатель обязателен' }, { status: 400 })
-    if (!body.teacher_person_id) return NextResponse.json({ error: 'Преподаватель обязателен' }, { status: 400 })
+    if (!body.lesson_date) return apiError('lesson_date_required', 400)
+    if (!body.lesson_time) return apiError('lesson_time_required', 400)
+    if (!body.observer_person_id) return apiError('observer_required', 400)
+    if (!body.teacher_person_id) return apiError('teacher_required', 400)
 
     const { data, error } = await sb
       .from('quality_checks')
