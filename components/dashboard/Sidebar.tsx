@@ -57,6 +57,29 @@ const MODULES = [
   { key: 'settings' as const, href: '/dashboard/settings', icon: I.settings },
 ]
 
+// ── Section grouping (DISPLAY-ONLY: module codes / routes / icons unchanged) ─
+// Each section lists module codes in the exact display order requested. The
+// section header label is looked up from t.nav_groups; module labels stay in
+// t.nav. Nothing here touches HREF_OVERRIDES, permissions, or DB codes.
+const MODULE_GROUPS = [
+  { key: 'studies' as const,       modules: ['education', 'quality_control', 'alumni'] },
+  { key: 'wellbeing' as const,     modules: ['dormitory', 'food', 'doctor', 'psychologist'] },
+  { key: 'admin_finance' as const, modules: ['finance', 'sponsors', 'documents', 'reports'] },
+  { key: 'operations' as const,    modules: ['maintenance', 'security'] },
+  { key: 'people_staff' as const,  modules: ['persons', 'staff', 'contacts'] },
+  { key: 'system' as const,        modules: ['settings'] },
+]
+
+type ModuleItem = (typeof MODULES)[number]
+const MODULE_BY_KEY: Record<string, ModuleItem> = Object.fromEntries(
+  MODULES.map(m => [m.key, m]),
+)
+
+// Safety net: any module not placed in a group above lands in an "other"
+// section at the bottom, so a newly-added module never silently disappears.
+const GROUPED_KEYS = new Set(MODULE_GROUPS.flatMap(g => g.modules))
+const FALLBACK_KEYS = MODULES.filter(m => !GROUPED_KEYS.has(m.key)).map(m => m.key)
+
 // ── Nav link — defined outside Sidebar to avoid reconciliation issues ────────
 function SidebarNavLink({
   href, iconPath, label, active, isOpen, isRTL, moduleKey,
@@ -158,6 +181,23 @@ export default function Sidebar() {
     return href === '/dashboard' ? pathname === href : pathname.startsWith(href)
   }
 
+  // While access is still loading (null) show everything; otherwise a module the
+  // user's roles can't reach is dropped, and any section left with zero visible
+  // modules is omitted entirely (its header does not render).
+  const canAccess = (key: string) => accessibleModules === null || accessibleModules.includes(key)
+  const sections = [
+    ...MODULE_GROUPS,
+    ...(FALLBACK_KEYS.length ? [{ key: 'other' as const, modules: FALLBACK_KEYS }] : []),
+  ]
+    .map(group => ({
+      key: group.key,
+      items: group.modules
+        .map(k => MODULE_BY_KEY[k])
+        .filter((m): m is ModuleItem => !!m)
+        .filter(m => canAccess(m.key)),
+    }))
+    .filter(section => section.items.length > 0)
+
   return (
     <aside
       ref={sidebarRef}
@@ -240,28 +280,32 @@ export default function Sidebar() {
           />
         ))}
 
-        {/* Section divider / header */}
-        <div style={{ padding: isOpen ? '16px 16px 4px' : '12px 6px 4px' }}>
-          {isOpen ? (
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {t.nav.modulesSection}
-            </p>
-          ) : (
-            <div style={{ height: 1, backgroundColor: '#F3F4F6' }} />
-          )}
-        </div>
+        {/* Module sections — each header + its modules; empty sections skipped */}
+        {sections.map(section => (
+          <div key={section.key}>
+            <div style={{ padding: isOpen ? '16px 16px 4px' : '12px 6px 4px' }}>
+              {isOpen ? (
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  {t.nav_groups[section.key]}
+                </p>
+              ) : (
+                <div style={{ height: 1, backgroundColor: '#F3F4F6' }} />
+              )}
+            </div>
 
-        {(accessibleModules === null ? MODULES : MODULES.filter(m => accessibleModules.includes(m.key))).map(item => (
-          <SidebarNavLink
-            key={item.key}
-            href={item.href}
-            iconPath={item.icon}
-            label={t.nav[item.key]}
-            active={isActive(item.href)}
-            isOpen={isOpen}
-            isRTL={isRTL}
-            moduleKey={item.key}
-          />
+            {section.items.map(item => (
+              <SidebarNavLink
+                key={item.key}
+                href={item.href}
+                iconPath={item.icon}
+                label={t.nav[item.key]}
+                active={isActive(item.href)}
+                isOpen={isOpen}
+                isRTL={isRTL}
+                moduleKey={item.key}
+              />
+            ))}
+          </div>
         ))}
       </nav>
 

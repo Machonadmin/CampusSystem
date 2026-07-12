@@ -873,7 +873,7 @@
       "general": "General",
       "education": "Education",
       "staff": "Staff",
-      "quality_control": "Quality Control"
+      "quality_control": "Teaching Evaluation"
     },
     "empty": {
       "assigned": "No tasks assigned to you",
@@ -1129,7 +1129,7 @@
     }
   },
   "quality": {
-    "title": "Quality Control",
+    "title": "Teaching Evaluation",
     "status": {
       "planned": "Planned",
       "in_progress": "In Progress",

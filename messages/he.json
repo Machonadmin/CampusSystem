@@ -873,7 +873,7 @@
       "general": "כללי",
       "education": "חינוך",
       "staff": "צוות",
-      "quality_control": "בקרת איכות"
+      "quality_control": "הערכת הוראה"
     },
     "empty": {
       "assigned": "אין משימות מוקצות לך",
@@ -1129,7 +1129,7 @@
     }
   },
   "quality": {
-    "title": "בקרת איכות",
+    "title": "הערכת הוראה",
     "status": {
       "planned": "מתוכננת",
       "in_progress": "בתהליך",
