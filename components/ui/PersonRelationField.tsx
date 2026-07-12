@@ -1,6 +1,7 @@
 'use client'
 
 import { PersonSelect } from './person-select'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 export type RelationType =
   | 'mother' | 'father' | 'parent'
@@ -46,6 +47,7 @@ export default function PersonRelationField({
   fixedRelationType, label, accentColor = '#3B82F6',
   availableRelations,
 }: Props) {
+  const t = useTranslations('persons')
   const relations = availableRelations ?? (Object.keys(RELATION_LABELS) as RelationType[])
 
   const lbl: React.CSSProperties = {
@@ -66,14 +68,14 @@ export default function PersonRelationField({
     }}>
       {!fixedRelationType && (
         <div style={{ minWidth: 140 }}>
-          <label style={lbl}>Тип отношения</label>
+          <label style={lbl}>{t('relation_type_label')}</label>
           <select
             value={value.relation_type}
             onChange={(e) => onChange({ ...value, relation_type: e.target.value as RelationType })}
             style={ctrl}
           >
             {relations.map(rt => (
-              <option key={rt} value={rt}>{RELATION_LABELS[rt]}</option>
+              <option key={rt} value={rt}>{t(`relation_${rt}`)}</option>
             ))}
           </select>
         </div>
@@ -88,7 +90,7 @@ export default function PersonRelationField({
             relative_id: personId,
             relative_name: personData?.full_name ?? null,
           })}
-          placeholder="Выберите или добавьте человека"
+          placeholder={t('select_or_add_short')}
           accentColor={accentColor}
         />
       </div>
@@ -98,7 +100,7 @@ export default function PersonRelationField({
           type="text"
           value={value.notes ?? ''}
           onChange={(e) => onChange({ ...value, notes: e.target.value || null })}
-          placeholder="Заметки (опц.)"
+          placeholder={t('notes_placeholder')}
           style={{ ...ctrl, fontSize: 12, padding: '6px 10px', color: '#374151' }}
         />
       </div>
@@ -115,7 +117,7 @@ export default function PersonRelationField({
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 0, lineHeight: 1,
           }}
-          aria-label="Удалить"
+          aria-label={t('remove')}
         >
           ×
         </button>
