@@ -96,6 +96,47 @@ Also intentionally left: a few latin-only field-format messages in
 Out of scope: Postgres `RAISE EXCEPTION` messages defined in SQL migrations
 (surfaced via `error.message` pass-through) — they live in the DB, not the app.
 
-## Next: dashboard UI strings (in progress)
-~44 dashboard `.tsx` + `components/ui/*` with hardcoded Cyrillic JSX / confirm() /
-alert(). Migrating per module with `useTranslations`.
+## Dashboard UI strings — DONE
+
+Migrated hardcoded Cyrillic JSX / placeholders / confirm()/alert() to
+`useTranslations`. Keys were collected per file (subagents returned strict keymaps),
+merged centrally into `messages/*.json` (collision-safe, parity kept), then
+committed. A final full-tree comment-stripping scan (Cyrillic **and** Hebrew, over
+`git ls-files '*.tsx'`) confirmed nothing user-facing remains except the logged
+deferrals below.
+
+Committed:
+- `persons-ui` (0900c56): person-select, PersonRelationField (35 keys)
+- `staff-ui` (27beb89): staff/page.tsx incl. 2 confirm() dialogs (40 keys)
+- `dashboard-ui` (d327329): DocumentsTab (dynamic status, STATUS_LABEL removed),
+  education/page, city/country/date selects, Header, StageEventsFeed (29 keys)
+- `change-password` (4255bc3): ChangePasswordModal (13 keys) — was missed by the
+  `components/**/*.tsx` glob (file sits directly under components/)
+
+Verified already-migrated (no change needed): calendar/CalendarClient,
+persons/PersonsClient, EducationJourneyForm, and education tabs
+(Students/Schedule/Grades/Lessons) — all rendered text already routes through `t()`.
+
+### Deliberately left (logged, not user-facing untranslated text)
+- **Data values**, not UI labels: `useState('Россия')` citizenship/country defaults
+  (EducationJourneyForm, AddEmployeeModal), `useState('Израиль')` country filter
+  (settings/reference-cities) — these are sent to the API / used for matching.
+- **Logic comparison**: `errMsg.startsWith('Человек создан')` (person-select) selects
+  styling; not rendered — translating would break the branch.
+- **Const kept for key-enumeration only**: `RELATION_LABELS` (PersonRelationField) —
+  values no longer rendered (render uses `t(\`relation_${rt}\`)`), retained for
+  `Object.keys` typing; no external importers.
+- **Source-text safety-net fallbacks**: DocumentsTab uses `t('key','<ru>')`; the key
+  always resolves (merged), so the Russian fallback is never displayed. Left as the
+  standard graceful-degradation pattern.
+- **`app/apply/page.tsx`** — public applicant form, hardcoded **Hebrew** (19 strings).
+  A dedicated branch `claude/apply-i18n` (per project memory, not merged to
+  machon/main) already internationalises this page; not duplicated here to avoid a
+  merge conflict with that in-progress work.
+- **`components/dashboard/Sidebar.tsx` + `app/dashboard/staff/components/AddEmployeeModal.tsx`**
+  — these files have **uncommitted WIP in the auto-stash** (`sidebar-grouping`).
+  Sidebar has ~3 user-facing leftovers (`СКОРО` badge, pin/collapse titles);
+  deferred to avoid conflicting with that in-progress feature. Should be i18n'd
+  when the sidebar-grouping work lands.
+- **`settings/positions/page.tsx:358`** `placeholder="מורה"` — a Hebrew example/format
+  hint inside the Hebrew-name input; left as a same-language sample. Minor.
