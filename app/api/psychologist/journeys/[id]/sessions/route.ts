@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { mapDbError } from '@/lib/psychologist/http'
@@ -41,7 +42,7 @@ export async function GET(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -61,16 +62,14 @@ export async function POST(
 
     const sessionDate = body.session_date?.trim()
     if (!sessionDate || !isIsoDate(sessionDate)) {
-      return NextResponse.json(
-        { error: 'session_date обязателен и должен быть датой YYYY-MM-DD' }, { status: 400 },
-      )
+      return apiError('session_date_required_date', 400)
     }
 
     // session_type: если задан — обязан быть допустимым; иначе default 'followup'.
     let sessionType: 'intake' | 'followup' | 'crisis' | 'group' | 'other' = 'followup'
     if (body.session_type !== undefined && body.session_type !== null && body.session_type !== '') {
       if (!isSessionType(body.session_type)) {
-        return NextResponse.json({ error: 'Неверный тип консультации' }, { status: 400 })
+        return apiError('invalid_consultation_type', 400)
       }
       sessionType = body.session_type
     }
@@ -79,9 +78,7 @@ export async function POST(
     if (body.follow_up_date !== undefined && body.follow_up_date !== null && body.follow_up_date !== '') {
       followUp = body.follow_up_date.trim()
       if (!isIsoDate(followUp)) {
-        return NextResponse.json(
-          { error: 'follow_up_date должен быть датой YYYY-MM-DD' }, { status: 400 },
-        )
+        return apiError('follow_up_date_must_be_date', 400)
       }
     }
 
@@ -90,7 +87,7 @@ export async function POST(
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', params.id).maybeSingle()
     if (jErr) throw jErr
-    if (!journey) return NextResponse.json({ error: 'Студент не найден' }, { status: 400 })
+    if (!journey) return apiError('student_not_found', 400)
 
     const insert: PsychSessionInsert = {
       journey_id: params.id,
@@ -121,6 +118,6 @@ export async function POST(
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
