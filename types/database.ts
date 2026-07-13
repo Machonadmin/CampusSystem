@@ -1696,6 +1696,28 @@ export interface AppSettingInsert {
 }
 export type AppSettingUpdate = Partial<Omit<AppSettingInsert, 'key'>>
 
+// ─── Notifications (личные уведомления в шапке) ──────────────────────────────
+export interface NotificationRow {
+  id:         string
+  person_id:  string
+  type:       string
+  title:      string
+  body:       string | null
+  link:       string | null
+  metadata:   Record<string, unknown>
+  read_at:    string | null
+  created_at: string
+}
+export interface NotificationInsert {
+  person_id: string
+  type?:     string
+  title:     string
+  body?:     string | null
+  link?:     string | null
+  metadata?: Record<string, unknown>
+}
+export type NotificationUpdate = Partial<Pick<NotificationRow, 'read_at'>>
+
 // ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
 //
 // САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
@@ -1912,6 +1934,7 @@ export interface Database {
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
       stage_signatures:          T<StageSignatureRow,            StageSignatureInsert,            StageSignatureUpdate>
       app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
+      notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
