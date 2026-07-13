@@ -477,6 +477,17 @@
           "postponed": "Postponed",
           "cancelled": "Cancelled"
         }
+      },
+      "signature": {
+        "title": "Digital signature",
+        "method": {
+          "typed": "Type name",
+          "drawn": "Draw signature"
+        },
+        "typed_placeholder": "Full name",
+        "draw_hint": "Sign in the box below",
+        "clear": "Clear",
+        "confirm": "Sign & complete"
       }
     },
     "card": {
