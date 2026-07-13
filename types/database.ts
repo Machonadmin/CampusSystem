@@ -1619,6 +1619,10 @@ export interface DocumentRecordRow {
   issued_date: string | null       // ISO date 'YYYY-MM-DD' | null
   expiry_date: string | null        // ISO date 'YYYY-MM-DD' | null
   file_url: string | null
+  storage_path: string | null       // путь в приватном бакете Supabase Storage | null
+  file_name: string | null
+  mime_type: string | null
+  size_bytes: number | null
   status: 'active' | 'archived'
   notes: string | null
   created_by: string | null
@@ -1633,6 +1637,10 @@ export interface DocumentRecordInsert {
   issued_date?: string | null
   expiry_date?: string | null
   file_url?: string | null
+  storage_path?: string | null
+  file_name?: string | null
+  mime_type?: string | null
+  size_bytes?: number | null
   status?: 'active' | 'archived'
   notes?: string | null
   created_by?: string | null

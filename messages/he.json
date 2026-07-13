@@ -2072,7 +2072,9 @@
       "expiry_date": "תאריך תפוגה",
       "file_url": "קישור לקובץ",
       "status": "סטטוס",
-      "notes": "הערות"
+      "notes": "הערות",
+      "upload_file": "העלאת קובץ",
+      "upload_hint": "PDF, תמונה או Word · עד 15MB"
     },
     "types": {
       "id_card": "תעודת זהות",
@@ -2716,7 +2718,10 @@
     "journey_creation_error": "שגיאה ביצירת journey",
     "enroll_specify_department": "לצורך הרישום ציין מחלקה",
     "unknown_view_mode": "מצב תצוגה לא ידוע",
-    "access_denied": "הגישה נדחתה"
+    "access_denied": "הגישה נדחתה",
+    "file_required": "יש לצרף קובץ",
+    "file_too_large": "הקובץ גדול מדי (עד 15MB)",
+    "file_type_not_allowed": "סוג קובץ לא נתמך"
   },
   "workflow": {
     "error": "שגיאה"

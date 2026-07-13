@@ -15,7 +15,7 @@ import type { DocumentRecordInsert } from '@/types/database'
  */
 
 const DOC_COLS =
-  'id, journey_id, doc_type, title, issued_date, expiry_date, file_url, status, notes, created_by, created_at, updated_at'
+  'id, journey_id, doc_type, title, issued_date, expiry_date, file_url, storage_path, file_name, mime_type, size_bytes, status, notes, created_by, created_at, updated_at'
 
 const PAGE = 1000
 

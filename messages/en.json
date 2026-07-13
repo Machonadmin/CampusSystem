@@ -2072,7 +2072,9 @@
       "expiry_date": "Expiry date",
       "file_url": "File link",
       "status": "Status",
-      "notes": "Notes"
+      "notes": "Notes",
+      "upload_file": "Upload file",
+      "upload_hint": "PDF, image or Word · up to 15 MB"
     },
     "types": {
       "id_card": "ID card",
@@ -2716,7 +2718,10 @@
     "journey_creation_error": "Error creating journey",
     "enroll_specify_department": "To enroll, specify a department",
     "unknown_view_mode": "Unknown view mode",
-    "access_denied": "Access denied"
+    "access_denied": "Access denied",
+    "file_required": "A file is required",
+    "file_too_large": "File is too large (max 15 MB)",
+    "file_type_not_allowed": "File type not allowed"
   },
   "workflow": {
     "error": "Error"
