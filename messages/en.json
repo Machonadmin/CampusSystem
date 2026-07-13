@@ -413,7 +413,12 @@
         "contact": "Contact",
         "documents": "Documents",
         "event": "Event",
-        "decision": "Decision"
+        "decision": "Decision",
+        "academic": "Academic review",
+        "dormitory": "Dormitory",
+        "jewishness": "Jewishness verification",
+        "medical": "Medical opinion",
+        "final_approval": "Final approval"
       },
       "stage_status": {
         "waiting": "Waiting",
@@ -452,7 +457,11 @@
         "feedback_received": "Feedback received",
         "no_show": "No show",
         "refused": "Refused to come",
-        "convert_to_applicant": "Convert to applicant"
+        "convert_to_applicant": "Convert to applicant",
+        "approved": "Approved",
+        "refer_to_doctor": "Refer to doctor",
+        "admitted": "Admitted",
+        "admitted_conditional": "Admitted (conditional)"
       },
       "modals": {
         "activate_title": "Activate skipped stage?",

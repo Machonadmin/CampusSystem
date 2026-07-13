@@ -413,7 +413,12 @@
         "contact": "Контакт",
         "documents": "Документы",
         "event": "Мероприятие",
-        "decision": "Решение"
+        "decision": "Решение",
+        "academic": "Учебная проверка",
+        "dormitory": "Общежитие",
+        "jewishness": "Проверка еврейства",
+        "medical": "Мед. заключение",
+        "final_approval": "Финальное утверждение"
       },
       "stage_status": {
         "waiting": "Ожидает",
@@ -452,7 +457,11 @@
         "feedback_received": "Обратная связь получена",
         "no_show": "Не приехал",
         "refused": "Отказ от приезда",
-        "convert_to_applicant": "Перевести в абитуриенты"
+        "convert_to_applicant": "Перевести в абитуриенты",
+        "approved": "Одобрено",
+        "refer_to_doctor": "Направить к врачу",
+        "admitted": "Принята",
+        "admitted_conditional": "Условно принята"
       },
       "modals": {
         "activate_title": "Активировать пропущенный подэтап?",

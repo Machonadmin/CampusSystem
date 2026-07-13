@@ -76,11 +76,11 @@ export async function POST(
     // идемпотентно) — та же логика, что и в /stages/[id]/complete.
     if ((result as CloseProcessEarlyResult).finish_reason === 'converted' && journeyId) {
       const { error: admErr } = await sb.rpc('start_process', {
-        p_process_code: 'admission',
+        p_process_code: 'acceptance',
         p_journey_id: journeyId,
         p_actor_id: session.person_id,
       })
-      if (admErr) console.error('[close-early] авто-запуск «Приём»:', admErr)
+      if (admErr) console.error('[close-early] авто-запуск «Приёмная комиссия»:', admErr)
     }
 
     return NextResponse.json({ success: true, ...(result as CloseProcessEarlyResult) })

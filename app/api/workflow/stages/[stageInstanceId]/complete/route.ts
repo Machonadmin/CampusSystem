@@ -112,7 +112,7 @@ export async function POST(
     // Автозапуск процесса «Приём» при переходе лида в абитуриенты (best-effort, идемпотентно).
     if ((result as CompleteStageResult).finish_reason === 'converted' && ctx.journeyId) {
       const { error: admErr } = await sb.rpc('start_process', {
-        p_process_code: 'admission',
+        p_process_code: 'acceptance',
         p_journey_id: ctx.journeyId,
         p_actor_id: session.person_id,
       })

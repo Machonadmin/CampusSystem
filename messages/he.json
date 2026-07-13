@@ -413,7 +413,12 @@
         "contact": "יצירת קשר",
         "documents": "מסמכים",
         "event": "אירוע",
-        "decision": "החלטה"
+        "decision": "החלטה",
+        "academic": "בדיקה לימודית",
+        "dormitory": "פנימייה",
+        "jewishness": "בירור יהדות",
+        "medical": "חוות דעת רפואית",
+        "final_approval": "אישור סופי"
       },
       "stage_status": {
         "waiting": "ממתין",
@@ -452,7 +457,11 @@
         "feedback_received": "התקבל משוב",
         "no_show": "לא הגיע",
         "refused": "סירב להגיע",
-        "convert_to_applicant": "העבר למועמד"
+        "convert_to_applicant": "העבר למועמד",
+        "approved": "אושר",
+        "refer_to_doctor": "הפניה לרופא/פסיכולוג",
+        "admitted": "התקבלה",
+        "admitted_conditional": "התקבלה על תנאי"
       },
       "modals": {
         "activate_title": "להפעיל תת-שלב שדולג?",
