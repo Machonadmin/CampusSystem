@@ -2721,7 +2721,16 @@
     "access_denied": "Доступ запрещён",
     "file_required": "Требуется файл",
     "file_too_large": "Файл слишком большой (макс. 15 МБ)",
-    "file_type_not_allowed": "Недопустимый тип файла"
+    "file_type_not_allowed": "Недопустимый тип файла",
+    "signature_required": "Требуется подпись",
+    "invalid_signature_kind": "Неверный тип подписи",
+    "signature_kind_not_allowed": "Этот тип подписи запрещён настройками",
+    "typed_name_required": "Введите имя",
+    "typed_name_mismatch": "Введённое имя не совпадает с подписантом",
+    "drawing_required": "Нарисуйте подпись",
+    "invalid_drawing_path": "Неверный файл подписи",
+    "signature_record_failed": "Этап завершён, но подпись не удалось записать",
+    "invalid_signature_method": "Неверный метод подписи"
   },
   "workflow": {
     "error": "Ошибка"

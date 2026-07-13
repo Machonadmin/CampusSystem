@@ -2721,7 +2721,16 @@
     "access_denied": "Access denied",
     "file_required": "A file is required",
     "file_too_large": "File is too large (max 15 MB)",
-    "file_type_not_allowed": "File type not allowed"
+    "file_type_not_allowed": "File type not allowed",
+    "signature_required": "A signature is required",
+    "invalid_signature_kind": "Invalid signature type",
+    "signature_kind_not_allowed": "This signature type is not allowed by settings",
+    "typed_name_required": "Enter your name",
+    "typed_name_mismatch": "The typed name does not match the signer",
+    "drawing_required": "Draw a signature",
+    "invalid_drawing_path": "Invalid signature file",
+    "signature_record_failed": "Stage completed, but the signature could not be recorded",
+    "invalid_signature_method": "Invalid signature method"
   },
   "workflow": {
     "error": "Error"
