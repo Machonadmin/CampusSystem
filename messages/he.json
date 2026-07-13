@@ -923,6 +923,23 @@
       "drawn": "חתימה מצוירת",
       "via_override": "אושר ע\"י מנהל (במקום התפקיד)",
       "signed_at": "נחתם"
+    },
+    "overview": {
+      "tab": "ועדת קבלה",
+      "title": "ועדת קבלה — סקירה",
+      "subtitle": "סטטוס כל שלב לכל מועמדת, וחתימה ישירות מכאן",
+      "filter_active": "בתהליך",
+      "filter_completed": "הסתיימו",
+      "filter_all": "הכל",
+      "applicant": "מועמדת",
+      "pending": "ממתין",
+      "none": "—",
+      "sign": "חתום",
+      "sign_title": "חתימה על השלב",
+      "signed_by": "חתם/ה",
+      "no_data": "אין מועמדות להצגה",
+      "loading": "טוען…",
+      "load_error": "שגיאה בטעינת הסקירה"
     }
   },
   "tasks": {

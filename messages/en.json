@@ -923,6 +923,23 @@
       "drawn": "Drawn signature",
       "via_override": "Admin override",
       "signed_at": "Signed"
+    },
+    "overview": {
+      "tab": "Acceptance committee",
+      "title": "Acceptance committee — overview",
+      "subtitle": "Every stage status per applicant, sign right here",
+      "filter_active": "In progress",
+      "filter_completed": "Completed",
+      "filter_all": "All",
+      "applicant": "Applicant",
+      "pending": "Pending",
+      "none": "—",
+      "sign": "Sign",
+      "sign_title": "Sign the stage",
+      "signed_by": "Signed by",
+      "no_data": "No applicants to show",
+      "loading": "Loading…",
+      "load_error": "Failed to load the overview"
     }
   },
   "tasks": {
