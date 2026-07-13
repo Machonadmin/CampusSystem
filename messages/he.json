@@ -1496,7 +1496,14 @@
       "err_password_min": "הסיסמה חייבת להכיל לפחות 8 תווים",
       "err_select_person": "יש לבחור אדם או ליצור חדש",
       "err_enter_name": "יש להזין שם",
-      "err_fields_empty": "יש למלא את כל השדות"
+      "err_fields_empty": "יש למלא את כל השדות",
+      "auto_generate": "צור סיסמה אוטומטית",
+      "generated_password_title": "החשבון נוצר! הסיסמה:",
+      "generated_password_hint": "העתק ומסור למשתמש — הסיסמה מוצגת פעם אחת בלבד.",
+      "copy_password": "העתק",
+      "copied": "הועתק ✓",
+      "done": "סיום",
+      "password_reset_done": "הסיסמה אופסה! הסיסמה החדשה:"
     },
     "roles": {
       "code": "קוד",

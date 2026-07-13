@@ -1496,7 +1496,14 @@
       "err_password_min": "Password must be at least 8 characters",
       "err_select_person": "Select a person or create a new one",
       "err_enter_name": "Enter a name",
-      "err_fields_empty": "Fields cannot be empty"
+      "err_fields_empty": "Fields cannot be empty",
+      "auto_generate": "Generate password automatically",
+      "generated_password_title": "Account created! Password:",
+      "generated_password_hint": "Copy and hand it to the user — shown only once.",
+      "copy_password": "Copy",
+      "copied": "Copied ✓",
+      "done": "Done",
+      "password_reset_done": "Password reset! New password:"
     },
     "roles": {
       "code": "Code",
