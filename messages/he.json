@@ -50,6 +50,13 @@
     "all_countries": "כל המדינות",
     "date_format_placeholder": "DD.MM.YYYY"
   },
+  "jewishness": {
+    "title": "בירור יהדות",
+    "subtitle": "בירור ואישור יהדות של מועמדות",
+    "empty": "אין עדיין רשומות",
+    "loading": "טוען…",
+    "load_error": "שגיאה בטעינת הנתונים"
+  },
   "navigation": {
     "home": "ראשי",
     "education": "חינוך",

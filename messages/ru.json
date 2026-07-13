@@ -50,6 +50,13 @@
     "all_countries": "Все страны",
     "date_format_placeholder": "ДД.ММ.ГГГГ"
   },
+  "jewishness": {
+    "title": "Проверка еврейства",
+    "subtitle": "Проверка и подтверждение еврейства кандидаток",
+    "empty": "Пока нет записей",
+    "loading": "Загрузка…",
+    "load_error": "Ошибка загрузки данных"
+  },
   "navigation": {
     "home": "Главная",
     "education": "Образование",

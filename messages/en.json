@@ -50,6 +50,13 @@
     "all_countries": "All countries",
     "date_format_placeholder": "DD.MM.YYYY"
   },
+  "jewishness": {
+    "title": "Jewishness Verification",
+    "subtitle": "Verify and confirm applicants' Jewish status",
+    "empty": "No records yet",
+    "loading": "Loading…",
+    "load_error": "Failed to load data"
+  },
   "navigation": {
     "home": "Home",
     "education": "Education",

@@ -7,7 +7,7 @@ const PUBLIC_PAGES = ['/login']
 
 // Module routes that require an explicit access privilege
 const PROTECTED_MODULES = new Set([
-  'persons', 'staff', 'applicants', 'education', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'applicants', 'education', 'jewishness', 'finance', 'dormitory', 'food',
   'security', 'alumni', 'sponsors', 'documents', 'reports',
   'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
   'quality_control',
