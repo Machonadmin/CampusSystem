@@ -940,6 +940,19 @@
       "no_data": "No applicants to show",
       "loading": "Loading…",
       "load_error": "Failed to load the overview"
+    },
+    "study_track": {
+      "title": "Study track",
+      "first_half": "First half: Judaism (for all)",
+      "second_half": "Second half",
+      "unassigned": "Not set",
+      "notes_label": "Notes / exceptions",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved ✓",
+      "save_error": "Save failed",
+      "choose": "Choose a track…"
     }
   },
   "tasks": {
