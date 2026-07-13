@@ -71,9 +71,14 @@ export async function POST(
 
     const sb = createServerClient()
 
-    // result_data для RPC — без объекта signature (авторитетная подпись пишется отдельно).
+    // Заметка/причина этапа (напр. причина «направить к врачу») — пишется в
+    // stage_instances.notes (её читают очередь врача и панель подписей).
+    const noteRaw = (body.result_data?.note ?? null) as unknown
+    const note = typeof noteRaw === 'string' && noteRaw.trim() ? noteRaw.trim().slice(0, 2000) : null
+
+    // result_data для RPC — без signature и note (обрабатываем отдельно).
     const rpcResultData: Record<string, unknown> | null = body.result_data
-      ? Object.fromEntries(Object.entries(body.result_data).filter(([k]) => k !== 'signature'))
+      ? Object.fromEntries(Object.entries(body.result_data).filter(([k]) => k !== 'signature' && k !== 'note'))
       : null
 
     const { data: result, error: rpcErr } = await sb.rpc('complete_stage', {
@@ -83,6 +88,16 @@ export async function POST(
       p_result_data: rpcResultData,
     })
     if (rpcErr) throw rpcErr
+
+    // Заметка/причина этапа — сохраняем в stage_instances.notes (не трогая RPC).
+    if (note) {
+      const { error: noteErr } = await sb
+        .from('stage_instances')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ notes: note } as any)
+        .eq('id', params.stageInstanceId)
+      if (noteErr) console.error('[complete] stage note update:', noteErr)
+    }
 
     // Подпись фиксируем ПОСЛЕ успешного завершения — личность строго из сессии.
     if (validSig) {

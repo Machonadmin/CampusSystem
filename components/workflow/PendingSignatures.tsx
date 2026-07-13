@@ -86,12 +86,14 @@ function PendingCard({
   onSigned: () => void
 }) {
   const t = useTranslations('education')
+  const tCommon = useTranslations('common')
   const router = useRouter()
   const primary = getModuleColor('education', 'primary')
 
   const [open, setOpen] = useState(false)
   const [selectedFinal, setSelectedFinal] = useState<string | null>(null)
   const [sig, setSig] = useState<SignaturePayload | null>(null)
+  const [note, setNote] = useState('')
   const [signing, setSigning] = useState(false)
   const [error, setError] = useState('')
 
@@ -125,8 +127,11 @@ function PendingCard({
         }
       }
 
+      const rd: Record<string, unknown> = {}
+      if (signatureBody) rd.signature = signatureBody
+      if (note.trim()) rd.note = note.trim()
       const body: Record<string, unknown> = { final_code: selectedFinal }
-      if (signatureBody) body.result_data = { signature: signatureBody }
+      if (Object.keys(rd).length) body.result_data = rd
 
       const res = await fetch(`/api/workflow/stages/${stage.stage_instance_id}/complete`, {
         method: 'POST',
@@ -193,6 +198,13 @@ function PendingCard({
           {selectedFinal && (
             <div style={{ display: 'grid', gap: 10, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{t('pending_signatures.sign_title')}</div>
+              <textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
+                rows={2}
+                style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+              />
               <SignatureCapture method={sigMethod} onChange={setSig} />
               {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
               <button

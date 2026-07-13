@@ -48,7 +48,9 @@
     "select_country": "Select country",
     "popular_countries": "Popular countries",
     "all_countries": "All countries",
-    "date_format_placeholder": "DD.MM.YYYY"
+    "date_format_placeholder": "DD.MM.YYYY",
+    "optional_note": "Note / reason (optional)",
+    "note_placeholder": "Short explanation or reason…"
   },
   "jewishness": {
     "title": "Jewishness Verification",

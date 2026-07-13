@@ -48,7 +48,9 @@
     "select_country": "בחרו מדינה",
     "popular_countries": "מדינות נפוצות",
     "all_countries": "כל המדינות",
-    "date_format_placeholder": "DD.MM.YYYY"
+    "date_format_placeholder": "DD.MM.YYYY",
+    "optional_note": "הערה / סיבה (רשות)",
+    "note_placeholder": "הסבר קצר או סיבה…"
   },
   "jewishness": {
     "title": "בירור יהדות",

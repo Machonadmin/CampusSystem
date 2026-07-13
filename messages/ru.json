@@ -48,7 +48,9 @@
     "select_country": "Выберите страну",
     "popular_countries": "Популярные страны",
     "all_countries": "Все страны",
-    "date_format_placeholder": "ДД.ММ.ГГГГ"
+    "date_format_placeholder": "ДД.ММ.ГГГГ",
+    "optional_note": "Заметка / причина (необязательно)",
+    "note_placeholder": "Краткое пояснение или причина…"
   },
   "jewishness": {
     "title": "Проверка еврейства",
