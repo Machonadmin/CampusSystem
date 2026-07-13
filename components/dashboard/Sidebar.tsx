@@ -183,10 +183,11 @@ export default function Sidebar() {
     return href === '/dashboard' ? pathname === href : pathname.startsWith(href)
   }
 
-  // While access is still loading (null) show everything; otherwise a module the
+  // While access is still loading (null) show NOTHING (only the top personal items),
+  // so a user never briefly sees modules they can't access. Once loaded, a module the
   // user's roles can't reach is dropped, and any section left with zero visible
   // modules is omitted entirely (its header does not render).
-  const canAccess = (key: string) => accessibleModules === null || accessibleModules.includes(key)
+  const canAccess = (key: string) => accessibleModules !== null && accessibleModules.includes(key)
   const sections = [
     ...MODULE_GROUPS,
     ...(FALLBACK_KEYS.length ? [{ key: 'other' as const, modules: FALLBACK_KEYS }] : []),

@@ -64,16 +64,20 @@ export async function stageSignerAuthority(
   session: SessionPayload,
   ctx: StageContext,
 ): Promise<'role' | 'override' | null> {
-  const target = ctx.departmentId ? { department_id: ctx.departmentId } : undefined
-  const hasManage = await hasEducationPrivilege(session, 'manage_leads', target)
-
   if (ctx.requiredRoleCode) {
-    // required_role_code may list several roles (e.g. 'doctor,psychologist') —
-    // holding ANY of them counts as signing in that capacity.
+    // Ролевой этап (приёмная комиссия): подписывает ТОЛЬКО носитель нужной роли.
+    // required_role_code может перечислять несколько ролей ('doctor,psychologist')
+    // — достаточно любой из них.
     const required = ctx.requiredRoleCode.split(',').map(r => r.trim()).filter(Boolean)
     if (required.some(r => session.roles.includes(r))) return 'role'
-    if (hasManage) return 'override'
+    // Override — только для superadmin (аварийный/админский случай). НЕ manage_leads,
+    // иначе набор/куратор могли бы подписывать чужие этапы (баг: гиюс трогал приём,
+    // комендант — этап еврейства).
+    if (session.roles.includes('superadmin')) return 'override'
     return null
   }
+  // Не-ролевой этап (набор): прежнее поведение — нужен manage_leads.
+  const target = ctx.departmentId ? { department_id: ctx.departmentId } : undefined
+  const hasManage = await hasEducationPrivilege(session, 'manage_leads', target)
   return hasManage ? 'role' : null
 }
