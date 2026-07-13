@@ -14,8 +14,10 @@ const interestSchema = z.object({
 })
 
 const communitySchema = z.object({
-  country: z.string().trim().min(1),
-  city: z.string().trim().min(1),
+  // Необязательны на уровне схемы — неполные общины отсекаются фильтром ниже
+  // (иначе частично заполненная община роняла ВСЮ форму зод-ошибкой).
+  country: z.string().trim().optional(),
+  city: z.string().trim().optional(),
   name: z.string().trim().optional(),
   contact_person: z.string().trim().optional(),
   position: z.string().trim().optional(),
@@ -119,8 +121,8 @@ export async function POST(request: NextRequest) {
     )
     for (const c of validCommunities) {
       const name = c.name?.trim() || `Без названия — ${c.city?.trim()}`
-      const country = c.country.trim()
-      const city = c.city.trim()
+      const country = c.country!.trim()   // гарантировано фильтром validCommunities выше
+      const city = c.city!.trim()
 
       const { data: existingComm } = await sb
         .from('communities')
