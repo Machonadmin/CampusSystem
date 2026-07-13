@@ -68,7 +68,10 @@ export async function stageSignerAuthority(
   const hasManage = await hasEducationPrivilege(session, 'manage_leads', target)
 
   if (ctx.requiredRoleCode) {
-    if (session.roles.includes(ctx.requiredRoleCode)) return 'role'
+    // required_role_code may list several roles (e.g. 'doctor,psychologist') —
+    // holding ANY of them counts as signing in that capacity.
+    const required = ctx.requiredRoleCode.split(',').map(r => r.trim()).filter(Boolean)
+    if (required.some(r => session.roles.includes(r))) return 'role'
     if (hasManage) return 'override'
     return null
   }
