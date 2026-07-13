@@ -7,6 +7,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
 import StageEventsFeed from './StageEventsFeed'
+import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -73,11 +74,12 @@ interface StageDetail {
   final_code: string | null
   activated_at: string | null
   completed_at: string | null
-  stage_template: (StageTemplateInfo & { description: string | null; has_tasks: boolean }) | null
+  stage_template: (StageTemplateInfo & { description: string | null; has_tasks: boolean; requires_signature?: boolean }) | null
   tasks: TaskInfo[]
   finals: FinalInfo[]
   can_manage: boolean
   can_convert: boolean
+  signature_method?: SignatureMethod
 }
 
 interface ClosingFinal {
@@ -157,6 +159,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState('')
+  const [pendingSig, setPendingSig] = useState<{ finalCode: string } | null>(null)
+  const [sigPayload, setSigPayload] = useState<SignaturePayload | null>(null)
 
   const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
 
@@ -249,21 +253,56 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     setStageTab('tasks')
   }
 
-  async function completeStage(finalCode: string) {
+  // Clicking a final: if the stage requires a signature, open the signature
+  // dialog first; otherwise complete directly (unchanged behavior).
+  function onFinalClick(finalCode: string) {
+    if (stageDetail?.stage_template?.requires_signature) {
+      setSigPayload(null)
+      setCompleteError('')
+      setPendingSig({ finalCode })
+    } else {
+      completeStage(finalCode)
+    }
+  }
+
+  async function completeStage(finalCode: string, signature?: SignaturePayload | null) {
     if (!selectedStageId) return
     setCompleting(true)
     setCompleteError('')
     try {
+      let signatureBody: Record<string, unknown> | undefined
+      if (signature) {
+        if (signature.kind === 'drawn' && signature.drawing_blob) {
+          // Upload the drawn PNG first → server returns a stage-bound storage path.
+          const fd = new FormData()
+          fd.append('file', signature.drawing_blob, 'signature.png')
+          const up = await fetch(`/api/workflow/stages/${selectedStageId}/signature/upload`, { method: 'POST', body: fd })
+          if (!up.ok) {
+            const d = await up.json().catch(() => ({})) as { error?: string }
+            setCompleteError(d.error ?? tCommon('error'))
+            return
+          }
+          const { storage_path } = await up.json() as { storage_path: string }
+          signatureBody = { kind: 'drawn', drawing_path: storage_path }
+        } else if (signature.kind === 'typed' && signature.typed_name) {
+          signatureBody = { kind: 'typed', typed_name: signature.typed_name }
+        }
+      }
+
+      const body: Record<string, unknown> = { final_code: finalCode }
+      if (signatureBody) body.result_data = { signature: signatureBody }
+
       const res = await fetch(`/api/workflow/stages/${selectedStageId}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ final_code: finalCode }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
         setCompleteError(data.error ?? tCommon('error'))
         return
       }
+      setPendingSig(null)
       closeModal()
       reload()
     } finally {
@@ -561,7 +600,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                             return (
                               <button
                                 key={final.id}
-                                onClick={() => completeStage(final.code)}
+                                onClick={() => onFinalClick(final.code)}
                                 disabled={completing}
                                 style={{
                                   padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8,
@@ -607,6 +646,36 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 : <span />}
               <button onClick={closeModal} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
                 {t('process.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signature modal — shown when completing a stage that requires a signature */}
+      {pendingSig && (
+        <div
+          onClick={() => !completing && setPendingSig(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{t('process.signature.title')}</div>
+            <SignatureCapture method={stageDetail?.signature_method ?? 'both'} onChange={setSigPayload} />
+            {completeError && <div style={{ fontSize: 13, color: '#DC2626' }}>{completeError}</div>}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setPendingSig(null)}
+                disabled={completing}
+                style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: '#374151', cursor: 'pointer' }}
+              >
+                {tCommon('cancel')}
+              </button>
+              <button
+                onClick={() => completeStage(pendingSig.finalCode, sigPayload)}
+                disabled={completing || !sigPayload}
+                style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: '#4F46E5', color: '#fff', cursor: completing || !sigPayload ? 'not-allowed' : 'pointer', opacity: completing || !sigPayload ? 0.6 : 1 }}
+              >
+                {t('process.signature.confirm')}
               </button>
             </div>
           </div>

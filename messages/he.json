@@ -477,6 +477,17 @@
           "postponed": "נדחה למועד אחר",
           "cancelled": "בוטל"
         }
+      },
+      "signature": {
+        "title": "חתימה דיגיטלית",
+        "method": {
+          "typed": "הקלדת שם",
+          "drawn": "ציור חתימה"
+        },
+        "typed_placeholder": "שם מלא",
+        "draw_hint": "חתום במסגרת למטה",
+        "clear": "ניקוי",
+        "confirm": "חתום והשלם"
       }
     },
     "card": {
