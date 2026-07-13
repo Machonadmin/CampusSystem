@@ -7,6 +7,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
+import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import DocumentsTab from '@/components/education/DocumentsTab'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
@@ -405,6 +406,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         <div style={{ display: 'grid', gap: 16 }}>
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
           <StageSignatures journeyId={data.journeyId} />
+          {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
         </div>
       </div>
 

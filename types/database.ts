@@ -1718,6 +1718,35 @@ export interface NotificationInsert {
 }
 export type NotificationUpdate = Partial<Pick<NotificationRow, 'read_at'>>
 
+// ─── Study tracks (маршруты второй половины дня) ─────────────────────────────
+export interface StudyTrackRow {
+  id:         string
+  code:       string
+  name_he:    string
+  name_ru:    string
+  name_en:    string
+  sort_order: number
+  is_active:  boolean
+  created_at: string
+}
+export type StudyTrackInsert = Omit<StudyTrackRow, 'id' | 'created_at'>
+export type StudyTrackUpdate = Partial<StudyTrackInsert>
+
+export interface JourneyStudyTrackRow {
+  journey_id: string
+  track_id:   string | null
+  notes:      string | null
+  updated_by: string | null
+  updated_at: string
+}
+export interface JourneyStudyTrackInsert {
+  journey_id: string
+  track_id?:  string | null
+  notes?:     string | null
+  updated_by?: string | null
+}
+export type JourneyStudyTrackUpdate = Partial<Omit<JourneyStudyTrackInsert, 'journey_id'>>
+
 // ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
 //
 // САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
@@ -1935,6 +1964,8 @@ export interface Database {
       stage_signatures:          T<StageSignatureRow,            StageSignatureInsert,            StageSignatureUpdate>
       app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
       notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
+      study_tracks:              T<StudyTrackRow,                StudyTrackInsert,                StudyTrackUpdate>
+      journey_study_tracks:      T<JourneyStudyTrackRow,         JourneyStudyTrackInsert,         JourneyStudyTrackUpdate>
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
