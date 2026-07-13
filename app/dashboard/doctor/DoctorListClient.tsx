@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import MedicalReferrals from '@/components/doctor/MedicalReferrals'
 
 interface Student {
   journey_id: string
@@ -105,6 +106,9 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
       </div>
+
+      {/* Очередь направлений «Направленные к врачу» — показывается только при наличии */}
+      <MedicalReferrals />
 
       {/* Follow-ups worklist — для управляющих */}
       {canManage && (upcoming.length > 0 || overdue.length > 0) && (
