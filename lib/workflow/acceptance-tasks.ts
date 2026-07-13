@@ -1,4 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { createNotifications } from '@/lib/notifications/create'
+import type { NotificationInsert } from '@/types/database'
 
 // ─── Автозадачи приёмной комиссии (напоминание + календарь) ──────────────────
 //
@@ -30,6 +32,13 @@ function tomorrowISO(): string {
   const d = new Date()
   d.setDate(d.getDate() + 1)
   return d.toISOString().slice(0, 10)
+}
+
+/** Куда ведёт уведомление о этапе — в очередь исполнителя. */
+function stageLink(code: string, journeyId: string): string {
+  if (code === 'jewishness') return '/dashboard/jewishness'
+  if (code === 'medical') return '/dashboard/doctor'
+  return `/dashboard/education/leads/${journeyId}`
 }
 
 /** Носители любой из ролей, у кого есть активный аккаунт. */
@@ -131,16 +140,21 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
   const applicantName = person?.full_name || person?.hebrew_name || ''
 
   const due = tomorrowISO()
+  const notifRows: NotificationInsert[] = []
 
   for (const stage of toCreate) {
     const roleCodes = (stage.stage_template!.required_role_code ?? '').split(',').map(r => r.trim()).filter(Boolean)
     const personIds = await resolveActivePersons(sb, roleCodes)
     if (personIds.length === 0) continue
 
-    const stageName = STAGE_TITLE_HE[stage.stage_template!.code] ?? stage.stage_template!.code
+    const stageCode = stage.stage_template!.code
+    const stageName = STAGE_TITLE_HE[stageCode] ?? stageCode
     const title = applicantName ? `חתימה — ${stageName}: ${applicantName}` : `חתימה — ${stageName}`
+    const notifTitle = applicantName ? `ממתינה לחתימתך — ${stageName}: ${applicantName}` : `ממתינה לחתימתך — ${stageName}`
+    const link = stageLink(stageCode, journeyId)
 
     for (const pid of personIds) {
+      notifRows.push({ person_id: pid, type: 'acceptance_stage', title: notifTitle, link, metadata: { journey_id: journeyId, stage_instance_id: stage.id, stage_code: stageCode } })
       const { data: task, error } = await sb
         .from('tasks')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -166,4 +180,8 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
       } as any)
     }
   }
+
+  // Уведомления в колокольчик — best-effort (не бросает, молча пропускает,
+  // если таблицы ещё нет).
+  await createNotifications(sb, notifRows)
 }

@@ -2897,5 +2897,10 @@
     "error_rate_limited": "Too many requests from this address. Please try again later.",
     "error_generic": "An error occurred. Please try again.",
     "error_network": "An error occurred while submitting. Please try again."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No new notifications",
+    "mark_all_read": "Mark all read"
   }
 }
