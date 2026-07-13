@@ -908,6 +908,19 @@
       "refer_to_doctor": "הפניה לרופא",
       "admitted": "התקבלה",
       "admitted_conditional": "התקבלה על תנאי"
+    },
+    "signatures": {
+      "title": "חתימות ואישורים",
+      "subtitle": "מי אישר כל שלב וצפייה בחתימה",
+      "signed_by": "חתם/ה",
+      "decision": "החלטה",
+      "pending": "ממתין לחתימה",
+      "no_process": "אין תהליך קבלה",
+      "view": "צפייה בחתימה",
+      "typed": "חתימה מוקלדת",
+      "drawn": "חתימה מצוירת",
+      "via_override": "אושר ע\"י מנהל (במקום התפקיד)",
+      "signed_at": "נחתם"
     }
   },
   "tasks": {

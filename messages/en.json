@@ -908,6 +908,19 @@
       "refer_to_doctor": "Refer to doctor",
       "admitted": "Admitted",
       "admitted_conditional": "Conditionally admitted"
+    },
+    "signatures": {
+      "title": "Signatures & approvals",
+      "subtitle": "Who approved each stage, view the signature",
+      "signed_by": "Signed by",
+      "decision": "Decision",
+      "pending": "Awaiting signature",
+      "no_process": "No acceptance process",
+      "view": "View signature",
+      "typed": "Typed signature",
+      "drawn": "Drawn signature",
+      "via_override": "Admin override",
+      "signed_at": "Signed"
     }
   },
   "tasks": {
