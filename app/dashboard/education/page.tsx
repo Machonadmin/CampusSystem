@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import StudyTab from './components/StudyTab'
+import AcceptanceOverviewTab from './components/AcceptanceOverviewTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
@@ -79,7 +80,7 @@ export default function EducationPage() {
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
 
-  const [tab, setTab] = useState<'recruitment' | 'admission' | 'study'>('recruitment')
+  const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>('recruitment')
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
@@ -98,6 +99,7 @@ export default function EducationPage() {
   const TABS = [
     { key: 'recruitment', label: t('tabs.leads') },
     { key: 'admission',   label: t('tabs.applicants') },
+    { key: 'committee',   label: t('overview.tab') },
     { key: 'study',       label: t('tabs.students') },
   ] as const
 
@@ -191,7 +193,7 @@ export default function EducationPage() {
       <ModuleTabs
         tabs={TABS.map(tb => ({ key: tb.key, label: tb.label }))}
         active={tab}
-        onChange={k => setTab(k as 'recruitment' | 'admission' | 'study')}
+        onChange={k => setTab(k as 'recruitment' | 'admission' | 'committee' | 'study')}
         accentColor={getModuleColor('education')}
       />
 
@@ -547,6 +549,8 @@ export default function EducationPage() {
           )}
         </div>
       )}
+
+      {tab === 'committee' && <AcceptanceOverviewTab />}
 
       {tab === 'study' && <StudyTab />}
 
