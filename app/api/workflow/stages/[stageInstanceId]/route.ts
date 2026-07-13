@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 export async function GET(
   _request: NextRequest,
@@ -18,7 +19,7 @@ export async function GET(
       .from('stage_instances')
       .select(`
         id, status, final_code, activated_at, completed_at, notes,
-        stage_template:stage_templates(id, code, name_ru, description, has_tasks, sort_order),
+        stage_template:stage_templates(id, code, name_ru, description, has_tasks, sort_order, required_role_code, requires_signature),
         process_instance:process_instances(id, journey_id, status)
       `)
       .eq('id', params.stageInstanceId)
@@ -41,7 +42,7 @@ export async function GET(
     }
     const target = targetDept ? { department_id: targetDept } : undefined
 
-    const [{ data: tasks }, { data: finals }, can_manage, can_convert] = await Promise.all([
+    const [{ data: tasks }, { data: finals }, can_manage, can_convert, signature_method] = await Promise.all([
       sb.from('tasks')
         .select('id, title, status, priority, assignee_type, due_date, completed_at')
         .eq('stage_instance_id', params.stageInstanceId)
@@ -54,6 +55,7 @@ export async function GET(
         : { data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] },
       hasEducationPrivilege(session, 'manage_leads', target),
       hasEducationPrivilege(session, 'convert_lead', target),
+      getSignatureMethod(),
     ])
 
     return NextResponse.json({
@@ -62,6 +64,7 @@ export async function GET(
       finals: finals ?? [],
       can_manage,
       can_convert,
+      signature_method,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

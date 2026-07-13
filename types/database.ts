@@ -1134,12 +1134,16 @@ export interface StageTemplateRow {
   is_optional:         boolean
   is_addable:          boolean
   sort_order:          number
+  required_role_code:  string | null   // role required to complete/sign this stage (NULL = no gate)
+  requires_signature:  boolean          // completion must carry a digital signature
   created_at:          string
   updated_at:          string
 }
-export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at' | 'updated_at'> & {
+export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at' | 'updated_at' | 'required_role_code' | 'requires_signature'> & {
   id?: string
   created_at?: string
+  required_role_code?: string | null
+  requires_signature?: boolean
 }
 export type StageTemplateUpdate = Partial<StageTemplateInsert>
 
@@ -1647,6 +1651,51 @@ export interface DocumentRecordInsert {
 }
 export type DocumentRecordUpdate = Partial<Omit<DocumentRecordInsert, 'journey_id' | 'created_by'>>
 
+// ─── Stage signatures (digital signature attached to a workflow stage completion) ───
+export interface StageSignatureRow {
+  id:                string
+  stage_instance_id: string
+  signed_by:         string           // server-set = the signer (never client input)
+  signer_name:       string           // snapshot of signer's full_name
+  signer_role_code:  string | null    // the stage's required role (capacity signed in)
+  signed_via:        'role' | 'override'
+  signature_kind:    'typed' | 'drawn'
+  typed_name:        string | null
+  drawing_path:      string | null    // storage_path in the private 'documents' bucket
+  final_code:        string | null
+  signed_at:         string
+  metadata:          Record<string, unknown>
+  created_at:        string
+}
+export interface StageSignatureInsert {
+  id?:               string
+  stage_instance_id: string
+  signed_by:         string
+  signer_name:       string
+  signer_role_code?: string | null
+  signed_via?:       'role' | 'override'
+  signature_kind:    'typed' | 'drawn'
+  typed_name?:       string | null
+  drawing_path?:     string | null
+  final_code?:       string | null
+  metadata?:         Record<string, unknown>
+}
+export type StageSignatureUpdate = Partial<StageSignatureInsert>
+
+// ─── App settings (global key/value config; single-org app) ───
+export interface AppSettingRow {
+  key:        string
+  value:      unknown
+  updated_at: string
+  updated_by: string | null
+}
+export interface AppSettingInsert {
+  key:         string
+  value:       unknown
+  updated_by?: string | null
+}
+export type AppSettingUpdate = Partial<Omit<AppSettingInsert, 'key'>>
+
 // ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
 //
 // САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
@@ -1861,6 +1910,8 @@ export interface Database {
       process_instances:         T<ProcessInstanceRow,           ProcessInstanceInsert,           ProcessInstanceUpdate>
       stage_instances:           T<StageInstanceRow,             StageInstanceInsert,             StageInstanceUpdate>
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
+      stage_signatures:          T<StageSignatureRow,            StageSignatureInsert,            StageSignatureUpdate>
+      app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
