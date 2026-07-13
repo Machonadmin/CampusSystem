@@ -740,7 +740,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view === 'new' ? ' *' : ''}</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view !== 'existing' ? ' *' : ''}</label>
                 {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   {t('form.add_phone')}
