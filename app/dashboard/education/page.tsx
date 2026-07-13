@@ -8,6 +8,7 @@ import StudyTab from './components/StudyTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import PendingSignatures from '@/components/workflow/PendingSignatures'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -182,6 +183,9 @@ export default function EducationPage() {
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
       </div>
+
+      {/* Личная очередь «Ожидают моей подписи» — видна только при наличии */}
+      <PendingSignatures />
 
       {/* Tabs */}
       <ModuleTabs

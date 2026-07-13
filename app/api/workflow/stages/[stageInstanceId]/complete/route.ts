@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
+import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
 import { signatureImageExists } from '@/lib/workflow/signature-storage'
@@ -117,6 +118,17 @@ export async function POST(
         p_actor_id: session.person_id,
       })
       if (admErr) console.error('[complete] авто-запуск «Приём»:', admErr)
+    }
+
+    // Синхронизация автозадач приёма (напоминание + календарь) — best-effort,
+    // никогда не роняет завершение этапа. Закрывает задачу завершённого этапа
+    // и создаёт задачи для только что активированных ролевых этапов.
+    if (ctx.journeyId) {
+      try {
+        await syncAcceptanceTasks(sb, ctx.journeyId, session.person_id)
+      } catch (taskErr) {
+        console.error('[complete] syncAcceptanceTasks:', taskErr)
+      }
     }
 
     return NextResponse.json({ ok: true, ...(result as CompleteStageResult) })

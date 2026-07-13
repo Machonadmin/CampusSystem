@@ -857,7 +857,34 @@
     "docs_action_reset_title": "אפס את הסטטוס",
     "docs_empty": "לא הוגדרו סוגי מסמכים",
     "page_status_deleted": "נמחק",
-    "page_actions_title": "פעולות"
+    "page_actions_title": "פעולות",
+    "pending_signatures": {
+      "title": "ממתינות לחתימתי",
+      "subtitle": "מועמדות שממתינות להחלטתך וחתימתך",
+      "count_badge": "ממתינות",
+      "open": "פתיחה וחתימה",
+      "hide": "הסתרה",
+      "open_profile": "לפרופיל המלא",
+      "decision": "החלטה",
+      "sign_title": "חתימה",
+      "sign_error": "החתימה נכשלה",
+      "signing": "חותם…",
+      "confirm": "אישור וחתימה"
+    },
+    "acceptance_stages": {
+      "academic": "בדיקה לימודית",
+      "dormitory": "פנימייה",
+      "jewishness": "בירור יהדות",
+      "medical": "חוות דעת רפואית",
+      "final_approval": "אישור סופי"
+    },
+    "acceptance_finals": {
+      "approved": "אושר",
+      "rejected": "נדחה",
+      "refer_to_doctor": "הפניה לרופא",
+      "admitted": "התקבלה",
+      "admitted_conditional": "התקבלה על תנאי"
+    }
   },
   "tasks": {
     "title": "משימות",
@@ -1921,6 +1948,43 @@
     "status": {
       "open": "פתוח",
       "closed": "סגור"
+    },
+    "referrals": {
+      "title": "הפניות רפואיות",
+      "subtitle": "מועמדות שהופנו לחוות דעתך הרפואית",
+      "empty": "אין הפניות ממתינות",
+      "load_error": "שגיאה בטעינת ההפניות",
+      "count_badge": "ממתינות",
+      "referred_by": "הופנתה על ידי",
+      "reason": "סיבת ההפניה",
+      "no_reason": "לא צוינה סיבה",
+      "personal_details": "פרטים אישיים",
+      "documents": "מסמכים שהועלו",
+      "no_documents": "לא הועלו מסמכים",
+      "medical_history": "רקע רפואי קודם",
+      "no_medical_history": "אין רקע רפואי קודם",
+      "email": "אימייל",
+      "phone": "טלפון",
+      "birth_date": "תאריך לידה",
+      "gender": "מין",
+      "citizenship": "אזרחות",
+      "blood_type": "סוג דם",
+      "allergies": "אלרגיות",
+      "chronic": "מחלות כרוניות",
+      "medications": "תרופות",
+      "emergency_contact": "איש קשר לחירום",
+      "notes": "הערות",
+      "open": "פתיחה וחתימה",
+      "hide": "הסתרה",
+      "decision": "החלטה רפואית",
+      "sign_title": "חתימה על חוות הדעת",
+      "sign_error": "החתימה נכשלה",
+      "signed": "נחתם בהצלחה",
+      "signing": "חותם…",
+      "download": "פתיחה",
+      "final_approved": "כשירה",
+      "final_rejected": "לא כשירה",
+      "confirm": "אישור וחתימה"
     }
   },
   "psychologist": {

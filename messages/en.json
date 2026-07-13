@@ -857,7 +857,34 @@
     "docs_action_reset_title": "Reset status",
     "docs_empty": "Document types are not configured",
     "page_status_deleted": "Deleted",
-    "page_actions_title": "Actions"
+    "page_actions_title": "Actions",
+    "pending_signatures": {
+      "title": "Awaiting my signature",
+      "subtitle": "Applicants waiting for your decision and signature",
+      "count_badge": "pending",
+      "open": "Open & sign",
+      "hide": "Hide",
+      "open_profile": "Full profile",
+      "decision": "Decision",
+      "sign_title": "Signature",
+      "sign_error": "Signing failed",
+      "signing": "Signing…",
+      "confirm": "Confirm & sign"
+    },
+    "acceptance_stages": {
+      "academic": "Academic review",
+      "dormitory": "Dormitory",
+      "jewishness": "Jewishness verification",
+      "medical": "Medical opinion",
+      "final_approval": "Final approval"
+    },
+    "acceptance_finals": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "refer_to_doctor": "Refer to doctor",
+      "admitted": "Admitted",
+      "admitted_conditional": "Conditionally admitted"
+    }
   },
   "tasks": {
     "title": "Tasks",
@@ -1921,6 +1948,43 @@
     "status": {
       "open": "Open",
       "closed": "Closed"
+    },
+    "referrals": {
+      "title": "Medical referrals",
+      "subtitle": "Applicants referred for your medical opinion",
+      "empty": "No pending referrals",
+      "load_error": "Failed to load referrals",
+      "count_badge": "pending",
+      "referred_by": "Referred by",
+      "reason": "Referral reason",
+      "no_reason": "No reason provided",
+      "personal_details": "Personal details",
+      "documents": "Uploaded documents",
+      "no_documents": "No documents uploaded",
+      "medical_history": "Prior medical history",
+      "no_medical_history": "No prior medical history",
+      "email": "Email",
+      "phone": "Phone",
+      "birth_date": "Date of birth",
+      "gender": "Gender",
+      "citizenship": "Citizenship",
+      "blood_type": "Blood type",
+      "allergies": "Allergies",
+      "chronic": "Chronic conditions",
+      "medications": "Medications",
+      "emergency_contact": "Emergency contact",
+      "notes": "Notes",
+      "open": "Open & sign",
+      "hide": "Hide",
+      "decision": "Medical decision",
+      "sign_title": "Sign the opinion",
+      "sign_error": "Signing failed",
+      "signed": "Signed successfully",
+      "signing": "Signing…",
+      "download": "Open",
+      "final_approved": "Fit",
+      "final_rejected": "Not fit",
+      "confirm": "Confirm & sign"
     }
   },
   "psychologist": {

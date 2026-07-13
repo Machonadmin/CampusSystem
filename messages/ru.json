@@ -857,7 +857,34 @@
     "docs_action_reset_title": "Сбросить статус",
     "docs_empty": "Типы документов не настроены",
     "page_status_deleted": "Удалён",
-    "page_actions_title": "Действия"
+    "page_actions_title": "Действия",
+    "pending_signatures": {
+      "title": "Ожидают моей подписи",
+      "subtitle": "Абитуриентки, ожидающие вашего решения и подписи",
+      "count_badge": "в ожидании",
+      "open": "Открыть и подписать",
+      "hide": "Скрыть",
+      "open_profile": "Полный профиль",
+      "decision": "Решение",
+      "sign_title": "Подпись",
+      "sign_error": "Не удалось подписать",
+      "signing": "Подписываю…",
+      "confirm": "Подтвердить и подписать"
+    },
+    "acceptance_stages": {
+      "academic": "Учебная проверка",
+      "dormitory": "Общежитие",
+      "jewishness": "Проверка еврейства",
+      "medical": "Мед. заключение",
+      "final_approval": "Финальное утверждение"
+    },
+    "acceptance_finals": {
+      "approved": "Одобрено",
+      "rejected": "Отклонено",
+      "refer_to_doctor": "Направить к врачу",
+      "admitted": "Принята",
+      "admitted_conditional": "Условно принята"
+    }
   },
   "tasks": {
     "title": "Задачи",
@@ -1921,6 +1948,43 @@
     "status": {
       "open": "Открыт",
       "closed": "Закрыт"
+    },
+    "referrals": {
+      "title": "Медицинские направления",
+      "subtitle": "Абитуриентки, направленные на ваше медицинское заключение",
+      "empty": "Нет ожидающих направлений",
+      "load_error": "Не удалось загрузить направления",
+      "count_badge": "в ожидании",
+      "referred_by": "Направила",
+      "reason": "Причина направления",
+      "no_reason": "Причина не указана",
+      "personal_details": "Личные данные",
+      "documents": "Загруженные документы",
+      "no_documents": "Документы не загружены",
+      "medical_history": "Прошлые медданные",
+      "no_medical_history": "Прошлых медданных нет",
+      "email": "Эл. почта",
+      "phone": "Телефон",
+      "birth_date": "Дата рождения",
+      "gender": "Пол",
+      "citizenship": "Гражданство",
+      "blood_type": "Группа крови",
+      "allergies": "Аллергии",
+      "chronic": "Хронические заболевания",
+      "medications": "Лекарства",
+      "emergency_contact": "Экстренный контакт",
+      "notes": "Заметки",
+      "open": "Открыть и подписать",
+      "hide": "Скрыть",
+      "decision": "Мед. решение",
+      "sign_title": "Подписать заключение",
+      "sign_error": "Не удалось подписать",
+      "signed": "Успешно подписано",
+      "signing": "Подписываю…",
+      "download": "Открыть",
+      "final_approved": "Пригодна",
+      "final_rejected": "Не пригодна",
+      "confirm": "Подтвердить и подписать"
     }
   },
   "psychologist": {
