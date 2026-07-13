@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { stageSignerAuthority } from '@/lib/workflow/stage-access'
 
 export async function GET(
   _request: NextRequest,
@@ -42,7 +43,17 @@ export async function GET(
     }
     const target = targetDept ? { department_id: targetDept } : undefined
 
-    const [{ data: tasks }, { data: finals }, can_manage, can_convert, signature_method] = await Promise.all([
+    const tmpl = stage.stage_template as unknown as { required_role_code: string | null; requires_signature: boolean } | null
+    const stageCtx = {
+      stageInstanceId: params.stageInstanceId,
+      stageTemplateId,
+      requiredRoleCode: tmpl?.required_role_code ?? null,
+      requiresSignature: !!tmpl?.requires_signature,
+      journeyId,
+      departmentId: targetDept,
+    }
+
+    const [{ data: tasks }, { data: finals }, manageLeads, can_convert, signature_method, signerAuthority] = await Promise.all([
       sb.from('tasks')
         .select('id, title, status, priority, assignee_type, due_date, completed_at')
         .eq('stage_instance_id', params.stageInstanceId)
@@ -56,7 +67,12 @@ export async function GET(
       hasEducationPrivilege(session, 'manage_leads', target),
       hasEducationPrivilege(session, 'convert_lead', target),
       getSignatureMethod(),
+      stageSignerAuthority(session, stageCtx),
     ])
+
+    // A role-gated signer (e.g. dorm_director on the dormitory stage) can act on
+    // their own stage even without manage_leads → surface the finals buttons.
+    const can_manage = manageLeads || signerAuthority !== null
 
     return NextResponse.json({
       ...stage,
