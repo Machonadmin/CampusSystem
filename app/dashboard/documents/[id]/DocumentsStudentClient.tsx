@@ -15,6 +15,8 @@ interface Doc {
   issued_date: string | null
   expiry_date: string | null
   file_url: string | null
+  storage_path: string | null
+  file_name: string | null
   status: 'active' | 'archived'
   notes: string | null
 }
@@ -47,6 +49,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
   const [dExpiry, setDExpiry] = useState('')
   const [dFileUrl, setDFileUrl] = useState('')
   const [dNotes, setDNotes] = useState('')
+  const [dFile, setDFile] = useState<File | null>(null)
+  const [fileKey, setFileKey] = useState(0) // remount the file input to clear it after upload
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -71,28 +75,59 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
     if (!dTitle.trim()) { setFormError(t('errors.title_required')); return }
     setBusy(true); setFormError(null)
     try {
-      const res = await fetch(`/api/documents/journeys/${journeyId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doc_type: dType,
-          title: dTitle.trim(),
-          issued_date: dIssued || null,
-          expiry_date: dExpiry || null,
-          file_url: dFileUrl || null,
-          notes: dNotes || null,
-        }),
-      })
+      let res: Response
+      if (dFile) {
+        // Real file upload → multipart to the storage-backed endpoint.
+        const fd = new FormData()
+        fd.append('file', dFile)
+        fd.append('title', dTitle.trim())
+        fd.append('doc_type', dType)
+        if (dIssued) fd.append('issued_date', dIssued)
+        if (dExpiry) fd.append('expiry_date', dExpiry)
+        if (dNotes) fd.append('notes', dNotes)
+        res = await fetch(`/api/documents/journeys/${journeyId}/upload`, { method: 'POST', body: fd })
+      } else {
+        // No file chosen → keep the external-link path.
+        res = await fetch(`/api/documents/journeys/${journeyId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doc_type: dType,
+            title: dTitle.trim(),
+            issued_date: dIssued || null,
+            expiry_date: dExpiry || null,
+            file_url: dFileUrl || null,
+            notes: dNotes || null,
+          }),
+        })
+      }
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.add')); return
       }
       setDType('other'); setDTitle(''); setDIssued(''); setDExpiry(''); setDFileUrl(''); setDNotes('')
+      setDFile(null); setFileKey(k => k + 1)
       await load()
     } catch {
       setFormError(t('errors.add'))
     } finally {
       setBusy(false)
+    }
+  }
+
+  // Открывает файл документа по свежей подписанной ссылке (или внешнему URL).
+  async function openDoc(d: Doc) {
+    setError(null)
+    try {
+      const res = await fetch(`/api/documents/${d.id}/signed-url`)
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('errors.action')); return
+      }
+      const b = await res.json()
+      if (b.url) window.open(b.url, '_blank', 'noopener,noreferrer')
+    } catch {
+      setError(t('errors.action'))
     }
   }
 
@@ -189,8 +224,24 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                 <Field label={t('fields.expiry_date')}>
                   <input type="date" value={dExpiry} onChange={e => setDExpiry(e.target.value)} style={inp} />
                 </Field>
+                <Field label={t('fields.upload_file')} full>
+                  <input
+                    key={fileKey}
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
+                    onChange={e => setDFile(e.target.files?.[0] ?? null)}
+                    style={inp}
+                  />
+                  <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>{t('fields.upload_hint')}</span>
+                </Field>
                 <Field label={t('fields.file_url')} full>
-                  <input value={dFileUrl} onChange={e => setDFileUrl(e.target.value)} placeholder="https://" style={inp} />
+                  <input
+                    value={dFileUrl}
+                    onChange={e => setDFileUrl(e.target.value)}
+                    placeholder="https://"
+                    disabled={!!dFile}
+                    style={{ ...inp, opacity: dFile ? 0.5 : 1 }}
+                  />
                 </Field>
                 <Field label={t('fields.notes')} full>
                   <textarea value={dNotes} onChange={e => setDNotes(e.target.value)} rows={2} style={area} />
@@ -222,11 +273,14 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                       <tr key={d.id}>
                         <td style={td}>{t(`types.${d.doc_type}`)}</td>
                         <td style={td}>
-                          {d.file_url ? (
+                          {d.storage_path ? (
+                            <button onClick={() => openDoc(d)} style={{ ...linkBtn(primary), padding: 0, fontSize: 13 }}>{d.title}</button>
+                          ) : d.file_url ? (
                             <a href={d.file_url} target="_blank" rel="noreferrer" style={{ color: primary, fontWeight: 500 }}>{d.title}</a>
                           ) : (
                             <span style={{ fontWeight: 500 }}>{d.title}</span>
                           )}
+                          {d.file_name && <div style={{ fontSize: 11, color: '#9CA3AF' }}>📎 {d.file_name}</div>}
                           {d.notes && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{d.notes}</div>}
                         </td>
                         <td style={td}>{d.issued_date || '—'}</td>

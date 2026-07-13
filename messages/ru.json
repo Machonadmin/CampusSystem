@@ -2072,7 +2072,9 @@
       "expiry_date": "Дата окончания",
       "file_url": "Ссылка на файл",
       "status": "Статус",
-      "notes": "Заметки"
+      "notes": "Заметки",
+      "upload_file": "Загрузить файл",
+      "upload_hint": "PDF, изображение или Word · до 15 МБ"
     },
     "types": {
       "id_card": "Удостоверение личности",
@@ -2716,7 +2718,10 @@
     "journey_creation_error": "Ошибка создания journey",
     "enroll_specify_department": "Для оформления укажите подразделение",
     "unknown_view_mode": "Неизвестный режим просмотра",
-    "access_denied": "Доступ запрещён"
+    "access_denied": "Доступ запрещён",
+    "file_required": "Требуется файл",
+    "file_too_large": "Файл слишком большой (макс. 15 МБ)",
+    "file_type_not_allowed": "Недопустимый тип файла"
   },
   "workflow": {
     "error": "Ошибка"
