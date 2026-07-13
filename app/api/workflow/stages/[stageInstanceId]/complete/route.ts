@@ -6,6 +6,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
 import { signatureImageExists } from '@/lib/workflow/signature-storage'
@@ -143,6 +144,42 @@ export async function POST(
         await syncAcceptanceTasks(sb, ctx.journeyId, session.person_id)
       } catch (taskErr) {
         console.error('[complete] syncAcceptanceTasks:', taskErr)
+      }
+    }
+
+    // Когда приёмная комиссия ЗАВЕРШИЛАСЬ (принята/условно/отклонена) — уведомляем
+    // того, кто запустил приём (набор), результатом. Замыкает петлю обратно на
+    // набор. Best-effort, никогда не роняет ответ.
+    const finish = (result as CompleteStageResult).finish_reason
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'rejected')) {
+      try {
+        const { data: si } = await sb
+          .from('stage_instances')
+          .select('process_instance:process_instances(created_by)')
+          .eq('id', params.stageInstanceId)
+          .maybeSingle()
+        const recruiterId = (si?.process_instance as unknown as { created_by: string | null } | null)?.created_by ?? null
+        if (recruiterId) {
+          const { data: j } = await sb
+            .from('education_journeys')
+            .select('person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
+            .eq('id', ctx.journeyId)
+            .maybeSingle()
+          const p = (j?.person as unknown as { full_name?: string | null; hebrew_name?: string | null } | null) ?? null
+          const name = p?.full_name || p?.hebrew_name || ''
+          const title = finish === 'rejected'
+            ? (name ? `לא התקבלה: ${name}` : 'מועמדת לא התקבלה')
+            : (name ? `התקבלה 🎉 ${name}` : 'מועמדת התקבלה 🎉')
+          await createNotifications(sb, [{
+            person_id: recruiterId,
+            type: 'acceptance_result',
+            title,
+            link: `/dashboard/education/leads/${ctx.journeyId}`,
+            metadata: { journey_id: ctx.journeyId, finish_reason: finish },
+          }])
+        }
+      } catch (notifErr) {
+        console.error('[complete] acceptance-result notify:', notifErr)
       }
     }
 
