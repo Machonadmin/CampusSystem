@@ -161,6 +161,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [completeError, setCompleteError] = useState('')
   const [pendingSig, setPendingSig] = useState<{ finalCode: string } | null>(null)
   const [sigPayload, setSigPayload] = useState<SignaturePayload | null>(null)
+  const [sigNote, setSigNote] = useState('')
 
   const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
 
@@ -258,6 +259,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   function onFinalClick(finalCode: string) {
     if (stageDetail?.stage_template?.requires_signature) {
       setSigPayload(null)
+      setSigNote('')
       setCompleteError('')
       setPendingSig({ finalCode })
     } else {
@@ -289,8 +291,11 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         }
       }
 
+      const rd: Record<string, unknown> = {}
+      if (signatureBody) rd.signature = signatureBody
+      if (sigNote.trim()) rd.note = sigNote.trim()
       const body: Record<string, unknown> = { final_code: finalCode }
-      if (signatureBody) body.result_data = { signature: signatureBody }
+      if (Object.keys(rd).length) body.result_data = rd
 
       const res = await fetch(`/api/workflow/stages/${selectedStageId}/complete`, {
         method: 'POST',
@@ -660,6 +665,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         >
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{t('process.signature.title')}</div>
+            <textarea
+              value={sigNote}
+              onChange={e => setSigNote(e.target.value)}
+              placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
+              rows={2}
+              style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+            />
             <SignatureCapture method={stageDetail?.signature_method ?? 'both'} onChange={setSigPayload} />
             {completeError && <div style={{ fontSize: 13, color: '#DC2626' }}>{completeError}</div>}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

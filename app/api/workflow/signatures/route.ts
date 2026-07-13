@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const { data: stagesRaw } = await sb
       .from('stage_instances')
       .select(`
-        id, status, final_code, completed_at,
+        id, status, final_code, completed_at, notes,
         stage_template:stage_templates!inner(code, name_ru, sort_order, required_role_code)
       `)
       .in('process_instance_id', instanceIds)
@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       status: string
       final_code: string | null
       completed_at: string | null
+      notes: string | null
       stage_template: { code: string; name_ru: string; sort_order: number; required_role_code: string | null } | null
     }>
 
@@ -108,6 +109,7 @@ export async function GET(request: NextRequest) {
         status: st.status,
         final_code: st.final_code,
         completed_at: st.completed_at,
+        note: st.notes ?? null,
         signatures,
       })
     }

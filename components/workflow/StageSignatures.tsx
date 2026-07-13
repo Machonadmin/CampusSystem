@@ -22,6 +22,7 @@ interface StageSig {
   status: string
   final_code: string | null
   completed_at: string | null
+  note: string | null
   signatures: Signature[]
 }
 
@@ -85,6 +86,12 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                   </span>
                 )}
               </div>
+
+              {st.note && (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#374151', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px' }}>
+                  {st.note}
+                </div>
+              )}
 
               {st.signatures.length > 0 && (
                 <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
