@@ -66,9 +66,10 @@ export type RoleCode =
   | 'kitchen_head' | 'kitchen_staff'
   | 'technical_staff'
   | 'applicant' | 'alumni' | 'sponsor'
+  | 'head_of_studies' | 'jewishness_officer'
 
 export type PrivilegeModule =
-  | 'persons' | 'applicants' | 'education' | 'finance'
+  | 'persons' | 'applicants' | 'education' | 'jewishness' | 'finance'
   | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
   | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
   | 'contacts'
