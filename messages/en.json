@@ -497,6 +497,11 @@
         "draw_hint": "Sign in the box below",
         "clear": "Clear",
         "confirm": "Sign & complete"
+      },
+      "names": {
+        "recruitment": "Recruitment",
+        "acceptance": "Acceptance",
+        "admission": "Admission"
       }
     },
     "card": {

@@ -380,7 +380,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           <div key={proc.id} style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
-                {proc.template?.name_ru ?? t('process.title')}
+                {proc.template ? t(`process.names.${proc.template.code}`, proc.template.name_ru) : t('process.title')}
               </span>
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,

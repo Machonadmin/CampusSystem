@@ -497,6 +497,11 @@
         "draw_hint": "חתום במסגרת למטה",
         "clear": "ניקוי",
         "confirm": "חתום והשלם"
+      },
+      "names": {
+        "recruitment": "גיוס",
+        "acceptance": "קבלה",
+        "admission": "קבלה"
       }
     },
     "card": {
