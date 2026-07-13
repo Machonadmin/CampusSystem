@@ -857,7 +857,34 @@
     "docs_action_reset_title": "Reset status",
     "docs_empty": "Document types are not configured",
     "page_status_deleted": "Deleted",
-    "page_actions_title": "Actions"
+    "page_actions_title": "Actions",
+    "pending_signatures": {
+      "title": "Awaiting my signature",
+      "subtitle": "Applicants waiting for your decision and signature",
+      "count_badge": "pending",
+      "open": "Open & sign",
+      "hide": "Hide",
+      "open_profile": "Full profile",
+      "decision": "Decision",
+      "sign_title": "Signature",
+      "sign_error": "Signing failed",
+      "signing": "Signing…",
+      "confirm": "Confirm & sign"
+    },
+    "acceptance_stages": {
+      "academic": "Academic review",
+      "dormitory": "Dormitory",
+      "jewishness": "Jewishness verification",
+      "medical": "Medical opinion",
+      "final_approval": "Final approval"
+    },
+    "acceptance_finals": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "refer_to_doctor": "Refer to doctor",
+      "admitted": "Admitted",
+      "admitted_conditional": "Conditionally admitted"
+    }
   },
   "tasks": {
     "title": "Tasks",

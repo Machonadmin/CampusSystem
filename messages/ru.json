@@ -857,7 +857,34 @@
     "docs_action_reset_title": "Сбросить статус",
     "docs_empty": "Типы документов не настроены",
     "page_status_deleted": "Удалён",
-    "page_actions_title": "Действия"
+    "page_actions_title": "Действия",
+    "pending_signatures": {
+      "title": "Ожидают моей подписи",
+      "subtitle": "Абитуриентки, ожидающие вашего решения и подписи",
+      "count_badge": "в ожидании",
+      "open": "Открыть и подписать",
+      "hide": "Скрыть",
+      "open_profile": "Полный профиль",
+      "decision": "Решение",
+      "sign_title": "Подпись",
+      "sign_error": "Не удалось подписать",
+      "signing": "Подписываю…",
+      "confirm": "Подтвердить и подписать"
+    },
+    "acceptance_stages": {
+      "academic": "Учебная проверка",
+      "dormitory": "Общежитие",
+      "jewishness": "Проверка еврейства",
+      "medical": "Мед. заключение",
+      "final_approval": "Финальное утверждение"
+    },
+    "acceptance_finals": {
+      "approved": "Одобрено",
+      "rejected": "Отклонено",
+      "refer_to_doctor": "Направить к врачу",
+      "admitted": "Принята",
+      "admitted_conditional": "Условно принята"
+    }
   },
   "tasks": {
     "title": "Задачи",
