@@ -1496,7 +1496,14 @@
       "err_password_min": "Пароль минимум 8 символов",
       "err_select_person": "Выберите человека или создайте нового",
       "err_enter_name": "Введите имя",
-      "err_fields_empty": "Поля не могут быть пустыми"
+      "err_fields_empty": "Поля не могут быть пустыми",
+      "auto_generate": "Сгенерировать пароль автоматически",
+      "generated_password_title": "Аккаунт создан! Пароль:",
+      "generated_password_hint": "Скопируйте и передайте пользователю — показывается один раз.",
+      "copy_password": "Копировать",
+      "copied": "Скопировано ✓",
+      "done": "Готово",
+      "password_reset_done": "Пароль сброшен! Новый пароль:"
     },
     "roles": {
       "code": "Код",

@@ -139,9 +139,12 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [autoGen, setAutoGen] = useState(true)
   const [roleIds, setRoleIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   function handleSearch(q: string) {
     setQuery(q)
@@ -173,15 +176,21 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
   }
 
   async function save() {
-    if (!email || !password) { setErr(t('err_email_password_required')); return }
-    if (password.length < 8) { setErr(t('err_password_min')); return }
+    if (!email) { setErr(t('err_email_password_required')); return }
+    if (!autoGen && (!password || password.length < 8)) { setErr(t('err_password_min')); return }
     if (!selectedPerson && !createNew) { setErr(t('err_select_person')); return }
     if (createNew && !fullName.trim()) { setErr(t('err_enter_name')); return }
 
     setSaving(true); setErr('')
-    const body = selectedPerson
-      ? { person_id: selectedPerson.id, login_email: email, password, role_ids: roleIds }
-      : { full_name: fullName.trim(), login_email: email, password, role_ids: roleIds }
+    const base = selectedPerson
+      ? { person_id: selectedPerson.id }
+      : { full_name: fullName.trim() }
+    const body = {
+      ...base,
+      login_email: email,
+      role_ids: roleIds,
+      ...(autoGen ? { generate_password: true } : { password }),
+    }
 
     const res = await fetch('/api/settings/users', {
       method: 'POST',
@@ -190,8 +199,11 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
     })
     const data = await res.json()
     setSaving(false)
-    if (res.ok) { onSaved(); onClose() }
-    else setErr(data.error ?? tCommon('error'))
+    if (res.ok) {
+      onSaved()
+      if (data.generated_password) setGeneratedPassword(data.generated_password) // показать пароль, не закрывая
+      else onClose()
+    } else setErr(data.error ?? tCommon('error'))
   }
 
   const toggleRole = (id: string) =>
@@ -204,6 +216,30 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
   }
 
   const personChosen = !!selectedPerson || createNew
+
+  async function copyPassword() {
+    if (!generatedPassword) return
+    try { await navigator.clipboard.writeText(generatedPassword); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
+  }
+
+  // После создания с авто-паролем — показываем пароль (один раз).
+  if (generatedPassword) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('generated_password_title')}</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: '#111827', background: '#F3F4F6', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : '#3B82F6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {copied ? t('copied') : t('copy_password')}
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: '#111827', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -306,17 +342,25 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
                   style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
                 />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('password_label')} *</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder={t('password_hint_placeholder')}
-                  autoComplete="new-password"
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
-                />
-              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
+                  <span style={{ fontSize: 13, color: '#374151' }}>{t('auto_generate')}</span>
+                </label>
+                {!autoGen && (
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('password_label')} *</span>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder={t('password_hint_placeholder')}
+                      autoComplete="new-password"
+                      style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                    />
+                  </label>
+                )}
+              </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t('select_roles_title')}</p>
                 {Object.entries(grouped).map(([cat, roles]) => (
@@ -365,21 +409,52 @@ interface ResetPasswordModalProps {
 function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalProps) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [autoGen, setAutoGen] = useState(true)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   async function save() {
-    if (password.length < 8) { setErr(t('err_password_min')); return }
-    if (password !== confirm) { setErr(t('password_mismatch')); return }
+    if (!autoGen) {
+      if (password.length < 8) { setErr(t('err_password_min')); return }
+      if (password !== confirm) { setErr(t('password_mismatch')); return }
+    }
     setSaving(true); setErr('')
     const res = await fetch(`/api/settings/users/${user.account_id}/password`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify(autoGen ? { generate_password: true } : { password }),
     })
     setSaving(false)
-    if (res.ok) onClose()
-    else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
+    if (res.ok) {
+      const d = await res.json().catch(() => ({}))
+      if (d.generated_password) setGeneratedPassword(d.generated_password)
+      else onClose()
+    } else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
+  }
+
+  async function copyPassword() {
+    if (!generatedPassword) return
+    try { await navigator.clipboard.writeText(generatedPassword); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
+  }
+
+  if (generatedPassword) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('password_reset_done')}</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: '#111827', background: '#F3F4F6', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : '#3B82F6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {copied ? t('copied') : t('copy_password')}
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: '#111827', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -391,28 +466,36 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('new_password_label')} *</span>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder={t('password_hint_placeholder')}
-              autoComplete="new-password"
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
-            />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+            <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
+            <span style={{ fontSize: 13, color: '#374151' }}>{t('auto_generate')}</span>
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('confirm_password_label')} *</span>
-            <input
-              type="password"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              placeholder={t('confirm_password_placeholder')}
-              autoComplete="new-password"
-              style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : '#D1D5DB'}`, fontSize: 13, outline: 'none' }}
-            />
-          </label>
+          {!autoGen && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('new_password_label')} *</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder={t('password_hint_placeholder')}
+                  autoComplete="new-password"
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('confirm_password_label')} *</span>
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder={t('confirm_password_placeholder')}
+                  autoComplete="new-password"
+                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : '#D1D5DB'}`, fontSize: 13, outline: 'none' }}
+                />
+              </label>
+            </>
+          )}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hashPassword } from '@/lib/auth/password'
+import { hashPassword, generatePassword } from '@/lib/auth/password'
 
 async function guard() {
   const session = await getSession()
@@ -70,13 +70,18 @@ export async function POST(request: NextRequest) {
       middle_name?: string | null
       person_id?: string
       login_email: string
-      password: string
+      password?: string
+      generate_password?: boolean
       role_ids?: string[]
     }
-    const { person_id, login_email, password, role_ids = [] } = body
+    const { person_id, login_email, role_ids = [] } = body
 
-    if (!login_email || !password)
+    if (!login_email)
       return apiError('email_password_required', 400)
+
+    // Пароль: авто-генерация (когда админ не задаёт вручную) или введённый.
+    const wasGenerated = body.generate_password || !body.password
+    const password = wasGenerated ? generatePassword() : body.password!
     if (password.length < 8)
       return apiError('password_min_8_short', 400)
 
@@ -113,7 +118,10 @@ export async function POST(request: NextRequest) {
       if (e3) throw e3
     }
 
-    return NextResponse.json({ person_id: final_person_id, account_id: account.id }, { status: 201 })
+    return NextResponse.json(
+      { person_id: final_person_id, account_id: account.id, generated_password: wasGenerated ? password : undefined },
+      { status: 201 },
+    )
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code === '23505') return apiError('email_in_use', 409)
