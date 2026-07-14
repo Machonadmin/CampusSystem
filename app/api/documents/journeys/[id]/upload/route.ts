@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
+import { notifyOwnerOfDocument } from '@/lib/notifications/journey-owner'
 import { mapDbError } from '@/lib/documents/http'
 import { isDocType, isIsoDate } from '@/lib/documents/validation'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
@@ -100,6 +101,8 @@ export async function POST(
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
+
+    await notifyOwnerOfDocument(sb, params.id, session.person_id)
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
