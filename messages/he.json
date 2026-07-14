@@ -965,6 +965,26 @@
       "converting": "מעביר…",
       "confirm": "להעביר את המועמדת לוועדת הקבלה? יתחיל תהליך הקבלה.",
       "error": "ההעברה נכשלה"
+    },
+    "timeline": {
+      "title": "ציר זמן",
+      "show": "הצג ציר זמן",
+      "hide": "הסתר",
+      "empty": "אין עדיין אירועים",
+      "status_change": "שינוי סטטוס",
+      "document_added": "מסמך הועלה",
+      "note_added": "הערה",
+      "signed": "חתימה",
+      "by": "ע\"י",
+      "status": {
+        "lead": "ליד",
+        "applicant": "מועמדת",
+        "student": "תלמידה",
+        "on_leave": "בחופשה",
+        "graduated": "בוגרת",
+        "expelled": "הורחקה",
+        "lost": "אבודה"
+      }
     }
   },
   "tasks": {

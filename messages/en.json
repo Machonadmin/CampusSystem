@@ -965,6 +965,26 @@
       "converting": "Handing off…",
       "confirm": "Hand this applicant off to the acceptance committee? Acceptance will start.",
       "error": "Handoff failed"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "show": "Show timeline",
+      "hide": "Hide",
+      "empty": "No events yet",
+      "status_change": "Status change",
+      "document_added": "Document uploaded",
+      "note_added": "Note",
+      "signed": "Signed",
+      "by": "by",
+      "status": {
+        "lead": "Lead",
+        "applicant": "Applicant",
+        "student": "Student",
+        "on_leave": "On leave",
+        "graduated": "Graduated",
+        "expelled": "Expelled",
+        "lost": "Lost"
+      }
     }
   },
   "tasks": {
