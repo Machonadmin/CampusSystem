@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
+import HomeWidgets from '@/components/dashboard/HomeWidgets'
 
 interface MeResponse {
   full_name: string | null
@@ -122,6 +123,9 @@ export default function DashboardPage() {
           </span>
         )}
       </div>
+
+      {/* Personal "what needs attention" widgets — hidden when everything is empty */}
+      <HomeWidgets />
 
       {/* Modules grid */}
       <div>
