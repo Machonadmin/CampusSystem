@@ -50,7 +50,8 @@
     "all_countries": "Все страны",
     "date_format_placeholder": "ДД.ММ.ГГГГ",
     "optional_note": "Заметка / причина (необязательно)",
-    "note_placeholder": "Краткое пояснение или причина…"
+    "note_placeholder": "Краткое пояснение или причина…",
+    "export_csv": "Экспорт CSV"
   },
   "jewishness": {
     "title": "Проверка еврейства",
