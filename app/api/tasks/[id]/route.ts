@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
+import { createNotifications } from '@/lib/notifications/create'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 async function requireAuth() {
@@ -198,6 +199,28 @@ export async function PATCH(
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+
+      // Уведомляем «другую сторону» о смене статуса (best-effort).
+      const creatorId = (task as { creator_id: string | null }).creator_id
+      const assigneeId = (task as { assignee_id: string | null }).assignee_id
+      const recipient = session.person_id === creatorId ? assigneeId : creatorId
+      const TITLE_HE: Partial<Record<TaskStatus, string>> = {
+        review:      'משימה נשלחה לבדיקתך',
+        completed:   'המשימה הושלמה',
+        declined:    'משימה נדחתה',
+        cancelled:   'משימה בוטלה',
+        in_progress: 'המשימה הוחזרה אליך',
+      }
+      const heading = TITLE_HE[statusChange.to]
+      if (recipient && recipient !== session.person_id && heading) {
+        await createNotifications(sb, [{
+          person_id: recipient,
+          type: 'task_status',
+          title: `${heading}: ${(task as { title: string }).title}`,
+          link: `/dashboard/tasks/${params.id}`,
+          metadata: { task_id: params.id, status: statusChange.to },
+        }])
+      }
 
       // Дублируем заметку смены статуса в общий фид комментариев, чтобы она
       // не «терялась» (видна только в истории). Ошибка вставки не должна
