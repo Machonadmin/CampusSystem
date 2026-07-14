@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { parseBody, jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
@@ -13,7 +14,8 @@ export async function GET(request: NextRequest) {
     await requirePersonsPrivilege('view')
 
     const { searchParams } = request.nextUrl
-    const q = (searchParams.get('search') ?? searchParams.get('q') ?? '').trim()
+    // q попадает в строку .or() — очищаем спецсимволы PostgREST-фильтра.
+    const q = sanitizeOrSearch(searchParams.get('search') ?? searchParams.get('q'))
     const role = searchParams.get('role')
     const departmentId = searchParams.get('department_id')
 

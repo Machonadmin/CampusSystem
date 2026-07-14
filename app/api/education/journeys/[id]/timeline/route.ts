@@ -30,21 +30,24 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_applicants')
-      || await hasEducationPrivilege(session, 'view_students')
-    if (!allowed) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
-    // journey → person + процессы/этапы приёма.
+    // journey → person + подразделение (для проверки прав) + процессы/этапы приёма.
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, person_id')
+      .select('id, person_id, primary_department_id')
       .eq('id', params.id)
       .maybeSingle()
     if (!journey) return apiError('journey_not_found', 404)
     const personId = (journey as { person_id: string }).person_id
+    const dept = (journey as { primary_department_id?: string | null }).primary_department_id ?? null
+    const target = dept ? { department_id: dept } : undefined
+
+    const allowed = session.roles.includes('superadmin')
+      || await hasEducationPrivilege(session, 'view_applicants', target)
+      || await hasEducationPrivilege(session, 'view_students', target)
+    if (!allowed) return apiError('forbidden', 403)
 
     const { data: pis } = await sb
       .from('process_instances')

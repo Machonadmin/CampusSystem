@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
@@ -27,7 +28,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (teacherId) query = query.eq('teacher_person_id', teacherId)
-    if (search) query = query.or(`group_name.ilike.%${search}%,course_name.ilike.%${search}%`)
+    const safeSearch = sanitizeOrSearch(search)
+    if (safeSearch) query = query.or(`group_name.ilike.%${safeSearch}%,course_name.ilike.%${safeSearch}%`)
 
     const { data: checks, error } = await query
     if (error) throw error

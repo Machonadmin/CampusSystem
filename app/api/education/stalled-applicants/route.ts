@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
 /**
  * GET /api/education/stalled-applicants?days=N
@@ -39,6 +39,11 @@ export async function GET(request: NextRequest) {
     const isSuper = session.roles.includes('superadmin')
     const allowed = isSuper || await hasEducationPrivilege(session, 'view_applicants')
     if (!allowed) return NextResponse.json({ applicants: [] })
+
+    // Ограничение по подразделению: scope='all'/superadmin — весь институт;
+    // scope='department' — только свои подразделения (фильтр ниже по journey).
+    const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_applicants')
+    const myDepts = scope === 'department' ? await getUserDepartmentIds(session.person_id) : []
 
     const daysParam = parseInt(request.nextUrl.searchParams.get('days') ?? '7', 10)
     const days = Number.isFinite(daysParam) && daysParam >= 0 ? daysParam : 7
@@ -80,18 +85,25 @@ export async function GET(request: NextRequest) {
 
     const { data: journeys } = await sb
       .from('education_journeys')
-      .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url)')
+      .select('id, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url)')
       .in('id', journeyIds)
 
     const personByJourney = new Map<string, { full_name?: string | null; hebrew_name?: string | null; photo_url?: string | null }>()
-    for (const j of (journeys ?? []) as unknown as Array<{ id: string; person: unknown }>) {
+    const deptByJourney = new Map<string, string | null>()
+    for (const j of (journeys ?? []) as unknown as Array<{ id: string; primary_department_id: string | null; person: unknown }>) {
       personByJourney.set(j.id, (j.person as never) ?? {})
+      deptByJourney.set(j.id, j.primary_department_id ?? null)
     }
 
     const byJourney = new Map<string, StalledApplicant>()
     for (const s of relevant) {
       const journeyId = s.process_instance?.journey_id
       if (!journeyId) continue
+      // department-scope: показываем только journey своих подразделений.
+      if (scope === 'department') {
+        const jd = deptByJourney.get(journeyId) ?? null
+        if (!jd || !myDepts.includes(jd)) continue
+      }
       const d = daysSince(s.activated_at, nowMs)
       let entry = byJourney.get(journeyId)
       if (!entry) {

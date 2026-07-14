@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 /**
@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
     const allowed = isSuper || await hasEducationPrivilege(session, 'view_applicants')
     if (!allowed) return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
 
+    // Ограничение по подразделению: scope='all'/superadmin — весь институт;
+    // scope='department' — только свои подразделения.
+    const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_applicants')
+    const myDepts = scope === 'department' ? await getUserDepartmentIds(session.person_id) : []
+
     const statusFilter = (request.nextUrl.searchParams.get('status') ?? 'active').trim()
 
     const sb = createServerClient()
@@ -41,7 +46,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, status, journey_id,
         process_template:process_templates!inner(code),
-        journey:education_journeys!inner(id, education_status, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url, phones))
+        journey:education_journeys!inner(id, education_status, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url, phones))
       `)
       .eq('process_template.code', 'acceptance')
       .order('started_at', { ascending: false })
@@ -51,10 +56,18 @@ export async function GET(request: NextRequest) {
     const { data: pisRaw, error: piErr } = await piQuery
     if (piErr) throw piErr
 
-    const pis = (pisRaw ?? []) as unknown as Array<{
+    let pis = (pisRaw ?? []) as unknown as Array<{
       id: string; status: string; journey_id: string
-      journey: { id: string; education_status: string | null; person: unknown } | null
+      journey: { id: string; education_status: string | null; primary_department_id: string | null; person: unknown } | null
     }>
+
+    // department-scope: только journey своих подразделений.
+    if (scope === 'department') {
+      pis = pis.filter(p => {
+        const jd = p.journey?.primary_department_id ?? null
+        return jd != null && myDepts.includes(jd)
+      })
+    }
 
     const signature_method = await getSignatureMethod()
 

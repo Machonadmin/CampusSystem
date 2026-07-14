@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { journeyDeptTarget } from '@/lib/education/journey-target'
 
 /**
  * GET /api/education/journeys/[id]/handoff — цель «Передать в приёмную комиссию».
@@ -28,10 +29,10 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin') || await hasEducationPrivilege(session, 'view_leads')
-    if (!allowed) return apiError('forbidden', 403)
-
     const sb = createServerClient()
+    const allowed = session.roles.includes('superadmin')
+      || await hasEducationPrivilege(session, 'view_leads', await journeyDeptTarget(sb, params.id))
+    if (!allowed) return apiError('forbidden', 403)
 
     // Активный процесс «Набор» для journey.
     const { data: pis } = await sb

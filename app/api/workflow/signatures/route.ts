@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { getSignedUrl } from '@/lib/documents/storage'
 
 /**
@@ -23,8 +24,10 @@ export async function GET(request: NextRequest) {
     const journeyId = request.nextUrl.searchParams.get('journey_id')?.trim()
     if (!journeyId) return apiError('journey_id_required', 400)
 
+    const sb = createServerClient()
+
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_applicants')
+      || await hasEducationPrivilege(session, 'view_applicants', await journeyDeptTarget(sb, journeyId))
     if (!allowed) return apiError('forbidden', 403)
 
     // Приватные заметки этапа видят только руководители и подписант этого этапа.
@@ -35,8 +38,6 @@ export async function GET(request: NextRequest) {
       if (!requiredRoleCode) return false
       return requiredRoleCode.split(',').map(r => r.trim()).some(r => session.roles.includes(r))
     }
-
-    const sb = createServerClient()
 
     // Инстансы процесса acceptance для journey.
     const { data: pis } = await sb
