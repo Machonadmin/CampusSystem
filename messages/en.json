@@ -2980,5 +2980,29 @@
     "title": "Notifications",
     "empty": "No new notifications",
     "mark_all_read": "Mark all read"
+  },
+  "add_to_calendar": {
+    "button": "Add to calendar",
+    "title": "Add to calendar",
+    "field_title": "Title",
+    "field_date": "Date",
+    "field_time": "Time (optional)",
+    "field_reminder": "Reminder",
+    "reminder_none": "No reminder",
+    "reminder_at": "At event time",
+    "reminder_10m": "10 minutes before",
+    "reminder_1h": "1 hour before",
+    "reminder_1d": "1 day before",
+    "field_notes": "Notes (optional)",
+    "save": "Add to calendar",
+    "saving": "Adding…",
+    "added": "Added to calendar ✓",
+    "added_already": "Already in the calendar",
+    "cancel": "Cancel",
+    "error": "Failed to add",
+    "delete": "Remove from calendar",
+    "open_link": "Open link",
+    "has_reminder": "Reminder set",
+    "deleting": "Removing…"
   }
 }
