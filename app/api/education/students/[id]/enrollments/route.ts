@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-  return session
+/** Привилегия просмотра по education_status journey. */
+function pickViewPrivilege(status: string | null): EducationPrivilege {
+  if (status === 'lead') return 'view_leads'
+  if (status === 'applicant') return 'view_applicants'
+  return 'view_students'
 }
 
 /**
@@ -15,14 +16,28 @@ async function requireAuth() {
  *
  * [id] здесь — journey.id (не student.id).
  * Совместим с proxy /api/education/students/[id] → journeys/[id].
+ *
+ * Право: view по статусу journey (+ его подразделение как target), как в
+ * journeys/[id] и graph. Иначе любой авторизованный читал бы состав групп
+ * (ФИО студенток) без education-привилегий.
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
     const sb = createServerClient()
+
+    const { data: journey } = await sb
+      .from('education_journeys')
+      .select('education_status, primary_department_id')
+      .eq('id', params.id)
+      .maybeSingle()
+    const targetDept = journey?.primary_department_id ?? null
+    await requireEducationPrivilege(
+      pickViewPrivilege(journey?.education_status ?? null),
+      targetDept ? { department_id: targetDept } : undefined,
+    )
 
     const { data, error } = await sb
       .from('class_enrollments')
