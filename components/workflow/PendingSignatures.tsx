@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import { useMe } from '@/lib/hooks/useMe'
 
 interface Final {
   id: string
@@ -88,6 +89,7 @@ function PendingCard({
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
   const router = useRouter()
+  const me = useMe()
   const primary = getModuleColor('education', 'primary')
 
   const [open, setOpen] = useState(false)
@@ -205,7 +207,7 @@ function PendingCard({
                 rows={2}
                 style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
               />
-              <SignatureCapture method={sigMethod} onChange={setSig} />
+              <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
               {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
               <button
                 onClick={submit}
