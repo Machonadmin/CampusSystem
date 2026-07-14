@@ -192,7 +192,7 @@ export default function QualityControlPage() {
                   <thead>
                     <tr style={{ backgroundColor: '#F9FAFB' }}>
                       {[t('list.table_date_time'), t('list.table_teacher'), t('list.table_group_course'), t('list.table_observer'), t('list.table_status'), t('list.table_rating'), t('list.table_actions')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                           {h}
                         </th>
                       ))}

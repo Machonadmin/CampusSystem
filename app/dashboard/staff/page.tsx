@@ -529,7 +529,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -681,7 +681,7 @@ export default function StaffPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#FAFAFA' }}>
                     {[t('dept.name_col'), t('dept.head_col'), t('dept.staff_col'), t('dept.actions_col')].map(h => (
-                      <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                      <th key={h} style={{ padding: '8px 12px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>

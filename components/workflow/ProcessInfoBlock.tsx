@@ -419,7 +419,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '4px 6px', borderRadius: 6, textAlign: 'left', flex: 1, minWidth: 0,
+                        padding: '4px 6px', borderRadius: 6, textAlign: 'start', flex: 1, minWidth: 0,
                         transition: 'background 0.1s',
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}

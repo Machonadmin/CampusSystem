@@ -284,5 +284,5 @@ function Cell({
   )
 }
 
-const th: React.CSSProperties = { padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }
+const th: React.CSSProperties = { padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }
 const td: React.CSSProperties = { padding: '11px 14px', verticalAlign: 'top' }

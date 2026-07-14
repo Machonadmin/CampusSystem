@@ -235,7 +235,7 @@ export default function StudentsTab() {
                           {s.person?.full_name ?? '—'}
                         </button>
                         {s.person?.hebrew_name && (
-                          <div style={{ fontSize: 11, color: '#9CA3AF', direction: 'rtl', textAlign: 'left' }}>{s.person.hebrew_name}</div>
+                          <div style={{ fontSize: 11, color: '#9CA3AF', direction: 'rtl', textAlign: 'start' }}>{s.person.hebrew_name}</div>
                         )}
                       </td>
                       <td style={tdStyle}>
@@ -298,6 +298,6 @@ export default function StudentsTab() {
 
 const thStyle: React.CSSProperties = {
   padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }

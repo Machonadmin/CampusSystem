@@ -43,7 +43,7 @@ function Field({
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
           style={{
-            width: '100%', padding: '8px 38px 8px 10px', borderRadius: 8,
+            width: '100%', paddingBlock: 8, paddingInlineStart: 10, paddingInlineEnd: 38, borderRadius: 8,
             border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -51,7 +51,7 @@ function Field({
           type="button"
           onClick={onToggle}
           style={{
-            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+            position: 'absolute', insetInlineEnd: 10, top: '50%', transform: 'translateY(-50%)',
             background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 0,
             display: 'flex', alignItems: 'center',
           }}

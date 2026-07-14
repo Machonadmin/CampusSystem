@@ -379,7 +379,7 @@ export default function AddEmployeeModal({
                         {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}
-                            style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
+                            style={{ width: '100%', textAlign: 'start', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                           >

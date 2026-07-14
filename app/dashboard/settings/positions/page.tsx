@@ -430,6 +430,6 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
 const thStyle: React.CSSProperties = {
   padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
