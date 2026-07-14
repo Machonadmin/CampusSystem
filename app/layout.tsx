@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Heebo } from 'next/font/google'
 import './globals.css'
 import { getCookieLocale } from '@/lib/i18n/locale'
@@ -13,6 +13,13 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   title: 'CampusSystem',
   description: 'Campus Management System',
+}
+
+// Без width=device-width мобильные браузеры рендерят страницу на ~980px и
+// «отдаляют» — тогда любая адаптивная вёрстка не работает. Это база для мобилы.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

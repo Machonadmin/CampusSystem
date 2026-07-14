@@ -7,6 +7,7 @@ import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 import NotificationBell from '@/components/dashboard/NotificationBell'
 import GlobalSearch from '@/components/dashboard/GlobalSearch'
+import { useSidebar } from '@/lib/sidebar/SidebarContext'
 
 interface HeaderProps {
   userName: string | null
@@ -16,6 +17,7 @@ interface HeaderProps {
 export default function Header({ userName, roles }: HeaderProps) {
   const { lang, setLang, t, isRTL } = useLang()
   const tNav = useTranslations('navigation')
+  const { toggle: toggleSidebar } = useSidebar()
   const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
@@ -61,6 +63,18 @@ export default function Header({ userName, roles }: HeaderProps) {
       className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4"
       style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB' }}
     >
+      {/* ── Hamburger (mobile only) — открывает off-canvas sidebar ── */}
+      <button
+        onClick={toggleSidebar}
+        aria-label={tNav('toggle_menu')}
+        className="md:hidden flex items-center justify-center rounded-lg hover:bg-gray-100 transition flex-shrink-0"
+        style={{ width: 40, height: 40 }}
+      >
+        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       {/* ── Logo + Campus name ── */}
       <div
         className="flex items-center gap-3 flex-shrink-0"

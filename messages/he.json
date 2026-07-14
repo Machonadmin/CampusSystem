@@ -94,7 +94,8 @@
     "food": "הזנה",
     "maintenance": "תחזוקה",
     "security": "אבטחה",
-    "logo_alt": "מכון חמש"
+    "logo_alt": "מכון חמש",
+    "toggle_menu": "פתח/סגור תפריט"
   },
   "auth": {
     "login": "כניסה",
