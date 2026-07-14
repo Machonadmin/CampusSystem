@@ -26,6 +26,7 @@ export default function ApplyPage() {
   const [form, setForm] = useState({
     first_name: '', last_name: '', phone: '', email: '',
     birth_date: '', city: '', direction_id: '', website: '',
+    applicant_type: 'student', comment: '',
   })
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
@@ -151,6 +152,31 @@ export default function ApplyPage() {
               </label>
             </div>
 
+            {/* Кто заполняет */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>{t('applicant_type_label')}</label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {([['student', t('type_student')], ['parent', t('type_parent')], ['representative', t('type_representative')]] as const).map(([val, lbl]) => {
+                  const active = form.applicant_type === val
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => set('applicant_type', val)}
+                      style={{
+                        flex: '1 1 auto', padding: '9px 12px', fontSize: 14, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
+                        border: `1.5px solid ${active ? PINK : '#E5E7EB'}`,
+                        background: active ? '#FDF2F8' : '#fff',
+                        color: active ? PINK : '#6B7280', transition: 'all 0.15s',
+                      }}
+                    >
+                      {lbl}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
               <div>
                 <label style={labelStyle}>{t('label_first_name')} <span style={{ color: PINK }}>*</span></label>
@@ -194,6 +220,17 @@ export default function ApplyPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle}>{t('label_comment')}</label>
+              <textarea
+                style={{ ...inputStyle, resize: 'vertical', minHeight: 72, fontFamily: 'inherit' }}
+                value={form.comment}
+                onChange={e => set('comment', e.target.value)}
+                placeholder={t('comment_placeholder')}
+                rows={3}
+              />
             </div>
 
             <button type="submit" disabled={submitting} style={{

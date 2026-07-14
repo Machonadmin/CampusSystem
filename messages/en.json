@@ -2935,7 +2935,13 @@
     "error_phone_required": "Please enter your phone number",
     "error_rate_limited": "Too many requests from this address. Please try again later.",
     "error_generic": "An error occurred. Please try again.",
-    "error_network": "An error occurred while submitting. Please try again."
+    "error_network": "An error occurred while submitting. Please try again.",
+    "applicant_type_label": "Who is filling this form?",
+    "type_student": "The student",
+    "type_parent": "Parent",
+    "type_representative": "Representative",
+    "label_comment": "Message (optional)",
+    "comment_placeholder": "Tell us a bit about yourself / how we can help"
   },
   "notifications": {
     "title": "Notifications",
