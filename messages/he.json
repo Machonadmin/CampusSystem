@@ -3021,5 +3021,14 @@
     "open_link": "פתח קישור",
     "has_reminder": "תזכורת מוגדרת",
     "deleting": "מוחק…"
+  },
+  "home": {
+    "section_title": "מה דורש את תשומת ליבך",
+    "pending_signatures": "ממתינות לחתימתך",
+    "my_tasks": "המשימות שלי",
+    "upcoming": "ביומן בקרוב",
+    "view_all": "הצג הכל",
+    "more": "ועוד",
+    "no_date": "ללא תאריך"
   }
 }

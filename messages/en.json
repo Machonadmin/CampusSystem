@@ -3021,5 +3021,14 @@
     "open_link": "Open link",
     "has_reminder": "Reminder set",
     "deleting": "Removing…"
+  },
+  "home": {
+    "section_title": "What needs your attention",
+    "pending_signatures": "Awaiting your signature",
+    "my_tasks": "My tasks",
+    "upcoming": "Upcoming in the calendar",
+    "view_all": "View all",
+    "more": "more",
+    "no_date": "No date"
   }
 }
