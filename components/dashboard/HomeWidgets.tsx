@@ -16,7 +16,7 @@ export default function HomeWidgets() {
   return (
     <div>
       <div style={{ display: hasAny ? 'block' : 'none' }}>
-        <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">{t('section_title')}</h2>
+        <h2 className="text-sm font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--text-faint)' }}>{t('section_title')}</h2>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: hasAny ? 24 : 0 }}>
         <StalledApplicantsWidget onData={() => setHasAny(true)} />
@@ -34,14 +34,15 @@ function Card({ title, accent, count, children, onClick }: {
   return (
     <button
       onClick={onClick}
+      className="home-card"
       style={{
-        textAlign: 'start', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
-        padding: 16, cursor: 'pointer', display: 'grid', gap: 10,
+        textAlign: 'start', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+        padding: 16, cursor: 'pointer', display: 'grid', gap: 10, boxShadow: 'var(--shadow)',
         borderInlineStart: `4px solid ${accent}`,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{title}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{title}</span>
         {count != null && count > 0 && (
           <span style={{ fontSize: 11, fontWeight: 700, padding: '1px 9px', borderRadius: 999, background: accent, color: '#fff' }}>{count}</span>
         )}
@@ -54,8 +55,8 @@ function Card({ title, accent, count, children, onClick }: {
 function Row({ main, sub }: { main: string; sub?: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
-      <span style={{ color: '#1F2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main}</span>
-      {sub && <span style={{ color: '#9CA3AF', flexShrink: 0 }}>{sub}</span>}
+      <span style={{ color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main}</span>
+      {sub && <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>{sub}</span>}
     </div>
   )
 }
@@ -83,14 +84,14 @@ function StalledApplicantsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('stalled')} accent="#DC2626" count={items.length} onClick={() => router.push('/dashboard/education')}>
+    <Card title={t('stalled')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.journey_id}
             main={s.applicant.full_name || s.applicant.hebrew_name || '—'}
             sub={t('days_waiting', '{n} d').replace('{n}', String(s.max_days))} />
         ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: '#DC2626' }}>+{items.length - 4} {t('more')}</span>}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--danger)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )
@@ -115,14 +116,14 @@ function PendingSignaturesWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('pending_signatures')} accent="#4F46E5" count={items.length} onClick={() => router.push('/dashboard/education')}>
+    <Card title={t('pending_signatures')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.stage_instance_id}
             main={s.applicant.full_name || s.applicant.hebrew_name || '—'}
             sub={tEdu(`acceptance_stages.${s.stage_code}`, s.stage_code)} />
         ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: '#4F46E5' }}>+{items.length - 4} {t('more')}</span>}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--accent-strong)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )
@@ -153,12 +154,12 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('my_tasks')} accent="#F59E0B" count={items.length} onClick={() => router.push('/dashboard/tasks')}>
+    <Card title={t('my_tasks')} accent="var(--warn)" count={items.length} onClick={() => router.push('/dashboard/tasks')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(tk => (
           <Row key={tk.id} main={tk.title} sub={tk.due_date ? formatDate(tk.due_date, lang) : t('no_date')} />
         ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: '#B45309' }}>+{items.length - 4} {t('more')}</span>}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )

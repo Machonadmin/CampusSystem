@@ -69,8 +69,8 @@ function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boo
   const path = ICONS[moduleKey] ?? ''
   const iconColor = getModuleColor(moduleKey, 'primary')
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : 'rgba(255,255,255,0.6)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg style={{ width: 22, height: 22, color: disabled ? '#9CA3AF' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 22, height: 22, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
 
       {/* Modules grid */}
       <div>
-        <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">
+        <h2 className="text-sm font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--text-faint)' }}>
           {t.availableModules}
         </h2>
 
@@ -137,23 +137,23 @@ export default function DashboardPage() {
           {visibleModules.map(key => {
             const ready = isModuleImplemented(key)
             const primary = getModuleColor(key, 'primary')
-            const lightBg = getModuleColor(key, 'light')
             const name = t.nav[key as keyof typeof t.nav] ?? key
             const desc = t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               padding: 20,
-              backgroundColor: ready ? lightBg : '#F9FAFB',
-              borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
+              backgroundColor: ready ? 'var(--surface)' : 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderInlineStart: `4px solid ${ready ? primary : 'var(--border-strong)'}`,
               borderRadius: 12,
-              opacity: ready ? 1 : 0.65,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              opacity: ready ? 1 : 0.7,
+              boxShadow: 'var(--shadow)',
               transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',
             }
             const badge = !ready && (
               <span style={{
-                position: 'absolute', top: 10, right: 10,
-                background: '#F59E0B', color: '#fff',
+                position: 'absolute', top: 10, insetInlineEnd: 10,
+                background: 'var(--warn)', color: '#fff',
                 padding: '3px 8px', borderRadius: 6,
                 fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
@@ -166,8 +166,8 @@ export default function DashboardPage() {
                 {badge}
                 <ModuleIcon moduleKey={key} disabled={!ready} />
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
-                  <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#9CA3AF', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : 'var(--text-faint)', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                  <p style={{ fontSize: 12, color: ready ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
                 </div>
               </>
             )
