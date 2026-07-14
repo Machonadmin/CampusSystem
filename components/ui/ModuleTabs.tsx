@@ -22,7 +22,7 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor }: Prop
   return (
     <div style={{
       display: 'flex',
-      borderBottom: '1px solid #E5E7EB',
+      borderBottom: '1px solid var(--border)',
       gap: 4,
       flexWrap: 'wrap',
     }}>
@@ -32,9 +32,9 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor }: Prop
           padding: '10px 28px',
           fontSize: 13,
           fontWeight: isActive ? 600 : 500,
-          color: isActive ? accentColor : '#6B7280',
-          background: isActive ? `${accentColor}18` : '#fff',
-          border: `1px solid ${isActive ? accentColor : '#E5E7EB'}`,
+          color: isActive ? accentColor : 'var(--text-muted)',
+          background: isActive ? `${accentColor}18` : 'var(--surface)',
+          border: `1px solid ${isActive ? accentColor : 'var(--border)'}`,
           borderBottom: 'none',
           borderRadius: '8px 8px 0 0',
           cursor: 'pointer',
