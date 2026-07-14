@@ -3030,5 +3030,19 @@
     "view_all": "Показать все",
     "more": "ещё",
     "no_date": "Без даты"
+  },
+  "search": {
+    "placeholder": "Поиск человека…",
+    "no_results": "Ничего не найдено",
+    "searching": "Поиск…",
+    "status": {
+      "lead": "Лид",
+      "applicant": "Абитуриентка",
+      "student": "Студентка",
+      "on_leave": "В отпуске",
+      "graduated": "Выпускница",
+      "expelled": "Отчислена",
+      "staff": "Сотрудник"
+    }
   }
 }

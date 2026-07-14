@@ -6,6 +6,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 import NotificationBell from '@/components/dashboard/NotificationBell'
+import GlobalSearch from '@/components/dashboard/GlobalSearch'
 
 interface HeaderProps {
   userName: string | null
@@ -82,31 +83,7 @@ export default function Header({ userName, roles }: HeaderProps) {
       </div>
 
       {/* ── Search ── */}
-      <div className="flex-1 max-w-xs mx-auto">
-        <div className="relative">
-          <svg
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-            style={{ [isRTL ? 'right' : 'left']: '12px' }}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
-          </svg>
-          <input
-            id="global-search"
-            type="text"
-            placeholder={t.search}
-            className="w-full bg-gray-100 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg py-2 text-sm focus:outline-none focus:bg-white focus:border-[#4BAED4] transition"
-            style={{ paddingLeft: isRTL ? '48px' : '36px', paddingRight: isRTL ? '36px' : '52px' }}
-          />
-          <kbd
-            className="absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-mono hidden sm:block"
-            style={{ [isRTL ? 'left' : 'right']: '10px' }}
-          >
-            {t.searchHint}
-          </kbd>
-        </div>
-      </div>
+      <GlobalSearch searchHint={t.searchHint} />
 
       {/* ── Right actions ── */}
       <div className="flex items-center gap-2 flex-shrink-0">

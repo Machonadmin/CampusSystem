@@ -3030,5 +3030,19 @@
     "view_all": "View all",
     "more": "more",
     "no_date": "No date"
+  },
+  "search": {
+    "placeholder": "Search a person…",
+    "no_results": "No results",
+    "searching": "Searching…",
+    "status": {
+      "lead": "Lead",
+      "applicant": "Applicant",
+      "student": "Student",
+      "on_leave": "On leave",
+      "graduated": "Graduated",
+      "expelled": "Expelled",
+      "staff": "Staff"
+    }
   }
 }
