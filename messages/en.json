@@ -953,6 +953,15 @@
       "saved": "Saved ✓",
       "save_error": "Save failed",
       "choose": "Choose a track…"
+    },
+    "handoff": {
+      "button": "Hand off to acceptance committee",
+      "missing": "Complete first:",
+      "field_name": "name",
+      "field_phone": "phone",
+      "converting": "Handing off…",
+      "confirm": "Hand this applicant off to the acceptance committee? Acceptance will start.",
+      "error": "Handoff failed"
     }
   },
   "tasks": {
