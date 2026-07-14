@@ -87,11 +87,15 @@ export async function POST(request: NextRequest) {
     //    Ищем отдел по имени; если нет — задача уходит в общий пул
     //    (unassigned), чтобы уведомление не потерялось. Best-effort.
     try {
-      const { data: dept } = await sb
+      // Новые лиды идут в пул отдела «Набор» (גיוס); до его создания — в
+      // «Администрация»; если и его нет — в общий пул (unassigned).
+      const { data: deptRows } = await sb
         .from('departments')
-        .select('id')
-        .eq('name', 'Администрация')
-        .maybeSingle()
+        .select('id, name')
+        .in('name', ['גיוס', 'Администрация'])
+      const dept = (deptRows ?? []).find(d => d.name === 'גיוס')
+        ?? (deptRows ?? []).find(d => d.name === 'Администрация')
+        ?? null
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
       const typeNote = applicantType !== 'student' ? `\nОт: ${applicantType}` : ''
