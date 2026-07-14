@@ -103,7 +103,12 @@ export async function hasDocumentsPrivilege(
 ): Promise<boolean> {
   if (!session) return false
   const access = await getUserAccess(session)
-  return !!access.privileges[privilege]
+  const scope = access.privileges[privilege]
+  if (!scope) return false
+  // Модуль не привязан к подразделению/владельцу: 'all' и 'department' (общий
+  // пул) дают доступ, как и раньше. 'own' здесь не имеет смысла и НЕ должен по
+  // ошибке открывать все (в т.ч. приватные/медицинские) документы — fail-closed.
+  return scope !== 'own'
 }
 
 /** Получить scope, с которым у пользователя есть привилегия. null — если нет. */

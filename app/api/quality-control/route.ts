@@ -27,7 +27,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (teacherId) query = query.eq('teacher_person_id', teacherId)
-    if (search) query = query.or(`group_name.ilike.%${search}%,course_name.ilike.%${search}%`)
+    if (search) {
+      // Экранируем спецсимволы PostgREST-фильтра (запятая/скобки/звёздочка),
+      // иначе значение из строки поиска могло бы инъектировать доп. условия в .or().
+      const safe = search.replace(/[,()*\\]/g, ' ').trim()
+      if (safe) query = query.or(`group_name.ilike.%${safe}%,course_name.ilike.%${safe}%`)
+    }
 
     const { data: checks, error } = await query
     if (error) throw error

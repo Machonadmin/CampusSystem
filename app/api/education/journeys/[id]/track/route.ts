@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { journeyDeptTarget } from '@/lib/education/journey-target'
 import type { JourneyStudyTrackInsert } from '@/types/database'
 
 /**
@@ -18,10 +19,11 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin') || await hasEducationPrivilege(session, 'view_students')
+    const sb = createServerClient()
+    const allowed = session.roles.includes('superadmin')
+      || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
     if (!allowed) return apiError('forbidden', 403)
 
-    const sb = createServerClient()
     const { data, error } = await sb
       .from('journey_study_tracks')
       .select('journey_id, track_id, notes, updated_at')
@@ -42,7 +44,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin') || await hasEducationPrivilege(session, 'manage_students')
+    const sb = createServerClient()
+    const allowed = session.roles.includes('superadmin')
+      || await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id))
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { track_id?: string | null; notes?: string | null }
@@ -54,7 +58,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updated_by: session.person_id,
     }
 
-    const sb = createServerClient()
     const { error } = await sb
       .from('journey_study_tracks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

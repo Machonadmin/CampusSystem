@@ -103,7 +103,11 @@ export async function hasSponsorsPrivilege(
 ): Promise<boolean> {
   if (!session) return false
   const access = await getUserAccess(session)
-  return !!access.privileges[privilege]
+  const scope = access.privileges[privilege]
+  if (!scope) return false
+  // Модуль не привязан к подразделению/владельцу: 'all'/'department' дают доступ,
+  // 'own' здесь бессмыслен и НЕ должен по ошибке открыть все данные спонсоров.
+  return scope !== 'own'
 }
 
 /** Получить scope, с которым у пользователя есть привилегия. null — если нет. */
