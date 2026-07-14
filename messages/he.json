@@ -50,7 +50,8 @@
     "all_countries": "כל המדינות",
     "date_format_placeholder": "DD.MM.YYYY",
     "optional_note": "הערה / סיבה (רשות)",
-    "note_placeholder": "הסבר קצר או סיבה…"
+    "note_placeholder": "הסבר קצר או סיבה…",
+    "export_csv": "ייצוא ל-CSV"
   },
   "jewishness": {
     "title": "בירור יהדות",

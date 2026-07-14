@@ -10,6 +10,7 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import PendingSignatures from '@/components/workflow/PendingSignatures'
+import { downloadCsv } from '@/lib/export/csv'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -172,6 +173,27 @@ export default function EducationPage() {
       return sortOrder === 'asc' ? cmp : -cmp
     })
 
+  function exportLeads() {
+    const headers = [t('leads.table.full_name'), t('leads.table.institution'), t('leads.table.direction'), t('leads.table.phone'), t('leads.table.email'), t('leads.table.application_date')]
+    const rows = filtered.map(l => {
+      const depts = [...new Set(l.interests.map(i => i.department_name).filter(Boolean))].join('; ')
+      const dirs = l.interests.map(interestLabel).filter(Boolean).join('; ')
+      return [l.full_name, depts, dirs, l.phones.join(' '), l.email ?? '', formatDate(l.application_date)]
+    })
+    downloadCsv('leads', headers, rows)
+  }
+
+  function exportApplicants() {
+    const headers = [t('applicants.table.full_name'), t('applicants.table.phone'), t('applicants.table.email'), t('applicants.table.institution'), t('applicants.table.direction'), t('applicants.table.application_date')]
+    const rows = applicants.map(a => {
+      const phones = flattenPhones(a.person?.phones)
+      const interestTexts = (a.interests ?? []).map(interestLabel).filter(Boolean)
+      const direction = interestTexts.length > 0 ? interestTexts.join('; ') : (a.desired_specialty?.name ?? a.desired_department?.name ?? '')
+      return [a.person?.full_name ?? '', phones.join(' '), a.person?.email ?? '', a.primary_department?.name ?? '', direction, formatDate(a.application_date)]
+    })
+    downloadCsv('applicants', headers, rows)
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -239,6 +261,14 @@ export default function EducationPage() {
               onClick={() => setAddOpen(true)}
               accentColor={getModuleColor('education')}
             />
+            <button
+              type="button"
+              onClick={exportLeads}
+              disabled={filtered.length === 0}
+              style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: filtered.length === 0 ? '#9CA3AF' : '#374151', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+            >
+              ⭳ {tCommon('export_csv')}
+            </button>
           </div>
 
           {/* Table card */}
@@ -459,7 +489,19 @@ export default function EducationPage() {
       )}
 
       {tab === 'admission' && (
-        <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+        <>
+          {applicants.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={exportApplicants}
+                style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: '#374151', cursor: 'pointer' }}
+              >
+                ⭳ {tCommon('export_csv')}
+              </button>
+            </div>
+          )}
+          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
           {loadingApplicants ? (
             <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
           ) : applicants.length === 0 ? (
@@ -560,7 +602,8 @@ export default function EducationPage() {
               </tbody>
             </table>
           )}
-        </div>
+          </div>
+        </>
       )}
 
       {tab === 'committee' && <AcceptanceOverviewTab />}

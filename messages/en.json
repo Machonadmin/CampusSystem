@@ -50,7 +50,8 @@
     "all_countries": "All countries",
     "date_format_placeholder": "DD.MM.YYYY",
     "optional_note": "Note / reason (optional)",
-    "note_placeholder": "Short explanation or reason…"
+    "note_placeholder": "Short explanation or reason…",
+    "export_csv": "Export CSV"
   },
   "jewishness": {
     "title": "Jewishness Verification",
