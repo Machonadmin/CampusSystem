@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
+import { createNotifications } from '@/lib/notifications/create'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
 } from '@/types/database'
@@ -225,6 +226,17 @@ export async function POST(request: NextRequest) {
         .filter(w => w !== personId)
         .map(person_id => ({ task_id: task.id, person_id, added_by: personId }))
       if (rows.length > 0) await sb.from('task_watchers').insert(rows)
+    }
+
+    // ─── Уведомление исполнителю (если назначено другому человеку) ───────────────
+    if (assignee_type === 'person' && assignee_id && assignee_id !== personId) {
+      await createNotifications(sb, [{
+        person_id: assignee_id,
+        type: 'task_assigned',
+        title: `משימה חדשה: ${title}`,
+        link: `/dashboard/tasks/${task.id}`,
+        metadata: { task_id: task.id },
+      }])
     }
 
     return NextResponse.json(task, { status: 201 })

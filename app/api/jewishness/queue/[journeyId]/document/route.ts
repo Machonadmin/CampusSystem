@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
 import { isDocType } from '@/lib/documents/validation'
+import { notifyOwnerOfDocument } from '@/lib/notifications/journey-owner'
 import type { DocumentRecordInsert } from '@/types/database'
 
 /**
@@ -89,6 +90,8 @@ export async function POST(
       .select(DOC_COLS)
       .single()
     if (error) throw error
+
+    await notifyOwnerOfDocument(sb, params.journeyId, session.person_id)
 
     return NextResponse.json({ document: rec }, { status: 201 })
   } catch (err: unknown) {
