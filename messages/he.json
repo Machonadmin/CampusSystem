@@ -3059,7 +3059,9 @@
     "upcoming": "ביומן בקרוב",
     "view_all": "הצג הכל",
     "more": "ועוד",
-    "no_date": "ללא תאריך"
+    "no_date": "ללא תאריך",
+    "stalled": "תקועות בתהליך",
+    "days_waiting": "{n} ימים"
   },
   "search": {
     "placeholder": "חיפוש אדם…",

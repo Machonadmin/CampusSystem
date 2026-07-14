@@ -19,6 +19,7 @@ export default function HomeWidgets() {
         <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">{t('section_title')}</h2>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: hasAny ? 24 : 0 }}>
+        <StalledApplicantsWidget onData={() => setHasAny(true)} />
         <PendingSignaturesWidget onData={() => setHasAny(true)} />
         <MyTasksWidget onData={() => setHasAny(true)} />
         <UpcomingEventsWidget onData={() => setHasAny(true)} />
@@ -56,6 +57,42 @@ function Row({ main, sub }: { main: string; sub?: string }) {
       <span style={{ color: '#1F2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main}</span>
       {sub && <span style={{ color: '#9CA3AF', flexShrink: 0 }}>{sub}</span>}
     </div>
+  )
+}
+
+// ── Застрявшие абитуриентки ──────────────────────────────────────────────────
+interface Stalled {
+  journey_id: string
+  applicant: { full_name: string; hebrew_name: string | null }
+  stages: Array<{ stage_code: string }>
+  max_days: number
+}
+function StalledApplicantsWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const router = useRouter()
+  const [items, setItems] = useState<Stalled[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/education/stalled-applicants')
+      if (res.ok) { const b = await res.json(); const s = (b.applicants ?? []) as Stalled[]; setItems(s); if (s.length) onData() }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('stalled')} accent="#DC2626" count={items.length} onClick={() => router.push('/dashboard/education')}>
+      <div style={{ display: 'grid', gap: 5 }}>
+        {items.slice(0, 4).map(s => (
+          <Row key={s.journey_id}
+            main={s.applicant.full_name || s.applicant.hebrew_name || '—'}
+            sub={t('days_waiting', '{n} d').replace('{n}', String(s.max_days))} />
+        ))}
+        {items.length > 4 && <span style={{ fontSize: 12, color: '#DC2626' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
   )
 }
 
