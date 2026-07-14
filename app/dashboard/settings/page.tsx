@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import SignatureMethodSetting from '@/components/settings/SignatureMethodSetting'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
@@ -60,6 +61,8 @@ export default function SettingsPage() {
           {t('system_title')}
         </h1>
       </div>
+
+      <SignatureMethodSetting />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {SECTIONS.map(s => {

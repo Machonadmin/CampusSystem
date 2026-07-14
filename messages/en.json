@@ -1636,6 +1636,15 @@
       "food": "Food",
       "technical": "Technical Staff",
       "external": "External"
+    },
+    "signature": {
+      "title": "Digital signature method",
+      "subtitle": "How acceptance stages are signed",
+      "typed": "Typed name",
+      "drawn": "Drawn signature",
+      "both": "Both (signer chooses)",
+      "saved": "Saved ✓",
+      "save_error": "Save failed"
     }
   },
   "events": {
