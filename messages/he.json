@@ -2181,7 +2181,8 @@
       "counseling": "פסיכולוג",
       "documents": "מסמכים",
       "sponsors": "תורמים",
-      "security": "אבטחה"
+      "security": "אבטחה",
+      "admission_funnel": "משפך קבלה"
     },
     "metrics": {
       "total": "סך הכול",
@@ -2239,6 +2240,21 @@
         "high": "גבוהה",
         "medium": "בינונית",
         "low": "נמוכה"
+      },
+      "leads": "לידים",
+      "applicants": "מועמדות",
+      "students": "תלמידות",
+      "reached_applicant": "הגיעו לשלב קבלה",
+      "reached_student": "הפכו לתלמידות",
+      "lead_to_applicant": "המרה: ליד→מועמדת",
+      "applicant_to_student": "המרה: מועמדת→תלמידה",
+      "stage_pending": "ממתינות בשלב",
+      "stage": {
+        "academic": "בדיקה לימודית",
+        "dormitory": "פנימייה",
+        "jewishness": "בירור יהדות",
+        "medical": "חוות דעת רפואית",
+        "final_approval": "אישור סופי"
       }
     }
   },

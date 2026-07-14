@@ -2181,7 +2181,8 @@
       "counseling": "Counseling",
       "documents": "Documents",
       "sponsors": "Sponsors",
-      "security": "Security"
+      "security": "Security",
+      "admission_funnel": "Admission funnel"
     },
     "metrics": {
       "total": "Total",
@@ -2239,6 +2240,21 @@
         "high": "High",
         "medium": "Medium",
         "low": "Low"
+      },
+      "leads": "Leads",
+      "applicants": "Applicants",
+      "students": "Students",
+      "reached_applicant": "Reached acceptance",
+      "reached_student": "Became students",
+      "lead_to_applicant": "Conversion: lead→applicant",
+      "applicant_to_student": "Conversion: applicant→student",
+      "stage_pending": "Pending at stage",
+      "stage": {
+        "academic": "Academic",
+        "dormitory": "Dormitory",
+        "jewishness": "Jewishness",
+        "medical": "Medical",
+        "final_approval": "Final approval"
       }
     }
   },
