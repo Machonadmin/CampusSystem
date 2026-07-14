@@ -3030,5 +3030,19 @@
     "view_all": "הצג הכל",
     "more": "ועוד",
     "no_date": "ללא תאריך"
+  },
+  "search": {
+    "placeholder": "חיפוש אדם…",
+    "no_results": "לא נמצאו תוצאות",
+    "searching": "מחפש…",
+    "status": {
+      "lead": "ליד",
+      "applicant": "מועמדת",
+      "student": "תלמידה",
+      "on_leave": "בחופשה",
+      "graduated": "בוגרת",
+      "expelled": "הורחקה",
+      "staff": "צוות"
+    }
   }
 }
