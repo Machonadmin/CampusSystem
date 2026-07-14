@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { materializeDueReminders } from '@/lib/notifications/reminders'
+import { materializeDueReminders, materializeTaskDeadlines } from '@/lib/notifications/reminders'
 
 /**
  * GET /api/notifications — мои последние уведомления + число непрочитанных.
@@ -21,8 +21,9 @@ export async function GET() {
 
     const sb = createServerClient()
 
-    // Материализуем созревшие напоминания календаря в уведомления (best-effort).
+    // Материализуем созревшие напоминания календаря + дедлайны задач (best-effort).
     await materializeDueReminders(sb, session.person_id)
+    await materializeTaskDeadlines(sb, session.person_id)
 
     const { data, error } = await sb
       .from('notifications')
