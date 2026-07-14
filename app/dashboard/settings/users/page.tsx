@@ -679,7 +679,7 @@ export default function UsersPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
                 {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>

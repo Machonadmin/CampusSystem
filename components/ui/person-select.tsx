@@ -340,7 +340,7 @@ export function PersonSelect({
                       type="button"
                       onClick={() => selectPerson(p)}
                       style={{
-                        display: 'block', width: '100%', textAlign: 'left',
+                        display: 'block', width: '100%', textAlign: 'start',
                         padding: '9px 12px', background: 'none', border: 'none',
                         borderBottom: '1px solid #F3F4F6', cursor: 'pointer',
                       }}
@@ -377,7 +377,7 @@ export function PersonSelect({
                 type="button"
                 onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
                 style={{
-                  display: 'block', width: '100%', textAlign: 'left',
+                  display: 'block', width: '100%', textAlign: 'start',
                   padding: '9px 12px', fontSize: 12, fontWeight: 600,
                   color: accentColor, background: '#F9FAFB',
                   border: 'none', borderTop: '1px solid #E5E7EB', cursor: 'pointer',

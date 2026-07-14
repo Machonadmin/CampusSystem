@@ -420,7 +420,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                         type="button"
                         onClick={() => setFrequency(opt.value)}
                         style={{
-                          padding: '10px 12px', textAlign: 'left',
+                          padding: '10px 12px', textAlign: 'start',
                           border: '2px solid ' + (active ? '#F59E0B' : '#E5E7EB'),
                           borderRadius: 10, cursor: 'pointer',
                           background: active ? '#FFFBEB' : '#fff',

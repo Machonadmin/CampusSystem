@@ -299,7 +299,7 @@ export default function EducationPage() {
                         style={{
                           padding: '10px 14px', fontSize: 11, fontWeight: 600,
                           color: key ? (sortBy === key ? '#374151' : '#9CA3AF') : '#9CA3AF',
-                          textAlign: 'left', whiteSpace: 'nowrap',
+                          textAlign: 'start', whiteSpace: 'nowrap',
                           cursor: key ? 'pointer' : 'default',
                           userSelect: 'none',
                           width: idx === 7 ? 48 : undefined,
@@ -441,7 +441,7 @@ export default function EducationPage() {
                             {lead.is_deleted ? (
                               <button
                                 onClick={() => { setOpenMenuId(null); handleRestore(lead) }}
-                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#059669' }}
+                                style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#059669' }}
                                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDF4' }}
                                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                               >
@@ -451,7 +451,7 @@ export default function EducationPage() {
                               <>
                                 <button
                                   onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}`) }}
-                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
                                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
@@ -459,7 +459,7 @@ export default function EducationPage() {
                                 </button>
                                 <button
                                   onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}/edit`) }}
-                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
                                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
@@ -468,7 +468,7 @@ export default function EducationPage() {
                                 <div style={{ borderTop: '1px solid #F3F4F6', margin: '2px 0' }} />
                                 <button
                                   onClick={() => { setOpenMenuId(null); setDeleteTarget(lead) }}
-                                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#DC2626' }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#DC2626' }}
                                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2' }}
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
@@ -522,7 +522,7 @@ export default function EducationPage() {
                     t('applicants.table.status'),
                     t('applicants.table.current_stage'),
                   ].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                    <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
                   ))}

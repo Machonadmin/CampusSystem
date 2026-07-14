@@ -388,7 +388,7 @@ function Field({ label, children, full }: { label: string; children: React.React
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
   borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
 }

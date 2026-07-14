@@ -594,7 +594,7 @@ export default function TemplatesTab({ perms }: Props) {
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
                 {[t('templates.table_name'), t('templates.table_description'), t('templates.table_blocks'), t('templates.table_questions'), t('templates.table_created'), ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
