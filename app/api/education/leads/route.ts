@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
+    const mineOnly = request.nextUrl.searchParams.get('mine') === '1'
 
     // Просмотр удалённых — только manage_leads + scope=all
     if (processStatus === 'deleted') {
@@ -65,19 +66,22 @@ export async function GET(request: NextRequest) {
     // Все process_instances для фильтрации по статусу
     const { data: allPi } = await sb
       .from('process_instances')
-      .select('id, journey_id, status')
+      .select('id, journey_id, status, created_by')
       .in('journey_id', journeyIds)
 
     const journeyHasActive = new Set<string>()
     const journeyHasTerminated = new Set<string>()
+    const journeyMine = new Set<string>()
     for (const pi of allPi ?? []) {
       if ((pi.status as string) === 'active') journeyHasActive.add(pi.journey_id as string)
       else if ((pi.status as string) === 'cancelled' || (pi.status as string) === 'completed') {
         journeyHasTerminated.add(pi.journey_id as string)
       }
+      if ((pi.created_by as string | null) === session.person_id) journeyMine.add(pi.journey_id as string)
     }
 
     const filteredJourneys = journeys.filter(j => {
+      if (mineOnly && !journeyMine.has(j.id)) return false // «мои лиды» — созданные мной
       if (processStatus === 'deleted') return true // already filtered in DB query
       if (processStatus === 'active') {
         // Показать: есть активный процесс ИЛИ вообще нет процесса
