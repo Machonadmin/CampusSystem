@@ -94,7 +94,8 @@
     "food": "Dining",
     "maintenance": "Maintenance",
     "security": "Security",
-    "logo_alt": "Machon Hamesh"
+    "logo_alt": "Machon Hamesh",
+    "toggle_menu": "Toggle menu"
   },
   "auth": {
     "login": "Sign In",

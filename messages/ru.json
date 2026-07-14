@@ -94,7 +94,8 @@
     "food": "Питание",
     "maintenance": "Эксплуатация",
     "security": "Безопасность",
-    "logo_alt": "Махон Хамеш"
+    "logo_alt": "Махон Хамеш",
+    "toggle_menu": "Меню"
   },
   "auth": {
     "login": "Войти",
