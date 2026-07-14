@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
 
 async function guard() {
   const session = await getSession()
@@ -12,7 +13,7 @@ async function guard() {
 export async function GET(request: NextRequest) {
   try {
     await guard()
-    const q = request.nextUrl.searchParams.get('q') ?? ''
+    const q = sanitizeOrSearch(request.nextUrl.searchParams.get('q'))
     if (q.length < 2) return NextResponse.json([])
 
     const sb = createServerClient()

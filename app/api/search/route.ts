@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
 
 /**
  * GET /api/search?q= — глобальный поиск людей (по ФИО / ивр. имени / email).
@@ -25,9 +26,7 @@ export async function GET(request: NextRequest) {
       || await hasEducationPrivilege(session, 'view_students')
     if (!allowed) return NextResponse.json({ results: [] })
 
-    const raw = request.nextUrl.searchParams.get('q')?.trim() ?? ''
-    // Экранируем спецсимволы PostgREST or()/ilike (%, запятые, скобки).
-    const q = raw.replace(/[%,()]/g, ' ').trim()
+    const q = sanitizeOrSearch(request.nextUrl.searchParams.get('q'))
     if (q.length < 2) return NextResponse.json({ results: [] })
 
     const sb = createServerClient()
