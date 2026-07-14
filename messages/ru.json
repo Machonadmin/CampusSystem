@@ -1650,7 +1650,29 @@
     },
     "system_prefix": "[СИС]",
     "tab_tasks": "Задачи",
-    "tab_events": "Лента"
+    "tab_events": "Лента",
+    "system": {
+      "substage_completed": "Подэтап завершён",
+      "substage_cancelled": "Подэтап отменён",
+      "substage_activated": "Подэтап активирован",
+      "process_started": "Процесс запущен"
+    },
+    "finals": {
+      "approved": "Одобрено",
+      "rejected": "Отклонено",
+      "refer_to_doctor": "Направить к врачу",
+      "admitted": "Принята",
+      "admitted_conditional": "Условно принята",
+      "convert_to_applicant": "Передана в приём",
+      "waitlisted": "В списке ожидания",
+      "qualified": "Подходит",
+      "not_qualified": "Не подходит"
+    },
+    "process_names": {
+      "Набор": "Набор",
+      "Приёмная комиссия": "Приёмная комиссия",
+      "Приём": "Приём"
+    }
   },
   "alumni": {
     "list": {
