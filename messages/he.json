@@ -2935,7 +2935,13 @@
     "error_phone_required": "נא למלא מספר טלפון",
     "error_rate_limited": "נשלחו יותר מדי בקשות מכתובת זו. נסו שוב מאוחר יותר.",
     "error_generic": "אירעה שגיאה. נסו שוב.",
-    "error_network": "אירעה שגיאה בשליחה. נסו שוב."
+    "error_network": "אירעה שגיאה בשליחה. נסו שוב.",
+    "applicant_type_label": "מי ממלא את הטופס?",
+    "type_student": "התלמידה",
+    "type_parent": "הורה",
+    "type_representative": "נציג/ה",
+    "label_comment": "הודעה (רשות)",
+    "comment_placeholder": "ספרו לנו קצת על עצמכם / איך נוכל לעזור"
   },
   "notifications": {
     "title": "התראות",

@@ -32,6 +32,9 @@ const publicApplicationSchema = z.object({
   birth_date: z.string().trim().max(20).optional().or(z.literal('')),
   city: z.string().trim().max(120).optional().or(z.literal('')),
   direction_id: z.string().uuid().optional().or(z.literal('')),
+  // Кто подаёт: сама абитуриентка / родитель / представитель.
+  applicant_type: z.enum(['student', 'parent', 'representative']).optional(),
+  comment: z.string().trim().max(2000).optional().or(z.literal('')),
   // honeypot: реальные пользователи оставляют пустым
   website: z.string().max(0).optional().or(z.literal('')),
 })
@@ -57,6 +60,11 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
+    // Тип подающего кодируем в referral_source (машиночитаемо) и в comment лида.
+    const applicantType = body.applicant_type ?? 'student'
+    const referralSource = applicantType === 'student' ? 'public_form' : `public_form_${applicantType}`
+    const comment = body.comment?.trim() || null
+
     // 3. Создание заявки — атомарно, всегда новая запись (person_id не передаём)
     const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', {
       payload: {
@@ -67,7 +75,8 @@ export async function POST(request: NextRequest) {
         birth_date: body.birth_date?.trim() || null,
         address: body.city?.trim() ? { city: body.city.trim() } : null,
         interests: body.direction_id ? [{ direction_id: body.direction_id }] : [],
-        referral_source: 'public_form',
+        referral_source: referralSource,
+        comment,
         actor_id: SYSTEM_PERSON_ID,
       },
     })
@@ -85,9 +94,11 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
+      const typeNote = applicantType !== 'student' ? `\nОт: ${applicantType}` : ''
+      const commentNote = comment ? `\n${comment}` : ''
       const base = {
         title: `Новая заявка с сайта: ${applicantName}`,
-        description: `Телефон: ${body.phone}${body.email ? `\nEmail: ${body.email}` : ''}`,
+        description: `Телефон: ${body.phone}${body.email ? `\nEmail: ${body.email}` : ''}${typeNote}${commentNote}`,
         module: 'education' as const,
         metadata: { source: 'public_form', journey_id: journeyId },
         creator_id: SYSTEM_PERSON_ID,
