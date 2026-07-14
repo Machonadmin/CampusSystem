@@ -1747,6 +1747,38 @@ export interface JourneyStudyTrackInsert {
 }
 export type JourneyStudyTrackUpdate = Partial<Omit<JourneyStudyTrackInsert, 'journey_id'>>
 
+// ─── Calendar events (личные события календаря + напоминания) ────────────────
+export interface CalendarEventRow {
+  id:          string
+  owner_id:    string
+  title:       string
+  notes:       string | null
+  event_date:  string
+  event_time:  string | null
+  all_day:     boolean
+  reminder_at: string | null
+  reminded_at: string | null
+  source_type: string
+  source_id:   string | null
+  link:        string | null
+  created_by:  string | null
+  created_at:  string
+}
+export interface CalendarEventInsert {
+  owner_id:    string
+  title:       string
+  notes?:      string | null
+  event_date:  string
+  event_time?: string | null
+  all_day?:    boolean
+  reminder_at?: string | null
+  source_type?: string
+  source_id?:  string | null
+  link?:       string | null
+  created_by?: string | null
+}
+export type CalendarEventUpdate = Partial<Omit<CalendarEventInsert, 'owner_id'>> & { reminded_at?: string | null }
+
 // ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
 //
 // САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
@@ -1966,6 +1998,7 @@ export interface Database {
       notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
       study_tracks:              T<StudyTrackRow,                StudyTrackInsert,                StudyTrackUpdate>
       journey_study_tracks:      T<JourneyStudyTrackRow,         JourneyStudyTrackInsert,         JourneyStudyTrackUpdate>
+      calendar_events:           T<CalendarEventRow,             CalendarEventInsert,             CalendarEventUpdate>
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>

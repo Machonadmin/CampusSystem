@@ -2980,5 +2980,29 @@
     "title": "התראות",
     "empty": "אין התראות חדשות",
     "mark_all_read": "סמן הכל כנקרא"
+  },
+  "add_to_calendar": {
+    "button": "הוסף ליומן",
+    "title": "הוספה ליומן",
+    "field_title": "כותרת",
+    "field_date": "תאריך",
+    "field_time": "שעה (רשות)",
+    "field_reminder": "תזכורת",
+    "reminder_none": "ללא תזכורת",
+    "reminder_at": "בזמן האירוע",
+    "reminder_10m": "10 דקות לפני",
+    "reminder_1h": "שעה לפני",
+    "reminder_1d": "יום לפני",
+    "field_notes": "הערות (רשות)",
+    "save": "הוסף ליומן",
+    "saving": "מוסיף…",
+    "added": "נוסף ליומן ✓",
+    "added_already": "כבר קיים ביומן",
+    "cancel": "ביטול",
+    "error": "ההוספה נכשלה",
+    "delete": "מחיקה מהיומן",
+    "open_link": "פתח קישור",
+    "has_reminder": "תזכורת מוגדרת",
+    "deleting": "מוחק…"
   }
 }

@@ -19,6 +19,8 @@ import {
 } from '@/lib/calendar/schedule'
 import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthday'
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
+import { formatDate } from '@/lib/i18n/format-date'
+import AddToCalendar from '@/components/calendar/AddToCalendar'
 
 // ─── Типы данных с API ───────────────────────────────────────────────────────
 
@@ -64,6 +66,16 @@ interface Task {
   due_time: string | null      // 'HH:mm:ss' или null
   due_all_day: boolean
   status: string
+}
+interface CalEvent {
+  id: string
+  title: string
+  notes: string | null
+  event_date: string
+  event_time: string | null
+  all_day: boolean
+  reminder_at: string | null
+  link: string | null
 }
 interface StudentOption {
   journey_id: string
@@ -162,6 +174,8 @@ export default function CalendarClient() {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [slots, setSlots] = useState<ScheduleSlot[]>([])
+  const [calEvents, setCalEvents] = useState<CalEvent[]>([])
+  const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null)
   // Дата рождения владельца календаря (persons.birth_date). Статична — грузится
   // ОДИН раз при монтировании, НЕ перезапрашивается при навигации по месяцам.
   const [birthDate, setBirthDate] = useState<string | null>(null)
@@ -242,12 +256,13 @@ export default function CalendarClient() {
     setLoading(true); setError(null)
     try {
       const qs = `from=${range.from}&to=${range.to}`
-      const [aRes, bRes, lRes, tRes, sRes] = await Promise.all([
+      const [aRes, bRes, lRes, tRes, sRes, eRes] = await Promise.all([
         fetch(`/api/calendar/appointments?${qs}`),
         fetch(`/api/calendar/blocks?${qs}`),
         fetch(`/api/calendar/lessons?${qs}`),
         fetch(`/api/calendar/tasks?${qs}`),
         fetch(`/api/calendar/schedule?${qs}`),
+        fetch(`/api/calendar/events?${qs}`),
       ])
       if (!aRes.ok) {
         const b = await aRes.json().catch(() => ({}))
@@ -279,6 +294,12 @@ export default function CalendarClient() {
         setSlots(sBody.slots ?? [])
       } else {
         setSlots([])
+      }
+      if (eRes.ok) {
+        const eBody = await eRes.json()
+        setCalEvents(eBody.events ?? [])
+      } else {
+        setCalEvents([])
       }
     } catch {
       setError(t('load_error'))
@@ -442,6 +463,7 @@ export default function CalendarClient() {
         >
           + {t('new_appointment')}
         </button>
+        <AddToCalendar variant="button" onAdded={load} />
       </div>
 
       {/* Toolbar: navigation + view toggle */}
@@ -520,6 +542,7 @@ export default function CalendarClient() {
           schedule={scheduleInstances}
           tasks={tasks}
           birthdays={birthdays}
+          calEvents={calEvents}
           today={TODAY}
           primary={primary}
           light={light}
@@ -531,6 +554,7 @@ export default function CalendarClient() {
           onOpenLesson={setDetailLesson}
           onOpenTask={setDetailTask}
           onOpenSchedule={setDetailSchedule}
+          onOpenEvent={setDetailEvent}
           t={t}
         />
       ) : (
@@ -542,6 +566,7 @@ export default function CalendarClient() {
           schedule={scheduleInstances}
           tasks={tasks}
           birthdays={birthdays}
+          calEvents={calEvents}
           today={TODAY}
           primary={primary}
           locale={locale}
@@ -553,6 +578,7 @@ export default function CalendarClient() {
           onOpenLesson={setDetailLesson}
           onOpenTask={setDetailTask}
           onOpenSchedule={setDetailSchedule}
+          onOpenEvent={setDetailEvent}
           t={t}
         />
       )}
@@ -617,6 +643,55 @@ export default function CalendarClient() {
           lang={lang}
         />
       )}
+
+      {detailEvent && (
+        <CalEventDetail
+          ev={detailEvent}
+          onClose={() => setDetailEvent(null)}
+          onDeleted={async () => { setDetailEvent(null); await load() }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Детали личного события календаря
+// ─────────────────────────────────────────────
+function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () => void; onDeleted: () => void }) {
+  const tAdd = useTranslations('add_to_calendar')
+  const { lang } = useLang()
+  const [deleting, setDeleting] = useState(false)
+
+  async function remove() {
+    setDeleting(true)
+    try {
+      await fetch(`/api/calendar/events/${ev.id}`, { method: 'DELETE' })
+      onDeleted()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div onClick={() => !deleting && onClose()} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>📅 {ev.title}</div>
+        <div style={{ fontSize: 13, color: '#374151' }}>
+          {formatDate(ev.event_date, lang)}{!ev.all_day && ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}
+        </div>
+        {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}>🔔 {tAdd('has_reminder')}</div>}
+        {ev.notes && <div style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
+          <button onClick={remove} disabled={deleting} style={{ fontSize: 13, fontWeight: 600, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
+            {deleting ? tAdd('deleting') : tAdd('delete')}
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {ev.link && <a href={ev.link} style={{ fontSize: 13, fontWeight: 600, color: '#2563EB', textDecoration: 'none', padding: '8px 14px' }}>{tAdd('open_link')}</a>}
+            <button onClick={onClose} style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>{tAdd('cancel')}</button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -639,8 +714,8 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 // ─────────────────────────────────────────────
 
 function MonthView({
-  weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, birthdays, today, primary, light, isRTL, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
+  weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, birthdays, calEvents, today, primary, light, isRTL, hebrewDates,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
   weekdayLabels: string[]
@@ -650,6 +725,7 @@ function MonthView({
   schedule: ScheduleInstance[]
   tasks: Task[]
   birthdays: BirthdayInstance[]
+  calEvents: CalEvent[]
   today: string
   primary: string
   light: string
@@ -661,6 +737,7 @@ function MonthView({
   onOpenLesson: (l: Lesson) => void
   onOpenTask: (task: Task) => void
   onOpenSchedule: (s: ScheduleInstance) => void
+  onOpenEvent: (e: CalEvent) => void
   t: (k: string, f?: string) => string
 }) {
   return (
@@ -678,7 +755,7 @@ function MonthView({
       {weeks.map((week, wi) => (
         <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {week.map(cell => {
-            const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, cell.dateISO)
+            const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, cell.dateISO, calEvents)
             const blocked = isBlocked(blocks, cell.dateISO)
             const isToday = cell.dateISO === today
             const dayNum = Number(cell.dateISO.slice(8, 10))
@@ -787,6 +864,25 @@ function MonthView({
                         </button>
                       )
                     }
+                    // Личное событие календаря — индиго-чип, клик открывает детали.
+                    if (ev.kind === 'event' && ev.event) {
+                      const ce = ev.event as CalEvent
+                      return (
+                        <button
+                          key={`e-${ce.id}`}
+                          onClick={() => onOpenEvent(ce)}
+                          title={ce.title}
+                          style={{
+                            textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
+                            background: '#EEF2FF', color: '#4338CA', borderInlineStart: '3px solid #6366F1',
+                            borderRadius: 5, padding: '2px 6px',
+                            fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {ev.time && `${ev.time} `}📅 {ce.title}
+                        </button>
+                      )
+                    }
                     // День рождения — read-only, праздничный розовый чип с тортом.
                     // Нередактируемый: обычный span, без onClick.
                     if (ev.kind === 'birthday' && ev.birthday) {
@@ -858,8 +954,8 @@ function MonthView({
 // ─────────────────────────────────────────────
 
 function WeekView({
-  days, appointments, blocks, lessons, schedule, tasks, birthdays, today, primary, locale, hebrewDates, lang,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, t,
+  days, appointments, blocks, lessons, schedule, tasks, birthdays, calEvents, today, primary, locale, hebrewDates, lang,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
 }: {
   days: string[]
   appointments: Appointment[]
@@ -868,6 +964,7 @@ function WeekView({
   schedule: ScheduleInstance[]
   tasks: Task[]
   birthdays: BirthdayInstance[]
+  calEvents: CalEvent[]
   today: string
   primary: string
   locale: string
@@ -879,12 +976,13 @@ function WeekView({
   onOpenLesson: (l: Lesson) => void
   onOpenTask: (task: Task) => void
   onOpenSchedule: (s: ScheduleInstance) => void
+  onOpenEvent: (e: CalEvent) => void
   t: (k: string, f?: string) => string
 }) {
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {days.map(day => {
-        const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, day)
+        const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, day, calEvents)
         const blocked = isBlocked(blocks, day)
         const isToday = day === today
         const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short', timeZone: 'UTC' })
@@ -998,6 +1096,28 @@ function WeekView({
                         <span style={{ fontSize: 13, fontWeight: 600, color: TASK_FG, flex: 1 }}>
                           <span style={taskTag}>{t('task')}</span>
                           {' '}{tk.title}
+                        </span>
+                      </button>
+                    )
+                  }
+                  // Личное событие календаря — индиго-строка, клик открывает детали.
+                  if (ev.kind === 'event' && ev.event) {
+                    const ce = ev.event as CalEvent
+                    return (
+                      <button
+                        key={`e-${ce.id}`}
+                        onClick={() => onOpenEvent(ce)}
+                        style={{
+                          textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                          background: '#EEF2FF', border: '1px solid #C7D2FE', borderInlineStart: '3px solid #6366F1',
+                          borderRadius: 8, padding: '8px 12px',
+                        }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#4338CA', minWidth: 92 }}>
+                          {ev.time || t('all_day')}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#4338CA', flex: 1 }}>
+                          📅 {ce.title}
                         </span>
                       </button>
                     )

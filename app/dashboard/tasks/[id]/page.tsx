@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
+import AddToCalendar from '@/components/calendar/AddToCalendar'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 interface Comment {
@@ -415,6 +416,16 @@ export default function TaskPage() {
                     ↻ {t('card.from_series')}
                   </span>
                 )}
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <AddToCalendar
+                  defaultTitle={task.title}
+                  defaultDate={task.due_date ?? undefined}
+                  defaultTime={!task.due_all_day && task.due_time ? task.due_time.slice(0, 5) : undefined}
+                  sourceType="task"
+                  sourceId={task.id}
+                  link={`/dashboard/tasks/${task.id}`}
+                />
               </div>
             </div>
           </div>

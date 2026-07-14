@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
 import { translateSystemEvent } from '@/lib/i18n/workflow-text'
+import AddToCalendar from '@/components/calendar/AddToCalendar'
 
 interface ProcessEvent {
   id: string
@@ -126,6 +127,11 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
                 <div style={{ fontSize: 13, color: isSystem ? '#6B7280' : '#111827', lineHeight: 1.4, marginLeft: isSystem ? 0 : 22 }}>
                   {isSystem ? translateSystemEvent(ev.content, t) : ev.content}
                 </div>
+                {!isSystem && (
+                  <div style={{ marginLeft: 22, marginTop: 4 }}>
+                    <AddToCalendar variant="link" defaultTitle={ev.content.slice(0, 90)} sourceType="note" sourceId={ev.id} />
+                  </div>
+                )}
               </div>
             )
           })}
