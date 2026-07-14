@@ -68,8 +68,8 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
     <div className="flex-1 max-w-xs mx-auto relative" ref={ref}>
       <div className="relative">
         <svg
-          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-          style={{ [isRTL ? 'right' : 'left']: '12px' }}
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+          style={{ [isRTL ? 'right' : 'left']: '12px', color: 'var(--text-faint)' }}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
@@ -83,12 +83,15 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
           onKeyDown={e => { if (e.key === 'Escape') setOpen(false) }}
           placeholder={t('placeholder')}
           autoComplete="off"
-          className="w-full bg-gray-100 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg py-2 text-sm focus:outline-none focus:bg-white focus:border-[#4BAED4] transition"
-          style={{ paddingLeft: isRTL ? '48px' : '36px', paddingRight: isRTL ? '36px' : '52px' }}
+          className="gsearch-input w-full rounded-lg py-2 text-sm focus:outline-none transition"
+          style={{
+            paddingLeft: isRTL ? '48px' : '36px', paddingRight: isRTL ? '36px' : '52px',
+            background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)',
+          }}
         />
         <kbd
-          className="absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-mono hidden sm:block"
-          style={{ [isRTL ? 'left' : 'right']: '10px' }}
+          className="absolute top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded font-mono hidden sm:block"
+          style={{ [isRTL ? 'left' : 'right']: '10px', color: 'var(--text-faint)', background: 'var(--bg)' }}
         >
           {searchHint}
         </kbd>
@@ -96,13 +99,13 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
 
       {open && q.trim().length >= 2 && (
         <div
-          className="absolute mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
-          style={{ maxHeight: 360, overflowY: 'auto' }}
+          className="absolute mt-2 w-full rounded-xl z-50 overflow-hidden"
+          style={{ maxHeight: 360, overflowY: 'auto', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
         >
           {loading && results.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">{t('searching')}</div>
+            <div className="px-4 py-3 text-sm" style={{ color: 'var(--text-faint)' }}>{t('searching')}</div>
           ) : results.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">{t('no_results')}</div>
+            <div className="px-4 py-3 text-sm" style={{ color: 'var(--text-faint)' }}>{t('no_results')}</div>
           ) : (
             results.map(r => {
               const c = STATUS_COLOR[r.status] ?? STATUS_COLOR.staff
@@ -110,11 +113,12 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
                 <button
                   key={r.person_id}
                   onClick={() => go(r)}
-                  className="w-full text-start px-4 py-2.5 border-b border-gray-50 hover:bg-gray-50 transition flex items-center gap-2"
+                  className="menu-item w-full text-start px-4 py-2.5 transition flex items-center gap-2"
+                  style={{ borderBottom: '1px solid var(--border)' }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="text-[13px] font-medium text-gray-900 truncate">{r.name}</div>
-                    {r.email && <div className="text-[11px] text-gray-400 truncate">{r.email}</div>}
+                    <div className="text-[13px] font-medium truncate" style={{ color: 'var(--text)' }}>{r.name}</div>
+                    {r.email && <div className="text-[11px] truncate" style={{ color: 'var(--text-faint)' }}>{r.email}</div>}
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: c.bg, color: c.fg, flexShrink: 0 }}>
                     {t(`status.${r.status}`, r.status)}

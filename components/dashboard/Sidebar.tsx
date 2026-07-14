@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
-import { getModuleColor, isModuleImplemented } from '@/lib/module-colors'
+import { isModuleImplemented } from '@/lib/module-colors'
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -94,18 +94,15 @@ function SidebarNavLink({
   isRTL: boolean
   moduleKey: string
 }) {
-  // 'home' и 'calendar' — личные страницы: всегда доступны, синий цвет dashboard.
+  // 'home' и 'calendar' — личные страницы: всегда доступны.
   const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar'
-  const colorKey = isPersonalPage ? 'dashboard' : moduleKey
   const implemented = isPersonalPage || isModuleImplemented(moduleKey)
-  const activePrimary = getModuleColor(colorKey, 'primary')
-  const activeLight = getModuleColor(colorKey, 'light')
   return (
     <div className="relative">
       {active && (
         <span
           className="absolute top-0 bottom-0 w-[3px] rounded-r"
-          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: activePrimary }}
+          style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: 'var(--accent)' }}
         />
       )}
       <Link
@@ -113,12 +110,12 @@ function SidebarNavLink({
         title={!isOpen ? label : undefined}
         onClick={implemented ? undefined : (e) => e.preventDefault()}
         prefetch={false}
-        className={`flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'}`}
+        className={`nav-link flex items-center transition-colors mx-2 rounded-lg ${isOpen ? 'gap-3' : 'justify-center'} ${active ? 'nav-link-active' : ''}`}
         style={
           active
-            ? { backgroundColor: activeLight, color: activePrimary, padding: isOpen ? '8px 10px' : '10px 11px' }
+            ? { backgroundColor: 'var(--accent-tint)', color: 'var(--accent-strong)', padding: isOpen ? '8px 10px' : '10px 11px' }
             : {
-                color: implemented ? '#4B5563' : '#C4C9D0',
+                color: implemented ? 'var(--text-muted)' : 'var(--text-faint)',
                 cursor: implemented ? 'pointer' : 'not-allowed',
                 padding: isOpen ? '8px 10px' : '10px 11px',
               }
@@ -143,7 +140,7 @@ function SidebarNavLink({
         </span>
         {isOpen && !implemented && (
           <span style={{
-            fontSize: 9, fontWeight: 700, color: '#F59E0B',
+            fontSize: 9, fontWeight: 700, color: 'var(--warn)',
             letterSpacing: '0.05em', flexShrink: 0,
           }}>
             СКОРО
@@ -204,29 +201,31 @@ export default function Sidebar() {
   return (
     <aside
       ref={sidebarRef}
-      className="fixed top-16 bottom-0 z-40 flex flex-col bg-white overflow-hidden"
+      className="fixed top-16 bottom-0 z-40 flex flex-col overflow-hidden"
       style={{
         width: isOpen ? 240 : 56,
         transition: 'width 0.2s ease, transform 0.2s ease',
         [isRTL ? 'right' : 'left']: 0,
         transform: isMobile && !isOpen ? `translateX(${isRTL ? '100%' : '-100%'})` : 'translateX(0)',
-        borderInlineEnd: '1px solid #E5E7EB',
+        borderInlineEnd: '1px solid var(--border)',
+        backgroundColor: 'var(--surface)',
       }}
     >
       {/* ── Sidebar header: logo + pin + toggle ── */}
       <div
-        className="flex items-center border-b border-gray-100 flex-shrink-0"
+        className="flex items-center flex-shrink-0"
         style={{
           justifyContent: isOpen ? 'space-between' : 'center',
           padding: isOpen ? '8px 12px' : '10px 0',
           minHeight: 52,
+          borderBottom: '1px solid var(--border)',
         }}
       >
         {isOpen && (
           <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" style={{ height: 26, objectFit: 'contain', flexShrink: 0 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#3B82F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t.campusNameShort}
             </span>
           </div>
@@ -238,9 +237,10 @@ export default function Sidebar() {
             <button
               onClick={() => setPin(!isPinned)}
               title={isPinned ? 'Открепить' : 'Закрепить'}
-              className={`p-1.5 rounded transition-colors ${
-                isPinned ? 'text-[#3B82F6] bg-[#EEF2FF]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-              }`}
+              className="icon-ghost p-1.5 rounded transition-colors"
+              style={isPinned
+                ? { color: 'var(--accent-strong)', background: 'var(--accent-tint)' }
+                : { color: 'var(--text-faint)' }}
             >
               <svg style={{ width: 13, height: 13 }} fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -252,7 +252,8 @@ export default function Sidebar() {
           <button
             onClick={toggle}
             title={isOpen ? 'Свернуть' : 'Развернуть'}
-            className="p-1.5 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="icon-ghost p-1.5 rounded transition-colors"
+            style={{ color: 'var(--text-faint)' }}
           >
             {isOpen ? (
               <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,11 +289,11 @@ export default function Sidebar() {
           <div key={section.key}>
             <div style={{ padding: isOpen ? '16px 16px 4px' : '12px 6px 4px' }}>
               {isOpen ? (
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.nav_groups[section.key]}
                 </p>
               ) : (
-                <div style={{ height: 1, backgroundColor: '#F3F4F6' }} />
+                <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
               )}
             </div>
 
@@ -314,8 +315,8 @@ export default function Sidebar() {
 
       {/* Footer */}
       {isOpen && (
-        <div className="border-t border-gray-100 flex-shrink-0 px-3 py-3">
-          <p className="text-[10px] text-gray-400 text-center">© 2025 {t.campusNameShort}</p>
+        <div className="flex-shrink-0 px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+          <p className="text-[10px] text-center" style={{ color: 'var(--text-faint)' }}>© 2025 {t.campusNameShort}</p>
         </div>
       )}
     </aside>
