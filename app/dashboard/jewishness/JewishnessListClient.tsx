@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import { useMe } from '@/lib/hooks/useMe'
 
 interface DocItem {
   id: string
@@ -130,6 +131,7 @@ function JewishnessCard({
 }) {
   const t = useTranslations('jewishness')
   const tCommon = useTranslations('common')
+  const me = useMe()
 
   const [open, setOpen] = useState(false)
   const [selectedFinal, setSelectedFinal] = useState<string | null>(null)
@@ -338,7 +340,7 @@ function JewishnessCard({
                   rows={2}
                   style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
-                <SignatureCapture method={sigMethod} onChange={setSig} />
+                <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
                 {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
                 <button
                   onClick={submit}

@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
 import StageEventsFeed from './StageEventsFeed'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
+import { useMe } from '@/lib/hooks/useMe'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -149,6 +150,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
   const tEv = useTranslations('events')
+  const me = useMe()
 
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -672,7 +674,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               rows={2}
               style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
             />
-            <SignatureCapture method={stageDetail?.signature_method ?? 'both'} onChange={setSigPayload} />
+            <SignatureCapture method={stageDetail?.signature_method ?? 'both'} defaultTypedName={me?.full_name ?? undefined} onChange={setSigPayload} />
             {completeError && <div style={{ fontSize: 13, color: '#DC2626' }}>{completeError}</div>}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button

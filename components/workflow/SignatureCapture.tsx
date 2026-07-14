@@ -40,6 +40,14 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typedName, mode])
 
+  // Prefill with the signer's registered name once it arrives (e.g. async
+  // /api/auth/me), only while the field is still empty. Runs only when
+  // defaultTypedName changes, so it never refills after the user clears it.
+  useEffect(() => {
+    if (defaultTypedName && !typedName) setTypedName(defaultTypedName)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultTypedName])
+
   // Prime the canvas with a white background whenever we enter draw mode.
   useEffect(() => {
     if (mode !== 'drawn') return
