@@ -291,7 +291,9 @@
         "message": "will be hidden. You can restore it later.",
         "confirm": "Delete",
         "cancel": "Cancel"
-      }
+      },
+      "my_leads": "My leads",
+      "all_leads": "All leads"
     },
     "applicants": {
       "no_data": "No applicants",

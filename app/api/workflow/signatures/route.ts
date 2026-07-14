@@ -27,6 +27,15 @@ export async function GET(request: NextRequest) {
       || await hasEducationPrivilege(session, 'view_applicants')
     if (!allowed) return apiError('forbidden', 403)
 
+    // Приватные заметки этапа видят только руководители и подписант этого этапа.
+    const isManager = session.roles.includes('superadmin')
+      || session.roles.includes('school_director')
+      || await hasEducationPrivilege(session, 'manage_applicants')
+    const holdsStageRole = (requiredRoleCode: string | null): boolean => {
+      if (!requiredRoleCode) return false
+      return requiredRoleCode.split(',').map(r => r.trim()).some(r => session.roles.includes(r))
+    }
+
     const sb = createServerClient()
 
     // Инстансы процесса acceptance для journey.
@@ -109,7 +118,8 @@ export async function GET(request: NextRequest) {
         status: st.status,
         final_code: st.final_code,
         completed_at: st.completed_at,
-        note: st.notes ?? null,
+        // Приватная заметка — только руководителям и подписанту этого этапа.
+        note: (isManager || holdsStageRole(st.stage_template?.required_role_code ?? null)) ? (st.notes ?? null) : null,
         signatures,
       })
     }

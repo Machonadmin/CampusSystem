@@ -89,6 +89,7 @@ export default function EducationPage() {
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
+  const [mineOnly, setMineOnly] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -105,10 +106,10 @@ export default function EducationPage() {
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/education/leads?process_status=${processStatus}`)
+    const res = await fetch(`/api/education/leads?process_status=${processStatus}${mineOnly ? '&mine=1' : ''}`)
     if (res.ok) setLeads(await res.json())
     setLoading(false)
-  }, [processStatus])
+  }, [processStatus, mineOnly])
 
   const loadApplicants = useCallback(async () => {
     setLoadingApplicants(true)
@@ -221,6 +222,18 @@ export default function EducationPage() {
               <option value="all">{t('leads.process_status.all')}</option>
               <option value="deleted">{t('leads.process_status.deleted')}</option>
             </select>
+            <button
+              type="button"
+              onClick={() => setMineOnly(v => !v)}
+              style={{
+                padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
+                border: `1px solid ${mineOnly ? '#2563EB' : '#D1D5DB'}`,
+                background: mineOnly ? '#EFF6FF' : '#fff',
+                color: mineOnly ? '#2563EB' : '#6B7280', whiteSpace: 'nowrap',
+              }}
+            >
+              {mineOnly ? t('leads.my_leads') : t('leads.all_leads')}
+            </button>
             <PageActionButton
               label={t('leads.create_button')}
               onClick={() => setAddOpen(true)}
