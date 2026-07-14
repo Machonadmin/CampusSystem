@@ -1650,7 +1650,29 @@
     },
     "system_prefix": "[מערכת]",
     "tab_tasks": "משימות",
-    "tab_events": "יומן"
+    "tab_events": "יומן",
+    "system": {
+      "substage_completed": "השלב הושלם",
+      "substage_cancelled": "השלב בוטל",
+      "substage_activated": "השלב הופעל",
+      "process_started": "התהליך הופעל"
+    },
+    "finals": {
+      "approved": "אושר",
+      "rejected": "נדחה",
+      "refer_to_doctor": "הפניה לרופא",
+      "admitted": "התקבלה",
+      "admitted_conditional": "התקבלה על תנאי",
+      "convert_to_applicant": "הועברה לקבלה",
+      "waitlisted": "רשימת המתנה",
+      "qualified": "מתאימה",
+      "not_qualified": "לא מתאימה"
+    },
+    "process_names": {
+      "Набор": "גיוס",
+      "Приёмная комиссия": "ועדת קבלה",
+      "Приём": "קבלה"
+    }
   },
   "alumni": {
     "list": {

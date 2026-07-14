@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { translateSystemEvent } from '@/lib/i18n/workflow-text'
 
 interface ProcessEvent {
   id: string
@@ -123,7 +124,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
                   )}
                 </div>
                 <div style={{ fontSize: 13, color: isSystem ? '#6B7280' : '#111827', lineHeight: 1.4, marginLeft: isSystem ? 0 : 22 }}>
-                  {ev.content}
+                  {isSystem ? translateSystemEvent(ev.content, t) : ev.content}
                 </div>
               </div>
             )

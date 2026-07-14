@@ -1650,7 +1650,29 @@
     },
     "system_prefix": "[SYS]",
     "tab_tasks": "Tasks",
-    "tab_events": "Feed"
+    "tab_events": "Feed",
+    "system": {
+      "substage_completed": "Stage completed",
+      "substage_cancelled": "Stage cancelled",
+      "substage_activated": "Stage activated",
+      "process_started": "Process started"
+    },
+    "finals": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "refer_to_doctor": "Refer to doctor",
+      "admitted": "Admitted",
+      "admitted_conditional": "Conditionally admitted",
+      "convert_to_applicant": "Handed to acceptance",
+      "waitlisted": "Waitlisted",
+      "qualified": "Qualified",
+      "not_qualified": "Not qualified"
+    },
+    "process_names": {
+      "Набор": "Recruitment",
+      "Приёмная комиссия": "Acceptance committee",
+      "Приём": "Acceptance"
+    }
   },
   "alumni": {
     "list": {
