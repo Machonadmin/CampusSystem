@@ -2181,7 +2181,8 @@
       "counseling": "Психолог",
       "documents": "Документы",
       "sponsors": "Спонсоры",
-      "security": "Безопасность"
+      "security": "Безопасность",
+      "admission_funnel": "Воронка приёма"
     },
     "metrics": {
       "total": "Всего",
@@ -2239,6 +2240,21 @@
         "high": "Высокий",
         "medium": "Средний",
         "low": "Низкий"
+      },
+      "leads": "Лиды",
+      "applicants": "Абитуриентки",
+      "students": "Студентки",
+      "reached_applicant": "Дошли до приёма",
+      "reached_student": "Стали студентками",
+      "lead_to_applicant": "Конверсия: лид→абит.",
+      "applicant_to_student": "Конверсия: абит.→студентка",
+      "stage_pending": "Ожидают на этапе",
+      "stage": {
+        "academic": "Учёба",
+        "dormitory": "Общежитие",
+        "jewishness": "Еврейство",
+        "medical": "Врач",
+        "final_approval": "Финал"
       }
     }
   },

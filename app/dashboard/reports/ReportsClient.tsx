@@ -9,6 +9,11 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 // ─── Типы сводок (совпадают с ответами app/api/reports/**) ───────────────────
 
 interface StudentsSummary { total: number; by_status: Record<string, number> }
+interface AdmissionFunnel {
+  funnel: { leads: number; applicants: number; students: number; reached_applicant: number; reached_student: number }
+  conversion: { lead_to_applicant: number; applicant_to_student: number }
+  stages: { code: string; active: number; completed: number }[]
+}
 interface FinanceSummary {
   charged: number; collected: number; outstanding: number
   collection_rate: number; debtor_count: number
@@ -200,6 +205,31 @@ export default function ReportsClient() {
         gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
         gap: 16,
       }}>
+        {/* Воронка приёма */}
+        <ReportCard<AdmissionFunnel>
+          title={t('cards.admission_funnel')}
+          colorKey="education"
+          endpoint="/api/reports/admission-funnel"
+          render={(d) => (
+            <>
+              <Metric label={t('metrics.leads')} value={fmt(d.funnel.leads)} />
+              <Metric label={t('metrics.applicants')} value={fmt(d.funnel.applicants)} />
+              <Metric label={t('metrics.students')} value={fmt(d.funnel.students)} strong accent={getModuleColor('education', 'primary')} />
+              <div style={{ marginTop: 6, borderTop: '1px dashed #E5E7EB', paddingTop: 6 }}>
+                <Metric label={t('metrics.lead_to_applicant')} value={`${d.conversion.lead_to_applicant}%`} accent={getModuleColor('education', 'primary')} />
+                <Metric label={t('metrics.applicant_to_student')} value={`${d.conversion.applicant_to_student}%`} accent={getModuleColor('education', 'primary')} />
+              </div>
+              {d.stages.length > 0 && (
+                <div style={{ marginTop: 6, borderTop: '1px dashed #E5E7EB', paddingTop: 6 }}>
+                  {d.stages.map(s => (
+                    <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? '#B45309' : undefined} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        />
+
         {/* Студенты */}
         <ReportCard<StudentsSummary>
           title={t('cards.students')}
