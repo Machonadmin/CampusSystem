@@ -1137,7 +1137,8 @@
       "preview_at_time": "בשעה {time}",
       "preview_weekly": "{days}{time}, החל מ־{date}",
       "preview_monthly": "ה־{day} בכל חודש{time}",
-      "preview_yearly": "{day} ב{month} בכל שנה{time}"
+      "preview_yearly": "{day} ב{month} בכל שנה{time}",
+      "add_to_calendar": "הוסף גם ליומן שלי"
     }
   },
   "staff": {

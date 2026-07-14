@@ -81,6 +81,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   const [dueDate,     setDueDate]     = useState(today())
   const [dueTimeType, setDueTimeType] = useState<DueTimeType>('allday')
   const [dueTime,     setDueTime]     = useState('09:00')
+  const [addToCalendar, setAddToCalendar] = useState(false)
 
   // ── recurring ──
   const [frequency,            setFrequency]            = useState<RecurrenceFrequency>('weekly')
@@ -202,6 +203,25 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         const j = await resp.json().catch(() => ({}))
         throw new Error(j.error ?? `${t('create_modal.error_unknown')} ${resp.status}`)
       }
+
+      // Опционально — сразу положить одноразовую задачу в личный календарь.
+      if (kind === 'once' && addToCalendar && dueDate) {
+        const created = await resp.json().catch(() => null) as { id?: string } | null
+        const allday = dueTimeType === 'allday'
+        await fetch('/api/calendar/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            event_date: dueDate,
+            event_time: !allday && dueTime ? dueTime : null,
+            source_type: 'task',
+            source_id: created?.id ?? null,
+            link: created?.id ? `/dashboard/tasks/${created.id}` : null,
+          }),
+        }).catch(() => { /* календарь не критичен для создания задачи */ })
+      }
+
       onSaved()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('create_modal.error_unknown'))
@@ -372,6 +392,10 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                   <input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} style={{ ...inp, width: 110 }} />
                 )}
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer', userSelect: 'none' }}>
+                <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: '#2563EB' }} />
+                <span style={{ fontSize: 13, color: '#374151' }}>📅 {t('create_modal.add_to_calendar')}</span>
+              </label>
             </div>
           )}
 

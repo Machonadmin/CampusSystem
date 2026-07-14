@@ -1137,7 +1137,8 @@
       "preview_at_time": "at {time}",
       "preview_weekly": "{days}{time}, starting {date}",
       "preview_monthly": "Day {day} of every month{time}",
-      "preview_yearly": "{month} {day} every year{time}"
+      "preview_yearly": "{month} {day} every year{time}",
+      "add_to_calendar": "Also add to my calendar"
     }
   },
   "staff": {
