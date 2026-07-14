@@ -98,6 +98,10 @@ body { transition: background-color .25s ease, color .25s ease; }
 /* Неактивные пункты навигации подсвечиваются при наведении. */
 .nav-link:not(.nav-link-active):hover { background: var(--surface-2); color: var(--text); }
 
+/* Карточки-виджеты на главной. */
+.home-card { transition: box-shadow .18s ease, transform .18s ease; }
+.home-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+
 /* Глобальный поиск в шапке. */
 .gsearch-input::placeholder { color: var(--text-faint); }
 .gsearch-input:focus {
