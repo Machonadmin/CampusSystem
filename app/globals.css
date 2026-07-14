@@ -1,5 +1,107 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Дизайн-язык «Консоль» — токены светлой и тёмной темы.
+   По умолчанию тема следует настройке устройства (prefers-color-scheme).
+   Ручное переключение (на будущее) — через :root[data-theme="light|dark"].
+   Компоненты стилизуются ЧЕРЕЗ токены, не задавая цвета напрямую в @media.
+   ============================================================================ */
+:root {
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Светлая (по умолчанию) */
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --border: #e3e7ee;
+  --border-strong: #d5dae3;
+  --text: #1b2230;
+  --text-muted: #5d6577;
+  --text-faint: #8b93a3;
+  --accent: #0d9488;
+  --accent-strong: #0f766e;
+  --accent-contrast: #ffffff;
+  --accent-tint: rgba(13, 148, 136, 0.10);
+  --warn: #c47f10;
+  --warn-tint: rgba(196, 127, 16, 0.12);
+  --danger: #cf3f4a;
+  --danger-tint: rgba(207, 63, 74, 0.10);
+  --success: #2f9e6b;
+  --success-tint: rgba(47, 158, 107, 0.12);
+  --shadow: 0 1px 3px rgba(20, 24, 33, .07), 0 1px 2px rgba(20, 24, 33, .04);
+  --shadow-lg: 0 24px 60px -24px rgba(20, 24, 33, .28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1218;
+    --surface: #161b25;
+    --surface-2: #12161e;
+    --border: #262d3b;
+    --border-strong: #333c4d;
+    --text: #e8ebf0;
+    --text-muted: #8b93a3;
+    --text-faint: #5d6577;
+    --accent: #2dd4bf;
+    --accent-strong: #14b8a6;
+    --accent-contrast: #06231f;
+    --accent-tint: rgba(45, 212, 191, 0.10);
+    --warn: #f0b429;
+    --warn-tint: rgba(240, 180, 41, 0.13);
+    --danger: #e05260;
+    --danger-tint: rgba(224, 82, 96, 0.13);
+    --success: #3fbf87;
+    --success-tint: rgba(63, 191, 135, 0.13);
+    --shadow: 0 1px 4px rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .25);
+    --shadow-lg: 0 30px 80px -30px rgba(0, 0, 0, .65);
+  }
+}
+
+/* Явный выбор темы перекрывает системную настройку в обе стороны. */
+:root[data-theme="light"] {
+  --bg: #eef1f5; --surface: #ffffff; --surface-2: #f5f7fa;
+  --border: #e3e7ee; --border-strong: #d5dae3;
+  --text: #1b2230; --text-muted: #5d6577; --text-faint: #8b93a3;
+  --accent: #0d9488; --accent-strong: #0f766e; --accent-contrast: #ffffff;
+  --accent-tint: rgba(13, 148, 136, 0.10);
+  --warn: #c47f10; --warn-tint: rgba(196, 127, 16, 0.12);
+  --danger: #cf3f4a; --danger-tint: rgba(207, 63, 74, 0.10);
+  --success: #2f9e6b; --success-tint: rgba(47, 158, 107, 0.12);
+  --shadow: 0 1px 3px rgba(20, 24, 33, .07), 0 1px 2px rgba(20, 24, 33, .04);
+  --shadow-lg: 0 24px 60px -24px rgba(20, 24, 33, .28);
+}
+:root[data-theme="dark"] {
+  --bg: #0f1218; --surface: #161b25; --surface-2: #12161e;
+  --border: #262d3b; --border-strong: #333c4d;
+  --text: #e8ebf0; --text-muted: #8b93a3; --text-faint: #5d6577;
+  --accent: #2dd4bf; --accent-strong: #14b8a6; --accent-contrast: #06231f;
+  --accent-tint: rgba(45, 212, 191, 0.10);
+  --warn: #f0b429; --warn-tint: rgba(240, 180, 41, 0.13);
+  --danger: #e05260; --danger-tint: rgba(224, 82, 96, 0.13);
+  --success: #3fbf87; --success-tint: rgba(63, 191, 135, 0.13);
+  --shadow: 0 1px 4px rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .25);
+  --shadow-lg: 0 30px 80px -30px rgba(0, 0, 0, .65);
+}
+
 html[lang="he"] {
   font-family: var(--font-heebo), system-ui, sans-serif;
+}
+
+/* Плавный переход при системном/ручном переключении темы. */
+body { transition: background-color .25s ease, color .25s ease; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }
+
+/* Hover-состояния элементов оболочки (inline-стили не умеют :hover). */
+.menu-item:hover { background: var(--surface-2); }
+.menu-item-danger:hover { background: var(--danger-tint); }
+.icon-ghost:hover { background: var(--surface-2); }
+/* Неактивные пункты навигации подсвечиваются при наведении. */
+.nav-link:not(.nav-link-active):hover { background: var(--surface-2); color: var(--text); }
+
+/* Глобальный поиск в шапке. */
+.gsearch-input::placeholder { color: var(--text-faint); }
+.gsearch-input:focus {
+  background: var(--surface) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-tint);
 }

@@ -20,6 +20,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // Тема следует настройке устройства; сообщаем браузеру про обе схемы, чтобы
+  // нативные элементы (скроллбары, поля) красились под текущую тему.
+  colorScheme: 'light dark',
 }
 
 export default function RootLayout({

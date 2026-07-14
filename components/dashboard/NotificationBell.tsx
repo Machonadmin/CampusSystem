@@ -86,7 +86,8 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => { setOpen(o => !o); if (!open) load() }}
-        className="relative p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition"
+        className="icon-ghost relative p-2 rounded-lg transition"
+        style={{ color: 'var(--text-muted)' }}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -94,7 +95,8 @@ export default function NotificationBell() {
         </svg>
         {unread > 0 && (
           <span
-            className="absolute -top-0.5 -end-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full ring-2 ring-white"
+            className="absolute -top-0.5 -end-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full"
+            style={{ color: '#fff', background: 'var(--danger)', border: '2px solid var(--surface)' }}
           >
             {unread > 9 ? '9+' : unread}
           </span>
@@ -103,13 +105,13 @@ export default function NotificationBell() {
 
       {open && (
         <div
-          className="absolute mt-2 w-80 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
-          style={isRTL ? { left: 0 } : { right: 0 }}
+          className="absolute mt-2 w-80 max-w-[90vw] rounded-xl z-50 overflow-hidden"
+          style={{ ...(isRTL ? { left: 0 } : { right: 0 }), background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
         >
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-900">{t('title')}</span>
+          <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{t('title')}</span>
             {unread > 0 && (
-              <button onClick={onMarkAll} className="text-xs font-medium text-blue-600 hover:underline">
+              <button onClick={onMarkAll} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent-strong)' }}>
                 {t('mark_all_read')}
               </button>
             )}
@@ -117,20 +119,21 @@ export default function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-gray-400">{t('empty')}</div>
+              <div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-faint)' }}>{t('empty')}</div>
             ) : (
               items.map(n => (
                 <button
                   key={n.id}
                   onClick={() => onItemClick(n)}
-                  className={`w-full text-start px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition ${n.read_at ? '' : 'bg-blue-50/40'}`}
+                  className="menu-item w-full text-start px-4 py-3 transition"
+                  style={{ borderBottom: '1px solid var(--border)', background: n.read_at ? undefined : 'var(--accent-tint)' }}
                 >
                   <div className="flex items-start gap-2">
-                    {!n.read_at && <span className="mt-1.5 w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
+                    {!n.read_at && <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ background: 'var(--accent)' }} />}
                     <div className={n.read_at ? 'ps-4' : ''} style={{ minWidth: 0 }}>
-                      <div className="text-[13px] font-medium text-gray-900 leading-snug">{n.title}</div>
-                      {n.body && <div className="text-xs text-gray-500 mt-0.5">{n.body}</div>}
-                      <div className="text-[11px] text-gray-400 mt-1">{formatDateTime(n.created_at, lang)}</div>
+                      <div className="text-[13px] font-medium leading-snug" style={{ color: 'var(--text)' }}>{n.title}</div>
+                      {n.body && <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.body}</div>}
+                      <div className="text-[11px] mt-1" style={{ color: 'var(--text-faint)' }}>{formatDateTime(n.created_at, lang)}</div>
                     </div>
                   </div>
                 </button>

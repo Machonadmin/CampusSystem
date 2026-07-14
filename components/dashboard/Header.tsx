@@ -61,16 +61,16 @@ export default function Header({ userName, roles }: HeaderProps) {
     <>
     <header
       className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4"
-      style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB' }}
+      style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
     >
       {/* ── Hamburger (mobile only) — открывает off-canvas sidebar ── */}
       <button
         onClick={toggleSidebar}
         aria-label={tNav('toggle_menu')}
-        className="md:hidden flex items-center justify-center rounded-lg hover:bg-gray-100 transition flex-shrink-0"
-        style={{ width: 40, height: 40 }}
+        className="md:hidden flex items-center justify-center rounded-lg transition flex-shrink-0"
+        style={{ width: 40, height: 40, color: 'var(--text-muted)' }}
       >
-        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
@@ -84,13 +84,13 @@ export default function Header({ userName, roles }: HeaderProps) {
         <img src="/logo.png" alt={tNav('logo_alt')} style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
-          style={{ color: '#3B82F6', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+          style={{ color: 'var(--accent-strong)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusName}
         </span>
         <span
           className="block lg:hidden"
-          style={{ color: '#3B82F6', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+          style={{ color: 'var(--accent-strong)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusNameShort}
         </span>
@@ -106,15 +106,15 @@ export default function Header({ userName, roles }: HeaderProps) {
         <NotificationBell />
 
         {/* Language switcher */}
-        <div className="flex gap-0.5 bg-gray-100 rounded-lg p-0.5">
+        <div className="flex gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--surface-2)' }}>
           {(['ru', 'he', 'en'] as Lang[]).map(l => (
             <button
               key={l}
               onClick={() => { setLang(l); router.refresh() }}
-              className={`w-8 py-1 rounded text-xs font-semibold transition ${
-                lang === l ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
-              }`}
-              style={lang === l ? { backgroundColor: '#3B82F6' } : {}}
+              className="w-8 py-1 rounded text-xs font-semibold transition"
+              style={lang === l
+                ? { backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)', boxShadow: 'var(--shadow)' }
+                : { color: 'var(--text-muted)' }}
             >
               {l.toUpperCase()}
             </button>
@@ -125,24 +125,25 @@ export default function Header({ userName, roles }: HeaderProps) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setUserMenuOpen(v => !v)}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition"
+            className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition"
           >
             <div className="hidden sm:block text-start" style={{ minWidth: 140 }}>
-              <p className="text-[13px] font-medium text-gray-900 truncate leading-tight" style={{ maxWidth: 160 }}>
+              <p className="text-[13px] font-medium truncate leading-tight" style={{ maxWidth: 160, color: 'var(--text)' }}>
                 {userName ?? '—'}
               </p>
-              <p className="text-[11px] text-gray-400 truncate leading-tight" style={{ maxWidth: 160 }}>
+              <p className="text-[11px] truncate leading-tight" style={{ maxWidth: 160, color: 'var(--text-faint)' }}>
                 {roleName}
               </p>
             </div>
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-              style={{ backgroundColor: '#3B82F6' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))', color: 'var(--accent-contrast)' }}
             >
               {initials}
             </div>
             <svg
-              className={`w-3 h-3 text-gray-400 transition-transform flex-shrink-0 ${userMenuOpen ? 'rotate-180' : ''}`}
+              className={`w-3 h-3 transition-transform flex-shrink-0 ${userMenuOpen ? 'rotate-180' : ''}`}
+              style={{ color: 'var(--text-faint)' }}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -150,17 +151,21 @@ export default function Header({ userName, roles }: HeaderProps) {
           </button>
 
           {userMenuOpen && (
-            <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50`}>
-              <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-900 truncate">{userName ?? '—'}</p>
-                <p className="text-xs text-gray-500 mt-0.5 truncate">{roleName}</p>
+            <div
+              className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-1.5 w-52 rounded-xl py-1 z-50`}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
+            >
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{userName ?? '—'}</p>
+                <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{roleName}</p>
               </div>
 
               <button
                 onClick={() => setUserMenuOpen(false)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                style={{ color: 'var(--text-muted)' }}
               >
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -169,20 +174,22 @@ export default function Header({ userName, roles }: HeaderProps) {
 
               <button
                 onClick={() => { setUserMenuOpen(false); setPwdOpen(true) }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                style={{ color: 'var(--text-muted)' }}
               >
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
                 {t.user.changePassword}
               </button>
 
-              <div className="border-t border-gray-100 my-1" />
+              <div className="my-1" style={{ borderTop: '1px solid var(--border)' }} />
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                className="menu-item-danger w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                style={{ color: 'var(--danger)' }}
               >
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
