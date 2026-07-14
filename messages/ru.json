@@ -1137,7 +1137,8 @@
       "preview_at_time": "в {time}",
       "preview_weekly": "{days}{time}, начиная с {date}",
       "preview_monthly": "{day}-го числа каждого месяца{time}",
-      "preview_yearly": "{day} {month} каждого года{time}"
+      "preview_yearly": "{day} {month} каждого года{time}",
+      "add_to_calendar": "Также добавить в мой календарь"
     }
   },
   "staff": {

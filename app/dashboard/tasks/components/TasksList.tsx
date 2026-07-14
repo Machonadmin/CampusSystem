@@ -3,6 +3,7 @@
 import type { TaskRow } from '@/types/database'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
+import AddToCalendar from '@/components/calendar/AddToCalendar'
 
 interface Props {
   tasks: TaskRow[]
@@ -114,6 +115,17 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
               {t('card.series')}
             </span>
           )}
+          <span style={{ marginInlineStart: 'auto' }} onClick={e => e.stopPropagation()}>
+            <AddToCalendar
+              variant="link"
+              defaultTitle={task.title}
+              defaultDate={task.due_date ?? undefined}
+              defaultTime={!task.due_all_day && task.due_time ? task.due_time.slice(0, 5) : undefined}
+              sourceType="task"
+              sourceId={task.id}
+              link={`/dashboard/tasks/${task.id}`}
+            />
+          </span>
         </div>
       </div>
     </div>
