@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import type { ClassGroupUpdate } from '@/types/database'
 
 async function requireAuth() {
@@ -19,15 +19,18 @@ const CLASS_GROUP_SELECT = `
 
 /**
  * GET /api/education/class-groups/[id]
- * Доступен любому авторизованному.
  * Возвращает детальную карточку: поля группы + teachers[] + students[].
+ *
+ * Право: view_students в подразделении группы. Карточка отдаёт состав
+ * (ФИО студенток) — как в enrollments/assessments/lessons той же группы, —
+ * поэтому одной авторизации мало.
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const sb = createServerClient()
 
     const { data: group, error } = await sb
@@ -37,6 +40,12 @@ export async function GET(
       .maybeSingle()
     if (error) throw error
     if (!group) return apiError('group_not_found', 404)
+
+    const groupDept = (group as { department_id?: string | null }).department_id ?? null
+    const canView = await hasEducationPrivilege(
+      session, 'view_students', groupDept ? { department_id: groupDept } : undefined,
+    )
+    if (!canView) return apiError('forbidden', 403)
 
     const [teachersRes, enrollsRes] = await Promise.all([
       sb.from('class_teachers')
