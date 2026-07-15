@@ -19,7 +19,7 @@ interface Item {
 }
 
 const ICON: Record<Item['type'], string> = { status: '🔄', signature: '✍️', document: '📄', note: '📝' }
-const DOT: Record<Item['type'], string> = { status: 'var(--accent-strong)', signature: '#059669', document: '#CA8A04', note: 'var(--text-muted)' }
+const DOT: Record<Item['type'], string> = { status: 'var(--accent-strong)', signature: 'var(--success)', document: 'var(--warn)', note: 'var(--text-muted)' }
 
 /**
  * Хронология по абитуриентке/студентке (сворачиваемая). Грузит агрегированную

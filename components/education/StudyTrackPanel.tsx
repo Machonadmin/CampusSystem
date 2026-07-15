@@ -114,7 +114,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
               style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }}
             />
           </label>
-          {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+          {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={save} disabled={saving} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: saving ? 'default' : 'pointer' }}>
               {saving ? t('study_track.saving') : t('study_track.save')}

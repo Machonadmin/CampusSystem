@@ -72,11 +72,11 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
         {busy ? t('handoff.converting') : `→ ${t('handoff.button')}`}
       </button>
       {!ready && (
-        <div style={{ fontSize: 12, color: '#B45309', marginTop: 8, textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--warn)', marginTop: 8, textAlign: 'center' }}>
           {t('handoff.missing')} {missingLabels.join(', ')}
         </div>
       )}
-      {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 8, textAlign: 'center' }}>{error}</div>}
+      {error && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8, textAlign: 'center' }}>{error}</div>}
     </div>
   )
 }
