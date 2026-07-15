@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import LessonNotes from '@/components/education/LessonNotes'
 import type { LessonItem } from './LessonsJournalTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -248,6 +249,9 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
             {banner.text}
           </div>
         )}
+
+        {/* Заметки к уроку (журнал) */}
+        <LessonNotes lessonId={lesson.id} accentColor={accentColor} />
 
         {/* Футер */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>

@@ -1048,6 +1048,13 @@
       "cancelled": "בוטל",
       "location": "מיקום",
       "no_time": "ללא שעה"
+    },
+    "lesson_notes": {
+      "title": "הערות שיעור",
+      "placeholder": "הערה על השיעור (נשמר לצמיתות)…",
+      "add": "הוסף הערה",
+      "empty": "אין הערות עדיין",
+      "by": "מאת"
     }
   },
   "tasks": {
@@ -3040,7 +3047,9 @@
     "signature_record_failed": "השלב הושלם אך רישום החתימה נכשל",
     "invalid_signature_method": "שיטת חתימה שגויה",
     "cannot_remove_head": "לא ניתן להסיר את ראש היחידה",
-    "attendance_window_closed": "חלון עריכת הנוכחות נסגר — פנה למנהל"
+    "attendance_window_closed": "חלון עריכת הנוכחות נסגר — פנה למנהל",
+    "note_required": "נא לכתוב הערה",
+    "feature_not_migrated": "התכונה עדיין לא הופעלה במסד הנתונים"
   },
   "workflow": {
     "error": "שגיאה"
