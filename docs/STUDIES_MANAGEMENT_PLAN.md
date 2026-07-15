@@ -1,0 +1,140 @@
+# Studies management (נושא הלימודים) — plan & progress
+
+Durable record of the studies-management build for מכון חמש, agreed with the
+product owner. Use this to continue even after chat context is lost.
+
+## 1. Studies hierarchy (the domain)
+
+Every student is in TWO parallel domains, split by time of day:
+
+- **🌅 קודש (Judaism)** — morning, ~2 lessons, ALL students. ONE manager
+  (אחראי לימודי קודש) over everyone.
+- **☀️ חול (secular)** — afternoon, by track. Managed per-track (see §2).
+
+**A student's track is decided at "אישור לימודים" (studies approval), from the
+moment she enters.** The two managers place her independently: the kodesh
+manager places her morning group, the chol/track manager her afternoon group.
+Grouping can be split by level, but ALWAYS within the same track (a בית-ספר girl
+never sits with a university girl, morning or afternoon).
+
+### Secular track tree
+- **Entry group A — after grade 9 (young, enters grade י'):**
+  - 🏫 **בית ספר (school)** — 2 years = grades י'+י"א → bagrut. May then leave, or
+    continue to university (~4 more yrs → up to 6 total in the institution).
+  - 🎓 **קולג' (college)** — 4 years (young): prep/bagrut-completion, then practical.
+- **Entry group B — above grade 11 (arrives with bagrut):**
+  - 🎓 **קולג'** — 3 years → college education.
+  - 🏛️ **אוניברסיטה (university):** university-only, OR **university + טורו** (extra
+    parallel hours → master's, Russia + USA). Some choose no-Touro (less load).
+- **📘 טורו** — a fully separate track (its own manager).
+- **🕎 אמונה (Emuna)** — full-day-Judaism program, currently INACTIVE (skip).
+
+Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD when we get there.
+"מקצוע/התמחות" existing entities — leave for now.
+
+## 2. Staff / management hierarchy
+
+- 👑 **מנהל כללי** (superadmin)
+  - 📣 **גיוס** (recruitment — already existed)
+  - 🌅 **קודש** — אחראי לימודי קודש (one, over all)
+  - ☀️ **ראש חול** (one for now, may change) over the per-track chol managers:
+    - 🏫 תיכון → סגנית מנהלת התיכון
+    - 🎓 קולג' → אחראי לימודי מקצוע
+    - 🏛️ אוניברסיטה → אחראי אקדמיה
+    - 📘 טורו → מנהל הטורו
+    - 🕎 אמונה → מנהלת אמונה (inactive)
+- Every manager has his own **מזכירות (secretaries)** + **מורים (teachers)**.
+- All chol track-managers are the SAME permission level (each over his track).
+
+### Capabilities (agreed)
+- **Manager (studies_manager):** VIEWS all students; MANAGES only his unit
+  (placement, class groups, schedule, teachers, grades, attendance override).
+  Adds secretaries + teachers (create-new or assign-existing). Sets each
+  secretary's permissions (per-person toggles). End-to-end control of his unit;
+  all reports/statistics.
+- **Secretary:** permissions set per-person by her manager (toggle set). Base:
+  view her unit's students.
+- **Teacher:** one domain (maybe several later — pick domain when assigning a
+  lesson). Home screen = his schedule ("my lessons today"). Marks attendance.
+  Writes permanent per-lesson notes (visible to everyone above). Writes a
+  student evaluation ONLY when his manager opens that option.
+- **Grades:** MANAGER only for now; a manager may later grant grade-entry to a
+  secretary or teacher per-person (via person_privileges).
+
+### Attendance model (agreed)
+- 3 statuses only: **נוכחת (present)=0 · מאחרת (late)=0.5 · חסרת (absent)=1**.
+- Teacher edits only **during the lesson + 30 min**; after → only his manager.
+  Manager may grant a specific teacher extra time (fixed = lesson_id NULL, or
+  one-time = a specific lesson_id) in `teacher_attendance_grants`.
+- Attendance % = (marked − (absent + 0.5·late)) / marked.
+- Attendance UI must be excellent/clear/prominent/fast (owner emphasized).
+
+## 3. Technical model / decisions
+
+- **Study unit = a `department`.** Managers/secretaries/teachers get
+  `staff_positions` in the unit; manager = `is_head`. Department scoping
+  (`getUserDepartmentIds` + `grantsAccess`) confines management to the unit;
+  `view_students=all` lets managers see everyone.
+- **Per-person permissions = `person_privileges`** (module='education'), wired in
+  `lib/education/permissions.ts` via `applyPersonGrants` (scope.ts):
+  is_granted=false = deny (overrides role), is_granted=true = grant at
+  ≥ department scope. This powers secretary toggles + delegated grading + the
+  (future) evaluation gate.
+- **ראש חול (umbrella):** model as a studies_manager with is_head positions in
+  all chol units (not yet automated — set up manually / future).
+- Attendance edit window: timezone-correct via `lib/education/attendance-window.ts`
+  (Asia/Jerusalem, Intl, DST-safe). Managers bypass (manage_students on target).
+- `excused` attendance rows migrate → `present` (confirm with owner if wrong).
+
+## 4. Build status (all merged to main)
+
+- #49 keystone — activate `person_privileges` (applyPersonGrants + wiring, tests).
+- #50 Phase 0+1 — roles `studies_manager`/`studies_secretary`, study units as
+  departments (migration 20260715120000), revoke teacher.set_grades; unit-access
+  helper; `/api/education/units*`; `/dashboard/education/units` team panel.
+- #51 Phase 2 — dual placement: `/api/education/journeys/[id]/placements` +
+  `PlacementsPanel` on the student card.
+- #52 Phase 3a — 3-status attendance + weights (migration 20260715140000);
+  metrics.ts weights; report/StudentReportTab/AttendancePanel updated.
+- #53 Phase 3b — attendance edit window enforcement (+ grants lookup).
+- #54 Phase 4a — teacher "my day": `/api/education/my-lessons` +
+  `/dashboard/education/my-day` + home widget.
+- #55 — my-lessons deploy-safe (select '*').
+- (Earlier this session: UI redesign to the "console" token system with
+  light/dark + per-user toggle; a full security audit + fixes.)
+
+## 5. Migrations
+
+- **RUN:** notifications, calendar_events, study_tracks, departments,
+  20260715120000 (studies_management_foundation — roles/units).
+- **PENDING (owner to run):** 20260715140000 (attendance 3-status + weight +
+  lessons.scheduled_end_time + teacher_attendance_grants). SQL was provided in
+  chat; also in `supabase/migrations/20260715140000_*.sql`. Code is deploy-safe
+  without it.
+- Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
+  SQL inline; if asked about RLS → "Run without RLS").
+
+## 6. Remaining roadmap (in order)
+
+1. **Phase 4b — permanent lesson notes.** New `lesson_notes(lesson_id, author_id,
+   body, created_at)` (append-only), API + UI in AttendancePanel/lesson view;
+   visible to everyone above the author.
+2. **Phase 4c — student evaluations (חוות דעת).** `student_evaluations` table;
+   teacher can write only when the manager opens a `write_evaluation`
+   person_privilege (reuse the keystone). Visible upward.
+3. **Phase 3c — grant UI.** Manager gives a teacher extra attendance time
+   (fixed/one-time) → writes `teacher_attendance_grants`. Small UI (unit team
+   panel or attendance panel).
+4. **Campus-wide timetable + conflict detection** (double-booked teacher/room).
+   New aggregate route + weekly grid; `class_schedule_slots` + `lessons` exist.
+5. **Aggregate attendance/grade dashboards** for managers/secretaries (per
+   group/unit), semester & exam reports, gradebook export.
+6. Later: kodesh internal structure (רמה/שיעור/כיתה); exceptions (חריגים — girls
+   only in one domain); weighted grades + assessment types.
+
+## 7. Build discipline (every increment)
+Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →
+force-with-lease push → PR → squash-merge → resync. Keep `npx tsc --noEmit`
+clean, `npm test` green, `npm run build` succeeding, and he/en/ru i18n parity.
+Console design tokens (var(--surface)/--text/--accent…), RTL logical props.
+Don't put the model id in commits/PRs.
