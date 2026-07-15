@@ -41,8 +41,8 @@ interface Student {
 const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
   student:   { background: '#ECFDF5', color: '#065F46' },
   on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: '#EFF6FF', color: '#1E40AF' },
-  expelled:  { background: '#F3F4F6', color: '#6B7280' },
+  graduated: { background: 'var(--accent-tint)', color: '#1E40AF' },
+  expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
 const accent = getModuleColor('education')
@@ -146,10 +146,10 @@ export default function StudentsTab() {
     ? studyGroups.filter(g => g.department_id === filterDept)
     : studyGroups
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -187,7 +187,7 @@ export default function StudentsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
         <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -197,14 +197,14 @@ export default function StudentsTab() {
 
       {!loading && !error && (
         students.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('students.table_name')}</th>
                   <th style={thStyle}>{t('students.table_contacts')}</th>
                   <th style={thStyle}>{t('students.table_department')}</th>
@@ -223,40 +223,40 @@ export default function StudentsTab() {
                   return (
                     <tr
                       key={s.id}
-                      style={{ borderTop: '1px solid #F3F4F6' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                      style={{ borderTop: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                     >
                       <td style={{ ...tdStyle, fontWeight: 500 }}>
                         <button
                           onClick={() => router.push(cardHref)}
-                          style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: '#2563EB', fontWeight: 500, fontSize: 13, textAlign: 'inherit' }}
+                          style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'var(--accent-strong)', fontWeight: 500, fontSize: 13, textAlign: 'inherit' }}
                         >
                           {s.person?.full_name ?? '—'}
                         </button>
                         {s.person?.hebrew_name && (
-                          <div style={{ fontSize: 11, color: '#9CA3AF', direction: 'rtl', textAlign: 'start' }}>{s.person.hebrew_name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start' }}>{s.person.hebrew_name}</div>
                         )}
                       </td>
                       <td style={tdStyle}>
-                        {s.person?.email && <div style={{ color: '#374151' }}>{s.person.email}</div>}
-                        {phone && <div style={{ color: '#6B7280', fontSize: 12 }}>{phone}</div>}
-                        {!s.person?.email && !phone && <span style={{ color: '#D1D5DB' }}>—</span>}
+                        {s.person?.email && <div style={{ color: 'var(--text)' }}>{s.person.email}</div>}
+                        {phone && <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{phone}</div>}
+                        {!s.person?.email && !phone && <span style={{ color: 'var(--border-strong)' }}>—</span>}
                       </td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.primary_department?.name ?? '—'}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.main_group?.name ?? <span style={{ color: '#D1D5DB' }}>—</span>}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>
+                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? '—'}</td>
+                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}</td>
+                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
                         {s.specialty
                           ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name)
-                          : <span style={{ color: '#D1D5DB' }}>—</span>}
+                          : <span style={{ color: 'var(--border-strong)' }}>—</span>}
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                        {s.year_level ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                      <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)' }}>
+                        {s.year_level ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                       </td>
                       <td style={tdStyle}>
                         <span style={{
                           fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
-                          ...(STATUS_STYLE[s.education_status] ?? { background: '#F3F4F6', color: '#6B7280' }),
+                          ...(STATUS_STYLE[s.education_status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
                         }}>
                           {STATUS_LABEL[s.education_status] ?? s.education_status}
                         </span>
@@ -297,7 +297,7 @@ export default function StudentsTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }

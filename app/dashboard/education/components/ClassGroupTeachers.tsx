@@ -86,14 +86,14 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
   }
 
   const btnSmall: React.CSSProperties = {
-    padding: '4px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '4px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('class_groups.teachers_section_title')}
         </h2>
         {!adding && (
@@ -108,7 +108,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
 
       {/* Форма добавления */}
       {adding && (
-        <div style={{ marginBottom: 14, padding: 12, background: '#F9FAFB', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+        <div style={{ marginBottom: 14, padding: 12, background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
           <div style={{ marginBottom: 8 }}>
             <PersonSelect
               value={selectedId}
@@ -155,7 +155,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
 
       {/* Список */}
       {teachers.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('class_groups.no_teachers')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('class_groups.no_teachers')}</div>
       ) : (
         <div>
           {teachers.map((tc, i) => (
@@ -163,11 +163,11 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
               key={tc.person_id}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 0', borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
+                padding: '10px 0', borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                   {tc.full_name ?? '—'}
                 </span>
                 {tc.is_primary && (

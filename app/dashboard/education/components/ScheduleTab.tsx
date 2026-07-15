@@ -94,24 +94,24 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
   }
 
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-    padding: '8px 12px', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+    padding: '8px 12px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
   }
   const td: React.CSSProperties = {
-    fontSize: 13, color: '#1F2937', padding: '10px 12px', borderBottom: '1px solid #F3F4F6',
+    fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)',
   }
   const btnSmall: React.CSSProperties = {
-    padding: '3px 8px', fontSize: 11, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '3px 8px', fontSize: 11, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       {/* Заголовок + действия */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('section_title')}
-          <span style={{ fontWeight: 400, color: '#6B7280', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
             ({slots.length})
           </span>
         </h2>
@@ -119,7 +119,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => setFormSlot('create')}
-              style={{ padding: '4px 10px', fontSize: 12, color: accentColor, background: '#fff', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '4px 10px', fontSize: 12, color: accentColor, background: 'var(--surface)', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
             >
               {t('add_slot')}
             </button>
@@ -135,11 +135,11 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
         <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : slots.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
@@ -156,7 +156,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
                 <tr key={s.id}>
                   <td style={{ ...td, fontWeight: 500, whiteSpace: 'nowrap' }}>{weekdayLabel(lang, s.day_of_week, 'long')}</td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>{hhmm(s.start_time)}–{hhmm(s.end_time)}</td>
-                  <td style={{ ...td, color: s.room ? '#1F2937' : '#D1D5DB' }}>{s.room ?? '—'}</td>
+                  <td style={{ ...td, color: s.room ? 'var(--text)' : 'var(--border-strong)' }}>{s.room ?? '—'}</td>
                   {canManageLessons && (
                     <td style={{ ...td, whiteSpace: 'nowrap', textAlign: 'end' }}>
                       <div style={{ display: 'inline-flex', gap: 4 }}>
@@ -257,9 +257,9 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
     }
   }
 
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4 }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, boxSizing: 'border-box', outline: 'none',
+    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, boxSizing: 'border-box', outline: 'none',
   }
 
   return (
@@ -347,15 +347,15 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
     }
   }
 
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4 }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, boxSizing: 'border-box', outline: 'none',
+    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, boxSizing: 'border-box', outline: 'none',
   }
 
   return (
     <ModalShell onClose={onClose}>
       <ModalHeader title={t('generate_modal_title')} onClose={onClose} />
-      <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 12px' }}>{t('generate_hint')}</p>
+      <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 12px' }}>{t('generate_hint')}</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
           <label style={labelStyle}>{t('from_label')}</label>
@@ -374,10 +374,10 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
         <button
           onClick={onClose} disabled={running}
-          style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+          style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
         >
           {result ? t('close') : t('btn_cancel')}
         </button>
@@ -406,7 +406,7 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
+        style={{ background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
       >
         {children}
       </div>
@@ -417,8 +417,8 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
 function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{title}</h2>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+      <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{title}</h2>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
     </div>
   )
 }
@@ -435,10 +435,10 @@ function ModalActions({
   accentColor, saving, onCancel, onSubmit, cancelLabel, saveLabel,
 }: { accentColor: string; saving: boolean; onCancel: () => void; onSubmit: () => void; cancelLabel: string; saveLabel: string }) {
   return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
       <button
         onClick={onCancel} disabled={saving}
-        style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+        style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
       >
         {cancelLabel}
       </button>

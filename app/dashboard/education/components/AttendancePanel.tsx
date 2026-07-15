@@ -32,7 +32,7 @@ const STATUS_ORDER: AttendanceStatus[] = ['present', 'absent', 'excused', 'late'
 const STATUS_COLORS: Record<AttendanceStatus, { color: string; bg: string; border: string }> = {
   present: { color: '#065F46', bg: '#D1FAE5', border: '#059669' },
   absent:  { color: '#991B1B', bg: '#FEE2E2', border: '#DC2626' },
-  excused: { color: '#1E40AF', bg: '#EFF6FF', border: '#3B82F6' },
+  excused: { color: '#1E40AF', bg: 'var(--accent-tint)', border: '#3B82F6' },
   late:    { color: '#92400E', bg: '#FEF3C7', border: '#D97706' },
 }
 
@@ -141,7 +141,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 640,
           maxHeight: '85vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
@@ -150,15 +150,15 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         {/* Заголовок */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <div>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('att_title')} · {formatDate(lang, lesson.scheduled_date)}
-              {lesson.scheduled_time && <span style={{ color: '#6B7280', fontWeight: 400 }}> · {lesson.scheduled_time.slice(0, 5)}</span>}
+              {lesson.scheduled_time && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> · {lesson.scheduled_time.slice(0, 5)}</span>}
             </h2>
             {lesson.topic && (
-              <div style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{lesson.topic}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{lesson.topic}</div>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {!canMarkAttendance && (
@@ -184,13 +184,13 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         )}
 
         {/* Список студентов */}
-        <div style={{ flex: 1, overflowY: 'auto', marginTop: 12, borderRadius: 8, border: '1px solid #E5E7EB' }}>
+        <div style={{ flex: 1, overflowY: 'auto', marginTop: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('att_loading')}</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('att_loading')}</div>
           ) : error ? (
             <div style={{ padding: 24, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
           ) : students.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('att_empty')}</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('att_empty')}</div>
           ) : (
             students.map((s, i) => {
               const current = statuses.get(s.journey_id) ?? null
@@ -200,15 +200,15 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
                     padding: '9px 12px', flexWrap: 'wrap',
-                    borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
+                    borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none',
                   }}
                 >
                   <div style={{ minWidth: 140 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                       {s.full_name ?? '—'}
                     </div>
                     {!current && (
-                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{t('att_not_marked')}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('att_not_marked')}</div>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -222,9 +222,9 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
                           disabled={!canMarkAttendance}
                           style={{
                             padding: '3px 10px', fontSize: 12, borderRadius: 99, fontWeight: active ? 600 : 400,
-                            color: active ? c.color : '#6B7280',
-                            background: active ? c.bg : '#fff',
-                            border: `1px solid ${active ? c.border : '#D1D5DB'}`,
+                            color: active ? c.color : 'var(--text-muted)',
+                            background: active ? c.bg : 'var(--surface)',
+                            border: `1px solid ${active ? c.border : 'var(--border-strong)'}`,
                             cursor: canMarkAttendance ? 'pointer' : 'default',
                           }}
                         >
@@ -251,14 +251,14 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         )}
 
         {/* Футер */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-          <span style={{ fontSize: 12, color: '#6B7280' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             {t('att_marked_of').replace('{marked}', String(markedCount)).replace('{total}', String(students.length))}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={onClose}
-              style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+              style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
             >
               {t('att_close')}
             </button>

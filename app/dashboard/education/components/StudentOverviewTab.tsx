@@ -28,7 +28,7 @@ function riskColor(level: string | null): string {
   if (level === 'high') return '#DC2626'
   if (level === 'medium') return '#D97706'
   if (level === 'low') return '#059669'
-  return '#9CA3AF'
+  return 'var(--text-faint)'
 }
 
 /** Куда ведёт панель модуля — страница этого студента в соответствующем модуле. */
@@ -77,13 +77,13 @@ export default function StudentOverviewTab({ journeyId }: Props) {
   useEffect(() => { load() }, [load])
 
   if (loading) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
   }
   if (error) {
     return <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
   }
   if (!data) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
   }
 
   const { person, education, visible_sections } = data
@@ -97,7 +97,7 @@ export default function StudentOverviewTab({ journeyId }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Контактная строка (имя/фото — в шапке карточки) */}
       {contactBits.length > 0 && (
-        <div style={{ fontSize: 13, color: '#6B7280', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {contactBits.map((c, i) => (
             <span key={i}>{c}</span>
           ))}
@@ -199,7 +199,7 @@ export default function StudentOverviewTab({ journeyId }: Props) {
             // Право есть, но данных нет.
             return (
               <Panel key={section} accent={accent} title={t(titleKey)} muted>
-                <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('no_data')}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_data')}</div>
               </Panel>
             )
           }
@@ -232,8 +232,8 @@ function Panel({
     <div
       onClick={onOpen}
       style={{
-        background: muted ? '#FAFAFA' : '#fff',
-        border: '1px solid #E5E7EB',
+        background: muted ? 'var(--surface-2)' : 'var(--surface)',
+        border: '1px solid var(--border)',
         borderTop: `3px solid ${accent}`,
         borderRadius: 10,
         padding: '14px 16px',
@@ -264,8 +264,8 @@ function Row({
 }: { label: string; value: React.ReactNode; strong?: boolean; valueColor?: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13 }}>
-      <span style={{ color: '#9CA3AF', flexShrink: 0 }}>{label}</span>
-      <span style={{ color: valueColor ?? '#1F2937', fontWeight: strong ? 700 : 500, textAlign: 'end', minWidth: 0 }}>
+      <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>{label}</span>
+      <span style={{ color: valueColor ?? 'var(--text)', fontWeight: strong ? 700 : 500, textAlign: 'end', minWidth: 0 }}>
         {value || '—'}
       </span>
     </div>

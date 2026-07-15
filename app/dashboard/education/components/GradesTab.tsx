@@ -133,27 +133,27 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
   }
 
   const btnSmall: React.CSSProperties = {
-    padding: '3px 8px', fontSize: 11, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '3px 8px', fontSize: 11, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-    padding: '10px 12px', borderBottom: '1px solid #E5E7EB', verticalAlign: 'top',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+    padding: '10px 12px', borderBottom: '1px solid var(--border)', verticalAlign: 'top',
   }
   const td: React.CSSProperties = {
-    fontSize: 13, color: '#1F2937', padding: '10px 12px', borderBottom: '1px solid #F3F4F6',
+    fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)',
   }
   const stickyLeft: React.CSSProperties = {
-    position: 'sticky', left: 0, background: '#fff', zIndex: 1,
+    position: 'sticky', left: 0, background: 'var(--surface)', zIndex: 1,
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       {/* Заголовок секции */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('section_title')}
-          <span style={{ fontWeight: 400, color: '#6B7280', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
             ({assessments.length})
           </span>
         </h2>
@@ -162,7 +162,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
             onClick={() => setFormAssessment('create')}
             style={{
               padding: '4px 10px', fontSize: 12, color: accentColor,
-              background: '#fff', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer',
+              background: 'var(--surface)', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer',
             }}
           >
             {t('add_assessment')}
@@ -172,11 +172,11 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
         <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : assessments.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
@@ -195,13 +195,13 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     >
                       {a.title}
                     </button>
-                    <div style={{ color: '#9CA3AF', fontWeight: 400, marginTop: 2, textTransform: 'none' }}>
+                    <div style={{ color: 'var(--text-faint)', fontWeight: 400, marginTop: 2, textTransform: 'none' }}>
                       / {formatScore(a.max_score)}
                       {a.assessment_date && <span> · {formatDate(lang, a.assessment_date)}</span>}
                     </div>
                     <div style={{
                       fontWeight: 400, marginTop: 2, textTransform: 'none',
-                      color: a.graded_count > 0 ? '#059669' : '#9CA3AF',
+                      color: a.graded_count > 0 ? '#059669' : 'var(--text-faint)',
                     }}>
                       {a.graded_count} / {enrolledCount}
                     </div>
@@ -224,7 +224,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
               {students.length === 0 ? (
                 <tr>
                   <td style={{ ...td, ...stickyLeft }} colSpan={assessments.length + 1}>
-                    <span style={{ color: '#9CA3AF' }}>{t('entry_empty')}</span>
+                    <span style={{ color: 'var(--text-faint)' }}>{t('entry_empty')}</span>
                   </td>
                 </tr>
               ) : (
@@ -233,9 +233,9 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     <td style={{ ...td, ...stickyLeft, fontWeight: 500, whiteSpace: 'nowrap' }}>
                       <Link
                         href={`/dashboard/education/students/${s.journey_id}`}
-                        style={{ color: '#1F2937', textDecoration: 'none' }}
+                        style={{ color: 'var(--text)', textDecoration: 'none' }}
                         onMouseEnter={e => { const el = e.currentTarget; el.style.color = accentColor; el.style.textDecoration = 'underline' }}
-                        onMouseLeave={e => { const el = e.currentTarget; el.style.color = '#1F2937'; el.style.textDecoration = 'none' }}
+                        onMouseLeave={e => { const el = e.currentTarget; el.style.color = 'var(--text)'; el.style.textDecoration = 'none' }}
                       >
                         {s.full_name ?? s.hebrew_name ?? '—'}
                       </Link>
@@ -245,7 +245,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                       const has = sc !== undefined
                       return (
                         <td key={a.id} style={{ ...td, textAlign: 'center' }}>
-                          <span style={{ color: has ? '#111827' : '#D1D5DB', fontWeight: has ? 600 : 400 }}>
+                          <span style={{ color: has ? 'var(--text)' : 'var(--border-strong)', fontWeight: has ? 600 : 400 }}>
                             {has ? formatScore(sc) : '—'}
                           </span>
                         </td>
@@ -348,11 +348,11 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
   }
 
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4,
+    display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4,
   }
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
+    border: '1px solid var(--border-strong)', borderRadius: 8,
     boxSizing: 'border-box', outline: 'none',
   }
 
@@ -368,17 +368,17 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 440,
           maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {assessment ? t('modal_edit_title') : t('modal_create_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -417,10 +417,10 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
           <button
             onClick={onClose} disabled={saving}
-            style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+            style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
           >
             {t('btn_cancel')}
           </button>

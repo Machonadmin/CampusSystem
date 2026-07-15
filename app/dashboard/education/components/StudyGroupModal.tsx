@@ -104,10 +104,10 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
     }
   }
 
-  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
+    border: '1px solid var(--border-strong)', borderRadius: 8,
     boxSizing: 'border-box', outline: 'none',
   }
 
@@ -123,17 +123,17 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 520,
           maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('groups.modal_create_title') : t('groups.modal_edit_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -154,17 +154,17 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('groups.specialty_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('groups.specialty_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             {!departmentId ? (
-              <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
+              <div style={{ padding: '7px 10px', fontSize: 13, color: 'var(--text-faint)', border: '1px solid var(--border)', borderRadius: 8 }}>
                 {t('groups.select_dept_first')}
               </div>
             ) : specLoading ? (
-              <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
+              <div style={{ padding: '7px 10px', fontSize: 13, color: 'var(--text-faint)', border: '1px solid var(--border)', borderRadius: 8 }}>
                 {t('common.loading')}
               </div>
             ) : specialties.length === 0 ? (
-              <div style={{ padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }}>
+              <div style={{ padding: '7px 10px', fontSize: 13, color: 'var(--text-faint)', border: '1px solid var(--border)', borderRadius: 8 }}>
                 {t('groups.specialty_none_for_dept')}
               </div>
             ) : (
@@ -181,14 +181,14 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
 
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>{t('groups.year_level_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+              <label style={lbl}>{t('groups.year_level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <input
                 type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
                 style={inp} placeholder={t('groups.year_level_placeholder')} min={1} max={99}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={lbl}>{t('groups.year_start_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+              <label style={lbl}>{t('groups.year_start_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <input
                 type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
                 style={inp} placeholder={t('groups.year_start_placeholder')} min={2000} max={2100}
@@ -197,7 +197,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <textarea
               value={notes} onChange={e => setNotes(e.target.value)}
               rows={3} style={{ ...inp, resize: 'vertical' }}
@@ -220,10 +220,10 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button
               type="button" onClick={onClose} disabled={saving}
-              style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+              style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
             >
               {t('common.cancel')}
             </button>

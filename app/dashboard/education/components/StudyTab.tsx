@@ -22,9 +22,9 @@ export default function StudyTab() {
 
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--surface)',
       borderRadius: 10,
-      border: '1px solid #E5E7EB',
+      border: '1px solid var(--border)',
       overflow: 'hidden',
     }}>
       {/* Полоса подвкладок */}
