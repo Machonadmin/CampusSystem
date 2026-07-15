@@ -147,6 +147,27 @@ export async function POST(
       }
     }
 
+    // «אישור לימודים»: при ПРИЁМЕ (admitted / admitted_conditional) абитуриентка
+    // становится студенткой. Если приёмная комиссия сразу выбрала маршрут חול —
+    // сохраняем его в journey_study_tracks. Best-effort и деплой-безопасно (нет
+    // таблицы → пропускаем), никогда не роняет завершение этапа.
+    {
+      const fin = (result as CompleteStageResult).finish_reason
+      const trackId = (body.result_data?.track_id ?? null) as string | null
+      if (ctx.journeyId && trackId && (fin === 'admitted' || fin === 'admitted_conditional')) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error: trErr } = await (sb as any)
+            .from('journey_study_tracks')
+            .upsert({ journey_id: ctx.journeyId, track_id: trackId, updated_by: session.person_id, updated_at: new Date().toISOString() },
+              { onConflict: 'journey_id' })
+          if (trErr && trErr.code !== '42P01') console.error('[complete] track upsert:', trErr)
+        } catch (trCatch) {
+          console.error('[complete] track upsert:', trCatch)
+        }
+      }
+    }
+
     // Когда приёмная комиссия ЗАВЕРШИЛАСЬ (принята/условно/отклонена) — уведомляем
     // того, кто запустил приём (набор), результатом. Замыкает петлю обратно на
     // набор. Best-effort, никогда не роняет ответ.
