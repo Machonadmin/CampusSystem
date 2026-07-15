@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { downloadCsv } from '@/lib/csv'
+import GradebookModal from './GradebookModal'
 
 interface Unit { id: string; name: string }
 interface AttBlock { present: number; late: number; absent: number; marked: number; total_lessons?: number; percent: number | null }
@@ -54,6 +56,7 @@ export default function ReportsPage() {
   const [loadingUnits, setLoadingUnits] = useState(true)
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<'groups' | 'students'>('groups')
+  const [gradebookGroup, setGradebookGroup] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
     (async () => {
@@ -118,8 +121,8 @@ export default function ReportsPage() {
             <StatCard label={t('stat_groups')} value={String(s!.group_count)} />
           </div>
 
-          {/* Табы */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          {/* Табы + экспорт */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {(['groups', 'students'] as const).map(key => (
               <button key={key} onClick={() => setTab(key)}
                 style={{
@@ -131,12 +134,20 @@ export default function ReportsPage() {
                 {t(`tab_${key}`)}
               </button>
             ))}
+            <button onClick={() => exportSummary(report, tab, t)}
+              style={{ marginInlineStart: 'auto', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>
+              ⭳ {t('export_csv')}
+            </button>
           </div>
 
           {tab === 'groups' ? (
             <ReportTable
               headers={[t('col_group'), t('col_students'), t('col_lessons'), t('col_attendance'), t('col_assessments'), t('col_grade_avg')]}
               empty={t('no_groups')}
+              onRowClick={key => {
+                const g = report.groups.find(x => x.class_group_id === key)
+                if (g) setGradebookGroup({ id: g.class_group_id, name: g.name })
+              }}
               rows={report.groups.map(g => ({
                 key: g.class_group_id,
                 cells: [
@@ -167,8 +178,36 @@ export default function ReportsPage() {
           )}
         </>
       )}
+
+      {gradebookGroup && (
+        <GradebookModal group={gradebookGroup} onClose={() => setGradebookGroup(null)} />
+      )}
     </div>
   )
+}
+
+/** Экспорт активной сводной таблицы (группы или студенты) в CSV. */
+function exportSummary(report: Report, tab: 'groups' | 'students', t: (k: string, f?: string) => string) {
+  const unit = report.unit.name || 'unit'
+  if (tab === 'groups') {
+    const rows: Array<Array<string | number | null>> = [[
+      t('col_group'), t('col_students'), t('col_lessons'), t('col_attendance'), t('col_assessments'), t('col_grade_avg'),
+    ]]
+    for (const g of report.groups) rows.push([
+      g.name + (g.subject ? ` · ${g.subject.name}` : ''),
+      g.student_count, g.attendance.total_lessons ?? 0,
+      g.attendance.percent, `${g.grades.graded_count}/${g.grades.total_assessments}`, g.grades.average,
+    ])
+    downloadCsv(`${unit}-${t('tab_groups')}.csv`, rows)
+  } else {
+    const rows: Array<Array<string | number | null>> = [[
+      t('col_student'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg'),
+    ]]
+    for (const st of report.students) rows.push([
+      st.name || '', st.group_count, st.attendance.marked, st.attendance.percent, st.grade_average,
+    ])
+    downloadCsv(`${unit}-${t('tab_students')}.csv`, rows)
+  }
 }
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -181,7 +220,10 @@ function StatCard({ label, value, color }: { label: string; value: string; color
 }
 
 interface Cell { text: string; color?: string; strong?: boolean }
-function ReportTable({ headers, rows, empty }: { headers: string[]; rows: { key: string; cells: Cell[] }[]; empty: string }) {
+function ReportTable({ headers, rows, empty, onRowClick }: {
+  headers: string[]; rows: { key: string; cells: Cell[] }[]; empty: string
+  onRowClick?: (key: string) => void
+}) {
   if (rows.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{empty}</div>
   return (
     <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
@@ -195,7 +237,9 @@ function ReportTable({ headers, rows, empty }: { headers: string[]; rows: { key:
         </thead>
         <tbody>
           {rows.map(r => (
-            <tr key={r.key} style={{ borderBottom: '1px solid var(--border)' }}>
+            <tr key={r.key}
+              onClick={onRowClick ? () => onRowClick(r.key) : undefined}
+              style={{ borderBottom: '1px solid var(--border)', cursor: onRowClick ? 'pointer' : undefined }}>
               {r.cells.map((c, i) => (
                 <td key={i} style={{
                   textAlign: i === 0 ? 'start' : 'center', padding: '9px 14px',

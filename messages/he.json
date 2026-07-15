@@ -1109,7 +1109,15 @@
       "col_groups": "קבוצות",
       "col_marked": "נרשמו",
       "no_groups": "אין קבוצות ביחידה",
-      "no_students": "אין תלמידות ביחידה"
+      "no_students": "אין תלמידות ביחידה",
+      "export_csv": "ייצוא CSV",
+      "gb_title": "גיליון ציונים",
+      "gb_student": "תלמידה",
+      "gb_average": "ממוצע",
+      "gb_avg_row": "ממוצע כיתתי",
+      "gb_max_score": "ניקוד מרבי",
+      "gb_assessments": "מבחנים",
+      "gb_empty": "אין מבחנים בקבוצה"
     }
   },
   "tasks": {

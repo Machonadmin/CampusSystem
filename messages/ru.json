@@ -1109,7 +1109,15 @@
       "col_groups": "Группы",
       "col_marked": "Размечено",
       "no_groups": "В единице нет групп",
-      "no_students": "В единице нет студентов"
+      "no_students": "В единице нет студентов",
+      "export_csv": "Экспорт CSV",
+      "gb_title": "Журнал оценок",
+      "gb_student": "Студент",
+      "gb_average": "Средний",
+      "gb_avg_row": "Средний по группе",
+      "gb_max_score": "Максимум",
+      "gb_assessments": "заданий",
+      "gb_empty": "В группе нет заданий"
     }
   },
   "tasks": {
