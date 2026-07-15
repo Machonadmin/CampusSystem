@@ -114,10 +114,10 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 - **RUN:** notifications, calendar_events, study_tracks, departments,
   20260715120000 (studies_management_foundation — roles/units).
 - **RUN (owner confirmed):** 20260715140000 (attendance 3-status + weight +
-  lessons.scheduled_end_time + teacher_attendance_grants).
-- **PENDING (owner to run):** 20260715160000 (lesson_notes), 20260715180000
-  (student_evaluations), 20260715200000 (lesson_roster_overrides — one-time
-  lesson guests). SQL in the migration files. Code is deploy-safe without.
+  lessons.scheduled_end_time + teacher_attendance_grants), 20260715160000
+  (lesson_notes), 20260715180000 (student_evaluations), 20260715200000
+  (lesson_roster_overrides — one-time lesson guests). All confirmed RUN by
+  owner 2026-07-15. No migrations currently pending.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
   SQL inline; if asked about RLS → "Run without RLS").
 
@@ -141,12 +141,21 @@ Current order (owner-approved 2026-07-15 — did 3 then 1, DEFER 2 until spec):
    (is_guest flag), attendance POST allows guests, `POST/DELETE
    /api/education/lessons/[lessonId]/roster` add/remove (mark_attendance-gated),
    AttendancePanel has guest badge + search-add + remove.
-2. ⏸️ **DEFERRED — REMEMBER TO RESUME.** Kodesh internal structure
-   (רמה/שיעור/כיתה). Owner said (2026-07-15) "את 2 עדין אין לנו... אחרי זה נמשיך
-   ל 2 אבל תזכור!" — we DON'T yet have the hierarchy from the owner. Do NOT build
-   until the owner supplies the exact רמה/שיעור/כיתה order. Now that #1 + #3 have
-   shipped, the NEXT step is to proactively ask the owner for the kodesh
-   hierarchy and then build this.
+2. **Kodesh internal structure — GENERIC approach (owner 2026-07-15: "אין לי
+   עדיין... יש דרך להתקדם ובהמשך להגדיר תפקידים?").** Owner does NOT have the
+   fixed רמה/שיעור/כיתה taxonomy yet and wants to build the tree now, assign
+   roles later. KEY REALISATION: `departments` is already self-referential
+   (`parent_id` + `head_person_id`) and study units ARE departments — so the
+   kodesh internal tree = **nested sub-units (sub-departments)** the owner names
+   freely (רמה/שיעור/כיתה or anything), with `class_groups` (lessons/attendance/
+   grades) attached to leaves. NO new table, NO migration. "Define roles later"
+   = assign a head/secretary to any sub-unit via the EXISTING units team panel
+   (person_privileges / staff_positions is_head).
+   BUILD: a study-unit-scoped Structure editor in the education module
+   (`/dashboard/education/structure`, API `/api/education/units/[unitId]/
+   structure*`, canManageUnit-gated, subtree-membership-checked). Manager builds
+   /renames/reorders/removes sub-units and sees teaching groups under each node.
+   (Superadmin can already do generic nesting in Settings → Departments.)
 3. ✅ DONE (#64) **Reports period filter:** date-range (from/to) on the reports
    dashboard + gradebook, filtering lessons/assessments to a semester/exam
    period. (Per-assessment drill-down already covered by the gradebook matrix.)
