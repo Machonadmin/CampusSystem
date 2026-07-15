@@ -1109,7 +1109,15 @@
       "col_groups": "Groups",
       "col_marked": "Marked",
       "no_groups": "No groups in the unit",
-      "no_students": "No students in the unit"
+      "no_students": "No students in the unit",
+      "export_csv": "Export CSV",
+      "gb_title": "Gradebook",
+      "gb_student": "Student",
+      "gb_average": "Average",
+      "gb_avg_row": "Class average",
+      "gb_max_score": "Max score",
+      "gb_assessments": "assessments",
+      "gb_empty": "No assessments in the group"
     }
   },
   "tasks": {
