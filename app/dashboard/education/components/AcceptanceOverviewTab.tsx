@@ -145,7 +145,7 @@ export default function AcceptanceOverviewTab() {
             style={{
               fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
               border: `1px solid ${filter === f.key ? 'var(--accent)' : 'var(--border-strong)'}`,
-              background: filter === f.key ? '#EEF0FE' : 'var(--surface)',
+              background: filter === f.key ? 'var(--accent-tint)' : 'var(--surface)',
               color: filter === f.key ? 'var(--accent)' : 'var(--text-muted)',
             }}
           >
@@ -156,7 +156,7 @@ export default function AcceptanceOverviewTab() {
 
       <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {error ? (
-          <div style={{ padding: 24, fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.loading')}</div>
         ) : applicants.length === 0 ? (
@@ -222,9 +222,9 @@ export default function AcceptanceOverviewTab() {
                   onClick={() => setSelectedFinal(f.code)}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
-                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
-                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
                   }}
                 >
                   {t(`acceptance_finals.${f.code}`, f.name_ru)}
@@ -256,7 +256,7 @@ export default function AcceptanceOverviewTab() {
               </>
             )}
 
-            {signError && <div style={{ fontSize: 12, color: '#DC2626' }}>{signError}</div>}
+            {signError && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{signError}</div>}
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setModal(null)} disabled={signing} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
@@ -287,11 +287,11 @@ function Cell({
   return (
     <div style={{ display: 'grid', gap: 4 }}>
       {done ? (
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, justifySelf: 'start', background: positive ? '#ECFDF5' : '#FEF2F2', color: positive ? '#047857' : '#B91C1C' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, justifySelf: 'start', background: positive ? 'var(--success-tint)' : 'var(--danger-tint)', color: positive ? 'var(--success)' : 'var(--danger)' }}>
           {finalLabel(cell.final_code!)}
         </span>
       ) : cell.status === 'active' ? (
-        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, justifySelf: 'start', background: '#FEF3C7', color: '#92400E' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, justifySelf: 'start', background: 'var(--warn-tint)', color: 'var(--warn)' }}>
           {pendingLabel}
         </span>
       ) : (
