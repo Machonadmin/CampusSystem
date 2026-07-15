@@ -21,6 +21,7 @@ interface GroupRow {
 interface StudentRow {
   journey_id: string
   name: string
+  track: string | null
   group_count: number
   attendance: AttBlock
   grade_average: number | null
@@ -182,12 +183,13 @@ export default function ReportsPage() {
             />
           ) : (
             <ReportTable
-              headers={[t('col_student'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg')]}
+              headers={[t('col_student'), t('col_track'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg')]}
               empty={t('no_students')}
               rows={report.students.map(st => ({
                 key: st.journey_id,
                 cells: [
                   { text: st.name || '—', strong: true },
+                  { text: st.track || '—' },
                   { text: String(st.group_count) },
                   { text: String(st.attendance.marked) },
                   { text: pctText(st.attendance.percent), color: pctColor(st.attendance.percent), strong: true },
@@ -221,10 +223,10 @@ function exportSummary(report: Report, tab: 'groups' | 'students', t: (k: string
     downloadCsv(`${unit}-${t('tab_groups')}.csv`, rows)
   } else {
     const rows: Array<Array<string | number | null>> = [[
-      t('col_student'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg'),
+      t('col_student'), t('col_track'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg'),
     ]]
     for (const st of report.students) rows.push([
-      st.name || '', st.group_count, st.attendance.marked, st.attendance.percent, st.grade_average,
+      st.name || '', st.track || '', st.group_count, st.attendance.marked, st.attendance.percent, st.grade_average,
     ])
     downloadCsv(`${unit}-${t('tab_students')}.csv`, rows)
   }

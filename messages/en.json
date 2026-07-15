@@ -1129,7 +1129,8 @@
       "period": "Period",
       "period_from": "From",
       "period_to": "To",
-      "period_clear": "Clear"
+      "period_clear": "Clear",
+      "col_track": "Track"
     },
     "structure": {
       "title": "Unit structure",

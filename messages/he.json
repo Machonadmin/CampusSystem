@@ -1129,7 +1129,8 @@
       "period": "תקופה",
       "period_from": "מתאריך",
       "period_to": "עד תאריך",
-      "period_clear": "נקה"
+      "period_clear": "נקה",
+      "col_track": "מסלול"
     },
     "structure": {
       "title": "מבנה היחידה",
