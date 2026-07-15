@@ -16,7 +16,7 @@ function pctColor(p: number | null): string {
 }
 const shortDate = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '')
 
-export default function GradebookModal({ group, onClose }: { group: { id: string; name: string }; onClose: () => void }) {
+export default function GradebookModal({ group, from, to, onClose }: { group: { id: string; name: string }; from?: string; to?: string; onClose: () => void }) {
   const t = useTranslations('education.reports')
   const [data, setData] = useState<Gradebook | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,12 +24,16 @@ export default function GradebookModal({ group, onClose }: { group: { id: string
   useEffect(() => {
     let alive = true
     setLoading(true)
-    fetch(`/api/education/class-groups/${group.id}/gradebook`)
+    const qs = new URLSearchParams()
+    if (from) qs.set('from', from)
+    if (to) qs.set('to', to)
+    const q = qs.toString()
+    fetch(`/api/education/class-groups/${group.id}/gradebook${q ? `?${q}` : ''}`)
       .then(r => (r.ok ? r.json() : null))
       .then(b => { if (alive) setData(b) })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [group.id])
+  }, [group.id, from, to])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }

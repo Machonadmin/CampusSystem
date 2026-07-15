@@ -123,18 +123,29 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 ## 6. Remaining roadmap (in order)
 
 DONE: 4b lesson notes (#57), 4c evaluations (#58), 3c grant UI (#59),
-campus timetable + conflict detection (#61), aggregate unit reports (#62).
+campus timetable + conflict detection (#61), aggregate unit reports (#62),
+gradebook matrix + CSV export (#63).
 
-1. **Aggregate reports — next slices:** the unit dashboard (per-group + per-
-   student attendance% / grade-avg / totals) shipped in #62 at
-   `/dashboard/education/reports` (route `GET /api/education/units/[unitId]/report`,
-   canManageUnit-gated, paged+chunked reads). REMAINING here: semester/exam
-   period filters, gradebook CSV export, per-assessment breakdown drill-down.
-2. **Timetable follow-up:** one-time per-lesson roster override (owner
-   mentioned) — not yet built.
-3. Later: kodesh internal structure (רמה/שיעור/כיתה); exceptions (חריגים — girls
-   only in one domain); weighted grades + assessment types; ראש-חול auto-assign
-   across all chol units.
+Reports foundation done: unit dashboard (per-group + per-student attendance% /
+grade-avg / totals) at `/dashboard/education/reports`
+(`GET /api/education/units/[unitId]/report`, canManageUnit-gated, paged+chunked);
+gradebook matrix per group (`GET /api/education/class-groups/[id]/gradebook`) +
+CSV export everywhere (`lib/csv.ts`).
+
+Current order (owner-approved 2026-07-15 — do 3 then 1, DEFER 2 until spec):
+1. **One-time per-lesson roster override** (owner mentioned): a girl attends a
+   single lesson outside her group. NEEDS a new table + migration (owner runs
+   it in Supabase). NOT yet built.
+2. ⏸️ **DEFERRED — REMEMBER TO RESUME.** Kodesh internal structure
+   (רמה/שיעור/כיתה). Owner said (2026-07-15) "את 2 עדין אין לנו... אחרי זה נמשיך
+   ל 2 אבל תזכור!" — we DON'T yet have the hierarchy from the owner. Do NOT build
+   until the owner supplies the exact רמה/שיעור/כיתה order. After #1 + #3 ship,
+   proactively ask the owner for the kodesh hierarchy and then build this.
+3. **Reports polish:** semester / exam-period filters on the reports dashboard
+   (+ per-assessment breakdown drill-down). No migration. Build FIRST.
+
+Later (unordered): exceptions (חריגים — girls only in one domain); weighted
+grades + assessment types; ראש-חול auto-assign across all chol units.
 
 ## 7. Build discipline (every increment)
 Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →

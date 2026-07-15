@@ -1117,7 +1117,11 @@
       "gb_avg_row": "Class average",
       "gb_max_score": "Max score",
       "gb_assessments": "assessments",
-      "gb_empty": "No assessments in the group"
+      "gb_empty": "No assessments in the group",
+      "period": "Period",
+      "period_from": "From",
+      "period_to": "To",
+      "period_clear": "Clear"
     }
   },
   "tasks": {

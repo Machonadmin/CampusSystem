@@ -1117,7 +1117,11 @@
       "gb_avg_row": "ממוצע כיתתי",
       "gb_max_score": "ניקוד מרבי",
       "gb_assessments": "מבחנים",
-      "gb_empty": "אין מבחנים בקבוצה"
+      "gb_empty": "אין מבחנים בקבוצה",
+      "period": "תקופה",
+      "period_from": "מתאריך",
+      "period_to": "עד תאריך",
+      "period_clear": "נקה"
     }
   },
   "tasks": {

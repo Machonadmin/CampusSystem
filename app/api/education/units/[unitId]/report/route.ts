@@ -63,8 +63,17 @@ function addStatus(a: Att, status: string | null) {
   else a.present++ // present и любые старые статусы — как присутствие
 }
 
+/** true, если ISO-дата d попадает в [from, to] (границы включительно, любая — опц.). */
+function inRange(d: string | null, from: string, to: string): boolean {
+  if (!from && !to) return true
+  if (!d) return false // при активном фильтре период недатированного элемента неизвестен → исключаем
+  if (from && d < from) return false
+  if (to && d > to) return false
+  return true
+}
+
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { unitId: string } },
 ) {
   try {
@@ -73,6 +82,8 @@ export async function GET(
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
+    const from = (request.nextUrl.searchParams.get('from') ?? '').trim()
+    const to = (request.nextUrl.searchParams.get('to') ?? '').trim()
 
     // 0. Единица существует?
     const { data: dept } = await sb.from('departments').select('id, name').eq('id', params.unitId).maybeSingle()
@@ -122,14 +133,15 @@ export async function GET(
       if (p) nameByJourney.set(e.journey_id, p.hebrew_name || p.full_name || '')
     }
 
-    // 3. Уроки (только не отменённые) → урок→группа, всего уроков по группе.
-    const lessonRows = await fetchAllByIn<{ id: string; class_group_id: string; is_cancelled: boolean | null }>(
-      sb, 'lessons', 'id, class_group_id, is_cancelled', 'class_group_id', groupIds,
+    // 3. Уроки (только не отменённые, в выбранном периоде) → урок→группа, всего.
+    const lessonRows = await fetchAllByIn<{ id: string; class_group_id: string; scheduled_date: string; is_cancelled: boolean | null }>(
+      sb, 'lessons', 'id, class_group_id, scheduled_date, is_cancelled', 'class_group_id', groupIds,
     )
     const lessonToGroup = new Map<string, string>()
     const totalLessonsByGroup = new Map<string, number>()
     for (const l of lessonRows) {
       if (l.is_cancelled) continue
+      if (!inRange(l.scheduled_date, from, to)) continue
       lessonToGroup.set(l.id, l.class_group_id)
       totalLessonsByGroup.set(l.class_group_id, (totalLessonsByGroup.get(l.class_group_id) ?? 0) + 1)
     }
@@ -150,14 +162,15 @@ export async function GET(
       }
     }
 
-    // 5. Задания групп → задание→(группа, max_score), всего заданий по группе.
-    const assessRows = await fetchAllByIn<{ id: string; class_group_id: string; max_score: number }>(
-      sb, 'assessments', 'id, class_group_id, max_score', 'class_group_id', groupIds,
+    // 5. Задания групп (в выбранном периоде) → задание→(группа, max_score), всего.
+    const assessRows = await fetchAllByIn<{ id: string; class_group_id: string; max_score: number; assessment_date: string | null }>(
+      sb, 'assessments', 'id, class_group_id, max_score, assessment_date', 'class_group_id', groupIds,
     )
     const assessGroup = new Map<string, string>()
     const assessMax = new Map<string, number>()
     const totalAssessmentsByGroup = new Map<string, number>()
     for (const a of assessRows) {
+      if (!inRange(a.assessment_date, from, to)) continue
       assessGroup.set(a.id, a.class_group_id)
       assessMax.set(a.id, Number(a.max_score))
       totalAssessmentsByGroup.set(a.class_group_id, (totalAssessmentsByGroup.get(a.class_group_id) ?? 0) + 1)

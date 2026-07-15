@@ -56,6 +56,8 @@ export default function ReportsPage() {
   const [loadingUnits, setLoadingUnits] = useState(true)
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<'groups' | 'students'>('groups')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
   const [gradebookGroup, setGradebookGroup] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
@@ -72,16 +74,20 @@ export default function ReportsPage() {
     })()
   }, [])
 
-  const load = useCallback(async (u: string) => {
+  const load = useCallback(async (u: string, f: string, tt: string) => {
     if (!u) { setReport(null); return }
     setLoading(true)
     try {
-      const res = await fetch(`/api/education/units/${u}/report`)
+      const qs = new URLSearchParams()
+      if (f) qs.set('from', f)
+      if (tt) qs.set('to', tt)
+      const q = qs.toString()
+      const res = await fetch(`/api/education/units/${u}/report${q ? `?${q}` : ''}`)
       if (res.ok) setReport(await res.json())
       else setReport(null)
     } finally { setLoading(false) }
   }, [])
-  useEffect(() => { load(unit) }, [unit, load])
+  useEffect(() => { load(unit, from, to) }, [unit, from, to, load])
 
   const s = report?.summary
 
@@ -98,13 +104,27 @@ export default function ReportsPage() {
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
 
-      {/* Выбор единицы */}
+      {/* Выбор единицы + период */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={unit} onChange={e => setUnit(e.target.value)} disabled={loadingUnits || units.length === 0}
           style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
           {units.length === 0 && <option value="">{loadingUnits ? '…' : t('no_units')}</option>}
           {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--text-muted)', fontWeight: 600 }}>{t('period')}</span>
+          <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} aria-label={t('period_from')}
+            style={{ padding: '7px 10px', fontSize: 12.5, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }} />
+          <span style={{ color: 'var(--text-faint)' }}>–</span>
+          <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} aria-label={t('period_to')}
+            style={{ padding: '7px 10px', fontSize: 12.5, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }} />
+          {(from || to) && (
+            <button onClick={() => { setFrom(''); setTo('') }}
+              style={{ padding: '6px 10px', fontSize: 12, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>
+              {t('period_clear')}
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -180,7 +200,7 @@ export default function ReportsPage() {
       )}
 
       {gradebookGroup && (
-        <GradebookModal group={gradebookGroup} onClose={() => setGradebookGroup(null)} />
+        <GradebookModal group={gradebookGroup} from={from} to={to} onClose={() => setGradebookGroup(null)} />
       )}
     </div>
   )
