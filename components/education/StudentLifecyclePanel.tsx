@@ -40,17 +40,17 @@ function formatDate(d: string | null): string {
 }
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  student:   { background: '#ECFDF5', color: '#065F46' },
-  on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: 'var(--accent-tint)', color: '#1E40AF' },
+  student:   { background: 'var(--success-tint)', color: 'var(--success)' },
+  on_leave:  { background: 'var(--warn-tint)', color: 'var(--warn)' },
+  graduated: { background: 'var(--accent-tint)', color: 'var(--accent-strong)' },
   expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
 const ACTION_STYLE: Record<TargetStatus, React.CSSProperties> = {
-  on_leave:  { color: '#92400E', borderColor: '#FCD34D', background: '#FFFBEB' },
-  student:   { color: '#065F46', borderColor: '#6EE7B7', background: '#ECFDF5' },
-  graduated: { color: '#1E40AF', borderColor: '#93C5FD', background: 'var(--accent-tint)' },
-  expelled:  { color: '#B91C1C', borderColor: '#FCA5A5', background: '#FEF2F2' },
+  on_leave:  { color: 'var(--warn)', borderColor: 'var(--warn)', background: 'var(--warn-tint)' },
+  student:   { color: 'var(--success)', borderColor: 'var(--success)', background: 'var(--success-tint)' },
+  graduated: { color: 'var(--accent-strong)', borderColor: 'var(--accent)', background: 'var(--accent-tint)' },
+  expelled:  { color: 'var(--danger)', borderColor: 'var(--danger)', background: 'var(--danger-tint)' },
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
 
       {/* Ошибка (для прямых переходов без модалки) */}
       {error && !modalTarget && (
-        <div style={{ fontSize: 12, color: '#B91C1C', background: '#FEF2F2', padding: '8px 10px', borderRadius: 8 }}>
+        <div style={{ fontSize: 12, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '8px 10px', borderRadius: 8 }}>
           {error}
         </div>
       )}
@@ -245,7 +245,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
             </div>
 
             {error && (
-              <div style={{ fontSize: 12, color: '#B91C1C', background: '#FEF2F2', padding: '8px 10px', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '8px 10px', borderRadius: 8 }}>
                 {error}
               </div>
             )}
@@ -266,7 +266,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
                 disabled={submitting}
                 style={{
                   padding: '8px 14px', fontSize: 13, fontWeight: 500, color: '#fff',
-                  background: '#059669', border: 'none', borderRadius: 8,
+                  background: 'var(--success)', border: 'none', borderRadius: 8,
                   cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
                 }}
               >
