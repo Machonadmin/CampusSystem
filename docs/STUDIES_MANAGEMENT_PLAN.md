@@ -122,13 +122,16 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 
 ## 6. Remaining roadmap (in order)
 
-DONE: 4b lesson notes (#57), 4c evaluations (#58), 3c grant UI (#59).
+DONE: 4b lesson notes (#57), 4c evaluations (#58), 3c grant UI (#59),
+campus timetable + conflict detection (#61), aggregate unit reports (#62).
 
-1. **Campus-wide timetable + conflict detection** (double-booked teacher/room).
-   New aggregate route + weekly grid; `class_schedule_slots` + `lessons` exist.
-   One-time per-lesson roster override (owner mentioned) belongs here.
-2. **Aggregate attendance/grade dashboards** for managers/secretaries (per
-   group/unit), semester & exam reports, gradebook export.
+1. **Aggregate reports — next slices:** the unit dashboard (per-group + per-
+   student attendance% / grade-avg / totals) shipped in #62 at
+   `/dashboard/education/reports` (route `GET /api/education/units/[unitId]/report`,
+   canManageUnit-gated, paged+chunked reads). REMAINING here: semester/exam
+   period filters, gradebook CSV export, per-assessment breakdown drill-down.
+2. **Timetable follow-up:** one-time per-lesson roster override (owner
+   mentioned) — not yet built.
 3. Later: kodesh internal structure (רמה/שיעור/כיתה); exceptions (חריגים — girls
    only in one domain); weighted grades + assessment types; ראש-חול auto-assign
    across all chol units.

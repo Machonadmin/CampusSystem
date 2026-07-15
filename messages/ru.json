@@ -1088,6 +1088,28 @@
         "6": "Сб",
         "7": "Вс"
       }
+    },
+    "reports": {
+      "title": "Отчёты и аналитика",
+      "subtitle": "Сводка посещаемости и оценок по группам и студентам",
+      "no_units": "Нет единиц для управления",
+      "tab_groups": "По группам",
+      "tab_students": "По студентам",
+      "stat_attendance": "Ср. посещаемость",
+      "stat_grade_avg": "Средний балл",
+      "stat_students": "Студенты",
+      "stat_groups": "Группы",
+      "col_group": "Группа",
+      "col_students": "Студенты",
+      "col_lessons": "Уроки",
+      "col_attendance": "Посещаемость",
+      "col_assessments": "Задания",
+      "col_grade_avg": "Ср. балл",
+      "col_student": "Студент",
+      "col_groups": "Группы",
+      "col_marked": "Размечено",
+      "no_groups": "В единице нет групп",
+      "no_students": "В единице нет студентов"
     }
   },
   "tasks": {
