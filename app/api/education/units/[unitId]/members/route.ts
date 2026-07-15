@@ -46,6 +46,18 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
       sb.from('person_privileges').select('person_id, privilege_code, is_granted, expires_at').eq('module', 'education').in('person_id', personIds),
     ])
 
+    // Постоянное доп. время учителей (teacher_attendance_grants, lesson_id NULL).
+    // Deploy-safe: таблицы может ещё не быть.
+    const extraByPerson = new Map<string, number>()
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: grants } = await (sb as any)
+        .from('teacher_attendance_grants').select('teacher_id, extra_minutes, lesson_id').in('teacher_id', personIds)
+      for (const g of (grants ?? []) as Array<{ teacher_id: string; extra_minutes: number; lesson_id: string | null }>) {
+        if (g.lesson_id === null) extraByPerson.set(g.teacher_id, Math.max(extraByPerson.get(g.teacher_id) ?? 0, g.extra_minutes ?? 0))
+      }
+    } catch { /* нет таблицы — без доп. времени */ }
+
     const nameById = new Map<string, { full_name: string | null; hebrew_name: string | null; email: string | null }>()
     for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null }>) {
       nameById.set(p.id, { full_name: p.full_name, hebrew_name: p.hebrew_name, email: p.email })
@@ -78,6 +90,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
         is_head: pos.is_head,
         role: kind,
         roles,
+        extra_minutes: extraByPerson.get(pos.person_id) ?? 0,
         // текущие персональные права (только грантуемые)
         privileges: GRANTABLE_EDUCATION_PRIVILEGES.reduce<Record<string, boolean>>((acc, code) => {
           const g = grantsByPerson.get(pos.person_id)?.[code]

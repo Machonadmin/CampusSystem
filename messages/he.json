@@ -1024,7 +1024,9 @@
         "manage_subjects": "ניהול מקצועות",
         "manage_specialties": "ניהול התמחויות",
         "write_evaluation": "כתיבת חוות דעת"
-      }
+      },
+      "extra_minutes": "זמן נוסף לנוכחות (דק׳)",
+      "save": "שמור"
     },
     "placements": {
       "title": "שיבוצים",

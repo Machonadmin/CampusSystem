@@ -21,6 +21,7 @@ interface Member {
   email: string | null
   is_head: boolean
   role: 'studies_secretary' | 'teacher'
+  extra_minutes: number
   privileges: Record<string, boolean>
 }
 
@@ -133,6 +134,9 @@ export default function UnitTeamPage() {
                           )
                         })}
                       </div>
+                      {m.role === 'teacher' && (
+                        <ExtraMinutes unitId={unitId} personId={m.person_id} initial={m.extra_minutes} accent={accent} />
+                      )}
                     </div>
                   )}
                 </div>
@@ -147,6 +151,37 @@ export default function UnitTeamPage() {
           onClose={() => setAddOpen(false)}
           onDone={() => { setAddOpen(false); loadMembers(unitId) }} />
       )}
+    </div>
+  )
+}
+
+function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; personId: string; initial: number; accent: string }) {
+  const t = useTranslations('education')
+  const [val, setVal] = useState(String(initial ?? 0))
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  async function save() {
+    setSaving(true); setSaved(false)
+    try {
+      const res = await fetch(`/api/education/units/${unitId}/members/${personId}/attendance-grant`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ extra_minutes: Number(val) || 0 }),
+      })
+      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 1600) }
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)' }}>{t('units.extra_minutes')}</span>
+      <input type="number" min={0} value={val} onChange={e => setVal(e.target.value)}
+        style={{ width: 80, padding: '6px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)' }} />
+      <button onClick={save} disabled={saving}
+        style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+        {t('units.save')}
+      </button>
+      {saved && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>✓</span>}
     </div>
   )
 }

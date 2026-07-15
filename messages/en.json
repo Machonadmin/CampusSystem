@@ -1024,7 +1024,9 @@
         "manage_subjects": "Manage subjects",
         "manage_specialties": "Manage specialties",
         "write_evaluation": "Write evaluations"
-      }
+      },
+      "extra_minutes": "Extra attendance time (min)",
+      "save": "Save"
     },
     "placements": {
       "title": "Placements",
