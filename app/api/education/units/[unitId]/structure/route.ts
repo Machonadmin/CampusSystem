@@ -17,19 +17,19 @@ import { canManageUnit } from '@/lib/education/unit-access'
  * Право: superadmin или глава корневой единицы (canManageUnit).
  */
 
-type Dept = { id: string; name: string; parent_id: string | null; structure_tier?: string | null; sort_order?: number | null }
+type Dept = { id: string; name: string; parent_id: string | null; head_person_id?: string | null; structure_tier?: string | null; sort_order?: number | null }
 
 /**
  * Читает departments с sort_order и structure_tier; каскадный fallback, если
  * какой-то из необязательных столбцов ещё не добавлен миграцией:
- *   full (оба) → только sort_order → базовые.
+ *   full (оба) → только sort_order → базовые. head_person_id есть всегда.
  */
 async function readDepts(sb: ReturnType<typeof createServerClient>): Promise<Dept[]> {
-  const full = await sb.from('departments').select('id, name, parent_id, sort_order, structure_tier')
+  const full = await sb.from('departments').select('id, name, parent_id, head_person_id, sort_order, structure_tier')
   if (!full.error) return (full.data ?? []) as Dept[]
-  const midd = await sb.from('departments').select('id, name, parent_id, sort_order')
+  const midd = await sb.from('departments').select('id, name, parent_id, head_person_id, sort_order')
   if (!midd.error) return (midd.data ?? []) as Dept[]
-  const base = await sb.from('departments').select('id, name, parent_id')
+  const base = await sb.from('departments').select('id, name, parent_id, head_person_id')
   if (base.error) throw base.error
   return (base.data ?? []) as Dept[]
 }
@@ -76,6 +76,16 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
       const arr = groupsByNode.get(g.department_id) ?? []; arr.push({ id: g.id, name: g.name }); groupsByNode.set(g.department_id, arr)
     }
 
+    // Имена руководителей (head_person_id) узлов поддерева — для показа «кто ведёт».
+    const headIds = [...new Set([...ids].map(id => byId.get(id)?.head_person_id).filter(Boolean))] as string[]
+    const headNameById = new Map<string, string>()
+    if (headIds.length > 0) {
+      const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', headIds)
+      for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
+        headNameById.set(p.id, p.hebrew_name || p.full_name || '')
+      }
+    }
+
     const nodes = [...ids].map(id => {
       const d = byId.get(id)!
       const gs = (groupsByNode.get(id) ?? []).sort((a, b) => a.name.localeCompare(b.name, 'he'))
@@ -84,6 +94,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
         name: d.name,
         tier: d.structure_tier ?? null,
         sort_order: d.sort_order ?? 0,
+        head: d.head_person_id ? (headNameById.get(d.head_person_id) || null) : null,
         parent_id: d.id === params.unitId ? null : d.parent_id, // корень отдаём как top
         is_root: d.id === params.unitId,
         groups: gs,
