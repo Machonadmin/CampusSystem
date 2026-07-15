@@ -16,7 +16,10 @@ interface StudentEntry {
   status: AttendanceStatus | null
   marked_by: string | null
   marked_at: string | null
+  is_guest?: boolean
 }
+
+interface GuestResult { id: string; name: string }
 
 interface Props {
   lesson: LessonItem
@@ -54,6 +57,12 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [banner, setBanner] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  // Разовые гости урока (студенты вне группы).
+  const [showGuest, setShowGuest] = useState(false)
+  const [guestQuery, setGuestQuery] = useState('')
+  const [guestResults, setGuestResults] = useState<GuestResult[]>([])
+  const [guestBusy, setGuestBusy] = useState(false)
 
   const STATUS_LABEL: Record<AttendanceStatus, string> = {
     present: t('status_present'),
@@ -129,6 +138,55 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
     }
   }
 
+  const searchGuests = async () => {
+    const q = guestQuery.trim()
+    if (q.length < 2) { setGuestResults([]); return }
+    setGuestBusy(true)
+    try {
+      const resp = await fetch(`/api/education/students?search=${encodeURIComponent(q)}`)
+      if (!resp.ok) { setGuestResults([]); return }
+      const data = await resp.json()
+      const enrolledSet = new Set(students.map(s => s.journey_id))
+      const results: GuestResult[] = (data.journeys ?? [])
+        .map((j: { id: string; person?: { full_name?: string | null; hebrew_name?: string | null } }) => ({
+          id: j.id, name: j.person?.hebrew_name || j.person?.full_name || '—',
+        }))
+        .filter((r: GuestResult) => !enrolledSet.has(r.id))
+        .slice(0, 8)
+      setGuestResults(results)
+    } finally { setGuestBusy(false) }
+  }
+
+  const addGuest = async (journeyId: string) => {
+    setGuestBusy(true); setBanner(null)
+    try {
+      const resp = await fetch(`/api/education/lessons/${lesson.id}/roster`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_id: journeyId }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setBanner({ kind: 'err', text: err.error ?? t('att_save_failed') })
+        return
+      }
+      setGuestQuery(''); setGuestResults([]); setShowGuest(false)
+      await load()
+    } finally { setGuestBusy(false) }
+  }
+
+  const removeGuest = async (journeyId: string) => {
+    setGuestBusy(true); setBanner(null)
+    try {
+      const resp = await fetch(`/api/education/lessons/${lesson.id}/roster?journey_id=${journeyId}`, { method: 'DELETE' })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setBanner({ kind: 'err', text: err.error ?? t('att_save_failed') })
+        return
+      }
+      await load()
+    } finally { setGuestBusy(false) }
+  }
+
   return (
     <div
       onClick={onClose}
@@ -168,18 +226,56 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         )}
 
         {/* Быстрые действия */}
-        {canMarkAttendance && students.length > 0 && (
-          <div style={{ marginTop: 10 }}>
+        {canMarkAttendance && (
+          <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            {students.length > 0 && (
+              <button
+                onClick={markAllPresent}
+                style={{
+                  padding: '4px 10px', fontSize: 12,
+                  color: STATUS_COLORS.present.color, background: STATUS_COLORS.present.bg,
+                  border: `1px solid ${STATUS_COLORS.present.border}`, borderRadius: 6, cursor: 'pointer',
+                }}
+              >
+                {t('att_mark_all_present')}
+              </button>
+            )}
             <button
-              onClick={markAllPresent}
-              style={{
-                padding: '4px 10px', fontSize: 12,
-                color: STATUS_COLORS.present.color, background: STATUS_COLORS.present.bg,
-                border: `1px solid ${STATUS_COLORS.present.border}`, borderRadius: 6, cursor: 'pointer',
-              }}
+              onClick={() => { setShowGuest(v => !v); setGuestQuery(''); setGuestResults([]) }}
+              style={{ padding: '4px 10px', fontSize: 12, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 6, cursor: 'pointer' }}
             >
-              {t('att_mark_all_present')}
+              + {t('att_guest_add')}
             </button>
+          </div>
+        )}
+
+        {/* Добавление разового гостя */}
+        {canMarkAttendance && showGuest && (
+          <div style={{ marginTop: 10, padding: 10, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)' }}>
+            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 6 }}>{t('att_guest_hint')}</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                value={guestQuery}
+                onChange={e => setGuestQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchGuests() } }}
+                placeholder={t('att_guest_search_ph')}
+                style={{ flex: 1, padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}
+              />
+              <button onClick={searchGuests} disabled={guestBusy || guestQuery.trim().length < 2}
+                style={{ padding: '7px 12px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)', opacity: (guestBusy || guestQuery.trim().length < 2) ? 0.55 : 1 }}>
+                {t('att_guest_search')}
+              </button>
+            </div>
+            {guestResults.length > 0 && (
+              <div style={{ marginTop: 8, display: 'grid', gap: 4 }}>
+                {guestResults.map(r => (
+                  <button key={r.id} onClick={() => addGuest(r.id)} disabled={guestBusy}
+                    style={{ textAlign: 'start', padding: '7px 10px', fontSize: 13, borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
+                    + {r.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -204,8 +300,17 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
                   }}
                 >
                   <div style={{ minWidth: 140 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
-                      {s.full_name ?? '—'}
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {s.hebrew_name || s.full_name || '—'}
+                      {s.is_guest && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 99, padding: '1px 7px' }}>
+                          {t('att_guest')}
+                        </span>
+                      )}
+                      {s.is_guest && canMarkAttendance && (
+                        <button onClick={() => removeGuest(s.journey_id)} disabled={guestBusy} title={t('att_guest_remove')}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: 0 }}>✕</button>
+                      )}
                     </div>
                     {!current && (
                       <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('att_not_marked')}</div>

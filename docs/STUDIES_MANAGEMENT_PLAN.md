@@ -116,7 +116,8 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 - **RUN (owner confirmed):** 20260715140000 (attendance 3-status + weight +
   lessons.scheduled_end_time + teacher_attendance_grants).
 - **PENDING (owner to run):** 20260715160000 (lesson_notes), 20260715180000
-  (student_evaluations). SQL in the migration files. Code is deploy-safe without.
+  (student_evaluations), 20260715200000 (lesson_roster_overrides — one-time
+  lesson guests). SQL in the migration files. Code is deploy-safe without.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
   SQL inline; if asked about RLS → "Run without RLS").
 
@@ -132,17 +133,23 @@ grade-avg / totals) at `/dashboard/education/reports`
 gradebook matrix per group (`GET /api/education/class-groups/[id]/gradebook`) +
 CSV export everywhere (`lib/csv.ts`).
 
-Current order (owner-approved 2026-07-15 — do 3 then 1, DEFER 2 until spec):
-1. **One-time per-lesson roster override** (owner mentioned): a girl attends a
-   single lesson outside her group. NEEDS a new table + migration (owner runs
-   it in Supabase). NOT yet built.
+Current order (owner-approved 2026-07-15 — did 3 then 1, DEFER 2 until spec):
+1. ✅ DONE (#65) **One-time per-lesson roster override**: a girl attends a
+   single lesson outside her group. Table `lesson_roster_overrides`
+   (migration 20260715200000 — PENDING owner run in Supabase; code is
+   deploy-safe via `(sb as any)` + 42P01 catch). Roster GET unions guests
+   (is_guest flag), attendance POST allows guests, `POST/DELETE
+   /api/education/lessons/[lessonId]/roster` add/remove (mark_attendance-gated),
+   AttendancePanel has guest badge + search-add + remove.
 2. ⏸️ **DEFERRED — REMEMBER TO RESUME.** Kodesh internal structure
    (רמה/שיעור/כיתה). Owner said (2026-07-15) "את 2 עדין אין לנו... אחרי זה נמשיך
    ל 2 אבל תזכור!" — we DON'T yet have the hierarchy from the owner. Do NOT build
-   until the owner supplies the exact רמה/שיעור/כיתה order. After #1 + #3 ship,
-   proactively ask the owner for the kodesh hierarchy and then build this.
-3. **Reports polish:** semester / exam-period filters on the reports dashboard
-   (+ per-assessment breakdown drill-down). No migration. Build FIRST.
+   until the owner supplies the exact רמה/שיעור/כיתה order. Now that #1 + #3 have
+   shipped, the NEXT step is to proactively ask the owner for the kodesh
+   hierarchy and then build this.
+3. ✅ DONE (#64) **Reports period filter:** date-range (from/to) on the reports
+   dashboard + gradebook, filtering lessons/assessments to a semester/exam
+   period. (Per-assessment drill-down already covered by the gradebook matrix.)
 
 Later (unordered): exceptions (חריגים — girls only in one domain); weighted
 grades + assessment types; ראש-חול auto-assign across all chol units.
