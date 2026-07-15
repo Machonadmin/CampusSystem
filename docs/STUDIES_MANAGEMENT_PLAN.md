@@ -100,6 +100,12 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 - #54 Phase 4a — teacher "my day": `/api/education/my-lessons` +
   `/dashboard/education/my-day` + home widget.
 - #55 — my-lessons deploy-safe (select '*').
+- #57 Phase 4b — permanent lesson notes (migration 20260715160000; lesson_notes
+  API + LessonNotes in AttendancePanel).
+- #58 Phase 4c — student evaluations, manager-gated via write_evaluation
+  person_privilege (migration 20260715180000; evaluations API + EvaluationsPanel).
+- #59 Phase 3c — manager grants a teacher extra attendance minutes
+  (attendance-grant API + control in the unit team panel).
 - (Earlier this session: UI redesign to the "console" token system with
   light/dark + per-user toggle; a full security audit + fixes.)
 
@@ -107,30 +113,25 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 
 - **RUN:** notifications, calendar_events, study_tracks, departments,
   20260715120000 (studies_management_foundation — roles/units).
-- **PENDING (owner to run):** 20260715140000 (attendance 3-status + weight +
-  lessons.scheduled_end_time + teacher_attendance_grants). SQL was provided in
-  chat; also in `supabase/migrations/20260715140000_*.sql`. Code is deploy-safe
-  without it.
+- **RUN (owner confirmed):** 20260715140000 (attendance 3-status + weight +
+  lessons.scheduled_end_time + teacher_attendance_grants).
+- **PENDING (owner to run):** 20260715160000 (lesson_notes), 20260715180000
+  (student_evaluations). SQL in the migration files. Code is deploy-safe without.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
   SQL inline; if asked about RLS → "Run without RLS").
 
 ## 6. Remaining roadmap (in order)
 
-1. **Phase 4b — permanent lesson notes.** New `lesson_notes(lesson_id, author_id,
-   body, created_at)` (append-only), API + UI in AttendancePanel/lesson view;
-   visible to everyone above the author.
-2. **Phase 4c — student evaluations (חוות דעת).** `student_evaluations` table;
-   teacher can write only when the manager opens a `write_evaluation`
-   person_privilege (reuse the keystone). Visible upward.
-3. **Phase 3c — grant UI.** Manager gives a teacher extra attendance time
-   (fixed/one-time) → writes `teacher_attendance_grants`. Small UI (unit team
-   panel or attendance panel).
-4. **Campus-wide timetable + conflict detection** (double-booked teacher/room).
+DONE: 4b lesson notes (#57), 4c evaluations (#58), 3c grant UI (#59).
+
+1. **Campus-wide timetable + conflict detection** (double-booked teacher/room).
    New aggregate route + weekly grid; `class_schedule_slots` + `lessons` exist.
-5. **Aggregate attendance/grade dashboards** for managers/secretaries (per
+   One-time per-lesson roster override (owner mentioned) belongs here.
+2. **Aggregate attendance/grade dashboards** for managers/secretaries (per
    group/unit), semester & exam reports, gradebook export.
-6. Later: kodesh internal structure (רמה/שיעור/כיתה); exceptions (חריגים — girls
-   only in one domain); weighted grades + assessment types.
+3. Later: kodesh internal structure (רמה/שיעור/כיתה); exceptions (חריגים — girls
+   only in one domain); weighted grades + assessment types; ראש-חול auto-assign
+   across all chol units.
 
 ## 7. Build discipline (every increment)
 Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →
