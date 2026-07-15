@@ -1,5 +1,44 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants } from './scope'
+
+describe('applyPersonGrants', () => {
+  it('без персональных выдач — карта не меняется', () => {
+    expect(applyPersonGrants({ view_students: 'all' }, [])).toEqual({ view_students: 'all' })
+  })
+
+  it('личная выдача добавляет привилегию в scope=department', () => {
+    expect(applyPersonGrants({}, [{ code: 'set_grades', is_granted: true }]))
+      .toEqual({ set_grades: 'department' })
+  })
+
+  it('личный запрет (is_granted=false) перебивает ролевую выдачу', () => {
+    expect(applyPersonGrants({ set_grades: 'all' }, [{ code: 'set_grades', is_granted: false }]))
+      .toEqual({})
+  })
+
+  it('роль дала all — личная выдача не понижает до department', () => {
+    expect(applyPersonGrants({ view_students: 'all' }, [{ code: 'view_students', is_granted: true }]))
+      .toEqual({ view_students: 'all' })
+  })
+
+  it('личная выдача поверх own — поднимает до department', () => {
+    expect(applyPersonGrants({ mark_attendance: 'own' }, [{ code: 'mark_attendance', is_granted: true }]))
+      .toEqual({ mark_attendance: 'department' })
+  })
+
+  it('несколько выдач и запретов вместе', () => {
+    expect(applyPersonGrants(
+      { view_students: 'own', set_grades: 'all' },
+      [{ code: 'view_students', is_granted: true }, { code: 'set_grades', is_granted: false }, { code: 'mark_attendance', is_granted: true }],
+    )).toEqual({ view_students: 'department', mark_attendance: 'department' })
+  })
+
+  it('не мутирует исходную карту', () => {
+    const base = { view_students: 'own' as const }
+    applyPersonGrants(base, [{ code: 'view_students', is_granted: false }])
+    expect(base).toEqual({ view_students: 'own' })
+  })
+})
 
 describe('reduceScopes', () => {
   it('пустой ввод → пустая карта', () => {

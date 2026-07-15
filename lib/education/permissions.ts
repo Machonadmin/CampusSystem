@@ -3,7 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
-import { reduceScopes, grantsAccess, type Scope } from '@/lib/permissions/scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, type Scope } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -139,6 +139,25 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
 }
 
 /**
+ * Персональные education-привилегии (person_privileges) человека — активные
+ * (не истёкшие). Управляются руководителем направления через UI. Устойчиво к
+ * отсутствию таблицы (deploy до миграции) — тогда просто нет персональных выдач.
+ */
+async function loadPersonPrivileges(personId: string): Promise<Array<{ code: string; is_granted: boolean }>> {
+  const sb = createServerClient()
+  const nowIso = new Date().toISOString()
+  const { data, error } = await sb
+    .from('person_privileges')
+    .select('privilege_code, is_granted, expires_at')
+    .eq('person_id', personId)
+    .eq('module', 'education')
+  if (error || !data) return []
+  return data
+    .filter(r => !r.expires_at || (r.expires_at as string) > nowIso)
+    .map(r => ({ code: r.privilege_code as string, is_granted: !!r.is_granted }))
+}
+
+/**
  * Получить все привилегии пользователя + его подразделения.
  * Использует кэш.
  */
@@ -146,10 +165,14 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [privileges, departmentIds] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
+    loadPersonPrivileges(session.person_id),
   ])
+
+  // Персональные выдачи/запреты поверх ролевых (см. applyPersonGrants).
+  const privileges = applyPersonGrants<EducationPrivilege>(rolePrivileges, personGrants)
 
   setCached(session.person_id, privileges, departmentIds)
   return { privileges, departmentIds, expiresAt: Date.now() + CACHE_TTL_MS }
