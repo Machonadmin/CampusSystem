@@ -1144,7 +1144,8 @@
       "save": "שמור",
       "cancel": "בטל",
       "confirm_delete": "למחוק את תת-היחידה?",
-      "save_failed": "השמירה נכשלה"
+      "save_failed": "השמירה נכשלה",
+      "tier_ph": "שכבה (רמה/שיעור…)"
     },
     "track_assign": {
       "title": "שיבוץ למסלול",

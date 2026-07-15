@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface Unit { id: string; name: string }
-interface Node { id: string; name: string; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
+interface Node { id: string; name: string; tier: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
 
 export default function StructurePage() {
   const t = useTranslations('education.structure')
@@ -48,22 +48,22 @@ export default function StructurePage() {
   }, [nodes])
   const root = nodes.find(n => n.is_root) ?? null
 
-  const addChild = async (parentId: string, name: string) => {
+  const addChild = async (parentId: string, name: string, tier: string) => {
     setBusy(true); setErr(null)
     try {
       const res = await fetch(`/api/education/units/${unit}/structure`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parent_id: parentId, name }),
+        body: JSON.stringify({ parent_id: parentId, name, tier }),
       })
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return false }
       await load(unit); return true
     } finally { setBusy(false) }
   }
-  const rename = async (nodeId: string, name: string) => {
+  const rename = async (nodeId: string, name: string, tier: string) => {
     setBusy(true); setErr(null)
     try {
       const res = await fetch(`/api/education/units/${unit}/structure/${nodeId}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }),
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, tier }),
       })
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return false }
       await load(unit); return true
@@ -117,15 +117,17 @@ export default function StructurePage() {
 
 function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t }: {
   node: Node; depth: number; childrenOf: Map<string | null, Node[]>; busy: boolean
-  onAdd: (parentId: string, name: string) => Promise<boolean>
-  onRename: (nodeId: string, name: string) => Promise<boolean>
+  onAdd: (parentId: string, name: string, tier: string) => Promise<boolean>
+  onRename: (nodeId: string, name: string, tier: string) => Promise<boolean>
   onRemove: (nodeId: string) => void
   t: (k: string, f?: string) => string
 }) {
   const [adding, setAdding] = useState(false)
   const [addName, setAddName] = useState('')
+  const [addTier, setAddTier] = useState('')
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(node.name)
+  const [editTier, setEditTier] = useState(node.tier ?? '')
 
   const kids = childrenOf.get(node.is_root ? '__root__' : node.id) ?? []
 
@@ -135,13 +137,18 @@ function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t 
         {editing ? (
           <>
             <input value={editName} autoFocus onChange={e => setEditName(e.target.value)}
-              onKeyDown={async e => { if (e.key === 'Enter' && editName.trim()) { if (await onRename(node.id, editName.trim())) setEditing(false) } if (e.key === 'Escape') setEditing(false) }}
+              onKeyDown={async e => { if (e.key === 'Enter' && editName.trim()) { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) } if (e.key === 'Escape') setEditing(false) }}
               style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
-            <button disabled={busy || !editName.trim()} onClick={async () => { if (await onRename(node.id, editName.trim())) setEditing(false) }} style={miniBtn('accent')}>{t('save')}</button>
-            <button onClick={() => { setEditing(false); setEditName(node.name) }} style={miniBtn()}>{t('cancel')}</button>
+            <input value={editTier} onChange={e => setEditTier(e.target.value)} placeholder={t('tier_ph')}
+              style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
+            <button disabled={busy || !editName.trim()} onClick={async () => { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) }} style={miniBtn('accent')}>{t('save')}</button>
+            <button onClick={() => { setEditing(false); setEditName(node.name); setEditTier(node.tier ?? '') }} style={miniBtn()}>{t('cancel')}</button>
           </>
         ) : (
           <>
+            {node.tier && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 99, padding: '1px 8px' }}>{node.tier}</span>
+            )}
             <span style={{ fontSize: depth === 0 ? 14 : 13, fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)' }}>
               {depth === 0 && '🏛️ '}{node.name}
             </span>
@@ -166,11 +173,13 @@ function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t 
       )}
 
       {adding && (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>
           <input value={addName} autoFocus onChange={e => setAddName(e.target.value)} placeholder={t('new_child_ph')}
-            onKeyDown={async e => { if (e.key === 'Enter' && addName.trim()) { if (await onAdd(node.id, addName.trim())) { setAddName(''); setAdding(false) } } if (e.key === 'Escape') setAdding(false) }}
+            onKeyDown={async e => { if (e.key === 'Enter' && addName.trim()) { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } } if (e.key === 'Escape') setAdding(false) }}
             style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)', minWidth: 180 }} />
-          <button disabled={busy || !addName.trim()} onClick={async () => { if (await onAdd(node.id, addName.trim())) { setAddName(''); setAdding(false) } }} style={miniBtn('accent')}>{t('add')}</button>
+          <input value={addTier} onChange={e => setAddTier(e.target.value)} placeholder={t('tier_ph')}
+            style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
+          <button disabled={busy || !addName.trim()} onClick={async () => { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } }} style={miniBtn('accent')}>{t('add')}</button>
           <button onClick={() => setAdding(false)} style={miniBtn()}>{t('cancel')}</button>
         </div>
       )}

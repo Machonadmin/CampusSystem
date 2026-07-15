@@ -17,7 +17,16 @@ import { canManageUnit } from '@/lib/education/unit-access'
  * Право: superadmin или глава корневой единицы (canManageUnit).
  */
 
-type Dept = { id: string; name: string; parent_id: string | null }
+type Dept = { id: string; name: string; parent_id: string | null; structure_tier?: string | null }
+
+/** Читает departments с structure_tier; если колонки ещё нет — без неё. */
+async function readDepts(sb: ReturnType<typeof createServerClient>): Promise<Dept[]> {
+  const withTier = await sb.from('departments').select('id, name, parent_id, structure_tier')
+  if (!withTier.error) return (withTier.data ?? []) as Dept[]
+  const base = await sb.from('departments').select('id, name, parent_id')
+  if (base.error) throw base.error
+  return (base.data ?? []) as Dept[]
+}
 
 /** Собирает id всех узлов поддерева с корнем rootId (включая корень). */
 function subtreeIds(all: Dept[], rootId: string): Set<string> {
@@ -44,9 +53,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
-    const { data: deptsRaw, error } = await sb.from('departments').select('id, name, parent_id')
-    if (error) throw error
-    const all = (deptsRaw ?? []) as Dept[]
+    const all = await readDepts(sb)
     const byId = new Map(all.map(d => [d.id, d]))
     if (!byId.has(params.unitId)) return apiError('not_found', 404)
 
@@ -69,6 +76,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
       return {
         id: d.id,
         name: d.name,
+        tier: d.structure_tier ?? null,
         parent_id: d.id === params.unitId ? null : d.parent_id, // корень отдаём как top
         is_root: d.id === params.unitId,
         groups: gs,
@@ -88,21 +96,21 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
     if (!session) return apiError('unauthorized', 401)
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
 
-    const body = await request.json().catch(() => ({})) as { parent_id?: string; name?: string }
+    const body = await request.json().catch(() => ({})) as { parent_id?: string; name?: string; tier?: string | null }
     const name = (body.name ?? '').trim()
     const parentId = (body.parent_id ?? '').trim() || params.unitId
+    const tier = (body.tier ?? '').trim() || null
     if (!name) return apiError('title_required', 400)
 
     const sb = createServerClient()
-    const { data: deptsRaw, error } = await sb.from('departments').select('id, name, parent_id')
-    if (error) throw error
-    const all = (deptsRaw ?? []) as Dept[]
+    const all = await readDepts(sb)
     const ids = subtreeIds(all, params.unitId)
     if (!ids.has(parentId)) return apiError('forbidden', 403) // parent вне поддерева единицы
 
-    // Deploy-safe insert: пытаемся с sort_order, иначе базовыми колонками.
+    // Deploy-safe insert: пробуем с sort_order + structure_tier, при ошибке
+    // (колонок ещё нет) — падаем к базовым колонкам.
     const full = await sb.from('departments')
-      .insert({ name, parent_id: parentId, head_person_id: null, sort_order: 0 } as never)
+      .insert({ name, parent_id: parentId, head_person_id: null, sort_order: 0, structure_tier: tier } as never)
       .select('id, name, parent_id').single()
     let data = full.data
     if (full.error) {

@@ -17,9 +17,12 @@ Track now also chosen AT approval (#69): the acceptance-overview admit modal
 (final_approval → admitted/admitted_conditional) shows a chol-track picker; on
 complete, the server persists it to journey_study_tracks (best-effort, deploy-
 safe). Optional ("assign later" falls back to the #68 worklist).
-Next §1 candidates (owner to steer, "then what you think"): entry groups +
-durations (after ט' / above י"א, 2/3/4 yrs); structure-editor polish (tier
-labels[needs a departments column], manual order, assign students to nodes).
+Structure editor now supports **tier labels** (#70): each node can be tagged
+רמה/שיעור/כיתה (or any text) via `departments.structure_tier` (migration
+20260715240000; deploy-safe read/write fallbacks). Shown as a chip in the tree.
+Next §1 candidates (owner to steer): entry groups + durations (after ט' / above
+י"א, 2/3/4 yrs — needs owner's field model); structure-editor manual ordering
+(needs departments.sort_order) + assign-students-to-node.
 
 ## 1. Studies hierarchy (the domain)
 
