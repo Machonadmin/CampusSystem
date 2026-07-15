@@ -58,6 +58,18 @@ export default function AcceptanceOverviewTab() {
   const [signing, setSigning] = useState(false)
   const [signError, setSignError] = useState('')
 
+  // Маршрут חол, выбираемый прямо при приёме (אישור לימודים).
+  const [tracks, setTracks] = useState<Array<{ id: string; name_he: string }>>([])
+  const [trackId, setTrackId] = useState('')
+  const isAdmit = selectedFinal === 'admitted' || selectedFinal === 'admitted_conditional'
+
+  useEffect(() => {
+    fetch('/api/education/study-tracks')
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => { if (b?.tracks) setTracks(b.tracks) })
+      .catch(() => {})
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -78,7 +90,7 @@ export default function AcceptanceOverviewTab() {
 
   function openSign(applicantName: string, cell: StageCell) {
     setModal({ applicant: applicantName, cell })
-    setSelectedFinal(null); setNote(''); setSig(null); setSignError('')
+    setSelectedFinal(null); setNote(''); setSig(null); setSignError(''); setTrackId('')
   }
 
   async function submitSign() {
@@ -101,6 +113,7 @@ export default function AcceptanceOverviewTab() {
       const rd: Record<string, unknown> = {}
       if (signatureBody) rd.signature = signatureBody
       if (note.trim()) rd.note = note.trim()
+      if (isAdmit && trackId) rd.track_id = trackId
       const body: Record<string, unknown> = { final_code: selectedFinal }
       if (Object.keys(rd).length) body.result_data = rd
 
@@ -218,6 +231,17 @@ export default function AcceptanceOverviewTab() {
                 </button>
               ))}
             </div>
+
+            {isAdmit && tracks.length > 0 && (
+              <div style={{ display: 'grid', gap: 4, padding: '10px 12px', border: '1px solid var(--accent)', background: 'var(--accent-tint)', borderRadius: 8 }}>
+                <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)' }}>{t('overview.track_label')}</label>
+                <select value={trackId} onChange={e => setTrackId(e.target.value)}
+                  style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
+                  <option value="">{t('overview.track_later')}</option>
+                  {tracks.map(tr => <option key={tr.id} value={tr.id}>{tr.name_he}</option>)}
+                </select>
+              </div>
+            )}
 
             {selectedFinal && (
               <>

@@ -950,7 +950,9 @@
       "signed_by": "Signed by",
       "no_data": "No applicants to show",
       "loading": "Loading…",
-      "load_error": "Failed to load the overview"
+      "load_error": "Failed to load the overview",
+      "track_label": "Chol track (set at approval)",
+      "track_later": "Assign later"
     },
     "study_track": {
       "title": "Study track",

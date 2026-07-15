@@ -13,9 +13,13 @@ StudyTrackPanel), the freely-nested structure editor (#66), and a track-
 assignment worklist (#68, `/dashboard/education/track-assignment`) that surfaces
 approved students with no chol track for inline assignment (operationalises
 "track decided at אישור לימודים" without touching the acceptance engine).
-Next §1 candidates (owner to steer): entry groups + durations (after ט' / above
-י"א, 2/3/4 yrs); structure-editor polish (tier labels, manual order, assign
-students to nodes); hook track directly into the applicant→student conversion.
+Track now also chosen AT approval (#69): the acceptance-overview admit modal
+(final_approval → admitted/admitted_conditional) shows a chol-track picker; on
+complete, the server persists it to journey_study_tracks (best-effort, deploy-
+safe). Optional ("assign later" falls back to the #68 worklist).
+Next §1 candidates (owner to steer, "then what you think"): entry groups +
+durations (after ט' / above י"א, 2/3/4 yrs); structure-editor polish (tier
+labels[needs a departments column], manual order, assign students to nodes).
 
 ## 1. Studies hierarchy (the domain)
 
