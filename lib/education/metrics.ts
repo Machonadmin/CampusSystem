@@ -10,26 +10,33 @@ export function round1(x: number): number {
 
 export interface AttendanceCounts {
   present: number
-  absent: number
-  excused: number
   late: number
+  absent: number
 }
 
 /** Число размеченных уроков = сумма всех статусов. */
 export function markedCount(a: AttendanceCounts): number {
-  return a.present + a.absent + a.excused + a.late
+  return a.present + a.late + a.absent
 }
 
 /**
- * Процент посещаемости. excused и late засчитываются КАК посещение; снижает
- * процент только absent. null — если ничего не размечено (нет базы для дроби).
- * Результат — целое (Math.round).
+ * «Баллы пропусков» по весам: absent=1, late=0.5, present=0.
+ * Чем меньше — тем лучше посещаемость.
+ */
+export function absencePoints(a: AttendanceCounts): number {
+  return round1(a.absent * 1 + a.late * 0.5)
+}
+
+/**
+ * Процент посещаемости с учётом весов: опоздание стоит половину пропуска.
+ * percent = (marked − (absent + 0.5·late)) / marked · 100.
+ * null — если ничего не размечено. Результат — целое (Math.round).
  */
 export function attendancePercent(a: AttendanceCounts): number | null {
   const marked = markedCount(a)
   if (marked === 0) return null
-  const attended = a.present + a.late + a.excused
-  return Math.round((attended / marked) * 100)
+  const attendedWeighted = marked - absencePoints(a)
+  return Math.round((attendedWeighted / marked) * 100)
 }
 
 /**

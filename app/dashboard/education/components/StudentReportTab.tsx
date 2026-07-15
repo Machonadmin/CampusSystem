@@ -7,9 +7,8 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface AttendanceBlock {
   present: number
-  absent: number
-  excused: number
   late: number
+  absent: number
   marked: number
   total_lessons: number
   percent: number | null
@@ -268,10 +267,9 @@ function FragmentRow({
             {fill(t('coverage'), { done: a.marked, total: a.total_lessons })}
           </div>
           <div style={pillWrap}>
-            <Pill n={a.present} color="#059669" bg="#D1FAE5" title={t('status_present')} />
-            <Pill n={a.late} color="#B45309" bg="#FEF3C7" title={t('status_late')} />
-            <Pill n={a.excused} color="#1D4ED8" bg="#DBEAFE" title={t('status_excused')} />
-            <Pill n={a.absent} color="#B91C1C" bg="#FEE2E2" title={t('status_absent')} />
+            <Pill n={a.present} color="var(--success)" bg="var(--success-tint)" title={t('status_present')} />
+            <Pill n={a.late} color="var(--warn)" bg="var(--warn-tint)" title={t('status_late')} />
+            <Pill n={a.absent} color="var(--danger)" bg="var(--danger-tint)" title={t('status_absent')} />
           </div>
         </td>
 

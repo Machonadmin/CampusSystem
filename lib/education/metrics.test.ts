@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { round1, markedCount, attendancePercent, gradeAveragePercent } from './metrics'
+import { round1, markedCount, attendancePercent, absencePoints, gradeAveragePercent } from './metrics'
 
 describe('round1', () => {
   it('округляет до одного знака', () => {
@@ -10,34 +10,46 @@ describe('round1', () => {
 })
 
 describe('markedCount', () => {
-  it('сумма всех статусов', () => {
-    expect(markedCount({ present: 2, absent: 1, excused: 1, late: 1 })).toBe(5)
-    expect(markedCount({ present: 0, absent: 0, excused: 0, late: 0 })).toBe(0)
+  it('сумма всех статусов (3)', () => {
+    expect(markedCount({ present: 2, late: 1, absent: 1 })).toBe(4)
+    expect(markedCount({ present: 0, late: 0, absent: 0 })).toBe(0)
+  })
+})
+
+describe('absencePoints', () => {
+  it('веса: absent=1, late=0.5, present=0', () => {
+    expect(absencePoints({ present: 3, late: 0, absent: 0 })).toBe(0)
+    expect(absencePoints({ present: 0, late: 2, absent: 1 })).toBe(2)   // 1 + 0.5*2
+    expect(absencePoints({ present: 1, late: 1, absent: 1 })).toBe(1.5) // 1 + 0.5
   })
 })
 
 describe('attendancePercent', () => {
-  it('present, late и excused засчитываются как посещение', () => {
-    // 3 из 4 (absent снижает): present1+late1+excused1 = 3, marked 4 → 75
-    expect(attendancePercent({ present: 1, absent: 1, excused: 1, late: 1 })).toBe(75)
+  it('опоздание стоит половину пропуска', () => {
+    // marked 3, absencePoints = 1 + 0.5 = 1.5 → (3-1.5)/3 = 50
+    expect(attendancePercent({ present: 1, late: 1, absent: 1 })).toBe(50)
   })
 
   it('только absent → 0%', () => {
-    expect(attendancePercent({ present: 0, absent: 3, excused: 0, late: 0 })).toBe(0)
+    expect(attendancePercent({ present: 0, late: 0, absent: 3 })).toBe(0)
   })
 
   it('полная посещаемость → 100%', () => {
-    expect(attendancePercent({ present: 5, absent: 0, excused: 0, late: 0 })).toBe(100)
-    expect(attendancePercent({ present: 3, absent: 0, excused: 1, late: 1 })).toBe(100)
+    expect(attendancePercent({ present: 5, late: 0, absent: 0 })).toBe(100)
   })
 
-  it('ничего не размечено → null (нет базы для дроби)', () => {
-    expect(attendancePercent({ present: 0, absent: 0, excused: 0, late: 0 })).toBeNull()
+  it('только опоздания → 50%', () => {
+    // marked 2, points = 1 → (2-1)/2 = 50
+    expect(attendancePercent({ present: 0, late: 2, absent: 0 })).toBe(50)
+  })
+
+  it('ничего не размечено → null', () => {
+    expect(attendancePercent({ present: 0, late: 0, absent: 0 })).toBeNull()
   })
 
   it('округляет процент', () => {
-    // 2 из 3 = 66.66 → 67
-    expect(attendancePercent({ present: 2, absent: 1, excused: 0, late: 0 })).toBe(67)
+    // marked 3, points 1 → (3-1)/3 = 66.66 → 67
+    expect(attendancePercent({ present: 2, late: 0, absent: 1 })).toBe(67)
   })
 })
 

@@ -5,7 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 
-const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'absent', 'excused', 'late']
+const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -102,7 +102,7 @@ export async function GET(
  * POST /api/education/lessons/[lessonId]/attendance
  * Массовая отметка посещаемости. Право: mark_attendance в контексте группы урока.
  *
- * Body: { entries: { journey_id: string; status: 'present'|'absent'|'excused'|'late' }[] }
+ * Body: { entries: { journey_id: string; status: 'present'|'late'|'absent' }[] }
  * Upsert по паре (lesson_id, journey_id); marked_by = текущий пользователь,
  * marked_at = сейчас. Каждый journey должен быть записан в группу урока.
  */
