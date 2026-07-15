@@ -987,6 +987,43 @@
         "expelled": "הורחקה",
         "lost": "אבודה"
       }
+    },
+    "units": {
+      "title": "ניהול צוות היחידה",
+      "subtitle": "הוסף מזכירות ומורים והגדר לכל אחת הרשאות",
+      "pick_unit": "בחר יחידה",
+      "no_units": "אינך מנהל יחידת לימוד",
+      "members": "חברי הצוות",
+      "add_member": "הוספת חבר",
+      "role": "תפקיד",
+      "role_secretary": "מזכירה",
+      "role_teacher": "מורה",
+      "mode_existing": "אדם קיים",
+      "mode_create": "אדם חדש",
+      "person_id_ph": "מזהה אדם / חיפוש",
+      "first_name": "שם פרטי",
+      "last_name": "שם משפחה",
+      "email": "אימייל",
+      "create_btn": "הוסף",
+      "cancel": "ביטול",
+      "remove": "הסר",
+      "head_badge": "ראש היחידה",
+      "perms_title": "הרשאות",
+      "saved": "נשמר",
+      "empty": "אין עדיין חברי צוות ביחידה",
+      "priv": {
+        "view_students": "צפייה בתלמידות",
+        "manage_students": "ניהול תלמידות",
+        "manage_enrollments": "ניהול שיבוצים",
+        "manage_class_groups": "ניהול כיתות",
+        "manage_class_teachers": "ניהול מורים בכיתה",
+        "set_lesson_topics": "שיעורים ומערכת שעות",
+        "mark_attendance": "רישום נוכחות",
+        "set_grades": "הזנת ציונים",
+        "manage_study_groups": "ניהול קבוצות-אם",
+        "manage_subjects": "ניהול מקצועות",
+        "manage_specialties": "ניהול התמחויות"
+      }
     }
   },
   "tasks": {
@@ -2977,7 +3014,8 @@
     "drawing_required": "יש לצייר חתימה",
     "invalid_drawing_path": "קובץ חתימה שגוי",
     "signature_record_failed": "השלב הושלם אך רישום החתימה נכשל",
-    "invalid_signature_method": "שיטת חתימה שגויה"
+    "invalid_signature_method": "שיטת חתימה שגויה",
+    "cannot_remove_head": "לא ניתן להסיר את ראש היחידה"
   },
   "workflow": {
     "error": "שגיאה"
