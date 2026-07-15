@@ -1048,6 +1048,13 @@
       "cancelled": "Cancelled",
       "location": "Location",
       "no_time": "No time"
+    },
+    "lesson_notes": {
+      "title": "Lesson notes",
+      "placeholder": "A note about the lesson (saved permanently)…",
+      "add": "Add note",
+      "empty": "No notes yet",
+      "by": "by"
     }
   },
   "tasks": {
@@ -3040,7 +3047,9 @@
     "signature_record_failed": "Stage completed, but the signature could not be recorded",
     "invalid_signature_method": "Invalid signature method",
     "cannot_remove_head": "Cannot remove the unit head",
-    "attendance_window_closed": "The attendance edit window has closed — contact your manager"
+    "attendance_window_closed": "The attendance edit window has closed — contact your manager",
+    "note_required": "Please write a note",
+    "feature_not_migrated": "Feature not yet enabled in the database"
   },
   "workflow": {
     "error": "Error"
