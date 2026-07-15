@@ -148,7 +148,8 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
   (lesson_roster_overrides — one-time lesson guests). All confirmed RUN by
   owner 2026-07-15.
 - **RUN (owner confirmed 2026-07-15):** 20260715220000 (study_tracks_complete —
-  added אוניברסיטה + אמונה[inactive], reordered to hierarchy).
+  added אוניברסיטה + אמונה[inactive], reordered to hierarchy), 20260715240000
+  (departments.structure_tier — node tier labels). No migrations pending.
 - OPEN QUESTION for owner (still unanswered): existing 'college' is named
   'מכללה' but owner says 'קולג'' — rename TBD. Do NOT rename without an explicit
   answer.

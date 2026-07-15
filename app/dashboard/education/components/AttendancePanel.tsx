@@ -220,7 +220,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         </div>
 
         {!canMarkAttendance && (
-          <div style={{ fontSize: 12, color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
+          <div style={{ fontSize: 12, color: 'var(--warn)', background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
             {t('att_readonly_hint')}
           </div>
         )}
@@ -284,7 +284,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
           {loading ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('att_loading')}</div>
           ) : error ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
           ) : students.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('att_empty')}</div>
           ) : (
@@ -348,8 +348,8 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         {banner && (
           <div style={{
             marginTop: 10, padding: '8px 12px', borderRadius: 8, fontSize: 13,
-            background: banner.kind === 'ok' ? '#D1FAE5' : '#FEE2E2',
-            color: banner.kind === 'ok' ? '#065F46' : '#991B1B',
+            background: banner.kind === 'ok' ? 'var(--success-tint)' : 'var(--danger-tint)',
+            color: banner.kind === 'ok' ? 'var(--success)' : 'var(--danger)',
           }}>
             {banner.text}
           </div>
