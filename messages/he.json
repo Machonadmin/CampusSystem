@@ -967,6 +967,20 @@
       "save_error": "השמירה נכשלה",
       "choose": "בחר מסלול…"
     },
+    "study_plan": {
+      "title": "תוכנית לימודים",
+      "edit": "עריכה",
+      "choose": "בחר…",
+      "unassigned": "לא נקבע",
+      "save": "שמור",
+      "saving": "שומר…",
+      "save_error": "השמירה נכשלה",
+      "entry_group": "קבוצת כניסה",
+      "group_after_9": "אחרי כיתה ט'",
+      "group_above_11": "מעל כיתה י\"א",
+      "duration": "משך לימודים",
+      "years": "{n} שנים"
+    },
     "handoff": {
       "button": "העבר לוועדת קבלה",
       "missing": "יש להשלים תחילה:",
