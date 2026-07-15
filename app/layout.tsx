@@ -34,7 +34,15 @@ export default function RootLayout({
   const dir = locale === 'he' ? 'rtl' : 'ltr'
   return (
     <html lang={locale} dir={dir} className={heebo.variable}>
-      <body>{children}</body>
+      <body>
+        {/* Применяем сохранённый выбор темы ДО отрисовки — без мигания. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   )
 }

@@ -95,7 +95,8 @@
     "maintenance": "Maintenance",
     "security": "Security",
     "logo_alt": "Machon Hamesh",
-    "toggle_menu": "Toggle menu"
+    "toggle_menu": "Toggle menu",
+    "toggle_theme": "Toggle light/dark"
   },
   "auth": {
     "login": "Sign In",

@@ -7,6 +7,7 @@ import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 import NotificationBell from '@/components/dashboard/NotificationBell'
 import GlobalSearch from '@/components/dashboard/GlobalSearch'
+import ThemeToggle from '@/components/dashboard/ThemeToggle'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 
 interface HeaderProps {
@@ -101,6 +102,9 @@ export default function Header({ userName, roles }: HeaderProps) {
 
       {/* ── Right actions ── */}
       <div className="flex items-center gap-2 flex-shrink-0">
+
+        {/* Theme toggle (per-user light/dark) */}
+        <ThemeToggle />
 
         {/* Notification bell */}
         <NotificationBell />

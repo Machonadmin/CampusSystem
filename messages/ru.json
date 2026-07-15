@@ -95,7 +95,8 @@
     "maintenance": "Эксплуатация",
     "security": "Безопасность",
     "logo_alt": "Махон Хамеш",
-    "toggle_menu": "Меню"
+    "toggle_menu": "Меню",
+    "toggle_theme": "Светлая/тёмная тема"
   },
   "auth": {
     "login": "Войти",
