@@ -26,11 +26,13 @@ Self-review fixed two latent bugs: unit-report 500 from ordering
 class_enrollments by a nonexistent `id` (#74), and gradebook grade pagination
 ordered by a non-unique column (#75). i18n parity verified (2820 keys × 3).
 
-ONLY remaining §1 item, still BLOCKED on owner input: **entry groups +
-durations** (after ט' / above י"א; 2/3/4 yrs). Needs the owner's field model —
-which fields matter (entry year? current level? expected end/bagrut date?).
-Do NOT build until the owner specifies. Also still open: the מכללה vs קולג'
-naming decision (do not rename without an explicit answer).
+§1 **entry groups + durations — BUILT** (owner 2026-07-15: "של מי שאחראי יהיה
+גישה לבחור את זה עבור התלמידה"): per-student `journey_study_plans` (entry_group
+after_9/above_11 + expected_duration_years 2/3/4), set by the responsible
+manager. `StudyPlanPanel` on the student card (view_students to see,
+manage_students to edit), route `/api/education/journeys/[id]/study-plan`,
+deploy-safe. Migration 20260715260000 — owner to run.
+מכללה/קולג' naming: RESOLVED — keep 'מכללה'.
 
 ## 1. Studies hierarchy (the domain)
 
@@ -150,7 +152,11 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
 - **RUN (owner confirmed 2026-07-15):** 20260715220000 (study_tracks_complete —
   added אוניברסיטה + אמונה[inactive], reordered to hierarchy), 20260715240000
   (departments.structure_tier — node tier labels). No migrations pending.
-- OPEN QUESTION for owner (still unanswered): existing 'college' is named
+- RESOLVED (owner 2026-07-15): keep Hebrew name **'מכללה'** for the college
+  track (code 'college'; 'קולג'' is just the transliteration). No change needed.
+- **PENDING (owner to run):** 20260715260000 (journey_study_plans — per-student
+  entry_group + expected_duration_years, manager-set). Code deploy-safe without.
+- (obsolete note below kept for history:) existing 'college' is named
   'מכללה' but owner says 'קולג'' — rename TBD. Do NOT rename without an explicit
   answer.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide

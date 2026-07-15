@@ -967,6 +967,20 @@
       "save_error": "Save failed",
       "choose": "Choose a track…"
     },
+    "study_plan": {
+      "title": "Study plan",
+      "edit": "Edit",
+      "choose": "Choose…",
+      "unassigned": "Not set",
+      "save": "Save",
+      "saving": "Saving…",
+      "save_error": "Save failed",
+      "entry_group": "Entry group",
+      "group_after_9": "After grade 9",
+      "group_above_11": "Above grade 11",
+      "duration": "Duration",
+      "years": "{n} years"
+    },
     "handoff": {
       "button": "Hand off to acceptance committee",
       "missing": "Complete first:",

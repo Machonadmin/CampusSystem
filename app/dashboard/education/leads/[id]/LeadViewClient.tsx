@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
 import StudyTrackPanel from '@/components/education/StudyTrackPanel'
+import StudyPlanPanel from '@/components/education/StudyPlanPanel'
 import HandoffButton from '@/components/education/HandoffButton'
 import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
@@ -412,6 +413,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
           <StageSignatures journeyId={data.journeyId} />
           {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
+          {data.status === 'student' && <StudyPlanPanel journeyId={data.journeyId} canEdit={canManage} />}
           {data.status === 'student' && <PlacementsPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <EvaluationsPanel journeyId={data.journeyId} />}
           <JourneyTimeline journeyId={data.journeyId} />
