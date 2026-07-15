@@ -987,6 +987,43 @@
         "expelled": "Отчислена",
         "lost": "Потеряна"
       }
+    },
+    "units": {
+      "title": "Команда единицы",
+      "subtitle": "Добавьте секретарей и преподавателей, задайте каждому права",
+      "pick_unit": "Выбрать единицу",
+      "no_units": "Вы не руководите учебной единицей",
+      "members": "Члены команды",
+      "add_member": "Добавить",
+      "role": "Роль",
+      "role_secretary": "Секретарь",
+      "role_teacher": "Преподаватель",
+      "mode_existing": "Существующий человек",
+      "mode_create": "Новый человек",
+      "person_id_ph": "ID человека / поиск",
+      "first_name": "Имя",
+      "last_name": "Фамилия",
+      "email": "Email",
+      "create_btn": "Добавить",
+      "cancel": "Отмена",
+      "remove": "Убрать",
+      "head_badge": "Глава единицы",
+      "perms_title": "Права",
+      "saved": "Сохранено",
+      "empty": "Пока нет членов команды",
+      "priv": {
+        "view_students": "Просмотр учениц",
+        "manage_students": "Управление ученицами",
+        "manage_enrollments": "Управление зачислением",
+        "manage_class_groups": "Управление классами",
+        "manage_class_teachers": "Преподаватели класса",
+        "set_lesson_topics": "Уроки и расписание",
+        "mark_attendance": "Отметка посещаемости",
+        "set_grades": "Выставление оценок",
+        "manage_study_groups": "Управление потоками",
+        "manage_subjects": "Управление предметами",
+        "manage_specialties": "Управление специальностями"
+      }
     }
   },
   "tasks": {
@@ -2977,7 +3014,8 @@
     "drawing_required": "Нарисуйте подпись",
     "invalid_drawing_path": "Неверный файл подписи",
     "signature_record_failed": "Этап завершён, но подпись не удалось записать",
-    "invalid_signature_method": "Неверный метод подписи"
+    "invalid_signature_method": "Неверный метод подписи",
+    "cannot_remove_head": "Нельзя удалить главу единицы"
   },
   "workflow": {
     "error": "Ошибка"

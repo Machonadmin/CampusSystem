@@ -205,8 +205,13 @@ export default function EducationPage() {
         background: getModuleHeaderGradient('education'),
         borderRadius: 12, padding: '12px 24px',
         boxShadow: '0 2px 8px rgba(16,185,129,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
+        <a href="/dashboard/education/units"
+          style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          {t('units.title')}
+        </a>
       </div>
 
       {/* Личная очередь «Ожидают моей подписи» — видна только при наличии */}

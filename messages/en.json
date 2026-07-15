@@ -987,6 +987,43 @@
         "expelled": "Expelled",
         "lost": "Lost"
       }
+    },
+    "units": {
+      "title": "Unit team",
+      "subtitle": "Add secretaries and teachers, set each one’s permissions",
+      "pick_unit": "Select unit",
+      "no_units": "You don’t manage a study unit",
+      "members": "Team members",
+      "add_member": "Add member",
+      "role": "Role",
+      "role_secretary": "Secretary",
+      "role_teacher": "Teacher",
+      "mode_existing": "Existing person",
+      "mode_create": "New person",
+      "person_id_ph": "Person id / search",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email",
+      "create_btn": "Add",
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "head_badge": "Unit head",
+      "perms_title": "Permissions",
+      "saved": "Saved",
+      "empty": "No team members yet",
+      "priv": {
+        "view_students": "View students",
+        "manage_students": "Manage students",
+        "manage_enrollments": "Manage placements",
+        "manage_class_groups": "Manage classes",
+        "manage_class_teachers": "Manage class teachers",
+        "set_lesson_topics": "Lessons & schedule",
+        "mark_attendance": "Mark attendance",
+        "set_grades": "Enter grades",
+        "manage_study_groups": "Manage cohorts",
+        "manage_subjects": "Manage subjects",
+        "manage_specialties": "Manage specialties"
+      }
     }
   },
   "tasks": {
@@ -2977,7 +3014,8 @@
     "drawing_required": "Draw a signature",
     "invalid_drawing_path": "Invalid signature file",
     "signature_record_failed": "Stage completed, but the signature could not be recorded",
-    "invalid_signature_method": "Invalid signature method"
+    "invalid_signature_method": "Invalid signature method",
+    "cannot_remove_head": "Cannot remove the unit head"
   },
   "workflow": {
     "error": "Error"
