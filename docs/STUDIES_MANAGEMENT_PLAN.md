@@ -17,12 +17,20 @@ Track now also chosen AT approval (#69): the acceptance-overview admit modal
 (final_approval → admitted/admitted_conditional) shows a chol-track picker; on
 complete, the server persists it to journey_study_tracks (best-effort, deploy-
 safe). Optional ("assign later" falls back to the #68 worklist).
-Structure editor now supports **tier labels** (#70): each node can be tagged
-רמה/שיעור/כיתה (or any text) via `departments.structure_tier` (migration
-20260715240000; deploy-safe read/write fallbacks). Shown as a chip in the tree.
-Next §1 candidates (owner to steer): entry groups + durations (after ט' / above
-י"א, 2/3/4 yrs — needs owner's field model); structure-editor manual ordering
-(needs departments.sort_order) + assign-students-to-node.
+Structure editor is now full-featured: create/rename/delete, **tier labels**
+(#70, `departments.structure_tier`, mig 20260715240000), **manual ordering**
+(#71, up/down via `departments.sort_order`), **move teaching groups between
+nodes** (#72, `class_groups.department_id`), and **shows each node's head**
+(#76, `departments.head_person_id`). Reports show each student's **track** (#73).
+Self-review fixed two latent bugs: unit-report 500 from ordering
+class_enrollments by a nonexistent `id` (#74), and gradebook grade pagination
+ordered by a non-unique column (#75). i18n parity verified (2820 keys × 3).
+
+ONLY remaining §1 item, still BLOCKED on owner input: **entry groups +
+durations** (after ט' / above י"א; 2/3/4 yrs). Needs the owner's field model —
+which fields matter (entry year? current level? expected end/bagrut date?).
+Do NOT build until the owner specifies. Also still open: the מכללה vs קולג'
+naming decision (do not rename without an explicit answer).
 
 ## 1. Studies hierarchy (the domain)
 
