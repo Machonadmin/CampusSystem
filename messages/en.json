@@ -1143,6 +1143,16 @@
       "cancel": "Cancel",
       "confirm_delete": "Delete this sub-unit?",
       "save_failed": "Save failed"
+    },
+    "track_assign": {
+      "title": "Track assignment",
+      "subtitle": "Approved students not yet assigned a chol track — assign here",
+      "all_assigned": "All students are assigned to a track",
+      "pending_count": "{n} awaiting assignment",
+      "pick_track": "Choose track…",
+      "assign": "Assign",
+      "saving": "Saving…",
+      "save_failed": "Save failed"
     }
   },
   "tasks": {
