@@ -32,7 +32,7 @@ const STATUS_ORDER: AttendanceStatus[] = ['present', 'absent', 'excused', 'late'
 const STATUS_COLORS: Record<AttendanceStatus, { color: string; bg: string; border: string }> = {
   present: { color: '#065F46', bg: '#D1FAE5', border: '#059669' },
   absent:  { color: '#991B1B', bg: '#FEE2E2', border: '#DC2626' },
-  excused: { color: '#1E40AF', bg: 'var(--accent-tint)', border: '#3B82F6' },
+  excused: { color: '#1E40AF', bg: 'var(--accent-tint)', border: 'var(--accent)' },
   late:    { color: '#92400E', bg: '#FEF3C7', border: '#D97706' },
 }
 

@@ -17,7 +17,7 @@ const STATUS_COLOR: Record<string, { bg: string; fg: string }> = {
   lead:      { bg: '#DBEAFE', fg: '#1D4ED8' },
   applicant: { bg: '#EDE9FE', fg: '#6D28D9' },
   student:   { bg: '#DCFCE7', fg: '#047857' },
-  staff:     { bg: '#F3F4F6', fg: '#374151' },
+  staff:     { bg: 'var(--surface-2)', fg: 'var(--text)' },
 }
 
 /**

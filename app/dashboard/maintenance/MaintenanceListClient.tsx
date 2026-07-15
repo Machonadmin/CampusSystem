@@ -39,14 +39,14 @@ const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   open:        { bg: '#DBEAFE', fg: '#1D4ED8' },
   in_progress: { bg: '#FEF3C7', fg: '#B45309' },
   resolved:    { bg: '#D1FAE5', fg: '#047857' },
-  closed:      { bg: '#F3F4F6', fg: '#6B7280' },
+  closed:      { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   cancelled:   { bg: '#FEE2E2', fg: '#B91C1C' },
 }
 const PRIORITY_COLORS: Record<string, { bg: string; fg: string }> = {
   urgent: { bg: '#FEE2E2', fg: '#B91C1C' },
   high:   { bg: '#FFEDD5', fg: '#C2410C' },
   normal: { bg: '#DBEAFE', fg: '#1D4ED8' },
-  low:    { bg: '#F3F4F6', fg: '#6B7280' },
+  low:    { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
 }
 
 export default function MaintenanceListClient({ canManage }: { canManage: boolean }) {
@@ -215,7 +215,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
 
       {/* Create form */}
       {showForm && canManage && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('form.title')} style={inp()} />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -258,9 +258,9 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(r => {
@@ -271,25 +271,25 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
                 key={r.id}
                 onClick={() => router.push(`/dashboard/maintenance/${r.id}`)}
                 style={{
-                  background: r.is_overdue ? '#FEF2F2' : '#fff',
-                  border: '1px solid #E5E7EB',
+                  background: r.is_overdue ? '#FEF2F2' : 'var(--surface)',
+                  border: '1px solid var(--border)',
                   borderInlineStart: `4px solid ${r.is_overdue ? '#DC2626' : pc.fg}`,
                   borderRadius: 10, padding: '12px 16px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? '#DC2626' : pc.fg }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? '#DC2626' : pc.fg }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? '#DC2626' : pc.fg }}
               >
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{r.title}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{r.title}</span>
                     {r.is_overdue && (
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#B91C1C', letterSpacing: '0.04em' }}>
                         {t('list.overdue')}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, color: '#6B7280', marginTop: 3 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
                     {t(`category.${r.category}`)} · {locationLabel(r)}
                   </div>
                 </div>
@@ -327,12 +327,12 @@ function Badge({ label, colors }: { label: string; colors: { bg: string; fg: str
 }
 
 function inp(width?: number): React.CSSProperties {
-  return { width: width ?? '100%', fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width: width ?? '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function sel(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', background: '#fff' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
 }
-const area: React.CSSProperties = { width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit' }
+const area: React.CSSProperties = { width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }

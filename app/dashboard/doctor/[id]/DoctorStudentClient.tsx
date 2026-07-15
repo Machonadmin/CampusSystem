@@ -193,12 +193,12 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
       {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
           {/* Medical profile */}
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('profile.title')}</h2>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
             {profileError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{profileError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
               <Field label={t('profile.blood_type')}>
@@ -230,8 +230,8 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
           {/* Record visit */}
           {canManage && (
-            <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
               {visitError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{visitError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('visit.visit_date')}>
@@ -260,10 +260,10 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
           )}
 
           {/* Visit history */}
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('visit.history_title')}</h2>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.history_title')}</h2>
             {visits.length === 0 ? (
-              <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('visit.no_visits')}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('visit.no_visits')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -284,8 +284,8 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                         <td style={td}>
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                            background: v.status === 'open' ? light : '#F3F4F6',
-                            color: v.status === 'open' ? '#047857' : '#6B7280',
+                            background: v.status === 'open' ? light : 'var(--surface-2)',
+                            color: v.status === 'open' ? '#047857' : 'var(--text-muted)',
                           }}>
                             {t(`status.${v.status}`)}
                           </span>
@@ -295,7 +295,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                             <button onClick={() => setStatus(v, 'closed')} disabled={busy} style={linkBtn(primary)}>{t('visit.close')}</button>
                           )}
                           {canManage && v.status === 'closed' && (
-                            <button onClick={() => setStatus(v, 'open')} disabled={busy} style={linkBtn('#6B7280')}>{t('visit.reopen')}</button>
+                            <button onClick={() => setStatus(v, 'open')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('visit.reopen')}</button>
                           )}
                         </td>
                       </tr>
@@ -313,7 +313,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
       {label}
       {children}
     </label>
@@ -321,13 +321,13 @@ function Field({ label, children, full }: { label: string; children: React.React
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', width: '100%' }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }

@@ -10,7 +10,7 @@ import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 const accent = getModuleColor('settings')
 
 const CATEGORY_COLORS: Record<PositionCategory, { bg: string; fg: string }> = {
-  academic:       { bg: '#EEF2FF', fg: '#3730A3' },
+  academic:       { bg: 'var(--accent-tint)', fg: '#3730A3' },
   administrative: { bg: '#FEF3C7', fg: '#92400E' },
   support:        { bg: '#F0FDF4', fg: '#166534' },
 }
@@ -93,11 +93,11 @@ export default function PositionsPage() {
 
   const inp: React.CSSProperties = {
     padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none',
   }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -145,7 +145,7 @@ export default function PositionsPage() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('loading')}</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('loading')}</div>
       )}
 
       {error && (
@@ -156,14 +156,14 @@ export default function PositionsPage() {
 
       {!loading && !error && (
         positions.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {filterCategory ? t('empty_search') : t('empty_none')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('table_position')}</th>
                   <th style={thStyle}>{t('table_hebrew')}</th>
                   <th style={thStyle}>{t('table_category')}</th>
@@ -179,13 +179,13 @@ export default function PositionsPage() {
                   return (
                     <tr
                       key={pos.id}
-                      style={{ borderTop: '1px solid #F3F4F6', opacity: pos.is_active ? 1 : 0.55 }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                      style={{ borderTop: '1px solid var(--surface-2)', opacity: pos.is_active ? 1 : 0.55 }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                     >
                       <td style={{ ...tdStyle, fontWeight: 500 }}>{pos.name_ru}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280', direction: 'rtl' }}>
-                        {pos.name_he ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                      <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }}>
+                        {pos.name_he ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                       </td>
                       <td style={tdStyle}>
                         <span style={{
@@ -198,15 +198,15 @@ export default function PositionsPage() {
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
                         {pos.is_teaching
                           ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('yes')}</span>
-                          : <span style={{ color: '#D1D5DB' }}>—</span>}
+                          : <span style={{ color: 'var(--border-strong)' }}>—</span>}
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>
+                      <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>
                         {pos.sort_order}
                       </td>
                       <td style={tdStyle}>
                         {pos.is_active
                           ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('status_active')}</span>
-                          : <span style={{ color: '#9CA3AF' }}>{t('status_inactive')}</span>}
+                          : <span style={{ color: 'var(--text-faint)' }}>{t('status_inactive')}</span>}
                       </td>
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', gap: 5 }}>
@@ -318,9 +318,9 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '8px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
-  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
 
   return (
     <div
@@ -334,16 +334,16 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440,
+          background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440,
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)', position: 'relative',
         }}
       >
         <button onClick={onClose} style={{
           position: 'absolute', top: 14, right: 16,
-          background: 'none', border: 'none', fontSize: 22, color: '#9CA3AF', cursor: 'pointer', lineHeight: 1,
+          background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1,
         }}>×</button>
 
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px 0', color: '#111827' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px 0', color: 'var(--text)' }}>
           {mode === 'create' ? t('modal_create_title') : t('modal_edit_title')}
         </h2>
 
@@ -388,7 +388,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             />
             {t('is_teaching_label')}
             {category !== 'academic' && (
-              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t('is_teaching_hint')}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('is_teaching_hint')}</span>
             )}
           </label>
 
@@ -406,8 +406,8 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{
-            padding: '8px 16px', fontSize: 13, color: '#6B7280',
-            background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer',
+            padding: '8px 16px', fontSize: 13, color: 'var(--text-muted)',
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer',
           }}>
             {t('cancel')}
           </button>
@@ -429,7 +429,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }

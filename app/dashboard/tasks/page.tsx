@@ -19,8 +19,8 @@ const TERMINAL_STATUSES = ['completed', 'cancelled', 'declined'] as const
 
 const inp: React.CSSProperties = {
   padding: '6px 10px', fontSize: 13,
-  border: '1px solid #D1D5DB', borderRadius: 6,
-  background: '#fff', color: '#1F2937', outline: 'none',
+  border: '1px solid var(--border-strong)', borderRadius: 6,
+  background: 'var(--surface)', color: 'var(--text)', outline: 'none',
 }
 
 export default function TasksPage() {
@@ -129,10 +129,10 @@ export default function TasksPage() {
 
       {/* Filters */}
       <div style={{
-        background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
         padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
       }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('filter_labels.status')}</label>
+        <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('filter_labels.status')}</label>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as StatusFilter)} style={inp}>
           <option value="active">{t('filters.active')}</option>
           <option value="all">{t('filters.all')}</option>
@@ -145,7 +145,7 @@ export default function TasksPage() {
           <option value="declined">{t('status.declined')}</option>
         </select>
 
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500, marginLeft: 4 }}>{t('filter_labels.priority')}</label>
+        <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500, marginLeft: 4 }}>{t('filter_labels.priority')}</label>
         <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
           <option value="all">{t('filters.all')}</option>
           <option value="urgent">{t('priority.urgent')}</option>
@@ -156,7 +156,7 @@ export default function TasksPage() {
 
         <div style={{ flex: 1 }} />
 
-        <div style={{ fontSize: 12, color: '#6B7280' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {t('filter_labels.total')} {tasks.length}
         </div>
 
@@ -169,7 +169,7 @@ export default function TasksPage() {
 
       {/* Content */}
       {loading && (
-        <div style={{ padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14 }}>
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
           {tCommon('loading')}
         </div>
       )}
@@ -182,8 +182,8 @@ export default function TasksPage() {
 
       {!loading && !error && tasks.length === 0 && (
         <div style={{
-          padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14,
-          background: '#fff', border: '1px dashed #D1D5DB', borderRadius: 10,
+          padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14,
+          background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10,
         }}>
           {emptyMsg()}
         </div>

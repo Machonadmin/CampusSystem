@@ -42,14 +42,14 @@ function formatDate(d: string | null): string {
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
   student:   { background: '#ECFDF5', color: '#065F46' },
   on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: '#EFF6FF', color: '#1E40AF' },
-  expelled:  { background: '#F3F4F6', color: '#6B7280' },
+  graduated: { background: 'var(--accent-tint)', color: '#1E40AF' },
+  expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
 const ACTION_STYLE: Record<TargetStatus, React.CSSProperties> = {
   on_leave:  { color: '#92400E', borderColor: '#FCD34D', background: '#FFFBEB' },
   student:   { color: '#065F46', borderColor: '#6EE7B7', background: '#ECFDF5' },
-  graduated: { color: '#1E40AF', borderColor: '#93C5FD', background: '#EFF6FF' },
+  graduated: { color: '#1E40AF', borderColor: '#93C5FD', background: 'var(--accent-tint)' },
   expelled:  { color: '#B91C1C', borderColor: '#FCA5A5', background: '#FEF2F2' },
 }
 
@@ -131,10 +131,10 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Текущий статус */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, color: '#6B7280' }}>{t('current_label')}:</span>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('current_label')}:</span>
         <span style={{
           fontSize: 12, padding: '3px 10px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap',
-          ...(STATUS_STYLE[status] ?? { background: '#F3F4F6', color: '#6B7280' }),
+          ...(STATUS_STYLE[status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
         }}>
           {tStatus(status, status)}
         </span>
@@ -162,7 +162,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
       )}
 
       {canManage && isTerminal && (
-        <div style={{ fontSize: 12, color: '#9CA3AF' }}>{t('terminal_note')}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('terminal_note')}</div>
       )}
 
       {/* Ошибка (для прямых переходов без модалки) */}
@@ -174,26 +174,26 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
 
       {/* История статусов */}
       <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
           {t('history_title')}
         </div>
         {history.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('no_history')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_history')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {history.map((h, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: '#1F2937', borderInlineStart: '2px solid #E5E7EB', paddingInlineStart: 10 }}>
+              <div key={idx} style={{ fontSize: 13, color: 'var(--text)', borderInlineStart: '2px solid var(--border)', paddingInlineStart: 10 }}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                   {h.from_status && (
                     <>
-                      <span style={{ color: '#9CA3AF' }}>{tStatus(h.from_status, h.from_status)}</span>
-                      <span style={{ color: '#D1D5DB' }}>→</span>
+                      <span style={{ color: 'var(--text-faint)' }}>{tStatus(h.from_status, h.from_status)}</span>
+                      <span style={{ color: 'var(--border-strong)' }}>→</span>
                     </>
                   )}
                   <span style={{ fontWeight: 500 }}>{tStatus(h.to_status, h.to_status)}</span>
-                  <span style={{ color: '#9CA3AF', fontSize: 12 }}>· {formatDate(h.changed_at)}</span>
+                  <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>· {formatDate(h.changed_at)}</span>
                 </div>
-                {h.comment && <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>{h.comment}</div>}
+                {h.comment && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{h.comment}</div>}
               </div>
             ))}
           </div>
@@ -213,7 +213,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
             dir={isRTL ? 'rtl' : 'ltr'}
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420,
+              background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420,
               boxShadow: '0 10px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', gap: 14,
             }}
           >
@@ -222,7 +222,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
             </h3>
 
             <div>
-              <label style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }}>
                 {t('reason_label')} *
               </label>
               <textarea
@@ -232,13 +232,13 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
                 rows={3}
                 style={{
                   width: '100%', padding: '8px 10px', fontSize: 13, resize: 'vertical',
-                  border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+                  border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
                 }}
               />
             </div>
 
             <div>
-              <label style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }}>
                 {t('date_label')} *
               </label>
               <DateInput value={date} onChange={setDate} locale={lang} maxDate={undefined} />
@@ -255,8 +255,8 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
                 onClick={() => setModalTarget(null)}
                 disabled={submitting}
                 style={{
-                  padding: '8px 14px', fontSize: 13, color: '#374151',
-                  background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer',
+                  padding: '8px 14px', fontSize: 13, color: 'var(--text)',
+                  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
                 }}
               >
                 {t('cancel')}

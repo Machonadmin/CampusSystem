@@ -9,7 +9,7 @@ type T = (key: string, fallback?: string) => string
 // ── Category display config ──────────────────────────────────────────────────
 const CAT_COLORS: Record<string, string> = {
   system:            '#FEF3C7',
-  campus_management: '#EEF2FF',
+  campus_management: 'var(--accent-tint)',
   finance:           '#ECFDF5',
   legal:             '#F0F9FF',
   education:         '#F0FDF4',
@@ -18,7 +18,7 @@ const CAT_COLORS: Record<string, string> = {
   security:          '#F1F5F9',
   maintenance:       '#F8FAFC',
   food:              '#FFFBEB',
-  technical:         '#F3F4F6',
+  technical:         'var(--surface-2)',
   external:          '#FAF5FF',
 }
 
@@ -33,7 +33,7 @@ const CAT_TEXT: Record<string, string> = {
   security:          '#334155',
   maintenance:       '#475569',
   food:              '#78350F',
-  technical:         '#4B5563',
+  technical:         'var(--text-muted)',
   external:          '#6D28D9',
 }
 
@@ -92,27 +92,27 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('new_role_title')}</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('new_role_title')}</p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
           {FIELDS.map(([field, label]) => (
             <label key={field} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{label}{field !== 'description' ? ' *' : ''}</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{label}{field !== 'description' ? ' *' : ''}</span>
               <input
                 value={(form as Record<string, string>)[field]}
                 onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
               />
             </label>
           ))}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save')}</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save')}</button>
         </div>
       </div>
     </div>
@@ -141,35 +141,35 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 14, color: '#1F2937', margin: 0 }}>{t('add_privilege_title')}: <span style={{ color: '#3B82F6' }}>{module}</span></p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', margin: 0 }}>{t('add_privilege_title')}: <span style={{ color: 'var(--accent)' }}>{module}</span></p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('priv_name_label')} *</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('priv_name_label')} *</span>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder={t('priv_name_placeholder')}
-              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
             />
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('priv_code_label')} *</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('priv_code_label')} *</span>
             <input
               value={code}
               onChange={e => setCode(e.target.value)}
               placeholder={`${module}.view`}
-              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
+              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
             />
           </label>
         </div>
-        <div style={{ padding: '10px 18px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
-          <button onClick={submit} style={{ padding: '6px 14px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer' }}>{t('add_privilege_button')}</button>
+        <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <button onClick={submit} style={{ padding: '6px 14px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer' }}>{t('add_privilege_button')}</button>
         </div>
       </div>
     </div>
@@ -294,19 +294,19 @@ export default function RolesPage() {
       <div
         style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '12px 24px', borderRadius: 12, flexShrink: 0 }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
       </div>
 
       {/* Body */}
       <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
 
         {/* ── Left panel: roles list ── */}
-        <div style={{ width: 268, flexShrink: 0, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '12px 14px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#1F2937' }}>{t('roles_panel_title')}</span>
+        <div style={{ width: 268, flexShrink: 0, backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('roles_panel_title')}</span>
             <button
               onClick={() => setAddOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: '#3B82F6', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
             >
               <svg style={{ width: 11, height: 11 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -316,8 +316,8 @@ export default function RolesPage() {
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {Object.entries(groupedRoles).map(([cat, catRoles]) => {
-              const catBg = CAT_COLORS[cat] ?? '#F3F4F6'
-              const catTxt = CAT_TEXT[cat] ?? '#4B5563'
+              const catBg = CAT_COLORS[cat] ?? 'var(--surface-2)'
+              const catTxt = CAT_TEXT[cat] ?? 'var(--text-muted)'
               return (
                 <div key={cat}>
                   {/* Category header */}
@@ -346,8 +346,8 @@ export default function RolesPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          backgroundColor: isActive ? '#EEF2FF' : 'transparent',
-                          borderLeft: `2px solid ${isActive ? '#3B82F6' : 'transparent'}`,
+                          backgroundColor: isActive ? 'var(--accent-tint)' : 'transparent',
+                          borderLeft: `2px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
                           transition: 'background-color 0.1s, border-left-color 0.1s',
                         }}
                         onMouseEnter={e => {
@@ -366,8 +366,8 @@ export default function RolesPage() {
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role.name}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
+                          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role.name}</p>
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
                           {role.is_system && (
@@ -394,25 +394,25 @@ export default function RolesPage() {
         </div>
 
         {/* ── Right panel: privileges ── */}
-        <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!selectedRole ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', fontSize: 13 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
               {t('select_role_hint')}
             </div>
           ) : (
             <>
               {/* Right header */}
-              <div style={{ padding: '12px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>{selectedRole.name}</p>
-                  {selectedRole.description && <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{selectedRole.description}</p>}
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{selectedRole.name}</p>
+                  {selectedRole.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{selectedRole.description}</p>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {savedMsg && <span style={{ fontSize: 12, color: '#16A34A' }}>✓ {t('saved_label')}</span>}
                   <button
                     onClick={savePrivileges}
                     disabled={saving || selectedRole.is_system}
-                    style={{ padding: '7px 18px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || selectedRole.is_system) ? 'not-allowed' : 'pointer', opacity: (saving || selectedRole.is_system) ? 0.5 : 1 }}
+                    style={{ padding: '7px 18px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || selectedRole.is_system) ? 'not-allowed' : 'pointer', opacity: (saving || selectedRole.is_system) ? 0.5 : 1 }}
                   >
                     {tCommon('save')}
                   </button>
@@ -437,23 +437,23 @@ export default function RolesPage() {
                         <div key={mod.code} style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '7px 10px', borderRadius: 8,
-                          border: `1px solid ${isOn ? '#A7F3D0' : '#E5E7EB'}`,
-                          backgroundColor: isOn ? '#F0FDF4' : '#F9FAFB',
+                          border: `1px solid ${isOn ? '#A7F3D0' : 'var(--border)'}`,
+                          backgroundColor: isOn ? '#F0FDF4' : 'var(--surface-2)',
                         }}>
-                          <span style={{ fontSize: 12, color: '#374151', fontWeight: isOn ? 500 : 400 }}>{mod.name}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: isOn ? 500 : 400 }}>{mod.name}</span>
                           <button
                             type="button"
                             onClick={() => !selectedRole.is_system && togglePriv(mod.code, 'access')}
                             style={{
                               width: 34, height: 18, borderRadius: 9, position: 'relative',
                               border: 'none', cursor: selectedRole.is_system ? 'default' : 'pointer',
-                              backgroundColor: isOn ? '#10B981' : '#D1D5DB',
+                              backgroundColor: isOn ? '#10B981' : 'var(--border-strong)',
                               transition: 'background-color 0.2s', flexShrink: 0, marginLeft: 8,
                             }}
                           >
                             <span style={{
                               position: 'absolute', top: 2, left: isOn ? 18 : 2,
-                              width: 14, height: 14, borderRadius: '50%', backgroundColor: '#fff',
+                              width: 14, height: 14, borderRadius: '50%', backgroundColor: 'var(--surface)',
                               transition: 'left 0.2s', display: 'block',
                               boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                             }} />
@@ -464,13 +464,13 @@ export default function RolesPage() {
                   </div>
                 </div>
 
-                <div style={{ borderBottom: '1px solid #E5E7EB', marginBottom: 20 }} />
+                <div style={{ borderBottom: '1px solid var(--border)', marginBottom: 20 }} />
 
                 {/* ── Привилегии ── */}
                 {loadingPrivs ? (
-                  <div style={{ color: '#9CA3AF', fontSize: 13 }}>{t('loading')}</div>
+                  <div style={{ color: 'var(--text-faint)', fontSize: 13 }}>{t('loading')}</div>
                 ) : Object.keys(grouped).length === 0 ? (
-                  <div style={{ color: '#9CA3AF', fontSize: 13 }}>{t('no_privileges')}</div>
+                  <div style={{ color: 'var(--text-faint)', fontSize: 13 }}>{t('no_privileges')}</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {Object.entries(grouped).map(([module, privs]) => {
@@ -483,11 +483,11 @@ export default function RolesPage() {
                             padding: '8px 12px',
                             backgroundColor: '#F8FAFC',
                             borderRadius: 8,
-                            border: '1px solid #E5E7EB',
+                            border: '1px solid var(--border)',
                             marginBottom: 10,
                           }}>
-                            <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#3B82F6', flexShrink: 0 }} />
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1 }}>
+                            <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: 'var(--accent)', flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1 }}>
                               {module}
                             </span>
                             {/* Select-all checkbox */}
@@ -505,16 +505,16 @@ export default function RolesPage() {
                                     return next
                                   })
                                 }}
-                                style={{ accentColor: '#3B82F6' }}
+                                style={{ accentColor: 'var(--accent)' }}
                                 disabled={selectedRole.is_system}
                               />
-                              <span style={{ fontSize: 11, color: '#6B7280' }}>{t('all_label')}</span>
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('all_label')}</span>
                             </label>
                             {/* Add privilege button */}
                             {!selectedRole.is_system && (
                               <button
                                 onClick={() => setAddPrivModule(module)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 6, border: '1px solid #D1D5DB', backgroundColor: '#fff', fontSize: 11, color: '#374151', cursor: 'pointer' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 6, border: '1px solid var(--border-strong)', backgroundColor: 'var(--surface)', fontSize: 11, color: 'var(--text)', cursor: 'pointer' }}
                               >
                                 <svg style={{ width: 10, height: 10 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -534,10 +534,10 @@ export default function RolesPage() {
                                   style={{
                                     display: 'flex', alignItems: 'center', gap: 8,
                                     padding: '8px 12px', borderRadius: 8,
-                                    border: `1px solid ${checked ? '#C7D2FE' : '#E5E7EB'}`,
+                                    border: `1px solid ${checked ? '#C7D2FE' : 'var(--border)'}`,
                                     cursor: selectedRole.is_system ? 'default' : 'pointer',
                                     userSelect: 'none',
-                                    backgroundColor: checked ? '#EEF2FF' : '#fff',
+                                    backgroundColor: checked ? 'var(--accent-tint)' : 'var(--surface)',
                                     transition: 'background-color 0.1s, border-color 0.1s',
                                   }}
                                 >
@@ -545,12 +545,12 @@ export default function RolesPage() {
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => !selectedRole.is_system && togglePriv(module, p.privilege_code)}
-                                    style={{ accentColor: '#3B82F6' }}
+                                    style={{ accentColor: 'var(--accent)' }}
                                     disabled={selectedRole.is_system}
                                   />
                                   <div style={{ minWidth: 0 }}>
-                                    <p style={{ fontSize: 12, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.name}</p>
-                                    <p style={{ fontSize: 10, color: '#9CA3AF', margin: 0, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.privilege_code}</p>
+                                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{p.name}</p>
+                                    <p style={{ fontSize: 10, color: 'var(--text-faint)', margin: 0, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.privilege_code}</p>
                                   </div>
                                 </label>
                               )

@@ -44,19 +44,19 @@ interface Props {
 
 export default function PersonRelationField({
   value, onChange, onRemove, showRemove = false,
-  fixedRelationType, label, accentColor = '#3B82F6',
+  fixedRelationType, label, accentColor = 'var(--accent)',
   availableRelations,
 }: Props) {
   const t = useTranslations('persons')
   const relations = availableRelations ?? (Object.keys(RELATION_LABELS) as RelationType[])
 
   const lbl: React.CSSProperties = {
-    fontSize: 12, color: '#6B7280', marginBottom: 4, display: 'block',
+    fontSize: 12, color: 'var(--text-muted)', marginBottom: 4, display: 'block',
   }
   const ctrl: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none',
-    boxSizing: 'border-box', background: '#fff',
+    border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none',
+    boxSizing: 'border-box', background: 'var(--surface)',
   }
 
   return (
@@ -64,7 +64,7 @@ export default function PersonRelationField({
       position: 'relative',
       display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap',
       padding: 10, paddingRight: showRemove && onRemove ? 32 : 10,
-      background: '#FAFAFA', borderRadius: 8, border: '1px solid #E5E7EB',
+      background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)',
     }}>
       {!fixedRelationType && (
         <div style={{ minWidth: 140 }}>
@@ -101,7 +101,7 @@ export default function PersonRelationField({
           value={value.notes ?? ''}
           onChange={(e) => onChange({ ...value, notes: e.target.value || null })}
           placeholder={t('notes_placeholder')}
-          style={{ ...ctrl, fontSize: 12, padding: '6px 10px', color: '#374151' }}
+          style={{ ...ctrl, fontSize: 12, padding: '6px 10px', color: 'var(--text)' }}
         />
       </div>
 
@@ -112,8 +112,8 @@ export default function PersonRelationField({
           style={{
             position: 'absolute', top: 8, right: 8,
             width: 22, height: 22, fontSize: 14,
-            background: '#fff', border: '1px solid #E5E7EB', borderRadius: 4,
-            cursor: 'pointer', color: '#9CA3AF',
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 4,
+            cursor: 'pointer', color: 'var(--text-faint)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 0, lineHeight: 1,
           }}

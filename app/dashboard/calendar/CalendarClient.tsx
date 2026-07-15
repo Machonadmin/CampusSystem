@@ -457,7 +457,7 @@ export default function CalendarClient() {
         <button
           onClick={() => openNew(view === 'month' ? TODAY : anchor)}
           style={{
-            background: '#fff', color: primary, fontWeight: 600, fontSize: 13,
+            background: 'var(--surface)', color: primary, fontWeight: 600, fontSize: 13,
             border: 'none', borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
           }}
         >
@@ -479,11 +479,11 @@ export default function CalendarClient() {
             <span style={{ fontSize: 16 }}>{isRTL ? '‹' : '›'}</span>
           </button>
           <span style={{ display: 'inline-flex', flexDirection: 'column', marginInlineStart: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827', textTransform: 'capitalize' }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', textTransform: 'capitalize' }}>
               {periodLabel}
             </span>
             {hebrewPeriodLabel && (
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>{hebrewPeriodLabel}</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)' }}>{hebrewPeriodLabel}</span>
             )}
           </span>
         </div>
@@ -495,23 +495,23 @@ export default function CalendarClient() {
             aria-pressed={hebrewDates}
             style={{
               fontSize: 14, fontWeight: 700, padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-              border: `1px solid ${hebrewDates ? primary : '#E5E7EB'}`,
-              background: hebrewDates ? light : '#fff',
-              color: hebrewDates ? primary : '#6B7280',
+              border: `1px solid ${hebrewDates ? primary : 'var(--border)'}`,
+              background: hebrewDates ? light : 'var(--surface)',
+              color: hebrewDates ? primary : 'var(--text-muted)',
             }}
           >
             {t('hebrew_short')}
           </button>
 
-          <div style={{ display: 'inline-flex', background: '#F3F4F6', borderRadius: 8, padding: 3 }}>
+          <div style={{ display: 'inline-flex', background: 'var(--surface-2)', borderRadius: 8, padding: 3 }}>
             {(['month', 'week'] as View[]).map(v => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 style={{
                   fontSize: 13, fontWeight: 600, padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                  background: view === v ? '#fff' : 'transparent',
-                  color: view === v ? primary : '#6B7280',
+                  background: view === v ? 'var(--surface)' : 'transparent',
+                  color: view === v ? primary : 'var(--text-muted)',
                   boxShadow: view === v ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
@@ -531,7 +531,7 @@ export default function CalendarClient() {
       )}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : view === 'month' ? (
         <MonthView
           weeks={weeks}
@@ -675,20 +675,20 @@ function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () 
 
   return (
     <div onClick={() => !deleting && onClose()} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>📅 {ev.title}</div>
-        <div style={{ fontSize: 13, color: '#374151' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>📅 {ev.title}</div>
+        <div style={{ fontSize: 13, color: 'var(--text)' }}>
           {formatDate(ev.event_date, lang)}{!ev.all_day && ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}
         </div>
         {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}>🔔 {tAdd('has_reminder')}</div>}
-        {ev.notes && <div style={{ fontSize: 13, color: '#6B7280', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
+        {ev.notes && <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
           <button onClick={remove} disabled={deleting} style={{ fontSize: 13, fontWeight: 600, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
             {deleting ? tAdd('deleting') : tAdd('delete')}
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
-            {ev.link && <a href={ev.link} style={{ fontSize: 13, fontWeight: 600, color: '#2563EB', textDecoration: 'none', padding: '8px 14px' }}>{tAdd('open_link')}</a>}
-            <button onClick={onClose} style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>{tAdd('cancel')}</button>
+            {ev.link && <a href={ev.link} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', textDecoration: 'none', padding: '8px 14px' }}>{tAdd('open_link')}</a>}
+            <button onClick={onClose} style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>{tAdd('cancel')}</button>
           </div>
         </div>
       </div>
@@ -703,7 +703,7 @@ function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () 
 function statusStyle(status: Status, primary: string, light: string): { bg: string; color: string; strike: boolean } {
   switch (status) {
     case 'completed': return { bg: '#D1FAE5', color: '#047857', strike: false }
-    case 'cancelled': return { bg: '#F3F4F6', color: '#9CA3AF', strike: true }
+    case 'cancelled': return { bg: 'var(--surface-2)', color: 'var(--text-faint)', strike: true }
     case 'no_show':   return { bg: '#FEF3C7', color: '#B45309', strike: false }
     default:          return { bg: light, color: primary, strike: false }
   }
@@ -741,12 +741,12 @@ function MonthView({
   t: (k: string, f?: string) => string
 }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
       {/* Weekday header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #E5E7EB' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
         {weekdayLabels.map((w, i) => (
           <div key={i} style={{
-            textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9CA3AF',
+            textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)',
             textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 4px',
           }}>{w}</div>
         ))}
@@ -763,8 +763,8 @@ function MonthView({
               <div
                 key={cell.dateISO}
                 style={{
-                  minHeight: 104, borderInlineEnd: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6',
-                  padding: 6, position: 'relative', background: blocked ? '#FAFAF9' : '#fff',
+                  minHeight: 104, borderInlineEnd: '1px solid var(--surface-2)', borderBottom: '1px solid var(--surface-2)',
+                  padding: 6, position: 'relative', background: blocked ? '#FAFAF9' : 'var(--surface)',
                   opacity: cell.inMonth ? 1 : 0.45,
                   backgroundImage: blocked
                     ? 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(107,114,128,0.06) 6px, rgba(107,114,128,0.06) 12px)'
@@ -776,21 +776,21 @@ function MonthView({
                     <span
                       style={{
                         fontSize: 12, fontWeight: isToday ? 700 : 500,
-                        color: isToday ? '#fff' : '#374151',
+                        color: isToday ? 'var(--surface)' : 'var(--text)',
                         background: isToday ? primary : 'transparent',
                         borderRadius: 999, width: 22, height: 22,
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >{dayNum}</span>
                     {hebrewDates && (
-                      <span style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF' }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-faint)' }}>
                         {hebrewDayNumber(cell.dateISO)}
                       </span>
                     )}
                   </span>
                   <span style={{ display: 'inline-flex', gap: 2 }}>
                     {blocked && (
-                      <span title={t('day_off')} style={{ fontSize: 9, fontWeight: 700, color: '#9CA3AF', letterSpacing: 0.3 }}>
+                      <span title={t('day_off')} style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: 0.3 }}>
                         {t('day_off_short')}
                       </span>
                     )}
@@ -874,7 +874,7 @@ function MonthView({
                           title={ce.title}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
-                            background: '#EEF2FF', color: '#4338CA', borderInlineStart: '3px solid #6366F1',
+                            background: 'var(--accent-tint)', color: '#4338CA', borderInlineStart: '3px solid #6366F1',
                             borderRadius: 5, padding: '2px 6px',
                             fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           }}
@@ -923,7 +923,7 @@ function MonthView({
                     )
                   })}
                   {events.length > 3 && (
-                    <span style={{ fontSize: 10, color: '#9CA3AF', paddingInlineStart: 2 }}>
+                    <span style={{ fontSize: 10, color: 'var(--text-faint)', paddingInlineStart: 2 }}>
                       +{events.length - 3}
                     </span>
                   )}
@@ -989,15 +989,15 @@ function WeekView({
           .format(new Date(`${day}T00:00:00Z`))
         return (
           <div key={day} style={{
-            background: '#fff', border: `1px solid ${isToday ? primary : '#E5E7EB'}`, borderRadius: 12, padding: 14,
+            background: 'var(--surface)', border: `1px solid ${isToday ? primary : 'var(--border)'}`, borderRadius: 12, padding: 14,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: isToday ? primary : '#111827', textTransform: 'capitalize' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: isToday ? primary : 'var(--text)', textTransform: 'capitalize' }}>
                   {label}
                 </span>
                 {hebrewDates && (
-                  <span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>{formatHebrewDate(day)}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)' }}>{formatHebrewDate(day)}</span>
                 )}
                 {blocked && (
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FEF3C7', borderRadius: 999, padding: '1px 8px' }}>
@@ -1015,7 +1015,7 @@ function WeekView({
               </div>
             </div>
             {events.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#9CA3AF' }}>{t('empty_day')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('empty_day')}</div>
             ) : (
               <div style={{ display: 'grid', gap: 6 }}>
                 {events.map(ev => {
@@ -1042,11 +1042,11 @@ function WeekView({
                         }}>
                           <span style={lessonTag}>{t('lesson')}</span>
                           {' '}{l.class_group_name}
-                          {subj && <span style={{ fontWeight: 400, color: '#6B7280' }}> · {subj}</span>}
+                          {subj && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}> · {subj}</span>}
                         </span>
-                        {l.location && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{l.location}</span>}
+                        {l.location && <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{l.location}</span>}
                         {l.is_cancelled && (
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>{t('lesson_cancelled')}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)' }}>{t('lesson_cancelled')}</span>
                         )}
                       </button>
                     )
@@ -1071,9 +1071,9 @@ function WeekView({
                         <span style={{ fontSize: 13, fontWeight: 600, color: SCHEDULE_FG, flex: 1 }}>
                           <span style={scheduleTag}>{t('recurring')}</span>
                           {' '}{s.class_group_name}
-                          {subj && <span style={{ fontWeight: 400, color: '#6B7280' }}> · {subj}</span>}
+                          {subj && <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}> · {subj}</span>}
                         </span>
-                        {s.room && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{s.room}</span>}
+                        {s.room && <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.room}</span>}
                       </button>
                     )
                   }
@@ -1109,7 +1109,7 @@ function WeekView({
                         onClick={() => onOpenEvent(ce)}
                         style={{
                           textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                          background: '#EEF2FF', border: '1px solid #C7D2FE', borderInlineStart: '3px solid #6366F1',
+                          background: 'var(--accent-tint)', border: '1px solid #C7D2FE', borderInlineStart: '3px solid #6366F1',
                           borderRadius: 8, padding: '8px 12px',
                         }}
                       >
@@ -1158,11 +1158,11 @@ function WeekView({
                       onClick={() => onOpen(a)}
                       style={{
                         textAlign: 'start', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                        background: '#F9FAFB', borderRadius: 8, padding: '8px 12px',
-                        border: isParticipant ? `1px dashed ${primary}` : '1px solid #F3F4F6',
+                        background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px',
+                        border: isParticipant ? `1px dashed ${primary}` : '1px solid var(--surface-2)',
                       }}
                     >
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', minWidth: 92 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', minWidth: 92 }}>
                         {isoTime(a.starts_at)}–{isoTime(a.ends_at)}
                       </span>
                       <span style={{
@@ -1171,12 +1171,12 @@ function WeekView({
                       }}>
                         {a.title}
                         {who && (
-                          <span style={{ fontWeight: 400, color: '#6B7280' }}>
+                          <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>
                             {' · '}{isParticipant ? `${t('booked_by')} ${who}` : who}
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{mins} {t('minutes')}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{mins} {t('minutes')}</span>
                     </button>
                   )
                 })}
@@ -1280,7 +1280,7 @@ function AppointmentForm({
             <button
               type="button"
               onClick={() => { setPickerOpen(o => !o); if (!pickerOpen) setStudentSearch('') }}
-              style={{ ...input, textAlign: isRTL ? 'right' : 'left', cursor: 'pointer', color: studentLabel ? '#1F2937' : '#9CA3AF' }}
+              style={{ ...input, textAlign: isRTL ? 'right' : 'left', cursor: 'pointer', color: studentLabel ? 'var(--text)' : 'var(--text-faint)' }}
             >
               {studentLabel || t('form_student_none')}
             </button>
@@ -1288,24 +1288,24 @@ function AppointmentForm({
               <button
                 type="button"
                 onClick={() => { setJourneyId(null); setStudentLabel('') }}
-                style={{ position: 'absolute', top: 8, insetInlineEnd: 10, fontSize: 12, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: 8, insetInlineEnd: 10, fontSize: 12, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}
               >✕</button>
             )}
             {pickerOpen && (
               <div style={{
                 position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20,
-                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, marginTop: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                 maxHeight: 220, overflowY: 'auto',
               }}>
                 <input
                   value={studentSearch}
                   onChange={e => setStudentSearch(e.target.value)}
                   placeholder={t('form_student_search')}
-                  style={{ ...input, borderRadius: 0, border: 'none', borderBottom: '1px solid #F3F4F6' }}
+                  style={{ ...input, borderRadius: 0, border: 'none', borderBottom: '1px solid var(--surface-2)' }}
                   autoFocus
                 />
                 {studentOpts.length === 0 ? (
-                  <div style={{ fontSize: 12, color: '#9CA3AF', padding: '8px 12px' }}>{t('form_student_empty')}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '8px 12px' }}>{t('form_student_empty')}</div>
                 ) : studentOpts.map(s => (
                   <button
                     key={s.journey_id}
@@ -1317,9 +1317,9 @@ function AppointmentForm({
                     }}
                     style={{
                       display: 'block', width: '100%', textAlign: isRTL ? 'right' : 'left',
-                      fontSize: 13, color: '#1F2937', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 13, color: 'var(--text)', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer',
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                   >
                     {s.full_name || s.hebrew_name || '—'}
@@ -1396,22 +1396,22 @@ function AppointmentDetail({
           </span>
         </div>
 
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
         {hebrewDates && (
-          <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{formatHebrewDate(dayISO)}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{formatHebrewDate(dayISO)}</div>
         )}
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>
           {isoTime(a.starts_at)}–{isoTime(a.ends_at)} · {mins} {t('minutes')}
         </div>
         {/* Для participant студент — это сам пользователь; показываем, КТО назначил. */}
         {isParticipant
-          ? <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('booked_by')}:</b> {providerWho ?? '—'}</div>
-          : who && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('form_student')}:</b> {who}</div>}
-        {a.reason && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('form_reason')}:</b> {a.reason}</div>}
+          ? <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('booked_by')}:</b> {providerWho ?? '—'}</div>
+          : who && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('form_student')}:</b> {who}</div>}
+        {a.reason && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('form_reason')}:</b> {a.reason}</div>}
 
         {isParticipant ? (
           // READ-ONLY: назначено мне кем-то другим — без правки/удаления/статусов.
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
             <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
           </div>
         ) : (
@@ -1419,14 +1419,14 @@ function AppointmentDetail({
             {/* Status actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
               <button onClick={() => onStatus('completed')} style={statusBtn('#047857', '#D1FAE5')}>{t('mark_completed')}</button>
-              <button onClick={() => onStatus('cancelled')} style={statusBtn('#6B7280', '#F3F4F6')}>{t('mark_cancelled')}</button>
+              <button onClick={() => onStatus('cancelled')} style={statusBtn('var(--text-muted)', 'var(--surface-2)')}>{t('mark_cancelled')}</button>
               <button onClick={() => onStatus('no_show')} style={statusBtn('#B45309', '#FEF3C7')}>{t('mark_no_show')}</button>
               {a.status !== 'scheduled' && (
                 <button onClick={() => onStatus('scheduled')} style={statusBtn(primary, '#DBEAFE')}>{t('mark_scheduled')}</button>
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
               <button onClick={onDelete} style={{ ...btnGhost, color: '#DC2626' }}>{tCommon('delete')}</button>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
@@ -1446,14 +1446,14 @@ function AppointmentDetail({
 
 function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary: string }) {
   const item = (swatch: React.ReactNode, label: string) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
       {swatch}<span>{label}</span>
     </span>
   )
   const box: React.CSSProperties = { width: 14, height: 14, borderRadius: 4, flexShrink: 0 }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>{t('legend.title')}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)' }}>{t('legend.title')}</span>
       {item(<span style={{ ...box, background: primary }} />, t('legend.appointment'))}
       {item(
         <span style={{ ...box, background: LESSON_BG, border: '1px solid #A7F3D0', borderInlineStart: `3px solid ${LESSON_ACCENT}` }} />,
@@ -1473,7 +1473,7 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
       )}
       {item(
         <span style={{
-          ...box, background: '#FAFAF9', border: '1px solid #E5E7EB',
+          ...box, background: '#FAFAF9', border: '1px solid var(--border)',
           backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(107,114,128,0.25) 3px, rgba(107,114,128,0.25) 6px)',
         }} />,
         t('legend.day_off'),
@@ -1516,18 +1516,18 @@ function LessonDetail({
           </span>
         </div>
 
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
-        {time && <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>{time}</div>}
-        {subj && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {l.class_group_name}</div>
-        {l.location && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_location')}:</b> {l.location}</div>}
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        {time && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{time}</div>}
+        {subj && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {l.class_group_name}</div>
+        {l.location && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_location')}:</b> {l.location}</div>}
         {l.is_cancelled && (
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', background: '#F3F4F6', borderRadius: 999, padding: '3px 12px', marginTop: 12, display: 'inline-block' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-faint)', background: 'var(--surface-2)', borderRadius: 999, padding: '3px 12px', marginTop: 12, display: 'inline-block' }}>
             {t('lesson_cancelled')}
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
           <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
         </div>
       </div>
@@ -1569,11 +1569,11 @@ function TaskDetail({
           </span>
         </div>
 
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
         {hebrewDates && (
-          <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{formatHebrewDate(task.due_date)}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{formatHebrewDate(task.due_date)}</div>
         )}
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>
           {time || t('all_day')}
         </div>
         <div style={{ marginTop: 12 }}>
@@ -1582,7 +1582,7 @@ function TaskDetail({
           </span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
           <a
             href={`/dashboard/tasks/${task.id}`}
             style={{ ...btnPrimary(TASK_ACCENT), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
@@ -1629,15 +1629,15 @@ function ScheduleDetail({
           </span>
         </div>
 
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 8, textTransform: 'capitalize' }}>{dateLabel}</div>
         {(start || end) && (
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>{start}{end && `–${end}`}</div>
+          <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{start}{end && `–${end}`}</div>
         )}
-        {subj && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {s.class_group_name}</div>
-        {s.room && <div style={{ fontSize: 13, color: '#374151', marginTop: 6 }}><b>{t('lesson_location')}:</b> {s.room}</div>}
+        {subj && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_subject')}:</b> {subj}</div>}
+        <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_class_group')}:</b> {s.class_group_name}</div>
+        {s.room && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('lesson_location')}:</b> {s.room}</div>}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
           <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
         </div>
       </div>
@@ -1666,7 +1666,7 @@ function Overlay({ children, onClose }: { children: React.ReactNode; onClose: ()
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 4 }}>{label}</label>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</label>
       {children}
     </div>
   )
@@ -1675,15 +1675,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // ─── Инлайн-стили ─────────────────────────────────────────────────────────────
 
 const navBtn: React.CSSProperties = {
-  width: 34, height: 34, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff',
-  color: '#374151', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)',
+  color: 'var(--text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
 }
 const dayAddBtn: React.CSSProperties = {
   fontSize: 14, lineHeight: 1, color: '#C4C9D0', background: 'transparent', border: 'none',
   cursor: 'pointer', padding: '0 2px', fontWeight: 700,
 }
 const smallLink: React.CSSProperties = {
-  fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer',
+  fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer',
 }
 // Метка «שיעור» на строке урока в недельном виде.
 const lessonTag: React.CSSProperties = {
@@ -1692,7 +1692,7 @@ const lessonTag: React.CSSProperties = {
 }
 // Метка повторяющегося слота на строке недельного вида.
 const scheduleTag: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: SCHEDULE_FG, background: '#fff',
+  fontSize: 10, fontWeight: 700, color: SCHEDULE_FG, background: 'var(--surface)',
   border: `1px dashed ${SCHEDULE_ACCENT}`, borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
 }
 // Метка задачи на строке недельного вида.
@@ -1706,15 +1706,15 @@ const birthdayTag: React.CSSProperties = {
   borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
 }
 const dialog: React.CSSProperties = {
-  background: '#fff', borderRadius: 14, padding: 20, width: '100%', maxWidth: 460,
+  background: 'var(--surface)', borderRadius: 14, padding: 20, width: '100%', maxWidth: 460,
   maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
 }
-const dialogTitle: React.CSSProperties = { fontSize: 17, fontWeight: 600, color: '#111827', margin: 0 }
+const dialogTitle: React.CSSProperties = { fontSize: 17, fontWeight: 600, color: 'var(--text)', margin: 0 }
 const input: React.CSSProperties = {
-  width: '100%', fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937',
+  width: '100%', fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
 }
 const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, color: '#6B7280', background: '#fff', border: '1px solid #E5E7EB',
+  fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border)',
   borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
 }
 function btnPrimary(primary: string): React.CSSProperties {

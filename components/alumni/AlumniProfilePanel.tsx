@@ -22,8 +22,8 @@ interface Props {
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', gap: 12, padding: '4px 0' }}>
-      <div style={{ fontSize: 13, color: '#9CA3AF', minWidth: 160, flexShrink: 0 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937' }}>{value || '—'}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-faint)', minWidth: 160, flexShrink: 0 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value || '—'}</div>
     </div>
   )
 }
@@ -49,11 +49,11 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
   const title = t('card.profile_title')
 
   const box: React.CSSProperties = {
-    background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px',
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px',
   }
   const heading = (
     <div style={{
-      fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase',
+      fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase',
       letterSpacing: 0.5, marginBottom: 12,
     }}>
       {title}
@@ -64,7 +64,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
     return (
       <div style={box}>
         {heading}
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.no_profile')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.no_profile')}</div>
       </div>
     )
   }
@@ -111,15 +111,15 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', fontSize: 13, padding: '7px 10px',
-    border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937',
+    border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
   }
-  const labelStyle: React.CSSProperties = { fontSize: 13, color: '#9CA3AF', marginBottom: 4 }
+  const labelStyle: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)', marginBottom: 4 }
 
   return (
     <div style={box}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{
-          fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5,
+          fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5,
         }}>
           {title}
         </div>
@@ -141,7 +141,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
       <Field label={t('card.institution')} value={profile.institution} />
       <Field label={t('card.direction')} value={profile.direction} />
 
-      <div style={{ height: 1, background: '#F3F4F6', margin: '12px 0' }} />
+      <div style={{ height: 1, background: 'var(--surface-2)', margin: '12px 0' }} />
 
       {editing ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -175,7 +175,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
               disabled={saving}
               style={{
                 padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: '#F3F4F6', color: '#4B5563', border: 'none', borderRadius: 8, cursor: 'pointer',
+                background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none', borderRadius: 8, cursor: 'pointer',
               }}
             >
               {t('card.cancel')}

@@ -82,10 +82,10 @@ function buildMermaid(data: GraphData): string {
 
   // Классы статусов
   lines.push('  classDef completed fill:#D1FAE5,stroke:#065F46,color:#065F46;')
-  lines.push('  classDef active fill:#DBEAFE,stroke:#2563EB,color:#1E40AF,stroke-width:2px;')
-  lines.push('  classDef waiting fill:#F3F4F6,stroke:#D1D5DB,color:#9CA3AF;')
-  lines.push('  classDef skipped fill:#F9FAFB,stroke:#E5E7EB,color:#9CA3AF;')
-  lines.push('  classDef pending fill:#FFFFFF,stroke:#D1D5DB,color:#6B7280;')
+  lines.push('  classDef active fill:#DBEAFE,stroke:var(--accent-strong),color:#1E40AF,stroke-width:2px;')
+  lines.push('  classDef waiting fill:var(--surface-2),stroke:var(--border-strong),color:var(--text-faint);')
+  lines.push('  classDef skipped fill:var(--surface-2),stroke:var(--border),color:var(--text-faint);')
+  lines.push('  classDef pending fill:#FFFFFF,stroke:var(--border-strong),color:var(--text-muted);')
 
   for (const n of ordered) {
     const key = keyOf.get(n.id)!
@@ -196,28 +196,28 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         .proc-graph-svg svg { max-width: 100%; height: auto; }
       `}</style>
 
-      <div style={{ background: '#fff', borderRadius: 12, width: '80vw', height: '80vh', maxWidth: 1100, display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 12, width: '80vw', height: '80vh', maxWidth: 1100, display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}>
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{t('process.graph.title')}</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{t('process.graph.title')}</span>
             {data && (
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
                 ...(data.process_status === 'active' ? { background: '#D1FAE5', color: '#065F46' }
-                  : data.process_status === 'completed' ? { background: '#E5E7EB', color: '#374151' }
+                  : data.process_status === 'completed' ? { background: 'var(--border)', color: 'var(--text)' }
                   : { background: '#FEE2E2', color: '#991B1B' }),
               }}>
                 {t(`process.process_status.${data.process_status}`, data.process_status)}
               </span>
             )}
             {data?.process_final && (
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
                 {t('process.graph.result')}: {t(`process.graph.finish_reason.${data.process_final}`, data.process_final)}
               </span>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
             ×
           </button>
         </div>
@@ -225,13 +225,13 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         {/* Body */}
         <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
           {loading && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
+            <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
           )}
           {!loading && (error || renderError) && (
             <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
           )}
           {!loading && !error && !renderError && data && data.nodes.length === 0 && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>
+            <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>
           )}
           {showGraph && (
             <div
@@ -243,11 +243,11 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+        <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
             {t('process.graph.click_hint')}
           </span>
-          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
             {t('process.close')}
           </button>
         </div>

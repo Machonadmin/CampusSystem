@@ -123,13 +123,13 @@ export default function ReferenceCitiesPage() {
           boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>
           {t('title')}
         </h1>
       </div>
 
       <div style={{ maxWidth: 420 }}>
-        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
           {t('country_label')}
         </label>
         <CountrySelect
@@ -137,17 +137,17 @@ export default function ReferenceCitiesPage() {
           onChange={setCountry}
           style={{
             width: '100%', padding: '8px 10px', fontSize: 13,
-            border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none',
-            backgroundColor: '#fff',
+            border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none',
+            backgroundColor: 'var(--surface)',
           }}
         />
       </div>
 
       <div style={{
-        background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 20,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('cities_title')} ({cities.length})
           </h2>
           {!showAdd && (
@@ -176,7 +176,7 @@ export default function ReferenceCitiesPage() {
             background: accentLight, border: `1px solid ${accent}33`,
             borderRadius: 8, padding: 14, marginBottom: 16,
           }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
               {t('city_name_in_country_label').replace('{country}', country)}
             </label>
             <input
@@ -190,7 +190,7 @@ export default function ReferenceCitiesPage() {
               placeholder={t('city_name_placeholder')}
               style={{
                 width: '100%', padding: '8px 10px', fontSize: 13,
-                border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none',
+                border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none',
                 marginBottom: 10, boxSizing: 'border-box',
               }}
             />
@@ -200,8 +200,8 @@ export default function ReferenceCitiesPage() {
                 disabled={!newCity.trim() || busy}
                 style={{
                   padding: '7px 14px', fontSize: 12, fontWeight: 600,
-                  background: newCity.trim() && !busy ? accent : '#E5E7EB',
-                  color: newCity.trim() && !busy ? '#fff' : '#9CA3AF',
+                  background: newCity.trim() && !busy ? accent : 'var(--border)',
+                  color: newCity.trim() && !busy ? 'var(--surface)' : 'var(--text-faint)',
                   border: 'none', borderRadius: 6,
                   cursor: newCity.trim() && !busy ? 'pointer' : 'not-allowed',
                 }}
@@ -211,8 +211,8 @@ export default function ReferenceCitiesPage() {
               <button
                 onClick={() => { setShowAdd(false); setNewCity(''); setErrMsg('') }}
                 style={{
-                  padding: '7px 14px', fontSize: 12, color: '#6B7280',
-                  background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+                  padding: '7px 14px', fontSize: 12, color: 'var(--text-muted)',
+                  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
                 }}
               >
                 {t('cancel')}
@@ -222,11 +222,11 @@ export default function ReferenceCitiesPage() {
         )}
 
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
             {t('loading')}
           </div>
         ) : cities.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
             {t('empty_none')}
           </div>
         ) : (
@@ -236,8 +236,8 @@ export default function ReferenceCitiesPage() {
                 key={c.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', background: '#F9FAFB',
-                  border: '1px solid #F3F4F6', borderRadius: 6,
+                  padding: '10px 12px', background: 'var(--surface-2)',
+                  border: '1px solid var(--surface-2)', borderRadius: 6,
                 }}
               >
                 {editingId === c.id ? (
@@ -267,19 +267,19 @@ export default function ReferenceCitiesPage() {
                     <button
                       onClick={() => setEditingId(null)}
                       style={{
-                        padding: '5px 10px', fontSize: 12, color: '#6B7280',
-                        background: '#fff', border: '1px solid #D1D5DB', borderRadius: 4, cursor: 'pointer',
+                        padding: '5px 10px', fontSize: 12, color: 'var(--text-muted)',
+                        background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('cancel')}</button>
                   </>
                 ) : (
                   <>
-                    <span style={{ flex: 1, fontSize: 13, color: '#1F2937' }}>{c.city}</span>
+                    <span style={{ flex: 1, fontSize: 13, color: 'var(--text)' }}>{c.city}</span>
                     <button
                       onClick={() => { setEditingId(c.id); setEditValue(c.city) }}
                       style={{
                         padding: '5px 10px', fontSize: 12, color: accent,
-                        background: '#fff', border: `1px solid ${accent}66`, borderRadius: 4, cursor: 'pointer',
+                        background: 'var(--surface)', border: `1px solid ${accent}66`, borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('edit_button')}</button>
                     <button

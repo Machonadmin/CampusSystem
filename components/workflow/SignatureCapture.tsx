@@ -81,7 +81,7 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
     const ctx = canvasRef.current!.getContext('2d')!
     const p = coords(e)
     const l = last.current ?? p
-    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+    ctx.strokeStyle = 'var(--text)'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'
     ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(p.x, p.y); ctx.stroke()
     last.current = p
     hasDrawn.current = true
@@ -128,11 +128,11 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
           value={typedName}
           onChange={e => setTypedName(e.target.value)}
           placeholder={t('process.signature.typed_placeholder')}
-          style={{ fontSize: 14, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%' }}
+          style={{ fontSize: 14, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }}
         />
       ) : (
         <div style={{ display: 'grid', gap: 6 }}>
-          <div style={{ fontSize: 12, color: '#6B7280' }}>{t('process.signature.draw_hint')}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('process.signature.draw_hint')}</div>
           <canvas
             ref={canvasRef}
             width={480}
@@ -141,9 +141,9 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
             onPointerMove={move}
             onPointerUp={up}
             onPointerLeave={up}
-            style={{ width: '100%', height: 150, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', touchAction: 'none', cursor: 'crosshair' }}
+            style={{ width: '100%', height: 150, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', touchAction: 'none', cursor: 'crosshair' }}
           />
-          <button type="button" onClick={clear} style={{ justifySelf: 'start', fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button type="button" onClick={clear} style={{ justifySelf: 'start', fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             {t('process.signature.clear')}
           </button>
         </div>
@@ -155,8 +155,8 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
 function tab(active: boolean): React.CSSProperties {
   return {
     fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
-    border: `1px solid ${active ? '#4F46E5' : '#D1D5DB'}`,
-    background: active ? '#EEF0FE' : '#fff',
-    color: active ? '#4F46E5' : '#6B7280',
+    border: `1px solid ${active ? 'var(--accent)' : 'var(--border-strong)'}`,
+    background: active ? '#EEF0FE' : 'var(--surface)',
+    color: active ? 'var(--accent)' : 'var(--text-muted)',
   }
 }

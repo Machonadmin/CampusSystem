@@ -234,14 +234,14 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
       {/* Rooms section */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{t('building.rooms_section')}</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('building.rooms_section')}</h2>
         {canManage && (
           <button onClick={() => setShowRoomForm(v => !v)} style={outlineBtn(primary)}>+ {t('building.add_room')}</button>
         )}
       </div>
 
       {showRoomForm && canManage && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={t('form.room_number')} style={inp(120)} />
           <input value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
           <input value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
@@ -253,9 +253,9 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : rooms.length === 0 ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('building.no_rooms')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('building.no_rooms')}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
           {rooms.map(r => (
@@ -263,19 +263,19 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
               key={r.id}
               onClick={() => selectRoom(r)}
               style={{
-                background: '#fff', borderRadius: 10, padding: 14, cursor: 'pointer',
-                border: `1px solid ${selected?.id === r.id ? primary : '#E5E7EB'}`,
+                background: 'var(--surface)', borderRadius: 10, padding: 14, cursor: 'pointer',
+                border: `1px solid ${selected?.id === r.id ? primary : 'var(--border)'}`,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{r.room_number}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{r.room_number}</span>
                 {r.is_full
                   ? <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>{t('room.full')}</span>
                   : <span style={{ fontSize: 10, fontWeight: 700, color: '#059669' }}>{t('list.free')}: {r.free}</span>}
               </div>
-              {r.floor !== null && <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{t('form.floor')}: {r.floor}</div>}
+              {r.floor !== null && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{t('form.floor')}: {r.floor}</div>}
               <OccupancyBar occupied={r.occupied} capacity={r.capacity} color={primary} />
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 6 }}>{t('list.occupied')}: {r.occupied} / {r.capacity}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>{t('list.occupied')}: {r.occupied} / {r.capacity}</div>
             </div>
           ))}
         </div>
@@ -283,20 +283,20 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
       {/* Selected room panel */}
       {selected && (
-        <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('room.title')} {selected.room_number}
             </h3>
-            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: 13 }}>✕</button>
+            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
           </div>
 
           {panelError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{panelError}</div>}
 
           {/* Assign form */}
           {canManage && (
-            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>{t('room.assign_student')}</div>
+            <div style={{ background: 'var(--surface-2)', borderRadius: 8, padding: 12, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>{t('room.assign_student')}</div>
               {picked ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: primary, background: getModuleColor('dormitory', 'light'), padding: '6px 10px', borderRadius: 8 }}>
@@ -316,17 +316,17 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                     style={inp(320)}
                   />
                   {hits.length > 0 && (
-                    <div style={{ position: 'absolute', zIndex: 10, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                    <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
                       {hits.map(h => (
                         <div
                           key={h.journey_id}
                           onClick={() => { setPicked(h); setHits([]) }}
-                          style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#F9FAFB' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = '#fff' }}
+                          style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--surface-2)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
                         >
-                          <div style={{ fontWeight: 500, color: '#1F2937' }}>{h.full_name || h.hebrew_name || '—'}</div>
-                          <div style={{ fontSize: 11, color: h.room ? '#D97706' : '#9CA3AF' }}>
+                          <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.full_name || h.hebrew_name || '—'}</div>
+                          <div style={{ fontSize: 11, color: h.room ? '#D97706' : 'var(--text-faint)' }}>
                             {h.room ? `${h.room.building_name ?? ''} ${h.room.room_number ?? ''}`.trim() : t('room.unassigned')}
                           </div>
                         </div>
@@ -340,9 +340,9 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
           {/* Assignments list */}
           {panelLoading ? (
-            <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
           ) : assignments.length === 0 ? (
-            <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('room.no_assignments')}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('room.no_assignments')}</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -362,8 +362,8 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                       <td style={td}>
                         <span style={{
                           fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                          background: a.status === 'active' ? '#CFFAFE' : '#F3F4F6',
-                          color: a.status === 'active' ? '#0E7490' : '#6B7280',
+                          background: a.status === 'active' ? '#CFFAFE' : 'var(--surface-2)',
+                          color: a.status === 'active' ? '#0E7490' : 'var(--text-muted)',
                         }}>
                           {t(`status.${a.status}`)}
                         </span>
@@ -388,14 +388,14 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
 
 function inp(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }

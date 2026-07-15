@@ -58,14 +58,14 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   const missingLabels = missing.map(m => m === 'name' ? t('handoff.field_name') : m === 'phone' ? t('handoff.field_phone') : m)
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
       <button
         onClick={handoff}
         disabled={busy || !ready}
         style={{
           width: '100%', padding: '12px', fontSize: 15, fontWeight: 700, color: '#fff',
           border: 'none', borderRadius: 10, cursor: busy || !ready ? 'not-allowed' : 'pointer',
-          background: busy || !ready ? '#9CA3AF' : 'linear-gradient(135deg,#7C3AED 0%,#DB2777 100%)',
+          background: busy || !ready ? 'var(--text-faint)' : 'linear-gradient(135deg,#7C3AED 0%,#DB2777 100%)',
           boxShadow: ready ? '0 2px 10px rgba(124,58,237,0.25)' : 'none',
         }}
       >

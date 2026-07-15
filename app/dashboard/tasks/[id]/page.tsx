@@ -45,17 +45,17 @@ interface TaskDetail extends TaskRow {
 }
 
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
-  unassigned:  { bg: '#F3F4F6', fg: '#374151' },
+  unassigned:  { bg: 'var(--surface-2)', fg: 'var(--text)' },
   pending:     { bg: '#DBEAFE', fg: '#1E40AF' },
   in_progress: { bg: '#FEF3C7', fg: '#92400E' },
   review:      { bg: '#FCE7F3', fg: '#9D174D' },
   completed:   { bg: '#D1FAE5', fg: '#065F46' },
-  cancelled:   { bg: '#F3F4F6', fg: '#6B7280' },
+  cancelled:   { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   declined:    { bg: '#FEE2E2', fg: '#991B1B' },
 }
 
 const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
-  low: '#9CA3AF', normal: '#6B7280', high: '#F59E0B', urgent: '#DC2626',
+  low: 'var(--text-faint)', normal: 'var(--text-muted)', high: '#F59E0B', urgent: '#DC2626',
 }
 
 type ActionKey = 'claim' | 'start' | 'review' | 'complete' | 'reopen' | 'decline' | 'cancel' | 'cancelSeries'
@@ -368,7 +368,7 @@ export default function TaskPage() {
       </div>
 
       {loading && (
-        <div style={{ padding: 48, textAlign: 'center', color: '#6B7280', fontSize: 14 }}>
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
           {tCommon('loading')}
         </div>
       )}
@@ -381,14 +381,14 @@ export default function TaskPage() {
 
       {!loading && task && (
         <div style={{
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
           padding: 24, maxWidth: 720,
         }}>
           {/* Заголовок с приоритет-баром */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
             <div style={{ width: 4, background: PRIORITY_COLORS[task.priority], borderRadius: 2 }} />
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: '#111827' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: 'var(--text)' }}>
                 {task.title}
               </h2>
               <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -400,11 +400,11 @@ export default function TaskPage() {
                 }}>
                   {t(`status.${task.status}`, task.status)}
                 </span>
-                <span style={{ fontSize: 12, color: '#6B7280' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   {t(`priority.${task.priority}`, task.priority)} {t('card.priority_suffix')}
                 </span>
                 {task.due_date && (
-                  <span style={{ fontSize: 12, color: '#6B7280' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     • {t('card.due_prefix')} {formatDateLong(task.due_date, lang)}{(!task.due_all_day && task.due_time) ? ` ${t('card.time_prefix')} ${task.due_time.slice(0, 5)}` : ''}
                   </span>
                 )}
@@ -433,8 +433,8 @@ export default function TaskPage() {
           {/* Описание */}
           {task.description && (
             <div style={{
-              marginTop: 16, padding: 14, background: '#F9FAFB', borderRadius: 8,
-              fontSize: 13, color: '#374151', whiteSpace: 'pre-wrap',
+              marginTop: 16, padding: 14, background: 'var(--surface-2)', borderRadius: 8,
+              fontSize: 13, color: 'var(--text)', whiteSpace: 'pre-wrap',
             }}>
               {task.description}
             </div>
@@ -442,7 +442,7 @@ export default function TaskPage() {
 
           {/* Метаданные */}
           <div style={{
-            marginTop: 16, padding: 12, background: '#fff', border: '1px solid #E5E7EB',
+            marginTop: 16, padding: 12, background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px',
           }}>
             <Field label={t('card.assigned_to')} value={
@@ -462,7 +462,7 @@ export default function TaskPage() {
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               marginBottom: 8,
             }}>
-              <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
                 {t('card.watchers')} ({watchers.length})
               </div>
               {!addingWatcher && (
@@ -484,7 +484,7 @@ export default function TaskPage() {
                 {watchers.map(w => (
                   <div key={w.person_id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '4px 10px', background: '#EFF6FF', color: '#1E40AF',
+                    padding: '4px 10px', background: 'var(--accent-tint)', color: '#1E40AF',
                     borderRadius: 12, fontSize: 12,
                   }}>
                     <span>{w.person?.full_name ?? '…'}</span>
@@ -526,8 +526,8 @@ export default function TaskPage() {
                 <button
                   onClick={() => { setAddingWatcher(false); setNewWatcherId(null) }}
                   style={{
-                    padding: '8px 12px', fontSize: 12, color: '#6B7280',
-                    background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
+                    padding: '8px 12px', fontSize: 12, color: 'var(--text-muted)',
+                    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
                     cursor: 'pointer',
                   }}
                 >
@@ -552,8 +552,8 @@ export default function TaskPage() {
                       disabled={actionInProgress}
                       style={{
                         padding: '8px 16px', fontSize: 13, fontWeight: 500,
-                        background: a.danger ? '#fff' : accent,
-                        color: a.danger ? '#DC2626' : '#fff',
+                        background: a.danger ? 'var(--surface)' : accent,
+                        color: a.danger ? '#DC2626' : 'var(--surface)',
                         border: a.danger ? '1px solid #FCA5A5' : 'none',
                         borderRadius: 8,
                         cursor: actionInProgress ? 'wait' : 'pointer',
@@ -585,8 +585,8 @@ export default function TaskPage() {
                     <button
                       onClick={() => { setShowDeclineInput(false); setDeclineReason('') }}
                       style={{
-                        padding: '6px 12px', fontSize: 12, background: '#fff',
-                        border: '1px solid #E5E7EB', borderRadius: 6, cursor: 'pointer',
+                        padding: '6px 12px', fontSize: 12, background: 'var(--surface)',
+                        border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer',
                       }}
                     >{tCommon('cancel')}</button>
                     <button
@@ -619,8 +619,8 @@ export default function TaskPage() {
                 {(['future', 'all'] as const).map(mode => (
                   <label key={mode} style={{
                     display: 'flex', gap: 8, alignItems: 'flex-start',
-                    padding: 10, background: '#fff', borderRadius: 6, cursor: 'pointer',
-                    border: cancelSeriesMode === mode ? '1.5px solid #DC2626' : '1px solid #E5E7EB',
+                    padding: 10, background: 'var(--surface)', borderRadius: 6, cursor: 'pointer',
+                    border: cancelSeriesMode === mode ? '1.5px solid #DC2626' : '1px solid var(--border)',
                   }}>
                     <input
                       type="radio"
@@ -629,10 +629,10 @@ export default function TaskPage() {
                       style={{ marginTop: 3 }}
                     />
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                         {mode === 'future' ? t('cancel_series.mode_future_label') : t('cancel_series.mode_all_label')}
                       </div>
-                      <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                         {mode === 'future'
                           ? t('cancel_series.mode_future_hint')
                           : t('cancel_series.mode_all_hint')}
@@ -643,14 +643,14 @@ export default function TaskPage() {
               </div>
 
               <div style={{
-                padding: 10, background: '#fff', borderRadius: 6, marginBottom: 12,
+                padding: 10, background: 'var(--surface)', borderRadius: 6, marginBottom: 12,
                 border: '1px solid #FECACA',
               }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>
                   {t('cancel_series.preview_title')}
                 </div>
                 {loadingPreview && (
-                  <div style={{ fontSize: 12, color: '#9CA3AF' }}>{t('cancel_series.counting')}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('cancel_series.counting')}</div>
                 )}
                 {!loadingPreview && seriesPreview && (() => {
                   const bs = seriesPreview.by_status
@@ -662,7 +662,7 @@ export default function TaskPage() {
                       {willDelete > 0 && (
                         <div style={{ color: '#991B1B' }}>
                           ✓ {t('cancel_series.will_delete')} <strong>{willDelete}</strong>
-                          <span style={{ color: '#6B7280', fontSize: 11 }}>
+                          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>
                             {' '}({[
                               bs.unassigned ? `${bs.unassigned} ${t('cancel_series.breakdown_unassigned')}` : '',
                               bs.pending    ? `${bs.pending} ${t('cancel_series.breakdown_pending')}` : '',
@@ -674,24 +674,24 @@ export default function TaskPage() {
                       {willPreserve > 0 && (
                         <div style={{ color: '#92400E', fontWeight: 500 }}>
                           ⚠ {t('cancel_series.will_preserve')} <strong>{willPreserve}</strong>
-                          <span style={{ color: '#6B7280', fontSize: 11, fontWeight: 400 }}>
+                          <span style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 400 }}>
                             {' '}({[
                               bs.in_progress ? `${bs.in_progress} ${t('cancel_series.breakdown_in_progress')}` : '',
                               bs.review      ? `${bs.review} ${t('cancel_series.breakdown_review')}` : '',
                             ].filter(Boolean).join(', ')})
                           </span>
-                          <div style={{ color: '#6B7280', fontSize: 10, marginTop: 2 }}>
+                          <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 2 }}>
                             {t('cancel_series.cannot_delete_active')}
                           </div>
                         </div>
                       )}
                       {alreadyDone > 0 && (
-                        <div style={{ color: '#6B7280', fontSize: 11 }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
                           {t('cancel_series.not_affected')} {alreadyDone} ({t('cancel_series.not_affected_reason')})
                         </div>
                       )}
                       {willDelete === 0 && willPreserve === 0 && alreadyDone === 0 && (
-                        <div style={{ color: '#6B7280' }}>{t('cancel_series.empty_range')}</div>
+                        <div style={{ color: 'var(--text-muted)' }}>{t('cancel_series.empty_range')}</div>
                       )}
                     </div>
                   )
@@ -703,8 +703,8 @@ export default function TaskPage() {
                   onClick={() => setShowCancelSeriesDialog(false)}
                   disabled={actionInProgress}
                   style={{
-                    padding: '8px 14px', fontSize: 12, color: '#6B7280',
-                    background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
+                    padding: '8px 14px', fontSize: 12, color: 'var(--text-muted)',
+                    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
                     cursor: 'pointer',
                   }}
                 >{tCommon('cancel')}</button>
@@ -735,12 +735,12 @@ export default function TaskPage() {
           )}
 
           {/* Комментарии */}
-          <div style={{ marginTop: 20, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: '#111827' }}>
+          <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: 'var(--text)' }}>
               {t('card.comments')} ({comments.length})
             </h3>
             {comments.length === 0 ? (
-              <div style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>
                 {t('card.no_comments')}
               </div>
             ) : (
@@ -749,7 +749,7 @@ export default function TaskPage() {
               </div>
             )}
 
-            <div style={{ marginTop: 12, padding: 10, background: '#F9FAFB', borderRadius: 8 }}>
+            <div style={{ marginTop: 12, padding: 10, background: 'var(--surface-2)', borderRadius: 8 }}>
               <textarea
                 value={newCommentText}
                 onChange={e => setNewCommentText(e.target.value)}
@@ -757,7 +757,7 @@ export default function TaskPage() {
                 disabled={postingComment}
                 style={{
                   width: '100%', minHeight: 60, padding: '8px 10px', fontSize: 13,
-                  border: '1px solid #D1D5DB', borderRadius: 6,
+                  border: '1px solid var(--border-strong)', borderRadius: 6,
                   boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit',
                 }}
               />
@@ -780,8 +780,8 @@ export default function TaskPage() {
 
           {/* История изменений */}
           {history.length > 0 && (
-            <div style={{ marginTop: 16, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: '#111827' }}>
+            <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 10px 0', color: 'var(--text)' }}>
                 {t('card.history')} ({history.length})
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -789,15 +789,15 @@ export default function TaskPage() {
                   <div key={h.id} style={{
                     display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '8px 10px', fontSize: 12,
-                    background: '#FAFAFA', borderRadius: 6,
+                    background: 'var(--surface-2)', borderRadius: 6,
                   }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: '50%',
-                      background: STATUS_COLORS[h.to_status]?.fg ?? '#9CA3AF',
+                      background: STATUS_COLORS[h.to_status]?.fg ?? 'var(--text-faint)',
                       marginTop: 5, flexShrink: 0,
                     }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ color: '#374151' }}>
+                      <div style={{ color: 'var(--text)' }}>
                         <strong>{h.actor?.full_name ?? t('card.system_fallback')}</strong>
                         {h.from_status ? (
                           <>: {t(`status.${h.from_status}`, h.from_status)} → {t(`status.${h.to_status}`, h.to_status)}</>
@@ -806,11 +806,11 @@ export default function TaskPage() {
                         )}
                       </div>
                       {h.note && (
-                        <div style={{ color: '#6B7280', marginTop: 2, fontStyle: 'italic' }}>
+                        <div style={{ color: 'var(--text-muted)', marginTop: 2, fontStyle: 'italic' }}>
                           «{h.note}»
                         </div>
                       )}
-                      <div style={{ color: '#9CA3AF', marginTop: 2, fontSize: 11 }}>
+                      <div style={{ color: 'var(--text-faint)', marginTop: 2, fontSize: 11 }}>
                         {formatDateTime(h.created_at, lang)}
                       </div>
                     </div>
@@ -828,8 +828,8 @@ export default function TaskPage() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937' }}>{value}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
     </div>
   )
 }
@@ -838,11 +838,11 @@ function CommentItem({ comment }: { comment: Comment }) {
   const t = useTranslations('tasks')
   const { lang } = useLang()
   const typeBg     = comment.comment_type === 'decline_reason' ? '#FEE2E2'
-                   : comment.comment_type === 'status_note'    ? '#EFF6FF'
-                   : '#fff'
+                   : comment.comment_type === 'status_note'    ? 'var(--accent-tint)'
+                   : 'var(--surface)'
   const typeBorder = comment.comment_type === 'decline_reason' ? '#FCA5A5'
                    : comment.comment_type === 'status_note'    ? '#BFDBFE'
-                   : '#E5E7EB'
+                   : 'var(--border)'
   const typeLabel  = comment.comment_type === 'decline_reason' ? t('card.decline_reason')
                    : comment.comment_type === 'status_note'    ? t('card.system_note')
                    : ''
@@ -850,19 +850,19 @@ function CommentItem({ comment }: { comment: Comment }) {
   return (
     <div style={{ padding: 10, background: typeBg, border: `1px solid ${typeBorder}`, borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
           {comment.author?.full_name ?? t('card.user_fallback')}
         </span>
-        <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+        <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
           {formatDateTime(comment.created_at, lang)}
         </span>
       </div>
       {typeLabel && (
-        <div style={{ fontSize: 10, color: '#6B7280', fontStyle: 'italic', marginBottom: 4 }}>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: 4 }}>
           {typeLabel}
         </div>
       )}
-      <div style={{ fontSize: 13, color: '#1F2937', whiteSpace: 'pre-wrap' }}>
+      <div style={{ fontSize: 13, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>
         {comment.content}
       </div>
     </div>

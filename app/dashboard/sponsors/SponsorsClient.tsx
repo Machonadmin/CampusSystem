@@ -160,7 +160,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         {canManage && (
           <button onClick={openNew} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-            borderRadius: 8, background: '#fff', color: primary, cursor: 'pointer',
+            borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer',
           }}>
             {t('list.new_sponsor')}
           </button>
@@ -174,7 +174,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         }}>
           <StatCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="#059669" />
           <StatCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="#D97706" />
-          <StatCard label={t('stats.donors')} value={String(sponsors.length)} color="#1F2937" />
+          <StatCard label={t('stats.donors')} value={String(sponsors.length)} color="var(--text)" />
         </div>
       )}
 
@@ -184,12 +184,12 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }}
+          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
         />
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', background: '#fff' }}
+          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
         >
           <option value="">{t('list.all_types')}</option>
           {SPONSOR_TYPES.map(tp => (
@@ -200,8 +200,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
 
       {/* Create form */}
       {canManage && creating && (
-        <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
             {t('form.new_title')}
           </h2>
           {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
@@ -232,7 +232,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
               <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} style={area} />
             </Field>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={form.is_active}
@@ -248,13 +248,13 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
       )}
 
       {/* Donors list */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -273,12 +273,12 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                     key={s.id}
                     onClick={() => router.push(`/dashboard/sponsors/${s.id}`)}
                     style={{ cursor: 'pointer' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#F9FAFB' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#fff' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
                     <td style={td}>
-                      <div style={{ fontWeight: 500, color: '#1F2937' }}>{s.name}</div>
-                      {s.contact_person && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{s.contact_person}</div>}
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.name}</div>
+                      {s.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.contact_person}</div>}
                     </td>
                     <td style={td}>
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: '#92400E' }}>
@@ -290,8 +290,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                     <td style={td}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                        background: s.is_active ? light : '#F3F4F6',
-                        color: s.is_active ? '#92400E' : '#9CA3AF',
+                        background: s.is_active ? light : 'var(--surface-2)',
+                        color: s.is_active ? '#92400E' : 'var(--text-faint)',
                       }}>
                         {s.is_active ? t('status.active') : t('status.inactive')}
                       </span>
@@ -309,8 +309,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
 
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   )
@@ -318,7 +318,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
       {label}
       {children}
     </label>
@@ -326,19 +326,19 @@ function Field({ label, children, full }: { label: string; children: React.React
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
 const tdNum: React.CSSProperties = { ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', width: '100%', background: '#fff' }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', background: 'var(--surface)' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
 }
 const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid #D1D5DB',
-  borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer',
+  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid var(--border-strong)',
+  borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
 }

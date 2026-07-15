@@ -173,7 +173,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
   function expiryColor(d: Doc): string {
     if (isExpired(d, today)) return '#B91C1C'
     if (isExpiringSoon(d, today)) return '#B45309'
-    return '#1F2937'
+    return 'var(--text)'
   }
 
   return (
@@ -199,13 +199,13 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
       {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
           {/* Add document */}
           {canManage && (
-            <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('add.title')}</h2>
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('add.title')}</h2>
               {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('fields.doc_type')}>
@@ -232,7 +232,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                     onChange={e => setDFile(e.target.files?.[0] ?? null)}
                     style={inp}
                   />
-                  <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>{t('fields.upload_hint')}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>{t('fields.upload_hint')}</span>
                 </Field>
                 <Field label={t('fields.file_url')} full>
                   <input
@@ -254,10 +254,10 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
           )}
 
           {/* Document list */}
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('registry.title')}</h2>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('registry.title')}</h2>
             {docs.length === 0 ? (
-              <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('registry.empty')}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('registry.empty')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -280,8 +280,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           ) : (
                             <span style={{ fontWeight: 500 }}>{d.title}</span>
                           )}
-                          {d.file_name && <div style={{ fontSize: 11, color: '#9CA3AF' }}>📎 {d.file_name}</div>}
-                          {d.notes && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{d.notes}</div>}
+                          {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
+                          {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
                         </td>
                         <td style={td}>{d.issued_date || '—'}</td>
                         <td style={{ ...td, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
@@ -292,8 +292,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                         <td style={td}>
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                            background: d.status === 'active' ? light : '#F3F4F6',
-                            color: d.status === 'active' ? '#4B5563' : '#9CA3AF',
+                            background: d.status === 'active' ? light : 'var(--surface-2)',
+                            color: d.status === 'active' ? 'var(--text-muted)' : 'var(--text-faint)',
                           }}>
                             {t(`status.${d.status}`)}
                           </span>
@@ -303,7 +303,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                             <button onClick={() => setStatus(d, 'archived')} disabled={busy} style={linkBtn(primary)}>{t('archive')}</button>
                           )}
                           {canManage && d.status === 'archived' && (
-                            <button onClick={() => setStatus(d, 'active')} disabled={busy} style={linkBtn('#6B7280')}>{t('unarchive')}</button>
+                            <button onClick={() => setStatus(d, 'active')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('unarchive')}</button>
                           )}
                           {canManage && (
                             <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>
@@ -324,7 +324,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
       {label}
       {children}
     </label>
@@ -332,13 +332,13 @@ function Field({ label, children, full }: { label: string; children: React.React
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', width: '100%' }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }

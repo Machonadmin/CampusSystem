@@ -38,14 +38,14 @@ const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   open:        { bg: '#DBEAFE', fg: '#1D4ED8' },
   in_progress: { bg: '#FEF3C7', fg: '#B45309' },
   resolved:    { bg: '#D1FAE5', fg: '#047857' },
-  closed:      { bg: '#F3F4F6', fg: '#6B7280' },
+  closed:      { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   cancelled:   { bg: '#FEE2E2', fg: '#B91C1C' },
 }
 const PRIORITY_COLORS: Record<string, { bg: string; fg: string }> = {
   urgent: { bg: '#FEE2E2', fg: '#B91C1C' },
   high:   { bg: '#FFEDD5', fg: '#C2410C' },
   normal: { bg: '#DBEAFE', fg: '#1D4ED8' },
-  low:    { bg: '#F3F4F6', fg: '#6B7280' },
+  low:    { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
 }
 
 function fmtDate(iso: string | null): string {
@@ -152,17 +152,17 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading || !ticket ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
           {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
 
           {/* Meta card */}
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge label={t(`status.${ticket.status}`)} colors={sc} />
               <Badge label={t(`priority.${ticket.priority}`)} colors={pc} />
-              <Badge label={t(`category.${ticket.category}`)} colors={{ bg: '#F3F4F6', fg: '#374151' }} />
+              <Badge label={t(`category.${ticket.category}`)} colors={{ bg: 'var(--surface-2)', fg: 'var(--text)' }} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
@@ -175,22 +175,22 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
             {ticket.description && (
               <div>
                 <div style={fieldLabelStyle}>{t('detail.description')}</div>
-                <div style={{ fontSize: 13, color: '#1F2937', whiteSpace: 'pre-wrap', marginTop: 4 }}>{ticket.description}</div>
+                <div style={{ fontSize: 13, color: 'var(--text)', whiteSpace: 'pre-wrap', marginTop: 4 }}>{ticket.description}</div>
               </div>
             )}
           </div>
 
           {/* Actions */}
           {canManage && (
-            <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, display: 'grid', gap: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{t('detail.actions')}</div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('detail.actions')}</div>
 
               {/* Status transitions */}
               <div>
                 <div style={fieldLabelStyle}>{t('detail.change_status')}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
                   {transitions.length === 0 ? (
-                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('detail.no_actions')}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('detail.no_actions')}</span>
                   ) : transitions.map(to => (
                     <button key={to} onClick={() => patch({ status: to })} disabled={busy} style={outlineBtn(primary)}>
                       {t(`status.${to}`)}
@@ -206,7 +206,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                   value={ticket.priority}
                   onChange={e => patch({ priority: e.target.value })}
                   disabled={busy}
-                  style={{ marginTop: 6, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', background: '#fff', width: 180 }}
+                  style={{ marginTop: 6, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', width: 180 }}
                 >
                   {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
                 </select>
@@ -217,7 +217,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                 <div style={fieldLabelStyle}>{t('detail.assign')}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
                   {assignedToMe ? (
-                    <button onClick={() => patch({ assigned_to: null })} disabled={busy} style={outlineBtn('#6B7280')}>
+                    <button onClick={() => patch({ assigned_to: null })} disabled={busy} style={outlineBtn('var(--text-muted)')}>
                       {t('detail.unassign')}
                     </button>
                   ) : (
@@ -235,7 +235,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                   value={descDraft}
                   onChange={e => setDescDraft(e.target.value)}
                   rows={3}
-                  style={{ marginTop: 6, width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit' }}
+                  style={{ marginTop: 6, width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <div style={{ marginTop: 6 }}>
                   <button
@@ -259,7 +259,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div style={fieldLabelStyle}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937', marginTop: 3 }}>{value}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 3 }}>{value}</div>
     </div>
   )
 }
@@ -273,11 +273,11 @@ function Badge({ label, colors }: { label: string; colors: { bg: string; fg: str
 }
 
 const fieldLabelStyle: React.CSSProperties = {
-  fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5,
+  fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5,
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
 }
 function outlineBtn(color: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '6px 14px', border: `1px solid ${color}`, borderRadius: 8, background: '#fff', color, cursor: 'pointer' }
+  return { fontSize: 13, fontWeight: 600, padding: '6px 14px', border: `1px solid ${color}`, borderRadius: 8, background: 'var(--surface)', color, cursor: 'pointer' }
 }
