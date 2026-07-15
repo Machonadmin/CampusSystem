@@ -1067,6 +1067,27 @@
       "empty": "No evaluations yet",
       "by": "by",
       "locked": "Writing evaluations is opened by the unit manager"
+    },
+    "timetable": {
+      "title": "Timetable",
+      "subtitle": "Campus-wide weekly board + conflict detection",
+      "all_units": "All units",
+      "no_slots": "No slots in the timetable",
+      "conflicts_none": "No conflicts",
+      "conflicts_count": "{n} conflicts",
+      "conflict": "Conflict",
+      "room": "Room",
+      "teacher_dbl": "Teacher double-booked",
+      "room_dbl": "Room double-booked",
+      "days": {
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat",
+        "7": "Sun"
+      }
     }
   },
   "tasks": {
