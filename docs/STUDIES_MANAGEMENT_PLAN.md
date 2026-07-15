@@ -3,6 +3,14 @@
 Durable record of the studies-management build for מכון חמש, agreed with the
 product owner. Use this to continue even after chat context is lost.
 
+STATUS 2026-07-15: **Management/staff hierarchy (§2) — BUILD COMPLETE** (owner
+confirmed "done"). What remains for §2 is data entry (assign real people to
+roles) + one optional future item: ראש-חול auto-assign across all chol units.
+Now working through the **studies/academic hierarchy (§1)**: study_tracks
+completed (school/college/university/touro + emuna-inactive) via migration
+20260715220000; dual placement, per-journey track (journey_study_tracks +
+StudyTrackPanel), and the freely-nested structure editor (#66) already exist.
+
 ## 1. Studies hierarchy (the domain)
 
 Every student is in TWO parallel domains, split by time of day:
@@ -117,7 +125,10 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
   lessons.scheduled_end_time + teacher_attendance_grants), 20260715160000
   (lesson_notes), 20260715180000 (student_evaluations), 20260715200000
   (lesson_roster_overrides — one-time lesson guests). All confirmed RUN by
-  owner 2026-07-15. No migrations currently pending.
+  owner 2026-07-15.
+- **PENDING (owner to run):** 20260715220000 (study_tracks_complete — adds
+  אוניברסיטה + אמונה[inactive], reorders to hierarchy). OPEN QUESTION for owner:
+  existing 'college' is named 'מכללה' but owner says 'קולג'' — rename TBD.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
   SQL inline; if asked about RLS → "Run without RLS").
 
