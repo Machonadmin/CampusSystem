@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface Unit { id: string; name: string }
-interface Node { id: string; name: string; tier: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
+interface Node { id: string; name: string; tier: string | null; sort_order: number; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
 
 export default function StructurePage() {
   const t = useTranslations('education.structure')
@@ -43,7 +43,7 @@ export default function StructurePage() {
   const childrenOf = useMemo(() => {
     const m = new Map<string | null, Node[]>()
     for (const n of nodes) { const k = n.is_root ? '__root__' : n.parent_id; const arr = m.get(k) ?? []; arr.push(n); m.set(k, arr) }
-    for (const arr of m.values()) arr.sort((a, b) => a.name.localeCompare(b.name, 'he'))
+    for (const arr of m.values()) arr.sort((a, b) => (a.sort_order !== b.sort_order ? a.sort_order - b.sort_order : a.name.localeCompare(b.name, 'he')))
     return m
   }, [nodes])
   const root = nodes.find(n => n.is_root) ?? null
@@ -73,6 +73,16 @@ export default function StructurePage() {
     setBusy(true); setErr(null)
     try {
       const res = await fetch(`/api/education/units/${unit}/structure/${nodeId}`, { method: 'DELETE' })
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
+      await load(unit)
+    } finally { setBusy(false) }
+  }
+  const move = async (nodeId: string, direction: 'up' | 'down') => {
+    setBusy(true); setErr(null)
+    try {
+      const res = await fetch(`/api/education/units/${unit}/structure/${nodeId}/move`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction }),
+      })
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
       await load(unit)
     } finally { setBusy(false) }
@@ -107,19 +117,20 @@ export default function StructurePage() {
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 14 }}>
-          <TreeNode node={root} depth={0} childrenOf={childrenOf} busy={busy}
-            onAdd={addChild} onRename={rename} onRemove={remove} t={t} />
+          <TreeNode node={root} depth={0} index={0} siblingCount={1} childrenOf={childrenOf} busy={busy}
+            onAdd={addChild} onRename={rename} onRemove={remove} onMove={move} t={t} />
         </div>
       )}
     </div>
   )
 }
 
-function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t }: {
-  node: Node; depth: number; childrenOf: Map<string | null, Node[]>; busy: boolean
+function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, onRename, onRemove, onMove, t }: {
+  node: Node; depth: number; index: number; siblingCount: number; childrenOf: Map<string | null, Node[]>; busy: boolean
   onAdd: (parentId: string, name: string, tier: string) => Promise<boolean>
   onRename: (nodeId: string, name: string, tier: string) => Promise<boolean>
   onRemove: (nodeId: string) => void
+  onMove: (nodeId: string, direction: 'up' | 'down') => void
   t: (k: string, f?: string) => string
 }) {
   const [adding, setAdding] = useState(false)
@@ -158,6 +169,8 @@ function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t 
               </span>
             )}
             <button onClick={() => { setAdding(a => !a); setAddName('') }} style={miniBtn('accent')}>+ {t('add_child')}</button>
+            {!node.is_root && index > 0 && <button disabled={busy} title={t('move_up')} onClick={() => onMove(node.id, 'up')} style={miniBtn()}>↑</button>}
+            {!node.is_root && index < siblingCount - 1 && <button disabled={busy} title={t('move_down')} onClick={() => onMove(node.id, 'down')} style={miniBtn()}>↓</button>}
             {!node.is_root && <button onClick={() => { setEditing(true); setEditName(node.name) }} style={miniBtn()}>{t('rename')}</button>}
             {!node.is_root && <button disabled={busy} onClick={() => { if (confirm(t('confirm_delete'))) onRemove(node.id) }} style={miniBtn('danger')}>{t('delete')}</button>}
           </>
@@ -184,8 +197,8 @@ function TreeNode({ node, depth, childrenOf, busy, onAdd, onRename, onRemove, t 
         </div>
       )}
 
-      {kids.map(k => (
-        <TreeNode key={k.id} node={k} depth={depth + 1} childrenOf={childrenOf} busy={busy} onAdd={onAdd} onRename={onRename} onRemove={onRemove} t={t} />
+      {kids.map((k, ki) => (
+        <TreeNode key={k.id} node={k} depth={depth + 1} index={ki} siblingCount={kids.length} childrenOf={childrenOf} busy={busy} onAdd={onAdd} onRename={onRename} onRemove={onRemove} onMove={onMove} t={t} />
       ))}
     </div>
   )

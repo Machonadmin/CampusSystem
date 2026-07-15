@@ -1145,7 +1145,9 @@
       "cancel": "בטל",
       "confirm_delete": "למחוק את תת-היחידה?",
       "save_failed": "השמירה נכשלה",
-      "tier_ph": "שכבה (רמה/שיעור…)"
+      "tier_ph": "שכבה (רמה/שיעור…)",
+      "move_up": "למעלה",
+      "move_down": "למטה"
     },
     "track_assign": {
       "title": "שיבוץ למסלול",
