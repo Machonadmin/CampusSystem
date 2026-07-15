@@ -1128,6 +1128,21 @@
       "period_from": "From",
       "period_to": "To",
       "period_clear": "Clear"
+    },
+    "structure": {
+      "title": "Unit structure",
+      "subtitle": "Build a tree of sub-units (level/class/group or any name) and attach teaching groups",
+      "no_units": "No units to manage",
+      "groups": "groups",
+      "add_child": "Sub-unit",
+      "new_child_ph": "Sub-unit name…",
+      "add": "Add",
+      "rename": "Rename",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm_delete": "Delete this sub-unit?",
+      "save_failed": "Save failed"
     }
   },
   "tasks": {
@@ -3124,7 +3139,9 @@
     "note_required": "Please write a note",
     "feature_not_migrated": "Feature not yet enabled in the database",
     "feature_unavailable": "Feature not available yet (migration not run)",
-    "already_enrolled": "Student is already enrolled in the lesson's group"
+    "already_enrolled": "Student is already enrolled in the lesson's group",
+    "structure_has_children": "Can't delete — the node has sub-units. Move or delete them first.",
+    "structure_has_groups": "Can't delete — teaching groups are attached to the node. Detach them first."
   },
   "workflow": {
     "error": "Error"
