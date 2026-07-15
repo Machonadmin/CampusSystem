@@ -50,12 +50,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { unitId
   try {
     const g = await guard(params.unitId, params.nodeId)
     if (g.err) return g.err
-    const body = await request.json().catch(() => ({})) as { name?: string }
+    const body = await request.json().catch(() => ({})) as { name?: string; tier?: string | null }
     const name = (body.name ?? '').trim()
     if (!name) return apiError('title_required', 400)
-    const { error } = await g.sb!.from('departments').update({ name } as never).eq('id', params.nodeId)
-    if (error) throw error
-    return NextResponse.json({ id: params.nodeId, name })
+    const tierProvided = Object.prototype.hasOwnProperty.call(body, 'tier')
+    const tier = (body.tier ?? '').trim() || null
+
+    // Пробуем обновить с structure_tier; если колонки ещё нет — только name.
+    const full = await g.sb!.from('departments')
+      .update((tierProvided ? { name, structure_tier: tier } : { name }) as never)
+      .eq('id', params.nodeId)
+    if (full.error) {
+      const base = await g.sb!.from('departments').update({ name } as never).eq('id', params.nodeId)
+      if (base.error) throw base.error
+    }
+    return NextResponse.json({ id: params.nodeId, name, tier })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
