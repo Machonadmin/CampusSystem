@@ -9,7 +9,13 @@ roles) + one optional future item: ראש-חול auto-assign across all chol uni
 Now working through the **studies/academic hierarchy (§1)**: study_tracks
 completed (school/college/university/touro + emuna-inactive) via migration
 20260715220000; dual placement, per-journey track (journey_study_tracks +
-StudyTrackPanel), and the freely-nested structure editor (#66) already exist.
+StudyTrackPanel), the freely-nested structure editor (#66), and a track-
+assignment worklist (#68, `/dashboard/education/track-assignment`) that surfaces
+approved students with no chol track for inline assignment (operationalises
+"track decided at אישור לימודים" without touching the acceptance engine).
+Next §1 candidates (owner to steer): entry groups + durations (after ט' / above
+י"א, 2/3/4 yrs); structure-editor polish (tier labels, manual order, assign
+students to nodes); hook track directly into the applicant→student conversion.
 
 ## 1. Studies hierarchy (the domain)
 
@@ -126,9 +132,11 @@ Open items: exact kodesh internal order (רמה/שיעור/כיתה) — TBD whe
   (lesson_notes), 20260715180000 (student_evaluations), 20260715200000
   (lesson_roster_overrides — one-time lesson guests). All confirmed RUN by
   owner 2026-07-15.
-- **PENDING (owner to run):** 20260715220000 (study_tracks_complete — adds
-  אוניברסיטה + אמונה[inactive], reorders to hierarchy). OPEN QUESTION for owner:
-  existing 'college' is named 'מכללה' but owner says 'קולג'' — rename TBD.
+- **RUN (owner confirmed 2026-07-15):** 20260715220000 (study_tracks_complete —
+  added אוניברסיטה + אמונה[inactive], reordered to hierarchy).
+- OPEN QUESTION for owner (still unanswered): existing 'college' is named
+  'מכללה' but owner says 'קולג'' — rename TBD. Do NOT rename without an explicit
+  answer.
 - Migrations are hand-written and run MANUALLY by the owner in Supabase (provide
   SQL inline; if asked about RLS → "Run without RLS").
 

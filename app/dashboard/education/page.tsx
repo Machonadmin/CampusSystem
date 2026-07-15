@@ -229,6 +229,10 @@ export default function EducationPage() {
             style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
             {t('structure.title')}
           </a>
+          <a href="/dashboard/education/track-assignment"
+            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            {t('track_assign.title')}
+          </a>
         </div>
       </div>
 

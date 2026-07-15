@@ -1143,6 +1143,16 @@
       "cancel": "בטל",
       "confirm_delete": "למחוק את תת-היחידה?",
       "save_failed": "השמירה נכשלה"
+    },
+    "track_assign": {
+      "title": "שיבוץ למסלול",
+      "subtitle": "תלמידות שאושרו וטרם שובצו למסלול חול — שבץ כאן",
+      "all_assigned": "כל התלמידות משובצות למסלול",
+      "pending_count": "{n} ממתינות לשיבוץ",
+      "pick_track": "בחר מסלול…",
+      "assign": "שבץ",
+      "saving": "שומר…",
+      "save_failed": "השמירה נכשלה"
     }
   },
   "tasks": {
