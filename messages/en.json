@@ -3204,7 +3204,21 @@
     "type_parent": "Parent",
     "type_representative": "Representative",
     "label_comment": "Message (optional)",
-    "comment_placeholder": "Tell us a bit about yourself / how we can help"
+    "comment_placeholder": "Tell us a bit about yourself / how we can help",
+    "hero_tagline": "A place to grow, learn and flourish — we'd love to get to know you",
+    "hero_cta": "Apply now",
+    "hero_scroll": "Scroll down to begin",
+    "value1_title": "Personal guidance",
+    "value1_body": "A devoted team that accompanies every student along the way",
+    "value2_title": "Multiple tracks",
+    "value2_body": "Kodesh and chol studies — high school, college and university",
+    "value3_title": "A warm community",
+    "value3_body": "A supportive environment where everyone can reach her potential",
+    "programs_heading": "Our programs",
+    "programs_note": "Choose the track that fits you — we're happy to advise",
+    "programs_empty": "Program details coming soon",
+    "register_heading": "Application form",
+    "footer_note": "All rights reserved"
   },
   "notifications": {
     "title": "Notifications",
