@@ -87,6 +87,21 @@ export default function StructurePage() {
       await load(unit)
     } finally { setBusy(false) }
   }
+  const moveGroup = async (groupId: string, targetNodeId: string) => {
+    setBusy(true); setErr(null)
+    try {
+      const res = await fetch(`/api/education/units/${unit}/structure/move-group`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId, target_node_id: targetNodeId }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
+      await load(unit)
+    } finally { setBusy(false) }
+  }
+
+  const nodeOptions = useMemo(
+    () => nodes.map(n => ({ id: n.id, label: (n.tier ? `${n.tier} · ` : '') + n.name })),
+    [nodes],
+  )
 
   return (
     <div className="p-6 space-y-5">
@@ -118,19 +133,21 @@ export default function StructurePage() {
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 14 }}>
           <TreeNode node={root} depth={0} index={0} siblingCount={1} childrenOf={childrenOf} busy={busy}
-            onAdd={addChild} onRename={rename} onRemove={remove} onMove={move} t={t} />
+            onAdd={addChild} onRename={rename} onRemove={remove} onMove={move} onMoveGroup={moveGroup} nodeOptions={nodeOptions} t={t} />
         </div>
       )}
     </div>
   )
 }
 
-function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, onRename, onRemove, onMove, t }: {
+function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, onRename, onRemove, onMove, onMoveGroup, nodeOptions, t }: {
   node: Node; depth: number; index: number; siblingCount: number; childrenOf: Map<string | null, Node[]>; busy: boolean
   onAdd: (parentId: string, name: string, tier: string) => Promise<boolean>
   onRename: (nodeId: string, name: string, tier: string) => Promise<boolean>
   onRemove: (nodeId: string) => void
   onMove: (nodeId: string, direction: 'up' | 'down') => void
+  onMoveGroup: (groupId: string, targetNodeId: string) => void
+  nodeOptions: { id: string; label: string }[]
   t: (k: string, f?: string) => string
 }) {
   const [adding, setAdding] = useState(false)
@@ -180,7 +197,14 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
       {node.groups.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 4px' }}>
           {node.groups.map(g => (
-            <span key={g.id} style={{ fontSize: 11.5, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>📚 {g.name}</span>
+            <span key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px 2px 8px' }}>
+              📚 {g.name}
+              <select value="" disabled={busy} title={t('move_group')} onChange={e => { if (e.target.value) onMoveGroup(g.id, e.target.value) }}
+                style={{ fontSize: 10.5, border: '1px solid var(--border-strong)', borderRadius: 5, background: 'var(--surface)', color: 'var(--text-muted)', padding: '0 2px', cursor: 'pointer' }}>
+                <option value="">⇄</option>
+                {nodeOptions.filter(o => o.id !== node.id).map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+              </select>
+            </span>
           ))}
         </div>
       )}
@@ -198,7 +222,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
       )}
 
       {kids.map((k, ki) => (
-        <TreeNode key={k.id} node={k} depth={depth + 1} index={ki} siblingCount={kids.length} childrenOf={childrenOf} busy={busy} onAdd={onAdd} onRename={onRename} onRemove={onRemove} onMove={onMove} t={t} />
+        <TreeNode key={k.id} node={k} depth={depth + 1} index={ki} siblingCount={kids.length} childrenOf={childrenOf} busy={busy} onAdd={onAdd} onRename={onRename} onRemove={onRemove} onMove={onMove} onMoveGroup={onMoveGroup} nodeOptions={nodeOptions} t={t} />
       ))}
     </div>
   )

@@ -1147,7 +1147,8 @@
       "save_failed": "Save failed",
       "tier_ph": "Tier (level/class…)",
       "move_up": "Up",
-      "move_down": "Down"
+      "move_down": "Down",
+      "move_group": "Move group to another node"
     },
     "track_assign": {
       "title": "Track assignment",
