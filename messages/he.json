@@ -95,7 +95,8 @@
     "maintenance": "תחזוקה",
     "security": "אבטחה",
     "logo_alt": "מכון חמש",
-    "toggle_menu": "פתח/סגור תפריט"
+    "toggle_menu": "פתח/סגור תפריט",
+    "toggle_theme": "מצב תצוגה בהיר/כהה"
   },
   "auth": {
     "login": "כניסה",
