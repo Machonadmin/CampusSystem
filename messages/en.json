@@ -1088,6 +1088,28 @@
         "6": "Sat",
         "7": "Sun"
       }
+    },
+    "reports": {
+      "title": "Reports & Analytics",
+      "subtitle": "Attendance & grade summary by group and by student",
+      "no_units": "No units to manage",
+      "tab_groups": "By group",
+      "tab_students": "By student",
+      "stat_attendance": "Avg attendance",
+      "stat_grade_avg": "Grade average",
+      "stat_students": "Students",
+      "stat_groups": "Groups",
+      "col_group": "Group",
+      "col_students": "Students",
+      "col_lessons": "Lessons",
+      "col_attendance": "Attendance",
+      "col_assessments": "Assessments",
+      "col_grade_avg": "Grade avg",
+      "col_student": "Student",
+      "col_groups": "Groups",
+      "col_marked": "Marked",
+      "no_groups": "No groups in the unit",
+      "no_students": "No students in the unit"
     }
   },
   "tasks": {

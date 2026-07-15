@@ -1088,6 +1088,28 @@
         "6": "שבת",
         "7": "ראשון"
       }
+    },
+    "reports": {
+      "title": "דוחות ונתונים",
+      "subtitle": "סיכום נוכחות וציונים לפי קבוצה ולפי תלמידה",
+      "no_units": "אין יחידות לניהול",
+      "tab_groups": "לפי קבוצה",
+      "tab_students": "לפי תלמידה",
+      "stat_attendance": "נוכחות ממוצעת",
+      "stat_grade_avg": "ממוצע ציונים",
+      "stat_students": "תלמידות",
+      "stat_groups": "קבוצות",
+      "col_group": "קבוצה",
+      "col_students": "תלמידות",
+      "col_lessons": "שיעורים",
+      "col_attendance": "נוכחות",
+      "col_assessments": "מבחנים",
+      "col_grade_avg": "ממוצע ציונים",
+      "col_student": "תלמידה",
+      "col_groups": "קבוצות",
+      "col_marked": "נרשמו",
+      "no_groups": "אין קבוצות ביחידה",
+      "no_students": "אין תלמידות ביחידה"
     }
   },
   "tasks": {

@@ -1,0 +1,212 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleHeaderGradient } from '@/lib/module-colors'
+
+interface Unit { id: string; name: string }
+interface AttBlock { present: number; late: number; absent: number; marked: number; total_lessons?: number; percent: number | null }
+interface GroupRow {
+  class_group_id: string
+  name: string
+  level: string | null
+  subject: { id: string; name: string } | null
+  student_count: number
+  attendance: AttBlock
+  grades: { graded_count: number; total_assessments: number; average: number | null }
+}
+interface StudentRow {
+  journey_id: string
+  name: string
+  group_count: number
+  attendance: AttBlock
+  grade_average: number | null
+}
+interface Report {
+  unit: { id: string; name: string }
+  groups: GroupRow[]
+  students: StudentRow[]
+  summary: {
+    group_count: number
+    student_count: number
+    attendance: AttBlock
+    grades: { graded_count: number; total_assessments: number; average: number | null }
+  }
+}
+
+/** Цвет для процента посещаемости/оценки: ≥85 успех, ≥70 предупреждение, иначе опасность. */
+function pctColor(p: number | null): string {
+  if (p === null) return 'var(--text-faint)'
+  if (p >= 85) return 'var(--success)'
+  if (p >= 70) return 'var(--warn)'
+  return 'var(--danger)'
+}
+const pctText = (p: number | null) => (p === null ? '—' : `${p}%`)
+
+export default function ReportsPage() {
+  const t = useTranslations('education.reports')
+  const tNav = useTranslations('navigation')
+
+  const [units, setUnits] = useState<Unit[]>([])
+  const [unit, setUnit] = useState('')
+  const [report, setReport] = useState<Report | null>(null)
+  const [loadingUnits, setLoadingUnits] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [tab, setTab] = useState<'groups' | 'students'>('groups')
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/education/units')
+        if (res.ok) {
+          const b = await res.json()
+          const us: Unit[] = b.units ?? []
+          setUnits(us)
+          if (us.length > 0) setUnit(us[0].id)
+        }
+      } finally { setLoadingUnits(false) }
+    })()
+  }, [])
+
+  const load = useCallback(async (u: string) => {
+    if (!u) { setReport(null); return }
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/education/units/${u}/report`)
+      if (res.ok) setReport(await res.json())
+      else setReport(null)
+    } finally { setLoading(false) }
+  }, [])
+  useEffect(() => { load(unit) }, [unit, load])
+
+  const s = report?.summary
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education'), href: '/dashboard/education' },
+        { label: t('title') },
+      ]} />
+
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '12px 24px' }}>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
+      </div>
+
+      {/* Выбор единицы */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <select value={unit} onChange={e => setUnit(e.target.value)} disabled={loadingUnits || units.length === 0}
+          style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
+          {units.length === 0 && <option value="">{loadingUnits ? '…' : t('no_units')}</option>}
+          {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+        </select>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+      ) : !report ? (
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>
+      ) : (
+        <>
+          {/* Сводные карточки */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+            <StatCard label={t('stat_attendance')} value={pctText(s!.attendance.percent)} color={pctColor(s!.attendance.percent)} />
+            <StatCard label={t('stat_grade_avg')} value={pctText(s!.grades.average)} color={pctColor(s!.grades.average)} />
+            <StatCard label={t('stat_students')} value={String(s!.student_count)} />
+            <StatCard label={t('stat_groups')} value={String(s!.group_count)} />
+          </div>
+
+          {/* Табы */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {(['groups', 'students'] as const).map(key => (
+              <button key={key} onClick={() => setTab(key)}
+                style={{
+                  padding: '7px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
+                  border: `1px solid ${tab === key ? 'var(--accent)' : 'var(--border-strong)'}`,
+                  background: tab === key ? 'var(--accent-tint)' : 'var(--surface)',
+                  color: tab === key ? 'var(--accent-strong)' : 'var(--text-muted)',
+                }}>
+                {t(`tab_${key}`)}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'groups' ? (
+            <ReportTable
+              headers={[t('col_group'), t('col_students'), t('col_lessons'), t('col_attendance'), t('col_assessments'), t('col_grade_avg')]}
+              empty={t('no_groups')}
+              rows={report.groups.map(g => ({
+                key: g.class_group_id,
+                cells: [
+                  { text: g.name + (g.subject ? ` · ${g.subject.name}` : ''), strong: true },
+                  { text: String(g.student_count) },
+                  { text: String(g.attendance.total_lessons ?? 0) },
+                  { text: pctText(g.attendance.percent), color: pctColor(g.attendance.percent), strong: true },
+                  { text: `${g.grades.graded_count}/${g.grades.total_assessments}` },
+                  { text: pctText(g.grades.average), color: pctColor(g.grades.average), strong: true },
+                ],
+              }))}
+            />
+          ) : (
+            <ReportTable
+              headers={[t('col_student'), t('col_groups'), t('col_marked'), t('col_attendance'), t('col_grade_avg')]}
+              empty={t('no_students')}
+              rows={report.students.map(st => ({
+                key: st.journey_id,
+                cells: [
+                  { text: st.name || '—', strong: true },
+                  { text: String(st.group_count) },
+                  { text: String(st.attendance.marked) },
+                  { text: pctText(st.attendance.percent), color: pctColor(st.attendance.percent), strong: true },
+                  { text: pctText(st.grade_average), color: pctColor(st.grade_average), strong: true },
+                ],
+              }))}
+            />
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
+      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
+    </div>
+  )
+}
+
+interface Cell { text: string; color?: string; strong?: boolean }
+function ReportTable({ headers, rows, empty }: { headers: string[]; rows: { key: string; cells: Cell[] }[]; empty: string }) {
+  if (rows.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{empty}</div>
+  return (
+    <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
+        <thead>
+          <tr>
+            {headers.map((h, i) => (
+              <th key={i} style={{ textAlign: i === 0 ? 'start' : 'center', padding: '10px 14px', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.key} style={{ borderBottom: '1px solid var(--border)' }}>
+              {r.cells.map((c, i) => (
+                <td key={i} style={{
+                  textAlign: i === 0 ? 'start' : 'center', padding: '9px 14px',
+                  color: c.color ?? 'var(--text)', fontWeight: c.strong ? 700 : 400,
+                  fontFamily: i === 0 ? undefined : 'var(--font-mono)', whiteSpace: 'nowrap',
+                }}>{c.text}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
