@@ -24,21 +24,28 @@ type EnrollRow = {
  * Только чтение/агрегация. Право: view_students в контексте группы.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
     const sb = createServerClient()
+    const from = (request.nextUrl.searchParams.get('from') ?? '').trim()
+    const to = (request.nextUrl.searchParams.get('to') ?? '').trim()
 
     const target = await getClassGroupTarget(sb, params.id)
     if (!target) return apiError('group_not_found', 404)
     await requireEducationPrivilege('view_students', target)
 
     // Задания группы (по возрастанию даты → хронология колонок).
-    const { data: assessRaw, error: aErr } = await sb
+    // Период: при активном from/to берём только датированные задания в диапазоне
+    // (SQL-сравнение с NULL ложно → недатированные исключаются, как в отчёте).
+    let assessQ = sb
       .from('assessments')
       .select('id, title, max_score, assessment_date')
       .eq('class_group_id', params.id)
+    if (from) assessQ = assessQ.gte('assessment_date', from)
+    if (to) assessQ = assessQ.lte('assessment_date', to)
+    const { data: assessRaw, error: aErr } = await assessQ
       .order('assessment_date', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true })
     if (aErr) throw aErr

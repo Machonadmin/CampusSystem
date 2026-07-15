@@ -1117,7 +1117,11 @@
       "gb_avg_row": "Средний по группе",
       "gb_max_score": "Максимум",
       "gb_assessments": "заданий",
-      "gb_empty": "В группе нет заданий"
+      "gb_empty": "В группе нет заданий",
+      "period": "Период",
+      "period_from": "С",
+      "period_to": "По",
+      "period_clear": "Сброс"
     }
   },
   "tasks": {
