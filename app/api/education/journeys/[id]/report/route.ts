@@ -124,7 +124,7 @@ export async function GET(
     const visibleGroupIds = visible.map(g => g.id)
 
     // 3. Агрегация — по одному запросу на таблицу над видимыми группами.
-    type Att = { present: number; absent: number; excused: number; late: number }
+    type Att = { present: number; late: number; absent: number }
     const attByGroup = new Map<string, Att>()
     const totalLessonsByGroup = new Map<string, number>()
     const lessonToGroup = new Map<string, string>()
@@ -168,11 +168,10 @@ export async function GET(
         for (const row of att ?? []) {
           const gid = lessonToGroup.get(row.lesson_id)
           if (!gid) continue
-          const a = attByGroup.get(gid) ?? { present: 0, absent: 0, excused: 0, late: 0 }
-          if (row.status === 'present') a.present++
-          else if (row.status === 'absent') a.absent++
-          else if (row.status === 'excused') a.excused++
+          const a = attByGroup.get(gid) ?? { present: 0, late: 0, absent: 0 }
+          if (row.status === 'absent') a.absent++
           else if (row.status === 'late') a.late++
+          else a.present++ // present (и любые старые статусы) — как присутствие
           attByGroup.set(gid, a)
         }
       }
@@ -221,15 +220,15 @@ export async function GET(
     }
 
     // 4. Сборка по группам + сводка.
-    let sumPresent = 0, sumAbsent = 0, sumExcused = 0, sumLate = 0, sumMarked = 0, sumTotalLessons = 0
+    let sumPresent = 0, sumAbsent = 0, sumLate = 0, sumMarked = 0, sumTotalLessons = 0
     let sumGraded = 0, sumTotalAssessments = 0
     const allGradePercents: number[] = []
 
     const groups = visible.map(g => {
-      const a = attByGroup.get(g.id) ?? { present: 0, absent: 0, excused: 0, late: 0 }
-      const marked = a.present + a.absent + a.excused + a.late
+      const a = attByGroup.get(g.id) ?? { present: 0, late: 0, absent: 0 }
+      const marked = a.present + a.late + a.absent
       const totalLessons = totalLessonsByGroup.get(g.id) ?? 0
-      // excused и late засчитываются КАК посещение; снижает процент только absent.
+      // Веса: absent=1, late=0.5. Опоздание стоит половину пропуска.
       const attendancePct = attendancePercent(a)
 
       const groupAssessments = assessmentsByGroup.get(g.id) ?? []
@@ -252,7 +251,7 @@ export async function GET(
         ? null
         : round1(gradePercents.reduce((s, x) => s + x, 0) / gradedCount)
 
-      sumPresent += a.present; sumAbsent += a.absent; sumExcused += a.excused; sumLate += a.late
+      sumPresent += a.present; sumAbsent += a.absent; sumLate += a.late
       sumMarked += marked; sumTotalLessons += totalLessons
       sumGraded += gradedCount; sumTotalAssessments += totalAssessments
       allGradePercents.push(...gradePercents)
@@ -264,7 +263,7 @@ export async function GET(
         subject: g.subject,
         department: g.department,
         attendance: {
-          present: a.present, absent: a.absent, excused: a.excused, late: a.late,
+          present: a.present, late: a.late, absent: a.absent,
           marked, total_lessons: totalLessons,
           percent: attendancePct,
         },
@@ -280,9 +279,9 @@ export async function GET(
     const summary = {
       visible_group_count: groups.length,
       attendance: {
-        present: sumPresent, absent: sumAbsent, excused: sumExcused, late: sumLate,
+        present: sumPresent, late: sumLate, absent: sumAbsent,
         marked: sumMarked, total_lessons: sumTotalLessons,
-        percent: attendancePercent({ present: sumPresent, absent: sumAbsent, excused: sumExcused, late: sumLate }),
+        percent: attendancePercent({ present: sumPresent, late: sumLate, absent: sumAbsent }),
       },
       grades: {
         graded_count: sumGraded,

@@ -6,7 +6,7 @@ import type { LessonItem } from './LessonsJournalTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
-type AttendanceStatus = 'present' | 'absent' | 'excused' | 'late'
+type AttendanceStatus = 'present' | 'late' | 'absent'
 
 interface StudentEntry {
   journey_id: string
@@ -27,13 +27,13 @@ interface Props {
 
 // ── Цвета статусов ────────────────────────────────────────────────────────────
 
-const STATUS_ORDER: AttendanceStatus[] = ['present', 'absent', 'excused', 'late']
+const STATUS_ORDER: AttendanceStatus[] = ['present', 'late', 'absent']
 
+// Семантические токены темы: present=success, late=warn, absent=danger.
 const STATUS_COLORS: Record<AttendanceStatus, { color: string; bg: string; border: string }> = {
-  present: { color: '#065F46', bg: '#D1FAE5', border: '#059669' },
-  absent:  { color: '#991B1B', bg: '#FEE2E2', border: '#DC2626' },
-  excused: { color: '#1E40AF', bg: 'var(--accent-tint)', border: 'var(--accent)' },
-  late:    { color: '#92400E', bg: '#FEF3C7', border: '#D97706' },
+  present: { color: 'var(--success)', bg: 'var(--success-tint)', border: 'var(--success)' },
+  late:    { color: 'var(--warn)',    bg: 'var(--warn-tint)',    border: 'var(--warn)' },
+  absent:  { color: 'var(--danger)',  bg: 'var(--danger-tint)',  border: 'var(--danger)' },
 }
 
 function formatDate(lang: string, iso: string): string {
@@ -56,9 +56,8 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
 
   const STATUS_LABEL: Record<AttendanceStatus, string> = {
     present: t('status_present'),
-    absent: t('status_absent'),
-    excused: t('status_excused'),
     late: t('status_late'),
+    absent: t('status_absent'),
   }
 
   const load = useCallback(async () => {

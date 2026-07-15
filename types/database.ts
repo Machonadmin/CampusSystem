@@ -932,7 +932,7 @@ export interface ClassTeacherInsert {
 
 // ─── Lessons & Attendance (управление учёбой, фаза A) ──────────────────────────
 
-export type AttendanceStatus = 'present' | 'absent' | 'excused' | 'late'
+export type AttendanceStatus = 'present' | 'late' | 'absent'
 
 export interface LessonRow {
   id: string
