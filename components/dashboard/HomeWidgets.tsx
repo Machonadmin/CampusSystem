@@ -221,13 +221,13 @@ function UpcomingEventsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('upcoming')} accent="#6366F1" count={items.length} onClick={() => router.push('/dashboard/calendar')}>
+    <Card title={t('upcoming')} accent="var(--violet)" count={items.length} onClick={() => router.push('/dashboard/calendar')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(ev => (
           <Row key={ev.id} main={ev.title}
             sub={`${formatDate(ev.event_date, lang)}${!ev.all_day && ev.event_time ? ' ' + ev.event_time.slice(0, 5) : ''}`} />
         ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: '#6366F1' }}>+{items.length - 4} {t('more')}</span>}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--violet)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )
