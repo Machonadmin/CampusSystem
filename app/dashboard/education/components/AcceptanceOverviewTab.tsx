@@ -131,9 +131,9 @@ export default function AcceptanceOverviewTab() {
             onClick={() => setFilter(f.key)}
             style={{
               fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
-              border: `1px solid ${filter === f.key ? '#4F46E5' : '#D1D5DB'}`,
-              background: filter === f.key ? '#EEF0FE' : '#fff',
-              color: filter === f.key ? '#4F46E5' : '#6B7280',
+              border: `1px solid ${filter === f.key ? 'var(--accent)' : 'var(--border-strong)'}`,
+              background: filter === f.key ? '#EEF0FE' : 'var(--surface)',
+              color: filter === f.key ? 'var(--accent)' : 'var(--text-muted)',
             }}
           >
             {f.label}
@@ -141,17 +141,17 @@ export default function AcceptanceOverviewTab() {
         ))}
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {error ? (
           <div style={{ padding: 24, fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ padding: 24, fontSize: 13, color: '#9CA3AF' }}>{t('overview.loading')}</div>
+          <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.loading')}</div>
         ) : applicants.length === 0 ? (
-          <div style={{ padding: 24, fontSize: 13, color: '#9CA3AF' }}>{t('overview.no_data')}</div>
+          <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.no_data')}</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 <th style={th}>{t('overview.applicant')}</th>
                 {STAGE_ORDER.map(code => (
                   <th key={code} style={th}>{t(`acceptance_stages.${code}`, code)}</th>
@@ -163,11 +163,11 @@ export default function AcceptanceOverviewTab() {
                 const byCode = new Map(app.stages.map(s => [s.stage_code, s]))
                 const name = app.applicant.full_name || app.applicant.hebrew_name || '—'
                 return (
-                  <tr key={app.process_instance_id} style={{ borderBottom: '1px solid #F9FAFB' }}>
+                  <tr key={app.process_instance_id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
                     <td style={{ ...td, minWidth: 160 }}>
                       <button
                         onClick={() => router.push(`/dashboard/education/leads/${app.journey_id}`)}
-                        style={{ fontSize: 13, fontWeight: 600, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'start' }}
+                        style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'start' }}
                       >
                         {name}
                       </button>
@@ -177,7 +177,7 @@ export default function AcceptanceOverviewTab() {
                       return (
                         <td key={code} style={{ ...td, minWidth: 130 }}>
                           {!cell ? (
-                            <span style={{ fontSize: 12, color: '#D1D5DB' }}>{t('overview.none')}</span>
+                            <span style={{ fontSize: 12, color: 'var(--border-strong)' }}>{t('overview.none')}</span>
                           ) : (
                             <Cell cell={cell} onSign={() => openSign(name, cell)}
                               pendingLabel={t('overview.pending')} signLabel={t('overview.sign')}
@@ -197,8 +197,8 @@ export default function AcceptanceOverviewTab() {
       {/* Sign modal */}
       {modal && (
         <div onClick={() => !signing && setModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12, maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
               {t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)} — {modal.applicant}
             </div>
 
@@ -209,9 +209,9 @@ export default function AcceptanceOverviewTab() {
                   onClick={() => setSelectedFinal(f.code)}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : '#D1D5DB'}`,
-                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : '#fff',
-                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : '#374151',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
                   }}
                 >
                   {t(`acceptance_finals.${f.code}`, f.name_ru)}
@@ -226,7 +226,7 @@ export default function AcceptanceOverviewTab() {
                   onChange={e => setNote(e.target.value)}
                   placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
                   rows={2}
-                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
               </>
@@ -235,10 +235,10 @@ export default function AcceptanceOverviewTab() {
             {signError && <div style={{ fontSize: 12, color: '#DC2626' }}>{signError}</div>}
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setModal(null)} disabled={signing} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: '#374151', cursor: 'pointer' }}>
+              <button onClick={() => setModal(null)} disabled={signing} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
                 {tCommon('cancel')}
               </button>
-              <button onClick={submitSign} disabled={signing || !selectedFinal || !sig} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: signing || !selectedFinal || !sig ? '#9CA3AF' : '#4F46E5', color: '#fff', cursor: signing || !selectedFinal || !sig ? 'default' : 'pointer' }}>
+              <button onClick={submitSign} disabled={signing || !selectedFinal || !sig} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: signing || !selectedFinal || !sig ? 'var(--text-faint)' : 'var(--accent)', color: '#fff', cursor: signing || !selectedFinal || !sig ? 'default' : 'pointer' }}>
                 {tCommon('confirm')}
               </button>
             </div>
@@ -271,12 +271,12 @@ function Cell({
           {pendingLabel}
         </span>
       ) : (
-        <span style={{ fontSize: 12, color: '#D1D5DB' }}>—</span>
+        <span style={{ fontSize: 12, color: 'var(--border-strong)' }}>—</span>
       )}
-      {cell.signer_name && <span style={{ fontSize: 11, color: '#6B7280' }}>{cell.signer_name}</span>}
-      {cell.note && <span style={{ fontSize: 11, color: '#9CA3AF', fontStyle: 'italic' }} title={cell.note}>{cell.note.length > 28 ? cell.note.slice(0, 28) + '…' : cell.note}</span>}
+      {cell.signer_name && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{cell.signer_name}</span>}
+      {cell.note && <span style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }} title={cell.note}>{cell.note.length > 28 ? cell.note.slice(0, 28) + '…' : cell.note}</span>}
       {cell.can_sign && cell.finals.length > 0 && (
-        <button onClick={onSign} style={{ justifySelf: 'start', fontSize: 12, fontWeight: 700, color: '#4F46E5', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <button onClick={onSign} style={{ justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           ✍ {signLabel}
         </button>
       )}
@@ -284,5 +284,5 @@ function Cell({
   )
 }
 
-const th: React.CSSProperties = { padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }
+const th: React.CSSProperties = { padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }
 const td: React.CSSProperties = { padding: '11px 14px', verticalAlign: 'top' }

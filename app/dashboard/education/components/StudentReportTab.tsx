@@ -63,7 +63,7 @@ function pct(v: number | null): string {
 
 /** Цвет для процентного показателя (посещаемость / средний балл). */
 function scoreColor(v: number | null): string {
-  if (v === null) return '#9CA3AF'
+  if (v === null) return 'var(--text-faint)'
   if (v >= 90) return '#059669'
   if (v >= 75) return '#D97706'
   return '#DC2626'
@@ -132,21 +132,21 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
 
   // ── Стили ─────────────────────────────────────────────────────────────────
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
-    padding: '8px 10px', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+    padding: '8px 10px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
   }
   const td: React.CSSProperties = {
-    fontSize: 13, color: '#1F2937', padding: '10px 10px', borderBottom: '1px solid #F3F4F6', verticalAlign: 'top',
+    fontSize: 13, color: 'var(--text)', padding: '10px 10px', borderBottom: '1px solid var(--surface-2)', verticalAlign: 'top',
   }
 
   if (loading) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
   }
   if (error) {
     return <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
   }
   if (!data || data.groups.length === 0) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
   }
 
   const s = data.summary
@@ -172,7 +172,7 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
       </div>
 
       {/* ── Таблица по группам ──────────────────────────────────────────── */}
-      <div style={{ overflowX: 'auto', border: '1px solid #E5E7EB', borderRadius: 10 }}>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
           <thead>
             <tr>
@@ -214,16 +214,16 @@ function SummaryTile({
 }: { label: string; value: string; valueColor: string; caption: string; accentColor: string }) {
   return (
     <div style={{
-      background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10,
+      background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10,
       padding: '14px 16px', borderTop: `3px solid ${accentColor}`,
     }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
         {label}
       </div>
       <div style={{ fontSize: 26, fontWeight: 700, color: valueColor, marginTop: 4, lineHeight: 1.1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{caption}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{caption}</div>
     </div>
   )
 }
@@ -252,19 +252,19 @@ function FragmentRow({
       <tr
         onClick={onToggle}
         style={{ cursor: 'pointer' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#F9FAFB' }}
+        onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
         onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
       >
         {/* Группа */}
         <td style={td}>
-          <div style={{ fontWeight: 600, color: '#1F2937' }}>{subj || group.name}</div>
-          {subj && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>{group.name}</div>}
+          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{subj || group.name}</div>
+          {subj && <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 1 }}>{group.name}</div>}
         </td>
 
         {/* Посещаемость: % + покрытие + разбивка */}
         <td style={{ ...td, textAlign: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(a.percent) }}>{pct(a.percent)}</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
             {fill(t('coverage'), { done: a.marked, total: a.total_lessons })}
           </div>
           <div style={pillWrap}>
@@ -278,7 +278,7 @@ function FragmentRow({
         {/* Оценки: средний % + покрытие */}
         <td style={{ ...td, textAlign: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(gr.average) }}>{pct(gr.average)}</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
             {fill(t('coverage'), { done: gr.graded_count, total: gr.total_assessments })}
           </div>
         </td>
@@ -292,28 +292,28 @@ function FragmentRow({
       {/* Деталь по заданиям */}
       {isOpen && (
         <tr>
-          <td colSpan={4} style={{ padding: 0, borderBottom: '1px solid #F3F4F6', background: '#FAFAFA' }}>
+          <td colSpan={4} style={{ padding: 0, borderBottom: '1px solid var(--surface-2)', background: 'var(--surface-2)' }}>
             <div style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
                 {t('assessments_title')}
               </div>
               {gr.assessments.length === 0 ? (
-                <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('no_assessments')}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_assessments')}</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {gr.assessments.map(as => {
                     const graded = as.score !== null
                     return (
                       <div key={as.assessment_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
-                        <div style={{ color: '#374151', minWidth: 0 }}>
+                        <div style={{ color: 'var(--text)', minWidth: 0 }}>
                           <span style={{ fontWeight: 500 }}>{as.title}</span>
                           {as.assessment_date && (
-                            <span style={{ color: '#9CA3AF', marginInlineStart: 6, fontSize: 12 }}>
+                            <span style={{ color: 'var(--text-faint)', marginInlineStart: 6, fontSize: 12 }}>
                               {formatDate(lang, as.assessment_date)}
                             </span>
                           )}
                         </div>
-                        <div style={{ whiteSpace: 'nowrap', fontWeight: 600, color: graded ? '#111827' : '#D1D5DB' }}>
+                        <div style={{ whiteSpace: 'nowrap', fontWeight: 600, color: graded ? 'var(--text)' : 'var(--border-strong)' }}>
                           {graded ? `${formatNum(as.score)} / ${formatNum(as.max_score)}` : '—'}
                         </div>
                       </div>
@@ -339,8 +339,8 @@ function Pill({ n, color, bg, title }: { n: number; color: string; bg: string; t
       style={{
         fontSize: 11, fontWeight: 600, lineHeight: 1,
         padding: '3px 6px', borderRadius: 6,
-        color: dim ? '#9CA3AF' : color,
-        background: dim ? '#F3F4F6' : bg,
+        color: dim ? 'var(--text-faint)' : color,
+        background: dim ? 'var(--surface-2)' : bg,
         minWidth: 18, textAlign: 'center',
       }}
     >

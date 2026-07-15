@@ -104,10 +104,10 @@ export default function StudyGroupsTab() {
     return true
   })
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -123,7 +123,7 @@ export default function StudyGroupsTab() {
           value={filterSpec}
           onChange={e => setFilterSpec(e.target.value)}
           disabled={filteredSpecOptions.length === 0}
-          style={{ ...inp, color: filterSpec ? '#1F2937' : '#9CA3AF', opacity: filteredSpecOptions.length === 0 ? 0.5 : 1 }}
+          style={{ ...inp, color: filterSpec ? 'var(--text)' : 'var(--text-faint)', opacity: filteredSpecOptions.length === 0 ? 0.5 : 1 }}
         >
           <option value="">{t('groups.all_specialties')}</option>
           {filteredSpecOptions.map(s => (
@@ -147,7 +147,7 @@ export default function StudyGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
         <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -157,14 +157,14 @@ export default function StudyGroupsTab() {
 
       {!loading && !error && (
         filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {groups.length === 0 ? t('groups.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('groups.table_name')}</th>
                   <th style={thStyle}>{t('groups.table_department')}</th>
                   <th style={thStyle}>{t('groups.table_specialty')}</th>
@@ -179,28 +179,28 @@ export default function StudyGroupsTab() {
                 {filtered.map(g => (
                   <tr
                     key={g.id}
-                    style={{ borderTop: '1px solid #F3F4F6' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    style={{ borderTop: '1px solid var(--surface-2)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{g.name}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>{g.department?.name ?? '—'}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{g.department?.name ?? '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
                       {g.specialty
                         ? (g.specialty.code ? `[${g.specialty.code}] ${g.specialty.name}` : g.specialty.name)
-                        : <span style={{ color: '#D1D5DB' }}>—</span>}
+                        : <span style={{ color: 'var(--border-strong)' }}>—</span>}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                      {g.year_level ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)' }}>
+                      {g.year_level ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                      {g.year_start ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)' }}>
+                      {g.year_start ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       <span style={{
                         fontSize: 12, padding: '2px 8px', borderRadius: 99,
-                        background: g.counts.students > 0 ? '#EEF2FF' : '#F3F4F6',
-                        color: g.counts.students > 0 ? '#3730A3' : '#9CA3AF',
+                        background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
+                        color: g.counts.students > 0 ? '#3730A3' : 'var(--text-faint)',
                         fontWeight: 500,
                       }}>
                         {g.counts.students}
@@ -209,7 +209,7 @@ export default function StudyGroupsTab() {
                     <td style={tdStyle}>
                       {g.is_active
                         ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('groups.status_active')}</span>
-                        : <span style={{ color: '#9CA3AF' }}>{t('groups.status_inactive')}</span>}
+                        : <span style={{ color: 'var(--text-faint)' }}>{t('groups.status_inactive')}</span>}
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -246,7 +246,7 @@ export default function StudyGroupsTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }

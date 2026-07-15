@@ -86,10 +86,10 @@ export default function SpecialtiesTab() {
     ? specialties.filter(s => s.department_id === filterDept)
     : specialties
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -126,7 +126,7 @@ export default function SpecialtiesTab() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
       )}
 
       {error && (
@@ -137,14 +137,14 @@ export default function SpecialtiesTab() {
 
       {!loading && !error && (
         filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {specialties.length === 0 ? t('specialties.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={{ ...thStyle, width: 80 }}>{t('specialties.table_code')}</th>
                   <th style={thStyle}>{t('specialties.table_name')}</th>
                   <th style={thStyle}>{t('specialties.table_department')}</th>
@@ -157,21 +157,21 @@ export default function SpecialtiesTab() {
                 {filtered.map(s => (
                   <tr
                     key={s.id}
-                    style={{ borderTop: '1px solid #F3F4F6' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    style={{ borderTop: '1px solid var(--surface-2)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
-                    <td style={{ ...tdStyle, color: '#6B7280', fontFamily: 'monospace', fontSize: 12 }}>
-                      {s.code ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 12 }}>
+                      {s.code ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                     </td>
                     <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>{s.sort_order}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.department?.name ?? '—'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>{s.sort_order}</td>
                     <td style={tdStyle}>
                       {s.is_active ? (
                         <span style={{ color: '#10B981', fontWeight: 500 }}>{t('specialties.status_active')}</span>
                       ) : (
-                        <span style={{ color: '#9CA3AF' }}>{t('specialties.status_inactive')}</span>
+                        <span style={{ color: 'var(--text-faint)' }}>{t('specialties.status_inactive')}</span>
                       )}
                     </td>
                     <td style={tdStyle}>
@@ -212,7 +212,7 @@ export default function SpecialtiesTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'start', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }

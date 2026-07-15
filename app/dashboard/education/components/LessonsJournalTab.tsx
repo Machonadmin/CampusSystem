@@ -105,25 +105,25 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
   }
 
   const btnSmall: React.CSSProperties = {
-    padding: '4px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '4px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 12px',
-    borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+    borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
   }
   const td: React.CSSProperties = {
-    fontSize: 13, color: '#1F2937', padding: '10px 12px', borderBottom: '1px solid #F3F4F6',
+    fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)',
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       {/* Заголовок секции */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('section_title')}
-          <span style={{ fontWeight: 400, color: '#6B7280', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
             ({lessons.length})
           </span>
         </h2>
@@ -132,7 +132,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
             onClick={() => setFormLesson('create')}
             style={{
               padding: '4px 10px', fontSize: 12, color: accentColor,
-              background: '#fff', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer',
+              background: 'var(--surface)', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer',
             }}
           >
             {t('add_lesson')}
@@ -142,11 +142,11 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
         <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : lessons.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -170,7 +170,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                     {lesson.is_cancelled && (
                       <span style={{
                         marginLeft: 8, fontSize: 11, padding: '2px 7px', borderRadius: 99,
-                        fontWeight: 500, background: '#F3F4F6', color: '#6B7280',
+                        fontWeight: 500, background: 'var(--surface-2)', color: 'var(--text-muted)',
                       }}>
                         {t('cancelled_badge')}
                       </span>
@@ -179,7 +179,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                   <td style={td}>{lesson.location || '—'}</td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>
                     <span style={{
-                      color: lesson.marked_count > 0 ? '#059669' : '#9CA3AF',
+                      color: lesson.marked_count > 0 ? '#059669' : 'var(--text-faint)',
                       fontWeight: lesson.marked_count > 0 ? 600 : 400,
                     }}>
                       {lesson.marked_count} / {enrolledCount}
@@ -304,11 +304,11 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
   }
 
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4,
+    display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4,
   }
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
+    border: '1px solid var(--border-strong)', borderRadius: 8,
     boxSizing: 'border-box', outline: 'none',
   }
 
@@ -324,17 +324,17 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 440,
           maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {lesson ? t('modal_edit_title') : t('modal_create_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -376,10 +376,10 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
           <button
             onClick={onClose} disabled={saving}
-            style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+            style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
           >
             {t('btn_cancel')}
           </button>

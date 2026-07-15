@@ -232,12 +232,12 @@ export default function EducationPage() {
             <input
               value={search} onChange={e => setSearch(e.target.value)}
               placeholder={t('leads.search_placeholder')}
-              style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }}
+              style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}
             />
             <select
               value={processStatus}
               onChange={e => setProcessStatus(e.target.value as ProcessStatusFilter)}
-              style={{ padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer' }}
+              style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
             >
               <option value="active">{t('leads.process_status.active')}</option>
               <option value="closed">{t('leads.process_status.closed')}</option>
@@ -249,9 +249,9 @@ export default function EducationPage() {
               onClick={() => setMineOnly(v => !v)}
               style={{
                 padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
-                border: `1px solid ${mineOnly ? '#2563EB' : '#D1D5DB'}`,
-                background: mineOnly ? '#EFF6FF' : '#fff',
-                color: mineOnly ? '#2563EB' : '#6B7280', whiteSpace: 'nowrap',
+                border: `1px solid ${mineOnly ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+                background: mineOnly ? 'var(--accent-tint)' : 'var(--surface)',
+                color: mineOnly ? 'var(--accent-strong)' : 'var(--text-muted)', whiteSpace: 'nowrap',
               }}
             >
               {mineOnly ? t('leads.my_leads') : t('leads.all_leads')}
@@ -265,24 +265,24 @@ export default function EducationPage() {
               type="button"
               onClick={exportLeads}
               disabled={filtered.length === 0}
-              style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: filtered.length === 0 ? '#9CA3AF' : '#374151', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+              style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
             >
               ⭳ {tCommon('export_csv')}
             </button>
           </div>
 
           {/* Table card */}
-          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
             {loading ? (
-              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
             ) : filtered.length === 0 ? (
-              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+              <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
                 {leads.length === 0 ? t('leads.no_data') : t('leads.no_results')}
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                  <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                     {([
                       { label: t('leads.table.full_name'),        key: 'full_name'        as LeadSortKey },
                       { label: t('leads.table.institution'),       key: null },
@@ -298,7 +298,7 @@ export default function EducationPage() {
                         onClick={key ? () => handleLeadSort(key) : undefined}
                         style={{
                           padding: '10px 14px', fontSize: 11, fontWeight: 600,
-                          color: key ? (sortBy === key ? '#374151' : '#9CA3AF') : '#9CA3AF',
+                          color: key ? (sortBy === key ? 'var(--text)' : 'var(--text-faint)') : 'var(--text-faint)',
                           textAlign: 'start', whiteSpace: 'nowrap',
                           cursor: key ? 'pointer' : 'default',
                           userSelect: 'none',
@@ -315,8 +315,8 @@ export default function EducationPage() {
                 </thead>
                 <tbody>
                   {filtered.map(lead => (
-                    <tr key={lead.profile_id} style={{ borderBottom: '1px solid #F9FAFB' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    <tr key={lead.profile_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
                       {/* Фото + Имя */}
@@ -325,13 +325,13 @@ export default function EducationPage() {
                           {lead.photo_url ? (
                             <img src={lead.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#2563EB', flexShrink: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)', flexShrink: 0 }}>
                               {initials(lead.full_name)}
                             </div>
                           )}
                           <span
                             onClick={() => router.push(`/dashboard/education/leads/${lead.profile_id}`)}
-                            style={{ fontSize: 13, fontWeight: 500, color: '#2563EB', cursor: 'pointer' }}
+                            style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent-strong)', cursor: 'pointer' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
                           >
@@ -341,11 +341,11 @@ export default function EducationPage() {
                       </td>
 
                       {/* Учреждение */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#374151', maxWidth: 160 }}>
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text)', maxWidth: 160 }}>
                         {(() => {
                           const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
                           return depts.length === 0 ? (
-                            <span style={{ color: '#9CA3AF' }}>—</span>
+                            <span style={{ color: 'var(--text-faint)' }}>—</span>
                           ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                               {depts.map((d, idx) => <span key={idx}>{d}</span>)}
@@ -362,9 +362,9 @@ export default function EducationPage() {
                             return (i.free_text ?? '').trim()
                           }).filter(Boolean)
                           return texts.length === 0 ? (
-                            <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                            <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>—</span>
                           ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12, color: '#374151' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12, color: 'var(--text)' }}>
                               {texts.map((txt, idx) => <span key={idx}>{txt}</span>)}
                             </div>
                           )
@@ -372,9 +372,9 @@ export default function EducationPage() {
                       </td>
 
                       {/* Телефон */}
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                         {lead.phones.length === 0 ? (
-                          <span style={{ color: '#9CA3AF' }}>—</span>
+                          <span style={{ color: 'var(--text-faint)' }}>—</span>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             {lead.phones.map((p, idx) => <span key={idx} style={{ whiteSpace: 'nowrap' }}>{p}</span>)}
@@ -383,12 +383,12 @@ export default function EducationPage() {
                       </td>
 
                       {/* Email */}
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
-                        {lead.email ?? <span style={{ color: '#9CA3AF' }}>—</span>}
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
+                        {lead.email ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}
                       </td>
 
                       {/* Дата */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                         {formatDate(lead.application_date)}
                       </td>
 
@@ -399,16 +399,16 @@ export default function EducationPage() {
                             {t('page_status_deleted')}
                           </span>
                         ) : lead.active_stages_with_tasks.length === 0 ? (
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('leads.no_stages')}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('leads.no_stages')}</span>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {lead.active_stages_with_tasks.map(stage => (
                               <div key={stage.stage_name}>
-                                <div style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{stage.stage_name}</div>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{stage.stage_name}</div>
                                 {stage.tasks.length > 0 && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
                                     {stage.tasks.map((task, idx) => (
-                                      <div key={idx} style={{ fontSize: 11, color: '#6B7280' }}>• {task}</div>
+                                      <div key={idx} style={{ fontSize: 11, color: 'var(--text-muted)' }}>• {task}</div>
                                     ))}
                                   </div>
                                 )}
@@ -424,7 +424,7 @@ export default function EducationPage() {
                           onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === lead.profile_id ? null : lead.profile_id) }}
                           style={{
                             border: 'none', background: 'transparent', cursor: 'pointer',
-                            fontSize: 18, color: '#9CA3AF', padding: '2px 6px', borderRadius: 6,
+                            fontSize: 18, color: 'var(--text-faint)', padding: '2px 6px', borderRadius: 6,
                             lineHeight: 1,
                           }}
                           title={t('page_actions_title')}
@@ -434,7 +434,7 @@ export default function EducationPage() {
                         {openMenuId === lead.profile_id && (
                           <div style={{
                             position: 'absolute', right: 4, top: '100%', zIndex: 100,
-                            background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8,
+                            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
                             boxShadow: '0 4px 12px rgba(0,0,0,0.12)', minWidth: 170,
                             overflow: 'hidden',
                           }}>
@@ -451,21 +451,21 @@ export default function EducationPage() {
                               <>
                                 <button
                                   onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}`) }}
-                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
-                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text)' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
                                   {t('leads.actions.open')}
                                 </button>
                                 <button
                                   onClick={() => { setOpenMenuId(null); router.push(`/dashboard/education/leads/${lead.profile_id}/edit`) }}
-                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
-                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text)' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
                                   {t('leads.actions.edit')}
                                 </button>
-                                <div style={{ borderTop: '1px solid #F3F4F6', margin: '2px 0' }} />
+                                <div style={{ borderTop: '1px solid var(--surface-2)', margin: '2px 0' }} />
                                 <button
                                   onClick={() => { setOpenMenuId(null); setDeleteTarget(lead) }}
                                   style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#DC2626' }}
@@ -495,23 +495,23 @@ export default function EducationPage() {
               <button
                 type="button"
                 onClick={exportApplicants}
-                style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: '#374151', cursor: 'pointer' }}
+                style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}
               >
                 ⭳ {tCommon('export_csv')}
               </button>
             </div>
           )}
-          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
           {loadingApplicants ? (
-            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
           ) : applicants.length === 0 ? (
-            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+            <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
               {t('applicants.no_data')}
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+                <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                   {[
                     t('applicants.table.full_name'),
                     t('applicants.table.application_date'),
@@ -522,7 +522,7 @@ export default function EducationPage() {
                     t('applicants.table.status'),
                     t('applicants.table.current_stage'),
                   ].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'start', whiteSpace: 'nowrap' }}>
+                    <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
                   ))}
@@ -537,8 +537,8 @@ export default function EducationPage() {
                     ? interestTexts.join(', ')
                     : (app.desired_specialty?.name ?? app.desired_department?.name ?? '—')
                   return (
-                    <tr key={app.id} style={{ borderBottom: '1px solid #F9FAFB' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    <tr key={app.id} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
                       <td style={{ padding: '11px 14px' }}>
@@ -548,7 +548,7 @@ export default function EducationPage() {
                           </div>
                           <span
                             onClick={() => router.push(`/dashboard/education/leads/${app.id}`)}
-                            style={{ fontSize: 13, fontWeight: 500, color: '#2563EB', cursor: 'pointer' }}
+                            style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent-strong)', cursor: 'pointer' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
                           >
@@ -556,19 +556,19 @@ export default function EducationPage() {
                           </span>
                         </div>
                       </td>
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                         {formatDate(app.application_date)}
                       </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>
                         {phones[0] ?? '—'}
                       </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                         {app.person?.email ?? '—'}
                       </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                         {app.primary_department?.name ?? '—'}
                       </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: '#374151' }}>
+                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                         {direction}
                       </td>
                       <td style={{ padding: '11px 14px' }}>
@@ -578,16 +578,16 @@ export default function EducationPage() {
                       </td>
                       <td style={{ padding: '11px 14px', minWidth: 200 }}>
                         {(app.active_stages_with_tasks ?? []).length === 0 ? (
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t('applicants.no_stages')}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('applicants.no_stages')}</span>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {(app.active_stages_with_tasks ?? []).map(stage => (
                               <div key={stage.stage_name}>
-                                <div style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{stage.stage_name}</div>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{stage.stage_name}</div>
                                 {stage.tasks.length > 0 && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
                                     {stage.tasks.map((task, idx) => (
-                                      <div key={idx} style={{ fontSize: 11, color: '#6B7280' }}>• {task}</div>
+                                      <div key={idx} style={{ fontSize: 11, color: 'var(--text-muted)' }}>• {task}</div>
                                     ))}
                                   </div>
                                 )}
@@ -612,25 +612,25 @@ export default function EducationPage() {
 
       {deleteTarget && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: '28px 28px 24px', maxWidth: 400, width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 10px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '28px 28px 24px', maxWidth: 400, width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
               {t('leads.delete_confirm.title')}
             </h2>
-            <p style={{ fontSize: 14, color: '#374151', margin: '0 0 24px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', margin: '0 0 24px', lineHeight: 1.5 }}>
               {t('card.status.lead')} <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message')}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', color: '#374151' }}
+                style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
               >
                 {t('leads.delete_confirm.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: '#DC2626', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
+                style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: 'var(--danger)', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
               >
                 {t('leads.delete_confirm.confirm')}
               </button>
