@@ -1024,6 +1024,17 @@
         "manage_subjects": "Manage subjects",
         "manage_specialties": "Manage specialties"
       }
+    },
+    "placements": {
+      "title": "Placements",
+      "subtitle": "The student’s classes by unit",
+      "empty": "Not placed in any class yet",
+      "add_to_class": "Place in class",
+      "pick_unit": "Select unit",
+      "pick_class": "Select class",
+      "add_btn": "Place",
+      "remove": "Remove",
+      "no_classes": "No available classes in this unit"
     }
   },
   "tasks": {

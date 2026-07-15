@@ -1024,6 +1024,17 @@
         "manage_subjects": "ניהול מקצועות",
         "manage_specialties": "ניהול התמחויות"
       }
+    },
+    "placements": {
+      "title": "שיבוצים",
+      "subtitle": "הכיתות של התלמידה לפי יחידה",
+      "empty": "התלמידה לא משובצת עדיין לאף כיתה",
+      "add_to_class": "שבץ לכיתה",
+      "pick_unit": "בחר יחידה",
+      "pick_class": "בחר כיתה",
+      "add_btn": "שבץ",
+      "remove": "הסר",
+      "no_classes": "אין כיתות פנויות ביחידה"
     }
   },
   "tasks": {
