@@ -69,11 +69,11 @@ export default function PersonDetailClient({
       ]} />
 
       {error ? (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, fontSize: 13, color: '#DC2626' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: '#DC2626' }}>
           {error}
         </div>
       ) : loading || !data ? (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, fontSize: 13, color: '#9CA3AF' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--text-faint)' }}>
           {tCommon('loading')}
         </div>
       ) : (
@@ -98,7 +98,7 @@ export default function PersonDetailClient({
           </div>
 
           {/* Info card */}
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Info label={t('fields.email')} value={data.email} />
             <Info label={t('fields.phone')} value={data.phones.join(', ') || null} />
             <Info label={t('fields.department')} value={data.department} />
@@ -133,8 +133,8 @@ export default function PersonDetailClient({
 function Info({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 14, color: value ? '#1F2937' : '#9CA3AF', marginTop: 3 }}>{value || '—'}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ fontSize: 14, color: value ? 'var(--text)' : 'var(--text-faint)', marginTop: 3 }}>{value || '—'}</div>
     </div>
   )
 }

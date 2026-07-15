@@ -44,8 +44,8 @@ const STATUS_ICON: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:  '#9CA3AF',
-  received: '#3B82F6',
+  pending:  'var(--text-faint)',
+  received: 'var(--accent)',
   verified: '#10B981',
   rejected: '#EF4444',
   expired:  '#F59E0B',
@@ -105,18 +105,18 @@ export default function DocumentsTab({ personId, canManage }: Props) {
   const pct = total > 0 ? Math.round((received / total) * 100) : 0
 
   if (loading) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '12px 0' }}>{t('docs_loading', 'Загрузка документов…')}</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '12px 0' }}>{t('docs_loading', 'Загрузка документов…')}</div>
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Progress */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#6B7280', marginBottom: 6 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>
           <span>{t('docs_progress_label', 'Получено документов')}</span>
           <span style={{ fontWeight: 600 }}>{received} / {total}</span>
         </div>
-        <div style={{ height: 6, background: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: '#10B981', borderRadius: 3, transition: 'width 0.3s' }} />
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
         if (catTypes.length === 0) return null
         return (
           <div key={cat.id}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               {cat.name_ru}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -144,12 +144,12 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                   <div key={dt.id} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 12px', borderRadius: 8,
-                    background: '#fff', border: '1px solid #E5E7EB',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
                   }}>
                     <span style={{ fontSize: 16, flexShrink: 0 }}>{STATUS_ICON[status]}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 13, color: '#1F2937', fontWeight: dt.is_required ? 500 : 400 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: dt.is_required ? 500 : 400 }}>
                           {dt.name_ru}
                         </span>
                         {dt.is_required && (
@@ -169,8 +169,8 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             title={t('docs_action_mark_received', 'Отметить как получен')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #D1D5DB', background: '#F9FAFB',
-                              color: '#374151', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+                              color: 'var(--text)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
                             {isSaving ? '…' : t('docs_status_received', 'Получен')}
@@ -225,8 +225,8 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             title={t('docs_action_reset_title', 'Сбросить статус')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #D1D5DB', background: '#F9FAFB',
-                              color: '#6B7280', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+                              color: 'var(--text-muted)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
                             {isSaving ? '…' : t('docs_action_reset', 'Сброс')}
@@ -243,7 +243,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
       })}
 
       {types.length === 0 && (
-        <div style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>{t('docs_empty', 'Типы документов не настроены')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>{t('docs_empty', 'Типы документов не настроены')}</div>
       )}
     </div>
   )

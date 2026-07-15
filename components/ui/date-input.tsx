@@ -56,7 +56,7 @@ export function DateInput({
             width: '100%',
             padding: '7px 10px',
             fontSize: 13,
-            border: '1px solid #D1D5DB',
+            border: '1px solid var(--border-strong)',
             borderRadius: 8,
             outline: 'none',
             boxSizing: 'border-box',

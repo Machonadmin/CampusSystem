@@ -19,7 +19,7 @@ interface Item {
 }
 
 const ICON: Record<Item['type'], string> = { status: '🔄', signature: '✍️', document: '📄', note: '📝' }
-const DOT: Record<Item['type'], string> = { status: '#2563EB', signature: '#059669', document: '#CA8A04', note: '#6B7280' }
+const DOT: Record<Item['type'], string> = { status: 'var(--accent-strong)', signature: '#059669', document: '#CA8A04', note: 'var(--text-muted)' }
 
 /**
  * Хронология по абитуриентке/студентке (сворачиваемая). Грузит агрегированную
@@ -63,13 +63,13 @@ export default function JourneyTimeline({ journeyId }: { journeyId: string }) {
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{ width: '100%', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{t('timeline.title')}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#2563EB' }}>{open ? t('timeline.hide') : `${t('timeline.show')} (${items.length})`}</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('timeline.title')}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)' }}>{open ? t('timeline.hide') : `${t('timeline.show')} (${items.length})`}</span>
       </button>
 
       {open && (
@@ -79,12 +79,12 @@ export default function JourneyTimeline({ journeyId }: { journeyId: string }) {
             return (
               <div key={i} style={{ display: 'flex', gap: 10, position: 'relative', paddingBottom: i === items.length - 1 ? 0 : 14 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                  <span style={{ width: 26, height: 26, borderRadius: '50%', background: '#F9FAFB', border: `2px solid ${DOT[it.type]}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{ICON[it.type]}</span>
-                  {i !== items.length - 1 && <span style={{ flex: 1, width: 2, background: '#F3F4F6', marginTop: 2 }} />}
+                  <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-2)', border: `2px solid ${DOT[it.type]}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{ICON[it.type]}</span>
+                  {i !== items.length - 1 && <span style={{ flex: 1, width: 2, background: 'var(--surface-2)', marginTop: 2 }} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-                  <div style={{ fontSize: 13, color: '#1F2937' }}>{line(it)}</div>
-                  <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                  <div style={{ fontSize: 13, color: 'var(--text)' }}>{line(it)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
                     {formatDateTime(it.at, lang)}{w ? ` · ${t('timeline.by')} ${w}` : ''}
                   </div>
                 </div>

@@ -84,11 +84,11 @@ export default function AlumniPage() {
   const primary = getModuleColor('alumni', 'primary')
 
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 12px',
-    borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+    borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
   }
-  const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '10px 12px', borderBottom: '1px solid #F3F4F6' }
+  const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)' }
 
   return (
     <div className="p-6 space-y-5">
@@ -115,10 +115,10 @@ export default function AlumniPage() {
           placeholder={t('list.search_placeholder')}
           style={{
             flex: 1, maxWidth: 360, fontSize: 13, padding: '8px 12px',
-            border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937',
+            border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
           }}
         />
-        <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
           {t('list.count')}: {filtered.length}
         </span>
       </div>
@@ -127,11 +127,11 @@ export default function AlumniPage() {
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : filtered.length === 0 ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, overflowX: 'auto' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>

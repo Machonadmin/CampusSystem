@@ -97,9 +97,9 @@ export default function JewishnessListClient() {
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
       ) : items.length === 0 ? (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 24, fontSize: 13, color: '#9CA3AF' }}>{t('empty')}</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
           {items.map(it => (
@@ -230,11 +230,11 @@ function JewishnessCard({
   }
 
   return (
-    <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: '#F9FAFB' }}>
+    <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: 'var(--surface-2)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, color: '#1F2937' }}>{name}</div>
-          <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
             {item.documents.length} · {t('documents')}
           </div>
         </div>
@@ -267,7 +267,7 @@ function JewishnessCard({
               <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
                 {item.documents.map(d => (
                   <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                    <span style={{ color: '#1F2937' }}>📄 {d.title || d.file_name || d.doc_type}</span>
+                    <span style={{ color: 'var(--text)' }}>📄 {d.title || d.file_name || d.doc_type}</span>
                     {(d.storage_path || d.file_url) && (
                       <button onClick={() => openDoc(d.id)} style={{ fontSize: 12, fontWeight: 600, color: primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                         {t('open_doc')}
@@ -285,21 +285,21 @@ function JewishnessCard({
                 value={docTitle}
                 onChange={e => setDocTitle(e.target.value)}
                 placeholder={t('doc_name_placeholder')}
-                style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%' }}
+                style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }}
               />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <input
                   ref={fileRef}
                   type="file"
                   onChange={e => setFile(e.target.files?.[0] ?? null)}
-                  style={{ fontSize: 12, color: '#374151' }}
+                  style={{ fontSize: 12, color: 'var(--text)' }}
                 />
                 <button
                   onClick={uploadDoc}
                   disabled={uploading || !file || !docTitle.trim()}
                   style={{
                     fontSize: 13, fontWeight: 600, color: '#fff',
-                    background: uploading || !file || !docTitle.trim() ? '#9CA3AF' : primary,
+                    background: uploading || !file || !docTitle.trim() ? 'var(--text-faint)' : primary,
                     border: 'none', borderRadius: 8, padding: '8px 16px',
                     cursor: uploading || !file || !docTitle.trim() ? 'default' : 'pointer',
                   }}
@@ -320,9 +320,9 @@ function JewishnessCard({
                   onClick={() => { setSelectedFinal(f.code); setSig(null); setError('') }}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : '#D1D5DB'}`,
-                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : '#fff',
-                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : '#374151',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
                   }}
                 >
                   {finalLabel(f)}
@@ -331,14 +331,14 @@ function JewishnessCard({
             </div>
 
             {selectedFinal && (
-              <div style={{ display: 'grid', gap: 10, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{t('sign_title')}</div>
+              <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('sign_title')}</div>
                 <textarea
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
                   rows={2}
-                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
                 {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
@@ -347,7 +347,7 @@ function JewishnessCard({
                   disabled={signing || !sig}
                   style={{
                     justifySelf: 'start', fontSize: 13, fontWeight: 600, color: '#fff',
-                    background: signing || !sig ? '#9CA3AF' : primary,
+                    background: signing || !sig ? 'var(--text-faint)' : primary,
                     border: 'none', borderRadius: 8, padding: '9px 20px',
                     cursor: signing || !sig ? 'default' : 'pointer',
                   }}
@@ -366,7 +366,7 @@ function JewishnessCard({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{title}</div>
       {children}
     </div>
   )
@@ -375,10 +375,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ fontSize: 13 }}>
-      <span style={{ color: '#9CA3AF' }}>{label}: </span>
-      <span style={{ color: '#1F2937' }}>{value}</span>
+      <span style={{ color: 'var(--text-faint)' }}>{label}: </span>
+      <span style={{ color: 'var(--text)' }}>{value}</span>
     </div>
   )
 }
 
-const muted: React.CSSProperties = { fontSize: 13, color: '#9CA3AF' }
+const muted: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)' }

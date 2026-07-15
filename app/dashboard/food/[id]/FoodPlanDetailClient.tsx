@@ -207,8 +207,8 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
 
       {/* Enroll panel */}
       {canManage && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>{t('plan.enroll_student')}</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>{t('plan.enroll_student')}</div>
           {picked ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, padding: '6px 10px', borderRadius: 8 }}>
@@ -223,17 +223,17 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
             <div style={{ position: 'relative' }}>
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('plan.search_student')} style={inp(320)} />
               {hits.length > 0 && (
-                <div style={{ position: 'absolute', zIndex: 10, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
                   {hits.map(h => (
                     <div
                       key={h.journey_id}
                       onClick={() => { setPicked(h); setHits([]) }}
-                      style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#F9FAFB' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = '#fff' }}
+                      style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
                     >
-                      <div style={{ fontWeight: 500, color: '#1F2937' }}>{h.full_name || h.hebrew_name || '—'}</div>
-                      <div style={{ fontSize: 11, color: h.plan ? '#D97706' : '#9CA3AF' }}>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.full_name || h.hebrew_name || '—'}</div>
+                      <div style={{ fontSize: 11, color: h.plan ? '#D97706' : 'var(--text-faint)' }}>
                         {h.plan ? h.plan.plan_name ?? '' : t('plan.no_plan')}
                       </div>
                     </div>
@@ -246,14 +246,14 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
       )}
 
       {/* Enrolled students */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('plan.enrolled_section')}</h2>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('plan.enrolled_section')}</h2>
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : enrollments.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('plan.no_enrollments')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('plan.no_enrollments')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -273,15 +273,15 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                     <td style={td}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                        background: e.status === 'active' ? light : '#F3F4F6',
-                        color: e.status === 'active' ? '#B45309' : '#6B7280',
+                        background: e.status === 'active' ? light : 'var(--surface-2)',
+                        color: e.status === 'active' ? '#B45309' : 'var(--text-muted)',
                       }}>
                         {t(`status.${e.status}`)}
                       </span>
                     </td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {canManage && (
-                        <button onClick={() => openDiet(e)} disabled={busy} style={linkBtn('#6B7280')}>{t('dietary.edit')}</button>
+                        <button onClick={() => openDiet(e)} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('dietary.edit')}</button>
                       )}
                       {canManage && e.status === 'active' && (
                         <button onClick={() => endEnrollment(e)} disabled={busy} style={linkBtn('#D97706')}>{t('plan.end_enrollment')}</button>
@@ -297,12 +297,12 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
 
       {/* Dietary editor */}
       {dietFor && (
-        <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('dietary.title')} · {dietFor.student_name || dietFor.student_hebrew_name || '—'}
             </h3>
-            <button onClick={() => setDietFor(null)} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: 13 }}>✕</button>
+            <button onClick={() => setDietFor(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
           </div>
           {dietError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{dietError}</div>}
           <div style={{ display: 'grid', gap: 10 }}>
@@ -326,16 +326,16 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
-const fieldLabel: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4 }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const fieldLabel: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4 }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }
 
 function inp(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }

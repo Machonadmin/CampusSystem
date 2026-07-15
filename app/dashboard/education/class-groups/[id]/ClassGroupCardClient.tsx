@@ -105,7 +105,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
   if (loading) {
     return (
       <div className="p-6">
-        <div style={{ color: '#6B7280', textAlign: 'center', padding: 48 }}>{t('common.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 48 }}>{t('common.loading')}</div>
       </div>
     )
   }
@@ -127,8 +127,8 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         <button
           onClick={() => router.push('/dashboard/education')}
           style={{
-            padding: '8px 16px', fontSize: 13, color: '#374151',
-            background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer',
+            padding: '8px 16px', fontSize: 13, color: 'var(--text)',
+            background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
           }}
         >
           {t('class_groups.back_to_list')}
@@ -147,7 +147,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '9px 16px', fontSize: 13, fontWeight: active ? 600 : 500,
-    color: active ? accent : '#6B7280',
+    color: active ? accent : 'var(--text-muted)',
     background: 'none', border: 'none', cursor: 'pointer',
     borderBottom: active ? `2px solid ${accent}` : '2px solid transparent',
     marginBottom: -1,
@@ -198,7 +198,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
 
       {/* Табы */}
       {showTabs && (
-        <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #E5E7EB' }}>
+        <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)' }}>
           <button onClick={() => setActiveTab('overview')} style={tabBtn(currentTab === 'overview')}>
             {tJournal('tab_overview')}
           </button>
@@ -224,7 +224,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         <>
           {/* Свод данных */}
           <div style={{
-            background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB',
+            background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)',
             padding: 20,
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16,
           }}>
@@ -297,10 +297,10 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
 function InfoCell({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
         {label}
       </div>
-      <div style={{ fontSize: 14, color: '#111827', fontWeight: 500 }}>{value}</div>
+      <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{value}</div>
     </div>
   )
 }

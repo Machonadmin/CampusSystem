@@ -109,9 +109,9 @@ function ReportCard<T>({
 
   return (
     <div style={{
-      border: '1px solid #E5E7EB',
+      border: '1px solid var(--border)',
       borderRadius: 12,
-      background: '#fff',
+      background: 'var(--surface)',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
@@ -129,11 +129,11 @@ function ReportCard<T>({
             {error}
           </div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#6B7280' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{tCommon('loading')}</div>
         ) : data ? (
           render(data)
         ) : (
-          <div style={{ fontSize: 13, color: '#6B7280' }}>{t('empty')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('empty')}</div>
         )}
       </div>
     </div>
@@ -150,11 +150,11 @@ function Metric({ label, value, strong, accent }: {
       display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
       gap: 12, padding: '3px 0',
     }}>
-      <span style={{ fontSize: 13, color: '#4B5563' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{label}</span>
       <span style={{
         fontSize: strong ? 18 : 14,
         fontWeight: strong ? 700 : 500,
-        color: accent ?? '#111827',
+        color: accent ?? 'var(--text)',
       }}>{value}</span>
     </div>
   )
@@ -165,7 +165,7 @@ function Breakdown({ entries, labelFor }: {
 }) {
   if (entries.length === 0) return null
   return (
-    <div style={{ marginTop: 6, borderTop: '1px dashed #E5E7EB', paddingTop: 6 }}>
+    <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
       {entries.map(([k, v]) => (
         <Metric key={k} label={labelFor(k)} value={fmt(v)} />
       ))}
@@ -215,12 +215,12 @@ export default function ReportsClient() {
               <Metric label={t('metrics.leads')} value={fmt(d.funnel.leads)} />
               <Metric label={t('metrics.applicants')} value={fmt(d.funnel.applicants)} />
               <Metric label={t('metrics.students')} value={fmt(d.funnel.students)} strong accent={getModuleColor('education', 'primary')} />
-              <div style={{ marginTop: 6, borderTop: '1px dashed #E5E7EB', paddingTop: 6 }}>
+              <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
                 <Metric label={t('metrics.lead_to_applicant')} value={`${d.conversion.lead_to_applicant}%`} accent={getModuleColor('education', 'primary')} />
                 <Metric label={t('metrics.applicant_to_student')} value={`${d.conversion.applicant_to_student}%`} accent={getModuleColor('education', 'primary')} />
               </div>
               {d.stages.length > 0 && (
-                <div style={{ marginTop: 6, borderTop: '1px dashed #E5E7EB', paddingTop: 6 }}>
+                <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
                   {d.stages.map(s => (
                     <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? '#B45309' : undefined} />
                   ))}

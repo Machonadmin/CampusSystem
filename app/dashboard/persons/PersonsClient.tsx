@@ -111,7 +111,7 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #E5E7EB' }}>
+      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)' }}>
         {(['staff', 'students'] as Tab[]).map(tb => {
           const active = tab === tb
           return (
@@ -121,7 +121,7 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
               style={{
                 fontSize: 14, fontWeight: 600, padding: '10px 16px', border: 'none',
                 background: 'none', cursor: 'pointer',
-                color: active ? primary : '#6B7280',
+                color: active ? primary : 'var(--text-muted)',
                 borderBottom: active ? `2px solid ${primary}` : '2px solid transparent',
                 marginBottom: -1,
               }}
@@ -138,23 +138,23 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }}
+          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
         />
         {!loading && !error && (
-          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
             {t('list.count').replace('{count}', String(total))}
           </span>
         )}
       </div>
 
       {/* List */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 12 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626', padding: 8 }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF', padding: 8 }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{tCommon('loading')}</div>
         ) : rows.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF', padding: 8 }}>{t('list.empty')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{t('list.empty')}</div>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {rows.map(row => (
@@ -198,29 +198,29 @@ function PersonRow({
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-        border: '1px solid #F3F4F6', borderRadius: 10, cursor: 'pointer', background: '#fff',
+        border: '1px solid var(--surface-2)', borderRadius: 10, cursor: 'pointer', background: 'var(--surface)',
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#F9FAFB' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = '#fff' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
     >
       <Avatar name={row.full_name} photoUrl={row.photo_url} light={light} primary={primary} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {row.full_name}
         </div>
         {row.hebrew_name && (
-          <div style={{ fontSize: 12, color: '#6B7280', direction: 'rtl' }}>{row.hebrew_name}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', direction: 'rtl' }}>{row.hebrew_name}</div>
         )}
-        <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {secondary && <span>{secondary}</span>}
           {row.department && (
-            <span style={{ color: '#9CA3AF' }}>· {deptLabel}: {row.department}</span>
+            <span style={{ color: 'var(--text-faint)' }}>· {deptLabel}: {row.department}</span>
           )}
         </div>
       </div>
       <div style={{ textAlign: 'end', minWidth: 0 }}>
-        {row.email && <div style={{ fontSize: 12, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>{row.email}</div>}
-        {phone && <div style={{ fontSize: 12, color: '#9CA3AF' }}>{phone}</div>}
+        {row.email && <div style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>{row.email}</div>}
+        {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{phone}</div>}
       </div>
     </div>
   )

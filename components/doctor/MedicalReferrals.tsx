@@ -91,14 +91,14 @@ export default function MedicalReferrals({ moduleKey = 'doctor' }: { moduleKey?:
   if (!loaded || referrals.length === 0) return null
 
   return (
-    <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>{t('referrals.title')}</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('referrals.title')}</h2>
         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: '#047857' }}>
           {referrals.length} · {t('referrals.count_badge')}
         </span>
       </div>
-      <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 14 }}>{t('referrals.subtitle')}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{t('referrals.subtitle')}</div>
 
       <div style={{ display: 'grid', gap: 12 }}>
         {referrals.map(r => (
@@ -199,13 +199,13 @@ function ReferralCard({
   }
 
   return (
-    <div style={{ border: '1px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
       {/* Заголовок карточки */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: '#F9FAFB' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: 'var(--surface-2)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, color: '#1F2937' }}>{name}</div>
+          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</div>
           {referral.referrals.length > 0 && (
-            <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
               {t('referrals.referred_by')}: {referral.referrals.map(x => x.from_stage).join(', ')}
             </div>
           )}
@@ -229,8 +229,8 @@ function ReferralCard({
                 {referral.referrals.map((x, i) => (
                   <div key={i} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '8px 10px' }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#92400E' }}>{x.from_stage}</div>
-                    <div style={{ fontSize: 13, color: '#1F2937', marginTop: 2 }}>{x.note || t('referrals.no_reason')}</div>
-                    {x.signer_name && <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>— {x.signer_name}</div>}
+                    <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{x.note || t('referrals.no_reason')}</div>
+                    {x.signer_name && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>— {x.signer_name}</div>}
                   </div>
                 ))}
               </div>
@@ -257,7 +257,7 @@ function ReferralCard({
               <div style={{ display: 'grid', gap: 6 }}>
                 {referral.documents.map(d => (
                   <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                    <span style={{ color: '#1F2937' }}>📄 {d.title || d.file_name || d.doc_type}</span>
+                    <span style={{ color: 'var(--text)' }}>📄 {d.title || d.file_name || d.doc_type}</span>
                     {(d.storage_path || d.file_url) && (
                       <button onClick={() => openDoc(d.id)} style={{ fontSize: 12, fontWeight: 600, color: primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                         {t('referrals.download')}
@@ -281,7 +281,7 @@ function ReferralCard({
                 {referral.medical_profile?.medications && <Field label={t('referrals.medications')} value={referral.medical_profile.medications} />}
                 {referral.medical_profile?.emergency_contact && <Field label={t('referrals.emergency_contact')} value={referral.medical_profile.emergency_contact} />}
                 {referral.medical_visits.slice(0, 5).map(v => (
-                  <div key={v.id} style={{ fontSize: 12, color: '#6B7280' }}>
+                  <div key={v.id} style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     {v.visit_date} · {v.reason || v.diagnosis || '—'}
                   </div>
                 ))}
@@ -298,9 +298,9 @@ function ReferralCard({
                   onClick={() => { setSelectedFinal(f.code); setSig(null); setError('') }}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : '#D1D5DB'}`,
-                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : '#fff',
-                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : '#374151',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
                   }}
                 >
                   {finalLabel(f)}
@@ -309,14 +309,14 @@ function ReferralCard({
             </div>
 
             {selectedFinal && (
-              <div style={{ display: 'grid', gap: 10, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{t('referrals.sign_title')}</div>
+              <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('referrals.sign_title')}</div>
                 <textarea
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
                   rows={2}
-                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
                 {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
@@ -325,7 +325,7 @@ function ReferralCard({
                   disabled={signing || !sig}
                   style={{
                     justifySelf: 'start', fontSize: 13, fontWeight: 600, color: '#fff',
-                    background: signing || !sig ? '#9CA3AF' : primary,
+                    background: signing || !sig ? 'var(--text-faint)' : primary,
                     border: 'none', borderRadius: 8, padding: '9px 20px',
                     cursor: signing || !sig ? 'default' : 'pointer',
                   }}
@@ -344,7 +344,7 @@ function ReferralCard({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{title}</div>
       {children}
     </div>
   )
@@ -353,10 +353,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ fontSize: 13 }}>
-      <span style={{ color: '#9CA3AF' }}>{label}: </span>
-      <span style={{ color: '#1F2937' }}>{value}</span>
+      <span style={{ color: 'var(--text-faint)' }}>{label}: </span>
+      <span style={{ color: 'var(--text)' }}>{value}</span>
     </div>
   )
 }
 
-const muted: React.CSSProperties = { fontSize: 13, color: '#9CA3AF' }
+const muted: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)' }

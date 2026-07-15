@@ -29,7 +29,7 @@ function Avatar({ name, photo }: { name: string; photo: string | null }) {
   if (photo) return <img src={photo} alt={name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
   const initials = name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
   return (
-    <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{initials}</span>
     </div>
   )
@@ -37,7 +37,7 @@ function Avatar({ name, photo }: { name: string; photo: string | null }) {
 
 function RoleBadge({ name }: { name: string }) {
   return (
-    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: '#EEF2FF', color: '#3B82F6', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: 'var(--accent-tint)', color: 'var(--accent)', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
       {name}
     </span>
   )
@@ -77,15 +77,15 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('roles_modal_title')}: {user.full_name}</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {user.full_name}</p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
           {Object.entries(grouped).map(([cat, roles]) => (
             <div key={cat} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{tCat(cat, cat)}</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{tCat(cat, cat)}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {roles.map(r => (
                   <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
@@ -97,18 +97,18 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
                         if (e.target.checked) next.add(r.id); else next.delete(r.id)
                         setSelected(next)
                       }}
-                      style={{ accentColor: '#3B82F6' }}
+                      style={{ accentColor: 'var(--accent)' }}
                     />
-                    <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text)' }}>{r.name}</span>
                   </label>
                 ))}
               </div>
             </div>
           ))}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
         </div>
       </div>
     </div>
@@ -226,16 +226,16 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
   if (generatedPassword) {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('generated_password_title')}</p>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: '#111827', background: '#F3F4F6', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
-            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : '#3B82F6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {copied ? t('copied') : t('copy_password')}
             </button>
           </div>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{t('generated_password_hint')}</p>
-          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: '#111827', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
         </div>
       </div>
     )
@@ -243,36 +243,36 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
 
         {/* Header */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('add_modal_title')}</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('add_modal_title')}</p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
         {/* ── Step 1: person search — outside overflowY container so dropdown isn't clipped ── */}
         <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
 
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>
             {t('search_existing_person_hint')}
           </p>
 
           {selectedPerson && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF' }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{selectedPerson.full_name}</p>
-                {selectedPerson.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{selectedPerson.email}</p>}
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{selectedPerson.full_name}</p>
+                {selectedPerson.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{selectedPerson.email}</p>}
               </div>
-              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
             </div>
           )}
 
           {createNew && !selectedPerson && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}>
-              <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{t('new_person_badge')}</p>
-              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-strong)', backgroundColor: 'var(--surface-2)' }}>
+              <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{t('new_person_badge')}</p>
+              <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
             </div>
           )}
 
@@ -283,29 +283,29 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
                 onChange={e => handleSearch(e.target.value)}
                 placeholder={t('search_name_email_placeholder')}
                 autoComplete="off"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
               {(results.length > 0 || searching || query.length >= 2) && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', marginTop: 4, overflow: 'hidden' }}>
                   {searching && (
-                    <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>{t('searching')}</div>
+                    <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
                   )}
                   {!searching && results.map(p => (
                     <div
                       key={p.id}
                       onClick={() => selectPerson(p)}
-                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #F3F4F6' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
                     >
-                      <p style={{ fontSize: 13, fontWeight: 500, color: '#1F2937', margin: 0 }}>{p.full_name}</p>
-                      {p.email && <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{p.email}</p>}
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{p.full_name}</p>
+                      {p.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{p.email}</p>}
                     </div>
                   ))}
                   {!searching && (
                     <div
                       onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
-                      style={{ padding: '10px 12px', cursor: 'pointer', color: '#3B82F6', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid #E5E7EB' : 'none' }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', color: 'var(--accent)', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid var(--border)' : 'none' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
                     >
@@ -322,11 +322,11 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
         <div style={{ overflowY: 'auto', padding: '14px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {createNew && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('full_name')} *</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('full_name')} *</span>
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
               />
             </label>
           )}
@@ -334,43 +334,43 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
           {personChosen && (
             <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email *</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Email *</span>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
                 />
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-                  <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
-                  <span style={{ fontSize: 13, color: '#374151' }}>{t('auto_generate')}</span>
+                  <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('auto_generate')}</span>
                 </label>
                 {!autoGen && (
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('password_label')} *</span>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('password_label')} *</span>
                     <input
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder={t('password_hint_placeholder')}
                       autoComplete="new-password"
-                      style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                      style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
                     />
                   </label>
                 )}
               </div>
               <div>
-                <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>{t('select_roles_title')}</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 8 }}>{t('select_roles_title')}</p>
                 {Object.entries(grouped).map(([cat, roles]) => (
                   <div key={cat} style={{ marginBottom: 12 }}>
-                    <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{tCat(cat, cat)}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{tCat(cat, cat)}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {roles.map(r => (
                         <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: '#3B82F6' }} />
-                          <span style={{ fontSize: 13, color: '#374151' }}>{r.name}</span>
+                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: 'var(--accent)' }} />
+                          <span style={{ fontSize: 13, color: 'var(--text)' }}>{r.name}</span>
                         </label>
                       ))}
                     </div>
@@ -382,12 +382,12 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button
             onClick={save}
             disabled={saving || !personChosen}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
           >
             {tCommon('save', 'Save')}
           </button>
@@ -442,16 +442,16 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
   if (generatedPassword) {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>{t('password_reset_done')}</p>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('password_reset_done')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: '#111827', background: '#F3F4F6', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
-            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : '#3B82F6', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {copied ? t('copied') : t('copy_password')}
             </button>
           </div>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{t('generated_password_hint')}</p>
-          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: '#111827', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
         </div>
       </div>
     )
@@ -459,46 +459,46 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('reset_password_modal_title')}: {user.full_name}</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {user.full_name}</p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-            <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
-            <span style={{ fontSize: 13, color: '#374151' }}>{t('auto_generate')}</span>
+            <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+            <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('auto_generate')}</span>
           </label>
           {!autoGen && (
             <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('new_password_label')} *</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('new_password_label')} *</span>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder={t('password_hint_placeholder')}
                   autoComplete="new-password"
-                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
                 />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('confirm_password_label')} *</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('confirm_password_label')} *</span>
                 <input
                   type="password"
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
                   placeholder={t('confirm_password_placeholder')}
                   autoComplete="new-password"
-                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : '#D1D5DB'}`, fontSize: 13, outline: 'none' }}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : 'var(--border-strong)'}`, fontSize: 13, outline: 'none' }}
                 />
               </label>
             </>
           )}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</button>
         </div>
       </div>
@@ -539,32 +539,32 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>{t('edit_modal_title')}</p>
-            <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('edit_modal_title')}</p>
+            <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{t('full_name')}</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('full_name')}</span>
               <input
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
               />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Email</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Email</span>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #D1D5DB', fontSize: 13, outline: 'none' }}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
               />
             </label>
           </div>
-          <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button
               onClick={() => setPwdOpen(true)}
               style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2', fontSize: 12, cursor: 'pointer', color: '#DC2626' }}
@@ -572,8 +572,8 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
               {t('reset_password_button')}
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>{tCommon('cancel')}</button>
-              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
+              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
             </div>
           </div>
         </div>
@@ -641,24 +641,24 @@ export default function UsersPage() {
         className="flex items-center rounded-xl overflow-hidden"
         style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '12px 24px' }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#9CA3AF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('search_placeholder')}
-            style={{ width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 8, paddingBottom: 8, borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13, backgroundColor: '#F9FAFB', outline: 'none' }}
+            style={{ width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 8, paddingBottom: 8, borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, backgroundColor: 'var(--surface-2)', outline: 'none' }}
           />
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
         >
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -667,39 +667,39 @@ export default function UsersPage() {
         </button>
       </div>
 
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
         ) : error ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('no_users')}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_users')}</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map(user => (
-                <tr key={user.account_id} style={{ borderBottom: '1px solid #F3F4F6' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '#F9FAFB' }}
+                <tr key={user.account_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = 'var(--surface-2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}
                 >
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Avatar name={user.full_name} photo={user.photo_url} />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{user.full_name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{user.full_name}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#6B7280' }}>{user.login_email}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 260 }}>
                       {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={r.name} />)}
-                      {user.roles.length > 3 && <span style={{ fontSize: 11, color: '#9CA3AF', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
+                      {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
                     </div>
                   </td>
                   <td style={{ padding: '10px 14px' }}>
@@ -711,20 +711,20 @@ export default function UsersPage() {
                       {user.is_active ? t('active') : t('inactive')}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
                     {user.last_login ? new Date(user.last_login).toLocaleDateString() : t('never')}
                   </td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => setEditTarget(user)}
-                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
+                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
                       >
                         {t('edit_button')}
                       </button>
                       <button
                         onClick={() => setRolesTarget(user)}
-                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#374151' }}
+                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
                       >
                         {t('manage_roles_button')}
                       </button>

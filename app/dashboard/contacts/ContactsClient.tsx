@@ -205,7 +205,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
         {canManage && (
           <button onClick={openNew} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-            borderRadius: 8, background: '#fff', color: primary, cursor: 'pointer',
+            borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer',
           }}>
             {t('list.new_contact')}
           </button>
@@ -215,13 +215,13 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       {/* Stats bar */}
       {stats && (
         <div style={{
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '12px 16px',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px',
           display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
         }}>
-          <span style={{ fontSize: 13, color: '#374151' }}>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}>
             <b style={{ color: primary }}>{stats.total}</b> · {t('stats.total')}
           </span>
-          <span style={{ fontSize: 13, color: '#374151' }}>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}>
             <b style={{ color: primary }}>{stats.active}</b> · {t('stats.active')}
           </span>
           {CONTACT_CATEGORIES.filter(cat => (stats.by_category[cat] ?? 0) > 0).map(cat => (
@@ -241,12 +241,12 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }}
+          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
         />
         <select
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
-          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', background: '#fff' }}
+          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
         >
           <option value="">{t('list.all_categories')}</option>
           {CONTACT_CATEGORIES.map(cat => (
@@ -257,8 +257,8 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
 
       {/* Inline editor */}
       {canManage && editingId !== null && (
-        <div style={{ background: '#fff', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
             {editingId === '' ? t('form.new_title') : t('form.edit_title')}
           </h2>
           {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
@@ -299,7 +299,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
               <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} style={area} />
             </Field>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={form.is_active}
@@ -320,13 +320,13 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       )}
 
       {/* Directory list */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -343,12 +343,12 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                     key={c.id}
                     onClick={() => openEdit(c)}
                     style={{ cursor: canManage ? 'pointer' : 'default' }}
-                    onMouseEnter={e => { if (canManage) (e.currentTarget as HTMLTableRowElement).style.background = '#F9FAFB' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#fff' }}
+                    onMouseEnter={e => { if (canManage) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
                     <td style={td}>
-                      <div style={{ fontWeight: 500, color: '#1F2937' }}>{c.name}</div>
-                      {c.contact_person && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{c.contact_person}</div>}
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{c.name}</div>
+                      {c.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{c.contact_person}</div>}
                     </td>
                     <td style={td}>{t(`types.${c.contact_type}`)}</td>
                     <td style={td}>
@@ -361,8 +361,8 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                     <td style={td}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                        background: c.is_active ? light : '#F3F4F6',
-                        color: c.is_active ? '#9D174D' : '#9CA3AF',
+                        background: c.is_active ? light : 'var(--surface-2)',
+                        color: c.is_active ? '#9D174D' : 'var(--text-faint)',
                       }}>
                         {c.is_active ? t('status.active') : t('status.inactive')}
                       </span>
@@ -380,7 +380,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
       {label}
       {children}
     </label>
@@ -388,18 +388,18 @@ function Field({ label, children, full }: { label: string; children: React.React
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', width: '100%', background: '#fff' }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', background: 'var(--surface)' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
 }
 const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid #D1D5DB',
-  borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer',
+  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid var(--border-strong)',
+  borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
 }

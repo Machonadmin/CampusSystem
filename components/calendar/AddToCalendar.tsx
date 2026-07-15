@@ -101,22 +101,22 @@ export default function AddToCalendar({
   return (
     <>
       {variant === 'link' ? (
-        <button onClick={openDialog} style={{ fontSize: 12, fontWeight: 600, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <button onClick={openDialog} style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           📅 {t('button')}
         </button>
       ) : (
-        <button onClick={openDialog} style={{ fontSize: 13, fontWeight: 600, color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
+        <button onClick={openDialog} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid #BFDBFE', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
           📅 {t('button')}
         </button>
       )}
 
       {open && (
         <div onClick={() => !saving && setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, padding: 20, width: 'min(440px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{t('title')}</div>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(440px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
 
             {done ? (
-              <div style={{ fontSize: 14, fontWeight: 600, color: done === 'added' ? '#059669' : '#6B7280', padding: '12px 0', textAlign: 'center' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: done === 'added' ? '#059669' : 'var(--text-muted)', padding: '12px 0', textAlign: 'center' }}>
                 {done === 'added' ? t('added') : t('added_already')}
               </div>
             ) : (
@@ -149,8 +149,8 @@ export default function AddToCalendar({
                 {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
 
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', color: '#374151', cursor: 'pointer' }}>{t('cancel')}</button>
-                  <button onClick={save} disabled={saving || !title.trim() || !date} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving || !title.trim() || !date ? '#9CA3AF' : '#2563EB', color: '#fff', cursor: saving || !title.trim() || !date ? 'default' : 'pointer' }}>
+                  <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>
+                  <button onClick={save} disabled={saving || !title.trim() || !date} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving || !title.trim() || !date ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving || !title.trim() || !date ? 'default' : 'pointer' }}>
                     {saving ? t('saving') : t('save')}
                   </button>
                 </div>
@@ -163,5 +163,5 @@ export default function AddToCalendar({
   )
 }
 
-const fieldLabel: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, width: '100%', boxSizing: 'border-box' }
+const fieldLabel: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', boxSizing: 'border-box' }

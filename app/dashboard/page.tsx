@@ -114,7 +114,7 @@ export default function DashboardPage() {
           boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', lineHeight: 1.3 }}>
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (

@@ -115,7 +115,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
 
       {/* Add form */}
       {showForm && canManage && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <input value={name} onChange={e => setName(e.target.value)} placeholder={t('form.name')} style={inp(200)} />
           <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(120)} />
           <select value={gender} onChange={e => setGender(e.target.value as 'male' | 'female' | 'mixed')} style={inp(140)}>
@@ -133,30 +133,30 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
           {items.map(b => (
             <div
               key={b.id}
               onClick={() => router.push(`/dashboard/dormitory/${b.id}`)}
-              style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, cursor: 'pointer' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, cursor: 'pointer' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E5E7EB' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{b.name}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{b.name}</div>
                 <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: getModuleColor('dormitory', 'light'), color: primary }}>
                   {genderLabel(b.gender)}
                 </span>
               </div>
-              {b.code && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{b.code}</div>}
+              {b.code && <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{b.code}</div>}
 
               <OccupancyBar occupied={b.occupied} capacity={b.total_capacity} color={primary} />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#6B7280', marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
                 <span>{t('list.rooms')}: {b.rooms_count}</span>
                 <span>{t('list.occupied')}: {b.occupied} / {b.total_capacity}</span>
                 <span style={{ color: b.free > 0 ? '#059669' : '#DC2626', fontWeight: 600 }}>{t('list.free')}: {b.free}</span>
@@ -176,7 +176,7 @@ export function OccupancyBar({ occupied, capacity, color }: { occupied: number; 
   const full = capacity > 0 && occupied >= capacity
   return (
     <div style={{ marginTop: 10 }}>
-      <div style={{ height: 8, borderRadius: 999, background: '#F3F4F6', overflow: 'hidden' }}>
+      <div style={{ height: 8, borderRadius: 999, background: 'var(--surface-2)', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: full ? '#DC2626' : color, transition: 'width 0.2s ease' }} />
       </div>
     </div>
@@ -184,7 +184,7 @@ export function OccupancyBar({ occupied, capacity, color }: { occupied: number; 
 }
 
 function inp(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }

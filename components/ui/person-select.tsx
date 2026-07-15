@@ -40,7 +40,7 @@ export function PersonSelect({
   label,
   required = false,
   disabled,
-  accentColor = '#3B82F6',
+  accentColor = 'var(--accent)',
   roleFilter,
   allowShowAll = false,
   enrollOption,
@@ -183,7 +183,7 @@ export function PersonSelect({
   return (
     <div ref={wrapRef} style={{ position: 'relative', ...style }}>
       {label && (
-        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
           {label}
           {required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
         </label>
@@ -205,10 +205,10 @@ export function PersonSelect({
             width: '100%',
             padding: '8px 32px 8px 10px',
             fontSize: 13,
-            border: `1px solid ${selected ? '#86EFAC' : '#D1D5DB'}`,
+            border: `1px solid ${selected ? '#86EFAC' : 'var(--border-strong)'}`,
             borderRadius: 6,
             outline: 'none',
-            backgroundColor: selected ? '#F0FDF4' : '#fff',
+            backgroundColor: selected ? '#F0FDF4' : 'var(--surface)',
             cursor: disabled ? 'not-allowed' : 'text',
             boxSizing: 'border-box',
           }}
@@ -220,13 +220,13 @@ export function PersonSelect({
             style={{
               position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0,
+              color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0,
             }}
           >×</button>
         ) : (
           <span style={{
             position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-            color: '#9CA3AF', fontSize: 11, pointerEvents: 'none',
+            color: 'var(--text-faint)', fontSize: 11, pointerEvents: 'none',
           }}>▾</span>
         )}
       </div>
@@ -240,12 +240,12 @@ export function PersonSelect({
       {isOpen && !disabled && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0, zIndex: 300,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
           boxShadow: '0 4px 16px rgba(0,0,0,0.12)', overflow: 'hidden',
         }}>
           {showAdd ? (
             <div style={{ padding: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
                 {t('new_person')}
               </div>
               {errMsg && (
@@ -263,33 +263,33 @@ export function PersonSelect({
                 onChange={e => setNewLastName(e.target.value)}
                 placeholder={t('last_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Escape') setShowAdd(false) }}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newFirstName}
                 onChange={e => setNewFirstName(e.target.value)}
                 placeholder={t('first_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowAdd(false) }}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newMiddleName}
                 onChange={e => setNewMiddleName(e.target.value)}
                 placeholder={t('middle_name_placeholder')}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newPhone}
                 onChange={e => setNewPhone(e.target.value)}
                 placeholder={t('phone_placeholder')}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               <input
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder={t('email_placeholder')}
                 type="email"
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               {enrollOption && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10, cursor: 'pointer', userSelect: 'none' }}>
@@ -299,7 +299,7 @@ export function PersonSelect({
                     onChange={e => setEnrollChecked(e.target.checked)}
                     style={{ width: 14, height: 14, accentColor }}
                   />
-                  <span style={{ fontSize: 12, color: '#374151' }}>{enrollOption.label}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text)' }}>{enrollOption.label}</span>
                 </label>
               )}
               <div style={{ display: 'flex', gap: 6 }}>
@@ -309,8 +309,8 @@ export function PersonSelect({
                   disabled={!newLastName.trim() || !newFirstName.trim() || adding}
                   style={{
                     flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
-                    background: newLastName.trim() && newFirstName.trim() && !adding ? accentColor : '#E5E7EB',
-                    color: newLastName.trim() && newFirstName.trim() && !adding ? '#fff' : '#9CA3AF',
+                    background: newLastName.trim() && newFirstName.trim() && !adding ? accentColor : 'var(--border)',
+                    color: newLastName.trim() && newFirstName.trim() && !adding ? 'var(--surface)' : 'var(--text-faint)',
                     border: 'none', borderRadius: 5,
                     cursor: newLastName.trim() && newFirstName.trim() && !adding ? 'pointer' : 'not-allowed',
                   }}
@@ -318,7 +318,7 @@ export function PersonSelect({
                 <button
                   type="button"
                   onClick={() => { setShowAdd(false); setErrMsg('') }}
-                  style={{ padding: '7px 12px', fontSize: 12, color: '#6B7280', background: '#F3F4F6', border: 'none', borderRadius: 5, cursor: 'pointer' }}
+                  style={{ padding: '7px 12px', fontSize: 12, color: 'var(--text-muted)', background: 'var(--surface-2)', border: 'none', borderRadius: 5, cursor: 'pointer' }}
                 >{t('cancel')}</button>
               </div>
             </div>
@@ -326,11 +326,11 @@ export function PersonSelect({
             <>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 {loading ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>{t('searching')}</div>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
                 ) : errMsg ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: '#EF4444' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>
                     {search.length >= 2 ? t('nothing_found') : (roleFilter && !showAll ? t('no_teachers') : t('no_saved_people'))}
                   </div>
                 ) : (
@@ -342,16 +342,16 @@ export function PersonSelect({
                       style={{
                         display: 'block', width: '100%', textAlign: 'start',
                         padding: '9px 12px', background: 'none', border: 'none',
-                        borderBottom: '1px solid #F3F4F6', cursor: 'pointer',
+                        borderBottom: '1px solid var(--surface-2)', cursor: 'pointer',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                         {p.full_name}
                       </div>
                       {(p.phone || p.email) && (
-                        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>
                           {p.phone ?? p.email}
                         </div>
                       )}
@@ -362,15 +362,15 @@ export function PersonSelect({
               {allowShowAll && roleFilter && (
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-                  borderTop: '1px solid #F3F4F6', cursor: 'pointer', userSelect: 'none',
+                  borderTop: '1px solid var(--surface-2)', cursor: 'pointer', userSelect: 'none',
                 }}>
                   <input
                     type="checkbox"
                     checked={showAll}
                     onChange={e => setShowAll(e.target.checked)}
-                    style={{ width: 13, height: 13, accentColor: '#6B7280' }}
+                    style={{ width: 13, height: 13, accentColor: 'var(--text-muted)' }}
                   />
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>{t('show_all')}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('show_all')}</span>
                 </label>
               )}
               <button
@@ -379,11 +379,11 @@ export function PersonSelect({
                 style={{
                   display: 'block', width: '100%', textAlign: 'start',
                   padding: '9px 12px', fontSize: 12, fontWeight: 600,
-                  color: accentColor, background: '#F9FAFB',
-                  border: 'none', borderTop: '1px solid #E5E7EB', cursor: 'pointer',
+                  color: accentColor, background: 'var(--surface-2)',
+                  border: 'none', borderTop: '1px solid var(--border)', cursor: 'pointer',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F4F6')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
               >+ {t('add_new_person')}</button>
             </>
           )}

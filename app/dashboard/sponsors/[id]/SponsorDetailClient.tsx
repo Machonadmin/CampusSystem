@@ -286,9 +286,9 @@ export default function SponsorDetailClient({
       </div>
 
       {/* Sponsor details / editor */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{t('detail.sponsor_info')}</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('detail.sponsor_info')}</h2>
           {canManage && !editingSponsor && (
             <button onClick={openEditSponsor} style={outlineBtn(primary)}>{tCommon('edit')}</button>
           )}
@@ -322,7 +322,7 @@ export default function SponsorDetailClient({
                 <textarea value={sForm.notes} onChange={e => setS('notes', e.target.value)} rows={2} style={area} />
               </Field>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
               <input type="checkbox" checked={sForm.is_active} onChange={e => setS('is_active', e.target.checked)} />
               {t('fields.is_active')}
             </label>
@@ -350,17 +350,17 @@ export default function SponsorDetailClient({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <TotalCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="#059669" />
           <TotalCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="#D97706" />
-          <TotalCard label={t('stats.total_cancelled')} value={fmtMoney(stats.total_cancelled)} color="#9CA3AF" />
+          <TotalCard label={t('stats.total_cancelled')} value={fmtMoney(stats.total_cancelled)} color="var(--text-faint)" />
         </div>
       )}
 
       {/* Campaign breakdown (received) */}
       {campaignEntries.length > 0 && (
         <div style={{
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '12px 16px',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px',
           display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
         }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {t('detail.campaigns')}
           </span>
           {campaignEntries.map(([name, total]) => (
@@ -374,9 +374,9 @@ export default function SponsorDetailClient({
       {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
 
       {/* Donations */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{t('detail.donations_section')}</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('detail.donations_section')}</h2>
           {canManage && (
             <button onClick={openNewDonation} style={outlineBtn(primary)}>+ {t('detail.record_donation')}</button>
           )}
@@ -384,8 +384,8 @@ export default function SponsorDetailClient({
 
         {/* Donation editor */}
         {canManage && donationEditing !== null && (
-          <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, padding: 14, marginBottom: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>
+          <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>
               {donationEditing === '' ? t('detail.record_donation') : t('detail.edit_donation')}
             </div>
             {dFormError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{dFormError}</div>}
@@ -421,9 +421,9 @@ export default function SponsorDetailClient({
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : donations.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('detail.no_donations')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('detail.no_donations')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -487,15 +487,15 @@ function toSponsorForm(s: SponsorRow): SponsorForm {
 function InfoRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937', marginTop: 2 }}>{value || '—'}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{value || '—'}</div>
     </div>
   )
 }
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
       {label}
       {children}
     </label>
@@ -504,8 +504,8 @@ function Field({ label, children, full }: { label: string; children: React.React
 
 function TotalCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   )
@@ -515,7 +515,7 @@ function StatusBadge({ status, label }: { status: 'pledged' | 'received' | 'canc
   const palette: Record<string, { bg: string; fg: string }> = {
     received:  { bg: '#D1FAE5', fg: '#047857' },
     pledged:   { bg: '#FEF3C7', fg: '#B45309' },
-    cancelled: { bg: '#F3F4F6', fg: '#6B7280' },
+    cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
   const c = palette[status] ?? palette.cancelled
   return (
@@ -542,14 +542,14 @@ function ActionLink({ onClick, disabled, color, children }: {
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
 const tdNum: React.CSSProperties = { ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
-const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', width: '100%', background: '#fff' }
-const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', background: 'var(--surface)' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
@@ -558,6 +558,6 @@ function outlineBtn(color: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: `1px solid ${color}`, background: 'transparent', color, cursor: 'pointer' }
 }
 const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid #D1D5DB',
-  borderRadius: 8, background: '#fff', color: '#374151', cursor: 'pointer',
+  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid var(--border-strong)',
+  borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
 }

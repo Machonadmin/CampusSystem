@@ -189,14 +189,14 @@ export default function FinanceLedgerClient({
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading || !ledger ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
           {/* Totals */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
             <TotalCard label={t('ledger.balance')} value={fmtMoney(ledger.totals.balance)} color={owes ? '#DC2626' : '#059669'} strong />
-            <TotalCard label={t('ledger.charges_total')} value={fmtMoney(ledger.totals.charges_active)} color="#1F2937" />
-            <TotalCard label={t('ledger.payments_approved')} value={fmtMoney(ledger.totals.payments_approved)} color="#1F2937" />
+            <TotalCard label={t('ledger.charges_total')} value={fmtMoney(ledger.totals.charges_active)} color="var(--text)" />
+            <TotalCard label={t('ledger.payments_approved')} value={fmtMoney(ledger.totals.payments_approved)} color="var(--text)" />
             <TotalCard label={t('ledger.payments_pending')} value={fmtMoney(ledger.totals.payments_pending)} color="#D97706" />
           </div>
 
@@ -287,11 +287,11 @@ export default function FinanceLedgerClient({
 
 // ── Small presentational helpers ──────────────────────────────────────────────
 
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
 const tdNum: React.CSSProperties = { ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
 
 function inp(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
@@ -299,8 +299,8 @@ function btn(bg: string): React.CSSProperties {
 
 function TotalCard({ label, value, color, strong }: { label: string; value: string; color: string; strong?: boolean }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: strong ? 24 : 18, fontWeight: 700, color, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   )
@@ -312,9 +312,9 @@ function Section({ title, action, children }: {
   children: React.ReactNode
 }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>{title}</h2>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{title}</h2>
         {action && (
           <button onClick={action.onClick} style={{
             fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8,
@@ -331,7 +331,7 @@ function Section({ title, action, children }: {
 
 function FormRow({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 14, padding: 12, background: '#F9FAFB', borderRadius: 8 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 14, padding: 12, background: 'var(--surface-2)', borderRadius: 8 }}>
       {children}
     </div>
   )
@@ -339,9 +339,9 @@ function FormRow({ children }: { children: React.ReactNode }) {
 
 function Table({ head, children }: { head: string[]; children: React.ReactNode }) {
   const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-    borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+    borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
   }
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -358,7 +358,7 @@ function Table({ head, children }: { head: string[]; children: React.ReactNode }
 }
 
 function Empty({ text }: { text: string }) {
-  return <div style={{ fontSize: 13, color: '#9CA3AF', padding: '4px 2px' }}>{text}</div>
+  return <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: '4px 2px' }}>{text}</div>
 }
 
 function StatusBadge({ kind, label }: { kind: 'active' | 'cancelled' | 'pending' | 'approved'; label: string }) {
@@ -366,7 +366,7 @@ function StatusBadge({ kind, label }: { kind: 'active' | 'cancelled' | 'pending'
     active:    { bg: '#D1FAE5', fg: '#047857' },
     approved:  { bg: '#D1FAE5', fg: '#047857' },
     pending:   { bg: '#FEF3C7', fg: '#B45309' },
-    cancelled: { bg: '#F3F4F6', fg: '#6B7280' },
+    cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
   const c = palette[kind] ?? palette.cancelled
   return (

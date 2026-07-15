@@ -59,9 +59,9 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
   if (roleStages.length === 0) return null
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{t('signatures.title')}</h3>
-      <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 14 }}>{t('signatures.subtitle')}</div>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 2px' }}>{t('signatures.title')}</h3>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('signatures.subtitle')}</div>
 
       <div style={{ display: 'grid', gap: 10 }}>
         {roleStages.map(st => {
@@ -69,9 +69,9 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
           const decision = st.final_code ? t(`acceptance_finals.${st.final_code}`, st.final_code) : null
           const positive = ['approved', 'admitted', 'admitted_conditional'].includes(st.final_code ?? '')
           return (
-            <div key={st.stage_instance_id} style={{ border: '1px solid #F3F4F6', borderRadius: 10, padding: 12 }}>
+            <div key={st.stage_instance_id} style={{ border: '1px solid var(--surface-2)', borderRadius: 10, padding: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <div style={{ fontWeight: 600, color: '#1F2937', fontSize: 14 }}>{stageName}</div>
+                <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{stageName}</div>
                 {decision ? (
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999,
@@ -81,14 +81,14 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                     {decision}
                   </span>
                 ) : (
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999, background: '#F3F4F6', color: '#6B7280' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999, background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
                     {t('signatures.pending')}
                   </span>
                 )}
               </div>
 
               {st.note && (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#374151', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text)', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px' }}>
                   {st.note}
                 </div>
               )}
@@ -98,11 +98,11 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                   {st.signatures.map((sig, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                       <div style={{ flex: 1, minWidth: 180 }}>
-                        <div style={{ fontSize: 13, color: '#1F2937' }}>
-                          <span style={{ color: '#9CA3AF' }}>{t('signatures.signed_by')}: </span>
+                        <div style={{ fontSize: 13, color: 'var(--text)' }}>
+                          <span style={{ color: 'var(--text-faint)' }}>{t('signatures.signed_by')}: </span>
                           <strong>{sig.signer_name}</strong>
                         </div>
-                        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
                           {t('signatures.signed_at')}: {formatDateTime(sig.signed_at, lang)}
                           {sig.signed_via === 'override' ? ` · ${t('signatures.via_override')}` : ''}
                         </div>
@@ -116,19 +116,19 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                             <img
                               src={sig.image_url}
                               alt={t('signatures.drawn')}
-                              style={{ maxHeight: 56, maxWidth: 200, border: '1px solid #E5E7EB', borderRadius: 6, background: '#fff' }}
+                              style={{ maxHeight: 56, maxWidth: 200, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--surface)' }}
                             />
                           </a>
                         ) : sig.signature_kind === 'typed' && sig.typed_name ? (
                           <div style={{
                             fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic',
-                            fontSize: 20, color: '#111827', borderBottom: '1px solid #D1D5DB',
+                            fontSize: 20, color: 'var(--text)', borderBottom: '1px solid var(--border-strong)',
                             paddingBottom: 2, display: 'inline-block',
                           }}>
                             {sig.typed_name}
                           </div>
                         ) : (
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>—</span>
                         )}
                       </div>
                     </div>

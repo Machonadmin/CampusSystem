@@ -50,9 +50,9 @@ export default function SignatureMethodSetting() {
   const OPTIONS: Method[] = ['both', 'typed', 'drawn']
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{t('signature.title')}</div>
-      <div style={{ fontSize: 13, color: '#6B7280', margin: '4px 0 14px' }}>{t('signature.subtitle')}</div>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('signature.title')}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 14px' }}>{t('signature.subtitle')}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {OPTIONS.map(m => (
           <button
@@ -61,9 +61,9 @@ export default function SignatureMethodSetting() {
             disabled={saving}
             style={{
               fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 8, cursor: saving ? 'default' : 'pointer',
-              border: `1.5px solid ${method === m ? '#3B82F6' : '#E5E7EB'}`,
-              background: method === m ? '#EFF6FF' : '#fff',
-              color: method === m ? '#1D4ED8' : '#6B7280',
+              border: `1.5px solid ${method === m ? 'var(--accent)' : 'var(--border)'}`,
+              background: method === m ? 'var(--accent-tint)' : 'var(--surface)',
+              color: method === m ? '#1D4ED8' : 'var(--text-muted)',
             }}
           >
             {t(`signature.${m}`)}

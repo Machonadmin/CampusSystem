@@ -130,7 +130,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
 
       {/* Add form */}
       {showForm && canManage && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <input value={name} onChange={e => setName(e.target.value)} placeholder={t('form.name')} style={inp(200)} />
           <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(110)} />
           <input value={price} onChange={e => setPrice(e.target.value)} placeholder={t('form.price')} type="number" min="0" step="0.01" style={inp(110)} />
@@ -147,24 +147,24 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
       {error ? (
         <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
           {items.map(p => (
             <div
               key={p.id}
               onClick={() => router.push(`/dashboard/food/${p.id}`)}
-              style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16, cursor: 'pointer' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, cursor: 'pointer' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E5E7EB' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{p.name}</div>
-                {!p.is_active && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t('list.inactive')}</span>}
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{p.name}</div>
+                {!p.is_active && <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('list.inactive')}</span>}
               </div>
-              {p.code && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{p.code}</div>}
+              {p.code && <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{p.code}</div>}
 
               <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
                 {p.includes_breakfast && <MealPill label={t('meal.breakfast')} bg={light} color={primary} />}
@@ -176,7 +176,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
                 <span style={{ fontSize: 13, fontWeight: 700, color: primary }}>
                   {t('list.enrolled')}: {p.active_count}
                 </span>
-                {p.price !== null && <span style={{ fontSize: 13, color: '#6B7280', fontVariantNumeric: 'tabular-nums' }}>{fmtPrice(p.price)}</span>}
+                {p.price !== null && <span style={{ fontSize: 13, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{fmtPrice(p.price)}</span>}
               </div>
             </div>
           ))}
@@ -195,9 +195,9 @@ function MealPill({ label, bg, color }: { label: string; bg: string; color: stri
 }
 
 function inp(width: number): React.CSSProperties {
-  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
 }
-const chk: React.CSSProperties = { fontSize: 13, color: '#374151', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }
+const chk: React.CSSProperties = { fontSize: 13, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }

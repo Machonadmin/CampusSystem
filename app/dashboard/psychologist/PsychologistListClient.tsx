@@ -119,8 +119,8 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
 
       {/* Follow-ups worklist — для управляющих */}
       {canManage && (upcoming.length > 0 || overdue.length > 0) && (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{t('followups.title')}</h2>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('followups.title')}</h2>
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
             <WorklistColumn
               heading={t('followups.overdue')}
@@ -147,17 +147,17 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder={t('list.search_placeholder')}
-        style={{ width: '100%', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid #D1D5DB', borderRadius: 8, color: '#1F2937' }}
+        style={{ width: '100%', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
       />
 
       {/* Students list */}
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
           <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('list.empty')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -176,12 +176,12 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
                       key={s.journey_id}
                       onClick={() => go(s.journey_id)}
                       style={{ cursor: 'pointer' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#F9FAFB' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#fff' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                     >
                       <td style={td}>
-                        <div style={{ fontWeight: 500, color: '#1F2937' }}>{s.full_name || s.hebrew_name || '—'}</div>
-                        {s.email && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{s.email}</div>}
+                        <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.full_name || s.hebrew_name || '—'}</div>
+                        {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                       </td>
                       <td style={td}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -196,7 +196,7 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
                             </span>
                           )}
                           {s.open_sessions === 0 && !risk && (
-                            <span style={{ fontSize: 12, color: '#9CA3AF' }}>—</span>
+                            <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>—</span>
                           )}
                         </div>
                       </td>
@@ -231,7 +231,7 @@ function WorklistColumn({
         {heading} · {items.length}
       </div>
       {items.length === 0 ? (
-        <div style={{ fontSize: 12, color: '#9CA3AF' }}>{emptyLabel}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{emptyLabel}</div>
       ) : (
         <div style={{ display: 'grid', gap: 6 }}>
           {items.map(f => (
@@ -239,14 +239,14 @@ function WorklistColumn({
               key={f.id}
               onClick={() => onPick(f.journey_id)}
               style={{
-                textAlign: 'start', background: '#F9FAFB', border: '1px solid #F3F4F6',
+                textAlign: 'start', background: 'var(--surface-2)', border: '1px solid var(--surface-2)',
                 borderRadius: 8, padding: '8px 10px', cursor: 'pointer',
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1F2937' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                 {f.student_name || f.student_hebrew_name || '—'}
               </div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                 {dueLabel}: {f.follow_up_date}
                 {f.summary ? ` · ${f.summary}` : ''}
               </div>
@@ -259,8 +259,8 @@ function WorklistColumn({
 }
 
 const th: React.CSSProperties = {
-  textAlign: 'start', fontSize: 11, fontWeight: 600, color: '#9CA3AF',
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
   textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
-  borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const td: React.CSSProperties = { fontSize: 13, color: '#1F2937', padding: '9px 12px', borderBottom: '1px solid #F3F4F6' }
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }

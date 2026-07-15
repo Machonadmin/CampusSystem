@@ -65,61 +65,61 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
   const current = tracks.find(x => x.id === trackId)
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{t('study_track.title')}</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('study_track.title')}</h3>
         {canEdit && !editing && (
-          <button onClick={() => setEditing(true)} style={{ fontSize: 12, fontWeight: 600, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button onClick={() => setEditing(true)} style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer' }}>
             {t('study_track.edit')}
           </button>
         )}
       </div>
 
       {/* Первая половина — инфо */}
-      <div style={{ fontSize: 12, color: '#6B7280', background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', background: 'var(--surface-2)', borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
         {t('study_track.first_half')}
       </div>
 
       {!editing ? (
         <div style={{ display: 'grid', gap: 6 }}>
           <div style={{ fontSize: 13 }}>
-            <span style={{ color: '#9CA3AF' }}>{t('study_track.second_half')}: </span>
-            <span style={{ color: '#1F2937', fontWeight: 600 }}>{current ? trackName(current, lang) : t('study_track.unassigned')}</span>
+            <span style={{ color: 'var(--text-faint)' }}>{t('study_track.second_half')}: </span>
+            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{current ? trackName(current, lang) : t('study_track.unassigned')}</span>
           </div>
           {notes && (
-            <div style={{ fontSize: 12, color: '#6B7280' }}>
-              <span style={{ color: '#9CA3AF' }}>{t('study_track.notes_label')}: </span>{notes}
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              <span style={{ color: 'var(--text-faint)' }}>{t('study_track.notes_label')}: </span>{notes}
             </div>
           )}
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{t('study_track.second_half')}</span>
+            <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{t('study_track.second_half')}</span>
             <select
               value={trackId ?? ''}
               onChange={e => setTrackId(e.target.value || null)}
-              style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff' }}
+              style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)' }}
             >
               <option value="">{t('study_track.choose')}</option>
               {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackName(tr, lang)}</option>)}
             </select>
           </label>
           <label style={{ display: 'grid', gap: 4 }}>
-            <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{t('study_track.notes_label')}</span>
+            <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{t('study_track.notes_label')}</span>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={2}
-              style={{ fontSize: 13, padding: '8px 10px', border: '1px solid #D1D5DB', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }}
+              style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }}
             />
           </label>
           {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={save} disabled={saving} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: saving ? '#9CA3AF' : '#2563EB', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: saving ? 'default' : 'pointer' }}>
+            <button onClick={save} disabled={saving} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: saving ? 'default' : 'pointer' }}>
               {saving ? t('study_track.saving') : t('study_track.save')}
             </button>
-            <button onClick={() => { setEditing(false); load() }} disabled={saving} style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>
+            <button onClick={() => { setEditing(false); load() }} disabled={saving} style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>
               ✕
             </button>
           </div>

@@ -38,7 +38,7 @@ function formatFullDate(lang: string, iso: string): string {
 
 const PRIORITY_VALUES = ['urgent', 'high', 'normal', 'low'] as const
 const PRIORITY_COLORS: Record<typeof PRIORITY_VALUES[number], string> = {
-  urgent: '#DC2626', high: '#D97706', normal: '#2563EB', low: '#6B7280',
+  urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-muted)',
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -275,22 +275,22 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   // ── styles ──
   const inp: React.CSSProperties = {
     padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
-    outline: 'none', background: '#fff', color: '#1F2937', width: '100%', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8,
+    outline: 'none', background: 'var(--surface)', color: 'var(--text)', width: '100%', boxSizing: 'border-box',
   }
   const segBtn = (active: boolean): React.CSSProperties => ({
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: active ? 600 : 400,
-    border: '1px solid ' + (active ? '#F59E0B' : '#D1D5DB'),
+    border: '1px solid ' + (active ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: active ? '#FEF3C7' : '#fff',
-    color: active ? '#92400E' : '#374151',
+    background: active ? '#FEF3C7' : 'var(--surface)',
+    color: active ? '#92400E' : 'var(--text)',
   })
   const assigneeBtn = (mode: AssigneeMode): React.CSSProperties => ({
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: assigneeMode === mode ? 600 : 400,
-    border: '1px solid ' + (assigneeMode === mode ? '#F59E0B' : '#D1D5DB'),
+    border: '1px solid ' + (assigneeMode === mode ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: assigneeMode === mode ? '#FEF3C7' : '#fff',
-    color: assigneeMode === mode ? '#92400E' : '#374151',
+    background: assigneeMode === mode ? '#FEF3C7' : 'var(--surface)',
+    color: assigneeMode === mode ? '#92400E' : 'var(--text)',
   })
 
   return (
@@ -303,19 +303,19 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560,
+        background: 'var(--surface)', borderRadius: 16, width: '100%', maxWidth: 560,
         maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
       }}>
         {/* Header */}
         <div style={{
-          padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
+          padding: '16px 20px', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('create_modal.title')}
           </h2>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#6B7280', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
         </div>
 
         {/* Body */}
@@ -323,7 +323,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Title */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -335,7 +335,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Description */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -347,7 +347,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Kind toggle */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.type_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.type_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => setKind('once')}      style={segBtn(kind === 'once')}>{t('create_modal.type_once')}</button>
               <button type="button" onClick={() => setKind('recurring')} style={segBtn(kind === 'recurring')}>{t('create_modal.type_recurring')}</button>
@@ -356,7 +356,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Assignee */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.assignee_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.assignee_label')}</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <button type="button" onClick={() => setAssigneeMode('me')}         style={assigneeBtn('me')}>{t('create_modal.assignee_me')}</button>
               <button type="button" onClick={() => setAssigneeMode('person')}     style={assigneeBtn('person')}>{t('create_modal.assignee_person')}</button>
@@ -381,7 +381,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           {/* ── ONE-TIME DUE ── */}
           {kind === 'once' && (
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.due_label')}</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.due_label')}</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <button type="button" onClick={() => setDueTimeType('allday')} style={segBtn(dueTimeType === 'allday')}>{t('create_modal.due_allday')}</button>
                 <button type="button" onClick={() => setDueTimeType('exact')}  style={segBtn(dueTimeType === 'exact')}>{t('create_modal.due_exact')}</button>
@@ -393,8 +393,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                 )}
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer', userSelect: 'none' }}>
-                <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: '#2563EB' }} />
-                <span style={{ fontSize: 13, color: '#374151' }}>📅 {t('create_modal.add_to_calendar')}</span>
+                <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: 'var(--accent-strong)' }} />
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>📅 {t('create_modal.add_to_calendar')}</span>
               </label>
             </div>
           )}
@@ -404,13 +404,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             <>
               {/* Start date */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
                 <input type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
               </div>
 
               {/* Frequency cards */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {FREQ_OPTIONS.map(opt => {
                     const active = frequency === opt.value
@@ -421,13 +421,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                         onClick={() => setFrequency(opt.value)}
                         style={{
                           padding: '10px 12px', textAlign: 'start',
-                          border: '2px solid ' + (active ? '#F59E0B' : '#E5E7EB'),
+                          border: '2px solid ' + (active ? '#F59E0B' : 'var(--border)'),
                           borderRadius: 10, cursor: 'pointer',
-                          background: active ? '#FFFBEB' : '#fff',
+                          background: active ? '#FFFBEB' : 'var(--surface)',
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? '#92400E' : '#1F2937' }}>{opt.label}</div>
-                        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{opt.sub}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? '#92400E' : 'var(--text)' }}>{opt.label}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{opt.sub}</div>
                       </button>
                     )
                   })}
@@ -437,7 +437,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Weekly weekdays */}
               {frequency === 'weekly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.weekdays_label')}</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.weekdays_label')}</label>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {Array.from({ length: 7 }, (_, i) => i + 1).map(wd => {
                       const on = weekdays.includes(wd)
@@ -448,9 +448,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                           onClick={() => toggleWeekday(wd)}
                           style={{
                             width: 36, height: 36, borderRadius: '50%', fontSize: 12, fontWeight: on ? 600 : 400,
-                            border: '1px solid ' + (on ? '#F59E0B' : '#D1D5DB'),
-                            background: on ? '#F59E0B' : '#fff',
-                            color: on ? '#fff' : '#374151',
+                            border: '1px solid ' + (on ? '#F59E0B' : 'var(--border-strong)'),
+                            background: on ? '#F59E0B' : 'var(--surface)',
+                            color: on ? 'var(--surface)' : 'var(--text)',
                             cursor: 'pointer',
                           }}
                         >
@@ -465,7 +465,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Monthly day */}
               {frequency === 'monthly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
                   <input
                     type="number" min={1} max={31} value={monthDay}
                     onChange={e => setMonthDay(e.target.value)}
@@ -479,13 +479,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {frequency === 'yearly' && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
                     <select value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthLabel(lang, m)}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
                     <input
                       type="number" min={1} max={31} value={yearDay}
                       onChange={e => setYearDay(e.target.value)}
@@ -498,7 +498,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
               {/* Optional time */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                   <input type="checkbox" checked={enableTime} onChange={e => setEnableTime(e.target.checked)} />
                   {t('create_modal.specific_time_label')}
                 </label>
@@ -510,7 +510,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
               {/* Series end */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   {([
                     ['never',       t('create_modal.series_end_never')],
@@ -537,14 +537,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                       onChange={e => setSeriesCount(e.target.value)}
                       style={{ ...inp, maxWidth: 100 }}
                     />
-                    <span style={{ fontSize: 13, color: '#6B7280' }}>{t('create_modal.occurrences_suffix')}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('create_modal.occurrences_suffix')}</span>
                   </div>
                 )}
               </div>
 
               {/* Preview */}
-              <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#374151' }}>
-                <span style={{ fontWeight: 600, color: '#6B7280', fontSize: 12 }}>{t('create_modal.next_occurrence_label')} </span>
+              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: 12 }}>{t('create_modal.next_occurrence_label')} </span>
                 {preview}
               </div>
             </>
@@ -552,7 +552,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Priority */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.priority_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.priority_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {PRIORITY_VALUES.map(p => {
                 const active = priority === p
@@ -564,10 +564,10 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                     onClick={() => setPriority(p)}
                     style={{
                       flex: 1, padding: '6px 0', fontSize: 12, fontWeight: active ? 700 : 400,
-                      border: '1px solid ' + (active ? color : '#D1D5DB'),
+                      border: '1px solid ' + (active ? color : 'var(--border-strong)'),
                       borderRadius: 8, cursor: 'pointer',
-                      background: active ? color + '18' : '#fff',
-                      color: active ? color : '#6B7280',
+                      background: active ? color + '18' : 'var(--surface)',
+                      color: active ? color : 'var(--text-muted)',
                     }}
                   >
                     {t(`priority.${p}`, p)}
@@ -579,13 +579,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Watchers */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.watchers_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.watchers_label')}</label>
             {watchers.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {watchers.map(w => (
                   <span key={w.id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '3px 8px', background: '#EFF6FF', borderRadius: 99,
+                    padding: '3px 8px', background: 'var(--accent-tint)', borderRadius: 99,
                     fontSize: 12, color: '#1E40AF',
                   }}>
                     {w.full_name}
@@ -616,11 +616,11 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
         {/* Footer */}
         <div style={{
-          padding: '14px 20px', borderTop: '1px solid #E5E7EB',
+          padding: '14px 20px', borderTop: '1px solid var(--border)',
           display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0,
         }}>
           <button type="button" onClick={onClose}
-            style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', color: '#374151' }}>
+            style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}>
             {tCommon('cancel')}
           </button>
           <button

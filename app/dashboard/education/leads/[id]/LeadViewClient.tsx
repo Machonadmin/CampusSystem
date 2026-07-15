@@ -121,8 +121,8 @@ type TabKey = 'overview' | 'personal' | 'contacts' | 'family' | 'community' | 'd
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
         {title}
       </div>
       {children}
@@ -133,8 +133,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', gap: 12, padding: '4px 0' }}>
-      <div style={{ fontSize: 13, color: '#9CA3AF', minWidth: 160, flexShrink: 0 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937' }}>{value || '—'}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-faint)', minWidth: 160, flexShrink: 0 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value || '—'}</div>
     </div>
   )
 }
@@ -214,30 +214,30 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'family':
         return data.relatives.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_relatives')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_relatives')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.relatives.map((r, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: '#1F2937' }}>
+              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
                 {r.full_name || '—'} — {t(`card.relation.${r.relation_type}`, r.relation_type).toLowerCase()}
-                {r.notes ? <span style={{ color: '#9CA3AF' }}> ({r.notes})</span> : null}
+                {r.notes ? <span style={{ color: 'var(--text-faint)' }}> ({r.notes})</span> : null}
               </div>
             ))}
           </div>
         )
       case 'community':
         return data.communities.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_communities')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_communities')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.communities.map((c, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: '#1F2937' }}>
+              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
                 <div style={{ fontWeight: 500 }}>
                   {c.name || '—'}
-                  {(c.city || c.country) ? <span style={{ color: '#9CA3AF', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
+                  {(c.city || c.country) ? <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
                 </div>
                 {(c.contact_name || c.contact_role || c.contact_phone || c.contact_email) && (
-                  <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     {[c.contact_name, c.contact_role, c.contact_phone, c.contact_email].filter(Boolean).join(' · ')}
                   </div>
                 )}
@@ -247,11 +247,11 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'directions':
         return interestTexts.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_directions')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_directions')}</div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {interestTexts.map((text, idx) => (
-              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3' }}>
+              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: '#3730A3' }}>
                 {text}
               </span>
             ))}
@@ -273,7 +273,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Академические данные */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
                 {t('card.lifecycle.academic_title')}
               </div>
               <Field label={t('card.labels.department')} value={data.academic?.departmentName} />
@@ -352,7 +352,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                 onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
                 style={{
                   padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                  background: '#fff', color: '#065F46',
+                  background: 'var(--surface)', color: '#065F46',
                   border: 'none', borderRadius: 8, cursor: 'pointer',
                 }}
               >
@@ -374,7 +374,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid #E5E7EB', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
         {TABS.map(tabItem => {
           const active = tab === tabItem.key
           return (
@@ -384,12 +384,12 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               style={{
                 padding: '8px 14px', fontSize: 13,
                 fontWeight: active ? 600 : 400,
-                color: active ? '#3B82F6' : '#9CA3AF',
+                color: active ? 'var(--accent)' : 'var(--text-faint)',
                 background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: active ? '2px solid #3B82F6' : '2px solid transparent',
+                borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
                 marginBottom: -1, transition: 'color 0.15s, background 0.15s',
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             >
               {t(`card.tabs.${tabItem.labelKey}`)}
