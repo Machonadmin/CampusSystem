@@ -9,7 +9,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 const GRANTABLE = [
   'view_students', 'manage_students', 'manage_enrollments', 'manage_class_groups',
   'manage_class_teachers', 'set_lesson_topics', 'mark_attendance', 'set_grades',
-  'manage_study_groups', 'manage_subjects', 'manage_specialties',
+  'manage_study_groups', 'manage_subjects', 'manage_specialties', 'write_evaluation',
 ] as const
 
 interface Unit { id: string; name: string }

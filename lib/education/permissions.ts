@@ -26,6 +26,7 @@ export type EducationPrivilege =
   | 'set_grades'
   | 'set_lesson_topics'
   | 'manage_communities'
+  | 'write_evaluation'
 
 export type { Scope }
 
