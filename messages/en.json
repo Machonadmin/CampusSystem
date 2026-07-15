@@ -3026,7 +3026,8 @@
     "invalid_drawing_path": "Invalid signature file",
     "signature_record_failed": "Stage completed, but the signature could not be recorded",
     "invalid_signature_method": "Invalid signature method",
-    "cannot_remove_head": "Cannot remove the unit head"
+    "cannot_remove_head": "Cannot remove the unit head",
+    "attendance_window_closed": "The attendance edit window has closed — contact your manager"
   },
   "workflow": {
     "error": "Error"

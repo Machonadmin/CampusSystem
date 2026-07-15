@@ -3026,7 +3026,8 @@
     "invalid_drawing_path": "Неверный файл подписи",
     "signature_record_failed": "Этап завершён, но подпись не удалось записать",
     "invalid_signature_method": "Неверный метод подписи",
-    "cannot_remove_head": "Нельзя удалить главу единицы"
+    "cannot_remove_head": "Нельзя удалить главу единицы",
+    "attendance_window_closed": "Окно редактирования посещаемости закрыто — обратитесь к руководителю"
   },
   "workflow": {
     "error": "Ошибка"
