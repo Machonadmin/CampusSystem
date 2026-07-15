@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
+import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
@@ -139,6 +140,36 @@ export async function POST(
     if (!access) return apiError('lesson_not_found', 404)
 
     const session = await requireEducationPrivilege('mark_attendance', access.target)
+
+    // Окно редактирования: руководитель (manage_students) правит всегда; учитель
+    // — только во время урока + 30 мин (+ персональное доп. время из грантов).
+    const isManager = await hasEducationPrivilege(session, 'manage_students', access.target)
+    if (!isManager) {
+      const lessonRow = access.lesson as unknown as { scheduled_date: string; scheduled_time: string | null; scheduled_end_time?: string | null }
+      // Доп. время учителю: постоянное (lesson_id NULL) или разовое на этот урок.
+      let extraMinutes = 0
+      try {
+        // Таблица teacher_attendance_grants ещё не в сгенерированных типах.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: grants } = await (sb as any)
+          .from('teacher_attendance_grants')
+          .select('extra_minutes, lesson_id')
+          .eq('teacher_id', session.person_id)
+        for (const g of (grants ?? []) as Array<{ extra_minutes: number; lesson_id: string | null }>) {
+          if (g.lesson_id === null || g.lesson_id === params.lessonId) {
+            extraMinutes = Math.max(extraMinutes, g.extra_minutes ?? 0)
+          }
+        }
+      } catch { /* таблицы ещё нет — без доп. времени */ }
+
+      const within = isWithinAttendanceWindow(new Date(), {
+        scheduledDate: lessonRow.scheduled_date,
+        scheduledTime: lessonRow.scheduled_time,
+        scheduledEndTime: lessonRow.scheduled_end_time ?? null,
+        extraMinutes,
+      })
+      if (!within) return apiError('attendance_window_closed', 403)
+    }
 
     // Каждый journey должен быть записан в группу урока
     const enrolledIds = await getEnrolledJourneyIds(sb, access.lesson.class_group_id)

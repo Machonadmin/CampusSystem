@@ -3026,7 +3026,8 @@
     "invalid_drawing_path": "קובץ חתימה שגוי",
     "signature_record_failed": "השלב הושלם אך רישום החתימה נכשל",
     "invalid_signature_method": "שיטת חתימה שגויה",
-    "cannot_remove_head": "לא ניתן להסיר את ראש היחידה"
+    "cannot_remove_head": "לא ניתן להסיר את ראש היחידה",
+    "attendance_window_closed": "חלון עריכת הנוכחות נסגר — פנה למנהל"
   },
   "workflow": {
     "error": "שגיאה"
