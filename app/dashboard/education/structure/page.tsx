@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
 interface Unit { id: string; name: string }
-interface Node { id: string; name: string; tier: string | null; sort_order: number; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
+interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
 
 export default function StructurePage() {
   const t = useTranslations('education.structure')
@@ -180,6 +180,9 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
             <span style={{ fontSize: depth === 0 ? 14 : 13, fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)' }}>
               {depth === 0 && '🏛️ '}{node.name}
             </span>
+            {node.head && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 99, padding: '1px 8px' }}>👤 {node.head}</span>
+            )}
             {node.groups.length > 0 && (
               <span style={{ fontSize: 11, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 99, padding: '1px 8px' }}>
                 {node.groups.length} {t('groups')}
