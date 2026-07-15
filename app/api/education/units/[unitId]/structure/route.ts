@@ -17,12 +17,18 @@ import { canManageUnit } from '@/lib/education/unit-access'
  * Право: superadmin или глава корневой единицы (canManageUnit).
  */
 
-type Dept = { id: string; name: string; parent_id: string | null; structure_tier?: string | null }
+type Dept = { id: string; name: string; parent_id: string | null; structure_tier?: string | null; sort_order?: number | null }
 
-/** Читает departments с structure_tier; если колонки ещё нет — без неё. */
+/**
+ * Читает departments с sort_order и structure_tier; каскадный fallback, если
+ * какой-то из необязательных столбцов ещё не добавлен миграцией:
+ *   full (оба) → только sort_order → базовые.
+ */
 async function readDepts(sb: ReturnType<typeof createServerClient>): Promise<Dept[]> {
-  const withTier = await sb.from('departments').select('id, name, parent_id, structure_tier')
-  if (!withTier.error) return (withTier.data ?? []) as Dept[]
+  const full = await sb.from('departments').select('id, name, parent_id, sort_order, structure_tier')
+  if (!full.error) return (full.data ?? []) as Dept[]
+  const midd = await sb.from('departments').select('id, name, parent_id, sort_order')
+  if (!midd.error) return (midd.data ?? []) as Dept[]
   const base = await sb.from('departments').select('id, name, parent_id')
   if (base.error) throw base.error
   return (base.data ?? []) as Dept[]
@@ -77,6 +83,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
         id: d.id,
         name: d.name,
         tier: d.structure_tier ?? null,
+        sort_order: d.sort_order ?? 0,
         parent_id: d.id === params.unitId ? null : d.parent_id, // корень отдаём как top
         is_root: d.id === params.unitId,
         groups: gs,

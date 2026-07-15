@@ -1145,7 +1145,9 @@
       "cancel": "Cancel",
       "confirm_delete": "Delete this sub-unit?",
       "save_failed": "Save failed",
-      "tier_ph": "Tier (level/class…)"
+      "tier_ph": "Tier (level/class…)",
+      "move_up": "Up",
+      "move_down": "Down"
     },
     "track_assign": {
       "title": "Track assignment",
