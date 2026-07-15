@@ -23,15 +23,17 @@ export async function GET(request: NextRequest) {
     if (groupIds.length === 0) return NextResponse.json({ date, lessons: [] })
 
     // Уроки этих групп на дату.
+    // scheduled_end_time добавляется миграцией 20260715140000 — читаем через '*',
+    // чтобы роут работал и до миграции (deploy-safe), а колонка подхватилась после.
     const { data: lessonsRaw } = await sb
       .from('lessons')
-      .select('id, class_group_id, scheduled_date, scheduled_time, scheduled_end_time, topic, description, location, is_cancelled, class_group:class_groups(name, subject:subjects(name), department:departments(name))')
+      .select('*, class_group:class_groups(name, subject:subjects(name), department:departments(name))')
       .in('class_group_id', groupIds)
       .eq('scheduled_date', date)
       .order('scheduled_time', { ascending: true, nullsFirst: true })
     const lessons = (lessonsRaw ?? []) as unknown as Array<{
       id: string; class_group_id: string; scheduled_date: string; scheduled_time: string | null
-      scheduled_end_time: string | null; topic: string | null; description: string | null; location: string | null; is_cancelled: boolean
+      scheduled_end_time?: string | null; topic: string | null; description: string | null; location: string | null; is_cancelled: boolean
       class_group: { name: string; subject: { name: string } | null; department: { name: string } | null } | null
     }>
 
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
       unit: l.class_group?.department?.name ?? null,
       scheduled_date: l.scheduled_date,
       scheduled_time: l.scheduled_time,
-      scheduled_end_time: l.scheduled_end_time,
+      scheduled_end_time: l.scheduled_end_time ?? null,
       topic: l.topic,
       description: l.description,
       location: l.location,
