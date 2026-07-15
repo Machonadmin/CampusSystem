@@ -1129,7 +1129,8 @@
       "period": "Период",
       "period_from": "С",
       "period_to": "По",
-      "period_clear": "Сброс"
+      "period_clear": "Сброс",
+      "col_track": "Маршрут"
     },
     "structure": {
       "title": "Структура единицы",
