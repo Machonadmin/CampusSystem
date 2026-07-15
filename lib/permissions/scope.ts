@@ -28,6 +28,28 @@ export function reduceScopes<P extends string>(
   return result
 }
 
+/**
+ * Накладывает персональные привилегии (person_privileges) поверх ролевых.
+ *   - is_granted=false → явный ЗАПРЕТ: привилегия удаляется, даже если её дала роль.
+ *   - is_granted=true  → выдаёт привилегию как минимум в scope='department'
+ *                        (личная выдача действует в подразделениях человека;
+ *                        если роль уже дала 'all' — оставляем 'all').
+ * Чистая функция — вход/выход только данные, чтобы легко тестировать. Вызов
+ * фильтрует истёкшие (expires_at) ДО передачи сюда.
+ */
+export function applyPersonGrants<P extends string>(
+  base: Partial<Record<P, Scope>>,
+  grants: { code: string; is_granted: boolean }[],
+): Partial<Record<P, Scope>> {
+  const out: Partial<Record<P, Scope>> = { ...base }
+  for (const g of grants) {
+    const code = g.code as P
+    if (!g.is_granted) { delete out[code]; continue }
+    if (out[code] !== 'all') out[code] = 'department'
+  }
+  return out
+}
+
 /** Что именно проверяем: подразделение действия и/или ответственные лица. */
 export interface AccessTarget {
   department_id?: string
