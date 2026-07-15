@@ -202,7 +202,13 @@
       "status_present": "Present",
       "status_absent": "Absent",
       "status_excused": "Excused",
-      "status_late": "Late"
+      "status_late": "Late",
+      "att_guest": "Guest",
+      "att_guest_add": "Add one-time guest",
+      "att_guest_remove": "Remove guest",
+      "att_guest_hint": "A student outside the group, for this lesson only. Search by name.",
+      "att_guest_search_ph": "Student name…",
+      "att_guest_search": "Search"
     },
     "report": {
       "loading": "Loading…",
@@ -3116,7 +3122,9 @@
     "cannot_remove_head": "Cannot remove the unit head",
     "attendance_window_closed": "The attendance edit window has closed — contact your manager",
     "note_required": "Please write a note",
-    "feature_not_migrated": "Feature not yet enabled in the database"
+    "feature_not_migrated": "Feature not yet enabled in the database",
+    "feature_unavailable": "Feature not available yet (migration not run)",
+    "already_enrolled": "Student is already enrolled in the lesson's group"
   },
   "workflow": {
     "error": "Error"

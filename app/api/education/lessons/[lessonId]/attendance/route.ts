@@ -71,6 +71,7 @@ export async function GET(
     }
 
     const enrolls = (enrollsRes.data ?? []) as unknown as EnrollRow[]
+    const enrolledIdSet = new Set(enrolls.map(e => e.journey_id))
     const students = enrolls.map(row => {
       const person = row.journey?.person ?? null
       const att = statusByJourney.get(row.journey_id) ?? null
@@ -81,8 +82,48 @@ export async function GET(
         status: att?.status ?? null,
         marked_by: att?.marked_by ?? null,
         marked_at: att?.marked_at ?? null,
+        is_guest: false,
       }
     })
+
+    // Разовые гости этого урока (lesson_roster_overrides) — journeys вне группы.
+    // Деплой-безопасно: таблицы может ещё не быть (42P01) → просто без гостей.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ovr, error: ovrErr } = await (sb as any)
+        .from('lesson_roster_overrides')
+        .select('journey_id')
+        .eq('lesson_id', params.lessonId)
+      if (ovrErr) throw ovrErr
+      const guestIds = [...new Set((ovr ?? []).map((r: { journey_id: string }) => r.journey_id))]
+        .filter(id => !enrolledIdSet.has(id as string)) as string[]
+      if (guestIds.length > 0) {
+        const { data: gj } = await sb
+          .from('education_journeys')
+          .select('id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)')
+          .in('id', guestIds)
+        const nameById = new Map<string, { full_name: string | null; hebrew_name: string | null }>()
+        for (const j of (gj ?? []) as unknown as Array<{ id: string; person: { full_name: string | null; hebrew_name: string | null } | null }>) {
+          nameById.set(j.id, { full_name: j.person?.full_name ?? null, hebrew_name: j.person?.hebrew_name ?? null })
+        }
+        for (const gid of guestIds) {
+          const att = statusByJourney.get(gid) ?? null
+          const nm = nameById.get(gid)
+          students.push({
+            journey_id: gid,
+            full_name: nm?.full_name ?? null,
+            hebrew_name: nm?.hebrew_name ?? null,
+            status: att?.status ?? null,
+            marked_by: att?.marked_by ?? null,
+            marked_at: att?.marked_at ?? null,
+            is_guest: true,
+          })
+        }
+      }
+    } catch (e) {
+      const code = (e as { code?: string }).code
+      if (code !== '42P01') throw e
+    }
 
     return NextResponse.json({
       lesson_id: params.lessonId,
@@ -171,13 +212,26 @@ export async function POST(
       if (!within) return apiError('attendance_window_closed', 403)
     }
 
-    // Каждый journey должен быть записан в группу урока
+    // Каждый journey должен быть записан в группу урока ИЛИ добавлен разовым
+    // гостем именно на этот урок (lesson_roster_overrides).
     const enrolledIds = await getEnrolledJourneyIds(sb, access.lesson.class_group_id)
-    const notEnrolled = Array.from(new Set(entries.map(e => e.journey_id!)))
-      .filter(id => !enrolledIds.has(id))
-    if (notEnrolled.length > 0) {
+    const allowedIds = new Set(enrolledIds)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ovr, error: ovrErr } = await (sb as any)
+        .from('lesson_roster_overrides')
+        .select('journey_id')
+        .eq('lesson_id', params.lessonId)
+      if (ovrErr) throw ovrErr
+      for (const r of (ovr ?? []) as Array<{ journey_id: string }>) allowedIds.add(r.journey_id)
+    } catch (e) {
+      if ((e as { code?: string }).code !== '42P01') throw e
+    }
+    const notAllowed = Array.from(new Set(entries.map(e => e.journey_id!)))
+      .filter(id => !allowedIds.has(id))
+    if (notAllowed.length > 0) {
       return NextResponse.json(
-        { error: `Не записаны в группу урока: ${notEnrolled.join(', ')}` },
+        { error: `Не записаны в группу урока: ${notAllowed.join(', ')}` },
         { status: 400 }
       )
     }

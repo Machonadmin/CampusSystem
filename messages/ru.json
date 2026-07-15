@@ -202,7 +202,13 @@
       "status_present": "Присутствовал",
       "status_absent": "Отсутствовал",
       "status_excused": "Уважительная причина",
-      "status_late": "Опоздал"
+      "status_late": "Опоздал",
+      "att_guest": "Гость",
+      "att_guest_add": "Добавить разового гостя",
+      "att_guest_remove": "Убрать гостя",
+      "att_guest_hint": "Студент вне группы, только на этот урок. Поиск по имени.",
+      "att_guest_search_ph": "Имя студента…",
+      "att_guest_search": "Найти"
     },
     "report": {
       "loading": "Загрузка…",
@@ -3116,7 +3122,9 @@
     "cannot_remove_head": "Нельзя удалить главу единицы",
     "attendance_window_closed": "Окно редактирования посещаемости закрыто — обратитесь к руководителю",
     "note_required": "Введите заметку",
-    "feature_not_migrated": "Функция ещё не включена в базе"
+    "feature_not_migrated": "Функция ещё не включена в базе",
+    "feature_unavailable": "Функция пока недоступна (миграция не выполнена)",
+    "already_enrolled": "Студент уже записан в группу урока"
   },
   "workflow": {
     "error": "Ошибка"

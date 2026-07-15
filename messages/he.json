@@ -202,7 +202,13 @@
       "status_present": "נוכח",
       "status_absent": "נעדר",
       "status_excused": "נעדר באישור",
-      "status_late": "איחר"
+      "status_late": "איחר",
+      "att_guest": "אורחת",
+      "att_guest_add": "הוסף אורחת חד-פעמית",
+      "att_guest_remove": "הסר אורחת",
+      "att_guest_hint": "תלמידה שאינה בקבוצה, לשיעור זה בלבד. חיפוש לפי שם.",
+      "att_guest_search_ph": "שם התלמידה…",
+      "att_guest_search": "חפש"
     },
     "report": {
       "loading": "טוען…",
@@ -3116,7 +3122,9 @@
     "cannot_remove_head": "לא ניתן להסיר את ראש היחידה",
     "attendance_window_closed": "חלון עריכת הנוכחות נסגר — פנה למנהל",
     "note_required": "נא לכתוב הערה",
-    "feature_not_migrated": "התכונה עדיין לא הופעלה במסד הנתונים"
+    "feature_not_migrated": "התכונה עדיין לא הופעלה במסד הנתונים",
+    "feature_unavailable": "התכונה עדיין לא זמינה (המיגרציה טרם הורצה)",
+    "already_enrolled": "התלמידה כבר רשומה לקבוצת השיעור"
   },
   "workflow": {
     "error": "שגיאה"
