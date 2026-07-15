@@ -218,6 +218,27 @@ real 75-row file (75/75 names, 74/75 dates). FOLLOW-UP idea: auto-map «Учит
 → study_track + «Год поступления» → study plan on import (currently the manager
 sets track/plan after, via the panels).
 
+## 6c. Departments cleanup + language default (owner 2026-07-15, IMPORTANT)
+Owner correction: today's studies work should have been REORGANIZING, not
+ADDING. Migration 20260715120000 created Hebrew-named study departments
+(לимудי קодеш/תיכон/קолג׳/אониברситет/טурו) NEXT TO existing Russian ones
+(Кафедра иудаики/Школа/Колледж/Университет/Туро) → duplicates incl. "Touro
+twice". **Default language must be Russian** (college staff are Russian-
+speakers; owner is the only Hebrew speaker) — app already defaults to `ru`
+(getCookieLocale/provider), but department & role NAMES were Hebrew.
+Study programs must NEVER live under Отдел набора (recruitment).
+FIX (migration 20260715280000, owner runs): owner already deleted the 5 empty
+Hebrew dups; migration is idempotent about that, adds `departments.name_he/
+name_en` (RU `name` = default), merges «גиוс»→«Отдел набора», creates «Учёба»
+parent under the institution and moves the 6 study units under it, and renames
+the two roles created today to Russian. `/api/education/units` now returns
+locale-resolved names (RU default) via `lib/departments/localized-name.ts`
+(deploy-safe). REMEMBER: **all new study data/labels default to Russian, then
+he/en**. TODO tomorrow: wire localized dept names into the other views
+(structure/reports/settings) — columns are ready. Future: recruitment gets a
+secretaries sub-dept for «שבת ביקור» (nested-departments already supports it).
+DO NOT touch «קבלה» (5 staff — owner's, purpose TBD).
+
 ## 7. Build discipline (every increment)
 Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →
 force-with-lease push → PR → squash-merge → resync. Keep `npx tsc --noEmit`
