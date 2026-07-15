@@ -204,6 +204,20 @@ Current order (owner-approved 2026-07-15 — did 3 then 1, DEFER 2 until spec):
 Later (unordered): exceptions (חריגים — girls only in one domain); weighted
 grades + assessment types; ראש-חול auto-assign across all chol units.
 
+## 6b. Student CSV importer (added 2026-07-15)
+Owner had a CRM Excel export (75 students, RU headers: ФИО «Фамилия Имя
+Отчество», Дата рождения ДД.ММ.ГГГГ, Пол, Еврейское имя, Город, Страна, «Учится
+в» → tracks, «Год поступления»). Built a generic CSV importer:
+`/dashboard/education/students/import` + `POST /api/education/students/import`
+(superadmin/manage_students). Upload CSV → auto column-map (guessField, RU/HE/EN
+synonyms) → preview → **dry-run (no writes)** → import (creates person +
+education_journey status='student'). Pure tested helpers in `lib/csv-parse.ts`
+and `lib/education/import-map.ts` (date/FIO/gender/dedup; 32 tests). Dedup: in-
+file by phone-or-name+birthdate; DB by name+birthdate. Validated against the
+real 75-row file (75/75 names, 74/75 dates). FOLLOW-UP idea: auto-map «Учится в»
+→ study_track + «Год поступления» → study plan on import (currently the manager
+sets track/plan after, via the panels).
+
 ## 7. Build discipline (every increment)
 Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →
 force-with-lease push → PR → squash-merge → resync. Keep `npx tsc --noEmit`
