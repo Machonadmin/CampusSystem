@@ -1035,6 +1035,19 @@
       "add_btn": "שבץ",
       "remove": "הסר",
       "no_classes": "אין כיתות פנויות ביחידה"
+    },
+    "my_day": {
+      "title": "היום שלי",
+      "subtitle": "השיעורים שלך — רשום נוכחות במהירות",
+      "no_lessons": "אין לך שיעורים ביום הזה",
+      "today": "היום",
+      "mark": "רישום נוכחות",
+      "marked_of": "{done}/{total} סומנו",
+      "all_marked": "הכל סומן",
+      "not_marked": "טרם סומן",
+      "cancelled": "בוטל",
+      "location": "מיקום",
+      "no_time": "ללא שעה"
     }
   },
   "tasks": {
@@ -3113,7 +3126,8 @@
     "more": "ועוד",
     "no_date": "ללא תאריך",
     "stalled": "תקועות בתהליך",
-    "days_waiting": "{n} ימים"
+    "days_waiting": "{n} ימים",
+    "my_lessons_today": "השיעורים שלי היום"
   },
   "search": {
     "placeholder": "חיפוש אדם…",

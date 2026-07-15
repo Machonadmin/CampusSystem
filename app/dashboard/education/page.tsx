@@ -208,10 +208,16 @@ export default function EducationPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
-        <a href="/dashboard/education/units"
-          style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-          {t('units.title')}
-        </a>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <a href="/dashboard/education/my-day"
+            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            {t('my_day.title')}
+          </a>
+          <a href="/dashboard/education/units"
+            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            {t('units.title')}
+          </a>
+        </div>
       </div>
 
       {/* Личная очередь «Ожидают моей подписи» — видна только при наличии */}

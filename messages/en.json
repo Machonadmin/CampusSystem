@@ -1035,6 +1035,19 @@
       "add_btn": "Place",
       "remove": "Remove",
       "no_classes": "No available classes in this unit"
+    },
+    "my_day": {
+      "title": "My day",
+      "subtitle": "Your lessons — mark attendance fast",
+      "no_lessons": "No lessons on this day",
+      "today": "Today",
+      "mark": "Mark attendance",
+      "marked_of": "{done}/{total} marked",
+      "all_marked": "All marked",
+      "not_marked": "Not marked yet",
+      "cancelled": "Cancelled",
+      "location": "Location",
+      "no_time": "No time"
     }
   },
   "tasks": {
@@ -3113,7 +3126,8 @@
     "more": "more",
     "no_date": "No date",
     "stalled": "Stuck in process",
-    "days_waiting": "{n} d"
+    "days_waiting": "{n} d",
+    "my_lessons_today": "My lessons today"
   },
   "search": {
     "placeholder": "Search a person…",
