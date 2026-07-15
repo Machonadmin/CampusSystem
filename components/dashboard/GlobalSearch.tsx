@@ -14,9 +14,9 @@ interface Result {
 }
 
 const STATUS_COLOR: Record<string, { bg: string; fg: string }> = {
-  lead:      { bg: '#DBEAFE', fg: '#1D4ED8' },
-  applicant: { bg: '#EDE9FE', fg: '#6D28D9' },
-  student:   { bg: '#DCFCE7', fg: '#047857' },
+  lead:      { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  applicant: { bg: 'var(--violet-tint)', fg: 'var(--violet)' },
+  student:   { bg: 'var(--success-tint)', fg: 'var(--success)' },
   staff:     { bg: 'var(--surface-2)', fg: 'var(--text)' },
 }
 
