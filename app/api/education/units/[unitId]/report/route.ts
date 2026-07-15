@@ -26,25 +26,28 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 const PAGE = 1000
 const IN_CHUNK = 150
 
-/** Все строки таблицы по фильтру col ∈ ids: чанки по ids + пагинация внутри чанка. */
+/**
+ * Все строки таблицы по фильтру col ∈ ids: чанки по ids + пагинация внутри чанка.
+ * orderCols задаёт СТАБИЛЬНЫЙ полный порядок для .range()-пагинации; должен
+ * состоять из реально существующих колонок (не у всех таблиц есть `id` —
+ * напр. class_enrollments имеет составной PK без id).
+ */
 async function fetchAllByIn<Row>(
   sb: SupabaseClient,
   table: string,
   selectCols: string,
   filterCol: string,
   ids: string[],
+  orderCols: string[] = ['id'],
 ): Promise<Row[]> {
   const out: Row[] = []
   for (let i = 0; i < ids.length; i += IN_CHUNK) {
     const chunk = ids.slice(i, i + IN_CHUNK)
     let from = 0
     for (;;) {
-      const { data, error } = await sb
-        .from(table)
-        .select(selectCols)
-        .in(filterCol, chunk)
-        .order('id', { ascending: true })
-        .range(from, from + PAGE - 1)
+      let q = sb.from(table).select(selectCols).in(filterCol, chunk)
+      for (const col of orderCols) q = q.order(col, { ascending: true })
+      const { data, error } = await q.range(from, from + PAGE - 1)
       if (error) throw error
       const rows = (data ?? []) as unknown as Row[]
       out.push(...rows)
@@ -116,8 +119,9 @@ export async function GET(
       journey: { id: string; person: { id: string; full_name: string | null; hebrew_name: string | null } | null } | null
     }>(
       sb, 'class_enrollments',
-      'id, journey_id, class_group_id, journey:education_journeys(id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name))',
+      'journey_id, class_group_id, journey:education_journeys(id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name))',
       'class_group_id', groupIds,
+      ['class_group_id', 'journey_id'], // class_enrollments: составной PK, без id
     )
 
     const studentCountByGroup = new Map<string, number>()
