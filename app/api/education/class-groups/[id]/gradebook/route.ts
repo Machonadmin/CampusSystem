@@ -75,7 +75,7 @@ export async function GET(
           .from('grades')
           .select('assessment_id, journey_id, score')
           .in('assessment_id', assessmentIds)
-          .order('journey_id', { ascending: true })
+          .order('id', { ascending: true }) // id — уникальный полный порядок для range-пагинации
           .range(from, from + PAGE - 1)
         if (gErr) throw gErr
         const rows = grades ?? []
