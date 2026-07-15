@@ -19,6 +19,7 @@ export default function HomeWidgets() {
         <h2 className="text-sm font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--text-faint)' }}>{t('section_title')}</h2>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: hasAny ? 24 : 0 }}>
+        <MyLessonsWidget onData={() => setHasAny(true)} />
         <StalledApplicantsWidget onData={() => setHasAny(true)} />
         <PendingSignaturesWidget onData={() => setHasAny(true)} />
         <MyTasksWidget onData={() => setHasAny(true)} />
@@ -58,6 +59,38 @@ function Row({ main, sub }: { main: string; sub?: string }) {
       <span style={{ color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{main}</span>
       {sub && <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>{sub}</span>}
     </div>
+  )
+}
+
+// ── Мои уроки сегодня (учитель) ──────────────────────────────────────────────
+interface MyLesson { id: string; class_group_name: string; subject: string | null; scheduled_time: string | null; marked_count: number; enrolled_count: number; is_cancelled: boolean }
+function MyLessonsWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const router = useRouter()
+  const [items, setItems] = useState<MyLesson[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const d = new Date().toISOString().slice(0, 10)
+      const res = await fetch(`/api/education/my-lessons?date=${d}`)
+      if (res.ok) { const b = await res.json(); const s = (b.lessons ?? []) as MyLesson[]; setItems(s); if (s.length) onData() }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('my_lessons_today')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education/my-day')}>
+      <div style={{ display: 'grid', gap: 5 }}>
+        {items.slice(0, 4).map(l => (
+          <Row key={l.id}
+            main={`${l.class_group_name}${l.subject ? ' · ' + l.subject : ''}`}
+            sub={l.is_cancelled ? '—' : (l.scheduled_time ? l.scheduled_time.slice(0, 5) : '')} />
+        ))}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--accent-strong)' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
   )
 }
 
