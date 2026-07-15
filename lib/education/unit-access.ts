@@ -46,6 +46,7 @@ export const GRANTABLE_EDUCATION_PRIVILEGES = [
   'manage_study_groups',
   'manage_subjects',
   'manage_specialties',
+  'write_evaluation',
 ] as const
 
 export type GrantablePrivilege = (typeof GRANTABLE_EDUCATION_PRIVILEGES)[number]

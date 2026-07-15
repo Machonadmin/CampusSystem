@@ -11,6 +11,7 @@ import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import HandoffButton from '@/components/education/HandoffButton'
 import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
+import EvaluationsPanel from '@/components/education/EvaluationsPanel'
 import DocumentsTab from '@/components/education/DocumentsTab'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
@@ -412,6 +413,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <StageSignatures journeyId={data.journeyId} />
           {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
           {data.status === 'student' && <PlacementsPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <EvaluationsPanel journeyId={data.journeyId} />}
           <JourneyTimeline journeyId={data.journeyId} />
         </div>
       </div>

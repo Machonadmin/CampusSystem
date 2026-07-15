@@ -1022,7 +1022,8 @@
         "set_grades": "Enter grades",
         "manage_study_groups": "Manage cohorts",
         "manage_subjects": "Manage subjects",
-        "manage_specialties": "Manage specialties"
+        "manage_specialties": "Manage specialties",
+        "write_evaluation": "Write evaluations"
       }
     },
     "placements": {
@@ -1055,6 +1056,15 @@
       "add": "Add note",
       "empty": "No notes yet",
       "by": "by"
+    },
+    "evaluations": {
+      "title": "Evaluations",
+      "subtitle": "Teachers’ evaluations of the student",
+      "placeholder": "Evaluation of the student…",
+      "add": "Add evaluation",
+      "empty": "No evaluations yet",
+      "by": "by",
+      "locked": "Writing evaluations is opened by the unit manager"
     }
   },
   "tasks": {

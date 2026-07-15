@@ -1022,7 +1022,8 @@
         "set_grades": "הזנת ציונים",
         "manage_study_groups": "ניהול קבוצות-אם",
         "manage_subjects": "ניהול מקצועות",
-        "manage_specialties": "ניהול התמחויות"
+        "manage_specialties": "ניהול התמחויות",
+        "write_evaluation": "כתיבת חוות דעת"
       }
     },
     "placements": {
@@ -1055,6 +1056,15 @@
       "add": "הוסף הערה",
       "empty": "אין הערות עדיין",
       "by": "מאת"
+    },
+    "evaluations": {
+      "title": "חוות דעת",
+      "subtitle": "חוות דעת של מורים על התלמידה",
+      "placeholder": "חוות דעת על התלמידה…",
+      "add": "הוסף חוות דעת",
+      "empty": "אין עדיין חוות דעת",
+      "by": "מאת",
+      "locked": "כתיבת חוות דעת נפתחת ע״י מנהל התחום"
     }
   },
   "tasks": {
