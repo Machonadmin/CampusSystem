@@ -1302,6 +1302,21 @@
       "title": "My grades",
       "empty": "No grades yet"
     },
+    "messages_panel": {
+      "title": "Messages",
+      "empty": "No messages yet",
+      "from": "From",
+      "unread": "Unread"
+    },
+    "staff_messages": {
+      "title": "Messages to student",
+      "empty": "No messages yet",
+      "send": "Send message",
+      "subject_ph": "Subject (optional)",
+      "body_ph": "Message text",
+      "sent": "Sent",
+      "read": "Read"
+    },
     "meetings": {
       "title": "Meetings",
       "schedule": "Schedule",
