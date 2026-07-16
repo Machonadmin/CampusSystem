@@ -415,6 +415,12 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           {data.status === 'lead' && canConvert && <HandoffButton journeyId={data.journeyId} />}
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
           <StageSignatures journeyId={data.journeyId} />
+          {data.status === 'student' && (
+            <a href={`/dashboard/education/student-view/${data.journeyId}?name=${encodeURIComponent(person.full_name || '')}`}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--violet)', background: 'var(--violet-tint)', border: '1px solid var(--violet)', borderRadius: 10, padding: '9px 14px', textDecoration: 'none' }}>
+              👁 {t('card.preview_as_student', 'Просмотр глазами студентки')}
+            </a>
+          )}
           {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />}

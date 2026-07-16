@@ -663,7 +663,8 @@
         "error_reason_required": "יש לציין סיבה",
         "error_date_required": "יש לציין תאריך",
         "error_generic": "שינוי הסטטוס נכשל"
-      }
+      },
+      "preview_as_student": "צפה כתלמידה"
     },
     "cascade": {
       "institution_label": "מוסד",
@@ -1272,6 +1273,13 @@
       "mark_done": "סמן כבוצעה",
       "done": "בוצע",
       "cancel_meeting": "בטל פגישה"
+    },
+    "student_view": {
+      "preview_banner": "תצוגה מקדימה — עיני התלמידה",
+      "preview_hint": "כך התלמידה רואה את המערכת (קריאה בלבד)",
+      "back": "חזרה",
+      "hello": "שלום,",
+      "student": "תלמידה"
     }
   },
   "tasks": {
