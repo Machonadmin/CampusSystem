@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
@@ -49,7 +50,9 @@ const pctText = (p: number | null) => (p === null ? '—' : `${p}%`)
 
 export default function ReportsPage() {
   const t = useTranslations('education.reports')
+  const tAtt = useTranslations('education.attendance')
   const tNav = useTranslations('navigation')
+  const attLabels = { present: tAtt('present'), late: tAtt('late'), absent: tAtt('absent') }
 
   const [units, setUnits] = useState<Unit[]>([])
   const [unit, setUnit] = useState('')
@@ -136,7 +139,8 @@ export default function ReportsPage() {
         <>
           {/* Сводные карточки */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            <StatCard label={t('stat_attendance')} value={pctText(s!.attendance.percent)} color={pctColor(s!.attendance.percent)} />
+            <StatCard label={t('stat_attendance')} value={pctText(s!.attendance.percent)} color={pctColor(s!.attendance.percent)}
+              footer={s!.attendance.marked > 0 ? <AttBreakdown att={s!.attendance} labels={attLabels} variant="summary" /> : undefined} />
             <StatCard label={t('stat_grade_avg')} value={pctText(s!.grades.average)} color={pctColor(s!.grades.average)} />
             <StatCard label={t('stat_students')} value={String(s!.student_count)} />
             <StatCard label={t('stat_groups')} value={String(s!.group_count)} />
@@ -175,7 +179,8 @@ export default function ReportsPage() {
                   { text: g.name + (g.subject ? ` · ${g.subject.name}` : ''), strong: true },
                   { text: String(g.student_count) },
                   { text: String(g.attendance.total_lessons ?? 0) },
-                  { text: pctText(g.attendance.percent), color: pctColor(g.attendance.percent), strong: true },
+                  { text: pctText(g.attendance.percent), color: pctColor(g.attendance.percent), strong: true,
+                    sub: g.attendance.marked > 0 ? <AttBreakdown att={g.attendance} labels={attLabels} variant="cell" /> : undefined },
                   { text: `${g.grades.graded_count}/${g.grades.total_assessments}` },
                   { text: pctText(g.grades.average), color: pctColor(g.grades.average), strong: true },
                 ],
@@ -192,7 +197,8 @@ export default function ReportsPage() {
                   { text: st.track || '—' },
                   { text: String(st.group_count) },
                   { text: String(st.attendance.marked) },
-                  { text: pctText(st.attendance.percent), color: pctColor(st.attendance.percent), strong: true },
+                  { text: pctText(st.attendance.percent), color: pctColor(st.attendance.percent), strong: true,
+                    sub: st.attendance.marked > 0 ? <AttBreakdown att={st.attendance} labels={attLabels} variant="cell" /> : undefined },
                   { text: pctText(st.grade_average), color: pctColor(st.grade_average), strong: true },
                 ],
               }))}
@@ -232,16 +238,53 @@ function exportSummary(report: Report, tab: 'groups' | 'students', t: (k: string
   }
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
+function StatCard({ label, value, color, footer }: { label: string; value: string; color?: string; footer?: ReactNode }) {
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
+      {footer && <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>{footer}</div>}
     </div>
   )
 }
 
-interface Cell { text: string; color?: string; strong?: boolean }
+/**
+ * Разбивка посещаемости присутствовал/опоздал/отсутствовал, цвета консоли.
+ * variant='summary' — с текстовыми подписями (для карточки сводки);
+ * variant='cell' — компактно «✓N ⏱N ✕N» (для ячеек таблицы).
+ */
+function AttBreakdown({ att, labels, variant }: {
+  att: { present: number; late: number; absent: number }
+  labels: { present: string; late: string; absent: string }
+  variant: 'summary' | 'cell'
+}) {
+  const items = [
+    { icon: '✓', n: att.present, color: 'var(--success)', label: labels.present },
+    { icon: '⏱', n: att.late, color: 'var(--warn)', label: labels.late },
+    { icon: '✕', n: att.absent, color: 'var(--danger)', label: labels.absent },
+  ]
+  if (variant === 'summary') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {items.map((it, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12 }}>
+            <span style={{ color: it.color, fontWeight: 800, fontFamily: 'var(--font-mono)', minWidth: 24, textAlign: 'end' }}>{it.n}</span>
+            <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{it.label}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'inline-flex', gap: 8, marginTop: 3, fontSize: 10.5, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+      {items.map((it, i) => (
+        <span key={i} style={{ color: it.color }} title={it.label}>{it.icon}{it.n}</span>
+      ))}
+    </div>
+  )
+}
+
+interface Cell { text: string; color?: string; strong?: boolean; sub?: ReactNode }
 function ReportTable({ headers, rows, empty, onRowClick }: {
   headers: string[]; rows: { key: string; cells: Cell[] }[]; empty: string
   onRowClick?: (key: string) => void
@@ -267,7 +310,10 @@ function ReportTable({ headers, rows, empty, onRowClick }: {
                   textAlign: i === 0 ? 'start' : 'center', padding: '9px 14px',
                   color: c.color ?? 'var(--text)', fontWeight: c.strong ? 700 : 400,
                   fontFamily: i === 0 ? undefined : 'var(--font-mono)', whiteSpace: 'nowrap',
-                }}>{c.text}</td>
+                }}>
+                  <div>{c.text}</div>
+                  {c.sub}
+                </td>
               ))}
             </tr>
           ))}

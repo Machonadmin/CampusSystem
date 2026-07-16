@@ -949,13 +949,15 @@
       "academic": "Academic review",
       "dormitory": "Dormitory",
       "jewishness": "Jewishness verification",
-      "medical": "Medical opinion",
+      "medical": "Doctor's opinion",
+      "medical_psych": "Psychologist's opinion",
       "final_approval": "Final approval"
     },
     "acceptance_finals": {
       "approved": "Approved",
       "rejected": "Rejected",
       "refer_to_doctor": "Refer to doctor",
+      "refer_to_psychologist": "Refer to psychologist",
       "admitted": "Admitted",
       "admitted_conditional": "Conditionally admitted"
     },
@@ -988,8 +990,9 @@
       "no_data": "No applicants to show",
       "loading": "Loading…",
       "load_error": "Failed to load the overview",
-      "track_label": "Chol track (set at approval)",
-      "track_later": "Assign later"
+      "track_label": "Chol track",
+      "track_later": "Assign later",
+      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject)."
     },
     "study_track": {
       "title": "Study track",
@@ -3356,7 +3359,8 @@
     "import_dup_in_db": "Already exists in the system",
     "too_many_rows": "Too many rows (max 2000)",
     "delegate_no_redelegate": "A delegate can't grant the delegation right",
-    "delegate_cap": "You can't grant a permission you don't hold yourself"
+    "delegate_cap": "You can't grant a permission you don't hold yourself",
+    "medical_pending": "Can't approve yet — the referred doctor/psychologist hasn't signed"
   },
   "workflow": {
     "error": "Error"

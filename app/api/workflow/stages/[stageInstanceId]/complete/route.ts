@@ -72,6 +72,22 @@ export async function POST(
 
     const sb = createServerClient()
 
+    // «После того как все закончили»: финальное утверждение с ПРИЁМОМ нельзя
+    // подписать, пока направленная к врачу/психологу ещё не подписала свой этап
+    // (medical / medical_psych активен). Отклонение — можно всегда.
+    if ((body.final_code === 'admitted' || body.final_code === 'admitted_conditional') && ctx.journeyId) {
+      const { data: activeMed } = await sb
+        .from('stage_instances')
+        .select('id, stage_template:stage_templates!inner(code), process_instance:process_instances!inner(journey_id)')
+        .eq('process_instance.journey_id', ctx.journeyId)
+        .in('stage_template.code', ['medical', 'medical_psych'])
+        .eq('status', 'active')
+        .limit(1)
+      if (activeMed && activeMed.length > 0) {
+        return apiError('medical_pending', 409)
+      }
+    }
+
     // Заметка/причина этапа (напр. причина «направить к врачу») — пишется в
     // stage_instances.notes (её читают очередь врача и панель подписей).
     const noteRaw = (body.result_data?.note ?? null) as unknown
@@ -147,14 +163,13 @@ export async function POST(
       }
     }
 
-    // «אישור לימודים»: при ПРИЁМЕ (admitted / admitted_conditional) абитуриентка
-    // становится студенткой. Если приёмная комиссия сразу выбрала маршрут חול —
-    // сохраняем его в journey_study_tracks. Best-effort и деплой-безопасно (нет
-    // таблицы → пропускаем), никогда не роняет завершение этапа.
+    // Маршрут חול: сохраняем journey_study_tracks, если track_id передан на ЛЮБОМ
+    // этапе. Так «אחראי לימודים» выбирает маршрут уже на учебном этапе (academic),
+    // а директор при финале может подтвердить/сменить. Best-effort и деплой-
+    // безопасно (нет таблицы → пропускаем), никогда не роняет завершение этапа.
     {
-      const fin = (result as CompleteStageResult).finish_reason
       const trackId = (body.result_data?.track_id ?? null) as string | null
-      if (ctx.journeyId && trackId && (fin === 'admitted' || fin === 'admitted_conditional')) {
+      if (ctx.journeyId && trackId) {
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { error: trErr } = await (sb as any)
