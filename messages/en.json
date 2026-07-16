@@ -663,7 +663,8 @@
         "error_reason_required": "Reason is required",
         "error_date_required": "Date is required",
         "error_generic": "Failed to change status"
-      }
+      },
+      "preview_as_student": "Preview as student"
     },
     "cascade": {
       "institution_label": "Institution",
@@ -1272,6 +1273,13 @@
       "mark_done": "Mark done",
       "done": "Done",
       "cancel_meeting": "Cancel meeting"
+    },
+    "student_view": {
+      "preview_banner": "Preview as the student",
+      "preview_hint": "This is what the student sees (read-only)",
+      "back": "Back",
+      "hello": "Hello,",
+      "student": "Student"
     }
   },
   "tasks": {

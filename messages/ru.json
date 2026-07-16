@@ -663,7 +663,8 @@
         "error_reason_required": "Укажите причину",
         "error_date_required": "Укажите дату",
         "error_generic": "Не удалось изменить статус"
-      }
+      },
+      "preview_as_student": "Просмотр глазами студентки"
     },
     "cascade": {
       "institution_label": "Учреждение",
@@ -1272,6 +1273,13 @@
       "mark_done": "Отметить выполненной",
       "done": "Готово",
       "cancel_meeting": "Отменить встречу"
+    },
+    "student_view": {
+      "preview_banner": "Предпросмотр глазами студентки",
+      "preview_hint": "Так студентка видит систему (только чтение)",
+      "back": "Назад",
+      "hello": "Здравствуйте,",
+      "student": "Студентка"
     }
   },
   "tasks": {
