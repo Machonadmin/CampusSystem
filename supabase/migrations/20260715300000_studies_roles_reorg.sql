@@ -19,9 +19,9 @@
 
 BEGIN;
 
--- studies_manager — дубль, никому не назначен. Сначала зависимые строки.
-DELETE FROM role_privileges    WHERE role_id IN (SELECT id FROM roles WHERE code = 'studies_manager');
-DELETE FROM role_module_access WHERE role_id IN (SELECT id FROM roles WHERE code = 'studies_manager');
+-- studies_manager — дубль, никому не назначен. Все FK на roles(id/code) —
+-- ON DELETE CASCADE (role_privileges, person_roles, feature_privileges), поэтому
+-- зависимые строки удаляются автоматически. (Таблицы role_module_access нет.)
 DELETE FROM roles WHERE code = 'studies_manager';
 
 -- head_of_studies — русское имя/описание по умолчанию (было на иврите).
