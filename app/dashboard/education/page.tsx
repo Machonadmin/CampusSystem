@@ -97,6 +97,22 @@ export default function EducationPage() {
   const [stageFilter, setStageFilter] = useState<'all' | 'interested' | 'in_process'>('all')
   const [mineOnly, setMineOnly] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  // Меню ··· рендерим position:fixed по координатам кнопки, иначе overflow:auto
+  // таблицы его обрезает / уводит за экран. Считаем позицию при открытии.
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null)
+
+  function openRowMenu(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    if (openMenuId === id) { setOpenMenuId(null); return }
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const MENU_W = 190, MENU_H = 190
+    let left = rect.right - MENU_W
+    if (left < 8) left = 8
+    if (left + MENU_W > window.innerWidth - 8) left = window.innerWidth - 8 - MENU_W
+    const top = rect.bottom + MENU_H > window.innerHeight - 8 ? rect.top - MENU_H : rect.bottom + 4
+    setMenuPos({ top: Math.max(8, top), left })
+    setOpenMenuId(id)
+  }
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
@@ -495,9 +511,9 @@ export default function EducationPage() {
                       </td>
 
                       {/* Действия */}
-                      <td style={{ padding: '11px 8px', position: 'relative', width: 48 }}>
+                      <td style={{ padding: '11px 8px', width: 48 }}>
                         <button
-                          onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === lead.profile_id ? null : lead.profile_id) }}
+                          onClick={e => openRowMenu(e, lead.profile_id)}
                           style={{
                             border: 'none', background: 'transparent', cursor: 'pointer',
                             fontSize: 18, color: 'var(--text-faint)', padding: '2px 6px', borderRadius: 6,
@@ -507,11 +523,11 @@ export default function EducationPage() {
                         >
                           ···
                         </button>
-                        {openMenuId === lead.profile_id && (
+                        {openMenuId === lead.profile_id && menuPos && (
                           <div style={{
-                            position: 'absolute', right: 4, top: '100%', zIndex: 100,
+                            position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 100,
                             background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.12)', minWidth: 170,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.18)', width: 190,
                             overflow: 'hidden',
                           }}>
                             {lead.is_deleted ? (

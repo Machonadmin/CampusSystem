@@ -83,6 +83,16 @@ export async function POST(request: NextRequest) {
     if (rpcErr) throw rpcErr
     const { journey_id: journeyId } = rpcResult as { person_id: string; journey_id: string }
 
+    // 3b. Запускаем процесс «Набор», чтобы у публичного лида была та же цепочка,
+    //     что и у заведённого вручную: рекрутёр видит кнопку «Передать в приёмную
+    //     комиссию» и двигает заявку дальше. Best-effort — ошибка не валит приём.
+    const { error: startErr } = await sb.rpc('start_process', {
+      p_process_code: 'recruitment',
+      p_journey_id: journeyId,
+      p_actor_id: SYSTEM_PERSON_ID,
+    })
+    if (startErr) console.error('[public/applications] start recruitment:', startErr)
+
     // 4. Уведомление персоналу — задача отделу «Администрация».
     //    Ищем отдел по имени; если нет — задача уходит в общий пул
     //    (unassigned), чтобы уведомление не потерялось. Best-effort.
