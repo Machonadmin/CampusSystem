@@ -21,9 +21,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
-    const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
-    if (!allowed) return apiError('forbidden', 403)
+    // Байпас для студентки: свой календарь — только своя journey (иначе 403);
+    // staff-путь проверяется как обычно, ниже.
+    if (session.principal === 'student') {
+      if (session.student_journey_id !== params.id) return apiError('forbidden', 403)
+    } else {
+      const allowed = session.roles.includes('superadmin')
+        || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+      if (!allowed) return apiError('forbidden', 403)
+    }
 
     const lang = getCookieLocale()
     const from = (request.nextUrl.searchParams.get('from') ?? '').trim()

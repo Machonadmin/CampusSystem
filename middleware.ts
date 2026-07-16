@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken } from '@/lib/auth/jwt'
 
-const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/']
-const PUBLIC_PAGES = ['/login']
+const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login']
+const PUBLIC_PAGES = ['/login', '/portal/login']
 
 // Module routes that require an explicit access privilege
 const PROTECTED_MODULES = new Set([
@@ -50,7 +50,10 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_CONFIG.cookieName)?.value
 
   if (pathname === '/') {
-    if (token && (await verifyToken(token))) {
+    const s = token ? await verifyToken(token) : null
+    if (s) {
+      // Студентку — в её портал, сотрудника — в дашборд.
+      if (s.principal === 'student') return NextResponse.redirect(new URL('/portal', request.url))
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return NextResponse.redirect(new URL('/login', request.url))
@@ -60,6 +63,25 @@ export async function middleware(request: NextRequest) {
 
   const session = await verifyToken(token)
   if (!session) return unauthorized(request)
+
+  // ── Портал студентки (/portal/**; /portal/login публичен и обработан выше) ──
+  // Только principal:'student' допускается в /portal. Сотрудников держим ВНЕ
+  // портала (→ /dashboard). Это чистая проверка токена, без обращений к БД.
+  if (pathname.startsWith('/portal')) {
+    if (session.principal !== 'student') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    const response = NextResponse.next()
+    response.headers.set('x-person-id', session.person_id)
+    return response
+  }
+
+  // Студентку держим ВНЕ /dashboard/**, / и прочих staff-страниц → /portal.
+  // Только для страниц: её собственные API-вызовы (/api/**) проходят дальше и
+  // ограничиваются own-journey проверкой в самих маршрутах.
+  if (session.principal === 'student' && !pathname.startsWith('/api/')) {
+    return NextResponse.redirect(new URL('/portal', request.url))
+  }
 
   // Module access guard — only for /dashboard/[moduleCode] page routes
   if (pathname.startsWith('/dashboard/')) {
@@ -99,11 +121,12 @@ function unauthorized(request: NextRequest): NextResponse {
     const lang = loc === 'he' || loc === 'en' ? loc : 'ru'
     return NextResponse.json({ error: UNAUTHORIZED_MSG[lang], code: 'unauthorized' }, { status: 401 })
   }
-  const loginUrl = new URL('/login', request.url)
+  // Портал студентки → её страница входа; всё остальное → вход сотрудника.
+  const loginUrl = new URL(request.nextUrl.pathname.startsWith('/portal') ? '/portal/login' : '/login', request.url)
   loginUrl.searchParams.set('from', request.nextUrl.pathname)
   return NextResponse.redirect(loginUrl)
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/api/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/api/:path*', '/portal/:path*'],
 }

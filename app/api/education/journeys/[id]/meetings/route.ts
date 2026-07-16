@@ -19,10 +19,18 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
  * назначить/отметить). Деплой-безопасно (42P01 → пусто).
  */
 
-async function gate(journeyId: string) {
+async function gate(journeyId: string, allowStudent: boolean) {
   const session = await getSession()
   if (!session) return { err: apiError('unauthorized', 401) }
   const sb = createServerClient()
+  // Студентка: только ЧТЕНИЕ (allowStudent) и только СВОЯ journey. Создавать/
+  // менять встречи она не может — POST/PATCH передают allowStudent=false → 403.
+  if (session.principal === 'student') {
+    if (!allowStudent || session.student_journey_id !== journeyId) {
+      return { err: apiError('forbidden', 403) }
+    }
+    return { sb, session }
+  }
   const ok = session.roles.includes('superadmin')
     || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, journeyId))
   if (!ok) return { err: apiError('forbidden', 403) }
@@ -31,7 +39,7 @@ async function gate(journeyId: string) {
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const g = await gate(params.id)
+    const g = await gate(params.id, true)
     if (g.err) return g.err
     const { data, error } = await g.sb!
       .from('appointments')
@@ -51,7 +59,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const g = await gate(params.id)
+    const g = await gate(params.id, false)
     if (g.err) return g.err
     const body = await request.json().catch(() => ({})) as { title?: string; starts_at?: string; ends_at?: string; reason?: string | null }
     const title = (body.title ?? '').trim()
@@ -83,7 +91,7 @@ const STATUSES = ['scheduled', 'completed', 'cancelled', 'no_show'] as const
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const g = await gate(params.id)
+    const g = await gate(params.id, false)
     if (g.err) return g.err
     const body = await request.json().catch(() => ({})) as { appt_id?: string; status?: string }
     const apptId = (body.appt_id ?? '').trim()
