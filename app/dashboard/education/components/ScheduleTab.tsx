@@ -274,7 +274,7 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
             ))}
           </select>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="resp-grid-2" style={{ gap: 12 }}>
           <div>
             <label style={labelStyle}>{t('start_label')} *</label>
             <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} style={inputStyle} />
@@ -356,7 +356,7 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
     <ModalShell onClose={onClose}>
       <ModalHeader title={t('generate_modal_title')} onClose={onClose} />
       <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 12px' }}>{t('generate_hint')}</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="resp-grid-2" style={{ gap: 12 }}>
         <div>
           <label style={labelStyle}>{t('from_label')}</label>
           <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inputStyle} />

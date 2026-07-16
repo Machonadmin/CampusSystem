@@ -111,7 +111,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
       {/* Three selects in a horizontal grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'end' }}>
+      <div className="resp-grid-3" style={{ gap: '12px', alignItems: 'end' }}>
         {/* Учреждение */}
         <div>
           <label style={lbl}>{t('cascade.institution_label')}</label>
