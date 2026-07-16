@@ -30,7 +30,7 @@ interface Applicant {
 }
 
 // Порядок колонок обзора (медицинский может отсутствовать — тогда «—»).
-const STAGE_ORDER = ['academic', 'dormitory', 'jewishness', 'medical', 'final_approval'] as const
+const STAGE_ORDER = ['academic', 'dormitory', 'jewishness', 'medical', 'medical_psych', 'final_approval'] as const
 
 type StatusFilter = 'active' | 'completed' | 'all'
 
@@ -38,6 +38,7 @@ interface SignModal {
   applicant: string
   journeyId: string
   cell: StageCell
+  medicalPending: boolean
 }
 
 export default function AcceptanceOverviewTab() {
@@ -64,6 +65,8 @@ export default function AcceptanceOverviewTab() {
   const [tracks, setTracks] = useState<Array<{ id: string; name_he: string }>>([])
   const [trackId, setTrackId] = useState('')
   const isAdmit = selectedFinal === 'admitted' || selectedFinal === 'admitted_conditional'
+  // Маршрут выбирается и на учебном этапе (academic, «אחראי לימודים»), и при финале.
+  const showTrackPicker = isAdmit || (modal?.cell.stage_code === 'academic' && selectedFinal === 'approved')
 
   useEffect(() => {
     fetch('/api/education/study-tracks')
@@ -90,8 +93,8 @@ export default function AcceptanceOverviewTab() {
 
   useEffect(() => { load() }, [load])
 
-  function openSign(applicantName: string, journeyId: string, cell: StageCell) {
-    setModal({ applicant: applicantName, journeyId, cell })
+  function openSign(applicantName: string, journeyId: string, cell: StageCell, medicalPending: boolean) {
+    setModal({ applicant: applicantName, journeyId, cell, medicalPending })
     setSelectedFinal(null); setNote(''); setSig(null); setSignError(''); setTrackId('')
   }
 
@@ -115,7 +118,7 @@ export default function AcceptanceOverviewTab() {
       const rd: Record<string, unknown> = {}
       if (signatureBody) rd.signature = signatureBody
       if (note.trim()) rd.note = note.trim()
-      if (isAdmit && trackId) rd.track_id = trackId
+      if (showTrackPicker && trackId) rd.track_id = trackId
       const body: Record<string, unknown> = { final_code: selectedFinal }
       if (Object.keys(rd).length) body.result_data = rd
 
@@ -189,12 +192,13 @@ export default function AcceptanceOverviewTab() {
                     </td>
                     {STAGE_ORDER.map(code => {
                       const cell = byCode.get(code)
+                      const medicalPending = app.stages.some(s => (s.stage_code === 'medical' || s.stage_code === 'medical_psych') && s.status === 'active')
                       return (
                         <td key={code} style={{ ...td, minWidth: 130 }}>
                           {!cell ? (
                             <span style={{ fontSize: 12, color: 'var(--border-strong)' }}>{t('overview.none')}</span>
                           ) : (
-                            <Cell cell={cell} onSign={() => openSign(name, app.journey_id, cell)}
+                            <Cell cell={cell} onSign={() => openSign(name, app.journey_id, cell, medicalPending)}
                               pendingLabel={t('overview.pending')} signLabel={t('overview.sign')}
                               finalLabel={c => t(`acceptance_finals.${c}`, c)} />
                           )}
@@ -223,13 +227,25 @@ export default function AcceptanceOverviewTab() {
               <StageSignatures journeyId={modal.journeyId} />
             )}
 
+            {modal.cell.stage_code === 'final_approval' && modal.medicalPending && (
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '8px 12px' }}>
+                {t('overview.medical_pending_warn')}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {modal.cell.finals.map(f => (
+              {modal.cell.finals.map(f => {
+                const admitBlocked = modal.cell.stage_code === 'final_approval' && modal.medicalPending
+                  && (f.code === 'admitted' || f.code === 'admitted_conditional')
+                return (
                 <button
                   key={f.id}
-                  onClick={() => setSelectedFinal(f.code)}
+                  disabled={admitBlocked}
+                  onClick={() => { if (!admitBlocked) setSelectedFinal(f.code) }}
+                  title={admitBlocked ? t('overview.medical_pending_warn') : undefined}
                   style={{
-                    fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
+                    fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+                    cursor: admitBlocked ? 'not-allowed' : 'pointer', opacity: admitBlocked ? 0.45 : 1,
                     border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
                     background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
                     color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
@@ -237,10 +253,11 @@ export default function AcceptanceOverviewTab() {
                 >
                   {t(`acceptance_finals.${f.code}`, f.name_ru)}
                 </button>
-              ))}
+                )
+              })}
             </div>
 
-            {isAdmit && tracks.length > 0 && (
+            {showTrackPicker && tracks.length > 0 && (
               <div style={{ display: 'grid', gap: 4, padding: '10px 12px', border: '1px solid var(--accent)', background: 'var(--accent-tint)', borderRadius: 8 }}>
                 <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)' }}>{t('overview.track_label')}</label>
                 <select value={trackId} onChange={e => setTrackId(e.target.value)}

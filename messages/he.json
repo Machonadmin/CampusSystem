@@ -949,13 +949,15 @@
       "academic": "בדיקה לימודית",
       "dormitory": "פנימייה",
       "jewishness": "בירור יהדות",
-      "medical": "חוות דעת רפואית",
+      "medical": "חוות דעת רופא",
+      "medical_psych": "חוות דעת פסיכולוג",
       "final_approval": "אישור סופי"
     },
     "acceptance_finals": {
       "approved": "אושר",
       "rejected": "נדחה",
       "refer_to_doctor": "הפניה לרופא",
+      "refer_to_psychologist": "הפניה לפסיכולוג",
       "admitted": "התקבלה",
       "admitted_conditional": "התקבלה על תנאי"
     },
@@ -988,8 +990,9 @@
       "no_data": "אין מועמדות להצגה",
       "loading": "טוען…",
       "load_error": "שגיאה בטעינת הסקירה",
-      "track_label": "מסלול חול (נקבע באישור)",
-      "track_later": "אבחר מאוחר יותר"
+      "track_label": "מסלול חול",
+      "track_later": "אבחר מאוחר יותר",
+      "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו — אי אפשר לאשר עדיין (אפשר לדחות)."
     },
     "study_track": {
       "title": "מסלול לימוד",
@@ -3356,7 +3359,8 @@
     "import_dup_in_db": "כבר קיימת במערכת",
     "too_many_rows": "יותר מדי שורות (מקסימום 2000)",
     "delegate_no_redelegate": "נציג אינו יכול להעניק את הרשאת ההאצלה",
-    "delegate_cap": "אי אפשר להעניק הרשאה שאין לך בעצמך"
+    "delegate_cap": "אי אפשר להעניק הרשאה שאין לך בעצמך",
+    "medical_pending": "אי אפשר לאשר עדיין — רופא/פסיכולוג שהופנתה אליהם טרם חתמו"
   },
   "workflow": {
     "error": "שגיאה"
