@@ -110,6 +110,10 @@
     "logging_in": "מתחבר…"
   },
   "education": {
+    "nav": {
+      "management": "ניהול",
+      "management_hint": "הגדרות ומבנה המודול"
+    },
     "grades": {
       "tab_grades": "ציונים",
       "section_title": "מטלות וציונים",
@@ -678,6 +682,24 @@
       "loading_directions": "טוען תוכניות…"
     },
     "study": {
+      "setup_label": "הגדרות",
+      "dashboard": {
+        "title": "דשבורד",
+        "loading": "טוען…",
+        "view_all": "הכל ←",
+        "kpi_students": "תלמידות פעילות",
+        "kpi_lessons_today": "שיעורים היום",
+        "kpi_pending": "ממתינות לשיבוץ",
+        "today_schedule": "מערכת היום",
+        "today_none": "אין שיעורים היום",
+        "pending_title": "ממתינות לשיבוץ",
+        "pending_none": "כל התלמידות משובצות",
+        "pending_more": "ועוד {n}…",
+        "open_timetable": "מערכת שעות מלאה",
+        "open_myday": "היום שלי",
+        "open_assign": "מסך שיבוצים",
+        "open_reports": "דוחות"
+      },
       "tabs": {
         "subjects": "מקצועות",
         "specialties": "התמחויות",

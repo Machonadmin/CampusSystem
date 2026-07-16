@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import EducationHeaderNav from './components/EducationHeaderNav'
 import StudyTab from './components/StudyTab'
 import AcceptanceOverviewTab from './components/AcceptanceOverviewTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
@@ -208,36 +209,7 @@ export default function EducationPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <a href="/dashboard/education/timetable"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('timetable.title')}
-          </a>
-          <a href="/dashboard/education/my-day"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('my_day.title')}
-          </a>
-          <a href="/dashboard/education/units"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('units.title')}
-          </a>
-          <a href="/dashboard/education/reports"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('reports.title')}
-          </a>
-          <a href="/dashboard/education/structure"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('structure.title')}
-          </a>
-          <a href="/dashboard/education/track-assignment"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('track_assign.title')}
-          </a>
-          <a href="/dashboard/education/students/import"
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)', padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            {t('import.title')}
-          </a>
-        </div>
+        <EducationHeaderNav />
       </div>
 
       {/* Личная очередь «Ожидают моей подписи» — видна только при наличии */}

@@ -110,6 +110,10 @@
     "logging_in": "Signing in..."
   },
   "education": {
+    "nav": {
+      "management": "Management",
+      "management_hint": "Module settings and structure"
+    },
     "grades": {
       "tab_grades": "Grades",
       "section_title": "Assessments & grades",
@@ -678,6 +682,24 @@
       "loading_directions": "Loading directions..."
     },
     "study": {
+      "setup_label": "Setup",
+      "dashboard": {
+        "title": "Dashboard",
+        "loading": "Loading…",
+        "view_all": "All ←",
+        "kpi_students": "Active students",
+        "kpi_lessons_today": "Lessons today",
+        "kpi_pending": "Pending assignment",
+        "today_schedule": "Today's schedule",
+        "today_none": "No lessons today",
+        "pending_title": "Pending assignment",
+        "pending_none": "All students assigned",
+        "pending_more": "and {n} more…",
+        "open_timetable": "Full timetable",
+        "open_myday": "My day",
+        "open_assign": "Assignment screen",
+        "open_reports": "Reports"
+      },
       "tabs": {
         "subjects": "Subjects",
         "specialties": "Specialties",
