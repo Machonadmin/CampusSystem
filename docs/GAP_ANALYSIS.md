@@ -39,8 +39,13 @@ we built the 2nd floor before the 1st.
 - 🔑 **Delegation of permission-GRANTING** (manager can give an employee the
   ability to approve permissions for their subordinate) — §4. Only partial
   (person_privileges grants exist; no "right to grant" meta-permission).
-- 📚 **Level system** (Class belongs to a unit and has a Level) — §7. Only a text
-  field today, not a first-class Level entity.
+- 📚 **Level system** (Class belongs to a unit and has a Level) — §7. CORRECTION
+  (2026-07-16): a Level entity ALREADY EXISTS — `reference_levels` (id,
+  direction_id, name_ru, sort_order, is_active) + `reference_directions` +
+  `/api/education/levels?direction_id=`. The real gap is only that
+  `class_groups.level` is a TEXT field, not an FK to `reference_levels`. So this
+  is a LINKING refactor (needs owner decision on migrating existing text levels),
+  NOT a new entity — do NOT duplicate reference_levels.
 - 🔐 Student login/password — explicitly "next phase" in the plan (ok to defer).
 - 👭 Communities view — "aspiration/future" (ok to defer).
 
@@ -57,8 +62,13 @@ we built the 2nd floor before the 1st.
    Hebrew-only data fixed 2026-07-15).
 
 ## Proposed order
-- Phase 1 (the heart): student merged calendar + day-detail view + student dashboard.
-- Phase 2: meetings.
-- Phase 3: delegation + Level entity.
+- Phase 1 (the heart): student merged calendar + day-detail view + student dashboard. ✅ DONE (#89).
+- Phase 2: meetings (teacher↔student, mark done). ✅ DONE (#90).
+- Phase 3 (both need an owner decision, so paused):
+  - Delegation (§4 "right to grant"): confirm the model — an employee gains the
+    ability to toggle person_privileges for their subordinates, capped to what
+    the granter holds?
+  - Levels: link `class_groups` to the EXISTING `reference_levels` (don't create
+    a new table); decide how to migrate existing text `class_groups.level` values.
 Bonuses remain as admin aids; no further investment until the core student
 experience exists.
