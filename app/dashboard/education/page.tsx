@@ -204,11 +204,13 @@ export default function EducationPage() {
 
       <div style={{
         background: getModuleHeaderGradient('education'),
-        borderRadius: 12, padding: '12px 24px',
+        borderRadius: 12, padding: '11px 22px',
         boxShadow: '0 2px 8px rgba(16,185,129,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{tNav('education')}</h1>
+        <h1 style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, margin: 0 }}>
+          <span style={{ fontSize: 18 }}>🎓</span>{tNav('education')}
+        </h1>
         <EducationHeaderNav />
       </div>
 
@@ -221,6 +223,7 @@ export default function EducationPage() {
         active={tab}
         onChange={k => setTab(k as 'recruitment' | 'admission' | 'committee' | 'study')}
         accentColor={getModuleColor('education')}
+        variant="underline"
       />
 
       {/* ── Набор tab ─────────────────────────────────────────────────────── */}
