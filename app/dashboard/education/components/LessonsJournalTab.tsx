@@ -16,6 +16,9 @@ export interface LessonItem {
   location: string | null
   is_cancelled: boolean
   marked_count: number
+  present_count: number
+  late_count: number
+  absent_count: number
 }
 
 interface Props {
@@ -40,6 +43,7 @@ function formatTime(time: string | null): string {
 
 export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAttendance, accentColor }: Props) {
   const t = useTranslations('education.journal')
+  const tAtt = useTranslations('education.attendance')
   const { lang } = useLang()
 
   const [lessons, setLessons] = useState<LessonItem[]>([])
@@ -178,12 +182,24 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                   </td>
                   <td style={td}>{lesson.location || '—'}</td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      color: lesson.marked_count > 0 ? '#059669' : 'var(--text-faint)',
-                      fontWeight: lesson.marked_count > 0 ? 600 : 400,
-                    }}>
-                      {lesson.marked_count} / {enrolledCount}
-                    </span>
+                    {lesson.marked_count === 0 ? (
+                      <span style={{ color: 'var(--text-faint)' }}>{tAtt('none')}</span>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+                        {lesson.present_count > 0 && (
+                          <span style={{ color: 'var(--success)', fontWeight: 600 }} title={tAtt('present')}>✓ {lesson.present_count}</span>
+                        )}
+                        {lesson.late_count > 0 && (
+                          <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}>⏱ {lesson.late_count}</span>
+                        )}
+                        {lesson.absent_count > 0 && (
+                          <span style={{ color: 'var(--danger)', fontWeight: 600 }} title={tAtt('absent')}>✕ {lesson.absent_count}</span>
+                        )}
+                        {lesson.marked_count < enrolledCount && (
+                          <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>· {enrolledCount - lesson.marked_count} {tAtt('unmarked')}</span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

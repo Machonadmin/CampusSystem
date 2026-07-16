@@ -114,6 +114,13 @@
       "management": "Management",
       "management_hint": "Module settings and structure"
     },
+    "attendance": {
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "unmarked": "unmarked",
+      "none": "Not marked"
+    },
     "grades": {
       "tab_grades": "Grades",
       "section_title": "Assessments & grades",

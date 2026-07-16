@@ -114,6 +114,13 @@
       "management": "Управление",
       "management_hint": "Настройки и структура модуля"
     },
+    "attendance": {
+      "present": "Присутствовали",
+      "late": "Опоздали",
+      "absent": "Отсутствовали",
+      "unmarked": "не отм.",
+      "none": "Не отмечено"
+    },
     "grades": {
       "tab_grades": "Оценки",
       "section_title": "Задания и оценки",
