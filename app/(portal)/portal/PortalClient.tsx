@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
+import StudentGradesPanel from '@/components/education/StudentGradesPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 
 /**
@@ -48,6 +49,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
 
         <StudentDashboardPanel journeyId={journeyId} />
         <StudentCalendarPanel journeyId={journeyId} />
+        <StudentGradesPanel journeyId={journeyId} />
         <MeetingsPanel journeyId={journeyId} canEdit={false} />
       </div>
     </div>

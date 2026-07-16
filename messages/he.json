@@ -1298,6 +1298,10 @@
       "absent": "חיסורים",
       "marked": "סומנו"
     },
+    "grades_panel": {
+      "title": "הציונים שלי",
+      "empty": "אין ציונים עדיין"
+    },
     "meetings": {
       "title": "פגישות",
       "schedule": "קבע פגישה",

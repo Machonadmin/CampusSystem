@@ -1298,6 +1298,10 @@
       "absent": "Пропуски",
       "marked": "Отмечено"
     },
+    "grades_panel": {
+      "title": "Мои оценки",
+      "empty": "Оценок пока нет"
+    },
     "meetings": {
       "title": "Встречи",
       "schedule": "Назначить",
