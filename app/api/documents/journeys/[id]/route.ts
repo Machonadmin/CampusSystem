@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
+import { getSession } from '@/lib/auth/session'
+import { canViewJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType } from '@/lib/documents/validation'
 import type { DocumentRecordInsert } from '@/types/database'
@@ -24,9 +26,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireDocumentsPrivilege('view')
+    const session = await getSession()
+    if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
 
     const sb = createServerClient()
+
+    // Доступ: привилегия «Документы» ЛИБО education-авторизация на journey.
+    const ok = await canViewJourneyDocs(session, sb, params.id)
+    if (!ok) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 
     // Постранично, как остальные выборки списков модуля (устойчиво к db-max-rows
     // PostgREST, который молча обрезает большие ответы).
