@@ -21,6 +21,7 @@ interface Member {
   email: string | null
   is_head: boolean
   role: 'studies_secretary' | 'teacher'
+  title?: string
   extra_minutes: number
   privileges: Record<string, boolean>
 }
@@ -107,7 +108,7 @@ export default function UnitTeamPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{m.full_name || m.hebrew_name || '—'}</span>
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
-                      {m.is_head ? t('units.head_badge') : t(`units.role_${m.role === 'teacher' ? 'teacher' : 'secretary'}`)}
+                      {m.is_head ? t('units.head_badge') : (m.title || t(`units.role_${m.role === 'teacher' ? 'teacher' : 'secretary'}`))}
                     </span>
                     {m.email && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{m.email}</span>}
                     {!m.is_head && (
@@ -188,7 +189,7 @@ function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; p
 
 function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; accent: string; onClose: () => void; onDone: () => void }) {
   const t = useTranslations('education')
-  const [role, setRole] = useState<'studies_secretary' | 'teacher'>('studies_secretary')
+  const [role, setRole] = useState<'secretary' | 'deputy' | 'teacher'>('secretary')
   const [mode, setMode] = useState<'existing' | 'create'>('create')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -218,12 +219,15 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
 
         {/* role */}
         <div style={{ display: 'flex', gap: 8 }}>
-          {(['studies_secretary', 'teacher'] as const).map(r => (
-            <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: '8px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${role === r ? accent : 'var(--border)'}`, background: role === r ? 'var(--accent-tint)' : 'var(--surface)', color: role === r ? 'var(--accent-strong)' : 'var(--text-muted)' }}>
-              {t(`units.role_${r === 'teacher' ? 'teacher' : 'secretary'}`)}
+          {(['secretary', 'deputy', 'teacher'] as const).map(r => (
+            <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: '8px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: `1.5px solid ${role === r ? accent : 'var(--border)'}`, background: role === r ? 'var(--accent-tint)' : 'var(--surface)', color: role === r ? 'var(--accent-strong)' : 'var(--text-muted)' }}>
+              {t(`units.role_${r}`)}
             </button>
           ))}
         </div>
+        {role === 'deputy' && (
+          <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: -4 }}>{t('units.deputy_hint')}</div>
+        )}
 
         {/* mode */}
         <div style={{ display: 'flex', gap: 8 }}>
