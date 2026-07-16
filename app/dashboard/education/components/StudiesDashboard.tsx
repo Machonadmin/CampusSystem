@@ -163,14 +163,6 @@ export default function StudiesDashboard() {
         </div>
       </div>
 
-      {/* Быстрые переходы */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <QuickLink href="/dashboard/education/timetable" icon="🗓️" label={t('open_timetable')} />
-        <QuickLink href="/dashboard/education/my-day" icon="📅" label={t('open_myday')} />
-        <QuickLink href="/dashboard/education/track-assignment" icon="🧩" label={t('open_assign')} />
-        <QuickLink href="/dashboard/education/reports" icon="📊" label={t('open_reports')} />
-      </div>
-
       <style>{`@media (max-width: 640px){ .dash-grid{ grid-template-columns: 1fr !important; } }`}</style>
     </div>
   )
@@ -190,17 +182,3 @@ function Empty({ text }: { text: string }) {
   return <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 12.5, color: 'var(--text-faint)' }}>{text}</div>
 }
 
-function QuickLink({ href, icon, label }: { href: string; icon: string; label: string }) {
-  return (
-    <a
-      href={href}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600,
-        color: 'var(--text-muted)', textDecoration: 'none', background: 'var(--surface)',
-        border: '1px solid var(--border-strong)', borderRadius: 9, padding: '8px 13px', whiteSpace: 'nowrap',
-      }}
-    >
-      <span>{icon}</span>{label}
-    </a>
-  )
-}
