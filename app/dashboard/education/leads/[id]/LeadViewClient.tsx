@@ -9,6 +9,8 @@ import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
 import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import StudyPlanPanel from '@/components/education/StudyPlanPanel'
+import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
+import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import HandoffButton from '@/components/education/HandoffButton'
 import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
@@ -412,6 +414,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           {data.status === 'lead' && canConvert && <HandoffButton journeyId={data.journeyId} />}
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
           <StageSignatures journeyId={data.journeyId} />
+          {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
           {data.status === 'student' && <StudyPlanPanel journeyId={data.journeyId} canEdit={canManage} />}
           {data.status === 'student' && <PlacementsPanel journeyId={data.journeyId} />}

@@ -1222,6 +1222,32 @@
       "assign": "Assign",
       "saving": "Saving…",
       "save_failed": "Save failed"
+    },
+    "student_calendar": {
+      "title": "Calendar",
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "not_marked": "Not marked",
+      "no_lessons": "No lessons",
+      "cancelled": "cancelled",
+      "dow_0": "Sun",
+      "dow_1": "Mon",
+      "dow_2": "Tue",
+      "dow_3": "Wed",
+      "dow_4": "Thu",
+      "dow_5": "Fri",
+      "dow_6": "Sat"
+    },
+    "student_dashboard": {
+      "title": "Dashboard",
+      "lessons": "Lessons",
+      "attendance": "Attendance",
+      "grade_avg": "Grade avg",
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "marked": "Marked"
     }
   },
   "tasks": {
