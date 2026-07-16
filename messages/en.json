@@ -1237,7 +1237,11 @@
       "dow_3": "Wed",
       "dow_4": "Thu",
       "dow_5": "Fri",
-      "dow_6": "Sat"
+      "dow_6": "Sat",
+      "meeting_scheduled": "scheduled",
+      "meeting_completed": "done",
+      "meeting_cancelled": "cancelled",
+      "meeting_no_show": "no-show"
     },
     "student_dashboard": {
       "title": "Dashboard",
@@ -1248,6 +1252,25 @@
       "late": "Late",
       "absent": "Absent",
       "marked": "Marked"
+    },
+    "meetings": {
+      "title": "Meetings",
+      "schedule": "Schedule",
+      "subject_ph": "Meeting topic",
+      "reason_ph": "Reason (optional)",
+      "duration": "Duration (min)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "need_fields": "Provide topic, date and time",
+      "save_failed": "Save failed",
+      "empty": "No meetings",
+      "status_scheduled": "Scheduled",
+      "status_completed": "Done",
+      "status_cancelled": "Cancelled",
+      "status_no_show": "No-show",
+      "mark_done": "Mark done",
+      "done": "Done",
+      "cancel_meeting": "Cancel meeting"
     }
   },
   "tasks": {

@@ -88,7 +88,25 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       }
     })
 
-    return NextResponse.json({ lessons: out })
+    // Встречи (appointments) этой студентки — тоже сливаются в её календарь (§5).
+    let meetings: Array<{ id: string; date: string; time: string | null; title: string; status: string }> = []
+    try {
+      const { data: appts, error: aErr } = await sb.from('appointments')
+        .select('id, title, starts_at, status').eq('journey_id', params.id)
+      if (aErr) throw aErr
+      meetings = ((appts ?? []) as Array<{ id: string; title: string; starts_at: string; status: string }>)
+        .map(a => {
+          const d = new Date(a.starts_at)
+          const date = isNaN(d.getTime()) ? a.starts_at.slice(0, 10) : d.toISOString().slice(0, 10)
+          const time = isNaN(d.getTime()) ? null : d.toISOString().slice(11, 16)
+          return { id: a.id, date, time, title: a.title, status: a.status }
+        })
+        .filter(m => (!from || m.date >= from) && (!to || m.date <= to))
+    } catch (e) {
+      if ((e as { code?: string }).code !== '42P01') throw e
+    }
+
+    return NextResponse.json({ lessons: out, meetings })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

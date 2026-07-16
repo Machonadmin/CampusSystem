@@ -1237,7 +1237,11 @@
       "dow_3": "ד׳",
       "dow_4": "ה׳",
       "dow_5": "ו׳",
-      "dow_6": "ש׳"
+      "dow_6": "ש׳",
+      "meeting_scheduled": "מתוכננת",
+      "meeting_completed": "בוצעה",
+      "meeting_cancelled": "בוטלה",
+      "meeting_no_show": "לא הגיעה"
     },
     "student_dashboard": {
       "title": "דשבורד",
@@ -1248,6 +1252,25 @@
       "late": "איחורים",
       "absent": "חיסורים",
       "marked": "סומנו"
+    },
+    "meetings": {
+      "title": "פגישות",
+      "schedule": "קבע פגישה",
+      "subject_ph": "נושא הפגישה",
+      "reason_ph": "סיבה (רשות)",
+      "duration": "משך (דקות)",
+      "save": "שמור",
+      "cancel": "בטל",
+      "need_fields": "ציין נושא, תאריך ושעה",
+      "save_failed": "השמירה נכשלה",
+      "empty": "אין פגישות",
+      "status_scheduled": "מתוכננת",
+      "status_completed": "בוצעה",
+      "status_cancelled": "בוטלה",
+      "status_no_show": "לא הגיעה",
+      "mark_done": "סמן כבוצעה",
+      "done": "בוצע",
+      "cancel_meeting": "בטל פגישה"
     }
   },
   "tasks": {

@@ -1237,7 +1237,11 @@
       "dow_3": "Ср",
       "dow_4": "Чт",
       "dow_5": "Пт",
-      "dow_6": "Сб"
+      "dow_6": "Сб",
+      "meeting_scheduled": "запланирована",
+      "meeting_completed": "выполнена",
+      "meeting_cancelled": "отменена",
+      "meeting_no_show": "неявка"
     },
     "student_dashboard": {
       "title": "Дашборд",
@@ -1248,6 +1252,25 @@
       "late": "Опоздания",
       "absent": "Пропуски",
       "marked": "Отмечено"
+    },
+    "meetings": {
+      "title": "Встречи",
+      "schedule": "Назначить",
+      "subject_ph": "Тема встречи",
+      "reason_ph": "Причина (необязательно)",
+      "duration": "Длительность (мин)",
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "need_fields": "Укажите тему, дату и время",
+      "save_failed": "Не удалось сохранить",
+      "empty": "Встреч нет",
+      "status_scheduled": "Запланирована",
+      "status_completed": "Выполнена",
+      "status_cancelled": "Отменена",
+      "status_no_show": "Неявка",
+      "mark_done": "Отметить выполненной",
+      "done": "Готово",
+      "cancel_meeting": "Отменить встречу"
     }
   },
   "tasks": {

@@ -9,6 +9,7 @@ interface Lesson {
   topic: string | null; group_name: string; subject: string | null
   teacher: string | null; status: 'present' | 'late' | 'absent' | null; is_cancelled: boolean
 }
+interface Meeting { id: string; date: string; time: string | null; title: string; status: string }
 
 // Приоритет цвета дня: пропуск > опоздание > присутствие; иначе — нейтрально.
 function dayColor(statuses: Array<string | null>): 'absent' | 'late' | 'present' | null {
@@ -31,6 +32,7 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1) // 1-12
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -42,8 +44,8 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
     setLoading(true)
     try {
       const res = await fetch(`/api/education/journeys/${journeyId}/calendar?from=${from}&to=${to}`)
-      if (res.ok) { const b = await res.json(); setLessons(b.lessons ?? []) }
-      else setLessons([])
+      if (res.ok) { const b = await res.json(); setLessons(b.lessons ?? []); setMeetings(b.meetings ?? []) }
+      else { setLessons([]); setMeetings([]) }
     } finally { setLoading(false) }
   }, [journeyId, from, to])
   useEffect(() => { load() }, [load])
@@ -53,6 +55,11 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
     for (const l of lessons) { const a = m.get(l.date) ?? []; a.push(l); m.set(l.date, a) }
     return m
   }, [lessons])
+  const meetingsByDay = useMemo(() => {
+    const m = new Map<string, Meeting[]>()
+    for (const mt of meetings) { const a = m.get(mt.date) ?? []; a.push(mt); m.set(mt.date, a) }
+    return m
+  }, [meetings])
 
   function shiftMonth(delta: number) {
     setSelected(null)
@@ -117,6 +124,7 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
               }}>
               {dayNum}
               {dl.length > 0 && <span style={{ position: 'absolute', bottom: 3, width: 4, height: 4, borderRadius: '50%', background: tint ? tint.fg : 'var(--text-faint)' }} />}
+              {(meetingsByDay.get(cell.dateISO)?.length ?? 0) > 0 && <span style={{ position: 'absolute', top: 3, insetInlineEnd: 3, width: 5, height: 5, borderRadius: '50%', background: 'var(--violet)' }} />}
             </button>
           )
         })}
@@ -126,6 +134,14 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
       {selected && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{selected}</div>
+          {(meetingsByDay.get(selected) ?? []).map(mt => (
+            <div key={mt.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', marginBottom: 6, borderRadius: 8, background: 'var(--violet-tint)', border: '1px solid var(--violet)' }}>
+              <span>🤝</span>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--violet)', minWidth: 42 }}>{mt.time ?? '—'}</div>
+              <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{mt.title}</div>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t(`meeting_${mt.status}`, mt.status)}</span>
+            </div>
+          ))}
           {selectedLessons.length === 0 ? (
             <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('no_lessons')}</div>
           ) : (
