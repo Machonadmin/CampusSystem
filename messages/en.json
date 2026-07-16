@@ -1094,7 +1094,9 @@
         "write_evaluation": "Write evaluations"
       },
       "extra_minutes": "Extra attendance time (min)",
-      "save": "Save"
+      "save": "Save",
+      "role_deputy": "Deputy",
+      "deputy_hint": "Starts with no permissions — you grant abilities from the list below."
     },
     "placements": {
       "title": "Placements",

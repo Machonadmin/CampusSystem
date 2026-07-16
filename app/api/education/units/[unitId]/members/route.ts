@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit, GRANTABLE_EDUCATION_PRIVILEGES } from '@/lib/education/unit-access'
+import { getCookieLocale } from '@/lib/i18n/locale'
 
 /**
  * Состав учебной единицы: секретари и учителя под руководителем.
@@ -77,10 +78,14 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
       grantsByPerson.set(g.person_id, m)
     }
 
+    const lang = getCookieLocale()
     const members = active.map(pos => {
       const roles = rolesByPerson.get(pos.person_id) ?? []
       const kind: MemberRole = roles.includes('teacher') && !roles.includes('studies_secretary') ? 'teacher' : 'studies_secretary'
       const person = nameById.get(pos.person_id)
+      const title = lang === 'he'
+        ? (pos.position_he || pos.position_ru || '')
+        : (pos.position_ru || pos.position_he || '')
       return {
         position_id: pos.id,
         person_id: pos.person_id,
@@ -89,6 +94,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
         email: person?.email ?? null,
         is_head: pos.is_head,
         role: kind,
+        title,
         roles,
         extra_minutes: extraByPerson.get(pos.person_id) ?? 0,
         // текущие персональные права (только грантуемые)
@@ -120,9 +126,13 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
       first_name?: string
       last_name?: string
       email?: string
-      role?: MemberRole
+      role?: string // 'teacher' | 'secretary' | 'deputy'
     }
-    const role: MemberRole = body.role === 'teacher' ? 'teacher' : 'studies_secretary'
+    // «Заместитель» (deputy, подход Б) = минимальная база как у секретаря
+    // (роль studies_secretary) + права выдаёт руководитель через person_privileges;
+    // отличается только должностью (position).
+    const kind = body.role === 'teacher' ? 'teacher' : body.role === 'deputy' ? 'deputy' : 'secretary'
+    const roleCode: MemberRole = kind === 'teacher' ? 'teacher' : 'studies_secretary'
 
     const sb = createServerClient()
 
@@ -143,7 +153,10 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
     }
 
     // 2. Позиция в единице (если ещё нет активной).
-    const posLabel = role === 'teacher' ? { he: 'מורה', ru: 'Преподаватель' } : { he: 'מזכירות לימודים', ru: 'Секретарь' }
+    const posLabel =
+      kind === 'teacher' ? { he: 'מורה', ru: 'Преподаватель' } :
+      kind === 'deputy'  ? { he: 'סגן מנהל', ru: 'Заместитель директора' } :
+                           { he: 'מזכירות', ru: 'Секретарь' }
     const { data: existingPos } = await sb.from('staff_positions')
       .select('id').eq('person_id', personId).eq('department_id', params.unitId).is('end_date', null).maybeSingle()
     if (!existingPos) {
@@ -157,7 +170,7 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
     }
 
     // 3. Роль (если ещё нет).
-    const { data: roleRow } = await sb.from('roles').select('id').eq('code', role as never).maybeSingle()
+    const { data: roleRow } = await sb.from('roles').select('id').eq('code', roleCode as never).maybeSingle()
     if (roleRow) {
       const roleId = (roleRow as { id: string }).id
       const { data: hasRole } = await sb.from('person_roles')
