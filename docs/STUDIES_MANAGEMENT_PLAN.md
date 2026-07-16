@@ -239,6 +239,31 @@ he/en**. TODO tomorrow: wire localized dept names into the other views
 secretaries sub-dept for «שבת ביקור» (nested-departments already supports it).
 DO NOT touch «קבלה» (5 staff — owner's, purpose TBD).
 
+## 6d. Roles reorg — use EXISTING roles (owner 2026-07-15, IMPORTANT)
+Owner's real management hierarchy per unit:
+- קודש: אחראי · אдминистратор(=deputy) · מורим · תלميдим
+- אוני': רקтор · דиקан(deputy) · мрצим · תלميдим
+- קолג׳/תיכон: מнахелет · сגнит(deputy) · мורим · תלميדим
+- "каждый תפקид может добавить מזכирה под собой".
+KEY DISCOVERY: the system ALREADY has these roles (RU-named, education-wired in
+002_roles_and_privileges + 20260511175354): **rector**(Ректор) · **dean**(Декан) ·
+**school_director**(Директор учебного заведения) · **vice_director**(Заместитель
+директора — the "deputy") · **teacher**(Преподаватель) · **student/pupil** ·
+**head_of_studies**(kodesh head). school_director/rector/dean/vice_director are
+already "broad dept managers". My 20260715120000 created generic studies_manager
+/studies_secretary = DUPLICATES → that was the proliferation.
+DONE (migration 20260715300000, owner ran the check = 0 assigned): delete the
+duplicate `studies_manager` (no code refs), give `head_of_studies` a Russian
+name. `studies_secretary` KEPT as the generic "Секретарь учёбы" (team panel uses
+it; not a duplicate — no existing education-secretary role).
+Deputy per owner (Q2): a SECONDARY manager whose specific powers the manager
+GRANTS from a list = the existing person_privileges toggle grid. OPEN: wire the
+team panel to add a "Заместитель" member (manager-granted privileges, like the
+secretary) + offer the right existing role/title per unit. Secretary (Q3):
+"create a position, choose type, assign a person" — team panel add-flow.
+TODO: expand units team panel MEMBER_ROLES beyond [studies_secretary, teacher]
+to include a deputy (Заместитель), Russian labels, confirm per-unit titles.
+
 ## 7. Build discipline (every increment)
 Branch `claude/product-improvements-zq6cq4` → commit → rebase onto origin/main →
 force-with-lease push → PR → squash-merge → resync. Keep `npx tsc --noEmit`
