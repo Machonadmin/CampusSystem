@@ -5,25 +5,29 @@ import { getSession } from '@/lib/auth/session'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 /**
- * GET /api/doctor/referrals — очередь «Направленные к врачу» (מטופלות).
+ * GET /api/psychologist/referrals — очередь «Направленные к психологу» (מטופלות).
  *
- * Возвращает всех абитуриенток, у которых АКТИВЕН этап `medical` процесса
- * «Приёмная комиссия» (т.е. её направили refer_to_doctor). По каждой — ВСЁ,
- * что нужно врачу для заключения:
+ * Возвращает всех абитуриенток, у которых АКТИВЕН этап `medical_psych` процесса
+ * «Приёмная комиссия» (т.е. её направили refer_to_psychologist). По каждой — ВСЁ,
+ * что нужно психологу для заключения:
  *   • личные данные (persons),
  *   • кто направил и почему (родственные завершённые этапы с финалом
- *     refer_to_doctor + их заметка + подписант),
+ *     refer_to_psychologist + их заметка + подписант),
  *   • загруженные документы (document_records),
- *   • прошлые медданные, если есть (medical_profiles / medical_visits).
- * Плюс stage_instance_id + финалы этапа `medical` + метод подписи — чтобы
+ *   • прошлые псих-данные, если есть (psych_profiles / psych_sessions).
+ * Плюс stage_instance_id + финалы этапа `medical_psych` + метод подписи — чтобы
  * подписать заключение прямо из очереди (через общий /api/workflow/.../complete).
  *
- * Доступ: носитель роли, подписывающей этап medical (doctor),
- * либо superadmin. Модуль образования при этом НЕ требуется — врач не получает
- * доступ к лидам, только к своей очереди.
+ * Доступ: носитель роли, подписывающей этап medical_psych (psychologist),
+ * либо superadmin. Модуль образования при этом НЕ требуется — психолог не
+ * получает доступ к лидам, только к своей очереди.
+ *
+ * Deploy-safe: psych_profiles/psych_sessions могут отсутствовать в свежей БД —
+ * их ошибка (в т.ч. 42P01) НЕ бросается (деструктурируем только data), поэтому
+ * блок деградирует до пустых значений, а не роняет ответ.
  */
 
-const MEDICAL_SIGNER_ROLES = ['doctor', 'superadmin']
+const PSYCH_SIGNER_ROLES = ['psychologist', 'superadmin']
 
 function flattenPhones(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
@@ -38,13 +42,13 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: serverT('unauthorized') }, { status: 401 })
     }
-    if (!MEDICAL_SIGNER_ROLES.some(r => session.roles.includes(r))) {
+    if (!PSYCH_SIGNER_ROLES.some(r => session.roles.includes(r))) {
       return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
     }
 
     const sb = createServerClient()
 
-    // 1. Активные этапы medical процесса acceptance.
+    // 1. Активные этапы medical_psych процесса acceptance.
     const { data: stagesRaw, error: stErr } = await sb
       .from('stage_instances')
       .select(`
@@ -52,7 +56,7 @@ export async function GET() {
         stage_template:stage_templates!inner(id, code, name_ru),
         process_instance:process_instances!inner(id, journey_id, status)
       `)
-      .eq('stage_template.code', 'medical')
+      .eq('stage_template.code', 'medical_psych')
       .eq('status', 'active')
       .order('activated_at', { ascending: true })
     if (stErr) throw stErr
@@ -73,14 +77,14 @@ export async function GET() {
 
     const journeyIds = [...new Set(stages.map(s => s.process_instance?.journey_id).filter(Boolean) as string[])]
     const processInstanceIds = [...new Set(stages.map(s => s.process_instance_id))]
-    const medicalTemplateId = stages[0].stage_template?.id ?? null
+    const psychTemplateId = stages[0].stage_template?.id ?? null
 
     // 2. Батч-выборки (без N+1).
     const [
       { data: journeys },
       { data: docs },
       { data: profiles },
-      { data: visits },
+      { data: sessions },
       { data: referStages },
       { data: finals },
       signature_method,
@@ -96,25 +100,27 @@ export async function GET() {
         .in('journey_id', journeyIds)
         .eq('status', 'active')
         .order('created_at', { ascending: true }),
-      sb.from('medical_profiles')
-        .select('journey_id, blood_type, chronic_conditions, allergies, medications, emergency_contact, notes')
+      // psych_profiles — таблица может отсутствовать (42P01): ошибку игнорируем.
+      sb.from('psych_profiles')
+        .select('journey_id, presenting_concerns, background, risk_level, referral_source, notes')
         .in('journey_id', journeyIds),
-      sb.from('medical_visits')
-        .select('id, journey_id, visit_date, reason, diagnosis, treatment, status')
+      // psych_sessions — свежие сверху; ошибку (в т.ч. 42P01) игнорируем.
+      sb.from('psych_sessions')
+        .select('id, journey_id, session_date, session_type, summary, follow_up_date, status, counselor_id')
         .in('journey_id', journeyIds)
-        .order('visit_date', { ascending: false }),
-      // Родственные этапы, завершённые направлением к врачу.
+        .order('session_date', { ascending: false }),
+      // Родственные этапы, завершённые направлением к психологу.
       sb.from('stage_instances')
         .select(`
           id, process_instance_id, final_code, notes, completed_at,
           stage_template:stage_templates(code, name_ru)
         `)
         .in('process_instance_id', processInstanceIds)
-        .eq('final_code', 'refer_to_doctor'),
-      medicalTemplateId
+        .eq('final_code', 'refer_to_psychologist'),
+      psychTemplateId
         ? sb.from('stage_finals')
             .select('id, code, name_ru, is_positive, sort_order')
-            .eq('stage_template_id', medicalTemplateId)
+            .eq('stage_template_id', psychTemplateId)
             .order('sort_order', { ascending: true })
         : Promise.resolve({ data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] }),
       getSignatureMethod(),
@@ -163,11 +169,11 @@ export async function GET() {
       profileByJourney.set(p.journey_id, p)
     }
 
-    const visitsByJourney = new Map<string, Array<Record<string, unknown>>>()
-    for (const v of (visits ?? []) as Array<{ journey_id: string } & Record<string, unknown>>) {
-      const arr = visitsByJourney.get(v.journey_id) ?? []
+    const sessionsByJourney = new Map<string, Array<Record<string, unknown>>>()
+    for (const v of (sessions ?? []) as Array<{ journey_id: string } & Record<string, unknown>>) {
+      const arr = sessionsByJourney.get(v.journey_id) ?? []
       arr.push(v)
-      visitsByJourney.set(v.journey_id, arr)
+      sessionsByJourney.set(v.journey_id, arr)
     }
 
     const refersByProcess = new Map<string, Array<{ from_stage: string; note: string | null; signer_name: string | null; completed_at: string | null }>>()
@@ -207,8 +213,8 @@ export async function GET() {
         },
         referrals: journeyId ? (refersByProcess.get(s.process_instance_id) ?? []) : [],
         documents: journeyId ? (docsByJourney.get(journeyId) ?? []) : [],
-        medical_profile: journeyId ? (profileByJourney.get(journeyId) ?? null) : null,
-        medical_visits: journeyId ? (visitsByJourney.get(journeyId) ?? []) : [],
+        psych_profile: journeyId ? (profileByJourney.get(journeyId) ?? null) : null,
+        psych_sessions: journeyId ? (sessionsByJourney.get(journeyId) ?? []) : [],
       }
     })
 

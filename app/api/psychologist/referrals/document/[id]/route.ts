@@ -5,18 +5,17 @@ import { getSession } from '@/lib/auth/session'
 import { getSignedUrl } from '@/lib/documents/storage'
 
 /**
- * GET /api/doctor/referrals/document/[id] — подписанная ссылка на документ
- * абитуриентки ИЗ очереди направлений врача.
+ * GET /api/psychologist/referrals/document/[id] — подписанная ссылка на документ
+ * абитуриентки ИЗ очереди направлений психолога.
  *
- * Врач не имеет прав модуля «Документы», поэтому обычный /api/documents/... ему
- * закрыт. Здесь доступ ограничен строго: подписант medical-этапа (doctor/
- * superadmin) может открыть документ ТОЛЬКО если его journey прямо сейчас
- * находится на активном этапе `medical` (т.е. реально направлена к врачу).
- * Это защищает от чтения произвольных документов (IDOR). Психолог сюда не
- * входит — у него отдельная очередь /api/psychologist/referrals/document.
+ * Психолог не имеет прав модуля «Документы», поэтому обычный /api/documents/... ему
+ * закрыт. Здесь доступ ограничен строго: подписант medical_psych-этапа
+ * (psychologist/superadmin) может открыть документ ТОЛЬКО если его journey прямо
+ * сейчас находится на активном этапе `medical_psych` (т.е. реально направлена
+ * к психологу). Это защищает от чтения произвольных документов (IDOR).
  */
 
-const MEDICAL_SIGNER_ROLES = ['doctor', 'superadmin']
+const PSYCH_SIGNER_ROLES = ['psychologist', 'superadmin']
 
 export async function GET(
   _request: NextRequest,
@@ -25,7 +24,7 @@ export async function GET(
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!MEDICAL_SIGNER_ROLES.some(r => session.roles.includes(r))) {
+    if (!PSYCH_SIGNER_ROLES.some(r => session.roles.includes(r))) {
       return apiError('forbidden', 403)
     }
 
@@ -39,15 +38,15 @@ export async function GET(
     if (error) throw error
     if (!rec) return apiError('record_not_found', 404)
 
-    // IDOR-гейт: у journey документа должен быть АКТИВНЫЙ этап medical.
-    const { data: activeMedical } = await sb
+    // IDOR-гейт: у journey документа должен быть АКТИВНЫЙ этап medical_psych.
+    const { data: activePsych } = await sb
       .from('stage_instances')
       .select('id, stage_template:stage_templates!inner(code), process_instance:process_instances!inner(journey_id)')
-      .eq('stage_template.code', 'medical')
+      .eq('stage_template.code', 'medical_psych')
       .eq('process_instance.journey_id', rec.journey_id)
       .eq('status', 'active')
       .limit(1)
-    if (!activeMedical || activeMedical.length === 0) {
+    if (!activePsych || activePsych.length === 0) {
       return apiError('forbidden', 403)
     }
 

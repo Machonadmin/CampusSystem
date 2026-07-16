@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import MedicalReferrals from '@/components/doctor/MedicalReferrals'
+import PsychReferrals from '@/components/psychologist/PsychReferrals'
 
 interface Student {
   journey_id: string
@@ -114,8 +114,8 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
       </div>
 
-      {/* Очередь направлений «Направленные к врачу» — показывается только при наличии */}
-      <MedicalReferrals moduleKey="psychologist" />
+      {/* Очередь направлений «Направленные к психологу» — показывается только при наличии */}
+      <PsychReferrals />
 
       {/* Follow-ups worklist — для управляющих */}
       {canManage && (upcoming.length > 0 || overdue.length > 0) && (
