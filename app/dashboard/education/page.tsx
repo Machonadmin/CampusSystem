@@ -197,10 +197,25 @@ export default function EducationPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education') },
-      ]} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
+            color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)',
+            borderRadius: 8, padding: '6px 13px', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface)' }}
+        >
+          <span style={{ fontSize: 15, lineHeight: 1 }}>›</span>{tCommon('back')}
+        </button>
+        <Breadcrumb items={[
+          { label: tNav('home'), href: '/dashboard' },
+          { label: tNav('education') },
+        ]} />
+      </div>
 
       <div style={{
         background: getModuleHeaderGradient('education'),
