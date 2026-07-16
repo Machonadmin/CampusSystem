@@ -83,6 +83,8 @@ export default function EducationPage() {
   const tCommon = useTranslations('common')
 
   const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>('recruitment')
+  // Какие вкладки вправе видеть пользователь (null = ещё грузим). «Каждый видит только своё».
+  const [tabAccess, setTabAccess] = useState<Record<string, boolean> | null>(null)
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
@@ -105,6 +107,27 @@ export default function EducationPage() {
     { key: 'committee',   label: t('overview.tab') },
     { key: 'study',       label: t('tabs.students') },
   ] as const
+
+  const visibleTabs = TABS.filter(tb => (tabAccess ? tabAccess[tb.key] !== false : true))
+
+  // Загружаем права на вкладки один раз.
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/tab-access')
+      .then(r => (r.ok ? r.json() : null))
+      .then(a => { if (alive && a) setTabAccess(a) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  // Если активная вкладка недоступна пользователю — переключаемся на первую доступную.
+  useEffect(() => {
+    if (tabAccess && tabAccess[tab] === false) {
+      const first = TABS.find(tb => tabAccess[tb.key] !== false)
+      if (first) setTab(first.key)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabAccess])
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
@@ -233,13 +256,15 @@ export default function EducationPage() {
       <PendingSignatures />
 
       {/* Tabs */}
-      <ModuleTabs
-        tabs={TABS.map(tb => ({ key: tb.key, label: tb.label }))}
-        active={tab}
-        onChange={k => setTab(k as 'recruitment' | 'admission' | 'committee' | 'study')}
-        accentColor={getModuleColor('education')}
-        variant="underline"
-      />
+      {visibleTabs.length > 1 && (
+        <ModuleTabs
+          tabs={visibleTabs.map(tb => ({ key: tb.key, label: tb.label }))}
+          active={tab}
+          onChange={k => setTab(k as 'recruitment' | 'admission' | 'committee' | 'study')}
+          accentColor={getModuleColor('education')}
+          variant="underline"
+        />
+      )}
 
       {/* ── Набор tab ─────────────────────────────────────────────────────── */}
       {tab === 'recruitment' && (
