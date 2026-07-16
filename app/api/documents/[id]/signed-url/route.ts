@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
+import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
+import { getSession } from '@/lib/auth/session'
+import { canViewJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { getSignedUrl } from '@/lib/documents/storage'
 
@@ -17,16 +19,25 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireDocumentsPrivilege('view')
+    const session = await getSession()
+    if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
 
     const sb = createServerClient()
     const { data: rec, error } = await sb
       .from('document_records')
-      .select('id, storage_path, file_url')
+      .select('id, storage_path, file_url, journey_id')
       .eq('id', params.id)
       .maybeSingle()
     if (error) throw error
     if (!rec) return apiError('record_not_found', 404)
+
+    // journey-привязанный документ: education ЛИБО «Документы». Без journey —
+    // прежнее поведение (только привилегия модуля «Документы»).
+    const journeyId = (rec as { journey_id: string | null }).journey_id
+    const ok = journeyId
+      ? await canViewJourneyDocs(session, sb, journeyId)
+      : await hasDocumentsPrivilege(session, 'view')
+    if (!ok) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 
     if (rec.storage_path) {
       const url = await getSignedUrl(rec.storage_path)

@@ -17,7 +17,7 @@ import HandoffButton from '@/components/education/HandoffButton'
 import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
 import EvaluationsPanel from '@/components/education/EvaluationsPanel'
-import DocumentsTab from '@/components/education/DocumentsTab'
+import JourneyDocumentsPanel from '@/components/education/JourneyDocumentsPanel'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
@@ -266,7 +266,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'documents':
         return (
-          <DocumentsTab personId={data.personId} canManage={canManage} />
+          <JourneyDocumentsPanel journeyId={data.journeyId} canManage={canManage} />
         )
       case 'extra':
         return (
