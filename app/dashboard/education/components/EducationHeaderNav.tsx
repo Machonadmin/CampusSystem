@@ -12,10 +12,18 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface NavLink { href: string; label: string }
 
-const chip: React.CSSProperties = {
-  fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.18)',
-  padding: '5px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
-  display: 'inline-block',
+// Ежедневные ссылки — белые «таблетки» с зелёным текстом: читаемо на зелёной шапке
+// (было — белый текст на светло-зелёном фоне, почти нечитаемо).
+const linkChip: React.CSSProperties = {
+  fontSize: 12.5, fontWeight: 700, color: '#047857', background: '#fff',
+  padding: '6px 13px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
+  display: 'inline-block', boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+}
+// Кнопка меню «Управление» — прозрачная с контуром, визуально отделена от ссылок.
+const menuChip: React.CSSProperties = {
+  fontSize: 12.5, fontWeight: 650, color: '#fff', background: 'rgba(255,255,255,0.16)',
+  padding: '6px 12px', borderRadius: 8, whiteSpace: 'nowrap',
+  border: '1px solid rgba(255,255,255,0.45)', cursor: 'pointer',
 }
 
 export default function EducationHeaderNav() {
@@ -50,7 +58,7 @@ export default function EducationHeaderNav() {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
       {daily.map(l => (
-        <a key={l.href} href={l.href} style={chip}>{l.label}</a>
+        <a key={l.href} href={l.href} style={linkChip}>{l.label}</a>
       ))}
 
       <div ref={wrapRef} style={{ position: 'relative' }}>
@@ -58,9 +66,9 @@ export default function EducationHeaderNav() {
           type="button"
           onClick={() => setOpen(v => !v)}
           style={{
-            ...chip, border: 'none', cursor: 'pointer',
+            ...menuChip,
             display: 'inline-flex', alignItems: 'center', gap: 5,
-            background: open ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.18)',
+            background: open ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.16)',
           }}
           title={t('nav.management_hint')}
         >
