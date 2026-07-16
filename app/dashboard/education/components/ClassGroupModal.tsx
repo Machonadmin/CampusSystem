@@ -47,6 +47,15 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
 
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [subjectsLoading, setSubjectsLoading] = useState(false)
+  const [levelOptions, setLevelOptions] = useState<string[]>([])
+
+  // Уже используемые уровни — для выбора из существующих (не плодить варианты).
+  useEffect(() => {
+    fetch('/api/education/class-groups/levels')
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => { if (b?.levels) setLevelOptions(b.levels) })
+      .catch(() => {})
+  }, [])
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -186,7 +195,10 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
           {/* Уровень */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('class_groups.level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <input type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} />
+            <input type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} list="cg-level-options" />
+            <datalist id="cg-level-options">
+              {levelOptions.map(lv => <option key={lv} value={lv} />)}
+            </datalist>
           </div>
 
           {/* Период */}
