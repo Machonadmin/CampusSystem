@@ -1091,7 +1091,8 @@
         "manage_study_groups": "Управление потоками",
         "manage_subjects": "Управление предметами",
         "manage_specialties": "Управление специальностями",
-        "write_evaluation": "Писать характеристики"
+        "write_evaluation": "Писать характеристики",
+        "delegate_privileges": "Выдавать права команде"
       },
       "extra_minutes": "Доп. время посещаемости (мин)",
       "save": "Сохранить",
@@ -3273,7 +3274,9 @@
     "import_name_required": "В строке нет имени",
     "import_dup_in_file": "Дубликат внутри файла",
     "import_dup_in_db": "Уже есть в системе",
-    "too_many_rows": "Слишком много строк (макс. 2000)"
+    "too_many_rows": "Слишком много строк (макс. 2000)",
+    "delegate_no_redelegate": "Делегат не может выдавать право делегирования",
+    "delegate_cap": "Нельзя выдать право, которого у вас самих нет"
   },
   "workflow": {
     "error": "Ошибка"
