@@ -315,6 +315,13 @@
       "my_leads": "הלידים שלי",
       "all_leads": "כל הלידים"
     },
+    "recruitment_stage": {
+      "interested": "מתעניינת",
+      "in_process": "בתהליך",
+      "filter_all": "הכל",
+      "mark_interested": "סמן כמתעניינת",
+      "mark_in_process": "סמן כבתהליך"
+    },
     "applicants": {
       "no_data": "אין מועמדים",
       "no_stages": "לא בטיפול",

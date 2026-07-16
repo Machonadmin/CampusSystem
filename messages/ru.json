@@ -315,6 +315,13 @@
       "my_leads": "Мои лиды",
       "all_leads": "Все лиды"
     },
+    "recruitment_stage": {
+      "interested": "Интересуется",
+      "in_process": "В процессе",
+      "filter_all": "Все",
+      "mark_interested": "Отметить: интересуется",
+      "mark_in_process": "Отметить: в процессе"
+    },
     "applicants": {
       "no_data": "Нет абитуриентов",
       "no_stages": "Не в работе",
