@@ -25,6 +25,17 @@ interface PendingStudent {
   name: string
   department: { id: string; name: string } | null
 }
+interface AtRiskStudent {
+  journey_id: string
+  name: string
+  department: { id: string; name: string } | null
+  absent_count: number
+  late_count: number
+}
+interface StalledApplicant {
+  journey_id: string
+  applicant: { full_name: string; hebrew_name: string | null }
+}
 
 function hhmm(t: string | null): string {
   if (!t) return '—'
@@ -42,15 +53,20 @@ export default function StudiesDashboard() {
   const [studentsCount, setStudentsCount] = useState<number | null>(null)
   const [todaySlots, setTodaySlots] = useState<Slot[]>([])
   const [pending, setPending] = useState<PendingStudent[]>([])
+  const [atRisk, setAtRisk] = useState<AtRiskStudent[]>([])
+  // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
+  const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
 
   useEffect(() => {
     let alive = true
     async function load() {
       const dow = todayIsoDow()
-      const [studentsRes, timetableRes, pendingRes] = await Promise.allSettled([
+      const [studentsRes, timetableRes, pendingRes, atRiskRes, stalledRes] = await Promise.allSettled([
         fetch('/api/education/journeys?status=student'),
         fetch('/api/education/timetable'),
         fetch('/api/education/track-assignment'),
+        fetch('/api/education/at-risk'),
+        fetch('/api/education/stalled-applicants'),
       ])
 
       // Активные студентки
@@ -74,6 +90,19 @@ export default function StudiesDashboard() {
         if (alive) setPending(body?.students ?? [])
       }
 
+      // Студентки в зоне риска (много пропусков). Ошибка/403 → пусто → карточка скрыта.
+      if (atRiskRes.status === 'fulfilled' && atRiskRes.value.ok) {
+        const body = await atRiskRes.value.json().catch(() => null)
+        if (alive) setAtRisk(body?.students ?? [])
+      }
+
+      // Зависшие абитуриентки. 403 (нет view_applicants) или ошибка → null → карточка скрыта.
+      if (stalledRes.status === 'fulfilled' && stalledRes.value.ok) {
+        const body = await stalledRes.value.json().catch(() => null)
+        const list = body?.applicants
+        if (alive) setStalled(Array.isArray(list) ? list : null)
+      }
+
       if (alive) setLoading(false)
     }
     load()
@@ -88,6 +117,10 @@ export default function StudiesDashboard() {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   }
   const moreLink: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--accent-strong)', textDecoration: 'none' }
+  const countBadge: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, lineHeight: 1, padding: '3px 7px', borderRadius: 999,
+    fontVariantNumeric: 'tabular-nums',
+  }
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -97,6 +130,70 @@ export default function StudiesDashboard() {
         <Kpi value={loading ? '…' : String(todaySlots.length)} label={t('kpi_lessons_today')} tone="info" />
         <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone={pending.length ? 'warn' : 'muted'} />
       </div>
+
+      {/* Требует внимания: студентки в зоне риска + зависшие абитуриентки.
+          Каждая карточка независима и скрывается, если данных нет. */}
+      {!loading && (atRisk.length > 0 || (stalled && stalled.length > 0)) && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            {t('attention_title')}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 13 }} className="dash-grid">
+            {atRisk.length > 0 && (
+              <div style={card}>
+                <h5 style={cardHead}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {t('at_risk')}
+                    <span style={{ ...countBadge, background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)' }}>{atRisk.length}</span>
+                  </span>
+                </h5>
+                <div>
+                  {atRisk.slice(0, 5).map(s => (
+                    <a key={s.journey_id} href={`/dashboard/education/leads/${s.journey_id}`}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)', textDecoration: 'none' }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                        {(s.name || '?').split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{s.name || '—'}</div>
+                        <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--danger)' }}>
+                          {t('at_risk_absences').replace('{n}', String(s.absent_count))}
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            {stalled && stalled.length > 0 && (
+              <div style={card}>
+                <h5 style={cardHead}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {t('stalled')}
+                    <span style={{ ...countBadge, background: 'var(--warn-tint, rgba(217,119,6,0.12))', color: 'var(--warn)' }}>{stalled.length}</span>
+                  </span>
+                </h5>
+                <div>
+                  {stalled.slice(0, 5).map(a => {
+                    const name = a.applicant?.hebrew_name || a.applicant?.full_name || '—'
+                    return (
+                      <a key={a.journey_id} href={`/dashboard/education/leads/${a.journey_id}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)', textDecoration: 'none' }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--warn-tint, rgba(217,119,6,0.12))', color: 'var(--warn)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                          {name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{name}</div>
+                        </div>
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: 13 }} className="dash-grid">
         {/* Сегодняшнее расписание */}
