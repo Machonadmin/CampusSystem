@@ -110,6 +110,10 @@
     "logging_in": "Signing in..."
   },
   "education": {
+    "nav": {
+      "management": "Management",
+      "management_hint": "Module settings and structure"
+    },
     "grades": {
       "tab_grades": "Grades",
       "section_title": "Assessments & grades",

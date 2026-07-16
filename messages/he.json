@@ -110,6 +110,10 @@
     "logging_in": "מתחבר…"
   },
   "education": {
+    "nav": {
+      "management": "ניהול",
+      "management_hint": "הגדרות ומבנה המודול"
+    },
     "grades": {
       "tab_grades": "ציונים",
       "section_title": "מטלות וציונים",

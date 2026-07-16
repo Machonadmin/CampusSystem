@@ -110,6 +110,10 @@
     "logging_in": "Вход..."
   },
   "education": {
+    "nav": {
+      "management": "Управление",
+      "management_hint": "Настройки и структура модуля"
+    },
     "grades": {
       "tab_grades": "Оценки",
       "section_title": "Задания и оценки",
