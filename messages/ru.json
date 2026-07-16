@@ -1222,6 +1222,32 @@
       "assign": "Назначить",
       "saving": "Сохранение…",
       "save_failed": "Не удалось сохранить"
+    },
+    "student_calendar": {
+      "title": "Календарь",
+      "present": "Присутствие",
+      "late": "Опоздание",
+      "absent": "Пропуск",
+      "not_marked": "Не отмечено",
+      "no_lessons": "Нет уроков",
+      "cancelled": "отменён",
+      "dow_0": "Вс",
+      "dow_1": "Пн",
+      "dow_2": "Вт",
+      "dow_3": "Ср",
+      "dow_4": "Чт",
+      "dow_5": "Пт",
+      "dow_6": "Сб"
+    },
+    "student_dashboard": {
+      "title": "Дашборд",
+      "lessons": "Уроков",
+      "attendance": "Посещаемость",
+      "grade_avg": "Средний балл",
+      "present": "Присут.",
+      "late": "Опоздания",
+      "absent": "Пропуски",
+      "marked": "Отмечено"
     }
   },
   "tasks": {

@@ -1222,6 +1222,32 @@
       "assign": "שבץ",
       "saving": "שומר…",
       "save_failed": "השמירה נכשלה"
+    },
+    "student_calendar": {
+      "title": "יומן",
+      "present": "נוכחת",
+      "late": "מאחרת",
+      "absent": "חסרת",
+      "not_marked": "לא סומן",
+      "no_lessons": "אין שיעורים",
+      "cancelled": "בוטל",
+      "dow_0": "א׳",
+      "dow_1": "ב׳",
+      "dow_2": "ג׳",
+      "dow_3": "ד׳",
+      "dow_4": "ה׳",
+      "dow_5": "ו׳",
+      "dow_6": "ש׳"
+    },
+    "student_dashboard": {
+      "title": "דשבורד",
+      "lessons": "שיעורים",
+      "attendance": "נוכחות",
+      "grade_avg": "ממוצע ציונים",
+      "present": "נוכחת",
+      "late": "איחורים",
+      "absent": "חיסורים",
+      "marked": "סומנו"
     }
   },
   "tasks": {
