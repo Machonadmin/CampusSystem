@@ -1298,6 +1298,10 @@
       "absent": "Absent",
       "marked": "Marked"
     },
+    "grades_panel": {
+      "title": "My grades",
+      "empty": "No grades yet"
+    },
     "meetings": {
       "title": "Meetings",
       "schedule": "Schedule",

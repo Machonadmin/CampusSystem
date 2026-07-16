@@ -3,6 +3,7 @@
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
+import StudentGradesPanel from '@/components/education/StudentGradesPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 
 export default function StudentViewClient({ journeyId, name }: { journeyId: string; name: string }) {
@@ -30,6 +31,7 @@ export default function StudentViewClient({ journeyId, name }: { journeyId: stri
         {/* Ровно то, что видит студентка */}
         <StudentDashboardPanel journeyId={journeyId} />
         <StudentCalendarPanel journeyId={journeyId} />
+        <StudentGradesPanel journeyId={journeyId} />
         <MeetingsPanel journeyId={journeyId} canEdit={false} />
       </div>
     </div>
