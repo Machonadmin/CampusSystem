@@ -1091,7 +1091,8 @@
         "manage_study_groups": "Manage cohorts",
         "manage_subjects": "Manage subjects",
         "manage_specialties": "Manage specialties",
-        "write_evaluation": "Write evaluations"
+        "write_evaluation": "Write evaluations",
+        "delegate_privileges": "Grant team permissions"
       },
       "extra_minutes": "Extra attendance time (min)",
       "save": "Save",
@@ -3273,7 +3274,9 @@
     "import_name_required": "Missing first name in the row",
     "import_dup_in_file": "Duplicate within the file",
     "import_dup_in_db": "Already exists in the system",
-    "too_many_rows": "Too many rows (max 2000)"
+    "too_many_rows": "Too many rows (max 2000)",
+    "delegate_no_redelegate": "A delegate can't grant the delegation right",
+    "delegate_cap": "You can't grant a permission you don't hold yourself"
   },
   "workflow": {
     "error": "Error"

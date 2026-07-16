@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canManageUnit, isGrantablePrivilege } from '@/lib/education/unit-access'
+import { canManageUnit, isGrantablePrivilege, getHeadedUnitIds } from '@/lib/education/unit-access'
+import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 
 /**
  * PUT /api/education/units/[unitId]/members/[personId]/privileges
@@ -39,6 +40,19 @@ export async function PUT(request: NextRequest, { params }: { params: { unitId: 
     for (const [code, on] of Object.entries(privileges)) {
       if (!isGrantablePrivilege(code)) continue
       if (on) toGrant.push(code); else toRevoke.push(code)
+    }
+
+    // Cap делегирования (§4): не-глава (делегат) не может (а) пере-делегировать
+    // право `delegate_privileges`, (б) выдать больше, чем держит сам. Глава/
+    // superadmin — без ограничений.
+    const isSuper = session.roles.includes('superadmin')
+    const isHead = isSuper || (await getHeadedUnitIds(session.person_id)).includes(params.unitId)
+    if (!isHead) {
+      for (const code of toGrant) {
+        if (code === 'delegate_privileges') return apiError('delegate_no_redelegate', 403)
+        const holds = await hasEducationPrivilege(session, code as EducationPrivilege, { department_id: params.unitId })
+        if (!holds) return apiError('delegate_cap', 403)
+      }
     }
 
     if (toGrant.length > 0) {
