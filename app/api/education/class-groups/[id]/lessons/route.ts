@@ -47,23 +47,31 @@ export async function GET(
     // Сводка посещаемости: сколько отметок у каждого урока + сколько записано в группу
     const enrolledIds = await getEnrolledJourneyIds(sb, params.id)
 
-    const markedByLesson = new Map<string, number>()
+    // Разбивка по статусам, а не просто «сколько отмечено»: снаружи «6/6» читалось
+    // как «все были», хотя это лишь «6 отмечено». Теперь считаем present/late/absent.
+    type Tally = { marked: number; present: number; late: number; absent: number }
+    const statsByLesson = new Map<string, Tally>()
     if (lessons.length > 0) {
       const lessonIds = lessons.map(l => l.id)
       // Постранично: единый .in(...) молча обрезался бы на db-max-rows (~1000)
-      // и дал бы заниженный marked_count. Читаем все отметки страницами по PAGE.
+      // и дал бы заниженные счётчики. Читаем все отметки страницами по PAGE.
       let from = 0
       for (;;) {
         const { data: attRows, error: attErr } = await sb
           .from('attendance')
-          .select('lesson_id')
+          .select('lesson_id, status')
           .in('lesson_id', lessonIds)
           .order('lesson_id', { ascending: true })
           .range(from, from + PAGE - 1)
         if (attErr) throw attErr
-        const rows = attRows ?? []
+        const rows = (attRows ?? []) as Array<{ lesson_id: string; status: string }>
         for (const row of rows) {
-          markedByLesson.set(row.lesson_id, (markedByLesson.get(row.lesson_id) ?? 0) + 1)
+          const cur = statsByLesson.get(row.lesson_id) ?? { marked: 0, present: 0, late: 0, absent: 0 }
+          cur.marked += 1
+          if (row.status === 'present') cur.present += 1
+          else if (row.status === 'late') cur.late += 1
+          else if (row.status === 'absent') cur.absent += 1
+          statsByLesson.set(row.lesson_id, cur)
         }
         if (rows.length < PAGE) break
         from += PAGE
@@ -71,7 +79,10 @@ export async function GET(
     }
 
     return NextResponse.json({
-      lessons: lessons.map(l => ({ ...l, marked_count: markedByLesson.get(l.id) ?? 0 })),
+      lessons: lessons.map(l => {
+        const s = statsByLesson.get(l.id) ?? { marked: 0, present: 0, late: 0, absent: 0 }
+        return { ...l, marked_count: s.marked, present_count: s.present, late_count: s.late, absent_count: s.absent }
+      }),
       enrolled_count: enrolledIds.size,
     })
   } catch (err: unknown) {

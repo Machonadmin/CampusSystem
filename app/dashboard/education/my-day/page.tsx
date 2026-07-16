@@ -21,6 +21,9 @@ interface MyLesson {
   location: string | null
   is_cancelled: boolean
   marked_count: number
+  present_count: number
+  late_count: number
+  absent_count: number
   enrolled_count: number
 }
 
@@ -32,6 +35,7 @@ function hhmm(t: string | null) { return t ? t.slice(0, 5) : null }
 
 export default function MyDayPage() {
   const t = useTranslations('education.my_day')
+  const tAtt = useTranslations('education.attendance')
   const tNav = useTranslations('navigation')
   const accent = getModuleColor('education')
 
@@ -86,7 +90,6 @@ export default function MyDayPage() {
           {lessons.map(l => {
             const done = l.marked_count
             const total = l.enrolled_count
-            const allMarked = total > 0 && done >= total
             return (
               <div key={l.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)', opacity: l.is_cancelled ? 0.6 : 1, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
                 {/* time block */}
@@ -109,9 +112,16 @@ export default function MyDayPage() {
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)' }}>{t('cancelled')}</span>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: allMarked ? 'var(--success)' : 'var(--text-faint)' }}>
-                      {done === 0 ? t('not_marked') : t('marked_of', '{done}/{total}').replace('{done}', String(done)).replace('{total}', String(total))}
-                    </span>
+                    {done === 0 ? (
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-faint)' }}>{t('not_marked')}</span>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, fontWeight: 600 }}>
+                        {l.present_count > 0 && <span style={{ color: 'var(--success)' }} title={tAtt('present')}>✓ {l.present_count}</span>}
+                        {l.late_count > 0 && <span style={{ color: 'var(--warn)' }} title={tAtt('late')}>⏱ {l.late_count}</span>}
+                        {l.absent_count > 0 && <span style={{ color: 'var(--danger)' }} title={tAtt('absent')}>✕ {l.absent_count}</span>}
+                        {done < total && <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>· {total - done} {tAtt('unmarked')}</span>}
+                      </div>
+                    )}
                     <button onClick={() => setOpenLesson(l)}
                       style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '9px 16px', cursor: 'pointer' }}>
                       {t('mark')}
