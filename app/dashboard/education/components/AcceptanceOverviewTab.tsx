@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import StageSignatures from '@/components/workflow/StageSignatures'
 
 interface Final { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }
 interface StageCell {
@@ -35,6 +36,7 @@ type StatusFilter = 'active' | 'completed' | 'all'
 
 interface SignModal {
   applicant: string
+  journeyId: string
   cell: StageCell
 }
 
@@ -88,8 +90,8 @@ export default function AcceptanceOverviewTab() {
 
   useEffect(() => { load() }, [load])
 
-  function openSign(applicantName: string, cell: StageCell) {
-    setModal({ applicant: applicantName, cell })
+  function openSign(applicantName: string, journeyId: string, cell: StageCell) {
+    setModal({ applicant: applicantName, journeyId, cell })
     setSelectedFinal(null); setNote(''); setSig(null); setSignError(''); setTrackId('')
   }
 
@@ -192,7 +194,7 @@ export default function AcceptanceOverviewTab() {
                           {!cell ? (
                             <span style={{ fontSize: 12, color: 'var(--border-strong)' }}>{t('overview.none')}</span>
                           ) : (
-                            <Cell cell={cell} onSign={() => openSign(name, cell)}
+                            <Cell cell={cell} onSign={() => openSign(name, app.journey_id, cell)}
                               pendingLabel={t('overview.pending')} signLabel={t('overview.sign')}
                               finalLabel={c => t(`acceptance_finals.${c}`, c)} />
                           )}
@@ -214,6 +216,12 @@ export default function AcceptanceOverviewTab() {
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
               {t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)} — {modal.applicant}
             </div>
+
+            {/* Финальное утверждение: директор сначала видит все подписи и заметки,
+                затем утверждает — «мי חתם, החתימות שלהם וההערות». */}
+            {modal.cell.stage_code === 'final_approval' && (
+              <StageSignatures journeyId={modal.journeyId} />
+            )}
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {modal.cell.finals.map(f => (
