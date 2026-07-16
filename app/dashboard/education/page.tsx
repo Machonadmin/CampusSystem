@@ -101,10 +101,11 @@ export default function EducationPage() {
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
 
+  // «Приём» и «Комиссия» объединены владельцем в один раздел «קבלה» (это и есть
+  // доска приёмной комиссии). Три раздела: набор / приём / учёба.
   const TABS = [
     { key: 'recruitment', label: t('tabs.leads') },
-    { key: 'admission',   label: t('tabs.applicants') },
-    { key: 'committee',   label: t('overview.tab') },
+    { key: 'committee',   label: t('tabs.applicants') },
     { key: 'study',       label: t('tabs.students') },
   ] as const
 
