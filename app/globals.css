@@ -114,6 +114,13 @@ body { transition: background-color .25s ease, color .25s ease; }
 .home-card { transition: box-shadow .18s ease, transform .18s ease; }
 .home-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
 
+/* Отзывчивые фиксированные сетки: на узких экранах сворачиваются в один столбец. */
+.resp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.resp-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 640px) {
+  .resp-grid-2, .resp-grid-3 { grid-template-columns: 1fr; }
+}
+
 /* Глобальный поиск в шапке. */
 .gsearch-input::placeholder { color: var(--text-faint); }
 .gsearch-input:focus {

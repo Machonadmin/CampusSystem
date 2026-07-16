@@ -354,7 +354,7 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="resp-grid-2" style={{ gap: 12 }}>
             <div>
               <label style={labelStyle}>{t('date_label')} *</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />

@@ -153,7 +153,7 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* ── Сводка ──────────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="resp-grid-2" style={{ gap: 12 }}>
         <SummaryTile
           label={t('overall_attendance')}
           value={pct(s.attendance.percent)}

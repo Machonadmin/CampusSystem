@@ -386,7 +386,7 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
             <label style={labelStyle}>{t('title_label')} *</label>
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('title_placeholder')} style={inputStyle} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="resp-grid-2" style={{ gap: 12 }}>
             <div>
               <label style={labelStyle}>{t('max_score_label')} *</label>
               <input type="number" min={0} step="0.01" value={maxScore} onChange={e => setMaxScore(e.target.value)} style={inputStyle} />

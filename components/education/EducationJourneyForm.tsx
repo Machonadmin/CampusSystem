@@ -621,7 +621,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     switch (tabIdx) {
       case 0:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {loadingPerson ? t('form.loading_data') : t('form.profile_readonly')}
@@ -679,7 +679,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 </div>
               )}
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('form.last_name')} *</label>
                 <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
@@ -732,7 +732,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
       case 1:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
               <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {t('form.profile_readonly')}
@@ -862,7 +862,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                       ×
                     </button>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                  <div className="resp-grid-2" style={{ gap: '10px 16px' }}>
                     <div>
                       <label style={lbl}>{t('form.community_country')}</label>
                       <CountrySelect value={comm.country} onChange={ct => updateCommCountry(i, ct)} style={inp} />
@@ -997,7 +997,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 6: {
         const isStudent = mode === 'student'
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
+          <div className="resp-grid-2" style={{ gap: '16px 20px' }}>
             <div>
               <label style={lbl}>{t('form.academic_department')}{isStudent && ' *'}</label>
               <select
