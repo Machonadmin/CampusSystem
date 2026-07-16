@@ -6,6 +6,11 @@ export interface SessionPayload extends JosePayload {
   login_email: string
   full_name: string | null
   roles: string[]
+  // Тип принципала. Отсутствие поля ⇒ считаем 'staff' (обратная совместимость
+  // со старыми токенами). Студентка ВСЕГДА получает principal:'student' и
+  // student_journey_id, а roles:[] — она никогда не имеет ролей сотрудника.
+  principal?: 'staff' | 'student'
+  student_journey_id?: string
 }
 
 function getSecret(): Uint8Array {

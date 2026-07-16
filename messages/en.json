@@ -1319,6 +1319,19 @@
       "back": "Back",
       "hello": "Hello,",
       "student": "Student"
+    },
+    "portal_credentials": {
+      "title": "Student login",
+      "exists": "Login created",
+      "no_login": "No login yet",
+      "create": "Create login",
+      "reset": "Reset password",
+      "email": "Email",
+      "password": "Password",
+      "password_hint": "Password is shown once — copy and give it to the student",
+      "copy": "Copy",
+      "copied": "Copied",
+      "error": "Error"
     }
   },
   "tasks": {
@@ -3476,5 +3489,15 @@
       "expelled": "Expelled",
       "staff": "Staff"
     }
+  },
+  "portal": {
+    "login_title": "Student sign-in",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Sign in",
+    "error": "Sign-in failed. Check your email and password",
+    "greeting": "Hello",
+    "logout": "Log out",
+    "my_studies": "My studies"
   }
 }

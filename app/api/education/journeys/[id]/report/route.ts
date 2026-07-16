@@ -56,6 +56,14 @@ export async function GET(
     const session = await requireAuth()
     const sb = createServerClient()
 
+    // Байпас для студентки: она видит СВОЙ отчёт (все свои группы) без staff-прав,
+    // но ТОЛЬКО свою journey. Иначе — 403.
+    const isOwnerStudent =
+      session.principal === 'student' && session.student_journey_id === params.id
+    if (session.principal === 'student' && !isOwnerStudent) {
+      return apiError('forbidden', 403)
+    }
+
     // 1. Journey существует?
     const { data: journey, error: jErr } = await sb
       .from('education_journeys')
@@ -100,25 +108,30 @@ export async function GET(
       }
     }
 
-    // Верхний гейт (как карточка студента). Он же прогревает кэш прав,
-    // поэтому дальнейшие пофильтровые проверки — попадания в кэш.
-    const deptGate = await hasEducationPrivilege(session, 'view_students', {
-      department_id: journey.primary_department_id ?? undefined,
-    })
-
-    // Пофильтр по группам: строку видно, если есть право view_students на target группы.
+    // Студентка видит все свои группы; staff — только те, на которые есть права.
     const visible: EnrolledGroup[] = []
-    for (const g of enrolledGroups) {
-      const ok = await hasEducationPrivilege(session, 'view_students', {
-        department_id: g.department?.id,
-        teacher_ids: teachersByGroup.get(g.id) ?? [],
+    if (isOwnerStudent) {
+      visible.push(...enrolledGroups)
+    } else {
+      // Верхний гейт (как карточка студента). Он же прогревает кэш прав,
+      // поэтому дальнейшие пофильтровые проверки — попадания в кэш.
+      const deptGate = await hasEducationPrivilege(session, 'view_students', {
+        department_id: journey.primary_department_id ?? undefined,
       })
-      if (ok) visible.push(g)
-    }
 
-    // 403 только если ни верхний гейт, ни одна группа не доступны.
-    if (!deptGate && visible.length === 0) {
-      return apiError('forbidden', 403)
+      // Пофильтр по группам: строку видно, если есть право view_students на target группы.
+      for (const g of enrolledGroups) {
+        const ok = await hasEducationPrivilege(session, 'view_students', {
+          department_id: g.department?.id,
+          teacher_ids: teachersByGroup.get(g.id) ?? [],
+        })
+        if (ok) visible.push(g)
+      }
+
+      // 403 только если ни верхний гейт, ни одна группа не доступны.
+      if (!deptGate && visible.length === 0) {
+        return apiError('forbidden', 403)
+      }
     }
 
     const visibleGroupIds = visible.map(g => g.id)

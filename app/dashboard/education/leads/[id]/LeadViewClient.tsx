@@ -12,6 +12,7 @@ import StudyPlanPanel from '@/components/education/StudyPlanPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
+import PortalCredentialsPanel from '@/components/education/PortalCredentialsPanel'
 import HandoffButton from '@/components/education/HandoffButton'
 import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
@@ -421,6 +422,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               👁 {t('card.preview_as_student', 'Просмотр глазами студентки')}
             </a>
           )}
+          {data.status === 'student' && canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />}
