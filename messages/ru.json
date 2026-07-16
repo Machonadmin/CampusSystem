@@ -682,6 +682,24 @@
       "loading_directions": "Загрузка направлений…"
     },
     "study": {
+      "setup_label": "Настройки",
+      "dashboard": {
+        "title": "Панель",
+        "loading": "Загрузка…",
+        "view_all": "Все ←",
+        "kpi_students": "Активных студенток",
+        "kpi_lessons_today": "Занятий сегодня",
+        "kpi_pending": "Ждут распределения",
+        "today_schedule": "Расписание на сегодня",
+        "today_none": "На сегодня занятий нет",
+        "pending_title": "Ждут распределения",
+        "pending_none": "Все студентки распределены",
+        "pending_more": "и ещё {n}…",
+        "open_timetable": "Всё расписание",
+        "open_myday": "Мой день",
+        "open_assign": "Экран распределения",
+        "open_reports": "Отчёты"
+      },
       "tabs": {
         "subjects": "Предметы",
         "specialties": "Специальности",
