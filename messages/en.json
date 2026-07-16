@@ -315,6 +315,13 @@
       "my_leads": "My leads",
       "all_leads": "All leads"
     },
+    "recruitment_stage": {
+      "interested": "Interested",
+      "in_process": "In process",
+      "filter_all": "All",
+      "mark_interested": "Mark as interested",
+      "mark_in_process": "Mark as in process"
+    },
     "applicants": {
       "no_data": "No applicants",
       "no_stages": "Not in progress",

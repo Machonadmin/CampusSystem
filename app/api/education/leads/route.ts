@@ -43,21 +43,38 @@ export async function GET(request: NextRequest) {
       if (scope !== 'all') return apiError('forbidden', 403)
     }
 
-    let journeysQuery = sb
-      .from('education_journeys')
-      .select('id, person_id, referral_source, application_date, opened_at, notes, updated_at, is_deleted')
-      .eq('education_status', 'lead')
-      .order('updated_at', { ascending: false })
-
-    if (processStatus === 'deleted') {
-      journeysQuery = journeysQuery.eq('is_deleted', true)
-    } else {
-      journeysQuery = journeysQuery.eq('is_deleted', false)
+    // recruitment_stage может отсутствовать на свежей БД (миграция ещё не
+    // применена) — deploy-safe: при 42703 (undefined_column) повторяем select
+    // без этой колонки и подставляем 'interested' по умолчанию.
+    // Колонки передаём как обычную строку (не литерал): recruitment_stage ещё
+    // нет в сгенерированных типах БД, поэтому строгий парсер select() её не знает.
+    type JourneyRow = {
+      id: string
+      person_id: string
+      referral_source: string | null
+      application_date: string | null
+      opened_at: string | null
+      notes: string | null
+      updated_at: string | null
+      is_deleted: boolean
+      recruitment_stage?: string | null
+    }
+    const baseCols = 'id, person_id, referral_source, application_date, opened_at, notes, updated_at, is_deleted'
+    const buildQuery = (cols: string) => {
+      const q = sb
+        .from('education_journeys')
+        .select(cols)
+        .eq('education_status', 'lead')
+        .order('updated_at', { ascending: false })
+      return processStatus === 'deleted' ? q.eq('is_deleted', true) : q.eq('is_deleted', false)
     }
 
-    const { data: journeys, error: jErr } = await journeysQuery
-
-    if (jErr) throw jErr
+    let jRes = await buildQuery(`${baseCols}, recruitment_stage`)
+    if (jRes.error && (jRes.error as { code?: string }).code === '42703') {
+      jRes = await buildQuery(baseCols)
+    }
+    if (jRes.error) throw jRes.error
+    const journeys = (jRes.data ?? []) as unknown as JourneyRow[]
     if (!journeys || journeys.length === 0) return NextResponse.json([])
 
     const personIds = journeys.map(j => j.person_id)
@@ -139,6 +156,7 @@ export async function GET(request: NextRequest) {
         application_date: j.application_date ?? j.opened_at ?? null,
         updated_at: j.updated_at ?? null,
         is_deleted: (j as unknown as { is_deleted: boolean }).is_deleted ?? false,
+        recruitment_stage: (j as unknown as { recruitment_stage?: string | null }).recruitment_stage ?? 'interested',
         interests: interestMap.get(j.person_id) ?? [],
         active_stages_with_tasks: journeyStages.get(j.id) ?? [],
       }

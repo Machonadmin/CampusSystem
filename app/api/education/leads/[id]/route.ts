@@ -102,6 +102,7 @@ export async function PATCH(
       // Journey fields
       referral_source?: string | null
       comment?: string | null
+      recruitment_stage?: string | null
       // Interests (B1: delete+insert)
       interests?: { direction_id?: string | null; level_id?: string | null; free_text?: string | null }[]
       // Relatives (C1: diff)
@@ -162,6 +163,12 @@ export async function PATCH(
     const journeyUpdate: Record<string, unknown> = {}
     if (body.referral_source !== undefined) journeyUpdate.referral_source = body.referral_source
     if (body.comment !== undefined)         journeyUpdate.notes           = body.comment?.trim() || null
+    if (body.recruitment_stage !== undefined) {
+      if (body.recruitment_stage !== 'interested' && body.recruitment_stage !== 'in_process') {
+        return apiError('validation_error', 400)
+      }
+      journeyUpdate.recruitment_stage = body.recruitment_stage
+    }
     if (Object.keys(journeyUpdate).length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sb.from('education_journeys').update(journeyUpdate as any).eq('id', params.id)

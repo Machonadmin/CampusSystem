@@ -27,6 +27,7 @@ interface Lead {
   application_date: string | null
   updated_at: string | null
   is_deleted: boolean
+  recruitment_stage: 'interested' | 'in_process'
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
   active_stages_with_tasks: { stage_name: string; tasks: string[] }[]
 }
@@ -93,6 +94,7 @@ export default function EducationPage() {
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
+  const [stageFilter, setStageFilter] = useState<'all' | 'interested' | 'in_process'>('all')
   const [mineOnly, setMineOnly] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
@@ -177,7 +179,18 @@ export default function EducationPage() {
     }
   }
 
+  async function toggleRecruitmentStage(lead: Lead) {
+    const next = lead.recruitment_stage === 'interested' ? 'in_process' : 'interested'
+    const res = await fetch(`/api/education/leads/${lead.profile_id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recruitment_stage: next }),
+    })
+    if (res.ok) loadLeads()
+  }
+
   const filtered = leads
+    .filter(l => stageFilter === 'all' || l.recruitment_stage === stageFilter)
     .filter(l => {
       const q = search.toLowerCase()
       return !q ||
@@ -291,6 +304,15 @@ export default function EducationPage() {
               <option value="all">{t('leads.process_status.all')}</option>
               <option value="deleted">{t('leads.process_status.deleted')}</option>
             </select>
+            <select
+              value={stageFilter}
+              onChange={e => setStageFilter(e.target.value as 'all' | 'interested' | 'in_process')}
+              style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
+            >
+              <option value="all">{t('recruitment_stage.filter_all')}</option>
+              <option value="interested">{t('recruitment_stage.interested')}</option>
+              <option value="in_process">{t('recruitment_stage.in_process')}</option>
+            </select>
             <button
               type="button"
               onClick={() => setMineOnly(v => !v)}
@@ -383,6 +405,13 @@ export default function EducationPage() {
                             onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
                           >
                             {lead.full_name}
+                          </span>
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 99, whiteSpace: 'nowrap',
+                            background: lead.recruitment_stage === 'in_process' ? 'var(--info-tint)' : 'var(--warn-tint)',
+                            color: lead.recruitment_stage === 'in_process' ? 'var(--info)' : 'var(--warn)',
+                          }}>
+                            {lead.recruitment_stage === 'in_process' ? t('recruitment_stage.in_process') : t('recruitment_stage.interested')}
                           </span>
                         </div>
                       </td>
@@ -511,6 +540,14 @@ export default function EducationPage() {
                                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                                 >
                                   {t('leads.actions.edit')}
+                                </button>
+                                <button
+                                  onClick={() => { setOpenMenuId(null); toggleRecruitmentStage(lead) }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text)' }}
+                                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+                                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                                >
+                                  {lead.recruitment_stage === 'interested' ? t('recruitment_stage.mark_in_process') : t('recruitment_stage.mark_interested')}
                                 </button>
                                 <div style={{ borderTop: '1px solid var(--surface-2)', margin: '2px 0' }} />
                                 <button
