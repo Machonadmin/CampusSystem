@@ -896,6 +896,17 @@
         "filter_active_only": "Только активные",
         "filter_all": "Все статусы",
         "add_button": "Студент",
+        "bulk": {
+          "select": "Выбор",
+          "exit": "Отменить выбор",
+          "selected": "Выбрано: {n}",
+          "type_class": "Класс",
+          "type_track": "Маршрут",
+          "type_kodesh": "Группа кодеша",
+          "pick_target": "Выберите цель",
+          "apply": "Назначить",
+          "result": "Назначено: {ok}, не удалось: {fail}"
+        },
         "empty_none": "Студентов пока нет",
         "empty_search": "Ничего не найдено",
         "table_name": "ФИО",

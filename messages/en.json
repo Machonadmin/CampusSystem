@@ -896,6 +896,17 @@
         "filter_active_only": "Active Only",
         "filter_all": "All Statuses",
         "add_button": "Student",
+        "bulk": {
+          "select": "Select",
+          "exit": "Cancel selection",
+          "selected": "{n} selected",
+          "type_class": "Class",
+          "type_track": "Track",
+          "type_kodesh": "Kodesh group",
+          "pick_target": "Pick target",
+          "apply": "Assign",
+          "result": "{ok} assigned, {fail} failed"
+        },
         "empty_none": "No students yet",
         "empty_search": "Nothing found",
         "table_name": "Name",

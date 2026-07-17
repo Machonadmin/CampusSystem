@@ -896,6 +896,17 @@
         "filter_active_only": "פעילים בלבד",
         "filter_all": "כל הסטטוסים",
         "add_button": "סטודנט",
+        "bulk": {
+          "select": "בחירה מרובה",
+          "exit": "ביטול בחירה",
+          "selected": "{n} נבחרו",
+          "type_class": "כיתה",
+          "type_track": "מסלול",
+          "type_kodesh": "קבוצת קודש",
+          "pick_target": "בחר יעד",
+          "apply": "שייך",
+          "result": "{ok} שויכו, {fail} נכשלו"
+        },
         "empty_none": "אין עדיין סטודנטים",
         "empty_search": "לא נמצאו תוצאות",
         "table_name": "שם",
