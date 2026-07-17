@@ -1279,7 +1279,19 @@
       "only_unassigned": "רק לא משובצות",
       "all": "הכל",
       "save_failed": "השמירה נכשלה",
-      "no_access": "אין הרשאה"
+      "no_access": "אין הרשאה",
+      "exceptions": {
+        "title": "חריגות קודש (אישור מנהל)",
+        "empty": "אין חריגות קודש",
+        "reason": "סיבה",
+        "reason_ph": "סיבת הפטור (רשות)",
+        "from": "מ־",
+        "to": "עד",
+        "grant": "הענקת חריגה",
+        "revoke": "ביטול חריגה",
+        "granted_by": "אושר על ידי",
+        "ongoing": "ללא תאריך סיום"
+      }
     },
     "student_calendar": {
       "title": "יומן",

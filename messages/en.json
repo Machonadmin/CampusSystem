@@ -1279,7 +1279,19 @@
       "only_unassigned": "Only unassigned",
       "all": "All",
       "save_failed": "Save failed",
-      "no_access": "No access"
+      "no_access": "No access",
+      "exceptions": {
+        "title": "Kodesh exceptions (manager approval)",
+        "empty": "No kodesh exceptions",
+        "reason": "Reason",
+        "reason_ph": "Reason for exemption (optional)",
+        "from": "From",
+        "to": "To",
+        "grant": "Grant exception",
+        "revoke": "Revoke exception",
+        "granted_by": "Approved by",
+        "ongoing": "ongoing"
+      }
     },
     "student_calendar": {
       "title": "Calendar",
