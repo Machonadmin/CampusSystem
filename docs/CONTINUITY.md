@@ -50,10 +50,28 @@ language). Talk to the owner in Hebrew.
   finance (bulk charge). All loop existing per-item endpoints (permissions preserved);
   finance list GET now returns `can_charge`.
 
-## Open items needing the owner (asked, awaiting)
-- Reports **period filters** — which periods (month/year/academic-year/custom)? backends need range.
-- **jewishness** module is only a signing queue — full verification record wanted?
-- Any migrations from this session not yet run will make features silently empty (deploy-safe).
+## Shipped this session — round 2 (PRs #119–#123, merged)
+- **Workflow template editor** (#119), **bulk actions** (#120), **kodesh generate-all** (#121)
+  — see round-1 list note; all merged.
+- **Reports period filter** (#122): `/dashboard/reports` period selector (all/month/year/custom).
+  Finance & sponsors report endpoints accept `?from&to` (finance: charge created_at +
+  payment paid_at; sponsors: donation_date); those two cards refetch + show a "for period"
+  badge. Other cards stay current snapshots (point-in-time by nature).
+- **Full jewishness module** (#123): persisted `education_journeys.jewishness_status`
+  (pending/verified/rejected/needs_review) + `jewishness_status_history`, migration
+  `20260717120000_jewishness_verification.sql` (owner must run). Two-way sync via shared
+  `lib/jewishness/status.ts`: completing the acceptance `jewishness` stage writes the status
+  (reverse), and the module sets it directly (forward) — both write the same field. Module UI
+  = full list + status filter/search + detail (set status, docs, history, signed acceptance
+  decision). `StageContext.stageCode` added. Deploy-safe (pre-migration everything reads pending).
+
+## Open items needing the owner
+- Reminder cron: confirm Vercel plan supports Cron + set `CRON_SECRET` (from round 1).
+- Report period-awareness for non-money cards (maintenance/security/clinic/counseling "in window",
+  new leads by open date) — offered; needs a decision on what "in period" means per metric.
+- Optional: jewishness status **badge on the student/lead card** (module + sync shipped; badge
+  on the education student card not yet added).
+- Any migrations from these sessions not yet run make those features silently empty (deploy-safe).
 
 ## Shipped earlier (merged to main; PRs #94–#112)
 Studies workspace + header declutter (3 daily links + ⚙ management, underline tabs);
