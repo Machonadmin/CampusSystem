@@ -163,6 +163,18 @@ async function loadPersonPrivileges(personId: string): Promise<Array<{ code: str
  * Использует кэш.
  */
 async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
+  // Изоляция портала: токен студентки (principal='student', roles:[]) НЕ несёт
+  // никаких штатных education-прав, даже если этот же person где-то оформлен как
+  // сотрудник (staff_positions / person_privileges по person_id). Иначе двойная
+  // роль (студентка И сотрудница) при входе через портал смогла бы читать чужие
+  // journeys. Портальные роуты дают доступ к СВОЕЙ journey через явный self-gate
+  // (principal==='student' && student_journey_id===id) ещё до попадания сюда.
+  // Кэш НЕ трогаем: ключ = person_id общий для staff- и student-входа одного
+  // человека, поэтому пустой результат не должен ни читаться, ни писаться в него.
+  if (session.principal === 'student') {
+    return { privileges: {}, departmentIds: [], expiresAt: Date.now() + CACHE_TTL_MS }
+  }
+
   const cached = getCached(session.person_id)
   if (cached) return cached
 

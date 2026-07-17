@@ -55,14 +55,21 @@ assigns students, then generates lessons per group (class-group → Schedule tab
 
 ## Pending / next
 - Optional: a "generate all kodesh lessons" convenience; per-slot teacher.
-- Follow-up: kodesh exceptions do NOT yet auto-adjust attendance/reports (an
-  exempted student is still expected in the kodesh slot by the journal). Would need
-  the attendance/calendar layer to check `kodesh_exceptions` for the date range.
 
-## Done — KODESH exceptions (PR #114, merged)
+## Done — KODESH exceptions (PRs #114 + #115, merged)
 Manager approves exempting a specific student from mandatory kodesh ("always kodesh
 unless special approval"). Migration `20260716260000_kodesh_exceptions.sql` (table
 `kodesh_exceptions`, journey_id CASCADE, approved_by, reason, effective_from/to).
 API `/api/education/journeys/[id]/kodesh-exceptions` GET/POST/DELETE, all gated
 `canManageUnit(kodesh dept)`. Panel `KodeshExceptionsPanel` in the student view.
 Owner must RUN the migration in Supabase SQL Editor.
+
+**Enforcement (#115):** the exemption now auto-flows everywhere via shared helper
+`lib/education/kodesh-exceptions.ts` (`loadKodeshGroupIds`, `loadKodeshExemptions`,
+pure `dateInAnyRange`; deploy-safe to 42P01, unit-tested). On an exempt date a
+kodesh-dept lesson drops the student from: the journal roster + the attendance
+WRITE path (attendance route), her calendar (journeys/[id]/calendar), the
+per-student report denominator+tally, the unit report, at-risk counts, and the
+teacher "X of Y" (my-lessons). Only kodesh-department lessons are touched; the
+staff calendar `/api/calendar/lessons` is intentionally untouched (staff have no
+journeys).
