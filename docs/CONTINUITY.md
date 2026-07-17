@@ -23,7 +23,39 @@ language). Talk to the owner in Hebrew.
 - Kodesh department (לимודи קодеш / Кафедра иудаики): `9a3d7b3f-3f65-4653-a111-4d5296404a27`
 - System actor (public form): `ffffffff-0000-4000-8000-000000000001`
 
-## Shipped (all merged to main; PRs #94–#112)
+## Shipped this session — product improvements (PRs #114–#120, all merged)
+- **Kodesh exceptions enforced** (#114/#115): shared `lib/education/kodesh-exceptions.ts`
+  (`loadKodeshGroupIds`, `loadKodeshExemptions`, pure `dateInAnyRange`, unit-tested).
+  On an exempt date a kodesh lesson drops the student from journal roster + attendance
+  WRITE, calendar, per-student report denom+tally, unit report, at-risk, teacher X-of-Y.
+- **Portal isolation hardened** (#116): `getUserAccess` (lib/education/permissions.ts) and
+  `canManageUnit` return ZERO for `principal==='student'` (bypassing the person_id cache),
+  so a dual-role person's portal token can't read staff data. Tests in
+  `lib/education/portal-isolation.test.ts`. Middleware guards only PAGES, not `/api/*`.
+- **Reminder cron** (#118): `GET /api/cron/reminders` + `vercel.json` daily 06:00 UTC +
+  account-wide `materializeAll*` in `lib/notifications/reminders.ts`. Owner: set `CRON_SECRET`
+  in Vercel; needs a plan with Cron. Before this, reminders only materialized on bell-poll.
+- **CSV export** (#118 batch): persons, sponsors, contacts, documents, maintenance, security,
+  doctor, psychologist lists (reuses `common.export_csv`, exports visible rows). Canonical
+  helper is `lib/csv.ts` `downloadCsv(name, [headerRow, ...rows])` (retired `lib/export/csv.ts`).
+- **Reports drill-down** (#118): each summary card links to its module.
+- **Communities management** (#118): `/dashboard/education/communities` (⚙ menu) — CRUD over
+  the previously UI-less `/api/education/communities`; GET now returns `can_manage`.
+- **Workflow template editor** (#119): superadmin-only `/dashboard/settings/workflows` — full
+  CRUD of process templates: processes, stages (incl. WHO SIGNS `required_role_code` +
+  `requires_signature`), finals (incl. `closes_process`+reason), task templates, transitions
+  (after_one/after_all). Extended stage-templates & stage-finals POST/PATCH to accept those
+  signer/closing fields (were SQL-only). Superadmin-gated in UI and server.
+- **Bulk actions** (#120): tasks (mark done / assign), students (assign to class/track/kodesh),
+  finance (bulk charge). All loop existing per-item endpoints (permissions preserved);
+  finance list GET now returns `can_charge`.
+
+## Open items needing the owner (asked, awaiting)
+- Reports **period filters** — which periods (month/year/academic-year/custom)? backends need range.
+- **jewishness** module is only a signing queue — full verification record wanted?
+- Any migrations from this session not yet run will make features silently empty (deploy-safe).
+
+## Shipped earlier (merged to main; PRs #94–#112)
 Studies workspace + header declutter (3 daily links + ⚙ management, underline tabs);
 role-scoped tabs (each sees only theirs); admission+committee merged into one קבלה
 tab; doctor/psychologist referral split; final-approval gate (blocked until a
