@@ -6,6 +6,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { finalCodeToStatus, setJewishnessStatus } from '@/lib/jewishness/status'
 import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
@@ -179,6 +180,23 @@ export async function POST(
           if (trErr && trErr.code !== '42P01') console.error('[complete] track upsert:', trErr)
         } catch (trCatch) {
           console.error('[complete] track upsert:', trCatch)
+        }
+      }
+    }
+
+    // Реверс-синк бирур-яхадут: завершение этапа 'jewishness' (approved/rejected)
+    // пишет статус верификации на студентку + строку истории. Best-effort, деплой-
+    // безопасно (нет колонок/таблицы → тихо пропускаем), не роняет ответ.
+    if (ctx.journeyId && ctx.stageCode === 'jewishness') {
+      const jStatus = finalCodeToStatus(body.final_code)
+      if (jStatus) {
+        try {
+          await setJewishnessStatus(sb, {
+            journeyId: ctx.journeyId, status: jStatus,
+            changedBy: session.person_id, note, source: 'acceptance_stage',
+          })
+        } catch (jErr) {
+          console.error('[complete] jewishness status sync:', jErr)
         }
       }
     }

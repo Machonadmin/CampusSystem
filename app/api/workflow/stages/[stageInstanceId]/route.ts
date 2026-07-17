@@ -56,6 +56,7 @@ export async function GET(
     const stageCtx = {
       stageInstanceId: params.stageInstanceId,
       stageTemplateId,
+      stageCode: null,
       requiredRoleCode: tmpl?.required_role_code ?? null,
       requiresSignature: !!tmpl?.requires_signature,
       journeyId,

@@ -7,6 +7,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 export interface StageContext {
   stageInstanceId:   string
   stageTemplateId:   string | null
+  stageCode:         string | null
   requiredRoleCode:  string | null
   requiresSignature: boolean
   journeyId:         string | null
@@ -20,7 +21,7 @@ export async function loadStageContext(stageInstanceId: string): Promise<StageCo
     .from('stage_instances')
     .select(`
       id,
-      stage_template:stage_templates(id, required_role_code, requires_signature),
+      stage_template:stage_templates(id, code, required_role_code, requires_signature),
       process_instance:process_instances(journey_id)
     `)
     .eq('id', stageInstanceId)
@@ -28,7 +29,7 @@ export async function loadStageContext(stageInstanceId: string): Promise<StageCo
   if (!si) return null
 
   const tmpl = si.stage_template as unknown as
-    { id: string; required_role_code: string | null; requires_signature: boolean } | null
+    { id: string; code: string | null; required_role_code: string | null; requires_signature: boolean } | null
   const journeyId = (si.process_instance as unknown as { journey_id: string } | null)?.journey_id ?? null
 
   let departmentId: string | null = null
@@ -44,6 +45,7 @@ export async function loadStageContext(stageInstanceId: string): Promise<StageCo
   return {
     stageInstanceId,
     stageTemplateId:   tmpl?.id ?? null,
+    stageCode:         tmpl?.code ?? null,
     requiredRoleCode:  tmpl?.required_role_code ?? null,
     requiresSignature: !!tmpl?.requires_signature,
     journeyId,
