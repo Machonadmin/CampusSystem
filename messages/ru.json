@@ -896,6 +896,17 @@
         "filter_active_only": "Только активные",
         "filter_all": "Все статусы",
         "add_button": "Студент",
+        "bulk": {
+          "select": "Выбор",
+          "exit": "Отменить выбор",
+          "selected": "Выбрано: {n}",
+          "type_class": "Класс",
+          "type_track": "Маршрут",
+          "type_kodesh": "Группа кодеша",
+          "pick_target": "Выберите цель",
+          "apply": "Назначить",
+          "result": "Назначено: {ok}, не удалось: {fail}"
+        },
         "empty_none": "Студентов пока нет",
         "empty_search": "Ничего не найдено",
         "table_name": "ФИО",
@@ -1416,6 +1427,17 @@
   "tasks": {
     "title": "Задачи",
     "new_task": "Новая задача",
+    "bulk": {
+      "select": "Выбор",
+      "exit": "Отменить выбор",
+      "selected": "Выбрано: {n}",
+      "mark_done": "Отметить выполненными",
+      "assign": "Назначить",
+      "assign_title": "Назначить выбранные задачи",
+      "assign_to": "Назначить на",
+      "done_result": "Выполнено: {done}, пропущено: {skipped}",
+      "assign_result": "Назначено: {ok}, не удалось: {fail}"
+    },
     "filters": {
       "all": "Все",
       "active": "Активные",
@@ -2262,6 +2284,18 @@
     }
   },
   "finance": {
+    "bulk": {
+      "select": "Выбор",
+      "exit": "Отменить выбор",
+      "selected": "Выбрано: {n}",
+      "charge": "Начислить",
+      "charge_title": "Массовое начисление выбранным студентам",
+      "f_amount": "Сумма",
+      "f_description": "Описание",
+      "f_period": "Период",
+      "f_due_date": "Срок оплаты",
+      "result": "Начислено: {ok}, не удалось: {fail}"
+    },
     "list": {
       "subtitle": "Биллинг обучения студентов",
       "search_placeholder": "Поиск по имени или email…",

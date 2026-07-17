@@ -63,6 +63,17 @@ export default function StudentsTab() {
 
   const [modalOpen, setModalOpen] = useState(false)
 
+  // ── Массовое назначение (bulk): класс / маршрут / кодеш ──
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkType, setBulkType] = useState<'class' | 'track' | 'kodesh'>('class')
+  const [bulkTarget, setBulkTarget] = useState('')
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null)
+  const [classGroups, setClassGroups] = useState<{ id: string; name: string }[]>([])
+  const [tracks, setTracks] = useState<{ id: string; name: string }[]>([])
+  const [kodeshGroups, setKodeshGroups] = useState<{ id: string; name: string }[]>([])
+
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const STATUS_LABEL: Record<StudentStatus, string> = {
@@ -120,6 +131,59 @@ export default function StudentsTab() {
 
   // Сбрасываем фильтр группы при смене подразделения
   useEffect(() => { setFilterGroup('') }, [filterDept])
+
+  // Справочники целей массового назначения (класс/маршрут/кодеш). Kodesh может
+  // вернуть 403 если пользователь не глава кодеша — тогда просто нет целей.
+  useEffect(() => {
+    fetch('/api/education/class-groups')
+      .then(r => r.ok ? r.json() : { class_groups: [] })
+      .then(j => setClassGroups(((j.class_groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+    fetch('/api/education/study-tracks')
+      .then(r => r.ok ? r.json() : { tracks: [] })
+      .then(j => setTracks(((j.tracks ?? []) as Array<{ id: string; name_he: string | null; name_ru: string | null; name_en: string | null; code: string }>)
+        .map(tk => ({ id: tk.id, name: tk.name_he || tk.name_ru || tk.name_en || tk.code }))))
+      .catch(() => {})
+    fetch('/api/education/kodesh/assignment')
+      .then(r => r.ok ? r.json() : { groups: [] })
+      .then(j => setKodeshGroups(((j.groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+  }, [])
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function toggleSelectAll() {
+    setSelected(prev => prev.size === students.length ? new Set() : new Set(students.map(s => s.id)))
+  }
+  function exitSelect() { setSelectMode(false); setSelected(new Set()) }
+
+  const bulkTargets = bulkType === 'class' ? classGroups : bulkType === 'track' ? tracks : kodeshGroups
+
+  async function applyBulk() {
+    if (!bulkTarget || selected.size === 0) return
+    setBulkBusy(true); setBulkMsg(null)
+    const ids = [...selected]
+    let ok = 0, fail = 0
+    if (bulkType === 'class') {
+      const res = await fetch(`/api/education/class-groups/${bulkTarget}/enrollments`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_ids: ids }),
+      })
+      if (res.ok) ok = ids.length; else fail = ids.length
+    } else {
+      for (const jid of ids) {
+        const url = bulkType === 'track' ? `/api/education/journeys/${jid}/track` : '/api/education/kodesh/assignment'
+        const body = bulkType === 'track' ? { track_id: bulkTarget } : { journey_id: jid, group_id: bulkTarget }
+        const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        if (res.ok) ok++; else fail++
+      }
+    }
+    setBulkBusy(false)
+    setBulkMsg(t('students.bulk.result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    loadStudents(search)
+  }
 
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
@@ -180,12 +244,45 @@ export default function StudentsTab() {
           <option value="active">{t('students.filter_active_only')}</option>
           <option value="all">{t('students.filter_all')}</option>
         </select>
+        <button
+          onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+          style={{ ...inp, cursor: 'pointer', fontWeight: 600, background: selectMode ? 'var(--accent-tint)' : 'var(--surface)', color: selectMode ? 'var(--accent-strong)' : 'var(--text)', borderColor: selectMode ? 'var(--accent-strong)' : 'var(--border-strong)' }}
+        >
+          {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
+        </button>
         <PageActionButton
           label={t('students.add_button')}
           onClick={() => setModalOpen(true)}
           accentColor={accent}
         />
       </div>
+
+      {/* Панель массового назначения */}
+      {selectMode && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', padding: '10px 14px', background: 'var(--surface)', border: '1px solid var(--accent-strong)', borderRadius: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{t('students.bulk.selected').replace('{n}', String(selected.size))}</span>
+          <select value={bulkType} onChange={e => { setBulkType(e.target.value as 'class' | 'track' | 'kodesh'); setBulkTarget('') }} style={inp}>
+            <option value="class">{t('students.bulk.type_class')}</option>
+            <option value="track">{t('students.bulk.type_track')}</option>
+            <option value="kodesh">{t('students.bulk.type_kodesh')}</option>
+          </select>
+          <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} style={{ ...inp, minWidth: 160 }}>
+            <option value="">{t('students.bulk.pick_target')}</option>
+            {bulkTargets.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+          </select>
+          <button
+            onClick={applyBulk}
+            disabled={bulkBusy || !bulkTarget || selected.size === 0}
+            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
+          >
+            {t('students.bulk.apply')}
+          </button>
+        </div>
+      )}
+
+      {bulkMsg && (
+        <div style={{ padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 12, fontSize: 13, color: 'var(--text)' }}>{bulkMsg}</div>
+      )}
 
       {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
@@ -205,6 +302,11 @@ export default function StudentsTab() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
+                  {selectMode && (
+                    <th style={{ ...thStyle, width: 36, textAlign: 'center' }}>
+                      <input type="checkbox" checked={students.length > 0 && selected.size === students.length} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
+                    </th>
+                  )}
                   <th style={thStyle}>{t('students.table_name')}</th>
                   <th style={thStyle}>{t('students.table_contacts')}</th>
                   <th style={thStyle}>{t('students.table_department')}</th>
@@ -227,6 +329,11 @@ export default function StudentsTab() {
                       onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                     >
+                      {selectMode && (
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} />
+                        </td>
+                      )}
                       <td style={{ ...tdStyle, fontWeight: 500 }}>
                         <button
                           onClick={() => router.push(cardHref)}

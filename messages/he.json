@@ -896,6 +896,17 @@
         "filter_active_only": "פעילים בלבד",
         "filter_all": "כל הסטטוסים",
         "add_button": "סטודנט",
+        "bulk": {
+          "select": "בחירה מרובה",
+          "exit": "ביטול בחירה",
+          "selected": "{n} נבחרו",
+          "type_class": "כיתה",
+          "type_track": "מסלול",
+          "type_kodesh": "קבוצת קודש",
+          "pick_target": "בחר יעד",
+          "apply": "שייך",
+          "result": "{ok} שויכו, {fail} נכשלו"
+        },
         "empty_none": "אין עדיין סטודנטים",
         "empty_search": "לא נמצאו תוצאות",
         "table_name": "שם",
@@ -1416,6 +1427,17 @@
   "tasks": {
     "title": "משימות",
     "new_task": "משימה חדשה",
+    "bulk": {
+      "select": "בחירה מרובה",
+      "exit": "ביטול בחירה",
+      "selected": "{n} נבחרו",
+      "mark_done": "סמן כבוצע",
+      "assign": "שיוך",
+      "assign_title": "שיוך משימות שנבחרו",
+      "assign_to": "שייך אל",
+      "done_result": "{done} סומנו כבוצעו, {skipped} דולגו",
+      "assign_result": "{ok} שויכו, {fail} נכשלו"
+    },
     "filters": {
       "all": "הכל",
       "active": "פעילות",
@@ -2262,6 +2284,18 @@
     }
   },
   "finance": {
+    "bulk": {
+      "select": "בחירה מרובה",
+      "exit": "ביטול בחירה",
+      "selected": "{n} נבחרו",
+      "charge": "חיוב",
+      "charge_title": "חיוב מרובה לסטודנטים שנבחרו",
+      "f_amount": "סכום",
+      "f_description": "תיאור",
+      "f_period": "תקופה",
+      "f_due_date": "תאריך לתשלום",
+      "result": "{ok} חויבו, {fail} נכשלו"
+    },
     "list": {
       "subtitle": "חיובי שכר לימוד של סטודנטים",
       "search_placeholder": "חיפוש לפי שם או אימייל…",

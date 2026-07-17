@@ -8,6 +8,9 @@ import AddToCalendar from '@/components/calendar/AddToCalendar'
 interface Props {
   tasks: TaskRow[]
   onTaskClick: (taskId: string) => void
+  // Массовый выбор (bulk). Если передан onToggleSelect — рисуем чекбоксы.
+  selectedIds?: Set<string>
+  onToggleSelect?: (taskId: string) => void
 }
 
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
@@ -27,17 +30,27 @@ const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
   urgent: '#DC2626',
 }
 
-export default function TasksList({ tasks, onTaskClick }: Props) {
+export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSelect }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {tasks.map(t => (
-        <TaskCard key={t.id} task={t} onClick={() => onTaskClick(t.id)} />
+        <TaskCard
+          key={t.id}
+          task={t}
+          onClick={() => onTaskClick(t.id)}
+          selectable={!!onToggleSelect}
+          selected={selectedIds?.has(t.id) ?? false}
+          onToggleSelect={onToggleSelect ? () => onToggleSelect(t.id) : undefined}
+        />
       ))}
     </div>
   )
 }
 
-function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
+function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
+  task: TaskRow; onClick: () => void
+  selectable?: boolean; selected?: boolean; onToggleSelect?: () => void
+}) {
   const t = useTranslations('tasks')
   const { lang } = useLang()
   const status = STATUS_COLORS[task.status]
@@ -62,6 +75,16 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
     >
+      {/* Чекбокс массового выбора */}
+      {selectable && (
+        <div
+          onClick={e => { e.stopPropagation(); onToggleSelect?.() }}
+          style={{ display: 'flex', alignItems: 'center', padding: '0 4px 0 12px', flexShrink: 0 }}
+        >
+          <input type="checkbox" checked={!!selected} readOnly style={{ width: 16, height: 16, cursor: 'pointer' }} />
+        </div>
+      )}
+
       {/* Priority bar */}
       <div style={{ width: 4, background: priorityColor, flexShrink: 0 }} />
 
