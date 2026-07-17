@@ -1268,6 +1268,19 @@
       "saving": "שומר…",
       "save_failed": "השמירה נכשלה"
     },
+    "kodesh": {
+      "nav": "שיבוץ קודש",
+      "title": "שיבוץ קודש",
+      "subtitle": "כל תלמידה חייבת להיות משובצת לקבוצת קודש (הכיתה שלה)",
+      "unassigned_count": "{n} ממתינות לשיבוץ קודש",
+      "group_col": "קבוצת קודש",
+      "student_col": "תלמידה",
+      "unassigned_option": "— לא משובצת —",
+      "only_unassigned": "רק לא משובצות",
+      "all": "הכל",
+      "save_failed": "השמירה נכשלה",
+      "no_access": "אין הרשאה"
+    },
     "student_calendar": {
       "title": "יומן",
       "present": "נוכחת",
