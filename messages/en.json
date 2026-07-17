@@ -4,6 +4,15 @@
     "load_error": "Failed to load the overview",
     "empty": "Nothing to show",
     "open_module": "Open module →",
+    "period": {
+      "label": "Period:",
+      "all": "All time",
+      "month": "This month",
+      "year": "This year",
+      "custom": "Custom range",
+      "hint": "Affects the finance and sponsors cards",
+      "applies": "for period"
+    },
     "no_data": "No data",
     "open": "Open in module",
     "section_education": "Studies",

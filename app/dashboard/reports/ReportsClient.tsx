@@ -66,13 +66,14 @@ const fmt = (n: number): string => n.toLocaleString('ru-RU')
 // одного домена не ломает остальные (§8 спецификации).
 
 function ReportCard<T>({
-  title, colorKey, endpoint, render, href,
+  title, colorKey, endpoint, render, href, periodBadge,
 }: {
   title: string
   colorKey: string
   endpoint: string
   render: (data: T) => ReactNode
   href?: string
+  periodBadge?: string
 }) {
   const tCommon = useTranslations('common')
   const t = useTranslations('reports')
@@ -123,7 +124,12 @@ function ReportCard<T>({
         borderInlineStart: `4px solid ${primary}`,
         padding: '10px 16px',
       }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: primary }}>{title}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: primary }}>{title}</h2>
+          {periodBadge && (
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: primary, background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 6, padding: '1px 6px', whiteSpace: 'nowrap' }}>{periodBadge}</span>
+          )}
+        </div>
       </div>
       <div style={{ padding: '14px 16px', minHeight: 96 }}>
         {error ? (
@@ -201,6 +207,26 @@ export default function ReportsClient() {
   // Мягкая привязка t для вложенных ключей с фолбэком на сам ключ.
   const label = (key: string, fallback: string) => t(key, fallback)
 
+  // Период (влияет только на денежные карточки: финансы и спонсоры).
+  const [preset, setPreset] = useState<'all' | 'month' | 'year' | 'custom'>('all')
+  const [cFrom, setCFrom] = useState('')
+  const [cTo, setCTo] = useState('')
+  const p2 = (n: number) => String(n).padStart(2, '0')
+  const isoLocal = (d: Date) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`
+  let pFrom = '', pTo = ''
+  if (preset === 'month') { const d = new Date(); pFrom = isoLocal(new Date(d.getFullYear(), d.getMonth(), 1)); pTo = isoLocal(new Date(d.getFullYear(), d.getMonth() + 1, 0)) }
+  else if (preset === 'year') { const y = new Date().getFullYear(); pFrom = `${y}-01-01`; pTo = `${y}-12-31` }
+  else if (preset === 'custom') { pFrom = cFrom; pTo = cTo }
+  const periodQs = (pFrom || pTo) ? `?${new URLSearchParams({ ...(pFrom ? { from: pFrom } : {}), ...(pTo ? { to: pTo } : {}) }).toString()}` : ''
+  const periodActive = preset !== 'all' && !!(pFrom || pTo)
+  const periodBadge = periodActive ? t('period.applies') : undefined
+  const presetBtn = (key: typeof preset): React.CSSProperties => ({
+    fontSize: 12.5, fontWeight: 600, padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+    border: `1px solid ${preset === key ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+    background: preset === key ? 'var(--accent-tint)' : 'var(--surface)',
+    color: preset === key ? 'var(--accent-strong)' : 'var(--text)',
+  })
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -216,6 +242,23 @@ export default function ReportsClient() {
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
+      </div>
+
+      {/* Период — влияет на денежные карточки (финансы, спонсоры) */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('period.label')}</span>
+        <button onClick={() => setPreset('all')} style={presetBtn('all')}>{t('period.all')}</button>
+        <button onClick={() => setPreset('month')} style={presetBtn('month')}>{t('period.month')}</button>
+        <button onClick={() => setPreset('year')} style={presetBtn('year')}>{t('period.year')}</button>
+        <button onClick={() => setPreset('custom')} style={presetBtn('custom')}>{t('period.custom')}</button>
+        {preset === 'custom' && (
+          <>
+            <input type="date" value={cFrom} onChange={e => setCFrom(e.target.value)} style={{ fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }} />
+            <span style={{ color: 'var(--text-faint)' }}>–</span>
+            <input type="date" value={cTo} onChange={e => setCTo(e.target.value)} style={{ fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }} />
+          </>
+        )}
+        <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{t('period.hint')}</span>
       </div>
 
       {/* Сетка карточек — каждая грузится независимо */}
@@ -271,8 +314,9 @@ export default function ReportsClient() {
         <ReportCard<FinanceSummary>
           title={t('cards.finance')}
           colorKey="finance"
-          endpoint="/api/reports/finance"
+          endpoint={`/api/reports/finance${periodQs}`}
           href="/dashboard/finance"
+          periodBadge={periodBadge}
           render={(d) => (
             <>
               <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
@@ -387,8 +431,9 @@ export default function ReportsClient() {
         <ReportCard<SponsorsSummary>
           title={t('cards.sponsors')}
           colorKey="sponsors"
-          endpoint="/api/reports/sponsors"
+          endpoint={`/api/reports/sponsors${periodQs}`}
           href="/dashboard/sponsors"
+          periodBadge={periodBadge}
           render={(d) => (
             <>
               <Metric label={t('metrics.sponsor_count')} value={fmt(d.sponsor_count)} />
