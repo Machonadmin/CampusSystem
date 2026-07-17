@@ -1,0 +1,60 @@
+# Continuity notes — Machon Chamesh (מכון חמש)
+
+Durable state so any new session can continue seamlessly. Owner is a
+non-programmer (Hebrew); staff are Russian-speakers (RU is the default UI
+language). Talk to the owner in Hebrew.
+
+## Working setup
+- Dev branch: `claude/product-improvements-zq6cq4`.
+- Flow per change: commit → PR (mcp github) → squash-merge → resync
+  (`git fetch origin main -q && git checkout -B claude/product-improvements-zq6cq4 origin/main -q && git config user.email noreply@anthropic.com && git config user.name Claude && git push -u origin … --force-with-lease`).
+  Branch-only commits are LOST on resync — always merge to main to persist.
+- **No DB access in the agent env** — verify via code, not a live run. Owner runs
+  migrations manually in Supabase SQL Editor (expects "Success. No rows returned").
+- Ship gate: `npx tsc --noEmit` clean · `npm run build` compiles · `npm test` = 499
+  passing · i18n parity ru/he/en (flatten keys → identical sets).
+- Deploy: Vercel from `main` (campus-system-chi.vercel.app). Migrations are manual.
+
+## Test accounts (pw: Test1234!) — each is now head of its own unit
+- giyus@test.machon (recruiter → גיוס) · limudim@test.machon (head_of_studies → לימודים)
+- pnimia@test.machon (dorm_director → פנימייה) · yahadut@test.machon (jewishness_officer → יהדות)
+
+## Key IDs
+- Kodesh department (לимודи קодеш / Кафедра иудаики): `9a3d7b3f-3f65-4653-a111-4d5296404a27`
+- System actor (public form): `ffffffff-0000-4000-8000-000000000001`
+
+## Shipped (all merged to main; PRs #94–#112)
+Studies workspace + header declutter (3 daily links + ⚙ management, underline tabs);
+role-scoped tabs (each sees only theirs); admission+committee merged into one קבלה
+tab; doctor/psychologist referral split; final-approval gate (blocked until a
+referred doctor/psych signs) + full signatures review; track pick already at the
+academic stage; attendance present/late/absent breakdown (journal/my-day/reports);
+recruitment categories (interested/in_process); public leads auto-start recruitment;
+··· row-menu fixed (position:fixed); recruiter journey-scoped document upload;
+student portal (email+password login via `student_credentials`, own dashboard/
+calendar/grades/attendance/messages); staff→student messages (`student_messages`);
+attention layer (at-risk absences via `/api/education/at-risk`, stalled applicants);
+mobile grid collapse (`.resp-grid-2/3`); unit-head data for test accounts.
+
+**KODESH** (religious studies, reuses class_groups model): 6 groups (כיתה י, כיתה
+י"א, כיתה 1..4) under the kodesh dept, subject "קודש", fixed slots 09:15–10:30 &
+11:00–12:10 on Mon–Thu (ISO day_of_week 1–4). Migration
+`20260716240000_kodesh_groups_seed.sql`. Assignment screen `/dashboard/education/kodesh`
+(`/api/education/kodesh/assignment` GET/PUT, gated `canManageUnit(kodesh dept)` =
+kodesh head/superadmin, NOT the general manager). Owner runs the migration, then
+assigns students, then generates lessons per group (class-group → Schedule tab →
+"generate"); then kodesh flows into each student's unified calendar + attendance.
+
+## Domain facts
+- Kodesh is universal — every student is in exactly one kodesh group. The KODESH HEAD
+  assigns (head of the kodesh dept), not the general director.
+- Lessons = dated instances generated from `class_schedule_slots` (recurring weekly
+  template, ISO day_of_week 1=Mon..7=Sun). Student calendar aggregates
+  class_enrollments → class_groups → lessons → attendance. Late = 0.5 weight.
+- Parent access: explicitly NOT wanted by the owner.
+
+## Pending / next
+- **KODESH exceptions** (next kodesh step): manager approves exempting a specific
+  student from a mandatory kodesh slot ("always kodesh unless special approval from
+  the manager"). Not built — would be a small table + a manager-approval action.
+- Optional: a "generate all kodesh lessons" convenience; per-slot teacher.
