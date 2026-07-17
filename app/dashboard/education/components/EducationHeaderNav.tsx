@@ -43,6 +43,7 @@ export default function EducationHeaderNav() {
     { href: '/dashboard/education/units', label: t('units.title') },
     { href: '/dashboard/education/structure', label: t('structure.title') },
     { href: '/dashboard/education/track-assignment', label: t('track_assign.title') },
+    { href: '/dashboard/education/kodesh', label: t('kodesh.nav') },
     { href: '/dashboard/education/students/import', label: t('import.title') },
   ]
 

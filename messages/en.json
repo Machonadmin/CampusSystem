@@ -1268,6 +1268,19 @@
       "saving": "Saving…",
       "save_failed": "Save failed"
     },
+    "kodesh": {
+      "nav": "Kodesh assignment",
+      "title": "Kodesh assignment",
+      "subtitle": "Every student must belong to one kodesh group (her כיתה)",
+      "unassigned_count": "{n} awaiting kodesh assignment",
+      "group_col": "Kodesh group",
+      "student_col": "Student",
+      "unassigned_option": "— unassigned —",
+      "only_unassigned": "Only unassigned",
+      "all": "All",
+      "save_failed": "Save failed",
+      "no_access": "No access"
+    },
     "student_calendar": {
       "title": "Calendar",
       "present": "Present",
