@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 
 /**
  * GET /api/education/my-lessons?date=YYYY-MM-DD
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
     type Tally = { marked: number; present: number; late: number; absent: number }
     const statsByLesson = new Map<string, Tally>()
     const enrolledByGroup = new Map<string, number>()
+    // חריגות קודש: на уроке кодеша знаменатель «X из Y» уменьшается на число
+    // студенток, освобождённых на эту дату (их не ждут).
+    const kodeshGroupIds = await loadKodeshGroupIds(sb)
+    const exemptCountByGroup = new Map<string, number>()
     if (lessonIds.length > 0) {
       const { data: att } = await sb.from('attendance').select('lesson_id, status').in('lesson_id', lessonIds)
       for (const a of (att ?? []) as Array<{ lesson_id: string; status: string }>) {
@@ -52,8 +57,22 @@ export async function GET(request: NextRequest) {
         else if (a.status === 'absent') cur.absent += 1
         statsByLesson.set(a.lesson_id, cur)
       }
-      const { data: enr } = await sb.from('class_enrollments').select('class_group_id').in('class_group_id', groupIds)
-      for (const e of (enr ?? []) as Array<{ class_group_id: string }>) enrolledByGroup.set(e.class_group_id, (enrolledByGroup.get(e.class_group_id) ?? 0) + 1)
+      const { data: enr } = await sb.from('class_enrollments').select('class_group_id, journey_id').in('class_group_id', groupIds)
+      const enrRows = (enr ?? []) as Array<{ class_group_id: string; journey_id: string }>
+      for (const e of enrRows) enrolledByGroup.set(e.class_group_id, (enrolledByGroup.get(e.class_group_id) ?? 0) + 1)
+
+      // Освобождённые на `date` — только среди групп кодеша, что ведёт учитель.
+      const kodeshEnr = enrRows.filter(e => kodeshGroupIds.has(e.class_group_id))
+      if (kodeshEnr.length > 0) {
+        const exemptions = await loadKodeshExemptions(sb, kodeshEnr.map(e => e.journey_id))
+        if (exemptions.hasAny) {
+          for (const e of kodeshEnr) {
+            if (exemptions.isExempt(e.journey_id, date)) {
+              exemptCountByGroup.set(e.class_group_id, (exemptCountByGroup.get(e.class_group_id) ?? 0) + 1)
+            }
+          }
+        }
+      }
     }
 
     const out = lessons.map(l => {
@@ -75,7 +94,8 @@ export async function GET(request: NextRequest) {
         present_count: s.present,
         late_count: s.late,
         absent_count: s.absent,
-        enrolled_count: enrolledByGroup.get(l.class_group_id) ?? 0,
+        enrolled_count: Math.max(0,
+          (enrolledByGroup.get(l.class_group_id) ?? 0) - (exemptCountByGroup.get(l.class_group_id) ?? 0)),
       }
     })
 

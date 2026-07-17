@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { round1, attendancePercent } from '@/lib/education/metrics'
+import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 
 async function requireAuth() {
   const session = await getSession()
@@ -147,6 +148,15 @@ export async function GET(
     const assessmentGroup = new Map<string, string>()
     const gradeByAssessment = new Map<string, number>()
 
+    // חריגות קודש: уроки кодеша в период освобождения студентки не должны ни
+    // считаться в знаменателе (total_lessons), ни портить её посещаемость. Такие
+    // уроки полностью выпадают из выборки ниже.
+    const kodeshVisibleGroupIds = new Set(
+      visible.filter(g => g.department?.id === KODESH_DEPT_ID).map(g => g.id))
+    const kodeshExemptions = kodeshVisibleGroupIds.size > 0
+      ? await loadKodeshExemptions(sb, [params.id])
+      : null
+
     if (visibleGroupIds.length > 0) {
       // Уроки (только не отменённые) — постранично, чтобы не обрезаться на
       // db-max-rows и не занизить total_lessons.
@@ -154,7 +164,7 @@ export async function GET(
       for (;;) {
         const { data: lessons, error: lErr } = await sb
           .from('lessons')
-          .select('id, class_group_id')
+          .select('id, class_group_id, scheduled_date')
           .eq('is_cancelled', false)
           .in('class_group_id', visibleGroupIds)
           .order('id', { ascending: true })
@@ -162,6 +172,12 @@ export async function GET(
         if (lErr) throw lErr
         const rows = lessons ?? []
         for (const l of rows) {
+          // Пропускаем урок кодеша, если студентка освобождена на его дату.
+          if (kodeshExemptions?.hasAny
+            && kodeshVisibleGroupIds.has(l.class_group_id)
+            && kodeshExemptions.isExempt(params.id, l.scheduled_date)) {
+            continue
+          }
           lessonToGroup.set(l.id, l.class_group_id)
           totalLessonsByGroup.set(l.class_group_id, (totalLessonsByGroup.get(l.class_group_id) ?? 0) + 1)
         }

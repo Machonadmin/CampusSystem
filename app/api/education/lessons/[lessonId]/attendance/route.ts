@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
+import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 
@@ -72,7 +73,7 @@ export async function GET(
 
     const enrolls = (enrollsRes.data ?? []) as unknown as EnrollRow[]
     const enrolledIdSet = new Set(enrolls.map(e => e.journey_id))
-    const students = enrolls.map(row => {
+    const allStudents = enrolls.map(row => {
       const person = row.journey?.person ?? null
       const att = statusByJourney.get(row.journey_id) ?? null
       return {
@@ -85,6 +86,18 @@ export async function GET(
         is_guest: false,
       }
     })
+
+    // חריגות קודש: на уроке кодеша освобождённых студенток не ждут в журнале —
+    // на дату урока они выпадают из ростера (гости-разовые записи не трогаем).
+    let students = allStudents
+    const kodeshGroupIds = await loadKodeshGroupIds(sb)
+    if (kodeshGroupIds.has(classGroupId)) {
+      const exemptions = await loadKodeshExemptions(sb, allStudents.map(s => s.journey_id))
+      if (exemptions.hasAny) {
+        const dateISO = (access.lesson as unknown as { scheduled_date: string }).scheduled_date
+        students = allStudents.filter(s => !exemptions.isExempt(s.journey_id, dateISO))
+      }
+    }
 
     // Разовые гости этого урока (lesson_roster_overrides) — journeys вне группы.
     // Деплой-безопасно: таблицы может ещё не быть (42P01) → просто без гостей.
@@ -236,8 +249,23 @@ export async function POST(
       )
     }
 
+    // חריגות קודש: освобождённой студентке не пишем посещаемость на урок кодеша
+    // в её период освобождения (её «отсутствие» не должно попадать в отчёты).
+    let effectiveEntries = entries
+    const kodeshGroupIds = await loadKodeshGroupIds(sb)
+    if (kodeshGroupIds.has(access.lesson.class_group_id)) {
+      const exemptions = await loadKodeshExemptions(sb, entries.map(e => e.journey_id!))
+      if (exemptions.hasAny) {
+        const dateISO = (access.lesson as unknown as { scheduled_date: string }).scheduled_date
+        effectiveEntries = entries.filter(e => !exemptions.isExempt(e.journey_id!, dateISO))
+      }
+    }
+    if (effectiveEntries.length === 0) {
+      return NextResponse.json({ marked: 0 }, { status: 201 })
+    }
+
     const markedAt = new Date().toISOString()
-    const rows: AttendanceInsert[] = entries.map(e => ({
+    const rows: AttendanceInsert[] = effectiveEntries.map(e => ({
       lesson_id: params.lessonId,
       journey_id: e.journey_id!,
       status: e.status as AttendanceStatus,

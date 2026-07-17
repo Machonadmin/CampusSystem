@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { round1, attendancePercent } from '@/lib/education/metrics'
+import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
@@ -142,13 +143,21 @@ export async function GET(
       sb, 'lessons', 'id, class_group_id, scheduled_date, is_cancelled', 'class_group_id', groupIds,
     )
     const lessonToGroup = new Map<string, string>()
+    const lessonDate = new Map<string, string>()
     const totalLessonsByGroup = new Map<string, number>()
     for (const l of lessonRows) {
       if (l.is_cancelled) continue
       if (!inRange(l.scheduled_date, from, to)) continue
       lessonToGroup.set(l.id, l.class_group_id)
+      lessonDate.set(l.id, l.scheduled_date)
       totalLessonsByGroup.set(l.class_group_id, (totalLessonsByGroup.get(l.class_group_id) ?? 0) + 1)
     }
+
+    // חריגות קודש: если единица — кафедра кодеша, посещаемость освобождённой
+    // студентки на дату её освобождения не учитываем (ни в группе, ни у неё).
+    const kodeshExemptions = params.unitId === KODESH_DEPT_ID
+      ? await loadKodeshExemptions(sb, [...journeyIdSet])
+      : null
 
     // 4. Посещаемость над этими уроками (все студенты единицы).
     const attByGroup = new Map<string, Att>()
@@ -161,6 +170,10 @@ export async function GET(
       for (const r of attRows) {
         const gid = lessonToGroup.get(r.lesson_id)
         if (!gid) continue
+        if (kodeshExemptions?.hasAny
+          && kodeshExemptions.isExempt(r.journey_id, lessonDate.get(r.lesson_id) ?? '')) {
+          continue
+        }
         const g = attByGroup.get(gid) ?? emptyAtt(); addStatus(g, r.status); attByGroup.set(gid, g)
         const j = attByJourney.get(r.journey_id) ?? emptyAtt(); addStatus(j, r.status); attByJourney.set(r.journey_id, j)
       }
