@@ -61,6 +61,30 @@ staff education route denies a student deterministically. Tests:
 `requireEducationPrivilege`/`canManageUnit` (both now student-safe); for a NEW
 student-facing route, add the explicit self-gate above.
 
+## Gap-analysis polish (PR #117)
+System-wide gap audit → shipped the safe finishing wins: report cards now drill
+down to their module (ReportsClient "Open module →"); CSV export added to persons/
+sponsors/contacts/documents/maintenance/security/doctor/psychologist (reuses
+`common.export_csv` + each module's column labels; helper `lib/csv.ts` — retired the
+duplicate `lib/export/csv.ts`); **communities** management screen at
+`/dashboard/education/communities` (CRUD over the previously UI-less
+`/api/education/communities`; GET returns `can_manage`; under the education ⚙ menu);
+sponsor email validation. Full audit report (with [NEEDS-OWNER] items) delivered to
+owner — see below.
+
+## Open [NEEDS-OWNER] items (from the gap audit, awaiting owner input)
+- **Workflow/process template designer**: recruitment+acceptance flows are
+  API-configurable but have NO editing UI (only SQL/seed). Building a visual editor
+  needs scoping (relabel-only vs full add/remove stages).
+- **Reminder scheduler**: task-deadline/follow-up reminders only materialize when
+  someone opens the app (lazy inside GET /api/notifications). No Vercel Cron. Needs
+  owner's Vercel-plan confirmation to wire a cron → materialize functions.
+- **Report period filters**: reports are all-time; adding date-range needs a period
+  decision + backend params on ~11 endpoints.
+- **Bulk actions**: no multi-select anywhere; which bulk ops + which lists.
+- **jewishness module**: currently only a signing queue, not a per-student
+  verification record.
+
 ## Domain facts
 - Kodesh is universal — every student is in exactly one kodesh group. The KODESH HEAD
   assigns (head of the kodesh dept), not the general director.
