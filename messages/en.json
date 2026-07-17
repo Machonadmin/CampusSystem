@@ -2904,6 +2904,7 @@
     "form": {
       "new_title": "New sponsor",
       "name_required": "Enter a sponsor name",
+      "email_invalid": "Invalid email",
       "required": "Enter amount and date",
       "amount_invalid": "Invalid amount"
     },

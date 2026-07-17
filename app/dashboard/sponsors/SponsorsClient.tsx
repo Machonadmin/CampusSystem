@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
+import { isValidEmail } from '@/lib/contacts/directory'
 
 interface Sponsor {
   id: string
@@ -105,6 +106,9 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
 
   async function save() {
     if (!form.name.trim()) { setFormError(t('form.name_required')); return }
+    if (form.email.trim() && !isValidEmail(form.email.trim())) {
+      setFormError(t('form.email_invalid')); return
+    }
     setBusy(true); setFormError(null)
     try {
       const payload = {

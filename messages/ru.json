@@ -2904,6 +2904,7 @@
     "form": {
       "new_title": "Новый донор",
       "name_required": "Укажите имя донора",
+      "email_invalid": "Неверный email",
       "required": "Укажите сумму и дату",
       "amount_invalid": "Неверная сумма"
     },
