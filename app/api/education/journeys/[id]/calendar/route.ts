@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { getCookieLocale } from '@/lib/i18n/locale'
 
 /**
@@ -53,11 +54,22 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       if ((lErr as { code?: string }).code === '42P01') return NextResponse.json({ lessons: [] })
       throw lErr
     }
-    const lessons = (lessonsRaw ?? []) as unknown as Array<{
+    let lessons = (lessonsRaw ?? []) as unknown as Array<{
       id: string; class_group_id: string; scheduled_date: string; scheduled_time: string | null
       scheduled_end_time: string | null; topic: string | null; is_cancelled: boolean
       class_group: { name: string; subject: { name: string; name_he: string | null } | null } | null
     }>
+
+    // חריגות קודש: если у студентки одобрено освобождение, уроки кодеша в её
+    // период освобождения не показываем в календаре (её там не ждут).
+    const kodeshGroupIds = await loadKodeshGroupIds(sb)
+    if (lessons.some(l => kodeshGroupIds.has(l.class_group_id))) {
+      const exemptions = await loadKodeshExemptions(sb, [params.id])
+      if (exemptions.hasAny) {
+        lessons = lessons.filter(l =>
+          !(kodeshGroupIds.has(l.class_group_id) && exemptions.isExempt(params.id, l.scheduled_date)))
+      }
+    }
 
     // 3. Преподаватели по группам (предпочитаем is_primary).
     const teacherByGroup = new Map<string, string>()

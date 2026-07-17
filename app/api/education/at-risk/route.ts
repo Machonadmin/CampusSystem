@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
@@ -91,23 +92,46 @@ export async function GET(request: NextRequest) {
     const groupIds = ((groupsRaw ?? []) as Array<{ id: string }>).map(g => g.id)
     if (groupIds.length === 0) return NextResponse.json({ students: [] })
 
+    // Какие из видимых групп — кодеш (чтобы применить חריגות ниже).
+    const kodeshGroupIds = new Set(
+      ((groupsRaw ?? []) as Array<{ id: string; department_id: string | null }>)
+        .filter(g => g.department_id === KODESH_DEPT_ID).map(g => g.id))
+
     // 2. Уроки этих групп: не отменённые, за период (scheduled_date >= cutoff).
-    const lessonRows = await fetchAllByIn<{ id: string }>(
-      sb, 'lessons', 'id', 'class_group_id', groupIds, ['id'],
+    const lessonRows = await fetchAllByIn<{ id: string; class_group_id: string; scheduled_date: string }>(
+      sb, 'lessons', 'id, class_group_id, scheduled_date', 'class_group_id', groupIds, ['id'],
       q => q.eq('is_cancelled', false).gte('scheduled_date', cutoff),
     )
+    const lessonInfo = new Map<string, { gid: string; date: string }>()
+    for (const l of lessonRows) lessonInfo.set(l.id, { gid: l.class_group_id, date: l.scheduled_date })
     const lessonIds = lessonRows.map(l => l.id)
     if (lessonIds.length === 0) return NextResponse.json({ students: [] })
 
     // 3. Посещаемость: только absent/late. Считаем по journey_id.
-    const attRows = await fetchAllByIn<{ id: string; journey_id: string; status: string | null }>(
-      sb, 'attendance', 'id, journey_id, status', 'lesson_id', lessonIds, ['id'],
+    const attRows = await fetchAllByIn<{ id: string; lesson_id: string; journey_id: string; status: string | null }>(
+      sb, 'attendance', 'id, lesson_id, journey_id, status', 'lesson_id', lessonIds, ['id'],
       q => q.in('status', ['absent', 'late']),
     )
+
+    // חריגות קודש: пропуск урока кодеша освобождённой студенткой не считается
+    // «риском» — исключаем такие строки. Загружаем исключения только для тех,
+    // у кого вообще есть отметки на уроках кодеша.
+    let exemptions: Awaited<ReturnType<typeof loadKodeshExemptions>> | null = null
+    if (kodeshGroupIds.size > 0) {
+      const kodeshJourneyIds = [...new Set(attRows
+        .filter(r => { const i = lessonInfo.get(r.lesson_id); return !!i && kodeshGroupIds.has(i.gid) })
+        .map(r => r.journey_id).filter(Boolean))]
+      if (kodeshJourneyIds.length > 0) exemptions = await loadKodeshExemptions(sb, kodeshJourneyIds)
+    }
+
     const absentByJourney = new Map<string, number>()
     const lateByJourney = new Map<string, number>()
     for (const r of attRows) {
       if (!r.journey_id) continue
+      const i = lessonInfo.get(r.lesson_id)
+      if (i && exemptions?.hasAny && kodeshGroupIds.has(i.gid) && exemptions.isExempt(r.journey_id, i.date)) {
+        continue
+      }
       if (r.status === 'absent') absentByJourney.set(r.journey_id, (absentByJourney.get(r.journey_id) ?? 0) + 1)
       else if (r.status === 'late') lateByJourney.set(r.journey_id, (lateByJourney.get(r.journey_id) ?? 0) + 1)
     }
