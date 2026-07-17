@@ -2284,6 +2284,18 @@
     }
   },
   "finance": {
+    "bulk": {
+      "select": "בחירה מרובה",
+      "exit": "ביטול בחירה",
+      "selected": "{n} נבחרו",
+      "charge": "חיוב",
+      "charge_title": "חיוב מרובה לסטודנטים שנבחרו",
+      "f_amount": "סכום",
+      "f_description": "תיאור",
+      "f_period": "תקופה",
+      "f_due_date": "תאריך לתשלום",
+      "result": "{ok} חויבו, {fail} נכשלו"
+    },
     "list": {
       "subtitle": "חיובי שכר לימוד של סטודנטים",
       "search_placeholder": "חיפוש לפי שם או אימייל…",

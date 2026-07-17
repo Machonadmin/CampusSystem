@@ -2284,6 +2284,18 @@
     }
   },
   "finance": {
+    "bulk": {
+      "select": "Выбор",
+      "exit": "Отменить выбор",
+      "selected": "Выбрано: {n}",
+      "charge": "Начислить",
+      "charge_title": "Массовое начисление выбранным студентам",
+      "f_amount": "Сумма",
+      "f_description": "Описание",
+      "f_period": "Период",
+      "f_due_date": "Срок оплаты",
+      "result": "Начислено: {ok}, не удалось: {fail}"
+    },
     "list": {
       "subtitle": "Биллинг обучения студентов",
       "search_placeholder": "Поиск по имени или email…",

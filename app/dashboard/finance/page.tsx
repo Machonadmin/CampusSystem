@@ -43,6 +43,18 @@ export default function FinancePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [canCharge, setCanCharge] = useState(false)
+
+  // ── Массовое начисление (bulk charge) ──
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [chargeOpen, setChargeOpen] = useState(false)
+  const [cAmount, setCAmount] = useState('')
+  const [cDescription, setCDescription] = useState('')
+  const [cPeriod, setCPeriod] = useState('')
+  const [cDueDate, setCDueDate] = useState('')
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -62,6 +74,7 @@ export default function FinancePage() {
       }
       const body = await res.json()
       setItems(body.students ?? [])
+      setCanCharge(!!body.can_charge)
     } catch {
       setError(t('list.load_error'))
     } finally {
@@ -70,6 +83,36 @@ export default function FinancePage() {
   }, [t])
 
   useEffect(() => { load() }, [load])
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function exitSelect() { setSelectMode(false); setSelected(new Set()) }
+
+  async function applyBulkCharge() {
+    const amount = Number(cAmount)
+    if (!Number.isFinite(amount) || amount < 0 || !cDescription.trim() || selected.size === 0) return
+    setBulkBusy(true); setBulkMsg(null)
+    let ok = 0, fail = 0
+    for (const jid of selected) {
+      const res = await fetch(`/api/finance/journeys/${jid}/charges`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          description: cDescription.trim(),
+          period_label: cPeriod.trim() || null,
+          due_date: cDueDate.trim() || null,
+        }),
+      })
+      if (res.ok) ok++; else fail++
+    }
+    setBulkBusy(false)
+    setChargeOpen(false)
+    setCAmount(''); setCDescription(''); setCPeriod(''); setCDueDate('')
+    setBulkMsg(t('bulk.result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    load()
+  }
 
   const q = search.trim().toLowerCase()
   const filtered = q
@@ -121,7 +164,40 @@ export default function FinancePage() {
         <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
           {t('list.count')}: {filtered.length}
         </span>
+        <div style={{ flex: 1 }} />
+        {canCharge && (
+          <button
+            onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+            style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+              background: selectMode ? '#D1FAE5' : 'var(--surface)',
+              color: selectMode ? '#065F46' : 'var(--text)',
+              border: `1px solid ${selectMode ? '#065F46' : 'var(--border-strong)'}`,
+            }}
+          >
+            {selectMode ? t('bulk.exit') : t('bulk.select')}
+          </button>
+        )}
       </div>
+
+      {/* Панель массового начисления */}
+      {selectMode && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 16px', background: 'var(--surface)', border: '1px solid #059669', borderRadius: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</span>
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={() => { if (selected.size > 0) setChargeOpen(true) }}
+            disabled={selected.size === 0}
+            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: selected.size === 0 ? 'default' : 'pointer', background: primary, color: '#fff', border: 'none', opacity: selected.size === 0 ? 0.5 : 1 }}
+          >
+            {t('bulk.charge')}
+          </button>
+        </div>
+      )}
+
+      {bulkMsg && (
+        <div style={{ padding: '10px 16px', background: 'var(--surface-2)', borderRadius: 8, fontSize: 13, color: 'var(--text)' }}>{bulkMsg}</div>
+      )}
 
       {/* Body */}
       {error ? (
@@ -135,6 +211,7 @@ export default function FinancePage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
+                {selectMode && <th style={{ ...th, width: 36, textAlign: 'center' }} />}
                 <th style={th}>{t('list.col_name')}</th>
                 <th style={thNum}>{t('list.col_charges')}</th>
                 <th style={thNum}>{t('list.col_payments')}</th>
@@ -148,11 +225,16 @@ export default function FinancePage() {
                 return (
                   <tr
                     key={s.journey_id}
-                    onClick={() => router.push(`/dashboard/finance/${s.journey_id}`)}
+                    onClick={() => selectMode ? toggleSelect(s.journey_id) : router.push(`/dashboard/finance/${s.journey_id}`)}
                     style={{ cursor: 'pointer' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#ECFDF5' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                   >
+                    {selectMode && (
+                      <td style={{ ...td, textAlign: 'center' }} onClick={e => { e.stopPropagation(); toggleSelect(s.journey_id) }}>
+                        <input type="checkbox" checked={selected.has(s.journey_id)} readOnly style={{ cursor: 'pointer' }} />
+                      </td>
+                    )}
                     <td style={td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
@@ -180,6 +262,47 @@ export default function FinancePage() {
           </table>
         </div>
       )}
+
+      {/* Модалка массового начисления */}
+      {chargeOpen && (
+        <div
+          onClick={() => { if (!bulkBusy) setChargeOpen(false) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 460, padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('bulk.charge_title')}</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</p>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <label style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bulk.f_amount')} *</span>
+                <input type="number" min="0" step="0.01" value={cAmount} onChange={e => setCAmount(e.target.value)} style={inpModal} />
+              </label>
+              <label style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bulk.f_description')} *</span>
+                <input value={cDescription} onChange={e => setCDescription(e.target.value)} style={inpModal} />
+              </label>
+              <label style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bulk.f_period')}</span>
+                <input value={cPeriod} onChange={e => setCPeriod(e.target.value)} style={inpModal} />
+              </label>
+              <label style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bulk.f_due_date')}</span>
+                <input type="date" value={cDueDate} onChange={e => setCDueDate(e.target.value)} style={inpModal} />
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
+              <button onClick={() => setChargeOpen(false)} disabled={bulkBusy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
+              <button onClick={applyBulkCharge} disabled={bulkBusy || !cAmount || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: bulkBusy || !cAmount || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !cAmount || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const inpModal: React.CSSProperties = {
+  width: '100%', fontSize: 13, padding: '8px 10px',
+  border: '1px solid var(--border-strong)', borderRadius: 8,
+  color: 'var(--text)', background: 'var(--surface)',
 }

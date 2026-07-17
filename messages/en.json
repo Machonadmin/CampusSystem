@@ -2284,6 +2284,18 @@
     }
   },
   "finance": {
+    "bulk": {
+      "select": "Select",
+      "exit": "Cancel selection",
+      "selected": "{n} selected",
+      "charge": "Charge",
+      "charge_title": "Bulk charge selected students",
+      "f_amount": "Amount",
+      "f_description": "Description",
+      "f_period": "Period",
+      "f_due_date": "Due date",
+      "result": "{ok} charged, {fail} failed"
+    },
     "list": {
       "subtitle": "Student tuition billing",
       "search_placeholder": "Search by name or email…",

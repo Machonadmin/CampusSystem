@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
 import { toCents, centsToNumber } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 
@@ -75,7 +75,8 @@ async function sumCentsByJourney(
 
 export async function GET(request: NextRequest) {
   try {
-    await requireFinancePrivilege('view')
+    const session = await requireFinancePrivilege('view')
+    const canCharge = await hasFinancePrivilege(session, 'create_invoice')
 
     const sb = createServerClient()
 
@@ -146,7 +147,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ students })
+    return NextResponse.json({ students, can_charge: canCharge })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
