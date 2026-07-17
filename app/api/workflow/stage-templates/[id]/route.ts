@@ -32,6 +32,8 @@ export async function PATCH(
       is_optional?: boolean
       is_addable?: boolean
       sort_order?: number
+      required_role_code?: string | null
+      requires_signature?: boolean
     }
 
     const patch: Record<string, unknown> = {}
@@ -46,6 +48,10 @@ export async function PATCH(
     if (body.is_optional !== undefined)  patch.is_optional  = body.is_optional
     if (body.is_addable !== undefined)   patch.is_addable   = body.is_addable
     if (body.sort_order !== undefined)   patch.sort_order   = body.sort_order
+    // Кто подписывает/отвечает (role code, можно список через запятую) — '' → NULL.
+    if (body.required_role_code !== undefined)
+      patch.required_role_code = body.required_role_code?.trim() || null
+    if (body.requires_signature !== undefined) patch.requires_signature = body.requires_signature
 
     if (Object.keys(patch).length === 0)
       return apiError('no_changes', 400)

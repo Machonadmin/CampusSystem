@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
       name_ru?: string
       is_positive?: boolean
       sort_order?: number
+      closes_process?: boolean
+      process_finish_reason?: string | null
     }
 
     if (!body.stage_template_id)
@@ -53,6 +55,9 @@ export async function POST(request: NextRequest) {
         name_ru:           body.name_ru.trim(),
         is_positive:       body.is_positive ?? true,
         sort_order:        body.sort_order  ?? 0,
+        // Завершает ли этот исход весь процесс (и с какой причиной).
+        closes_process:        body.closes_process ?? false,
+        process_finish_reason: body.process_finish_reason?.trim() || null,
       } as any)
       .select('*')
       .single()
