@@ -1312,6 +1312,10 @@
     },
     "kodesh": {
       "nav": "Kodesh assignment",
+      "gen_all": "Generate all lessons",
+      "gen_all_busy": "Generating…",
+      "gen_all_result": "Created {created} · skipped {skipped} · failed {failed}",
+      "gen_all_hint": "Generates kodesh lessons for all classes from the schedule for the whole period (adds only)",
       "title": "Kodesh assignment",
       "subtitle": "Every student must belong to one kodesh group (her כיתה)",
       "unassigned_count": "{n} awaiting kodesh assignment",

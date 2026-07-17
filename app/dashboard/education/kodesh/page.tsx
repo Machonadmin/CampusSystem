@@ -24,6 +24,8 @@ export default function KodeshAssignmentPage() {
   const [err, setErr] = useState<string | null>(null)
   const [noAccess, setNoAccess] = useState(false)
   const [onlyUnassigned, setOnlyUnassigned] = useState(false)
+  const [genBusy, setGenBusy] = useState(false)
+  const [genMsg, setGenMsg] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null); setNoAccess(false)
@@ -69,6 +71,28 @@ export default function KodeshAssignmentPage() {
       setErr(t('save_failed'))
       setStudents(prev)
     } finally { setBusyId(null) }
+  }
+
+  // Разово породить уроки для ВСЕХ групп кодеша за их период (удобство: иначе
+  // «Generate» нажимается в каждой группе отдельно). Строго добавляющее.
+  const generateAll = async () => {
+    if (groups.length === 0) return
+    setGenBusy(true); setGenMsg(null); setErr(null)
+    let created = 0, skipped = 0, failed = 0
+    for (const g of groups) {
+      try {
+        const res = await fetch(`/api/education/class-groups/${g.id}/schedule/generate`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        })
+        if (res.ok) {
+          const b = await res.json().catch(() => ({}))
+          created += Number(b.created ?? 0); skipped += Number(b.skipped ?? 0)
+        } else { failed++ }
+      } catch { failed++ }
+    }
+    setGenBusy(false)
+    setGenMsg(t('gen_all_result', '{created} · {skipped} · {failed}')
+      .replace('{created}', String(created)).replace('{skipped}', String(skipped)).replace('{failed}', String(failed)))
   }
 
   if (noAccess) {
@@ -117,7 +141,25 @@ export default function KodeshAssignmentPage() {
               <input type="checkbox" checked={onlyUnassigned} onChange={e => setOnlyUnassigned(e.target.checked)} />
               {onlyUnassigned ? t('only_unassigned') : t('all')}
             </label>
+            <div style={{ flex: 1 }} />
+            <button
+              onClick={generateAll}
+              disabled={genBusy || groups.length === 0}
+              title={t('gen_all_hint', '')}
+              style={{
+                fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 8,
+                border: '1px solid var(--accent-strong)', background: 'var(--accent-tint)',
+                color: 'var(--accent-strong)', cursor: genBusy || groups.length === 0 ? 'default' : 'pointer',
+                opacity: genBusy || groups.length === 0 ? 0.55 : 1,
+              }}
+            >
+              {genBusy ? t('gen_all_busy', '…') : t('gen_all', 'Generate all lessons')}
+            </button>
           </div>
+
+          {genMsg && (
+            <div style={{ padding: '9px 13px', background: 'var(--surface-2)', borderRadius: 8, fontSize: 13, color: 'var(--text)' }}>{genMsg}</div>
+          )}
 
           <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>
