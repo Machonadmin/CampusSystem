@@ -1416,6 +1416,17 @@
   "tasks": {
     "title": "משימות",
     "new_task": "משימה חדשה",
+    "bulk": {
+      "select": "בחירה מרובה",
+      "exit": "ביטול בחירה",
+      "selected": "{n} נבחרו",
+      "mark_done": "סמן כבוצע",
+      "assign": "שיוך",
+      "assign_title": "שיוך משימות שנבחרו",
+      "assign_to": "שייך אל",
+      "done_result": "{done} סומנו כבוצעו, {skipped} דולגו",
+      "assign_result": "{ok} שויכו, {fail} נכשלו"
+    },
     "filters": {
       "all": "הכל",
       "active": "פעילות",

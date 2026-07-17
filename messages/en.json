@@ -1416,6 +1416,17 @@
   "tasks": {
     "title": "Tasks",
     "new_task": "New Task",
+    "bulk": {
+      "select": "Select",
+      "exit": "Cancel selection",
+      "selected": "{n} selected",
+      "mark_done": "Mark done",
+      "assign": "Assign",
+      "assign_title": "Assign selected tasks",
+      "assign_to": "Assign to",
+      "done_result": "{done} completed, {skipped} skipped",
+      "assign_result": "{ok} assigned, {fail} failed"
+    },
     "filters": {
       "all": "All",
       "active": "Active",

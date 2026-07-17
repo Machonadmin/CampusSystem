@@ -1416,6 +1416,17 @@
   "tasks": {
     "title": "Задачи",
     "new_task": "Новая задача",
+    "bulk": {
+      "select": "Выбор",
+      "exit": "Отменить выбор",
+      "selected": "Выбрано: {n}",
+      "mark_done": "Отметить выполненными",
+      "assign": "Назначить",
+      "assign_title": "Назначить выбранные задачи",
+      "assign_to": "Назначить на",
+      "done_result": "Выполнено: {done}, пропущено: {skipped}",
+      "assign_result": "Назначено: {ok}, не удалось: {fail}"
+    },
     "filters": {
       "all": "Все",
       "active": "Активные",
