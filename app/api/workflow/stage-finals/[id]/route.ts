@@ -28,6 +28,8 @@ export async function PATCH(
       name_ru?: string
       is_positive?: boolean
       sort_order?: number
+      closes_process?: boolean
+      process_finish_reason?: string | null
     }
 
     const patch: Record<string, unknown> = {}
@@ -38,6 +40,9 @@ export async function PATCH(
     }
     if (body.is_positive !== undefined) patch.is_positive = body.is_positive
     if (body.sort_order !== undefined)  patch.sort_order  = body.sort_order
+    if (body.closes_process !== undefined) patch.closes_process = body.closes_process
+    if (body.process_finish_reason !== undefined)
+      patch.process_finish_reason = body.process_finish_reason?.trim() || null
 
     if (Object.keys(patch).length === 0)
       return apiError('no_changes', 400)

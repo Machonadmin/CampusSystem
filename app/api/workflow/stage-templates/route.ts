@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
       is_optional?: boolean
       is_addable?: boolean
       sort_order?: number
+      required_role_code?: string | null
+      requires_signature?: boolean
     }
 
     if (!body.process_template_id)
@@ -62,6 +64,10 @@ export async function POST(request: NextRequest) {
         is_optional:         body.is_optional    ?? false,
         is_addable:          body.is_addable     ?? false,
         sort_order:          body.sort_order     ?? 0,
+        // Кто подписывает/отвечает за этап (role code; допускается список через
+        // запятую, напр. 'doctor,psychologist'). NULL — без ролевого гейта.
+        required_role_code:  body.required_role_code?.trim() || null,
+        requires_signature:  body.requires_signature ?? false,
       } as any)
       .select('*')
       .single()
