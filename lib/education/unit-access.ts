@@ -50,6 +50,9 @@ export async function hasDelegatedTeamAccess(personId: string, unitId: string): 
 
 /** Может ли пользователь управлять составом единицы: superadmin, её глава, или делегат. */
 export async function canManageUnit(session: SessionPayload, unitId: string): Promise<boolean> {
+  // Изоляция портала: токен студентки никогда не управляет единицей, даже если
+  // этот же person где-то оформлен главой/делегатом (проверки идут по person_id).
+  if (session.principal === 'student') return false
   if (session.roles.includes('superadmin')) return true
   const heads = await getHeadedUnitIds(session.person_id)
   if (heads.includes(unitId)) return true
