@@ -45,6 +45,22 @@ kodesh head/superadmin, NOT the general manager). Owner runs the migration, then
 assigns students, then generates lessons per group (class-group → Schedule tab →
 "generate"); then kodesh flows into each student's unified calendar + attendance.
 
+## Security — portal isolation (audited + hardened, PR #116)
+Students log in via `student_credentials` → token `principal:'student'`, `roles:[]`,
+`student_journey_id`. **Middleware confines students to `/portal` PAGES only — it does
+NOT guard `/api/*`**; all API isolation is per-route. Portal own-data routes
+(`journeys/[id]/{calendar,grades,report,messages,meetings}`) self-gate:
+`if principal==='student' { if student_journey_id!==params.id → 403 } else {staff priv}`.
+Staff-only routes deny students via privilege failure. **Fixed dual-role gap:** the
+education permission engine keyed staff privileges off `person_id`, so a person who is
+BOTH student+staff could pass staff checks via the portal token. Now `getUserAccess`
+(lib/education/permissions.ts) returns zero privileges for `principal==='student'`
+(bypassing the person_id cache), and `canManageUnit` returns false for students — every
+staff education route denies a student deterministically. Tests:
+`lib/education/portal-isolation.test.ts`. When adding a NEW staff route, rely on
+`requireEducationPrivilege`/`canManageUnit` (both now student-safe); for a NEW
+student-facing route, add the explicit self-gate above.
+
 ## Domain facts
 - Kodesh is universal — every student is in exactly one kodesh group. The KODESH HEAD
   assigns (head of the kodesh dept), not the general director.

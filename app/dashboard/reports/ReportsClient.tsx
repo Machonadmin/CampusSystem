@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -65,12 +66,13 @@ const fmt = (n: number): string => n.toLocaleString('ru-RU')
 // одного домена не ломает остальные (§8 спецификации).
 
 function ReportCard<T>({
-  title, colorKey, endpoint, render,
+  title, colorKey, endpoint, render, href,
 }: {
   title: string
   colorKey: string
   endpoint: string
   render: (data: T) => ReactNode
+  href?: string
 }) {
   const tCommon = useTranslations('common')
   const t = useTranslations('reports')
@@ -136,6 +138,23 @@ function ReportCard<T>({
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('empty')}</div>
         )}
       </div>
+      {href && (
+        <Link
+          href={href}
+          className="no-underline"
+          style={{
+            display: 'block',
+            padding: '8px 16px',
+            borderTop: '1px solid var(--border)',
+            fontSize: 12,
+            fontWeight: 600,
+            color: primary,
+            background: 'var(--surface)',
+          }}
+        >
+          {t('open_module')}
+        </Link>
+      )}
     </div>
   )
 }
@@ -210,6 +229,7 @@ export default function ReportsClient() {
           title={t('cards.admission_funnel')}
           colorKey="education"
           endpoint="/api/reports/admission-funnel"
+          href="/dashboard/education"
           render={(d) => (
             <>
               <Metric label={t('metrics.leads')} value={fmt(d.funnel.leads)} />
@@ -235,6 +255,7 @@ export default function ReportsClient() {
           title={t('cards.students')}
           colorKey="education"
           endpoint="/api/reports/students"
+          href="/dashboard/education"
           render={(d) => (
             <>
               <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('education', 'primary')} />
@@ -251,6 +272,7 @@ export default function ReportsClient() {
           title={t('cards.finance')}
           colorKey="finance"
           endpoint="/api/reports/finance"
+          href="/dashboard/finance"
           render={(d) => (
             <>
               <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
@@ -267,6 +289,7 @@ export default function ReportsClient() {
           title={t('cards.dormitory')}
           colorKey="dormitory"
           endpoint="/api/reports/dormitory"
+          href="/dashboard/dormitory"
           render={(d) => (
             <>
               <Metric label={t('metrics.occupancy_percent')} value={`${d.occupancy_percent}%`} strong accent={getModuleColor('dormitory', 'primary')} />
@@ -283,6 +306,7 @@ export default function ReportsClient() {
           title={t('cards.food')}
           colorKey="food"
           endpoint="/api/reports/food"
+          href="/dashboard/food"
           render={(d) => (
             <>
               <Metric label={t('metrics.enrolled')} value={fmt(d.enrolled)} strong accent={getModuleColor('food', 'primary')} />
@@ -296,6 +320,7 @@ export default function ReportsClient() {
           title={t('cards.maintenance')}
           colorKey="maintenance"
           endpoint="/api/reports/maintenance"
+          href="/dashboard/maintenance"
           render={(d) => (
             <>
               <Metric label={t('metrics.open')} value={fmt(d.open)} />
@@ -314,6 +339,7 @@ export default function ReportsClient() {
           title={t('cards.clinic')}
           colorKey="doctor"
           endpoint="/api/reports/clinic"
+          href="/dashboard/doctor"
           render={(d) => (
             <>
               <Metric label={t('metrics.open_visits')} value={fmt(d.open_visits)} strong accent={getModuleColor('doctor', 'primary')} />
@@ -328,6 +354,7 @@ export default function ReportsClient() {
           title={t('cards.counseling')}
           colorKey="psychologist"
           endpoint="/api/reports/counseling"
+          href="/dashboard/psychologist"
           render={(d) => (
             <>
               <Metric label={t('metrics.open_sessions')} value={fmt(d.open_sessions)} strong accent={getModuleColor('psychologist', 'primary')} />
@@ -346,6 +373,7 @@ export default function ReportsClient() {
           title={t('cards.documents')}
           colorKey="documents"
           endpoint="/api/reports/documents"
+          href="/dashboard/documents"
           render={(d) => (
             <>
               <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('documents', 'primary')} />
@@ -360,6 +388,7 @@ export default function ReportsClient() {
           title={t('cards.sponsors')}
           colorKey="sponsors"
           endpoint="/api/reports/sponsors"
+          href="/dashboard/sponsors"
           render={(d) => (
             <>
               <Metric label={t('metrics.sponsor_count')} value={fmt(d.sponsor_count)} />
@@ -374,6 +403,7 @@ export default function ReportsClient() {
           title={t('cards.security')}
           colorKey="security"
           endpoint="/api/reports/security"
+          href="/dashboard/security"
           render={(d) => (
             <>
               <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? '#B91C1C' : getModuleColor('security', 'primary')} />

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
 
@@ -184,6 +185,18 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
     setForm(f => ({ ...f, [key]: value }))
   }
 
+  function exportCsv() {
+    const headers = [t('list.name'), t('list.type'), t('list.category'), t('list.email'), t('list.phone')]
+    const data = filtered.map(c => [
+      c.name,
+      t(`types.${c.contact_type}`),
+      t(`categories.${c.category}`),
+      c.email ?? '',
+      c.phone ?? '',
+    ])
+    downloadCsv('contacts', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -253,6 +266,9 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
           ))}
         </select>
+        <button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ ...btnGhost, marginInlineStart: 'auto', opacity: filtered.length === 0 ? 0.5 : 1, cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+          ⭳ {tCommon('export_csv')}
+        </button>
       </div>
 
       {/* Inline editor */}

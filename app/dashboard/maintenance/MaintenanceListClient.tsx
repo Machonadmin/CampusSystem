@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 
 interface Ticket {
@@ -162,6 +163,17 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
     return parts.join(' · ') || '—'
   }
 
+  function exportCsv() {
+    const headers = [t('form.title'), t('detail.location'), t('detail.set_priority'), t('list.filter_status')]
+    const data = items.map(r => [
+      r.title,
+      `${t(`category.${r.category}`)} · ${locationLabel(r)}`,
+      t(`priority.${r.priority}`),
+      t(`status.${r.status}`),
+    ])
+    downloadCsv('maintenance', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -252,6 +264,14 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
           <option value="">{t('list.filter_priority')}</option>
           {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
         </select>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={items.length === 0}
+          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '7px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: items.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: items.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+        >
+          ⭳ {tCommon('export_csv')}
+        </button>
       </div>
 
       {/* Body */}

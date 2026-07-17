@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 
 type Tab = 'staff' | 'students'
 
@@ -93,6 +94,17 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
     router.push(`/dashboard/persons/${personId}`)
   }
 
+  function exportCsv() {
+    const headers = [t('title'), t('fields.phone'), t('fields.email'), t('fields.roles')]
+    const data = rows.map(r => [
+      r.full_name,
+      r.phones.join(' '),
+      r.email ?? '',
+      isStudent(r) ? t('education_status.student') : (r.position ?? ''),
+    ])
+    downloadCsv('persons', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -145,6 +157,14 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
             {t('list.count').replace('{count}', String(total))}
           </span>
         )}
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={rows.length === 0}
+          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+        >
+          ⭳ {tCommon('export_csv')}
+        </button>
       </div>
 
       {/* List */}

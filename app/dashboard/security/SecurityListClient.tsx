@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
 
 interface Incident {
@@ -176,6 +177,19 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
     return d.toLocaleString()
   }
 
+  function exportCsv() {
+    const headers = [t('form.title'), t('list.filter_category'), t('detail.location'), t('detail.occurred_at'), t('detail.set_severity'), t('list.filter_status')]
+    const data = items.map(r => [
+      r.title,
+      t(`category.${r.category}`),
+      locationLabel(r),
+      fmtDate(r.occurred_at),
+      t(`severity.${r.severity}`),
+      t(`status.${r.status}`),
+    ])
+    downloadCsv('security', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -280,6 +294,14 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
           <option value="">{t('list.filter_category')}</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{t(`category.${c}`)}</option>)}
         </select>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={items.length === 0}
+          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '7px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: items.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: items.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+        >
+          ⭳ {tCommon('export_csv')}
+        </button>
       </div>
 
       {/* Body */}

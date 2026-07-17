@@ -11,7 +11,7 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import PendingSignatures from '@/components/workflow/PendingSignatures'
-import { downloadCsv } from '@/lib/export/csv'
+import { downloadCsv } from '@/lib/csv'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -234,7 +234,7 @@ export default function EducationPage() {
       const dirs = l.interests.map(interestLabel).filter(Boolean).join('; ')
       return [l.full_name, depts, dirs, l.phones.join(' '), l.email ?? '', formatDate(l.application_date)]
     })
-    downloadCsv('leads', headers, rows)
+    downloadCsv('leads', [headers, ...rows])
   }
 
   function exportApplicants() {
@@ -245,7 +245,7 @@ export default function EducationPage() {
       const direction = interestTexts.length > 0 ? interestTexts.join('; ') : (a.desired_specialty?.name ?? a.desired_department?.name ?? '')
       return [a.person?.full_name ?? '', phones.join(' '), a.person?.email ?? '', a.primary_department?.name ?? '', direction, formatDate(a.application_date)]
     })
-    downloadCsv('applicants', headers, rows)
+    downloadCsv('applicants', [headers, ...rows])
   }
 
   return (
