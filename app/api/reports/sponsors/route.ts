@@ -17,10 +17,20 @@ import { sponsorsSummary } from '@/lib/reports/summaries'
  *
  * Ответ: { sponsor_count, total_received, total_pledged }.
  */
-export async function GET() {
+const ISO = /^\d{4}-\d{2}-\d{2}$/
+
+export async function GET(request: Request) {
   try {
     await requireReportsPrivilege('view')
     const sb = createServerClient()
+
+    // Опциональный период по дате пожертвования (donation_date). Число доноров —
+    // всегда текущее (head-count), суммы received/pledged — за период (или всё время).
+    const params = new URL(request.url).searchParams
+    const dFrom = params.get('from')?.trim()
+    const dTo = params.get('to')?.trim()
+    const from = dFrom && ISO.test(dFrom) ? dFrom : null
+    const to = dTo && ISO.test(dTo) ? dTo : null
 
     const { count: sponsorCount, error: cErr } = await sb
       .from('sponsors')
@@ -28,12 +38,12 @@ export async function GET() {
     if (cErr) throw cErr
 
     const donations = await pageAll<{ amount: number | string; status: string }>(
-      (from, to) =>
-        sb
-          .from('donations')
-          .select('amount, status')
-          .order('id', { ascending: true })
-          .range(from, to),
+      (pFrom, pTo) => {
+        let q = sb.from('donations').select('amount, status')
+        if (from) q = q.gte('donation_date', from)
+        if (to) q = q.lte('donation_date', to)
+        return q.order('id', { ascending: true }).range(pFrom, pTo)
+      },
     )
 
     return NextResponse.json(sponsorsSummary(donations, sponsorCount ?? 0))
