@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import { isValidEmail } from '@/lib/contacts/directory'
@@ -143,6 +144,19 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
     setForm(f => ({ ...f, [key]: value }))
   }
 
+  function exportCsv() {
+    const headers = [t('list.name'), t('list.type'), t('fields.contact_person'), t('fields.email'), t('list.phone'), t('list.status')]
+    const data = filtered.map(s => [
+      s.name,
+      t(`types.${s.sponsor_type}`),
+      s.contact_person ?? '',
+      s.email ?? '',
+      s.phone ?? '',
+      s.is_active ? t('status.active') : t('status.inactive'),
+    ])
+    downloadCsv('sponsors', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -200,6 +214,9 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
             <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
           ))}
         </select>
+        <button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ ...btnGhost, marginInlineStart: 'auto', opacity: filtered.length === 0 ? 0.5 : 1, cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+          ⭳ {tCommon('export_csv')}
+        </button>
       </div>
 
       {/* Create form */}

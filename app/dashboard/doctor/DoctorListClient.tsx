@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { downloadCsv } from '@/lib/csv'
 import MedicalReferrals from '@/components/doctor/MedicalReferrals'
 
 interface Student {
@@ -90,6 +91,17 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
     router.push(`/dashboard/doctor/${journeyId}`)
   }
 
+  function exportCsv() {
+    const headers = [t('list.student'), t('referrals.email'), t('list.health')]
+    const data = filtered.map(s => {
+      const parts: string[] = []
+      if (s.open_visits > 0) parts.push(`${s.open_visits} · ${t('list.open_visits')}`)
+      if (s.has_allergies) parts.push(t('list.allergies'))
+      return [s.full_name || s.hebrew_name || '', s.email ?? '', parts.join('; ') || '—']
+    })
+    downloadCsv('doctor', [headers, ...data])
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -136,12 +148,22 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
       )}
 
       {/* Search */}
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder={t('list.search_placeholder')}
-        style={{ width: '100%', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
-      />
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('list.search_placeholder')}
+          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
+        />
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={filtered.length === 0}
+          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+        >
+          ⭳ {tCommon('export_csv')}
+        </button>
+      </div>
 
       {/* Students list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
