@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SubjectModal from './SubjectModal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface Department {
   id: string
@@ -67,12 +68,12 @@ export default function SubjectsTab() {
       const resp = await fetch(`/api/education/subjects/${subj.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_delete_failed'))
+        toast(err.error ?? t('common.error_delete_failed'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_delete_generic'), 'error')
     }
   }
 

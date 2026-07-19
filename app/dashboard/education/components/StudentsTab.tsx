@@ -6,6 +6,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface Department { id: string; name: string }
 interface StudyGroup { id: string; name: string; department_id: string }
@@ -192,12 +193,12 @@ export default function StudentsTab() {
       const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('students.expel_failed'))
+        toast(err.error ?? t('students.expel_failed'), 'error')
         return
       }
       loadStudents(search)
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
   }
 

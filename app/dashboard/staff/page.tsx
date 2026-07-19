@@ -7,6 +7,7 @@ import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { toast } from '@/components/ui/toast'
 
 interface Department {
   id: string
@@ -491,12 +492,12 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || t('delete_error'))
+        toast(data.error || t('delete_error'), 'error')
         return
       }
       setLocalRefresh(n => n + 1)
     } catch {
-      alert(t('delete_employee_error'))
+      toast(t('delete_employee_error'), 'error')
     }
   }
 

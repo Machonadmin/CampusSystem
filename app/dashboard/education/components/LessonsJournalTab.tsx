@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
+import { toast } from '@/components/ui/toast'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -84,12 +85,12 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('action_failed'))
+        toast(err.error ?? t('action_failed'), 'error')
         return
       }
       load()
     } catch {
-      alert(t('action_failed'))
+      toast(t('action_failed'), 'error')
     }
   }
 
@@ -99,12 +100,12 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
       const resp = await fetch(`/api/education/lessons/${lesson.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('action_failed'))
+        toast(err.error ?? t('action_failed'), 'error')
         return
       }
       load()
     } catch {
-      alert(t('action_failed'))
+      toast(t('action_failed'), 'error')
     }
   }
 

@@ -9,6 +9,7 @@ import ProcessGraphModal from './ProcessGraphModal'
 import StageEventsFeed from './StageEventsFeed'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
+import { toast } from '@/components/ui/toast'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -213,14 +214,14 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
       const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        alert(data.error ?? t('process.modals.activate_title'))
+        toast(data.error ?? t('process.modals.activate_title'), 'error')
         return
       }
       setReactivatingStage(null)
       reload()
       router.refresh()
     } catch {
-      alert(tCommon('error'))
+      toast(tCommon('error'), 'error')
     } finally {
       setReactivating(false)
     }

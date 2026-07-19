@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FeaturePerms } from '@/lib/permissions'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -550,7 +551,7 @@ export default function TemplatesTab({ perms }: Props) {
     setLoadingDetail(true)
     const res = await fetch(`/api/settings/quality-templates/${id}`)
     setLoadingDetail(false)
-    if (!res.ok) { alert(t('templates.load_failed')); return }
+    if (!res.ok) { toast(t('templates.load_failed'), 'error'); return }
     const template: TemplateDetail = await res.json()
     setBuilderState({ mode, template })
   }
@@ -559,7 +560,7 @@ export default function TemplatesTab({ perms }: Props) {
     if (!confirm(t('templates.confirm_delete', 'Delete template «{name}»?').replace('{name}', name))) return
     const res = await fetch(`/api/settings/quality-templates/${id}`, { method: 'DELETE' })
     if (res.ok) { load() }
-    else { const d = await res.json(); alert(d.error ?? t('templates.delete_failed')) }
+    else { const d = await res.json(); toast(d.error ?? t('templates.delete_failed'), 'error') }
   }
 
   const btnSm: React.CSSProperties = { padding: '4px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap' }

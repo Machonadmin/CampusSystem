@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import GradeEntryPanel from './GradeEntryPanel'
+import { toast } from '@/components/ui/toast'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -123,12 +124,12 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
       const resp = await fetch(`/api/education/assessments/${a.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('action_failed'))
+        toast(err.error ?? t('action_failed'), 'error')
         return
       }
       load()
     } catch {
-      alert(t('action_failed'))
+      toast(t('action_failed'), 'error')
     }
   }
 
