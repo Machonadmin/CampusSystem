@@ -2533,7 +2533,15 @@
         "shabbat_host": "שבת אצל העובד",
         "shabbat_family": "שבת עם המשפחה",
         "other": "אחר"
-      }
+      },
+      "cp_title": "חברותא פלוס — מנטורינג",
+      "cp_add": "הוסף תלמידה",
+      "cp_search_placeholder": "חיפוש תלמידה…",
+      "cp_no_assignments": "אין תלמידות משויכות",
+      "cp_remove": "הסר",
+      "cp_confirm_remove": "להסיר את השיוך?",
+      "cp_generate": "צור חיוב לחודש",
+      "cp_per_hour_note": "בסיס לפי שעה — השעות נרשמות ידנית כרשומות עבודה"
     }
   },
   "dormitory": {

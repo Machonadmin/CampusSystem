@@ -2533,7 +2533,15 @@
         "shabbat_host": "Shabbat at staff home",
         "shabbat_family": "Shabbat with family",
         "other": "Other"
-      }
+      },
+      "cp_title": "Chavruta Plus — mentorship",
+      "cp_add": "Add student",
+      "cp_search_placeholder": "Search student…",
+      "cp_no_assignments": "No assigned students",
+      "cp_remove": "Remove",
+      "cp_confirm_remove": "Remove this assignment?",
+      "cp_generate": "Generate for month",
+      "cp_per_hour_note": "Per-hour basis — hours are logged manually as work entries"
     }
   },
   "dormitory": {

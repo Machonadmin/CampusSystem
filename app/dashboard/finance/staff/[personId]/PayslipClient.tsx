@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -443,6 +444,9 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
+          {/* Chavruta Plus (mentorship) assignments */}
+          <ChavrutaPlusPanel personId={personId} canManage={canManage} year={year} month={month} onGenerated={loadMonth} />
+
           {/* Payslip summary */}
           <div style={card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
