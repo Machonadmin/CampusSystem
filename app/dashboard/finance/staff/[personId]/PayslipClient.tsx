@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
+import ShabbatPanel from './ShabbatPanel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -446,6 +447,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         <>
           {/* Chavruta Plus (mentorship) assignments */}
           <ChavrutaPlusPanel personId={personId} canManage={canManage} year={year} month={month} onGenerated={loadMonth} />
+          <ShabbatPanel personId={personId} canManage={canManage} year={year} month={month} onChanged={loadMonth} />
 
           {/* Payslip summary */}
           <div style={card}>

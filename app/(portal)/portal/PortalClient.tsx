@@ -8,6 +8,7 @@ import StudentMessagesPanel from '@/components/education/StudentMessagesPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
 import StudentGradesPanel from '@/components/education/StudentGradesPanel'
 import StudentChavrutaPanel from '@/components/education/StudentChavrutaPanel'
+import StudentShabbatPanel from '@/components/education/StudentShabbatPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 
 /**
@@ -54,6 +55,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
         <StudentCalendarPanel journeyId={journeyId} />
         <StudentGradesPanel journeyId={journeyId} />
         <StudentChavrutaPanel journeyId={journeyId} />
+        <StudentShabbatPanel journeyId={journeyId} />
         <MeetingsPanel journeyId={journeyId} canEdit={false} />
       </div>
     </div>
