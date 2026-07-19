@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface Teacher {
   person_id: string
@@ -58,12 +59,12 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_generic'))
+        toast(err.error ?? t('common.error_generic'), 'error')
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
   }
 
@@ -76,12 +77,12 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_generic'))
+        toast(err.error ?? t('common.error_generic'), 'error')
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
   }
 

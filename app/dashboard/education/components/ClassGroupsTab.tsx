@@ -6,6 +6,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import ClassGroupModal from './ClassGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface Department { id: string; name: string }
 interface Subject { id: string; name: string; department_id: string }
@@ -99,12 +100,12 @@ export default function ClassGroupsTab() {
       const resp = await fetch(`/api/education/class-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_delete_failed'))
+        toast(err.error ?? t('common.error_delete_failed'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_delete_generic'), 'error')
     }
   }
 

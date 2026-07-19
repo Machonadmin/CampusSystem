@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -84,12 +85,12 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
       const resp = await fetch(`/api/education/schedule/slots/${slot.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('action_failed'))
+        toast(err.error ?? t('action_failed'), 'error')
         return
       }
       load()
     } catch {
-      alert(t('action_failed'))
+      toast(t('action_failed'), 'error')
     }
   }
 

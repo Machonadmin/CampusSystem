@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface StudentMini {
   id: string
@@ -56,12 +57,12 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('class_groups.remove_student_failed'))
+        toast(err.error ?? t('class_groups.remove_student_failed'), 'error')
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
   }
 
@@ -213,7 +214,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('class_groups.enroll_failed'))
+        toast(err.error ?? t('class_groups.enroll_failed'), 'error')
         return
       }
       const data = await resp.json().catch(() => ({}))
@@ -222,10 +223,10 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
       const msg = skipped > 0
         ? t('class_groups.enrolled_with_skipped').replace('{added}', String(added)).replace('{skipped}', String(skipped))
         : t('class_groups.enrolled_message').replace('{added}', String(added))
-      alert(msg)
+      toast(msg, 'success')
       onDone()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     } finally {
       setSaving(false)
     }

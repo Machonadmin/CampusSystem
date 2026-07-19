@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 
 const accent = getModuleColor('settings')
@@ -64,12 +65,12 @@ export default function PositionsPage() {
       const resp = await fetch(`/api/settings/positions/${pos.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('error_generic'))
+        toast(err.error ?? t('error_generic'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('error_generic'))
+      toast(e instanceof Error ? e.message : t('error_generic'), 'error')
     }
   }
 
@@ -82,12 +83,12 @@ export default function PositionsPage() {
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('error_generic'))
+        toast(err.error ?? t('error_generic'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('error_generic'))
+      toast(e instanceof Error ? e.message : t('error_generic'), 'error')
     }
   }
 
