@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { getSession } from '@/lib/auth/session'
+import { canManageStudentFinance } from '@/lib/finance/access'
 import { mapDbError } from '@/lib/finance/http'
 import { isIsoDate } from '@/lib/finance/validation'
 import type { FinanceChargeInsert } from '@/types/database'
@@ -23,7 +24,9 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await requireFinancePrivilege('create_invoice')
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (!(await canManageStudentFinance(session, params.id))) return apiError('forbidden', 403)
 
     const body = await request.json() as {
       amount?: number

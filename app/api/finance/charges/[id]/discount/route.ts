@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { getSession } from '@/lib/auth/session'
+import { canManageStudentFinance } from '@/lib/finance/access'
 import { toCents, centsToNumber } from '@/lib/finance/money'
 
 /**
@@ -20,7 +21,8 @@ function u(sb: ReturnType<typeof createServerClient>) {
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await requireFinancePrivilege('create_invoice')
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
     const body = await request.json().catch(() => ({})) as {
       percent?: number; reason?: string; typed_name?: string
     }
@@ -36,14 +38,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const sb = createServerClient()
 
-    // Счёт должен существовать и быть активным.
+    // Счёт должен существовать и быть активным; доступ — по его journey.
     const { data: charge, error: cErr } = await sb
       .from('finance_charges')
-      .select('id, amount, status')
+      .select('id, amount, status, journey_id')
       .eq('id', params.id)
       .maybeSingle()
     if (cErr) throw cErr
     if (!charge) return apiError('not_found', 404)
+    if (!(await canManageStudentFinance(session, (charge as { journey_id: string }).journey_id))) {
+      return apiError('forbidden', 403)
+    }
     if ((charge as { status: string }).status !== 'active') return apiError('invalid_reference', 400)
 
     const chargeCents = toCents((charge as { amount: number | string }).amount)

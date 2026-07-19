@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
+import { canViewStudentFinance, canManageStudentFinance } from '@/lib/finance/access'
 import FinanceLedgerClient from './FinanceLedgerClient'
 
 interface Props {
@@ -19,7 +20,8 @@ export default async function FinanceStudentPage({ params }: Props) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const canView = await hasFinancePrivilege(session, 'view')
+  // Доступ к финансам ЭТОЙ студентки (глобальный финотдел ИЛИ персональный грант).
+  const canView = await canViewStudentFinance(session, params.id)
   if (!canView) redirect('/dashboard')
 
   const sb = createServerClient()
@@ -48,7 +50,7 @@ export default async function FinanceStudentPage({ params }: Props) {
   }
 
   const [canCreateInvoice, canApprove] = await Promise.all([
-    hasFinancePrivilege(session, 'create_invoice'),
+    canManageStudentFinance(session, params.id),
     hasFinancePrivilege(session, 'approve_payment'),
   ])
 

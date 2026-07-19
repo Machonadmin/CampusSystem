@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { getSession } from '@/lib/auth/session'
+import { canViewStudentFinance } from '@/lib/finance/access'
 import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 
@@ -34,7 +35,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireFinancePrivilege('view')
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (!(await canViewStudentFinance(session, params.id))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
