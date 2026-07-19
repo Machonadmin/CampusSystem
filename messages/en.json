@@ -2388,7 +2388,15 @@
       "pay_date": "Date",
       "pay_method": "Method",
       "pay_reference": "Reference",
-      "pay_amount": "Amount"
+      "pay_amount": "Amount",
+      "discounts_total": "Discounts",
+      "give_discount": "Give discount",
+      "percent": "Percent",
+      "reason": "Reason",
+      "reason_ph": "Needy family / sponsored / …",
+      "signature": "Electronic signature — type your full name",
+      "signed_by": "Signed by {name} · {date}",
+      "remaining": "Remaining"
     },
     "action": {
       "add_charge": "Charge",
@@ -3006,6 +3014,9 @@
       "year_label_required": "Enter a year",
       "term_number_required": "Enter a semester number",
       "semester_exists": "Semester already exists",
+      "discount_percent_range": "Discount percent must be between 0 and 100",
+      "discount_exceeds_charge": "Discount exceeds the charge amount",
+      "signature_required": "A signature is required",
       "title_required": "Enter a document title",
       "add": "Failed to add document",
       "action": "Action failed"

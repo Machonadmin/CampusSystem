@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
@@ -97,11 +98,46 @@ export async function GET(
       pFrom += PAGE
     }
 
+    // Скидки по этим счетам (finance_discounts) — деплой-безопасно к отсутствию
+    // таблицы (до применения миграции скидок ещё нет → пусто).
+    type DiscountRow = {
+      id: string; charge_id: string; percent: number | string; amount: number | string
+      reason: string | null; signer_name: string | null; typed_name: string | null
+      signed_at: string | null; created_at: string
+    }
+    const discountsByCharge = new Map<string, DiscountRow[]>()
+    const chargeIds = chargeRows.map(c => c.id)
+    if (chargeIds.length > 0) {
+      try {
+        const { data, error } = await (sb as unknown as SupabaseClient)
+          .from('finance_discounts')
+          .select('id, charge_id, percent, amount, reason, signer_name, typed_name, signed_at, created_at')
+          .in('charge_id', chargeIds)
+          .order('created_at', { ascending: true })
+        if (error) throw error
+        for (const d of (data ?? []) as DiscountRow[]) {
+          const arr = discountsByCharge.get(d.charge_id) ?? []
+          arr.push(d); discountsByCharge.set(d.charge_id, arr)
+        }
+      } catch (e) {
+        if ((e as { code?: string }).code !== '42P01') throw e
+      }
+    }
+
+    // Скидки только по АКТИВНЫМ счетам идут в баланс.
+    const activeChargeIds = new Set(chargeRows.filter(c => c.status === 'active').map(c => c.id))
+    const activeDiscounts: { amount: number | string }[] = []
+    for (const [chargeId, arr] of discountsByCharge) {
+      if (activeChargeIds.has(chargeId)) for (const d of arr) activeDiscounts.push({ amount: d.amount })
+    }
+
+    const charges = chargeRows.map(c => ({ ...c, discounts: discountsByCharge.get(c.id) ?? [] }))
+
     return NextResponse.json({
       journey,
-      charges: chargeRows,
+      charges,
       payments: paymentRows,
-      totals: computeLedgerTotals(chargeRows, paymentRows),
+      totals: computeLedgerTotals(chargeRows, paymentRows, activeDiscounts),
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
