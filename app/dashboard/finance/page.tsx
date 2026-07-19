@@ -151,9 +151,14 @@ export default function FinancePage() {
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('finance')}</h1>
           <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
         </div>
-        <a href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
-          {t('semesters.title')}
-        </a>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <a href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+            {t('access.link_label')}
+          </a>
+          <a href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+            {t('semesters.title')}
+          </a>
+        </div>
       </div>
 
       {/* Search */}
