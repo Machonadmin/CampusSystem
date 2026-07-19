@@ -158,6 +158,9 @@ export default function FinancePage() {
           <a href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
             {t('semesters.title')}
           </a>
+          <a href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+            {t('staff.link_label')}
+          </a>
         </div>
       </div>
 
