@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -8,6 +8,16 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
+interface Discount {
+  id: string
+  percent: number
+  amount: number
+  reason: string | null
+  signer_name: string | null
+  typed_name: string | null
+  signed_at: string | null
+  created_at: string | null
+}
 interface Charge {
   id: string
   amount: number
@@ -15,6 +25,7 @@ interface Charge {
   period_label: string | null
   due_date: string | null
   status: 'active' | 'cancelled'
+  discounts: Discount[]
 }
 interface Payment {
   id: string
@@ -29,6 +40,7 @@ interface Totals {
   charges_active: number
   payments_approved: number
   payments_pending: number
+  discounts_total: number
   balance: number
 }
 interface Ledger {
@@ -83,6 +95,11 @@ export default function FinanceLedgerClient({
   const [pDate, setPDate] = useState('')
   const [pMethod, setPMethod] = useState('')
   const [pRef, setPRef] = useState('')
+  // discount form (per charge)
+  const [discountChargeId, setDiscountChargeId] = useState<string | null>(null)
+  const [dPercent, setDPercent] = useState('')
+  const [dReason, setDReason] = useState('')
+  const [dSignature, setDSignature] = useState('')
 
   const primary = getModuleColor('finance', 'primary')
 
@@ -151,6 +168,22 @@ export default function FinanceLedgerClient({
     )
   }
 
+  function openDiscount(chargeId: string) {
+    setActionError(null)
+    setDPercent(''); setDReason(''); setDSignature('')
+    setDiscountChargeId(prev => (prev === chargeId ? null : chargeId))
+  }
+  const dPercentNum = Number(dPercent)
+  const discountValid = dPercent.trim() !== '' && Number.isFinite(dPercentNum) && dPercentNum > 0 && dPercentNum <= 100
+  function submitDiscount(chargeId: string) {
+    if (!discountValid || !dSignature.trim()) { setActionError(t('form.required')); return }
+    mutate(
+      `/api/finance/charges/${chargeId}/discount`, 'POST',
+      { percent: dPercentNum, reason: dReason.trim() || null, typed_name: dSignature.trim() },
+      () => { setDPercent(''); setDReason(''); setDSignature(''); setDiscountChargeId(null) },
+    )
+  }
+
   const owes = (ledger?.totals.balance ?? 0) > 0.005
 
   return (
@@ -198,6 +231,7 @@ export default function FinanceLedgerClient({
             <TotalCard label={t('ledger.charges_total')} value={fmtMoney(ledger.totals.charges_active)} color="var(--text)" />
             <TotalCard label={t('ledger.payments_approved')} value={fmtMoney(ledger.totals.payments_approved)} color="var(--text)" />
             <TotalCard label={t('ledger.payments_pending')} value={fmtMoney(ledger.totals.payments_pending)} color="#D97706" />
+            <TotalCard label={t('ledger.discounts_total')} value={fmtMoney(ledger.totals.discounts_total)} color="#7C3AED" />
           </div>
 
           {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
@@ -220,14 +254,22 @@ export default function FinanceLedgerClient({
               <Empty text={t('ledger.no_charges')} />
             ) : (
               <Table head={[t('ledger.charge_desc'), t('ledger.charge_period'), t('ledger.charge_due'), t('ledger.charge_amount'), t('ledger.col_status'), '']}>
-                {ledger.charges.map(c => (
-                  <tr key={c.id}>
+                {ledger.charges.map(c => {
+                  const discTotal = c.discounts.reduce((s, d) => s + d.amount, 0)
+                  const remaining = c.amount - discTotal
+                  const showDiscounts = c.status === 'active' && c.discounts.length > 0
+                  return (
+                  <Fragment key={c.id}>
+                  <tr>
                     <td style={td}>{c.description}</td>
                     <td style={td}>{c.period_label || '—'}</td>
                     <td style={td}>{c.due_date || '—'}</td>
                     <td style={tdNum}>{fmtMoney(c.amount)}</td>
                     <td style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {canCreateInvoice && c.status === 'active' && (
+                        <ActionLink onClick={() => openDiscount(c.id)} disabled={busy} color="#7C3AED">{t('ledger.give_discount')}</ActionLink>
+                      )}
                       {canCreateInvoice && c.status === 'active' && (
                         <ActionLink onClick={() => { if (confirm(t('confirm.cancel_charge'))) mutate(`/api/finance/charges/${c.id}`, 'PATCH', { status: 'cancelled' }) }} disabled={busy} color="#D97706">{t('action.cancel')}</ActionLink>
                       )}
@@ -236,7 +278,52 @@ export default function FinanceLedgerClient({
                       )}
                     </td>
                   </tr>
-                ))}
+                  {showDiscounts && (
+                    <tr>
+                      <td colSpan={6} style={{ ...td, background: 'var(--surface-2)', paddingTop: 6, paddingBottom: 8 }}>
+                        {c.discounts.map(d => (
+                          <div key={d.id} style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
+                            <span style={{ fontWeight: 600, color: '#7C3AED', fontVariantNumeric: 'tabular-nums' }}>−{fmtMoney(d.amount)} ({d.percent}%)</span>
+                            {d.reason && <span>{d.reason}</span>}
+                            <span style={{ color: 'var(--text-faint)' }}>
+                              {t('ledger.signed_by')
+                                .replace('{name}', d.signer_name || d.typed_name || '—')
+                                .replace('{date}', (d.signed_at || '').slice(0, 10))}
+                            </span>
+                          </div>
+                        ))}
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>
+                          {t('ledger.remaining')}: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(remaining)}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {canCreateInvoice && discountChargeId === c.id && c.status === 'active' && (
+                    <tr>
+                      <td colSpan={6} style={{ ...td, padding: 0 }}>
+                        <FormRow>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {[10, 25, 50, 100].map(p => (
+                              <button key={p} type="button" onClick={() => setDPercent(String(p))} style={{
+                                fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
+                                border: `1px solid ${dPercent === String(p) ? '#7C3AED' : 'var(--border-strong)'}`,
+                                background: dPercent === String(p) ? '#7C3AED' : 'transparent',
+                                color: dPercent === String(p) ? '#fff' : 'var(--text)',
+                              }}>{p}%</button>
+                            ))}
+                          </div>
+                          <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
+                          <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
+                          <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
+                          <button onClick={() => submitDiscount(c.id)} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('#7C3AED'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</button>
+                          <button onClick={() => setDiscountChargeId(null)} disabled={busy} style={{ ...btn('var(--surface-2)'), color: 'var(--text)' }}>{tCommon('cancel')}</button>
+                        </FormRow>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  )
+                })}
               </Table>
             )}
           </Section>

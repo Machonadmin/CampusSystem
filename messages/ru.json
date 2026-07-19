@@ -2388,7 +2388,15 @@
       "pay_date": "Дата",
       "pay_method": "Способ",
       "pay_reference": "Референс",
-      "pay_amount": "Сумма"
+      "pay_amount": "Сумма",
+      "discounts_total": "Скидки",
+      "give_discount": "Скидка",
+      "percent": "Процент",
+      "reason": "Причина",
+      "reason_ph": "Нуждающаяся семья / спонсор / …",
+      "signature": "Электронная подпись — введите ФИО",
+      "signed_by": "Подписал(а) {name} · {date}",
+      "remaining": "Остаток к оплате"
     },
     "action": {
       "add_charge": "Начисление",
@@ -3006,6 +3014,9 @@
       "year_label_required": "Укажите год",
       "term_number_required": "Укажите номер семестра",
       "semester_exists": "Семестр уже существует",
+      "discount_percent_range": "Процент скидки должен быть от 0 до 100",
+      "discount_exceeds_charge": "Скидка превышает сумму счёта",
+      "signature_required": "Требуется подпись",
       "title_required": "Укажите название документа",
       "add": "Не удалось добавить документ",
       "action": "Действие не выполнено"

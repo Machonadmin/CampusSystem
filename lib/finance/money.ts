@@ -24,26 +24,33 @@ interface PaymentRow { amount: number | string; status: string }
 
 /**
  * Итоги ПНК студента по правилу баланса:
- *   balance = Σ(charges active) − Σ(payments approved)
+ *   balance = Σ(charges active) − Σ(discounts на active-счета) − Σ(payments approved)
  * Всё считается в целых копейках (без float-дрейфа), на выходе — числа с двумя
- * знаками. Извлечено из ledger-роута для юнит-покрытия ключевого правила.
+ * знаками. Скидки (finance_discounts) уменьшают долг; передавать нужно скидки,
+ * относящиеся к АКТИВНЫМ счетам (фильтрует вызывающий ledger-роут). Баланс не
+ * опускается ниже суммы после скидок, но сам по себе может быть отрицательным
+ * при переплате — это ок. Извлечено из ledger-роута для юнит-покрытия правила.
  */
 export function computeLedgerTotals(
   charges: ChargeRow[],
   payments: PaymentRow[],
+  discounts: { amount: number | string }[] = [],
 ): {
   charges_active: number
   payments_approved: number
   payments_pending: number
+  discounts_total: number
   balance: number
 } {
   const chargesActiveCents = sumCents(charges.filter(c => c.status === 'active'))
   const paymentsApprovedCents = sumCents(payments.filter(p => p.status === 'approved'))
   const paymentsPendingCents = sumCents(payments.filter(p => p.status === 'pending'))
+  const discountsCents = sumCents(discounts)
   return {
     charges_active: centsToNumber(chargesActiveCents),
     payments_approved: centsToNumber(paymentsApprovedCents),
     payments_pending: centsToNumber(paymentsPendingCents),
-    balance: centsToNumber(chargesActiveCents - paymentsApprovedCents),
+    discounts_total: centsToNumber(discountsCents),
+    balance: centsToNumber(chargesActiveCents - discountsCents - paymentsApprovedCents),
   }
 }

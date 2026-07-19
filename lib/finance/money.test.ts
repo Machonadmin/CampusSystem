@@ -89,6 +89,7 @@ describe('computeLedgerTotals', () => {
       charges_active: 0,
       payments_approved: 0,
       payments_pending: 0,
+      discounts_total: 0,
       balance: 0,
     })
   })
@@ -99,5 +100,24 @@ describe('computeLedgerTotals', () => {
       [{ amount: '0.30', status: 'approved' }],
     )
     expect(totals.balance).toBe(0)
+  })
+
+  it('скидка уменьшает долг (25% от 210000 → долг 157500)', () => {
+    const totals = computeLedgerTotals(
+      [{ amount: '210000', status: 'active' }],
+      [],
+      [{ amount: '52500' }], // 25% скидка
+    )
+    expect(totals.discounts_total).toBe(52500)
+    expect(totals.balance).toBe(157500)
+  })
+
+  it('скидка + оплата: 210000 − 52500 скидка − 100000 оплата = 57500', () => {
+    const totals = computeLedgerTotals(
+      [{ amount: '210000', status: 'active' }],
+      [{ amount: '100000', status: 'approved' }],
+      [{ amount: '52500' }],
+    )
+    expect(totals.balance).toBe(57500)
   })
 })

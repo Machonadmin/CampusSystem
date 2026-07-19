@@ -2388,7 +2388,15 @@
       "pay_date": "תאריך",
       "pay_method": "אמצעי",
       "pay_reference": "אסמכתא",
-      "pay_amount": "סכום"
+      "pay_amount": "סכום",
+      "discounts_total": "הנחות",
+      "give_discount": "מתן הנחה",
+      "percent": "אחוז",
+      "reason": "סיבה",
+      "reason_ph": "משפחה נזקקת / ממומן / …",
+      "signature": "חתימה אלקטרונית — הקלד/י שם מלא",
+      "signed_by": "נחתם ע\"י {name} · {date}",
+      "remaining": "נותר לתשלום"
     },
     "action": {
       "add_charge": "חיוב",
@@ -3006,6 +3014,9 @@
       "year_label_required": "יש להזין שנה",
       "term_number_required": "יש להזין מספר סמסטר",
       "semester_exists": "הסמסטר כבר קיים",
+      "discount_percent_range": "אחוז ההנחה חייב להיות בין 0 ל-100",
+      "discount_exceeds_charge": "ההנחה חורגת מסכום החיוב",
+      "signature_required": "נדרשת חתימה",
       "title_required": "יש לציין כותרת למסמך",
       "add": "הוספת המסמך נכשלה",
       "action": "הפעולה נכשלה"
