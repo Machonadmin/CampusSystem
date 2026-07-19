@@ -2396,7 +2396,14 @@
       "reason_ph": "משפחה נזקקת / ממומן / …",
       "signature": "חתימה אלקטרונית — הקלד/י שם מלא",
       "signed_by": "נחתם ע\"י {name} · {date}",
-      "remaining": "נותר לתשלום"
+      "remaining": "נותר לתשלום",
+      "method": "אמצעי תשלום",
+      "method_cash": "מזומן",
+      "method_transfer": "העברה",
+      "method_other": "אחר",
+      "deposited_to": "לאן נכנס הכסף",
+      "from_account": "מאיזה חשבון",
+      "to_account": "לאיזה חשבון"
     },
     "action": {
       "add_charge": "חיוב",

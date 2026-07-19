@@ -2396,7 +2396,14 @@
       "reason_ph": "Нуждающаяся семья / спонсор / …",
       "signature": "Электронная подпись — введите ФИО",
       "signed_by": "Подписал(а) {name} · {date}",
-      "remaining": "Остаток к оплате"
+      "remaining": "Остаток к оплате",
+      "method": "Способ оплаты",
+      "method_cash": "Наличные",
+      "method_transfer": "Перевод",
+      "method_other": "Другое",
+      "deposited_to": "Куда поступили деньги",
+      "from_account": "С какого счёта",
+      "to_account": "На какой счёт"
     },
     "action": {
       "add_charge": "Начисление",

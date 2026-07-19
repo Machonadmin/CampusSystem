@@ -2396,7 +2396,14 @@
       "reason_ph": "Needy family / sponsored / …",
       "signature": "Electronic signature — type your full name",
       "signed_by": "Signed by {name} · {date}",
-      "remaining": "Remaining"
+      "remaining": "Remaining",
+      "method": "Payment method",
+      "method_cash": "Cash",
+      "method_transfer": "Transfer",
+      "method_other": "Other",
+      "deposited_to": "Where the money went",
+      "from_account": "From account",
+      "to_account": "To account"
     },
     "action": {
       "add_charge": "Charge",
