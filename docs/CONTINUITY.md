@@ -135,6 +135,29 @@ owner — see below.
 - **jewishness module**: currently only a signing queue, not a per-student
   verification record.
 
+## Finance — student tuition (PRs #127–#130, merged; one migration to run)
+Migration `20260719120000_finance_tuition.sql` lays ALL student-side schema (run once):
+`semesters`(year+term+price default 210000), `semester_enrollments`, finance_charges
+`semester_id`+`category`(tuition/other), `finance_discounts`(with signature), payment
+`method/deposited_to/from_account/to_account`+signature cols, `finance_access_grants`,
+`education_journeys.student_finance_visible`.
+- **Semesters** `/dashboard/finance/semesters`: create semester + price, "generate charges"
+  = bills every active student the semester price (idempotent via semester_enrollments).
+- **Discounts**: `POST /api/finance/charges/[id]/discount` — any %, reduces owed, reason +
+  typed e-signature. `computeLedgerTotals(charges,payments,discounts)` (balance = charges −
+  discounts − approved). Shown on the ledger.
+- **Payments**: method(cash/transfer/other)+deposited_to/from_account/to_account+typed
+  signature (payment POST + ledger, deploy-safe column probe).
+- **Access (SEPARATE from studies)** `lib/finance/access.ts`: superadmin OR global finance
+  priv OR personal grant (all / one journey). Enforced in ledger + charge/payment/discount
+  routes + finance [id] page. Grants screen `/dashboard/finance/access`; per-student grant +
+  portal-visibility toggle on the student card (`StudentFinancePanel`). Manager =
+  superadmin/finance.approve_payment. Studies head sees NO finances.
+- **OPEN QUESTION for owner**: "generate charges" currently bills ALL active students; owner
+  said assignment is "automatic from studies" — confirm whether it's all active students or
+  only those in specific studies (would need a filter).
+- **NEXT**: staff salary payments (owner will spec) — greenfield, no payroll exists today.
+
 ## Domain facts
 - Kodesh is universal — every student is in exactly one kodesh group. The KODESH HEAD
   assigns (head of the kodesh dept), not the general director.
