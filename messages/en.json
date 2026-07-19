@@ -2321,6 +2321,30 @@
     }
   },
   "finance": {
+    "semesters": {
+      "title": "Semesters & tuition",
+      "subtitle": "Academic years and semesters with a price; generate tuition charges",
+      "forbidden": "You don't have finance access",
+      "load_failed": "Failed to load semesters",
+      "save_failed": "Failed to save",
+      "add": "New semester",
+      "empty": "No semesters defined yet",
+      "f_year": "Year",
+      "f_term": "Term #",
+      "f_name": "Name (optional)",
+      "f_name_ph": "e.g. Semester A",
+      "f_price": "Price (₽)",
+      "term_n": "Semester {n}",
+      "status_open": "Open",
+      "status_closed": "Closed",
+      "generate": "Generate charges",
+      "close": "Close",
+      "reopen": "Reopen",
+      "generate_confirm": "Generate tuition charges for all active students for \"{name}\"?",
+      "generate_result": "{created} created · {skipped} skipped",
+      "generate_failed": "Failed to generate charges",
+      "generate_hint": "\"Generate charges\" bills every active student the semester price (skipping any already billed). Discounts and payments are done on the student's card."
+    },
     "bulk": {
       "select": "Select",
       "exit": "Cancel selection",
@@ -2979,6 +3003,9 @@
     "delete_confirm": "Delete this document? This cannot be undone.",
     "errors": {
       "load": "Failed to load documents",
+      "year_label_required": "Enter a year",
+      "term_number_required": "Enter a semester number",
+      "semester_exists": "Semester already exists",
       "title_required": "Enter a document title",
       "add": "Failed to add document",
       "action": "Action failed"
