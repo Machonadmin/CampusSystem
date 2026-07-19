@@ -145,9 +145,15 @@ export default function FinancePage() {
         background: getModuleHeaderGradient('finance'),
         borderRadius: 12, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('finance')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('finance')}</h1>
+          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
+        </div>
+        <a href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+          {t('semesters.title')}
+        </a>
       </div>
 
       {/* Search */}
