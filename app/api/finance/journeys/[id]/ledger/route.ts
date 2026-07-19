@@ -78,21 +78,31 @@ export async function GET(
       id: string; journey_id: string; amount: number | string; paid_at: string | null
       method: string | null; reference: string | null; status: string
       recorded_by: string | null; approved_by: string | null; approved_at: string | null
+      deposited_to?: string | null; from_account?: string | null; to_account?: string | null
+      signer_name?: string | null; typed_name?: string | null; signed_at?: string | null
       created_at: string; updated_at: string
+    }
+    const PAY_BASE = 'id, journey_id, amount, paid_at, method, reference, status, recorded_by, approved_by, approved_at, created_at, updated_at'
+    const PAY_FULL = `${PAY_BASE}, deposited_to, from_account, to_account, signer_name, typed_name, signed_at`
+    // Деплой-безопасно: до применения миграции новых колонок нет (42703) → базовый набор.
+    let payCols = PAY_FULL
+    {
+      const probe = await sb.from('finance_payments').select(PAY_FULL).limit(1)
+      if (probe.error && (probe.error as { code?: string }).code === '42703') payCols = PAY_BASE
     }
     const paymentRows: PaymentRow[] = []
     let pFrom = 0
     for (;;) {
       const { data, error } = await sb
         .from('finance_payments')
-        .select('id, journey_id, amount, paid_at, method, reference, status, recorded_by, approved_by, approved_at, created_at, updated_at')
+        .select(payCols)
         .eq('journey_id', params.id)
         .order('paid_at', { ascending: false })
         .order('created_at', { ascending: false })
         .order('id', { ascending: true })
         .range(pFrom, pFrom + PAGE - 1)
       if (error) throw error
-      const page = (data ?? []) as PaymentRow[]
+      const page = (data ?? []) as unknown as PaymentRow[]
       paymentRows.push(...page)
       if (page.length < PAGE) break
       pFrom += PAGE

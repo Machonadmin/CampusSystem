@@ -33,6 +33,12 @@ interface Payment {
   paid_at: string
   method: string | null
   reference: string | null
+  deposited_to: string | null
+  from_account: string | null
+  to_account: string | null
+  signer_name: string | null
+  typed_name: string | null
+  signed_at: string | null
   status: 'pending' | 'approved' | 'cancelled'
   approved_at: string | null
 }
@@ -93,8 +99,12 @@ export default function FinanceLedgerClient({
   // payment form
   const [pAmount, setPAmount] = useState('')
   const [pDate, setPDate] = useState('')
-  const [pMethod, setPMethod] = useState('')
+  const [pMethod, setPMethod] = useState('cash')
   const [pRef, setPRef] = useState('')
+  const [pDepositedTo, setPDepositedTo] = useState('')
+  const [pFromAccount, setPFromAccount] = useState('')
+  const [pToAccount, setPToAccount] = useState('')
+  const [pSignature, setPSignature] = useState('')
   // discount form (per charge)
   const [discountChargeId, setDiscountChargeId] = useState<string | null>(null)
   const [dPercent, setDPercent] = useState('')
@@ -159,12 +169,28 @@ export default function FinanceLedgerClient({
       () => { setCAmount(''); setCDesc(''); setCPeriod(''); setCDue(''); setShowCharge(false) },
     )
   }
+  const pAmountNum = Number(pAmount)
+  const paymentValid = pAmount.trim() !== '' && Number.isFinite(pAmountNum) && pAmountNum > 0 && !!pDate && pSignature.trim() !== ''
+  const isTransfer = pMethod === 'transfer'
   function submitPayment() {
-    if (!pAmount.trim() || !pDate) { setActionError(t('form.required')); return }
+    if (!paymentValid) { setActionError(t('form.required')); return }
     mutate(
       `/api/finance/journeys/${journeyId}/payments`, 'POST',
-      { amount: Number(pAmount), paid_at: pDate, method: pMethod.trim() || null, reference: pRef.trim() || null },
-      () => { setPAmount(''); setPDate(''); setPMethod(''); setPRef(''); setShowPayment(false) },
+      {
+        amount: pAmountNum,
+        paid_at: pDate,
+        method: pMethod || null,
+        reference: pRef.trim() || null,
+        typed_name: pSignature.trim(),
+        ...(isTransfer
+          ? { from_account: pFromAccount.trim() || null, to_account: pToAccount.trim() || null }
+          : { deposited_to: pDepositedTo.trim() || null }),
+      },
+      () => {
+        setPAmount(''); setPDate(''); setPMethod('cash'); setPRef('')
+        setPDepositedTo(''); setPFromAccount(''); setPToAccount(''); setPSignature('')
+        setShowPayment(false)
+      },
     )
   }
 
@@ -182,6 +208,13 @@ export default function FinanceLedgerClient({
       { percent: dPercentNum, reason: dReason.trim() || null, typed_name: dSignature.trim() },
       () => { setDPercent(''); setDReason(''); setDSignature(''); setDiscountChargeId(null) },
     )
+  }
+
+  function methodLabel(method: string | null): string {
+    if (method === 'cash') return t('ledger.method_cash')
+    if (method === 'transfer') return t('ledger.method_transfer')
+    if (method === 'other') return t('ledger.method_other')
+    return method || '—'
   }
 
   const owes = (ledger?.totals.balance ?? 0) > 0.005
@@ -337,19 +370,52 @@ export default function FinanceLedgerClient({
               <FormRow>
                 <input type="number" step="0.01" min="0" value={pAmount} onChange={e => setPAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
                 <input type="date" value={pDate} onChange={e => setPDate(e.target.value)} style={inp(150)} />
-                <input value={pMethod} onChange={e => setPMethod(e.target.value)} placeholder={t('form.method')} style={inp(150)} />
+                <select value={pMethod} onChange={e => setPMethod(e.target.value)} style={inp(150)} aria-label={t('ledger.method')}>
+                  <option value="cash">{t('ledger.method_cash')}</option>
+                  <option value="transfer">{t('ledger.method_transfer')}</option>
+                  <option value="other">{t('ledger.method_other')}</option>
+                </select>
+                {isTransfer ? (
+                  <>
+                    <input value={pFromAccount} onChange={e => setPFromAccount(e.target.value)} placeholder={t('ledger.from_account')} style={inp(160)} />
+                    <input value={pToAccount} onChange={e => setPToAccount(e.target.value)} placeholder={t('ledger.to_account')} style={inp(160)} />
+                  </>
+                ) : (
+                  <input value={pDepositedTo} onChange={e => setPDepositedTo(e.target.value)} placeholder={t('ledger.deposited_to')} style={inp(200)} />
+                )}
                 <input value={pRef} onChange={e => setPRef(e.target.value)} placeholder={t('form.reference')} style={inp(150)} />
-                <button onClick={submitPayment} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+                <input value={pSignature} onChange={e => setPSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
+                <button onClick={submitPayment} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</button>
               </FormRow>
             )}
             {ledger.payments.length === 0 ? (
               <Empty text={t('ledger.no_payments')} />
             ) : (
               <Table head={[t('ledger.pay_date'), t('ledger.pay_method'), t('ledger.pay_reference'), t('ledger.pay_amount'), t('ledger.col_status'), '']}>
-                {ledger.payments.map(p => (
+                {ledger.payments.map(p => {
+                  const account = p.method === 'transfer'
+                    ? [p.from_account, p.to_account].some(Boolean)
+                      ? `${p.from_account || '—'} → ${p.to_account || '—'}`
+                      : null
+                    : (p.deposited_to || null)
+                  return (
                   <tr key={p.id}>
-                    <td style={td}>{p.paid_at}</td>
-                    <td style={td}>{p.method || '—'}</td>
+                    <td style={td}>
+                      {p.paid_at}
+                      {p.signed_at && (
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
+                          {t('ledger.signed_by')
+                            .replace('{name}', p.signer_name || p.typed_name || '—')
+                            .replace('{date}', (p.signed_at || '').slice(0, 10))}
+                        </div>
+                      )}
+                    </td>
+                    <td style={td}>
+                      {methodLabel(p.method)}
+                      {account && (
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{account}</div>
+                      )}
+                    </td>
                     <td style={td}>{p.reference || '—'}</td>
                     <td style={tdNum}>{fmtMoney(p.amount)}</td>
                     <td style={td}><StatusBadge kind={p.status} label={t(`status.${p.status}`)} /></td>
@@ -362,7 +428,8 @@ export default function FinanceLedgerClient({
                       )}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </Table>
             )}
           </Section>

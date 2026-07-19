@@ -13,9 +13,12 @@ import type { FinancePaymentInsert } from '@/types/database'
  * влияет на баланс, пока не будет подтверждён (finance.approve_payment).
  * Право: finance.create_invoice.
  *
- * Body: { amount (>0, обязательно), paid_at (обязательно),
- *         method?, reference? }
- * recorded_by = текущий пользователь.
+ * Body: { amount (>0), paid_at, method?, reference?, deposited_to?,
+ *         from_account?, to_account?, typed_name? (печатная подпись) }
+ * recorded_by = текущий пользователь; подписант (signed_by) — из сессии.
+ * Для перевода указываем from_account/to_account; для наличных/прочего —
+ * deposited_to (куда зачислено). Каждый платёж ПОДПИСАН (кто/когда).
+ * Деплой-безопасно: если новых колонок ещё нет (42703) — пишем базовый платёж.
  * 404 — если journey не найден.
  */
 
@@ -31,6 +34,10 @@ export async function POST(
       paid_at?: string
       method?: string | null
       reference?: string | null
+      deposited_to?: string | null
+      from_account?: string | null
+      to_account?: string | null
+      typed_name?: string | null
     }
 
     const amount = Number(body.amount)
@@ -44,6 +51,9 @@ export async function POST(
     if (!isIsoDate(paidAt)) {
       return apiError('paid_at_must_be_date', 400)
     }
+    // Печатная подпись обязательна (личность — из сессии, не из тела).
+    const typedName = (body.typed_name ?? '').trim() || (session.full_name ?? '').trim()
+    if (!typedName) return apiError('signature_required', 400)
 
     const sb = createServerClient()
 
@@ -55,22 +65,34 @@ export async function POST(
     if (jErr) throw jErr
     if (!journey) return apiError('student_not_found', 404)
 
-    const insert: FinancePaymentInsert = {
+    const base = {
       journey_id: params.id,
       amount,
       paid_at: paidAt,
       method: body.method?.trim() || null,
       reference: body.reference?.trim() || null,
-      status: 'pending',
+      status: 'pending' as const,
       recorded_by: session.person_id,
+    }
+    const full = {
+      ...base,
+      deposited_to: body.deposited_to?.trim() || null,
+      from_account: body.from_account?.trim() || null,
+      to_account: body.to_account?.trim() || null,
+      signed_by: session.person_id,
+      signer_name: (session.full_name ?? '').trim() || session.login_email,
+      signature_kind: 'typed',
+      typed_name: typedName,
+      signed_at: new Date().toISOString(),
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await sb
-      .from('finance_payments')
-      .insert(insert as any)
-      .select('*')
-      .single()
+    let { data, error } = await sb.from('finance_payments').insert(full as any).select('*').single()
+    // Деплой-безопасно: колонок реквизитов/подписи ещё нет → базовый платёж.
+    if (error && (error as { code?: string }).code === '42703') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;({ data, error } = await sb.from('finance_payments').insert(base as unknown as FinancePaymentInsert as any).select('*').single())
+    }
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
