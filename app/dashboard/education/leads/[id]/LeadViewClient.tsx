@@ -11,6 +11,7 @@ import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import StudyPlanPanel from '@/components/education/StudyPlanPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
+import StaffChavrutaPanel from '@/components/education/StaffChavrutaPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 import PortalCredentialsPanel from '@/components/education/PortalCredentialsPanel'
 import StaffStudentMessagesPanel from '@/components/education/StaffStudentMessagesPanel'
@@ -430,6 +431,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           {data.status === 'student' && <KodeshExceptionsPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <StudentFinancePanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <StaffChavrutaPanel journeyId={data.journeyId} canManage={canManage} />}
           {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
           {data.status === 'student' && <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />}
           {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}

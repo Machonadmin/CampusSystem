@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { materializeAllDueReminders, materializeAllTaskDeadlines } from '@/lib/notifications/reminders'
+import { materializeChavrutaReminders } from '@/lib/chavruta/reminder'
 
 /**
  * GET /api/cron/reminders — планировщик напоминаний (Vercel Cron).
@@ -31,10 +32,12 @@ export async function GET(request: NextRequest) {
   const sb = createServerClient()
   const remindersCreated = await materializeAllDueReminders(sb)
   const taskDeadlinesCreated = await materializeAllTaskDeadlines(sb)
+  const chavrutaReminders = await materializeChavrutaReminders(sb) // только по средам
 
   return NextResponse.json({
     ok: true,
     reminders_created: remindersCreated,
     task_deadlines_created: taskDeadlinesCreated,
+    chavruta_reminders: chavrutaReminders,
   })
 }

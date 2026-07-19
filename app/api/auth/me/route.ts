@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
+import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import type { RoleCode } from '@/types/database'
 
 const ALL_MODULE_CODES = [
@@ -29,12 +30,17 @@ export async function GET() {
 
   let accessible_modules: string[]
   let feature_access: FeatureAccess
+  // Хеврута — не обычный модуль (доступ динамический: кодеш ∪ ручные), поэтому
+  // отдаём отдельным флагом; сайдбар по нему показывает ссылку «Хеврута».
+  let is_chavruta_teacher = false
 
   if (session.roles.includes('superadmin')) {
     accessible_modules = ALL_MODULE_CODES
     feature_access = ALL_FEATURES
+    is_chavruta_teacher = true
   } else {
     const sb = createServerClient()
+    try { is_chavruta_teacher = await isChavrutaTeacher(sb, session.person_id) } catch { /* деплой-безопасно */ }
     const { data: roleRows } = await sb.from('roles').select('id').in('code', session.roles as RoleCode[])
     const roleIds = (roleRows ?? []).map(r => r.id)
 
@@ -74,5 +80,6 @@ export async function GET() {
     roles: session.roles,
     accessible_modules,
     feature_access,
+    is_chavruta_teacher,
   })
 }

@@ -32,6 +32,7 @@ const ru = {
     settings: 'Настройки',
     staff: 'Персонал',
     quality_control: 'Оценка преподавания',
+    chavruta: 'Хеврута',
   },
   nav_groups: {
     studies: 'Учёба',
@@ -136,6 +137,7 @@ const he: typeof ru = {
     settings: 'הגדרות',
     staff: 'כוח אדם',
     quality_control: 'הערכת הוראה',
+    chavruta: 'חברותא',
   },
   nav_groups: {
     studies: 'לימודים',
@@ -240,6 +242,7 @@ const en: typeof ru = {
     settings: 'Settings',
     staff: 'Staff',
     quality_control: 'Teaching Evaluation',
+    chavruta: 'Chavruta',
   },
   nav_groups: {
     studies: 'Education',
