@@ -13,9 +13,13 @@ import { shapeChavrutaSessionForViewer } from '@/lib/chavruta/view'
  * История хавруты ученицы: дата + имя моры + что учили (summary). Синхронизация
  * «с кем ты сидишь» видна и самой ученице (в портале), и сотрудникам её карточки.
  *
- * ПРИВАТНОСТЬ (инвариант): private_notes (личные заметки моры) отдаются ТОЛЬКО
- * сотрудникам, НИКОГДА ученице. Право: студентка — только своя journey; staff —
- * view_students в подразделении ученицы (или superadmin). Деплой-безопасно.
+ * Право просмотра списка: студентка — только своя journey; staff — view_students
+ * в подразделении ученицы (или superadmin).
+ *
+ * ПРИВАТНОСТЬ (инвариант): private_notes (личные заметки моры) — НЕ для ученицы
+ * НИКОГДА. Среди сотрудников: их видит менеджер (manage_students / superadmin) и
+ * САМА автор записи (своя заметка); прочим сотрудникам с одним view_students —
+ * нет. Решается по каждой строке отдельно. Деплой-безопасно.
  */
 function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
@@ -25,14 +29,17 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
 
-    let isStaff = false
+    let canSeeAnyPrivate = false   // менеджер: видит личные заметки всех мор
+    let viewerPersonId: string | null = null
     if (session.principal === 'student') {
       if (session.student_journey_id !== params.id) return apiError('forbidden', 403)
     } else {
-      const allowed = session.roles.includes('superadmin')
-        || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+      const target = await journeyDeptTarget(sb, params.id)
+      const isSuper = session.roles.includes('superadmin')
+      const allowed = isSuper || await hasEducationPrivilege(session, 'view_students', target)
       if (!allowed) return apiError('forbidden', 403)
-      isStaff = true
+      canSeeAnyPrivate = isSuper || await hasEducationPrivilege(session, 'manage_students', target)
+      viewerPersonId = session.person_id
     }
 
     // Записи хавруты этой ученицы.
@@ -65,7 +72,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       teacher_name: nameById.get(r.person_id) ?? '',
       summary: r.summary,
       private_notes: r.private_notes,
-    }, { isStaff }))
+      // Менеджер — все; автор — свою; ученица — никогда.
+    }, { isStaff: canSeeAnyPrivate || (viewerPersonId != null && r.person_id === viewerPersonId) }))
 
     return NextResponse.json({ sessions })
   } catch (err: unknown) {

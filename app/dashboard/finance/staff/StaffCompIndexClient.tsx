@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import PageActionButton from '@/components/ui/PageActionButton'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
@@ -31,6 +32,7 @@ export default function StaffCompIndexClient() {
   const t = useTranslations('finance.staff')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const tCh = useTranslations('chavruta')
 
   const [items, setItems] = useState<StaffItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,6 +116,13 @@ export default function StaffCompIndexClient() {
         <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
           {t('count')}: {filtered.length}
         </span>
+        <PageActionButton
+          label={tCh('manage_teachers_link')}
+          onClick={() => router.push('/dashboard/finance/staff/chavruta')}
+          accentColor={primary}
+          icon="👥"
+          style={{ marginInlineStart: 'auto' }}
+        />
       </div>
 
       {/* Body */}
