@@ -160,6 +160,9 @@ export default function Sidebar() {
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
   const [isChavrutaTeacher, setIsChavrutaTeacher] = useState(false)
+  // Свёрнутые группы: открыта только та, где активный маршрут; остальные скрыты
+  // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -208,6 +211,19 @@ export default function Sidebar() {
         .filter(m => canAccess(m.key)),
     }))
     .filter(section => section.items.length > 0)
+
+  // Группа активного маршрута — открывается по умолчанию; при смене маршрута
+  // раскрываем её (и сворачиваем прочие). Ручной клик по заголовку это не трогает.
+  const activeGroupKey = sections.find(s => s.items.some(it => isActive(it.href)))?.key ?? null
+  useEffect(() => {
+    if (activeGroupKey) setOpenGroups(new Set([activeGroupKey]))
+  }, [activeGroupKey])
+
+  const toggleGroup = (key: string) => setOpenGroups(prev => {
+    const next = new Set(prev)
+    if (next.has(key)) next.delete(key); else next.add(key)
+    return next
+  })
 
   return (
     <aside
@@ -295,33 +311,52 @@ export default function Sidebar() {
           />
         ))}
 
-        {/* Module sections — each header + its modules; empty sections skipped */}
-        {sections.map(section => (
-          <div key={section.key}>
-            <div style={{ padding: isOpen ? '16px 16px 4px' : '12px 6px 4px' }}>
+        {/* Module sections — сворачиваемые группы (в развёрнутом сайдбаре).
+            В icon-режиме (!isOpen) заголовков нет — показываем все пункты. */}
+        {sections.map(section => {
+          const expanded = !isOpen || openGroups.has(section.key)
+          return (
+            <div key={section.key}>
               {isOpen ? (
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  {t.nav_groups[section.key]}
-                </p>
+                <button
+                  onClick={() => toggleGroup(section.key)}
+                  aria-expanded={expanded}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 8, padding: '14px 16px 5px', background: 'none', border: 'none', cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    {t.nav_groups[section.key]}
+                  </span>
+                  <svg
+                    style={{ width: 12, height: 12, color: 'var(--text-faint)', flexShrink: 0, transition: 'transform 0.15s', transform: `rotate(${expanded ? 0 : (isRTL ? 90 : -90)}deg)` }}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               ) : (
-                <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
+                <div style={{ padding: '12px 6px 4px' }}>
+                  <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
+                </div>
               )}
-            </div>
 
-            {section.items.map(item => (
-              <SidebarNavLink
-                key={item.key}
-                href={item.href}
-                iconPath={item.icon}
-                label={t.nav[item.key]}
-                active={isActive(item.href)}
-                isOpen={isOpen}
-                isRTL={isRTL}
-                moduleKey={item.key}
-              />
-            ))}
-          </div>
-        ))}
+              {expanded && section.items.map(item => (
+                <SidebarNavLink
+                  key={item.key}
+                  href={item.href}
+                  iconPath={item.icon}
+                  label={t.nav[item.key]}
+                  active={isActive(item.href)}
+                  isOpen={isOpen}
+                  isRTL={isRTL}
+                  moduleKey={item.key}
+                />
+              ))}
+            </div>
+          )
+        })}
       </nav>
 
       {/* Footer */}
