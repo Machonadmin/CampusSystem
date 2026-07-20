@@ -758,6 +758,7 @@
     },
     "study": {
       "setup_label": "הגדרות",
+      "advanced_label": "מתקדם",
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",

@@ -758,6 +758,7 @@
     },
     "study": {
       "setup_label": "Настройки",
+      "advanced_label": "Дополнительно",
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",

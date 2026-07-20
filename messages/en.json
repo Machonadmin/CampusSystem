@@ -758,6 +758,7 @@
     },
     "study": {
       "setup_label": "Setup",
+      "advanced_label": "Advanced",
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",
