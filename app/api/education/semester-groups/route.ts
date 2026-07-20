@@ -7,6 +7,7 @@ import {
   requireEducationPrivilege,
   canDoEducationInAny,
 } from '@/lib/education/permissions'
+import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
 /**
  * Единый объект «семестр-группа» = class_groups с is_semester=true.
@@ -256,6 +257,17 @@ export async function POST(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: insErr } = await sb.from('class_enrollments').insert(rows as any)
         if (insErr && insErr.code !== '23503') throw insErr
+
+        // (5) Фаза 3: привязка = обязательство. Открываем счёт tuition каждой
+        // зачисленной студентке (идемпотентно, деплой-безопасно). Возврат при
+        // отчислении НЕ делаем (решение фин.отдела).
+        const tuition = await ensureSemesterTuitionCharges(
+          sb,
+          { id: groupId, tuition_amount: body.tuition_amount ?? null, name, year_label: body.year_label ?? null, term_number: body.term_number ?? null },
+          eligible,
+          session.person_id,
+        )
+        if (tuition.warning) warning = (warning ? warning + ' ' : '') + tuition.warning
       }
       const skipped = journeyIds.length - eligible.length
       if (skipped > 0) {

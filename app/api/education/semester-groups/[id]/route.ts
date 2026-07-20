@@ -4,6 +4,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
+import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
 /**
  * Семестр-группа = class_groups с is_semester=true. Детальная карточка + PATCH.
@@ -355,6 +356,22 @@ export async function PATCH(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { error: insErr } = await sb.from('class_enrollments').insert(rows as any)
           if (insErr && insErr.code !== '23503') throw insErr
+
+          // Фаза 3: привязка = обязательство → открываем счёт tuition только для
+          // ВНОВЬ добавленных студенток (идемпотентно). Отчисление денег не трогает.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const gInfo = await (u(sb).from('class_groups')
+            .select('tuition_amount, name, year_label, term_number')
+            .eq('id', params.id).maybeSingle() as any)
+          if (!gInfo.error && gInfo.data) {
+            const tuition = await ensureSemesterTuitionCharges(
+              sb,
+              { id: params.id, tuition_amount: gInfo.data.tuition_amount ?? null, name: gInfo.data.name ?? null, year_label: gInfo.data.year_label ?? null, term_number: gInfo.data.term_number ?? null },
+              eligible,
+              session.person_id,
+            )
+            if (tuition.warning) warning = (warning ? warning + ' ' : '') + tuition.warning
+          }
         }
         const skipped = toAddRaw.length - eligible.length
         if (skipped > 0) {
