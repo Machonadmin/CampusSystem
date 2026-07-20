@@ -758,6 +758,7 @@
     },
     "study": {
       "setup_label": "Настройки",
+      "advanced_label": "Дополнительно",
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",
@@ -784,7 +785,8 @@
         "specialties": "Специальности",
         "study_groups": "Базовые группы",
         "students": "Студенты",
-        "class_groups": "Учебные группы"
+        "class_groups": "Учебные группы",
+        "semester_groups": "Семестры"
       },
       "common": {
         "all_departments": "Все подразделения",
@@ -987,6 +989,36 @@
         "status_on_leave": "Академотпуск",
         "status_graduated": "Выпускник",
         "status_expelled": "Отчислен"
+      },
+      "semester_groups": {
+        "modal_create_title": "Новый семестр",
+        "modal_edit_title": "Редактирование семестра",
+        "name_placeholder": "Семестр А 5785",
+        "year_label": "Год",
+        "year_placeholder": "5785",
+        "term_label": "Номер семестра",
+        "track_label": "Маршрут",
+        "track_placeholder": "— выберите маршрут —",
+        "teachers_label": "Преподаватели",
+        "teacher_placeholder": "Выберите или создайте преподавателя…",
+        "monthly_pay_placeholder": "в месяц",
+        "monthly_pay_hint": "Месячная оплата преподавателю (₪ в месяц)",
+        "primary_short": "Основной",
+        "add_teacher_button": "+ Добавить преподавателя",
+        "students_label": "Студентки",
+        "students_search_placeholder": "Поиск по имени…",
+        "no_students_found": "Студентки не найдены",
+        "tuition_label": "Плата за семестр",
+        "period_label": "Период",
+        "add_button": "Новый семестр",
+        "empty_none": "Семестров пока нет",
+        "table_name": "Название",
+        "table_track": "Маршрут",
+        "table_department": "Подразделение",
+        "table_teachers": "Преподаватели",
+        "table_students": "Студентки",
+        "table_tuition": "Плата",
+        "table_actions": "Действия"
       }
     },
     "docs_error": "Ошибка",
@@ -2571,6 +2603,7 @@
       "rates_saved": "Тарифы сохранены",
       "rates_save_error": "Не удалось сохранить тарифы",
       "generate_teaching": "Сгенерировать часы преподавания",
+      "generate_monthly": "Начислить месячную оплату",
       "generate_result": "Создано: {created}, пропущено: {skipped}",
       "generate_error": "Не удалось сгенерировать часы",
       "summary_title": "Расчётный лист",
@@ -2605,6 +2638,7 @@
         "chavruta_plus": "Хаврута плюс",
         "shabbat_host": "Шабат у сотрудника",
         "shabbat_family": "Шабат с семьёй",
+        "monthly": "Месячная оплата",
         "other": "Прочее"
       },
       "cp_title": "Хеврута-плюс — менторство",
@@ -3926,6 +3960,10 @@
     "programs_note": "Выберите подходящий маршрут — мы с радостью подскажем",
     "programs_empty": "Информация о программах скоро появится",
     "register_heading": "Форма заявки",
+    "hero_eyebrow": "Приём на новый учебный год",
+    "hero_cta_secondary": "Направления обучения",
+    "programs_eyebrow": "Направления",
+    "form_assurance": "Данные хранятся только у нас и используются лишь для связи с вами",
     "footer_note": "Все права защищены"
   },
   "notifications": {

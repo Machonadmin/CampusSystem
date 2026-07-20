@@ -73,21 +73,10 @@ export async function POST(
 
     const sb = createServerClient()
 
-    // «После того как все закончили»: финальное утверждение с ПРИЁМОМ нельзя
-    // подписать, пока направленная к врачу/психологу ещё не подписала свой этап
-    // (medical / medical_psych активен). Отклонение — можно всегда.
-    if ((body.final_code === 'admitted' || body.final_code === 'admitted_conditional') && ctx.journeyId) {
-      const { data: activeMed } = await sb
-        .from('stage_instances')
-        .select('id, stage_template:stage_templates!inner(code), process_instance:process_instances!inner(journey_id)')
-        .eq('process_instance.journey_id', ctx.journeyId)
-        .in('stage_template.code', ['medical', 'medical_psych'])
-        .eq('status', 'active')
-        .limit(1)
-      if (activeMed && activeMed.length > 0) {
-        return apiError('medical_pending', 409)
-      }
-    }
+    // По решению владельца финальное утверждение НЕ блокируется незакрытым
+    // медицинским этапом — каждый подписывает в своё время. Экран лишь ПОКАЗЫВАЕТ
+    // предупреждение «врач ещё не подписал», но не запрещает приём (было — 409
+    // medical_pending). Отклонение и раньше не блокировалось.
 
     // Заметка/причина этапа (напр. причина «направить к врачу») — пишется в
     // stage_instances.notes (её читают очередь врача и панель подписей).

@@ -23,7 +23,7 @@ export async function GET() {
     // PostgREST returns an error and data=null — fall back to the base columns.
     const { data: deptsWithSort, error: sortErr } = await sb
       .from('departments')
-      .select('id, name, parent_id, head_person_id, sort_order, description, created_at')
+      .select('id, name, name_he, name_en, parent_id, head_person_id, sort_order, description, created_at')
       .order('sort_order')
       .order('name')
 

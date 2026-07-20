@@ -193,6 +193,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
   const [error, setError] = useState<string | null>(null)
 
   const [generating, setGenerating] = useState(false)
+  const [generatingMonthly, setGeneratingMonthly] = useState(false)
   const [approving, setApproving] = useState(false)
   const [adding, setAdding] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -282,6 +283,22 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       toast(t('generate_error'), 'error')
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function generateMonthly() {
+    if (generatingMonthly) return
+    setGeneratingMonthly(true)
+    try {
+      const res = await fetch(`/api/staff-comp/${personId}/generate-monthly?year=${year}&month=${month}`, { method: 'POST' })
+      if (!res.ok) { toast(await readError(res), 'error'); return }
+      const body = await res.json()
+      toast(t('generate_result').replace('{created}', String(body.created ?? 0)).replace('{skipped}', String(body.skipped ?? 0)), 'success')
+      await loadMonth()
+    } catch {
+      toast(t('generate_error'), 'error')
+    } finally {
+      setGeneratingMonthly(false)
     }
   }
 
@@ -433,6 +450,10 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <button onClick={generateTeaching} disabled={generating}
                 style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: `1px solid ${getModuleColor('finance', 'medium')}`, borderRadius: 8, background: getModuleColor('finance', 'light'), color: primary, cursor: generating ? 'default' : 'pointer', opacity: generating ? 0.6 : 1 }}>
                 {t('generate_teaching')}
+              </button>
+              <button onClick={generateMonthly} disabled={generatingMonthly}
+                style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: `1px solid ${getModuleColor('finance', 'medium')}`, borderRadius: 8, background: getModuleColor('finance', 'light'), color: primary, cursor: generatingMonthly ? 'default' : 'pointer', opacity: generatingMonthly ? 0.6 : 1 }}>
+                {t('generate_monthly')}
               </button>
             </div>
           )}

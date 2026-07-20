@@ -51,7 +51,12 @@ export async function GET(request: NextRequest) {
       .eq('process_template.code', 'acceptance')
       .order('started_at', { ascending: false })
     if (statusFilter === 'active') piQuery = piQuery.eq('status', 'active')
-    else if (statusFilter === 'completed') piQuery = piQuery.eq('status', 'completed')
+    // «Завершённые» = процессы status='completed' И успешно принятые: движок
+    // кодирует приём как status='cancelled' + finish_reason admitted(_conditional),
+    // поэтому без этого условия принятые абитуриентки пропадали из вкладки.
+    else if (statusFilter === 'completed') {
+      piQuery = piQuery.or('status.eq.completed,and(status.eq.cancelled,finish_reason.in.(admitted,admitted_conditional))')
+    }
 
     const { data: pisRaw, error: piErr } = await piQuery
     if (piErr) throw piErr

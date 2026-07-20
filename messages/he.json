@@ -758,6 +758,7 @@
     },
     "study": {
       "setup_label": "הגדרות",
+      "advanced_label": "מתקדם",
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",
@@ -784,7 +785,8 @@
         "specialties": "התמחויות",
         "study_groups": "קבוצות בסיס",
         "students": "סטודנטים",
-        "class_groups": "קבוצות לימוד"
+        "class_groups": "קבוצות לימוד",
+        "semester_groups": "סמסטרים"
       },
       "common": {
         "all_departments": "כל המחלקות",
@@ -987,6 +989,36 @@
         "status_on_leave": "חופשת לימודים",
         "status_graduated": "בוגר",
         "status_expelled": "הורחק"
+      },
+      "semester_groups": {
+        "modal_create_title": "סמסטר חדש",
+        "modal_edit_title": "עריכת סמסטר",
+        "name_placeholder": "סמסטר א׳ תשפ״ה",
+        "year_label": "שנה",
+        "year_placeholder": "תשפ״ה",
+        "term_label": "מספר סמסטר",
+        "track_label": "מסלול",
+        "track_placeholder": "— בחר מסלול —",
+        "teachers_label": "מורים",
+        "teacher_placeholder": "בחר או צור מורה…",
+        "monthly_pay_placeholder": "לחודש",
+        "monthly_pay_hint": "תשלום חודשי למורה (₪ לחודש)",
+        "primary_short": "ראשי",
+        "add_teacher_button": "+ הוסף מורה",
+        "students_label": "סטודנטיות",
+        "students_search_placeholder": "חיפוש לפי שם…",
+        "no_students_found": "לא נמצאו סטודנטיות",
+        "tuition_label": "שכר לימוד לסמסטר",
+        "period_label": "תקופה",
+        "add_button": "סמסטר חדש",
+        "empty_none": "אין עדיין סמסטרים",
+        "table_name": "שם",
+        "table_track": "מסלול",
+        "table_department": "מחלקה",
+        "table_teachers": "מורים",
+        "table_students": "סטודנטיות",
+        "table_tuition": "שכר לימוד",
+        "table_actions": "פעולות"
       }
     },
     "docs_error": "שגיאה",
@@ -2571,6 +2603,7 @@
       "rates_saved": "התעריפים נשמרו",
       "rates_save_error": "שמירת התעריפים נכשלה",
       "generate_teaching": "הפקת שעות הוראה",
+      "generate_monthly": "הפקת תשלום חודשי",
       "generate_result": "נוצרו: {created}, דולגו: {skipped}",
       "generate_error": "הפקת השעות נכשלה",
       "summary_title": "תלוש שכר",
@@ -2605,6 +2638,7 @@
         "chavruta_plus": "חברותא פלוס",
         "shabbat_host": "שבת אצל העובד",
         "shabbat_family": "שבת עם המשפחה",
+        "monthly": "תשלום חודשי",
         "other": "אחר"
       },
       "cp_title": "חברותא פלוס — מנטורינג",
@@ -3926,6 +3960,10 @@
     "programs_note": "בחרי את המסלול שמתאים לך — ונשמח לייעץ",
     "programs_empty": "פרטי התוכניות יתעדכנו בקרוב",
     "register_heading": "טופס הרשמה",
+    "hero_eyebrow": "הרשמה לשנת הלימודים הקרובה",
+    "hero_cta_secondary": "מסלולי הלימוד",
+    "programs_eyebrow": "מסלולי לימוד",
+    "form_assurance": "הפרטים נשמרים אצלנו בלבד ומשמשים ליצירת קשר בלבד",
     "footer_note": "כל הזכויות שמורות"
   },
   "notifications": {

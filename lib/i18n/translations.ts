@@ -102,6 +102,14 @@ const ru = {
     applicant: 'Абитуриент',
     alumni: 'Выпускник',
     sponsor: 'Спонсор',
+    head_of_studies: 'Заведующий учёбой',
+    studies_manager: 'Руководитель учёбы',
+    studies_secretary: 'Секретарь учёбы',
+    jewishness_officer: 'Ответственный за еврейство',
+    recruiter: 'Ответственная за набор',
+    hr_director: 'Начальник отдела кадров',
+    campus_admin: 'Администратор кампуса',
+    campus_doctor: 'Врач кампуса',
   },
 }
 
@@ -207,6 +215,14 @@ const he: typeof ru = {
     applicant: 'מועמד',
     alumni: 'בוגר',
     sponsor: 'תורם',
+    head_of_studies: 'אחראי לימודים',
+    studies_manager: 'מנהל לימודים',
+    studies_secretary: 'מזכירת לימודים',
+    jewishness_officer: 'אחראי יהדות',
+    recruiter: 'אחראית גיוס',
+    hr_director: 'מנהל משאבי אנוש',
+    campus_admin: 'מנהל קמפוס',
+    campus_doctor: 'רופא קמפוס',
   },
 }
 
@@ -312,6 +328,14 @@ const en: typeof ru = {
     applicant: 'Applicant',
     alumni: 'Alumni',
     sponsor: 'Sponsor',
+    head_of_studies: 'Head of Studies',
+    studies_manager: 'Studies Manager',
+    studies_secretary: 'Studies Secretary',
+    jewishness_officer: 'Jewishness Officer',
+    recruiter: 'Recruiter',
+    hr_director: 'HR Director',
+    campus_admin: 'Campus Admin',
+    campus_doctor: 'Campus Doctor',
   },
 }
 

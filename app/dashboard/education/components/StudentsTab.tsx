@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyGroup { id: string; name: string; department_id: string }
 
 /** Статусы учебного цикла (education_status в education_journeys). */
@@ -50,6 +51,7 @@ const accent = getModuleColor('education')
 
 export default function StudentsTab() {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -229,7 +231,7 @@ export default function StudentsTab() {
         />
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
           <option value="">{t('students.all_departments')}</option>
-          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
         </select>
         <select
           value={filterGroup}

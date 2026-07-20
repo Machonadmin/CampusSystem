@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Subject { id: string; name: string }
 
 interface ClassGroupInitial {
@@ -33,6 +34,7 @@ const accent = getModuleColor('education')
 
 export default function ClassGroupModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
   const [subjectId, setSubjectId] = useState(initial?.subject_id ?? '')
@@ -171,7 +173,7 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
             <label style={lbl}>{t('common.department_label')} *</label>
             <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
               <option value="">{t('common.select_placeholder')}</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
             </select>
           </div>
 

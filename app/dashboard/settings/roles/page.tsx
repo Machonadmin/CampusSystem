@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
 
 type T = (key: string, fallback?: string) => string
 
@@ -366,7 +367,7 @@ export default function RolesPage() {
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role.name}</p>
+                          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{roleLabel(tModules.roles, role.code, role.name)}</p>
                           <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
@@ -404,7 +405,7 @@ export default function RolesPage() {
               {/* Right header */}
               <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{selectedRole.name}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{roleLabel(tModules.roles, selectedRole.code, selectedRole.name)}</p>
                   {selectedRole.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{selectedRole.description}</p>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import StageSignatures from '@/components/workflow/StageSignatures'
@@ -44,6 +44,7 @@ interface SignModal {
 export default function AcceptanceOverviewTab() {
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const router = useRouter()
   const me = useMe()
 
@@ -62,8 +63,11 @@ export default function AcceptanceOverviewTab() {
   const [signError, setSignError] = useState('')
 
   // Маршрут חол, выбираемый прямо при приёме (אישור לימודים).
-  const [tracks, setTracks] = useState<Array<{ id: string; name_he: string }>>([])
+  const [tracks, setTracks] = useState<Array<{ id: string; name_he: string; name_ru: string | null; name_en: string | null }>>([])
   const [trackId, setTrackId] = useState('')
+  // Маршрут трёхъязычный: he/ru/en. Показываем на языке UI с откатом к name_he.
+  const trackName = (tr: { name_he: string; name_ru: string | null; name_en: string | null }) =>
+    (lang === 'he' ? tr.name_he : lang === 'ru' ? tr.name_ru : tr.name_en) || tr.name_he
   const isAdmit = selectedFinal === 'admitted' || selectedFinal === 'admitted_conditional'
   // Маршрут выбирается и на учебном этапе (academic, «אחראי לימודים»), и при финале.
   const showTrackPicker = isAdmit || (modal?.cell.stage_code === 'academic' && selectedFinal === 'approved')
@@ -234,18 +238,15 @@ export default function AcceptanceOverviewTab() {
             )}
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {modal.cell.finals.map(f => {
-                const admitBlocked = modal.cell.stage_code === 'final_approval' && modal.medicalPending
-                  && (f.code === 'admitted' || f.code === 'admitted_conditional')
-                return (
+              {/* По решению владельца приём НЕ блокируется незакрытым мед.этапом —
+                  показываем лишь предупреждение выше, но кнопки активны всегда. */}
+              {modal.cell.finals.map(f => (
                 <button
                   key={f.id}
-                  disabled={admitBlocked}
-                  onClick={() => { if (!admitBlocked) setSelectedFinal(f.code) }}
-                  title={admitBlocked ? t('overview.medical_pending_warn') : undefined}
+                  onClick={() => setSelectedFinal(f.code)}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-                    cursor: admitBlocked ? 'not-allowed' : 'pointer', opacity: admitBlocked ? 0.45 : 1,
+                    cursor: 'pointer',
                     border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
                     background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
                     color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
@@ -253,8 +254,7 @@ export default function AcceptanceOverviewTab() {
                 >
                   {t(`acceptance_finals.${f.code}`, f.name_ru)}
                 </button>
-                )
-              })}
+              ))}
             </div>
 
             {showTrackPicker && tracks.length > 0 && (
@@ -263,7 +263,7 @@ export default function AcceptanceOverviewTab() {
                 <select value={trackId} onChange={e => setTrackId(e.target.value)}
                   style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
                   <option value="">{t('overview.track_later')}</option>
-                  {tracks.map(tr => <option key={tr.id} value={tr.id}>{tr.name_he}</option>)}
+                  {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackName(tr)}</option>)}
                 </select>
               </div>
             )}

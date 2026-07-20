@@ -43,8 +43,8 @@ export default function EducationHeaderNav() {
     { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
     { href: '/dashboard/education/units', label: t('units.title') },
     { href: '/dashboard/education/structure', label: t('structure.title') },
-    { href: '/dashboard/education/semesters', label: t('semesters.title') },
-    { href: '/dashboard/education/track-assignment', label: t('track_assign.title') },
+    // סמסטרים (ישן) ושיוך מסלול הוסרו מהתפריט — הוחלפו בזרימה המאוחדת «סמסטרים»
+    // תחת מרחב הלימודים. הנתיבים עדיין נגישים ישירות אם צריך.
     { href: '/dashboard/education/kodesh', label: t('kodesh.nav') },
     { href: '/dashboard/education/communities', label: t('communities.nav') },
     { href: '/dashboard/education/students/import', label: t('import.title') },

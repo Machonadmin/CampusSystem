@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 
 interface Role {
@@ -55,6 +56,7 @@ interface RolesModalProps {
 }
 
 function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
+  const { t: lang } = useLang()
   const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
   const [saving, setSaving] = useState(false)
 
@@ -100,7 +102,7 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
                       }}
                       style={{ accentColor: 'var(--accent)' }}
                     />
-                    <span style={{ fontSize: 13, color: 'var(--text)' }}>{r.name}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
                   </label>
                 ))}
               </div>
@@ -128,6 +130,7 @@ interface AddUserModalProps {
 interface PersonResult { id: string; full_name: string; email: string | null }
 
 function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserModalProps) {
+  const { t: lang } = useLang()
   // Person search
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PersonResult[]>([])
@@ -371,7 +374,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserM
                       {roles.map(r => (
                         <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
                           <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: 'var(--accent)' }} />
-                          <span style={{ fontSize: 13, color: 'var(--text)' }}>{r.name}</span>
+                          <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
                         </label>
                       ))}
                     </div>
@@ -591,6 +594,7 @@ export default function UsersPage() {
   const tCommon = useTranslations('common')
   const tNav = useTranslations('navigation')
   const tPriv = useTranslations('settings.person_privileges')
+  const { t: lang } = useLang()
 
   const [users, setUsers] = useState<UserRow[]>([])
   const [allRoles, setAllRoles] = useState<Role[]>([])
@@ -701,7 +705,7 @@ export default function UsersPage() {
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 260 }}>
-                      {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={r.name} />)}
+                      {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(lang.roles, r.code, r.name)} />)}
                       {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
                     </div>
                   </td>

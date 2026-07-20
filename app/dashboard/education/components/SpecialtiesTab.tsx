@@ -4,12 +4,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SpecialtyModal from './SpecialtyModal'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface Specialty {
@@ -28,6 +31,7 @@ const accent = getModuleColor('education')
 
 export default function SpecialtiesTab() {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [specialties, setSpecialties] = useState<Specialty[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,7 +108,7 @@ export default function SpecialtiesTab() {
         >
           <option value="">{t('common.all_departments')}</option>
           {departments.map(d => (
-            <option key={d.id} value={d.id}>{d.name}</option>
+            <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
           ))}
         </select>
 
