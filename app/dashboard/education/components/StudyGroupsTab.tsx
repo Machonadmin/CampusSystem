@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import StudyGroupModal from './StudyGroupModal'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
 
 interface StudyGroup {
@@ -28,6 +29,7 @@ const accent = getModuleColor('education')
 
 export default function StudyGroupsTab() {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [groups, setGroups] = useState<StudyGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [specialties, setSpecialties] = useState<Specialty[]>([])
@@ -117,7 +119,7 @@ export default function StudyGroupsTab() {
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
           <option value="">{t('common.all_departments')}</option>
-          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
         </select>
 
         <select

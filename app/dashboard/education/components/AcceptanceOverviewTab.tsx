@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import StageSignatures from '@/components/workflow/StageSignatures'
@@ -44,6 +44,7 @@ interface SignModal {
 export default function AcceptanceOverviewTab() {
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const router = useRouter()
   const me = useMe()
 
@@ -62,8 +63,11 @@ export default function AcceptanceOverviewTab() {
   const [signError, setSignError] = useState('')
 
   // Маршрут חол, выбираемый прямо при приёме (אישור לימודים).
-  const [tracks, setTracks] = useState<Array<{ id: string; name_he: string }>>([])
+  const [tracks, setTracks] = useState<Array<{ id: string; name_he: string; name_ru: string | null; name_en: string | null }>>([])
   const [trackId, setTrackId] = useState('')
+  // Маршрут трёхъязычный: he/ru/en. Показываем на языке UI с откатом к name_he.
+  const trackName = (tr: { name_he: string; name_ru: string | null; name_en: string | null }) =>
+    (lang === 'he' ? tr.name_he : lang === 'ru' ? tr.name_ru : tr.name_en) || tr.name_he
   const isAdmit = selectedFinal === 'admitted' || selectedFinal === 'admitted_conditional'
   // Маршрут выбирается и на учебном этапе (academic, «אחראי לימודים»), и при финале.
   const showTrackPicker = isAdmit || (modal?.cell.stage_code === 'academic' && selectedFinal === 'approved')
@@ -263,7 +267,7 @@ export default function AcceptanceOverviewTab() {
                 <select value={trackId} onChange={e => setTrackId(e.target.value)}
                   style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
                   <option value="">{t('overview.track_later')}</option>
-                  {tracks.map(tr => <option key={tr.id} value={tr.id}>{tr.name_he}</option>)}
+                  {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackName(tr)}</option>)}
                 </select>
               </div>
             )}

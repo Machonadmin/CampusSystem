@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface SubjectInitial {
@@ -30,6 +33,7 @@ const accent = getModuleColor('education')
 
 export default function SubjectModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
@@ -123,7 +127,7 @@ export default function SubjectModal({ mode, initial, departments, onClose, onSa
             >
               <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
               ))}
             </select>
           </div>

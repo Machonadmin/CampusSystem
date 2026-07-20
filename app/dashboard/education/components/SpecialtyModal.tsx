@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface SpecialtyInitial {
@@ -30,6 +33,7 @@ const accent = getModuleColor('education')
 
 export default function SpecialtyModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [code, setCode] = useState(initial?.code ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
@@ -134,7 +138,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
             >
               <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
               ))}
             </select>
           </div>
