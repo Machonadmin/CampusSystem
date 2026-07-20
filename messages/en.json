@@ -144,6 +144,32 @@
     "logging_in": "Signing in..."
   },
   "education": {
+    "recruitment_report": {
+      "title": "Recruitment reports",
+      "subtitle": "Recruitment metrics: leads, sources, stages, age, geography and conversion",
+      "total_leads": "Total leads",
+      "applicants": "Applicants",
+      "students": "Students",
+      "conversion_rate": "Conversion rate",
+      "by_source": "By source",
+      "by_stage": "By stage",
+      "by_age": "By age",
+      "by_geography": "By geography",
+      "by_country": "By country",
+      "by_city": "By city",
+      "by_month": "New leads by month",
+      "unknown": "Unknown",
+      "empty": "No data",
+      "loading": "Loading…",
+      "forbidden": "You don't have access to this report",
+      "stage_interested": "Interested",
+      "stage_in_process": "In process",
+      "age_lt18": "Under 18",
+      "age_18_20": "18–20",
+      "age_21_25": "21–25",
+      "age_26_30": "26–30",
+      "age_31plus": "31+"
+    },
     "nav": {
       "management": "Management",
       "management_hint": "Module settings and structure"
@@ -1124,7 +1150,8 @@
       "field_phone": "phone",
       "converting": "Handing off…",
       "confirm": "Hand this applicant off to the acceptance committee? Acceptance will start.",
-      "error": "Handoff failed"
+      "error": "Handoff failed",
+      "not_ready": "Handoff to the admissions committee opens once the earlier recruitment stages (contact, documents, event) are completed."
     },
     "timeline": {
       "title": "Timeline",

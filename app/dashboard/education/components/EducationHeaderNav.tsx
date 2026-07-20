@@ -40,6 +40,7 @@ export default function EducationHeaderNav() {
 
   // Инструменты управления/настройки — под меню.
   const management: NavLink[] = [
+    { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
     { href: '/dashboard/education/units', label: t('units.title') },
     { href: '/dashboard/education/structure', label: t('structure.title') },
     { href: '/dashboard/education/semesters', label: t('semesters.title') },

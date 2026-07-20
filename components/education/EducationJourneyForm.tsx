@@ -429,8 +429,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setSaving(true)
     try {
       // Build communities list (applies regardless of view — bug fix)
+      // «Реальная» община = есть имя/контакт/телефон. Страна('Россия' по умолч.)
+      // и авто-заполненный город НЕ делают пустую запись валидной (иначе авто-город
+      // сохранял бы фантомные общины).
       const validCommunities = communities
-        .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
+        .filter(c => c.name || c.contact_person || c.phone)
         .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
 
       if (journeyId) {
@@ -769,7 +772,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.city')}</label>
-              <CitySelect country={country} value={city} onChange={setCity} disabled={ro} style={{ ...inp, ...dis }} />
+              <CitySelect country={country} value={city} onChange={v => {
+                setCity(v)
+                // Авто-заполнение: город общины по умолчанию = город проживания,
+                // пока пуст и в той же (или ещё не выбранной) стране. Ручной ввод не трогаем.
+                setCommunities(prev => prev.map(c =>
+                  (!c.city && (!c.country || c.country === country)) ? { ...c, city: v } : c,
+                ))
+              }} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.street')}</label>
