@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { detectScheduleConflicts, type SlotForConflict } from '@/lib/education/schedule-conflicts'
 
 /**
@@ -23,9 +23,25 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
     const unit = (request.nextUrl.searchParams.get('unit') ?? '').trim()
 
-    // Группы (опц. по единице) → их id.
+    // Ограничение по праву: scope='all'/superadmin — весь институт; 'department' —
+    // только свои подразделения; 'own' — только группы, которые ведёт сам.
+    const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_students')
+    let allowedDeptIds: string[] | null = null
+    let allowedGroupIds: string[] | null = null
+    if (scope === 'department') {
+      allowedDeptIds = await getUserDepartmentIds(session.person_id)
+      if (allowedDeptIds.length === 0) return NextResponse.json({ slots: [], conflicts: [], units: [] })
+    } else if (scope === 'own') {
+      const { data: ct } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', session.person_id)
+      allowedGroupIds = [...new Set((ct ?? []).map(r => r.class_group_id as string))]
+      if (allowedGroupIds.length === 0) return NextResponse.json({ slots: [], conflicts: [], units: [] })
+    }
+
+    // Группы (опц. по единице, с учётом ограничения scope) → их id.
     let groupsQ = sb.from('class_groups').select('id, name, department_id, subject:subjects(name), department:departments(id, name)').eq('is_active', true)
     if (unit) groupsQ = groupsQ.eq('department_id', unit)
+    if (allowedDeptIds) groupsQ = groupsQ.in('department_id', allowedDeptIds)
+    if (allowedGroupIds) groupsQ = groupsQ.in('id', allowedGroupIds)
     const { data: groupsRaw } = await groupsQ
     const groups = (groupsRaw ?? []) as unknown as Array<{ id: string; name: string; department_id: string | null; subject: { name: string } | null; department: { id: string; name: string } | null }>
     const groupById = new Map(groups.map(g => [g.id, g]))
