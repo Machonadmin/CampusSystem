@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
@@ -244,6 +245,7 @@ function StageModal({ t, tCommon, processId, stage, roles, onClose, onSaved }: {
   t: T; tCommon: T; processId: string; stage: StageTemplate | null
   roles: Role[]; onClose: () => void; onSaved: () => void
 }) {
+  const { t: lang } = useLang()
   const [code, setCode] = useState(stage?.code ?? '')
   const [nameRu, setNameRu] = useState(stage?.name_ru ?? '')
   const [description, setDescription] = useState(stage?.description ?? '')
@@ -332,12 +334,12 @@ function StageModal({ t, tCommon, processId, stage, roles, onClose, onSaved }: {
           ) : roles.map(r => (
             <label key={r.id} style={{ ...labelStyle, fontSize: 12.5 }}>
               <input type="checkbox" checked={signerCodes.has(r.code)} onChange={() => toggleSigner(r.code)} />
-              <span>{r.name} <span style={{ color: 'var(--text-faint)', fontFamily: 'monospace', fontSize: 11 }}>{r.code}</span></span>
+              <span>{roleLabel(lang.roles, r.code, r.name)} <span style={{ color: 'var(--text-faint)', fontFamily: 'monospace', fontSize: 11 }}>{r.code}</span></span>
             </label>
           ))}
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 8 }}>
-          {signerCodes.size ? [...signerCodes].join(', ') : t('who_signs_none')}
+          {signerCodes.size ? [...signerCodes].map(c => roleLabel(lang.roles, c)).join(', ') : t('who_signs_none')}
         </div>
       </div>
     </Modal>
@@ -416,6 +418,7 @@ function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
 function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }: {
   t: T; tCommon: T; stageId: string; task: TaskTemplate | null; roles: Role[]; onClose: () => void; onSaved: () => void
 }) {
+  const { t: lang } = useLang()
   const [code, setCode] = useState(task?.code ?? '')
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
@@ -480,7 +483,7 @@ function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }: {
           <Field label={t('f_assignee_role')}>
             <select style={inputStyle} value={roleCode} onChange={e => setRoleCode(e.target.value)}>
               <option value="">—</option>
-              {roles.map(r => <option key={r.id} value={r.code}>{r.name} ({r.code})</option>)}
+              {roles.map(r => <option key={r.id} value={r.code}>{roleLabel(lang.roles, r.code, r.name)} ({r.code})</option>)}
             </select>
           </Field>
         )}
@@ -585,6 +588,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
   const t = useTranslations('settings.workflows')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('navigation')
+  const { t: lang } = useLang()
 
   const [templates, setTemplates] = useState<TemplateListRow[]>([])
   const [roles, setRoles] = useState<Role[]>([])
@@ -829,7 +833,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                               <div style={{ marginTop: 8, fontSize: 12 }}>
                                 <span style={{ fontWeight: 700, color: 'var(--text)' }}>{t('who_signs_label')}: </span>
                                 {signers.length ? (
-                                  <span style={{ fontFamily: 'monospace', color: 'var(--accent-strong)' }}>{signers.join(', ')}</span>
+                                  <span style={{ fontFamily: 'monospace', color: 'var(--accent-strong)' }}>{signers.map(c => roleLabel(lang.roles, c)).join(', ')}</span>
                                 ) : (
                                   <span style={{ color: 'var(--text-faint)' }}>{t('who_signs_none')}</span>
                                 )}
