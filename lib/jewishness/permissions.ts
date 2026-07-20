@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
+import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
 
 // ─── Гейт доступа к модулю «Бирур яхадут» (Jewishness verification) ───────────
 //
@@ -16,29 +17,37 @@ import type { RoleCode } from '@/types/database'
 /** true, если у сессии есть доступ к модулю (superadmin — всегда). */
 export async function hasJewishnessAccess(session: SessionPayload | null): Promise<boolean> {
   if (!session) return false
-  if (session.roles.includes('superadmin')) return true
-  if (session.roles.length === 0) return false
+  // superadmin (штатный, не студенческий principal) — всегда.
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
 
-  const sb = createServerClient()
+  // Роль даёт доступ?
+  let roleHasAccess = false
+  if (session.roles.length > 0) {
+    const sb = createServerClient()
+    const { data: roleRows, error: rolesErr } = await sb
+      .from('roles')
+      .select('id')
+      .in('code', session.roles as RoleCode[])
+    if (!rolesErr && roleRows && roleRows.length > 0) {
+      const roleIds = roleRows.map(r => r.id)
+      const { data: privs, error: privsErr } = await sb
+        .from('role_privileges')
+        .select('privilege_code')
+        .eq('module', 'jewishness')
+        .eq('privilege_code', 'access')
+        .in('role_id', roleIds)
+        .limit(1)
+      if (!privsErr && privs) roleHasAccess = privs.length > 0
+    }
+  }
 
-  const { data: roleRows, error: rolesErr } = await sb
-    .from('roles')
-    .select('id')
-    .in('code', session.roles as RoleCode[])
-  if (rolesErr || !roleRows || roleRows.length === 0) return false
+  // Персональный оверрайд (grant/deny) — как в остальных модулях: явная строка
+  // person_privileges(module='jewishness', 'access') перекрывает роль.
+  const accessGrant = (await loadPersonModuleGrants('jewishness', session.person_id))
+    .find(g => g.code === 'access')
+  if (accessGrant) return accessGrant.is_granted
 
-  const roleIds = roleRows.map(r => r.id)
-
-  const { data: privs, error: privsErr } = await sb
-    .from('role_privileges')
-    .select('privilege_code')
-    .eq('module', 'jewishness')
-    .eq('privilege_code', 'access')
-    .in('role_id', roleIds)
-    .limit(1)
-  if (privsErr || !privs) return false
-
-  return privs.length > 0
+  return roleHasAccess
 }
 
 /**
