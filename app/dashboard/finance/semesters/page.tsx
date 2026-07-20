@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import SemesterStudentsModal from './SemesterStudentsModal'
 
 interface Semester {
   id: string
@@ -30,7 +31,7 @@ export default function SemestersPage() {
   const [canManage, setCanManage] = useState(false)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const [manageSem, setManageSem] = useState<Semester | null>(null)
 
   // create form
   const [creating, setCreating] = useState(false)
@@ -93,17 +94,6 @@ export default function SemestersPage() {
     })
     if (!res.ok) { const b = await res.json().catch(() => ({})); toast(b.error ?? t('save_failed'), 'error'); return }
     setSemesters(prev => prev.map(x => x.id === s.id ? { ...x, status } : x))
-  }
-
-  async function generate(s: Semester) {
-    if (!window.confirm(t('generate_confirm').replace('{name}', s.name || `${s.year_label} · ${s.term_number}`))) return
-    setBusyId(s.id)
-    try {
-      const res = await fetch(`/api/finance/semesters/${s.id}/generate`, { method: 'POST' })
-      const b = await res.json().catch(() => ({}))
-      if (!res.ok) { toast(b.error ?? t('generate_failed'), 'error'); return }
-      toast(t('generate_result').replace('{created}', String(b.created ?? 0)).replace('{skipped}', String(b.skipped ?? 0)), 'success')
-    } catch { toast(t('generate_failed'), 'error') } finally { setBusyId(null) }
   }
 
   const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
@@ -172,10 +162,10 @@ export default function SemestersPage() {
               {canManage && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
                   <button
-                    onClick={() => generate(s)} disabled={busyId === s.id}
-                    style={{ flex: 1, fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: busyId === s.id ? 'default' : 'pointer', opacity: busyId === s.id ? 0.6 : 1 }}
+                    onClick={() => setManageSem(s)}
+                    style={{ flex: 1, fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: 'pointer' }}
                   >
-                    {busyId === s.id ? '…' : t('generate')}
+                    {t('manage_students')}
                   </button>
                   <button onClick={() => toggleStatus(s)} style={{ fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
                     {s.status === 'open' ? t('close') : t('reopen')}
@@ -188,7 +178,15 @@ export default function SemestersPage() {
       )}
 
       {canManage && (
-        <div style={{ fontSize: 12, color: 'var(--text-faint)', lineHeight: 1.6 }}>{t('generate_hint')}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)', lineHeight: 1.6 }}>{t('manage_hint')}</div>
+      )}
+
+      {manageSem && (
+        <SemesterStudentsModal
+          semesterId={manageSem.id}
+          title={manageSem.name || `${manageSem.year_label} · ${t('term_n').replace('{n}', String(manageSem.term_number))}`}
+          onClose={() => setManageSem(null)}
+        />
       )}
     </div>
   )
