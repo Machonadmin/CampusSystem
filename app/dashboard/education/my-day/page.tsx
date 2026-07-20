@@ -27,9 +27,15 @@ interface MyLesson {
   enrolled_count: number
 }
 
-function todayISO() { return new Date().toISOString().slice(0, 10) }
+// ЛОКАЛЬНАЯ дата (не UTC) — иначе в UTC+ смещение уводит на предыдущий день.
+function todayISO() {
+  const d = new Date(); const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+// Арифметика через UTC-компоненты (без TZ-скоса): +1/-1 всегда ровно ±1 день.
 function shiftISO(iso: string, days: number) {
-  const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10)
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
 }
 function hhmm(t: string | null) { return t ? t.slice(0, 5) : null }
 
@@ -57,6 +63,11 @@ export default function MyDayPage() {
     try { return new Date(date + 'T00:00:00').toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }) }
     catch { return date }
   })()
+  // Относительная подпись выбранного дня — чтобы «вчера/завтра» не выглядели как «сегодня».
+  const relLabel = date === todayISO() ? t('today')
+    : date === shiftISO(todayISO(), -1) ? t('yesterday')
+    : date === shiftISO(todayISO(), 1) ? t('tomorrow')
+    : null
 
   return (
     <div className="p-6 space-y-5">
@@ -74,8 +85,11 @@ export default function MyDayPage() {
       {/* Date nav */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button onClick={() => setDate(shiftISO(date, -1))} style={navBtn}>‹</button>
-        <button onClick={() => setDate(todayISO())} style={{ ...navBtn, width: 'auto', padding: '0 14px', fontWeight: 600, color: date === todayISO() ? 'var(--accent-contrast)' : 'var(--text)', background: date === todayISO() ? accent : 'var(--surface)' }}>{t('today')}</button>
+        <button onClick={() => setDate(todayISO())} title={t('jump_today')} style={{ ...navBtn, width: 'auto', padding: '0 14px', fontWeight: 600, color: date === todayISO() ? 'var(--accent-contrast)' : 'var(--text)', background: date === todayISO() ? accent : 'var(--surface)' }}>{t('jump_today')}</button>
         <button onClick={() => setDate(shiftISO(date, 1))} style={navBtn}>›</button>
+        {relLabel && (
+          <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)' }}>{relLabel}</span>
+        )}
         <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{prettyDate}</span>
         <input type="date" value={date} onChange={e => setDate(e.target.value || todayISO())}
           style={{ marginInlineStart: 'auto', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }} />

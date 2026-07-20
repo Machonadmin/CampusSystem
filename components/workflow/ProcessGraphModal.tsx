@@ -54,8 +54,34 @@ const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {
   cancelled: 'skipped',
 }
 
+/**
+ * Резолвит CSS-переменные темы в конкретные цвета. Mermaid НЕ понимает var(...)
+ * в classDef (его парсер ломается на `(`), поэтому подставляем hex/значения.
+ */
+interface GraphColors {
+  accentStrong: string; surface2: string; borderStrong: string; textFaint: string; border: string; textMuted: string
+}
+const DEFAULT_GRAPH_COLORS: GraphColors = {
+  accentStrong: '#2563EB', surface2: '#F3F4F6', borderStrong: '#D1D5DB',
+  textFaint: '#9CA3AF', border: '#E5E7EB', textMuted: '#6B7280',
+}
+function resolveGraphColors(): GraphColors {
+  try {
+    const cs = getComputedStyle(document.documentElement)
+    const v = (name: string, fb: string) => (cs.getPropertyValue(name).trim() || fb)
+    return {
+      accentStrong: v('--accent-strong', DEFAULT_GRAPH_COLORS.accentStrong),
+      surface2: v('--surface-2', DEFAULT_GRAPH_COLORS.surface2),
+      borderStrong: v('--border-strong', DEFAULT_GRAPH_COLORS.borderStrong),
+      textFaint: v('--text-faint', DEFAULT_GRAPH_COLORS.textFaint),
+      border: v('--border', DEFAULT_GRAPH_COLORS.border),
+      textMuted: v('--text-muted', DEFAULT_GRAPH_COLORS.textMuted),
+    }
+  } catch { return DEFAULT_GRAPH_COLORS }
+}
+
 /** Строит Mermaid-разметку графа из данных. */
-function buildMermaid(data: GraphData): string {
+function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): string {
   const ordered = [...data.nodes].sort((a, b) => a.sort_order - b.sort_order)
   const keyOf = new Map<string, string>()      // stage_template_id → mermaid node key (n0, n1…)
   ordered.forEach((n, i) => keyOf.set(n.id, `n${i}`))
@@ -82,10 +108,10 @@ function buildMermaid(data: GraphData): string {
 
   // Классы статусов
   lines.push('  classDef completed fill:#D1FAE5,stroke:#065F46,color:#065F46;')
-  lines.push('  classDef active fill:#DBEAFE,stroke:var(--accent-strong),color:#1E40AF,stroke-width:2px;')
-  lines.push('  classDef waiting fill:var(--surface-2),stroke:var(--border-strong),color:var(--text-faint);')
-  lines.push('  classDef skipped fill:var(--surface-2),stroke:var(--border),color:var(--text-faint);')
-  lines.push('  classDef pending fill:#FFFFFF,stroke:var(--border-strong),color:var(--text-muted);')
+  lines.push(`  classDef active fill:#DBEAFE,stroke:${c.accentStrong},color:#1E40AF,stroke-width:2px;`)
+  lines.push(`  classDef waiting fill:${c.surface2},stroke:${c.borderStrong},color:${c.textFaint};`)
+  lines.push(`  classDef skipped fill:${c.surface2},stroke:${c.border},color:${c.textFaint};`)
+  lines.push(`  classDef pending fill:#FFFFFF,stroke:${c.borderStrong},color:${c.textMuted};`)
 
   for (const n of ordered) {
     const key = keyOf.get(n.id)!
@@ -152,7 +178,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     let cancelled = false
     setRenderError('')
 
-    const markup = buildMermaid(data)
+    const markup = buildMermaid(data, resolveGraphColors())
 
     ;(async () => {
       try {

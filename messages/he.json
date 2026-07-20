@@ -591,7 +591,8 @@
         "recruitment": "גיוס",
         "acceptance": "קבלה",
         "admission": "קבלה"
-      }
+      },
+      "stage_waiting_hint": "השלב הזה יופעל אוטומטית לאחר סיום השלב הקודם — ואז תיווצר המשימה המתאימה (למשל \"בקשת מסמכים\")."
     },
     "card": {
       "tabs": {
@@ -1210,7 +1211,10 @@
       "not_marked": "טרם סומן",
       "cancelled": "בוטל",
       "location": "מיקום",
-      "no_time": "ללא שעה"
+      "no_time": "ללא שעה",
+      "jump_today": "להיום",
+      "yesterday": "אתמול",
+      "tomorrow": "מחר"
     },
     "lesson_notes": {
       "title": "הערות שיעור",
