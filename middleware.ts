@@ -13,32 +13,50 @@ const PROTECTED_MODULES = new Set([
   'quality_control',
 ])
 
-async function fetchAccessibleModules(roleCodes: string[]): Promise<string[]> {
+async function fetchAccessibleModules(roleCodes: string[], personId: string): Promise<string[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key || roleCodes.length === 0) return []
+  if (!url || !key) return []
 
   const headers = { apikey: key, Authorization: `Bearer ${key}` }
+  const set = new Set<string>()
 
-  // Get role IDs for the user's role codes
-  const quotedCodes = roleCodes.map(c => `"${c}"`).join(',')
-  const rolesRes = await fetch(
-    `${url}/rest/v1/roles?code=in.(${quotedCodes})&select=id`,
-    { headers }
-  )
-  if (!rolesRes.ok) return []
-  const roleRows = (await rolesRes.json()) as { id: string }[]
-  if (roleRows.length === 0) return []
+  // Role-based module access.
+  if (roleCodes.length > 0) {
+    const quotedCodes = roleCodes.map(c => `"${c}"`).join(',')
+    const rolesRes = await fetch(`${url}/rest/v1/roles?code=in.(${quotedCodes})&select=id`, { headers })
+    if (rolesRes.ok) {
+      const roleRows = (await rolesRes.json()) as { id: string }[]
+      if (roleRows.length > 0) {
+        const quotedIds = roleRows.map(r => `"${r.id}"`).join(',')
+        const privsRes = await fetch(
+          `${url}/rest/v1/role_privileges?role_id=in.(${quotedIds})&privilege_code=eq.access&select=module`,
+          { headers },
+        )
+        if (privsRes.ok) {
+          for (const p of (await privsRes.json()) as { module: string }[]) set.add(p.module)
+        }
+      }
+    }
+  }
 
-  // Get modules where privilege_code = 'access'
-  const quotedIds = roleRows.map(r => `"${r.id}"`).join(',')
-  const privsRes = await fetch(
-    `${url}/rest/v1/role_privileges?role_id=in.(${quotedIds})&privilege_code=eq.access&select=module`,
-    { headers }
-  )
-  if (!privsRes.ok) return []
-  const privs = (await privsRes.json()) as { module: string }[]
-  return [...new Set(privs.map(p => p.module))]
+  // Персональные оверрайды доступа к модулю (grant/deny) поверх ролей — как в
+  // /api/auth/me. Устойчиво к отсутствию таблицы (просто нет оверрайдов).
+  try {
+    const pRes = await fetch(
+      `${url}/rest/v1/person_privileges?person_id=eq.${personId}&privilege_code=eq.access&select=module,is_granted,expires_at`,
+      { headers },
+    )
+    if (pRes.ok) {
+      const now = Date.now()
+      for (const r of (await pRes.json()) as { module: string; is_granted: boolean; expires_at: string | null }[]) {
+        if (r.expires_at && new Date(r.expires_at).getTime() <= now) continue
+        if (r.is_granted) set.add(r.module); else set.delete(r.module)
+      }
+    }
+  } catch { /* нет таблицы — оставляем ролевой список */ }
+
+  return [...set]
 }
 
 export async function middleware(request: NextRequest) {
@@ -92,7 +110,7 @@ export async function middleware(request: NextRequest) {
 
     if (moduleCode && PROTECTED_MODULES.has(moduleCode) && !pathname.startsWith('/api/')) {
       if (!session.roles.includes('superadmin')) {
-        const accessible = await fetchAccessibleModules(session.roles)
+        const accessible = await fetchAccessibleModules(session.roles, session.person_id)
         if (!accessible.includes(moduleCode)) {
           return NextResponse.redirect(new URL('/dashboard', request.url))
         }

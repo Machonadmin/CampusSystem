@@ -3,7 +3,8 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
-import { reduceScopes, type Scope } from '@/lib/permissions/scope'
+import { reduceScopes, applyPersonGrants, type Scope } from '@/lib/permissions/scope'
+import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 //
@@ -85,7 +86,11 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const privileges = await loadPrivileges(session.roles)
+  const [rolePrivileges, personGrants] = await Promise.all([
+    loadPrivileges(session.roles),
+    loadPersonModuleGrants('sponsors', session.person_id),
+  ])
+  const privileges = applyPersonGrants<SponsorsPrivilege>(rolePrivileges, personGrants)
   setCached(session.person_id, privileges)
   return { privileges, expiresAt: Date.now() + CACHE_TTL_MS }
 }
@@ -102,6 +107,7 @@ export async function hasSponsorsPrivilege(
   privilege: SponsorsPrivilege,
 ): Promise<boolean> {
   if (!session) return false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
   if (!scope) return false
@@ -116,6 +122,7 @@ export async function getSponsorsPrivilegeScope(
   privilege: SponsorsPrivilege,
 ): Promise<Scope | null> {
   if (!session) return null
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return 'all'
   const access = await getUserAccess(session)
   return access.privileges[privilege] ?? null
 }

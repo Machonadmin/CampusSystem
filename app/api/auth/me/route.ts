@@ -71,6 +71,23 @@ export async function GET() {
         }
       }
     }
+
+    // Персональные оверрайды доступа к МОДУЛЮ (grant/deny) поверх ролей —
+    // платформенно, как в модульных permissions.ts. Работают и без ролей.
+    try {
+      const { data: pAccess } = await sb
+        .from('person_privileges')
+        .select('module, is_granted, expires_at')
+        .eq('person_id', session.person_id)
+        .eq('privilege_code', 'access')
+      const nowMs = Date.now()
+      const set = new Set(accessible_modules)
+      for (const r of (pAccess ?? []) as Array<{ module: string; is_granted: boolean; expires_at: string | null }>) {
+        if (r.expires_at && new Date(r.expires_at).getTime() <= nowMs) continue
+        if (r.is_granted) set.add(r.module); else set.delete(r.module)
+      }
+      accessible_modules = [...set]
+    } catch { /* нет таблицы — оставляем ролевой список */ }
   }
 
   return NextResponse.json({

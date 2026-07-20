@@ -216,6 +216,8 @@ export async function hasEducationPrivilege(
   target?: PrivilegeTarget,
 ): Promise<boolean> {
   if (!session) return false
+  // superadmin (штатный, НЕ студенческий principal — портальная изоляция) — всё.
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
 
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
@@ -238,6 +240,7 @@ export async function canDoEducationInAny(
   privilege: EducationPrivilege,
 ): Promise<boolean> {
   if (!session) return false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
 
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
@@ -259,6 +262,7 @@ export async function getEducationPrivilegeScope(
   privilege: EducationPrivilege,
 ): Promise<Scope | null> {
   if (!session) return null
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return 'all'
   const access = await getUserAccess(session)
   return access.privileges[privilege] ?? null
 }
