@@ -1459,6 +1459,26 @@
       "copy": "Copy",
       "copied": "Copied",
       "error": "Error"
+    },
+    "semesters": {
+      "title": "Semesters",
+      "subtitle": "Open an academic semester. Price, students and debt are managed in Finance.",
+      "open_semester": "Open semester",
+      "f_year": "Year",
+      "f_year_ph": "5787",
+      "f_term": "Term number",
+      "f_name": "Name (optional)",
+      "f_name_ph": "Semester 1 5787",
+      "empty": "No semesters opened yet",
+      "term_n": "Term {n}",
+      "status_open": "Open",
+      "status_closed": "Closed",
+      "close": "Close semester",
+      "reopen": "Reopen",
+      "hint": "Opening a semester here creates it; in Finance you assign students and set the price.",
+      "forbidden": "You don't have permission to manage semesters",
+      "load_failed": "Failed to load semesters",
+      "save_failed": "Failed to save"
     }
   },
   "tasks": {
@@ -2349,7 +2369,9 @@
       "no_enrollments": "No students assigned",
       "unenroll": "Remove",
       "unenroll_confirm": "Remove assignment and cancel the charge?",
-      "charge_cancelled": "Charge cancelled"
+      "charge_cancelled": "Charge cancelled",
+      "empty_finance": "No semesters. They are opened in Studies.",
+      "opened_in_studies": "Semesters are opened in the Studies module. Here you set the price, assign students and see debt."
     },
     "bulk": {
       "select": "Select",

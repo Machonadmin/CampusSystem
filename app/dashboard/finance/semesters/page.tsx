@@ -21,25 +21,21 @@ function fmtMoney(n: number) {
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
+/**
+ * Финансовый вид семестров: цена, привязка студенток и долг. Семестры
+ * ОТКРЫВАЮТ в «Учёбе» (решение владельца) — здесь их только показываем и
+ * ведём денежную часть. Открытия/закрытия отсюда нет.
+ */
 export default function SemestersPage() {
   const t = useTranslations('finance.semesters')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
 
   const [semesters, setSemesters] = useState<Semester[]>([])
-  const [defaultPrice, setDefaultPrice] = useState(210000)
   const [canManage, setCanManage] = useState(false)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [manageSem, setManageSem] = useState<Semester | null>(null)
-
-  // create form
-  const [creating, setCreating] = useState(false)
-  const [fYear, setFYear] = useState('')
-  const [fTerm, setFTerm] = useState('')
-  const [fName, setFName] = useState('')
-  const [fPrice, setFPrice] = useState('')
-  const [saving, setSaving] = useState(false)
 
   const primary = getModuleColor('finance', 'primary')
 
@@ -51,31 +47,10 @@ export default function SemestersPage() {
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('load_failed')); return }
       const b = await res.json()
       setSemesters(b.semesters ?? [])
-      setDefaultPrice(b.default_price ?? 210000)
       setCanManage(!!b.can_manage)
     } catch { setErr(t('load_failed')) } finally { setLoading(false) }
   }, [t])
   useEffect(() => { load() }, [load])
-
-  async function createSemester() {
-    if (!fYear.trim() || !fTerm.trim()) return
-    setSaving(true)
-    try {
-      const res = await fetch('/api/finance/semesters', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          year_label: fYear.trim(),
-          term_number: Number(fTerm),
-          name: fName.trim() || null,
-          price: fPrice.trim() ? Number(fPrice) : undefined,
-        }),
-      })
-      const b = await res.json().catch(() => ({}))
-      if (!res.ok) { toast(b.error ?? t('save_failed'), 'error'); return }
-      setCreating(false); setFYear(''); setFTerm(''); setFName(''); setFPrice('')
-      await load()
-    } catch { toast(t('save_failed'), 'error') } finally { setSaving(false) }
-  }
 
   async function updatePrice(s: Semester, value: string) {
     const price = Number(value)
@@ -85,15 +60,6 @@ export default function SemestersPage() {
     })
     if (!res.ok) { const b = await res.json().catch(() => ({})); toast(b.error ?? t('save_failed'), 'error'); return }
     setSemesters(prev => prev.map(x => x.id === s.id ? { ...x, price } : x))
-  }
-
-  async function toggleStatus(s: Semester) {
-    const status = s.status === 'open' ? 'closed' : 'open'
-    const res = await fetch(`/api/finance/semesters/${s.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
-    })
-    if (!res.ok) { const b = await res.json().catch(() => ({})); toast(b.error ?? t('save_failed'), 'error'); return }
-    setSemesters(prev => prev.map(x => x.id === s.id ? { ...x, status } : x))
   }
 
   const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
@@ -106,34 +72,17 @@ export default function SemestersPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('finance'), borderRadius: 12, padding: '16px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
-        </div>
-        {canManage && (
-          <button onClick={() => setCreating(v => !v)} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer' }}>
-            {creating ? tCommon('cancel') : t('add')}
-          </button>
-        )}
+      <div style={{ background: getModuleHeaderGradient('finance'), borderRadius: 12, padding: '16px 24px', color: '#fff' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
+        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
       </div>
-
-      {creating && canManage && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap', padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
-          <Field label={t('f_year')}><input style={{ ...inp, width: 110 }} value={fYear} onChange={e => setFYear(e.target.value)} placeholder="2026" /></Field>
-          <Field label={t('f_term')}><input style={{ ...inp, width: 90 }} type="number" min="1" value={fTerm} onChange={e => setFTerm(e.target.value)} placeholder="1" /></Field>
-          <Field label={t('f_name')}><input style={{ ...inp, width: 180 }} value={fName} onChange={e => setFName(e.target.value)} placeholder={t('f_name_ph')} /></Field>
-          <Field label={t('f_price')}><input style={{ ...inp, width: 140 }} type="number" min="0" value={fPrice} onChange={e => setFPrice(e.target.value)} placeholder={fmtMoney(defaultPrice)} /></Field>
-          <button onClick={createSemester} disabled={saving || !fYear.trim() || !fTerm.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving || !fYear.trim() || !fTerm.trim() ? 0.6 : 1 }}>{tCommon('save')}</button>
-        </div>
-      )}
 
       {err && <div style={{ fontSize: 13, color: '#DC2626' }}>{err}</div>}
 
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : semesters.length === 0 ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('empty')}</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('empty_finance')}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
           {semesters.map(s => (
@@ -160,15 +109,12 @@ export default function SemestersPage() {
               </div>
 
               {canManage && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                <div style={{ marginTop: 14 }}>
                   <button
                     onClick={() => setManageSem(s)}
-                    style={{ flex: 1, fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: 'pointer' }}
+                    style={{ width: '100%', fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: 'pointer' }}
                   >
                     {t('manage_students')}
-                  </button>
-                  <button onClick={() => toggleStatus(s)} style={{ fontSize: 12.5, fontWeight: 600, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
-                    {s.status === 'open' ? t('close') : t('reopen')}
                   </button>
                 </div>
               )}
@@ -178,7 +124,7 @@ export default function SemestersPage() {
       )}
 
       {canManage && (
-        <div style={{ fontSize: 12, color: 'var(--text-faint)', lineHeight: 1.6 }}>{t('manage_hint')}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)', lineHeight: 1.6 }}>{t('opened_in_studies')}</div>
       )}
 
       {manageSem && (
@@ -189,14 +135,5 @@ export default function SemestersPage() {
         />
       )}
     </div>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</span>
-      {children}
-    </label>
   )
 }

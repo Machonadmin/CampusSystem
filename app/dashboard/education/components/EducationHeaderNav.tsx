@@ -42,6 +42,7 @@ export default function EducationHeaderNav() {
   const management: NavLink[] = [
     { href: '/dashboard/education/units', label: t('units.title') },
     { href: '/dashboard/education/structure', label: t('structure.title') },
+    { href: '/dashboard/education/semesters', label: t('semesters.title') },
     { href: '/dashboard/education/track-assignment', label: t('track_assign.title') },
     { href: '/dashboard/education/kodesh', label: t('kodesh.nav') },
     { href: '/dashboard/education/communities', label: t('communities.nav') },
