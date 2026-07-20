@@ -591,7 +591,8 @@
         "recruitment": "Recruitment",
         "acceptance": "Acceptance",
         "admission": "Admission"
-      }
+      },
+      "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then."
     },
     "card": {
       "tabs": {
@@ -1210,7 +1211,10 @@
       "not_marked": "Not marked yet",
       "cancelled": "Cancelled",
       "location": "Location",
-      "no_time": "No time"
+      "no_time": "No time",
+      "jump_today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow"
     },
     "lesson_notes": {
       "title": "Lesson notes",

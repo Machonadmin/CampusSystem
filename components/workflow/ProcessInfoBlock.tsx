@@ -592,7 +592,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   )}
 
                   {stageDetail.tasks.length === 0 && stageDetail.stage_template?.has_tasks && (
-                    <div style={{ fontSize: 13, color: 'var(--text-faint)', marginBottom: 16 }}>{t('process.no_tasks_created')}</div>
+                    stageDetail.status === 'waiting' ? (
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, padding: '10px 12px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, lineHeight: 1.5 }}>
+                        {t('process.stage_waiting_hint')}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 13, color: 'var(--text-faint)', marginBottom: 16 }}>{t('process.no_tasks_created')}</div>
+                    )
                   )}
 
                   {stageDetail.status === 'active' && stageDetail.finals.length > 0 && stageDetail.can_manage && (
