@@ -608,7 +608,9 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {stageDetail.finals
-                          .filter(final => final.code !== 'convert_to_applicant' || stageDetail.can_convert)
+                          // Конверсию лид→кандидат отдаём ЕДИНОЙ кнопке HandoffButton
+                          // (одна направляющая CTA), поэтому здесь её не дублируем.
+                          .filter(final => final.code !== 'convert_to_applicant')
                           .map(final => {
                             const colors = finalButtonColors(final.code, final.is_positive)
                             return (
