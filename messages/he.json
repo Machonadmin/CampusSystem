@@ -784,7 +784,8 @@
         "specialties": "התמחויות",
         "study_groups": "קבוצות בסיס",
         "students": "סטודנטים",
-        "class_groups": "קבוצות לימוד"
+        "class_groups": "קבוצות לימוד",
+        "semester_groups": "סמסטרים"
       },
       "common": {
         "all_departments": "כל המחלקות",
@@ -987,6 +988,36 @@
         "status_on_leave": "חופשת לימודים",
         "status_graduated": "בוגר",
         "status_expelled": "הורחק"
+      },
+      "semester_groups": {
+        "modal_create_title": "סמסטר חדש",
+        "modal_edit_title": "עריכת סמסטר",
+        "name_placeholder": "סמסטר א׳ תשפ״ה",
+        "year_label": "שנה",
+        "year_placeholder": "תשפ״ה",
+        "term_label": "מספר סמסטר",
+        "track_label": "מסלול",
+        "track_placeholder": "— בחר מסלול —",
+        "teachers_label": "מורים",
+        "teacher_placeholder": "בחר או צור מורה…",
+        "monthly_pay_placeholder": "לחודש",
+        "monthly_pay_hint": "תשלום חודשי למורה (₪ לחודש)",
+        "primary_short": "ראשי",
+        "add_teacher_button": "+ הוסף מורה",
+        "students_label": "סטודנטיות",
+        "students_search_placeholder": "חיפוש לפי שם…",
+        "no_students_found": "לא נמצאו סטודנטיות",
+        "tuition_label": "שכר לימוד לסמסטר",
+        "period_label": "תקופה",
+        "add_button": "סמסטר חדש",
+        "empty_none": "אין עדיין סמסטרים",
+        "table_name": "שם",
+        "table_track": "מסלול",
+        "table_department": "מחלקה",
+        "table_teachers": "מורים",
+        "table_students": "סטודנטיות",
+        "table_tuition": "שכר לימוד",
+        "table_actions": "פעולות"
       }
     },
     "docs_error": "שגיאה",

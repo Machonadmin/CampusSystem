@@ -784,7 +784,8 @@
         "specialties": "Specialties",
         "study_groups": "Study groups",
         "students": "Students",
-        "class_groups": "Class groups"
+        "class_groups": "Class groups",
+        "semester_groups": "Semesters"
       },
       "common": {
         "all_departments": "All Departments",
@@ -987,6 +988,36 @@
         "status_on_leave": "On Leave",
         "status_graduated": "Graduate",
         "status_expelled": "Expelled"
+      },
+      "semester_groups": {
+        "modal_create_title": "New semester",
+        "modal_edit_title": "Edit semester",
+        "name_placeholder": "Semester A 5785",
+        "year_label": "Year",
+        "year_placeholder": "5785",
+        "term_label": "Term number",
+        "track_label": "Track",
+        "track_placeholder": "— select a track —",
+        "teachers_label": "Teachers",
+        "teacher_placeholder": "Select or create a teacher…",
+        "monthly_pay_placeholder": "per month",
+        "monthly_pay_hint": "Monthly pay to the teacher (₪ per month)",
+        "primary_short": "Primary",
+        "add_teacher_button": "+ Add teacher",
+        "students_label": "Students",
+        "students_search_placeholder": "Search by name…",
+        "no_students_found": "No students found",
+        "tuition_label": "Semester tuition",
+        "period_label": "Period",
+        "add_button": "New semester",
+        "empty_none": "No semesters yet",
+        "table_name": "Name",
+        "table_track": "Track",
+        "table_department": "Department",
+        "table_teachers": "Teachers",
+        "table_students": "Students",
+        "table_tuition": "Tuition",
+        "table_actions": "Actions"
       }
     },
     "docs_error": "Error",
