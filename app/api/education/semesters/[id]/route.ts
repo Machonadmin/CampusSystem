@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { getEducationPrivilegeScope } from '@/lib/education/permissions'
 
 /**
  * PATCH /api/education/semesters/[id] — переименовать / открыть-закрыть семестр
@@ -18,7 +18,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin') || await hasEducationPrivilege(session, 'manage_class_groups')
+    // Институтский объект → только scope='all' или superadmin (см. route.ts).
+    const allowed = session.roles.includes('superadmin')
+      || (await getEducationPrivilegeScope(session, 'manage_class_groups')) === 'all'
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { name?: string; status?: string }

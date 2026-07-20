@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { getEducationPrivilegeScope } from '@/lib/education/permissions'
 
 /**
  * Семестры — АКАДЕМИЧЕСКОЕ действие (решение владельца: семестр «открывают» в
@@ -19,10 +19,13 @@ function sem(sb: ReturnType<typeof createServerClient>) {
   return (sb as unknown as SupabaseClient).from('semesters')
 }
 
+// Семестры — институтский объект: управлять может только тот, у кого управление
+// учебной структурой на уровне ВСЕГО института (scope='all'), либо superadmin.
+// Так департамент-скоуп (напр. dept_head) не трогает глобальные семестры.
 async function canManage(session: Awaited<ReturnType<typeof getSession>>): Promise<boolean> {
   if (!session) return false
   if (session.roles.includes('superadmin')) return true
-  return hasEducationPrivilege(session, 'manage_class_groups')
+  return (await getEducationPrivilegeScope(session, 'manage_class_groups')) === 'all'
 }
 
 export async function GET() {
