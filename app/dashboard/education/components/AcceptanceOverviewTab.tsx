@@ -238,18 +238,15 @@ export default function AcceptanceOverviewTab() {
             )}
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {modal.cell.finals.map(f => {
-                const admitBlocked = modal.cell.stage_code === 'final_approval' && modal.medicalPending
-                  && (f.code === 'admitted' || f.code === 'admitted_conditional')
-                return (
+              {/* По решению владельца приём НЕ блокируется незакрытым мед.этапом —
+                  показываем лишь предупреждение выше, но кнопки активны всегда. */}
+              {modal.cell.finals.map(f => (
                 <button
                   key={f.id}
-                  disabled={admitBlocked}
-                  onClick={() => { if (!admitBlocked) setSelectedFinal(f.code) }}
-                  title={admitBlocked ? t('overview.medical_pending_warn') : undefined}
+                  onClick={() => setSelectedFinal(f.code)}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-                    cursor: admitBlocked ? 'not-allowed' : 'pointer', opacity: admitBlocked ? 0.45 : 1,
+                    cursor: 'pointer',
                     border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
                     background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
                     color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
@@ -257,8 +254,7 @@ export default function AcceptanceOverviewTab() {
                 >
                   {t(`acceptance_finals.${f.code}`, f.name_ru)}
                 </button>
-                )
-              })}
+              ))}
             </div>
 
             {showTrackPicker && tracks.length > 0 && (
