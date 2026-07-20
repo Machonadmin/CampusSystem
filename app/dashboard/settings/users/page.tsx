@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import PersonPrivilegesModal from './PersonPrivilegesModal'
 
 interface Role {
   id: string
@@ -589,6 +590,7 @@ export default function UsersPage() {
   const tCat = useTranslations('settings.categories')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('navigation')
+  const tPriv = useTranslations('settings.person_privileges')
 
   const [users, setUsers] = useState<UserRow[]>([])
   const [allRoles, setAllRoles] = useState<Role[]>([])
@@ -596,6 +598,7 @@ export default function UsersPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
+  const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
   const [editTarget, setEditTarget] = useState<UserRow | null>(null)
   const [addOpen, setAddOpen] = useState(false)
 
@@ -728,6 +731,12 @@ export default function UsersPage() {
                       >
                         {t('manage_roles_button')}
                       </button>
+                      <button
+                        onClick={() => setPrivTarget(user)}
+                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
+                      >
+                        {tPriv('button')}
+                      </button>
                       {!user.roles.some(r => r.code === 'superadmin') && (
                         <button
                           onClick={() => toggleActive(user)}
@@ -754,6 +763,9 @@ export default function UsersPage() {
       )}
       {rolesTarget && (
         <RolesModal user={rolesTarget} allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setRolesTarget(null)} onSaved={load} />
+      )}
+      {privTarget && (
+        <PersonPrivilegesModal user={privTarget} t={tPriv} tCommon={tCommon} onClose={() => setPrivTarget(null)} />
       )}
       {addOpen && (
         <AddUserModal allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setAddOpen(false)} onSaved={load} />

@@ -2266,6 +2266,20 @@
       "to_stage_required": "Target stage is required",
       "cannot_delete_substage_active": "Cannot delete: the stage has active instances",
       "cannot_delete_final_used": "Cannot delete: the final is in use"
+    },
+    "person_privileges": {
+      "title": "Personal privileges",
+      "subtitle": "Grant or deny specific privileges to a person on top of their roles",
+      "button": "Personal privileges",
+      "inherit": "Inherit",
+      "grant": "Grant",
+      "deny": "Deny",
+      "save": "Save",
+      "saved": "Privileges saved",
+      "error": "Failed to save privileges",
+      "empty": "No privileges available",
+      "hint": "Overrides on top of roles. Inherit = follows roles.",
+      "loading": "Loading…"
     }
   },
   "events": {
