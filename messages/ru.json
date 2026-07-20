@@ -2602,6 +2602,7 @@
       "rates_saved": "Тарифы сохранены",
       "rates_save_error": "Не удалось сохранить тарифы",
       "generate_teaching": "Сгенерировать часы преподавания",
+      "generate_monthly": "Начислить месячную оплату",
       "generate_result": "Создано: {created}, пропущено: {skipped}",
       "generate_error": "Не удалось сгенерировать часы",
       "summary_title": "Расчётный лист",
@@ -2636,6 +2637,7 @@
         "chavruta_plus": "Хаврута плюс",
         "shabbat_host": "Шабат у сотрудника",
         "shabbat_family": "Шабат с семьёй",
+        "monthly": "Месячная оплата",
         "other": "Прочее"
       },
       "cp_title": "Хеврута-плюс — менторство",

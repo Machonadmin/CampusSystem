@@ -2602,6 +2602,7 @@
       "rates_saved": "התעריפים נשמרו",
       "rates_save_error": "שמירת התעריפים נכשלה",
       "generate_teaching": "הפקת שעות הוראה",
+      "generate_monthly": "הפקת תשלום חודשי",
       "generate_result": "נוצרו: {created}, דולגו: {skipped}",
       "generate_error": "הפקת השעות נכשלה",
       "summary_title": "תלוש שכר",
@@ -2636,6 +2637,7 @@
         "chavruta_plus": "חברותא פלוס",
         "shabbat_host": "שבת אצל העובד",
         "shabbat_family": "שבת עם המשפחה",
+        "monthly": "תשלום חודשי",
         "other": "אחר"
       },
       "cp_title": "חברותא פלוס — מנטורינג",

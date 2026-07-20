@@ -2602,6 +2602,7 @@
       "rates_saved": "Rates saved",
       "rates_save_error": "Failed to save rates",
       "generate_teaching": "Generate teaching hours",
+      "generate_monthly": "Generate monthly pay",
       "generate_result": "Created: {created}, skipped: {skipped}",
       "generate_error": "Failed to generate hours",
       "summary_title": "Payslip",
@@ -2636,6 +2637,7 @@
         "chavruta_plus": "Chavruta plus",
         "shabbat_host": "Shabbat at staff home",
         "shabbat_family": "Shabbat with family",
+        "monthly": "Monthly pay",
         "other": "Other"
       },
       "cp_title": "Chavruta Plus — mentorship",
