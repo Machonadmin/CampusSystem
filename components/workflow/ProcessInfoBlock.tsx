@@ -98,6 +98,11 @@ interface Props {
 
 // ── Stateless style helpers (no translations needed) ──────────────────────────
 
+// Успешное закрытие приёма движок кодирует как process 'cancelled' + finish_reason
+// 'admitted'/'admitted_conditional' (ветка A). Для пользователя это «Принята», а не
+// «Отменён» — показываем зелёным с ярлыком финала, чтобы не пугало «בוטל».
+const POSITIVE_CLOSE_REASONS = new Set(['admitted', 'admitted_conditional'])
+
 function processStatusStyle(status: string): React.CSSProperties {
   if (status === 'active') return { background: '#D1FAE5', color: '#065F46' }
   if (status === 'completed') return { background: 'var(--border)', color: 'var(--text)' }
@@ -392,9 +397,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               </span>
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
-                ...processStatusStyle(proc.status),
+                ...(proc.status === 'cancelled' && proc.finish_reason && POSITIVE_CLOSE_REASONS.has(proc.finish_reason)
+                  ? { background: '#D1FAE5', color: '#065F46' }
+                  : processStatusStyle(proc.status)),
               }}>
-                {processStatusLabel(proc.status)}
+                {proc.status === 'cancelled' && proc.finish_reason && POSITIVE_CLOSE_REASONS.has(proc.finish_reason)
+                  ? t(`process.finals.${proc.finish_reason}`, proc.finish_reason)
+                  : processStatusLabel(proc.status)}
               </span>
               <button
                 onClick={() => setGraphProcessId(proc.id)}
