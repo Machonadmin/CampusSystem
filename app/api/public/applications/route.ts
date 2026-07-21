@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { serverT } from '@/lib/i18n/api-errors'
 import { rateLimit, clientIp } from '@/lib/public/rate-limit'
+import { getPublicFormConfig } from '@/lib/public/form-config'
 
 /** Служебный «актёр» публичной формы (см. 20260703150000_*.sql). */
 const SYSTEM_PERSON_ID = 'ffffffff-0000-4000-8000-000000000001'
@@ -35,6 +36,8 @@ const publicApplicationSchema = z.object({
   // Кто подаёт: сама абитуриентка / родитель / представитель.
   applicant_type: z.enum(['student', 'parent', 'representative']).optional(),
   comment: z.string().trim().max(2000).optional().or(z.literal('')),
+  // Ответы на кастомные поля, добавленные набором: { <fieldKey>: <answer> }.
+  custom: z.record(z.string(), z.string().max(2000)).optional(),
   // honeypot: реальные пользователи оставляют пустым
   website: z.string().max(0).optional().or(z.literal('')),
 })
@@ -63,7 +66,27 @@ export async function POST(request: NextRequest) {
     // Тип подающего кодируем в referral_source (машиночитаемо) и в comment лида.
     const applicantType = body.applicant_type ?? 'student'
     const referralSource = applicantType === 'student' ? 'public_form' : `public_form_${applicantType}`
-    const comment = body.comment?.trim() || null
+
+    // Кастомные поля (добавленные набором): проверяем обязательные и сворачиваем
+    // ответы в комментарий лида — чтобы рекрутёр видел их прямо в карточке/задаче
+    // (отдельная колонка не нужна). Метка — на иврите с запасными языками.
+    const cfg = await getPublicFormConfig()
+    const custom = body.custom ?? {}
+    const missing: string[] = []
+    const answerLines: string[] = []
+    for (const f of cfg.customFields) {
+      if (!f.visible) continue
+      const label = f.label.he || f.label.ru || f.label.en || f.key
+      const ans = (custom[f.key] ?? '').trim()
+      if (f.required && !ans) { missing.push(label); continue }
+      if (ans) answerLines.push(`${label}: ${ans}`)
+    }
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `${serverT('required_fields')}: ${missing.join(', ')}` }, { status: 400 })
+    }
+
+    const baseComment = body.comment?.trim() || ''
+    const comment = [baseComment, answerLines.join('\n')].filter(Boolean).join('\n\n') || null
 
     // 3. Создание заявки — атомарно, всегда новая запись (person_id не передаём)
     const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', {

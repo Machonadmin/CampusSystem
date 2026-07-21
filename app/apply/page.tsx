@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
-import type { PublicFormConfig, BuiltinFieldKey } from '@/lib/public/form-config'
+import type { PublicFormConfig, BuiltinFieldKey, CustomField } from '@/lib/public/form-config'
 
 // Публичная посадочная страница + форма подачи заявки. НЕ под middleware
 // (matcher не покрывает /apply) → доступна без входа. Собственный «бренд»-стиль
@@ -123,6 +123,7 @@ export default function ApplyPage() {
     birth_date: '', city: '', direction_id: '', website: '',
     applicant_type: 'student', comment: '',
   })
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
@@ -154,6 +155,13 @@ export default function ApplyPage() {
     ? programs.filter(p => config.directions.ids.includes(p.id))
     : programs
 
+  // Метка кастомного поля на языке страницы (с запасными вариантами).
+  function customLabel(f: CustomField): string {
+    const l = f.label as Record<string, string>
+    return l[lang] || l.he || l.ru || l.en || ''
+  }
+  const customFields = (config?.customFields ?? []).filter(f => f.visible)
+
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
@@ -169,7 +177,7 @@ export default function ApplyPage() {
       const res = await fetch('/api/public/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, custom: customAnswers }),
       })
       if (res.ok) {
         setDone(true)
@@ -401,6 +409,27 @@ export default function ApplyPage() {
                     placeholder={t('comment_placeholder')} rows={3} required={fld('comment').required} />
                 </div>
               )}
+
+              {/* Кастомные поля, добавленные набором */}
+              {customFields.map(f => {
+                const val = customAnswers[f.key] ?? ''
+                const onChange = (v: string) => setCustomAnswers(a => ({ ...a, [f.key]: v }))
+                return (
+                  <div key={f.key} className="ap-field">
+                    <label>{customLabel(f)}{f.required && <span className="ap-req"> *</span>}</label>
+                    {f.type === 'textarea' ? (
+                      <textarea value={val} onChange={e => onChange(e.target.value)} rows={3} required={f.required} />
+                    ) : f.type === 'select' ? (
+                      <select value={val} onChange={e => onChange(e.target.value)} required={f.required}>
+                        <option value="">{t('program_placeholder')}</option>
+                        {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    ) : (
+                      <input value={val} onChange={e => onChange(e.target.value)} required={f.required} />
+                    )}
+                  </div>
+                )
+              })}
 
               <button className="ap-submit" type="submit" disabled={submitting}>
                 {submitting ? t('submitting') : t('submit')}

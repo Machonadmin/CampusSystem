@@ -5,7 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
-import type { PublicFormConfig, BuiltinFieldKey } from '@/lib/public/form-config'
+import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
 
 interface Program { id: string; name: string; institution_name: string | null }
 
@@ -108,6 +108,34 @@ export default function RecruitmentFormSettingsPage() {
       else delete texts[lang]
       return { ...prev, texts }
     })
+  }
+
+  // ── Кастомные поля ──
+  function nextCustomKey(): string {
+    const nums = (cfg?.customFields ?? []).map(f => Number(/^c(\d+)$/.exec(f.key)?.[1] ?? '0'))
+    return `c${Math.max(0, ...nums) + 1}`
+  }
+  function addCustom() {
+    setCfg(prev => prev ? {
+      ...prev,
+      customFields: [...prev.customFields, {
+        key: nextCustomKey(), type: 'text', label: { he: '', ru: '', en: '' }, options: [], required: false, visible: true,
+      }],
+    } : prev)
+  }
+  function updateCustom(key: string, patch: Partial<CustomField>) {
+    setCfg(prev => prev ? { ...prev, customFields: prev.customFields.map(f => f.key === key ? { ...f, ...patch } : f) } : prev)
+  }
+  function setCustomLabel(key: string, value: string) {
+    setCfg(prev => prev ? {
+      ...prev,
+      customFields: prev.customFields.map(f => f.key === key
+        ? { ...f, label: { ...f.label, [lang]: value } as { he: string; ru: string; en: string } }
+        : f),
+    } : prev)
+  }
+  function removeCustom(key: string) {
+    setCfg(prev => prev ? { ...prev, customFields: prev.customFields.filter(f => f.key !== key) } : prev)
   }
 
   async function save() {
@@ -231,6 +259,48 @@ export default function RecruitmentFormSettingsPage() {
                 )
               })}
             </div>
+          </section>
+
+          {/* ── Кастомные поля ── */}
+          <section style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <h2 style={sectionTitle}>{t('section_custom')}</h2>
+              <button onClick={addCustom} style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 12px', border: `1px solid ${accent}`, borderRadius: 8, background: 'var(--surface)', color: accent, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                {t('custom_add')}
+              </button>
+            </div>
+            <p style={sectionNote}>{t('section_custom_note')}</p>
+            {cfg.customFields.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('custom_empty')}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {cfg.customFields.map(f => (
+                  <div key={f.key} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input value={(f.label as Record<string, string>)[lang] ?? ''} placeholder={t('custom_label')}
+                        onChange={e => setCustomLabel(f.key, e.target.value)} style={{ ...textInput, flex: '1 1 220px' }} />
+                      <select value={f.type} onChange={e => updateCustom(f.key, { type: e.target.value as CustomFieldType })} style={{ ...textInput, width: 'auto' }}>
+                        <option value="text">{t('type_text')}</option>
+                        <option value="textarea">{t('type_textarea')}</option>
+                        <option value="select">{t('type_select')}</option>
+                      </select>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, whiteSpace: 'nowrap', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={f.required} onChange={e => updateCustom(f.key, { required: e.target.checked })} />
+                        {t('custom_required')}
+                      </label>
+                      <button onClick={() => removeCustom(f.key)} style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 12px', border: '1px solid var(--danger)', borderRadius: 8, background: 'var(--surface)', color: 'var(--danger)', cursor: 'pointer' }}>
+                        {t('custom_remove')}
+                      </button>
+                    </div>
+                    {f.type === 'select' && (
+                      <input value={f.options.join(', ')} placeholder={t('custom_options')}
+                        onChange={e => updateCustom(f.key, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                        style={textInput} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
