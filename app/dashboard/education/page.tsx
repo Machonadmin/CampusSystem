@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -12,7 +12,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import PendingSignatures from '@/components/workflow/PendingSignatures'
 import { downloadCsv } from '@/lib/csv'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,6 +82,7 @@ export default function EducationPage() {
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
 
   const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>('recruitment')
   // Какие вкладки вправе видеть пользователь (null = ещё грузим). «Каждый видит только своё».
@@ -118,6 +119,7 @@ export default function EducationPage() {
 
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
+  const [expandedApplicantId, setExpandedApplicantId] = useState<string | null>(null)  // прогрессивное раскрытие строки абитуриента
 
   // «Приём» и «Комиссия» объединены владельцем в один раздел «קבלה» (это и есть
   // доска приёмной комиссии). Три раздела: набор / приём / учёба.
@@ -614,11 +616,7 @@ export default function EducationPage() {
                 <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                   {[
                     t('applicants.table.full_name'),
-                    t('applicants.table.application_date'),
                     t('applicants.table.phone'),
-                    t('applicants.table.email'),
-                    t('applicants.table.institution'),
-                    t('applicants.table.direction'),
                     t('applicants.table.status'),
                     t('applicants.table.current_stage'),
                   ].map(h => (
@@ -636,67 +634,73 @@ export default function EducationPage() {
                   const direction = interestTexts.length > 0
                     ? interestTexts.join(', ')
                     : (app.desired_specialty?.name ?? app.desired_department?.name ?? '—')
+                  const open = expandedApplicantId === app.id
                   return (
-                    <tr key={app.id} style={{ borderBottom: '1px solid var(--surface-2)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
-
-                      <td style={{ padding: '11px 14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#6D28D9', flexShrink: 0 }}>
-                            {initials(fullName)}
+                    <Fragment key={app.id}>
+                      <tr
+                        onClick={() => setExpandedApplicantId(open ? null : app.id)}
+                        style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={{ padding: '11px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)`, flexShrink: 0 }}>▶</span>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--violet-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: 'var(--violet)', flexShrink: 0 }}>
+                              {initials(fullName)}
+                            </div>
+                            <span
+                              onClick={e => { e.stopPropagation(); router.push(`/dashboard/education/leads/${app.id}`) }}
+                              style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent-strong)', cursor: 'pointer' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
+                            >
+                              {fullName}
+                            </span>
                           </div>
-                          <span
-                            onClick={() => router.push(`/dashboard/education/leads/${app.id}`)}
-                            style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent-strong)', cursor: 'pointer' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
-                          >
-                            {fullName}
+                        </td>
+                        <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                          {phones[0] ?? '—'}
+                        </td>
+                        <td style={{ padding: '11px 14px' }}>
+                          <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: 'var(--violet-tint)', color: 'var(--violet)', fontWeight: 500 }}>
+                            {t('applicants.status_label')}
                           </span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                        {formatDate(app.application_date)}
-                      </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>
-                        {phones[0] ?? '—'}
-                      </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
-                        {app.person?.email ?? '—'}
-                      </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
-                        {app.primary_department?.name ?? '—'}
-                      </td>
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
-                        {direction}
-                      </td>
-                      <td style={{ padding: '11px 14px' }}>
-                        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#EDE9FE', color: '#6D28D9', fontWeight: 500 }}>
-                          {t('applicants.status_label')}
-                        </span>
-                      </td>
-                      <td style={{ padding: '11px 14px', minWidth: 200 }}>
-                        {(app.active_stages_with_tasks ?? []).length === 0 ? (
-                          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('applicants.no_stages')}</span>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {(app.active_stages_with_tasks ?? []).map(stage => (
-                              <div key={stage.stage_name}>
-                                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{stage.stage_name}</div>
-                                {stage.tasks.length > 0 && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
-                                    {stage.tasks.map((task, idx) => (
-                                      <div key={idx} style={{ fontSize: 11, color: 'var(--text-muted)' }}>• {task}</div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                        </td>
+                        <td style={{ padding: '11px 14px', minWidth: 200 }}>
+                          {(app.active_stages_with_tasks ?? []).length === 0 ? (
+                            <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('applicants.no_stages')}</span>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {(app.active_stages_with_tasks ?? []).map(stage => (
+                                <div key={stage.stage_name}>
+                                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{stage.stage_name}</div>
+                                  {stage.tasks.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginInlineStart: 8 }}>
+                                      {stage.tasks.map((task, idx) => (
+                                        <div key={idx} style={{ fontSize: 11, color: 'var(--text-muted)' }}>• {task}</div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <ApplicantDetail label={t('applicants.table.application_date')} value={formatDate(app.application_date)} />
+                              <ApplicantDetail label={t('applicants.table.email')} value={app.person?.email ?? '—'} />
+                              <ApplicantDetail label={t('applicants.table.institution')} value={app.primary_department?.name ?? '—'} />
+                              <ApplicantDetail label={t('applicants.table.direction')} value={direction} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -742,6 +746,16 @@ export default function EducationPage() {
       {addOpen && (
         <EducationJourneyForm mode="lead" onClose={() => setAddOpen(false)} onSaved={() => { setAddOpen(false); loadLeads() }} />
       )}
+    </div>
+  )
+}
+
+// Пара «метка → значение» в раскрытой панели деталей абитуриента.
+function ApplicantDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
     </div>
   )
 }

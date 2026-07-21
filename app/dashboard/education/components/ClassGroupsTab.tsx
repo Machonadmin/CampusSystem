@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -61,6 +61,7 @@ export default function ClassGroupsTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingGroup, setEditingGroup] = useState<ClassGroup | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -158,7 +159,7 @@ export default function ClassGroupsTab() {
       {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -175,83 +176,89 @@ export default function ClassGroupsTab() {
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('class_groups.table_name')}</th>
                   <th style={thStyle}>{t('class_groups.table_subject')}</th>
-                  <th style={thStyle}>{t('class_groups.table_department')}</th>
-                  <th style={{ ...thStyle, width: 100 }}>{t('class_groups.table_level')}</th>
-                  <th style={{ ...thStyle, width: 180 }}>{t('class_groups.table_period')}</th>
                   <th style={thStyle}>{t('class_groups.table_teachers')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('class_groups.table_students')}</th>
                   <th style={{ ...thStyle, width: 90 }}>{t('class_groups.table_status')}</th>
-                  <th style={{ ...thStyle, width: 190 }}>{t('class_groups.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {groups.map(g => {
                   const primary = g.teachers.find(tc => tc.is_primary)
                   const extraCount = g.teachers.length - (primary ? 1 : 0)
+                  const open = expandedId === g.id
                   return (
-                    <tr
-                      key={g.id}
-                      style={{ borderTop: '1px solid var(--surface-2)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                    >
-                      <td style={{ ...tdStyle, fontWeight: 500 }}>{g.name}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text)' }}>{g.subject?.name ?? '—'}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{g.department?.name ?? '—'}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
-                        {g.level ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                        {formatPeriod(lang, g.period_start, g.period_end)}
-                      </td>
-                      <td style={tdStyle}>
-                        {g.teachers.length === 0 ? (
-                          <span style={{ color: 'var(--border-strong)' }}>—</span>
-                        ) : (
-                          <span>
-                            {primary?.full_name
-                              ? <strong>{primary.full_name}</strong>
-                              : <span style={{ color: 'var(--text-muted)' }}>{t('class_groups.no_teacher_assigned')}</span>}
-                            {extraCount > 0 && (
-                              <span style={{ color: 'var(--text-faint)', marginLeft: 4 }}>+{extraCount}</span>
-                            )}
+                    <Fragment key={g.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : g.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
                           </span>
-                        )}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        <span style={{
-                          fontSize: 12, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
-                          background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
-                          color: g.counts.students > 0 ? '#3730A3' : 'var(--text-faint)',
-                        }}>
-                          {g.counts.students}
-                        </span>
-                      </td>
-                      <td style={tdStyle}>
-                        {g.is_active
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('class_groups.status_active')}</span>
-                          : <span style={{ color: 'var(--text-faint)' }}>{t('class_groups.status_inactive')}</span>}
-                      </td>
-                      <td style={tdStyle}>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          <button
-                            onClick={() => router.push(`/dashboard/education/class-groups/${g.id}`)}
-                            style={{ ...btnSecondary, color: accent, borderColor: accent }}
-                          >
-                            {t('class_groups.card_button')}
-                          </button>
-                          <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
-                            {t('common.edit')}
-                          </button>
-                          <button
-                            onClick={() => handleDelete(g)}
-                            style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                          >
-                            {t('common.delete')}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text)' }}>{g.subject?.name ?? '—'}</td>
+                        <td style={tdStyle}>
+                          {g.teachers.length === 0 ? (
+                            <span style={{ color: 'var(--border-strong)' }}>—</span>
+                          ) : (
+                            <span>
+                              {primary?.full_name
+                                ? <strong>{primary.full_name}</strong>
+                                : <span style={{ color: 'var(--text-muted)' }}>{t('class_groups.no_teacher_assigned')}</span>}
+                              {extraCount > 0 && (
+                                <span style={{ color: 'var(--text-faint)', marginInlineStart: 4 }}>+{extraCount}</span>
+                              )}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: 12, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
+                            background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
+                            color: g.counts.students > 0 ? 'var(--accent-strong)' : 'var(--text-faint)',
+                          }}>
+                            {g.counts.students}
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          {g.is_active
+                            ? <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('class_groups.status_active')}</span>
+                            : <span style={{ color: 'var(--text-faint)' }}>{t('class_groups.status_inactive')}</span>}
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('class_groups.table_department')} value={g.department?.name ?? '—'} />
+                              <Detail label={t('class_groups.table_level')} value={g.level ?? '—'} />
+                              <Detail label={t('class_groups.table_period')} value={formatPeriod(lang, g.period_start, g.period_end)} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                              <button
+                                onClick={() => router.push(`/dashboard/education/class-groups/${g.id}`)}
+                                style={{ ...btnSecondary, color: accent, borderColor: accent }}
+                              >
+                                {t('class_groups.card_button')}
+                              </button>
+                              <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
+                                {t('common.edit')}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(g)}
+                                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('common.delete')}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -278,3 +285,13 @@ const thStyle: React.CSSProperties = {
   textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}
