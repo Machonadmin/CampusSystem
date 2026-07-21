@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,13 +12,6 @@ interface Props {
   params: { id: string }
 }
 
-/** Преобразует Json-поле phones в плоский массив строк. */
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
 /**
  * Карточка выпускника: journey со статусом 'graduated'. Переиспользует

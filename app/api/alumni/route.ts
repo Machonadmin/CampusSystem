@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -18,12 +19,6 @@ import { hasAlumniPrivilege } from '@/lib/alumni/permissions'
  * Ответ: { alumni: AlumniListItem[] }
  */
 
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_field_value') }

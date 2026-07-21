@@ -1,3 +1,6 @@
+// Историческая точка импорта: карточка студента и её тест берут flattenPhones
+// отсюда. Реализация переехала в общий lib/persons/phone — ре-экспортируем.
+export { flattenPhones } from '@/lib/persons/phone'
 // ─── Student 360 «Обзор» — чистая логика + типы ──────────────────────────────
 //
 // Консолидированный обзор одного студента (journey), собирающий данные из всех
@@ -134,16 +137,6 @@ export function pickCurrentActive<T>(
 
 // ─── Нормализация полей персоны ───────────────────────────────────────────────
 
-/**
- * Json-поле phones → плоский массив непустых строк. Элемент может быть строкой
- * или объектом { number }. Идентично flattenPhones карточки студента.
- */
-export function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
 /** Есть ли у студента аллергии — по непустому текстовому полю медкарты. */
 export function hasAllergies(allergies: string | null | undefined): boolean {

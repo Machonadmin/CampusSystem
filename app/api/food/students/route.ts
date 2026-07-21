@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -15,12 +16,6 @@ import { todayISO } from '@/lib/food/enrollment-server'
 
 const PAGE = 1000
 
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
 interface CurrentPlan { plan_id: string | null; plan_name: string | null }
 

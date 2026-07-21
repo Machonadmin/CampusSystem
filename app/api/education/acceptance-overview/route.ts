@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -17,10 +18,6 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  * Право: view_applicants (любой scope) или superadmin.
  */
 
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw.map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? '')).filter(Boolean)
-}
 
 export async function GET(request: NextRequest) {
   try {
