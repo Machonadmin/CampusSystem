@@ -74,8 +74,8 @@ export default function UnitTeamPage() {
         { label: t('units.title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '12px 24px' }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('units.title')}</h1>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('units.title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('units.subtitle')}</p>
       </div>
 

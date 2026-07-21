@@ -666,10 +666,10 @@ export default function StaffPage() {
 
       <div style={{
         background: getModuleHeaderGradient('staff'),
-        borderRadius: 12, padding: '12px 24px',
+        borderRadius: 12, padding: '16px 24px',
         boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
       </div>
 
       <ModuleTabs

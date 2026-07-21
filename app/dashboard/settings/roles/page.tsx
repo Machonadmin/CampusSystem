@@ -293,9 +293,9 @@ export default function RolesPage() {
 
       {/* Banner */}
       <div
-        style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '12px 24px', borderRadius: 12, flexShrink: 0 }}
+        style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '16px 24px', borderRadius: 12, flexShrink: 0 }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
       </div>
 
       {/* Body */}

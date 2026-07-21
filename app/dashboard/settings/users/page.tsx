@@ -672,9 +672,9 @@ function UsersPageContent() {
 
       <div
         className="flex items-center rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '12px 24px' }}
+        style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '16px 24px' }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
