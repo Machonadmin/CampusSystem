@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { Fragment, useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
 import { toast } from '@/components/ui/toast'
@@ -54,6 +54,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
 
   const [formLesson, setFormLesson] = useState<LessonItem | 'create' | null>(null)
   const [attendanceLesson, setAttendanceLesson] = useState<LessonItem | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: время/место/описание по клику
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -149,7 +150,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
       {loading ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
-        <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
+        <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : lessons.length === 0 ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
@@ -158,78 +159,98 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
             <thead>
               <tr>
                 <th style={th}>{t('col_date')}</th>
-                <th style={th}>{t('col_time')}</th>
                 <th style={th}>{t('col_topic')}</th>
-                <th style={th}>{t('col_location')}</th>
                 <th style={th}>{t('col_attendance')}</th>
                 <th style={th}>{t('col_actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {lessons.map(lesson => (
-                <tr key={lesson.id} style={{ opacity: lesson.is_cancelled ? 0.55 : 1 }}>
-                  <td style={{ ...td, whiteSpace: 'nowrap' }}>{formatDate(lang, lesson.scheduled_date)}</td>
-                  <td style={td}>{formatTime(lesson.scheduled_time)}</td>
-                  <td style={td}>
-                    <span>{lesson.topic || '—'}</span>
-                    {lesson.is_cancelled && (
-                      <span style={{
-                        marginLeft: 8, fontSize: 11, padding: '2px 7px', borderRadius: 99,
-                        fontWeight: 500, background: 'var(--surface-2)', color: 'var(--text-muted)',
-                      }}>
-                        {t('cancelled_badge')}
-                      </span>
-                    )}
-                  </td>
-                  <td style={td}>{lesson.location || '—'}</td>
-                  <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                    {lesson.marked_count === 0 ? (
-                      <span style={{ color: 'var(--text-faint)' }}>{tAtt('none')}</span>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-                        {lesson.present_count > 0 && (
-                          <span style={{ color: 'var(--success)', fontWeight: 600 }} title={tAtt('present')}>✓ {lesson.present_count}</span>
+              {lessons.map(lesson => {
+                const open = expandedId === lesson.id
+                return (
+                  <Fragment key={lesson.id}>
+                    <tr
+                      onClick={() => setExpandedId(open ? null : lesson.id)}
+                      style={{ opacity: lesson.is_cancelled ? 0.55 : 1, cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                    >
+                      <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                          <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                          {formatDate(lang, lesson.scheduled_date)}
+                        </span>
+                      </td>
+                      <td style={td}>
+                        <span>{lesson.topic || '—'}</span>
+                        {lesson.is_cancelled && (
+                          <span style={{
+                            marginLeft: 8, fontSize: 11, padding: '2px 7px', borderRadius: 99,
+                            fontWeight: 500, background: 'var(--surface-2)', color: 'var(--text-muted)',
+                          }}>
+                            {t('cancelled_badge')}
+                          </span>
                         )}
-                        {lesson.late_count > 0 && (
-                          <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}>⏱ {lesson.late_count}</span>
+                      </td>
+                      <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                        {lesson.marked_count === 0 ? (
+                          <span style={{ color: 'var(--text-faint)' }}>{tAtt('none')}</span>
+                        ) : (
+                          <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+                            {lesson.present_count > 0 && (
+                              <span style={{ color: 'var(--success)', fontWeight: 600 }} title={tAtt('present')}>✓ {lesson.present_count}</span>
+                            )}
+                            {lesson.late_count > 0 && (
+                              <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}>⏱ {lesson.late_count}</span>
+                            )}
+                            {lesson.absent_count > 0 && (
+                              <span style={{ color: 'var(--danger)', fontWeight: 600 }} title={tAtt('absent')}>✕ {lesson.absent_count}</span>
+                            )}
+                            {lesson.marked_count < enrolledCount && (
+                              <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>· {enrolledCount - lesson.marked_count} {tAtt('unmarked')}</span>
+                            )}
+                          </div>
                         )}
-                        {lesson.absent_count > 0 && (
-                          <span style={{ color: 'var(--danger)', fontWeight: 600 }} title={tAtt('absent')}>✕ {lesson.absent_count}</span>
-                        )}
-                        {lesson.marked_count < enrolledCount && (
-                          <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>· {enrolledCount - lesson.marked_count} {tAtt('unmarked')}</span>
-                        )}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => setAttendanceLesson(lesson)}
-                        style={{ ...btnSmall, color: accentColor, borderColor: accentColor }}
-                      >
-                        {t('action_attendance')}
-                      </button>
-                      {canManageLessons && (
-                        <>
-                          <button onClick={() => setFormLesson(lesson)} style={btnSmall}>
-                            {t('action_edit')}
-                          </button>
-                          <button onClick={() => handleToggleCancel(lesson)} style={btnSmall}>
-                            {lesson.is_cancelled ? t('action_restore') : t('action_cancel')}
-                          </button>
+                      </td>
+                      <td style={{ ...td, whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <button
-                            onClick={() => handleDelete(lesson)}
-                            style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
+                            onClick={() => setAttendanceLesson(lesson)}
+                            style={{ ...btnSmall, color: accentColor, borderColor: accentColor }}
                           >
-                            {t('action_delete')}
+                            {t('action_attendance')}
                           </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                          {canManageLessons && (
+                            <>
+                              <button onClick={() => setFormLesson(lesson)} style={btnSmall}>
+                                {t('action_edit')}
+                              </button>
+                              <button onClick={() => handleToggleCancel(lesson)} style={btnSmall}>
+                                {lesson.is_cancelled ? t('action_restore') : t('action_cancel')}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(lesson)}
+                                style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('action_delete')}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    {open && (
+                      <tr style={{ background: 'var(--surface-2)', opacity: lesson.is_cancelled ? 0.55 : 1 }}>
+                        <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                            <Detail label={t('col_time')} value={formatTime(lesson.scheduled_time)} />
+                            <Detail label={t('col_location')} value={lesson.location || '—'} />
+                            <Detail label={t('description_label')} value={lesson.description || '—'} />
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -256,6 +277,16 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
           onSaved={load}
         />
       )}
+    </div>
+  )
+}
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
     </div>
   )
 }
@@ -386,7 +417,7 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
 
         {formError && (
           <div style={{
-            marginTop: 12, padding: '8px 12px', background: '#FEE2E2', color: '#991B1B',
+            marginTop: 12, padding: '8px 12px', background: 'var(--danger-tint)', color: 'var(--danger)',
             borderRadius: 8, fontSize: 13,
           }}>
             {formError}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SpecialtyModal from './SpecialtyModal'
@@ -42,6 +42,7 @@ export default function SpecialtiesTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingSpecialty, setEditingSpecialty] = useState<Specialty | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -135,7 +136,7 @@ export default function SpecialtiesTab() {
       )}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -150,53 +151,64 @@ export default function SpecialtiesTab() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
-                  <th style={{ ...thStyle, width: 80 }}>{t('specialties.table_code')}</th>
                   <th style={thStyle}>{t('specialties.table_name')}</th>
+                  <th style={{ ...thStyle, width: 100 }}>{t('specialties.table_code')}</th>
                   <th style={thStyle}>{t('specialties.table_department')}</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('specialties.table_sort_order')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('specialties.table_status')}</th>
-                  <th style={{ ...thStyle, width: 160 }}>{t('specialties.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(s => (
-                  <tr
-                    key={s.id}
-                    style={{ borderTop: '1px solid var(--surface-2)' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                  >
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 12 }}>
-                      {s.code ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                    </td>
-                    <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.department?.name ?? '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>{s.sort_order}</td>
-                    <td style={tdStyle}>
-                      {s.is_active ? (
-                        <span style={{ color: '#10B981', fontWeight: 500 }}>{t('specialties.status_active')}</span>
-                      ) : (
-                        <span style={{ color: 'var(--text-faint)' }}>{t('specialties.status_inactive')}</span>
+                {filtered.map(s => {
+                  const open = expandedId === s.id
+                  return (
+                    <Fragment key={s.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : s.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{s.name}</span>
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 12 }}>
+                          {s.code ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.department?.name ?? '—'}</td>
+                        <td style={tdStyle}>
+                          {s.is_active ? (
+                            <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('specialties.status_active')}</span>
+                          ) : (
+                            <span style={{ color: 'var(--text-faint)' }}>{t('specialties.status_inactive')}</span>
+                          )}
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('specialties.table_sort_order')} value={String(s.sort_order)} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                              <button onClick={() => { setEditingSpecialty(s); setModalMode('edit') }} style={btnSecondary}>
+                                {t('common.edit')}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(s)}
+                                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('common.delete')}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => { setEditingSpecialty(s); setModalMode('edit') }}
-                          style={btnSecondary}
-                        >
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(s)}
-                          style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -221,3 +233,13 @@ const thStyle: React.CSSProperties = {
   textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}
