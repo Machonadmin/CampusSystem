@@ -1570,7 +1570,19 @@
       "load_error": "Failed to load",
       "save_error": "Failed to save",
       "section_texts": "Marketing texts",
-      "section_texts_note": "Editing in the current interface language. Leave blank for the default."
+      "section_texts_note": "Editing in the current interface language. Leave blank for the default.",
+      "section_custom": "Custom fields",
+      "section_custom_note": "Add your own questions to the form. The label is edited in the current interface language.",
+      "custom_add": "+ Add field",
+      "custom_label": "Question text",
+      "custom_type": "Type",
+      "type_text": "Short text",
+      "type_textarea": "Long text",
+      "type_select": "Dropdown",
+      "custom_options": "Options (comma-separated)",
+      "custom_required": "Required",
+      "custom_remove": "Remove",
+      "custom_empty": "No custom fields yet"
     }
   },
   "tasks": {
@@ -3940,7 +3952,8 @@
     "too_many_rows": "Too many rows (max 2000)",
     "delegate_no_redelegate": "A delegate can't grant the delegation right",
     "delegate_cap": "You can't grant a permission you don't hold yourself",
-    "medical_pending": "Can't approve yet — the referred doctor/psychologist hasn't signed"
+    "medical_pending": "Can't approve yet — the referred doctor/psychologist hasn't signed",
+    "required_fields": "Please fill required fields"
   },
   "workflow": {
     "error": "Error"
