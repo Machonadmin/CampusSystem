@@ -1883,7 +1883,9 @@
       "street_placeholder": "Dizengoff",
       "passport_issued_by_placeholder": "Issuing authority...",
       "specialty_placeholder": "Management",
-      "contract_number_placeholder": "EC-2026-001"
+      "contract_number_placeholder": "EC-2026-001",
+      "edit_title": "Employee details",
+      "edit_save_disabled_note": "Editing employee data here isn't available yet (view only)."
     },
     "name_required": "Name is required",
     "error": "Error",
@@ -1919,7 +1921,12 @@
     "delete_error": "Error while deleting",
     "delete_employee_error": "Error while deleting the employee",
     "load_error": "Loading error",
-    "delete_dept_confirm": "Delete department? Child departments will be moved up."
+    "delete_dept_confirm": "Delete department? Child departments will be moved up.",
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "create_login": "Create login"
   },
   "quality": {
     "title": "Teaching Evaluation",

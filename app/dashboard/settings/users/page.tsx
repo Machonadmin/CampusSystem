@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
@@ -125,23 +126,25 @@ interface AddUserModalProps {
   tCommon: T
   onClose: () => void
   onSaved: () => void
+  initialPerson?: PersonResult | null
 }
 
 interface PersonResult { id: string; full_name: string; email: string | null }
 
-function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved }: AddUserModalProps) {
+function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
   const { t: lang } = useLang()
   // Person search
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PersonResult[]>([])
   const [searching, setSearching] = useState(false)
-  const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(null)
+  // Pre-selected when navigated from HR "create login" (Task A).
+  const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(initialPerson ?? null)
   const [createNew, setCreateNew] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Form fields
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(initialPerson?.email ?? '')
   const [password, setPassword] = useState('')
   const [autoGen, setAutoGen] = useState(true)
   const [roleIds, setRoleIds] = useState<string[]>([])
@@ -588,7 +591,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
   )
 }
 
-export default function UsersPage() {
+function UsersPageContent() {
   const t = useTranslations('settings.users')
   const tCat = useTranslations('settings.categories')
   const tCommon = useTranslations('common')
@@ -605,6 +608,29 @@ export default function UsersPage() {
   const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
   const [editTarget, setEditTarget] = useState<UserRow | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [initialPerson, setInitialPerson] = useState<PersonResult | null>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Task A: arriving from HR "create login" with ?person=<id> — preselect that
+  // person and auto-open the create-user modal. Clear the param so a refresh
+  // doesn't reopen it.
+  useEffect(() => {
+    const personId = searchParams.get('person')
+    if (!personId) return
+    router.replace('/dashboard/settings/users')
+    ;(async () => {
+      let person: PersonResult = { id: personId, full_name: '', email: null }
+      const res = await fetch(`/api/persons/${personId}`)
+      if (res.ok) {
+        const d = await res.json()
+        person = { id: d.id, full_name: d.full_name ?? '', email: d.email ?? null }
+      }
+      setInitialPerson(person)
+      setAddOpen(true)
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -772,8 +798,25 @@ export default function UsersPage() {
         <PersonPrivilegesModal user={privTarget} t={tPriv} tCommon={tCommon} onClose={() => setPrivTarget(null)} />
       )}
       {addOpen && (
-        <AddUserModal allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setAddOpen(false)} onSaved={load} />
+        <AddUserModal
+          key={initialPerson?.id ?? 'new'}
+          allRoles={allRoles}
+          t={t}
+          tCat={tCat}
+          tCommon={tCommon}
+          initialPerson={initialPerson}
+          onClose={() => { setAddOpen(false); setInitialPerson(null) }}
+          onSaved={load}
+        />
       )}
     </div>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={null}>
+      <UsersPageContent />
+    </Suspense>
   )
 }

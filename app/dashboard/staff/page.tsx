@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
@@ -416,6 +418,7 @@ interface Employee {
   person_id: string
   full_name: string
   photo_url: string | null
+  gender: string | null
   phone: string | null
   email: string | null
   position: string
@@ -457,16 +460,24 @@ function flattenDeptOptions(depts: Department[]): { id: string; label: string }[
   return out
 }
 
-function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; depts: Department[]; refreshSignal: number }) {
+function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; depts: Department[]; refreshSignal: number }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const router = useRouter()
+  const me = useMe()
+  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
-  const [editingEmployee, setEditingEmployee] = useState<string | null>(null)
   const deptOptions = flattenDeptOptions(depts)
+
+  function genderLabel(g: string | null): string | null {
+    if (g === 'male') return t('gender.male')
+    if (g === 'female') return t('gender.female')
+    return null
+  }
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -480,11 +491,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
     }, search ? 250 : 0)
     return () => clearTimeout(handle)
   }, [search, deptFilter, refreshSignal, localRefresh])
-
-  function handleEditEmployee(profileId: string) {
-    setEditingEmployee(profileId)
-    onAdd()
-  }
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
     if (!confirm(`${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`)) return
@@ -513,7 +519,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
         </select>
         <PageActionButton
           label={t('add_employee')}
-          onClick={onAdd}
+          onClick={() => onAdd()}
           accentColor={getModuleColor('staff')}
         />
       </div>
@@ -550,7 +556,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                           : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(emp.full_name)}</div>
                         }
                         <div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{emp.full_name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{emp.full_name}</span>
+                            {genderLabel(emp.gender) && (
+                              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                                {genderLabel(emp.gender)}
+                              </span>
+                            )}
+                          </div>
                           {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>{t('dept.head_label')}</div>}
                         </div>
                       </div>
@@ -571,8 +584,16 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
+                        {isSuperadmin && (
+                          <button
+                            onClick={() => router.push(`/dashboard/settings/users?person=${emp.person_id}`)}
+                            style={{ padding: '5px 12px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 6, background: getModuleColor('staff', 'light'), cursor: 'pointer', color: getModuleColor('staff') }}
+                          >
+                            {t('create_login')}
+                          </button>
+                        )}
                         <button
-                          onClick={() => emp.profile_id && handleEditEmployee(emp.profile_id)}
+                          onClick={() => emp.profile_id && onAdd(emp)}
                           disabled={!emp.profile_id}
                           style={{ padding: '5px 12px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: 'var(--text)', opacity: emp.profile_id ? 1 : 0.5 }}
                         >
@@ -617,6 +638,7 @@ export default function StaffPage() {
   const [modal, setModal] = useState<Modal>(null)
   const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -692,7 +714,7 @@ export default function StaffPage() {
                       onAddChild={id => setModal({ type: 'add', parentId: id })}
                       onRename={n => setModal({ type: 'rename', node: n })}
                       onDelete={handleDelete}
-                      onAddStaff={id => { setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
+                      onAddStaff={id => { setEditingEmployee(null); setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
                       refreshSignal={refreshSignal}
                     />
                   ))}
@@ -704,7 +726,11 @@ export default function StaffPage() {
       )}
 
       {activeTab === 'staff' && (
-        <EmployeesTab onAdd={() => { setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }} depts={depts} refreshSignal={refreshSignal} />
+        <EmployeesTab
+          onAdd={(employee) => { setEditingEmployee(employee ?? null); setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }}
+          depts={depts}
+          refreshSignal={refreshSignal}
+        />
       )}
 
       {modal?.type === 'add' && (
@@ -716,8 +742,9 @@ export default function StaffPage() {
       {addEmployeeOpen && (
         <AddEmployeeModal
           defaultDepartmentId={addEmployeeDept}
-          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined) }}
-          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); load(); setRefreshSignal(s => s + 1) }}
+          editing={editingEmployee}
+          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null) }}
+          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null); load(); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>
