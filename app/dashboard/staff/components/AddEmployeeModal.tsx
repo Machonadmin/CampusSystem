@@ -55,6 +55,7 @@ interface DeptOption { id: string; label: string }
 // the person is fetched via /api/persons/[id] for prefill.
 export interface EditingEmployee {
   person_id: string
+  position_id?: string | null
   full_name?: string
   department_id?: string | null
   position?: string
@@ -278,11 +279,50 @@ export default function AddEmployeeModal({
 
   function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
 
+  // Редактирование: обновляем поля персоны через PATCH /api/persons/[id]
+  // (full_name — генерируемая колонка, не трогаем) и должность, если сменилась.
+  // Дубликат НЕ создаётся — это НЕ POST.
+  async function handleSaveEdit() {
+    if (!editing) return
+    setError(''); setSaving(true)
+    try {
+      const validPhones = phones.filter(p => p.trim())
+      const personBody: Record<string, unknown> = {
+        last_name: lastName.trim() || null,
+        first_name: firstName.trim() || null,
+        middle_name: middleName.trim() || null,
+        hebrew_name: hebrewName.trim() || null,
+        gender: gender || null,
+        email: email.trim() || null,
+        phones: validPhones,
+        birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+        marital_status: maritalStatus || null,
+        citizenship: citizenship.trim() || null,
+        address: { country, city, street, house, apartment, postal_code: postalCode },
+      }
+      const res = await fetch(`/api/persons/${editing.person_id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(personBody),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string }
+        setError(data.error ?? tCommon('error'))
+        return
+      }
+      // Должность (если запись позиции известна) — отражается в списке.
+      if (editing.position_id && positionId) {
+        await fetch(`/api/staff/positions/${editing.position_id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ position_id: positionId }),
+        })
+      }
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSave() {
     setError('')
-    // Защита от дублей: в режиме редактирования сохранение отключено —
-    // эндпоинта обновления person нет, а POST создал бы дубликат.
-    if (isEditing) return
+    if (isEditing) { await handleSaveEdit(); return }
     if (!departmentId) { setError(t('add_modal.error_department_required')); setTabIdx(2); return }
     if (!positionId) { setError(t('add_modal.error_position_required')); setTabIdx(2); return }
     if (!hireDate) { setError(t('add_modal.error_hire_date_required')); setTabIdx(2); return }
@@ -802,10 +842,7 @@ export default function AddEmployeeModal({
             {tCommon('cancel')}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {isEditing && tabIdx === 5 && (
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 260, textAlign: 'right' }}>{t('add_modal.edit_save_disabled_note')}</span>
-            )}
-            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {error && <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
                 style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
@@ -818,9 +855,10 @@ export default function AddEmployeeModal({
                 {t('add_modal.next_button')}
               </button>
             )}
-            {tabIdx === 5 && (
-              <button onClick={handleSave} disabled={saving || isEditing}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: (saving || isEditing) ? 'not-allowed' : 'pointer', fontSize: 13, opacity: (saving || isEditing) ? 0.5 : 1 }}>
+            {/* В режиме редактирования «Сохранить» доступна на любой вкладке. */}
+            {(tabIdx === 5 || isEditing) && (
+              <button onClick={handleSave} disabled={saving}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.5 : 1 }}>
                 {saving ? t('add_modal.saving') : t('add_modal.save_button')}
               </button>
             )}
