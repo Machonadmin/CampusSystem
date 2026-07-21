@@ -18,14 +18,17 @@ interface Program {
 
 // Стили пседокласса/hover/focus/адаптив — через <style> (инлайн их не покрывает).
 const CSS = `
-.ap-root{
+html{overflow-x:hidden;max-width:100%;}
+.ap-root{max-width:100%;
   --ivory:#FBF6EE; --card:#fff; --ink:#2A2330; --muted:#857785;
   --plum:#6A2E52; --plum-deep:#48203A; --gold:#C0912F; --gold-soft:#E7CE93;
   --line:#ECE1D3; --line-strong:#E0D2BF; --focus:#8A3E6B;
   background:var(--ivory); color:var(--ink); min-height:100vh; scroll-behavior:smooth;
 }
+.ap-root *{box-sizing:border-box;}
 .ap-root h1,.ap-root h2,.ap-root h3{margin:0;text-wrap:balance;line-height:1.15;}
-.ap-root p{margin:0;}
+.ap-root p{margin:0;max-width:100%;}
+.ap-root svg{max-width:100%;}
 .ap-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;}
 .ap-topbar{position:sticky;top:0;z-index:30;background:rgba(251,246,238,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
 .ap-topbar-in{max-width:1060px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
@@ -94,7 +97,7 @@ const CSS = `
 .ap-foot .fname{font-size:14px;font-weight:800;}
 .ap-foot .fnote{font-size:12.5px;color:var(--muted);margin-top:6px;}
 .ap-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-inline:8px;vertical-align:middle;}
-.ap-hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}
+.ap-hp{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 @media (max-width:720px){
   .ap-values{grid-template-columns:1fr;}
   .ap-value + .ap-value{border-inline-start:0;border-top:1px solid var(--line-strong);padding-top:24px;margin-top:24px;}
