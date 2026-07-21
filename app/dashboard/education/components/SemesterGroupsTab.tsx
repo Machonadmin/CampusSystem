@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SemesterGroupModal from './SemesterGroupModal'
@@ -56,6 +56,7 @@ export default function SemesterGroupsTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingInitial, setEditingInitial] = useState<SemesterGroupInitial | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -129,7 +130,7 @@ export default function SemesterGroupsTab() {
       {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -149,57 +150,68 @@ export default function SemesterGroupsTab() {
                   <th style={thStyle}>{t('semester_groups.table_department')}</th>
                   <th style={{ ...thStyle, width: 90, textAlign: 'center' }}>{t('semester_groups.table_teachers')}</th>
                   <th style={{ ...thStyle, width: 90, textAlign: 'center' }}>{t('semester_groups.table_students')}</th>
-                  <th style={{ ...thStyle, width: 120 }}>{t('semester_groups.table_tuition')}</th>
-                  <th style={{ ...thStyle, width: 110 }}>{t('semester_groups.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {groups.map(g => (
-                  <tr
-                    key={g.id}
-                    style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer' }}
-                    onClick={() => openEdit(g.id)}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                  >
-                    <td style={{ ...tdStyle, fontWeight: 500 }}>
-                      {g.name}
-                      {(g.year_label || g.term_number != null) && (
-                        <span style={{ color: 'var(--text-faint)', marginLeft: 6, fontSize: 12 }}>
-                          {[g.year_label, g.term_number != null ? `#${g.term_number}` : null].filter(Boolean).join(' · ')}
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ ...tdStyle, color: 'var(--text)' }}>{trackName(g.study_track, lang)}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
-                      {g.department ? localizedDeptName(g.department, lang) : '—'}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{g.counts.teachers}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: 12, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
-                        background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
-                        color: g.counts.students > 0 ? '#3730A3' : 'var(--text-faint)',
-                      }}>
-                        {g.counts.students}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                      {g.tuition_amount != null ? `₪ ${g.tuition_amount}` : '—'}
-                    </td>
-                    <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={() => openEdit(g.id)}
-                        style={{
-                          padding: '5px 10px', fontSize: 12, color: 'var(--text)',
-                          background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
-                        }}
+                {groups.map(g => {
+                  const open = expandedId === g.id
+                  return (
+                    <Fragment key={g.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : g.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                       >
-                        {t('common.edit')}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
+                            {(g.year_label || g.term_number != null) && (
+                              <span style={{ color: 'var(--text-faint)', fontSize: 12, fontWeight: 400 }}>
+                                {[g.year_label, g.term_number != null ? `#${g.term_number}` : null].filter(Boolean).join(' · ')}
+                              </span>
+                            )}
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text)' }}>{trackName(g.study_track, lang)}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
+                          {g.department ? localizedDeptName(g.department, lang) : '—'}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>{g.counts.teachers}</td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: 12, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
+                            background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
+                            color: g.counts.students > 0 ? 'var(--accent-strong)' : 'var(--text-faint)',
+                          }}>
+                            {g.counts.students}
+                          </span>
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('semester_groups.table_tuition')} value={g.tuition_amount != null ? `₪ ${g.tuition_amount}` : '—'} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                              <button
+                                onClick={() => openEdit(g.id)}
+                                style={{
+                                  padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+                                  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
+                                }}
+                              >
+                                {t('common.edit')}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -224,3 +236,13 @@ const thStyle: React.CSSProperties = {
   textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}
