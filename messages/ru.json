@@ -3543,6 +3543,7 @@
     "recurring": "Повторяется",
     "planned_lesson": "Плановое занятие",
     "birthday": "День рождения",
+    "event": "Событие",
     "task_status": {
       "pending": "Ожидает",
       "in_progress": "В работе",

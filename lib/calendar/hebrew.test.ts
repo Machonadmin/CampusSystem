@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hebrewDateParts, formatHebrewDate, hebrewDayNumber } from './hebrew'
+import { hebrewDateParts, formatHebrewDate, hebrewDayNumber, toGematria } from './hebrew'
 
 // Текст еврейского календаря зависит от версии ICU, поэтому проверяем СТРУКТУРУ
 // (непустые части, наличие названия месяца, детерминизм), а не точные строки.
@@ -28,6 +28,14 @@ describe('hebrewDateParts', () => {
     expect(`${a.day}|${a.month}|${a.year}`).not.toBe(`${b.day}|${b.month}|${b.year}`)
   })
 
+  it('day and year are Hebrew LETTERS (gematria), not Latin digits', () => {
+    const p = hebrewDateParts('2026-07-08')
+    expect(/[֐-׿]/.test(p.day)).toBe(true)
+    expect(/[0-9]/.test(p.day)).toBe(false)
+    expect(/[֐-׿]/.test(p.year)).toBe(true)
+    expect(/[0-9]/.test(p.year)).toBe(false)
+  })
+
   it('empty parts for malformed input', () => {
     expect(hebrewDateParts('nope')).toEqual({ day: '', month: '', year: '' })
     expect(hebrewDateParts('2026-13-40')).toEqual({ day: '', month: '', year: '' })
@@ -45,6 +53,17 @@ describe('formatHebrewDate', () => {
   it('empty string for malformed input', () => {
     expect(formatHebrewDate('2026/07/08')).toBe('')
     expect(formatHebrewDate('xxxx')).toBe('')
+  })
+})
+
+describe('toGematria', () => {
+  it('converts known values to Hebrew letters with geresh/gershayim', () => {
+    expect(toGematria(23)).toBe('כ״ג')
+    expect(toGematria(15)).toBe('ט״ו')   // спец-случай (не י-ה)
+    expect(toGematria(16)).toBe('ט״ז')   // спец-случай (не י-ו)
+    expect(toGematria(5)).toBe('ה׳')     // одиночная буква → гереш
+    expect(toGematria(10)).toBe('י׳')
+    expect(toGematria(786)).toBe('תשפ״ו') // год 5786 без тысяч
   })
 })
 

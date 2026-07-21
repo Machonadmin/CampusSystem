@@ -3543,6 +3543,7 @@
     "recurring": "Recurring",
     "planned_lesson": "Planned lesson",
     "birthday": "Birthday",
+    "event": "Event",
     "task_status": {
       "pending": "Pending",
       "in_progress": "In progress",

@@ -211,6 +211,7 @@ export default function CalendarClient() {
   const [detailLesson, setDetailLesson] = useState<Lesson | null>(null) // read-only урок
   const [detailTask, setDetailTask] = useState<Task | null>(null)  // read-only задача
   const [detailSchedule, setDetailSchedule] = useState<ScheduleInstance | null>(null) // слот
+  const [dayOpen, setDayOpen] = useState<string | null>(null) // открытый день (детали дня)
 
   const anchorYear = Number(anchor.slice(0, 4))
   const anchorMonth = Number(anchor.slice(5, 7))
@@ -367,6 +368,14 @@ export default function CalendarClient() {
     return `${formatHebrewDate(weekDays[0])} — ${formatHebrewDate(weekDays[6])}`
   }, [hebrewDates, view, anchorYear, anchorMonth, weekDays])
 
+  // Полная локализованная дата «сегодня» для шапки (пн/чт/…, число, месяц, год).
+  // Тот же проверенный паттерн, что и в WeekView: UTC-полночь → без off-by-one.
+  const todayLabel = useMemo(
+    () => new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
+      .format(new Date(`${TODAY}T00:00:00Z`)),
+    [locale, TODAY],
+  )
+
   // Короткие названия дней недели (вс…сб), из Intl.
   const weekdayLabels = useMemo(() => {
     // 2024-01-07 — воскресенье; берём 7 дней подряд.
@@ -453,6 +462,10 @@ export default function CalendarClient() {
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
           <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
+          <div style={{ fontSize: 15, fontWeight: 600, marginTop: 8, textTransform: 'capitalize' }}>{todayLabel}</div>
+          {hebrewDates && (
+            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>{formatHebrewDate(TODAY)}</div>
+          )}
         </div>
         <button
           onClick={() => openNew(view === 'month' ? TODAY : anchor)}
@@ -555,6 +568,7 @@ export default function CalendarClient() {
           onOpenTask={setDetailTask}
           onOpenSchedule={setDetailSchedule}
           onOpenEvent={setDetailEvent}
+          onOpenDay={setDayOpen}
           t={t}
         />
       ) : (
@@ -651,6 +665,33 @@ export default function CalendarClient() {
           onDeleted={async () => { setDetailEvent(null); await load() }}
         />
       )}
+
+      {dayOpen && (
+        <DayDetail
+          dateISO={dayOpen}
+          appointments={appointments}
+          lessons={lessons}
+          schedule={scheduleInstances}
+          tasks={tasks}
+          birthdays={birthdays}
+          calEvents={calEvents}
+          blocks={blocks}
+          locale={locale}
+          isRTL={isRTL}
+          hebrewDates={hebrewDates}
+          primary={primary}
+          light={light}
+          lang={lang}
+          onClose={() => setDayOpen(null)}
+          onNew={() => { const d = dayOpen; setDayOpen(null); openNew(d) }}
+          onOpen={setDetail}
+          onOpenLesson={setDetailLesson}
+          onOpenTask={setDetailTask}
+          onOpenSchedule={setDetailSchedule}
+          onOpenEvent={setDetailEvent}
+          t={t}
+        />
+      )}
     </div>
   )
 }
@@ -697,6 +738,147 @@ function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () 
 }
 
 // ─────────────────────────────────────────────
+// Детали одного дня — вся лента событий выбранной даты
+// ─────────────────────────────────────────────
+function DayDetail({
+  dateISO, appointments, lessons, schedule, tasks, birthdays, calEvents, blocks,
+  locale, isRTL, hebrewDates, primary, light, lang,
+  onClose, onNew, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
+}: {
+  dateISO: string
+  appointments: Appointment[]
+  lessons: Lesson[]
+  schedule: ScheduleInstance[]
+  tasks: Task[]
+  birthdays: BirthdayInstance[]
+  calEvents: CalEvent[]
+  blocks: Block[]
+  locale: string
+  isRTL: boolean
+  hebrewDates: boolean
+  primary: string
+  light: string
+  lang: string
+  onClose: () => void
+  onNew: () => void
+  onOpen: (a: Appointment) => void
+  onOpenLesson: (l: Lesson) => void
+  onOpenTask: (task: Task) => void
+  onOpenSchedule: (s: ScheduleInstance) => void
+  onOpenEvent: (e: CalEvent) => void
+  t: (k: string, f?: string) => string
+}) {
+  // ПЕРЕИСПОЛЬЗУЕМ уже загруженные данные — никаких новых запросов. Тот же
+  // mergeDayEvents, что и в сетке, но только для одной даты dateISO.
+  const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, dateISO, calEvents)
+  const blocked = isBlocked(blocks, dateISO)
+  const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${dateISO}T00:00:00Z`))
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 65, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(460px,100%)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{label}</div>
+            {hebrewDates && (
+              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)', marginTop: 2 }}>{formatHebrewDate(dateISO)}</div>
+            )}
+            {blocked && (
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#B45309', marginTop: 4 }}>{t('day_off')}</div>
+            )}
+          </div>
+          <button onClick={onClose} aria-label={t('prev')} style={{ fontSize: 18, lineHeight: 1, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>×</button>
+        </div>
+
+        {events.length === 0 ? (
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty_day')}</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 6 }}>
+            {events.map(ev => {
+              if (ev.kind === 'lesson' && ev.lesson) {
+                const l = ev.lesson
+                return (
+                  <button key={`l-${l.id}`} onClick={() => onOpenLesson(l)} style={dayRowBtn(isRTL, LESSON_BG, LESSON_FG, LESSON_ACCENT)}>
+                    <span style={dayRowTime}>{ev.time || t('all_day')}</span>
+                    <span style={dayRowTitle}>{subjectLabel(l, lang)} · {l.class_group_name}</span>
+                    <span style={dayRowKind}>{t('lesson')}</span>
+                  </button>
+                )
+              }
+              if (ev.kind === 'schedule' && ev.schedule) {
+                const s = ev.schedule
+                return (
+                  <button key={`s-${s.slot_id}-${s.dateISO}`} onClick={() => onOpenSchedule(s)} style={dayRowBtn(isRTL, SCHEDULE_BG, SCHEDULE_FG, SCHEDULE_ACCENT)}>
+                    <span style={dayRowTime}>{ev.time || t('all_day')}</span>
+                    <span style={dayRowTitle}>{scheduleSubjectLabel(s, lang)} · {s.class_group_name}</span>
+                    <span style={dayRowKind}>{t('planned_lesson')}</span>
+                  </button>
+                )
+              }
+              if (ev.kind === 'task' && ev.task) {
+                const tk = ev.task
+                return (
+                  <button key={`t-${tk.id}`} onClick={() => onOpenTask(tk)} style={dayRowBtn(isRTL, TASK_BG, TASK_FG, TASK_ACCENT)}>
+                    <span style={dayRowTime}>{ev.time || t('all_day')}</span>
+                    <span style={dayRowTitle}>{tk.title}</span>
+                    <span style={dayRowKind}>{t('task')}</span>
+                  </button>
+                )
+              }
+              if (ev.kind === 'event' && ev.event) {
+                const ce = ev.event as CalEvent
+                return (
+                  <button key={`e-${ce.id}`} onClick={() => onOpenEvent(ce)} style={dayRowBtn(isRTL, 'var(--accent-tint)', '#4338CA', '#6366F1')}>
+                    <span style={dayRowTime}>{ev.time || t('all_day')}</span>
+                    <span style={dayRowTitle}>📅 {ce.title}</span>
+                    <span style={dayRowKind}>{t('event')}</span>
+                  </button>
+                )
+              }
+              if (ev.kind === 'birthday' && ev.birthday) {
+                const b = ev.birthday
+                return (
+                  <div key={`b-${b.dateISO}`} style={{ ...dayRowBtn(isRTL, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT), cursor: 'default' }}>
+                    <span style={dayRowTime}>{t('all_day')}</span>
+                    <span style={dayRowTitle}>🎂 {t('birthday')} · {b.age}</span>
+                    <span style={dayRowKind}>{t('birthday')}</span>
+                  </div>
+                )
+              }
+              const a = ev.appointment!
+              const st = statusStyle(a.status, primary, light)
+              return (
+                <button key={`a-${a.id}`} onClick={() => onOpen(a)} style={{ ...dayRowBtn(isRTL, st.bg, st.color, st.color), textDecoration: st.strike ? 'line-through' : 'none' }}>
+                  <span style={dayRowTime}>{isoTime(a.starts_at)}</span>
+                  <span style={dayRowTitle}>{a.title}</span>
+                  <span style={dayRowKind}>{t(`status.${a.status}`)}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        <button onClick={onNew} style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, border: `1px solid ${primary}`, borderRadius: 8, padding: '9px 14px', cursor: 'pointer', justifySelf: isRTL ? 'end' : 'start' }}>
+          + {t('new_appointment')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const dayRowTime: React.CSSProperties = { fontSize: 12, fontWeight: 700, minWidth: 62 }
+const dayRowTitle: React.CSSProperties = { fontSize: 13, fontWeight: 600, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+const dayRowKind: React.CSSProperties = { fontSize: 10, fontWeight: 600, opacity: 0.75, textTransform: 'uppercase', letterSpacing: 0.3 }
+function dayRowBtn(isRTL: boolean, bg: string, color: string, accent: string): React.CSSProperties {
+  return {
+    display: 'flex', alignItems: 'center', gap: 10, textAlign: isRTL ? 'right' : 'left', cursor: 'pointer',
+    background: bg, color, borderInlineStart: `3px solid ${accent}`, border: 'none',
+    borderRadius: 8, padding: '8px 12px', width: '100%',
+  }
+}
+
+// ─────────────────────────────────────────────
 // Статус-стили чипа
 // ─────────────────────────────────────────────
 
@@ -715,7 +897,7 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 
 function MonthView({
   weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, birthdays, calEvents, today, primary, light, isRTL, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
+  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, onOpenDay, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
   weekdayLabels: string[]
@@ -738,6 +920,7 @@ function MonthView({
   onOpenTask: (task: Task) => void
   onOpenSchedule: (s: ScheduleInstance) => void
   onOpenEvent: (e: CalEvent) => void
+  onOpenDay: (d: string) => void
   t: (k: string, f?: string) => string
 }) {
   return (
@@ -762,10 +945,11 @@ function MonthView({
             return (
               <div
                 key={cell.dateISO}
+                onClick={() => onOpenDay(cell.dateISO)}
                 style={{
                   minHeight: 104, borderInlineEnd: '1px solid var(--surface-2)', borderBottom: '1px solid var(--surface-2)',
                   padding: 6, position: 'relative', background: blocked ? '#FAFAF9' : 'var(--surface)',
-                  opacity: cell.inMonth ? 1 : 0.45,
+                  opacity: cell.inMonth ? 1 : 0.45, cursor: 'pointer',
                   backgroundImage: blocked
                     ? 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(107,114,128,0.06) 6px, rgba(107,114,128,0.06) 12px)'
                     : undefined,
@@ -795,7 +979,7 @@ function MonthView({
                       </span>
                     )}
                     <button
-                      onClick={() => onDayNew(cell.dateISO)}
+                      onClick={(e) => { e.stopPropagation(); onDayNew(cell.dateISO) }}
                       title={t('new_appointment')}
                       style={dayAddBtn}
                     >+</button>
@@ -810,7 +994,7 @@ function MonthView({
                       return (
                         <button
                           key={`l-${l.id}`}
-                          onClick={() => onOpenLesson(l)}
+                          onClick={(e) => { e.stopPropagation(); onOpenLesson(l) }}
                           title={`${t('lesson')} · ${l.class_group_name}`}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
@@ -831,7 +1015,7 @@ function MonthView({
                       return (
                         <button
                           key={`s-${s.slot_id}-${s.dateISO}`}
-                          onClick={() => onOpenSchedule(s)}
+                          onClick={(e) => { e.stopPropagation(); onOpenSchedule(s) }}
                           title={`${t('planned_lesson')} · ${s.class_group_name}`}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
@@ -851,7 +1035,7 @@ function MonthView({
                       return (
                         <button
                           key={`t-${tk.id}`}
-                          onClick={() => onOpenTask(tk)}
+                          onClick={(e) => { e.stopPropagation(); onOpenTask(tk) }}
                           title={`${t('task')} · ${tk.title}`}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
@@ -870,7 +1054,7 @@ function MonthView({
                       return (
                         <button
                           key={`e-${ce.id}`}
-                          onClick={() => onOpenEvent(ce)}
+                          onClick={(e) => { e.stopPropagation(); onOpenEvent(ce) }}
                           title={ce.title}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
@@ -908,7 +1092,7 @@ function MonthView({
                     return (
                       <button
                         key={`a-${a.id}`}
-                        onClick={() => onOpen(a)}
+                        onClick={(e) => { e.stopPropagation(); onOpen(a) }}
                         title={isParticipant && a.provider_name ? `${t('booked_by')} ${a.provider_name}` : undefined}
                         style={{
                           textAlign: isRTL ? 'right' : 'left', cursor: 'pointer',
@@ -923,15 +1107,21 @@ function MonthView({
                     )
                   })}
                   {events.length > 3 && (
-                    <span style={{ fontSize: 10, color: 'var(--text-faint)', paddingInlineStart: 2 }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onOpenDay(cell.dateISO) }}
+                      style={{
+                        textAlign: isRTL ? 'right' : 'left', border: 'none', background: 'transparent', cursor: 'pointer',
+                        fontSize: 10, color: 'var(--text-faint)', paddingInlineStart: 2,
+                      }}
+                    >
                       +{events.length - 3}
-                    </span>
+                    </button>
                   )}
                 </div>
 
                 {/* Быстрая пометка выходного при наведении — через двойной клик по дню */}
                 <button
-                  onClick={() => onToggleDayOff(cell.dateISO)}
+                  onClick={(e) => { e.stopPropagation(); onToggleDayOff(cell.dateISO) }}
                   title={blocked ? t('remove_day_off') : t('mark_day_off')}
                   style={{
                     position: 'absolute', bottom: 4, insetInlineEnd: 4, fontSize: 10, color: blocked ? '#B45309' : '#C4C9D0',
