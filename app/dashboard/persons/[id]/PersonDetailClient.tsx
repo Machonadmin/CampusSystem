@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { phoneList } from '@/lib/persons/phone'
 
 interface PersonDetail {
   id: string
@@ -100,7 +101,7 @@ export default function PersonDetailClient({
           {/* Info card */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Info label={t('fields.email')} value={data.email} />
-            <Info label={t('fields.phone')} value={data.phones.join(', ') || null} />
+            <Info label={t('fields.phone')} value={phoneList(data.phones).join(', ') || null} />
             <Info label={t('fields.department')} value={data.department} />
             <Info
               label={t('fields.roles')}

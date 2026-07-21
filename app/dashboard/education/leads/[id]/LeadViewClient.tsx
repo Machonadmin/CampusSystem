@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { phoneList } from '@/lib/persons/phone'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
 import StudyTrackPanel from '@/components/education/StudyTrackPanel'
@@ -214,7 +215,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       case 'contacts':
         return (
           <>
-            <Field label={t('card.labels.phone')} value={person.phones.length > 0 ? person.phones.join(', ') : '—'} />
+            <Field label={t('card.labels.phone')} value={phoneList(person.phones).length > 0 ? phoneList(person.phones).join(', ') : '—'} />
             <Field label={t('card.labels.email')} value={person.email} />
             <Field label={t('card.labels.country')} value={addr.country} />
             <Field label={t('card.labels.city')} value={addr.city} />

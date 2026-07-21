@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { downloadCsv } from '@/lib/csv'
+import { firstPhone } from '@/lib/persons/phone'
 
 type Tab = 'staff' | 'students'
 
@@ -205,7 +206,7 @@ function PersonRow({
   studentLabel: string
   onClick: () => void
 }) {
-  const phone = row.phones[0] ?? null
+  const phone = firstPhone(row.phones)
   const secondary = isStudent(row)
     ? studentLabel
     : (row.position ?? null)
