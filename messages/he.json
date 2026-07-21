@@ -3543,6 +3543,7 @@
     "recurring": "חוזר",
     "planned_lesson": "שיעור מתוכנן",
     "birthday": "יום הולדת",
+    "event": "אירוע",
     "task_status": {
       "pending": "ממתינה",
       "in_progress": "בביצוע",
