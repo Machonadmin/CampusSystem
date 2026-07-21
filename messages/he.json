@@ -1542,6 +1542,33 @@
       "forbidden": "אין לך הרשאה לנהל סמסטרים",
       "load_failed": "טעינת הסמסטרים נכשלה",
       "save_failed": "השמירה נכשלה"
+    },
+    "recruitment_form": {
+      "title": "הגדרות דף ההרשמה",
+      "subtitle": "הגיוס שולט במה שמופיע בטופס הציבורי",
+      "section_fields": "שדות הטופס",
+      "section_fields_note": "בחר אילו שדות יופיעו למועמדת ואילו יהיו חובה",
+      "col_field": "שדה",
+      "col_show": "מוצג",
+      "col_required": "חובה",
+      "f_last_name": "שם משפחה",
+      "f_email": "אימייל",
+      "f_birth_date": "תאריך לידה",
+      "f_city": "עיר",
+      "f_direction": "מסלול / תוכנית",
+      "f_applicant_type": "מי ממלא (מועמדת/הורה/נציג)",
+      "f_comment": "הערה חופשית",
+      "core_note": "שם פרטי וטלפון נדרשים תמיד ולא ניתן להסתירם",
+      "section_directions": "מסלולים מוצגים",
+      "dir_all": "כל המסלולים הפעילים",
+      "dir_subset": "רק מסלולים נבחרים",
+      "dir_subset_note": "סמן אילו מסלולים יוצגו בטופס",
+      "dir_empty": "אין מסלולים פעילים",
+      "save": "שמור",
+      "saving": "שומר…",
+      "saved": "נשמר",
+      "load_error": "שגיאה בטעינה",
+      "save_error": "שגיאה בשמירה"
     }
   },
   "tasks": {

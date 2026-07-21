@@ -1542,6 +1542,33 @@
       "forbidden": "You don't have permission to manage semesters",
       "load_failed": "Failed to load semesters",
       "save_failed": "Failed to save"
+    },
+    "recruitment_form": {
+      "title": "Application page settings",
+      "subtitle": "Recruitment controls what appears on the public form",
+      "section_fields": "Form fields",
+      "section_fields_note": "Choose which fields appear and which are required",
+      "col_field": "Field",
+      "col_show": "Shown",
+      "col_required": "Required",
+      "f_last_name": "Last name",
+      "f_email": "Email",
+      "f_birth_date": "Date of birth",
+      "f_city": "City",
+      "f_direction": "Track / program",
+      "f_applicant_type": "Who is applying (applicant/parent/representative)",
+      "f_comment": "Comment",
+      "core_note": "First name and phone are always required and cannot be hidden",
+      "section_directions": "Displayed tracks",
+      "dir_all": "All active tracks",
+      "dir_subset": "Only selected",
+      "dir_subset_note": "Check which tracks to show on the form",
+      "dir_empty": "No active tracks",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "load_error": "Failed to load",
+      "save_error": "Failed to save"
     }
   },
   "tasks": {
