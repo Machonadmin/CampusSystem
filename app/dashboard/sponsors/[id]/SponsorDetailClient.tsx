@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
@@ -74,6 +74,9 @@ export default function SponsorDetailClient({
 
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+
+  // прогрессивное раскрытие: детали пожертвования (кампания/метод) по клику
+  const [expandedDonation, setExpandedDonation] = useState<string | null>(null)
 
   // donation editor: null — закрыт; '' — новое пожертвование; иначе id
   const [donationEditing, setDonationEditing] = useState<string | null>(null)
@@ -296,7 +299,7 @@ export default function SponsorDetailClient({
 
         {editingSponsor ? (
           <>
-            {sFormError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{sFormError}</div>}
+            {sFormError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{sFormError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
               <Field label={t('fields.name')}>
                 <input value={sForm.name} onChange={e => setS('name', e.target.value)} style={inp} />
@@ -329,7 +332,7 @@ export default function SponsorDetailClient({
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button onClick={saveSponsor} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
               <button onClick={() => setEditingSponsor(false)} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-              <button onClick={removeSponsor} disabled={busy} style={{ ...btnGhost, color: '#DC2626', borderColor: '#FCA5A5', marginInlineStart: 'auto' }}>
+              <button onClick={removeSponsor} disabled={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
                 {tCommon('delete')}
               </button>
             </div>
@@ -348,8 +351,8 @@ export default function SponsorDetailClient({
       {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <TotalCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="#059669" />
-          <TotalCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="#D97706" />
+          <TotalCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="var(--success)" />
+          <TotalCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="var(--warn)" />
           <TotalCard label={t('stats.total_cancelled')} value={fmtMoney(stats.total_cancelled)} color="var(--text-faint)" />
         </div>
       )}
@@ -371,7 +374,7 @@ export default function SponsorDetailClient({
         </div>
       )}
 
-      {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
+      {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
 
       {/* Donations */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16 }}>
@@ -388,7 +391,7 @@ export default function SponsorDetailClient({
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>
               {donationEditing === '' ? t('detail.record_donation') : t('detail.edit_donation')}
             </div>
-            {dFormError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{dFormError}</div>}
+            {dFormError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{dFormError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
               <Field label={t('fields.amount')}>
                 <input type="number" step="0.01" min="0" value={dForm.amount} onChange={e => setD('amount', e.target.value)} style={inp} />
@@ -419,7 +422,7 @@ export default function SponsorDetailClient({
         )}
 
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : donations.length === 0 ? (
@@ -432,34 +435,57 @@ export default function SponsorDetailClient({
                   <th style={th}>{t('detail.col_date')}</th>
                   <th style={{ ...th, textAlign: 'right' }}>{t('detail.col_amount')}</th>
                   <th style={th}>{t('detail.col_purpose')}</th>
-                  <th style={th}>{t('detail.col_campaign')}</th>
-                  <th style={th}>{t('detail.col_method')}</th>
                   <th style={th}>{t('detail.col_status')}</th>
                   {canManage && <th style={{ ...th, textAlign: 'right' }}></th>}
                 </tr>
               </thead>
               <tbody>
-                {donations.map(d => (
-                  <tr key={d.id}>
-                    <td style={td}>{d.donation_date}</td>
-                    <td style={tdNum}>{fmtMoney(d.amount)}</td>
-                    <td style={td}>{d.purpose || '—'}</td>
-                    <td style={td}>{d.campaign || '—'}</td>
-                    <td style={td}>{d.method || '—'}</td>
-                    <td style={td}><StatusBadge status={d.status} label={t(`statuses.${d.status}`)} /></td>
-                    {canManage && (
-                      <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        {d.status !== 'received' && (
-                          <ActionLink onClick={() => changeStatus(d, 'received')} disabled={busy} color="#059669">{t('detail.mark_received')}</ActionLink>
+                {donations.map(d => {
+                  const open = expandedDonation === d.id
+                  const hasExtra = !!(d.campaign || d.method)
+                  const colCount = canManage ? 5 : 4
+                  return (
+                    <Fragment key={d.id}>
+                      <tr
+                        onClick={() => setExpandedDonation(open ? null : d.id)}
+                        style={{ cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={td}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : 0}deg)`, opacity: hasExtra ? 1 : 0.25 }}>▶</span>
+                            {d.donation_date}
+                          </span>
+                        </td>
+                        <td style={tdNum}>{fmtMoney(d.amount)}</td>
+                        <td style={td}>{d.purpose || '—'}</td>
+                        <td style={td}><StatusBadge status={d.status} label={t(`statuses.${d.status}`)} /></td>
+                        {canManage && (
+                          <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                            {d.status !== 'received' && (
+                              <ActionLink onClick={() => changeStatus(d, 'received')} disabled={busy} color="var(--success)">{t('detail.mark_received')}</ActionLink>
+                            )}
+                            {d.status !== 'cancelled' && (
+                              <ActionLink onClick={() => changeStatus(d, 'cancelled')} disabled={busy} color="var(--warn)">{t('detail.mark_cancelled')}</ActionLink>
+                            )}
+                            <ActionLink onClick={() => openEditDonation(d)} disabled={busy} color={primary}>{tCommon('edit')}</ActionLink>
+                          </td>
                         )}
-                        {d.status !== 'cancelled' && (
-                          <ActionLink onClick={() => changeStatus(d, 'cancelled')} disabled={busy} color="#D97706">{t('detail.mark_cancelled')}</ActionLink>
-                        )}
-                        <ActionLink onClick={() => openEditDonation(d)} disabled={busy} color={primary}>{tCommon('edit')}</ActionLink>
-                      </td>
-                    )}
-                  </tr>
-                ))}
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('detail.col_campaign')} value={d.campaign || '—'} />
+                              <Detail label={t('detail.col_method')} value={d.method || '—'} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -511,10 +537,20 @@ function TotalCard({ label, value, color }: { label: string; value: string; colo
   )
 }
 
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}
+
 function StatusBadge({ status, label }: { status: 'pledged' | 'received' | 'cancelled'; label: string }) {
   const palette: Record<string, { bg: string; fg: string }> = {
-    received:  { bg: '#D1FAE5', fg: '#047857' },
-    pledged:   { bg: '#FEF3C7', fg: '#B45309' },
+    received:  { bg: 'var(--success-tint)', fg: 'var(--success)' },
+    pledged:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
     cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
   const c = palette[status] ?? palette.cancelled

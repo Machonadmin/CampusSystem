@@ -190,8 +190,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12,
         }}>
-          <StatCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="#059669" />
-          <StatCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="#D97706" />
+          <StatCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="var(--success)" />
+          <StatCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="var(--warn)" />
           <StatCard label={t('stats.donors')} value={String(sponsors.length)} color="var(--text)" />
         </div>
       )}
@@ -225,7 +225,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
             {t('form.new_title')}
           </h2>
-          {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
+          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Field label={t('fields.name')}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
@@ -271,7 +271,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
       {/* Donors list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (
