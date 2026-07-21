@@ -50,6 +50,18 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
 type ModalView = 'new' | 'existing'
 interface DeptOption { id: string; label: string }
 
+// Passed when opening the modal to edit an existing employee (Task B).
+// Only the fields available on the staff-list row are needed here; the rest of
+// the person is fetched via /api/persons/[id] for prefill.
+export interface EditingEmployee {
+  person_id: string
+  full_name?: string
+  department_id?: string | null
+  position?: string
+  hire_date?: string | null
+  employment_type?: string | null
+}
+
 function flattenTree(depts: Department[]): DeptOption[] {
   const map = new Map<string, Department & { children: Department[] }>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
@@ -69,14 +81,16 @@ function flattenTree(depts: Department[]): DeptOption[] {
 }
 
 export default function AddEmployeeModal({
-  onClose, onSaved, defaultDepartmentId,
+  onClose, onSaved, defaultDepartmentId, editing,
 }: {
   onClose: () => void
   onSaved: () => void
   defaultDepartmentId?: string
+  editing?: EditingEmployee | null
 }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const isEditing = !!editing
 
   const MODAL_TABS = [
     t('add_modal.tab_personal'), t('add_modal.tab_contacts'), t('add_modal.tab_position'),
@@ -191,7 +205,9 @@ export default function AddEmployeeModal({
   async function loadPersonData(id: string) {
     setLoadingPerson(true)
     try {
-      const res = await fetch(`/api/settings/persons/${id}`)
+      // Правильный существующий роут — /api/persons/[id]. Прежний
+      // /api/settings/persons/[id] не существует (был только .../search).
+      const res = await fetch(`/api/persons/${id}`)
       if (!res.ok) return
       const d = await res.json()
       setLastName(d.last_name ?? '')
@@ -203,8 +219,13 @@ export default function AddEmployeeModal({
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? d.nationality ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
-      if (Array.isArray(d.phones) && d.phones.length > 0) setPhones(d.phones)
-      else if (d.phone) setPhones([d.phone])
+      // persons.phones каноничны как [{type, number}] — в форме телефоны строки.
+      if (Array.isArray(d.phones) && d.phones.length > 0) {
+        const nums = d.phones
+          .map((p: unknown) => typeof p === 'string' ? p : ((p as { number?: string })?.number ?? ''))
+          .filter((n: string) => n)
+        setPhones(nums.length > 0 ? nums : [''])
+      } else if (d.phone) setPhones([d.phone])
       if (d.email) setEmail(d.email)
       const addr = d.address ?? {}
       setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
@@ -213,6 +234,27 @@ export default function AddEmployeeModal({
       setLoadingPerson(false)
     }
   }
+
+  // ── Edit mode (Task B): prefill from the passed employee + full person fetch.
+  // Fields stay editable (view='new'), but SAVE is disabled in edit mode — no
+  // person-update endpoint exists, and re-POSTing would create a duplicate
+  // person. See report.
+  useEffect(() => {
+    if (!editing) return
+    if (editing.department_id) setDepartmentId(editing.department_id)
+    if (editing.hire_date) setHireDate(new Date(editing.hire_date))
+    if (editing.employment_type) setEmploymentType(editing.employment_type)
+    loadPersonData(editing.person_id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing])
+
+  // Match the position by name once the reference list has loaded.
+  useEffect(() => {
+    if (!editing?.position || positions.length === 0) return
+    const m = positions.find(p => p.name_ru === editing.position)
+    if (m) setPositionId(m.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, positions])
 
   async function selectPerson(p: PersonResult) {
     setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0); setSearchExpanded(false)
@@ -238,6 +280,9 @@ export default function AddEmployeeModal({
 
   async function handleSave() {
     setError('')
+    // Защита от дублей: в режиме редактирования сохранение отключено —
+    // эндпоинта обновления person нет, а POST создал бы дубликат.
+    if (isEditing) return
     if (!departmentId) { setError(t('add_modal.error_department_required')); setTabIdx(2); return }
     if (!positionId) { setError(t('add_modal.error_position_required')); setTabIdx(2); return }
     if (!hireDate) { setError(t('add_modal.error_hire_date_required')); setTabIdx(2); return }
@@ -702,7 +747,7 @@ export default function AddEmployeeModal({
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('add_modal.title')}</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{isEditing ? t('add_modal.edit_title') : t('add_modal.title')}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
@@ -757,6 +802,9 @@ export default function AddEmployeeModal({
             {tCommon('cancel')}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isEditing && tabIdx === 5 && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 260, textAlign: 'right' }}>{t('add_modal.edit_save_disabled_note')}</span>
+            )}
             {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
@@ -771,8 +819,8 @@ export default function AddEmployeeModal({
               </button>
             )}
             {tabIdx === 5 && (
-              <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+              <button onClick={handleSave} disabled={saving || isEditing}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: (saving || isEditing) ? 'not-allowed' : 'pointer', fontSize: 13, opacity: (saving || isEditing) ? 0.5 : 1 }}>
                 {saving ? t('add_modal.saving') : t('add_modal.save_button')}
               </button>
             )}

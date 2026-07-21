@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     // 2) Persons (with optional name search)
     let personQuery = sb
       .from('persons')
-      .select('id, full_name, photo_url, email, phones')
+      .select('id, full_name, photo_url, email, phones, gender')
       .in('id', personIds)
     if (search) personQuery = personQuery.ilike('full_name', `%${search}%`)
     const { data: persons, error: personsErr } = await personQuery
@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
           person_id: person.id,
           full_name: person.full_name,
           photo_url: person.photo_url,
+          gender: person.gender ?? null,
           phone: phones[0] ?? null,
           email: person.email,
           position: pos.position_ru,

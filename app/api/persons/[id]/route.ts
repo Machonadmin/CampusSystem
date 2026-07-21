@@ -15,7 +15,7 @@ export async function GET(
     const sb = createServerClient()
     const { data, error } = await sb
       .from('persons')
-      .select('id, full_name, hebrew_name, email, phones, gender, birth_date, photo_url, address, marital_status, nationality, passport_number')
+      .select('id, full_name, last_name, first_name, middle_name, hebrew_name, email, phones, gender, birth_date, photo_url, address, marital_status, nationality, passport_number')
       .eq('id', params.id)
       .single()
 
@@ -30,6 +30,9 @@ export async function GET(
     return NextResponse.json({
       id: p.id,
       full_name: p.full_name,
+      last_name: p.last_name ?? null,
+      first_name: p.first_name ?? null,
+      middle_name: p.middle_name ?? null,
       hebrew_name: p.hebrew_name ?? null,
       email: p.email ?? null,
       phone: phones.length > 0 ? ((phones[0] as { number?: string })?.number ?? phones[0]) : null,

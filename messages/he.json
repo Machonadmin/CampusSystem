@@ -1883,7 +1883,9 @@
       "street_placeholder": "דיזנגוף",
       "passport_issued_by_placeholder": "רשות מנפיקה…",
       "specialty_placeholder": "ניהול",
-      "contract_number_placeholder": "חוזה-2026-001"
+      "contract_number_placeholder": "חוזה-2026-001",
+      "edit_title": "פרטי עובד",
+      "edit_save_disabled_note": "עריכת פרטי עובד אינה זמינה כאן עדיין (צפייה בלבד)."
     },
     "name_required": "שם הוא שדה חובה",
     "error": "שגיאה",
@@ -1919,7 +1921,12 @@
     "delete_error": "שגיאה במחיקה",
     "delete_employee_error": "שגיאה במחיקת העובד",
     "load_error": "שגיאה בטעינה",
-    "delete_dept_confirm": "למחוק את המחלקה? תת-המחלקות יועברו רמה אחת למעלה."
+    "delete_dept_confirm": "למחוק את המחלקה? תת-המחלקות יועברו רמה אחת למעלה.",
+    "gender": {
+      "male": "זכר",
+      "female": "נקבה"
+    },
+    "create_login": "צור התחברות"
   },
   "quality": {
     "title": "הערכת הוראה",

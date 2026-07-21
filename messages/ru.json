@@ -1883,7 +1883,9 @@
       "street_placeholder": "Дизенгоф",
       "passport_issued_by_placeholder": "МВД...",
       "specialty_placeholder": "Менеджмент",
-      "contract_number_placeholder": "ТД-2026-001"
+      "contract_number_placeholder": "ТД-2026-001",
+      "edit_title": "Данные сотрудника",
+      "edit_save_disabled_note": "Редактирование данных сотрудника здесь пока недоступно (только просмотр)."
     },
     "name_required": "Название обязательно",
     "error": "Ошибка",
@@ -1919,7 +1921,12 @@
     "delete_error": "Ошибка при удалении",
     "delete_employee_error": "Ошибка при удалении сотрудника",
     "load_error": "Ошибка загрузки",
-    "delete_dept_confirm": "Удалить отдел? Дочерние отделы будут перенесены выше."
+    "delete_dept_confirm": "Удалить отдел? Дочерние отделы будут перенесены выше.",
+    "gender": {
+      "male": "Муж.",
+      "female": "Жен."
+    },
+    "create_login": "Создать логин"
   },
   "quality": {
     "title": "Оценка преподавания",
