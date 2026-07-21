@@ -33,6 +33,7 @@ html{overflow-x:hidden;max-width:100%;}
 .ap-topbar{position:sticky;top:0;z-index:30;background:rgba(251,246,238,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
 .ap-topbar-in{max-width:1060px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .ap-brand{display:flex;align-items:center;gap:11px;}
+.ap-logo{height:38px;width:auto;object-fit:contain;display:block;flex-shrink:0;}
 .ap-brand-name{font-size:16px;font-weight:800;letter-spacing:-.01em;}
 .ap-brand-sub{font-size:11.5px;color:var(--muted);margin-top:1px;}
 .ap-lang{display:flex;gap:2px;background:#fff;border:1px solid var(--line-strong);border-radius:9px;padding:3px;}
@@ -94,6 +95,7 @@ html{overflow-x:hidden;max-width:100%;}
 .ap-success p{font-size:15px;color:var(--muted);line-height:1.6;max-width:40ch;margin:0 auto;}
 .ap-foot{margin-top:38px;border-top:1px solid var(--line);}
 .ap-foot-in{max-width:1060px;margin:0 auto;padding:26px 24px 34px;text-align:center;}
+.ap-foot-logo{height:44px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;opacity:.92;}
 .ap-foot .fname{font-size:14px;font-weight:800;}
 .ap-foot .fnote{font-size:12.5px;color:var(--muted);margin-top:6px;}
 .ap-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-inline:8px;vertical-align:middle;}
@@ -177,12 +179,8 @@ export default function ApplyPage() {
       <header className="ap-topbar">
         <div className="ap-topbar-in">
           <div className="ap-brand">
-            <svg width="38" height="38" viewBox="0 0 48 48" aria-hidden="true">
-              <circle cx="24" cy="24" r="22.5" fill="none" stroke="#6A2E52" strokeWidth="1.4" />
-              <circle cx="24" cy="24" r="18" fill="none" stroke="#C0912F" strokeWidth="1" />
-              <path d="M24 9 L30.5 20.5 L37 32 L24 32 L11 32 L17.5 20.5 Z" fill="none" stroke="#6A2E52" strokeWidth="1.4" />
-              <path d="M24 39 L17.5 27.5 L11 16 L24 16 L37 16 L30.5 27.5 Z" fill="none" stroke="#C0912F" strokeWidth="1.4" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="ap-logo" width={44} height={38} />
             <div>
               <div className="ap-brand-name">{g.campusNameShort}</div>
               <div className="ap-brand-sub">{t('campus_title')}</div>
@@ -379,6 +377,8 @@ export default function ApplyPage() {
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="ap-foot">
         <div className="ap-foot-in">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="ap-foot-logo" width={52} height={44} />
           <div className="fname">{t('campus_title')}</div>
           <div className="fnote"><span className="ap-dot" /> © {t('footer_note')}</div>
         </div>
