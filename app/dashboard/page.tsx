@@ -110,11 +110,12 @@ export default function DashboardPage() {
         className="flex items-center justify-between rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('dashboard'),
-          padding: '12px 24px',
+          padding: '20px 24px',
           boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+          gap: 12,
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#fff', lineHeight: 1.3, margin: 0 }}>
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (
@@ -129,11 +130,11 @@ export default function DashboardPage() {
 
       {/* Modules grid */}
       <div>
-        <h2 className="text-sm font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--text-faint)' }}>
+        <h2 className="text-sm font-bold tracking-widest uppercase mb-5" style={{ color: 'var(--text-faint)' }}>
           {t.availableModules}
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {visibleModules.map(key => {
             const ready = isModuleImplemented(key)
             const primary = getModuleColor(key, 'primary')
@@ -185,7 +186,7 @@ export default function DashboardPage() {
                 }}
                 onMouseLeave={e => {
                   const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
+                  el.style.boxShadow = 'var(--shadow)'
                   el.style.transform = 'translateY(0)'
                 }}
               >
