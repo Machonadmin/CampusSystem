@@ -716,11 +716,11 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
 
       <div style={{
         background: getModuleHeaderGradient('settings'), borderRadius: 12,
-        padding: '12px 24px', display: 'flex', alignItems: 'center',
+        padding: '16px 24px', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
         <div>
-          <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
         </div>
         {!canEdit && (

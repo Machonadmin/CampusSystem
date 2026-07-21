@@ -119,11 +119,11 @@ export default function ReferenceCitiesPage() {
         className="flex items-center rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('settings'),
-          padding: '12px 24px',
+          padding: '16px 24px',
           boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>
           {t('title')}
         </h1>
       </div>

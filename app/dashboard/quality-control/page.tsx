@@ -133,11 +133,11 @@ export default function QualityControlPage() {
         className="rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('quality_control'),
-          padding: '12px 24px',
+          padding: '16px 24px',
           boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
       </div>
 
       {/* Tabs */}
