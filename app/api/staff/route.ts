@@ -173,8 +173,12 @@ export async function POST(request: NextRequest) {
 
     const session = await requirePrivilege('persons', 'create', { department_id: body.department_id })
 
-    const allPhones = (body.phones?.filter(p => p.trim()) ?? [])
-    if (allPhones.length === 0 && body.phone?.trim()) allPhones.push(body.phone.trim())
+    // Телефоны храним в КАНОНИЧЕСКОЙ форме [{type, number}] как во всём приложении
+    // (persons.phones). Раньше писались голые строки → в других модулях телефон
+    // «пропадал» (читатели берут .number). Приводим к объектам.
+    const rawPhones = (body.phones?.filter(p => p.trim()) ?? [])
+    if (rawPhones.length === 0 && body.phone?.trim()) rawPhones.push(body.phone.trim())
+    const allPhones = rawPhones.map(number => ({ type: 'mobile', number: number.trim() }))
 
     // Дополнительные поля без выделенной колонки уходят в notes как JSON
     const extra: Record<string, unknown> = {}
