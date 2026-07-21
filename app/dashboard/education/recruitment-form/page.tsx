@@ -3,11 +3,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey } from '@/lib/public/form-config'
 
 interface Program { id: string; name: string; institution_name: string | null }
+
+// Маркетинговые тексты, которые можно переопределить (ключи apply.*). Дефолт
+// показываем как подпись/плейсхолдер — редактор правит текущий язык интерфейса.
+const TEXT_KEYS = [
+  'hero_eyebrow', 'hero_tagline', 'register_heading', 'form_subtitle',
+  'programs_heading', 'programs_note',
+  'value1_title', 'value1_body', 'value2_title', 'value2_body', 'value3_title', 'value3_body',
+]
 
 // Порядок и метки встроенных полей (ключ i18n education.recruitment_form).
 const FIELD_ROWS: { key: BuiltinFieldKey; labelKey: string }[] = [
@@ -23,6 +31,8 @@ const FIELD_ROWS: { key: BuiltinFieldKey; labelKey: string }[] = [
 export default function RecruitmentFormSettingsPage() {
   const t = useTranslations('education.recruitment_form')
   const tNav = useTranslations('navigation')
+  const ta = useTranslations('apply')
+  const { lang } = useLang()
   const accent = getModuleColor('education')
 
   const [cfg, setCfg] = useState<PublicFormConfig | null>(null)
@@ -82,6 +92,21 @@ export default function RecruitmentFormSettingsPage() {
           ids: has ? prev.directions.ids.filter(x => x !== id) : [...prev.directions.ids, id],
         },
       }
+    })
+  }
+
+  // Переопределение текста на ТЕКУЩЕМ языке интерфейса; пустое значение убирает
+  // override (возврат к дефолтному переводу).
+  function setText(key: string, value: string) {
+    setCfg(prev => {
+      if (!prev) return prev
+      const langTexts: Record<string, string> = { ...(prev.texts[lang] ?? {}) }
+      if (value.trim()) langTexts[key] = value
+      else delete langTexts[key]
+      const texts = { ...prev.texts }
+      if (Object.keys(langTexts).length) texts[lang] = langTexts
+      else delete texts[lang]
+      return { ...prev, texts }
     })
   }
 
@@ -185,6 +210,29 @@ export default function RecruitmentFormSettingsPage() {
             )}
           </section>
 
+          {/* ── Маркетинговые тексты ── */}
+          <section style={card}>
+            <h2 style={sectionTitle}>{t('section_texts')}</h2>
+            <p style={sectionNote}>{t('section_texts_note')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {TEXT_KEYS.map(key => {
+                const def = ta(key)
+                const val = cfg.texts[lang]?.[key] ?? ''
+                const long = key.endsWith('_body') || key === 'programs_note' || key === 'hero_tagline'
+                return (
+                  <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{def}</span>
+                    {long ? (
+                      <textarea value={val} placeholder={def} onChange={e => setText(key, e.target.value)} rows={2} style={textInput} />
+                    ) : (
+                      <input value={val} placeholder={def} onChange={e => setText(key, e.target.value)} style={textInput} />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={save} disabled={saving} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: accent, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
               {saving ? t('saving') : t('save')}
@@ -202,3 +250,4 @@ const sectionNote: React.CSSProperties = { fontSize: 13, color: 'var(--text-mute
 const gridRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 90px 90px', alignItems: 'center', padding: '10px 14px' }
 const cellCenter: React.CSSProperties = { display: 'flex', justifyContent: 'center', cursor: 'pointer' }
 const radioRow: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text)', cursor: 'pointer' }
+const textInput: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }

@@ -1568,7 +1568,9 @@
       "saving": "Saving…",
       "saved": "Saved",
       "load_error": "Failed to load",
-      "save_error": "Failed to save"
+      "save_error": "Failed to save",
+      "section_texts": "Marketing texts",
+      "section_texts_note": "Editing in the current interface language. Leave blank for the default."
     }
   },
   "tasks": {
