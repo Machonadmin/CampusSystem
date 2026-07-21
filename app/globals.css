@@ -128,3 +128,45 @@ body { transition: background-color .25s ease, color .25s ease; }
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-tint);
 }
+
+/* ============================================================================
+   Полировка оболочки — единые состояния фокуса, скроллбары, выделение,
+   сглаживание. Всё через токены и адаптивно к теме. НЕ переопределяет
+   собственную стилизацию с бо́льшей специфичностью (напр. публичная /apply).
+   ============================================================================ */
+
+/* Кольцо фокуса на полях ввода (клик + клавиатура) — доступность и аккуратность.
+   box-shadow, а не outline: инлайновый outline:none его не перебивает. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+/* Обводка фокуса для кнопок/ссылок — только клавиатурная навигация. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Тонкие скроллбары в цветах темы. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); background-clip: content-box; }
+
+/* Выделение текста — в акцентном цвете. */
+::selection { background: var(--accent); color: var(--accent-contrast); }
+
+/* Сглаживание шрифта — чище на ретине. */
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
