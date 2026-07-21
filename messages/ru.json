@@ -2405,7 +2405,10 @@
       "col_institution": "Учреждение",
       "col_direction": "Направление",
       "col_occupation": "Род занятий",
-      "col_location": "Местоположение"
+      "col_location": "Местоположение",
+      "col_email": "Email",
+      "col_phone": "Телефон",
+      "open_card": "Открыть карточку"
     },
     "card": {
       "section": "Выпускник",

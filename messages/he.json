@@ -2405,7 +2405,10 @@
       "col_institution": "מוסד",
       "col_direction": "תוכנית",
       "col_occupation": "עיסוק",
-      "col_location": "מיקום"
+      "col_location": "מיקום",
+      "col_email": "אימייל",
+      "col_phone": "טלפון",
+      "open_card": "פתח כרטיס"
     },
     "card": {
       "section": "בוגר",

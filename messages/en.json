@@ -2405,7 +2405,10 @@
       "col_institution": "Institution",
       "col_direction": "Direction",
       "col_occupation": "Occupation",
-      "col_location": "Location"
+      "col_location": "Location",
+      "col_email": "Email",
+      "col_phone": "Phone",
+      "open_card": "Open card"
     },
     "card": {
       "section": "Graduate",
