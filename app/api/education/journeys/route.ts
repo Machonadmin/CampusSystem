@@ -10,6 +10,7 @@ import {
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import { getActiveStagesWithTasks } from '@/lib/workflow/active-stages'
+import { phoneList } from '@/lib/persons/phone'
 import type {
   EducationJourneyInsert,
   JourneyStatus,
@@ -338,7 +339,9 @@ export async function POST(request: NextRequest) {
           gender: np.gender || null,
           birth_date: np.birth_date || null,
           email: np.email?.trim() || null,
-          phones: np.phones ?? [],
+          // Канонизируем в [{type, number}] как во всём приложении — раньше
+          // сюда могли попасть голые строки, и телефон «пропадал» у читателей.
+          phones: phoneList(np.phones).map(number => ({ type: 'mobile', number })),
           address: {},
           notes: null,
         } as any)
