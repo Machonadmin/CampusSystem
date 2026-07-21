@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
+import type { PublicFormConfig, BuiltinFieldKey } from '@/lib/public/form-config'
 
 // Публичная посадочная страница + форма подачи заявки. НЕ под middleware
 // (matcher не покрывает /apply) → доступна без входа. Собственный «бренд»-стиль
@@ -116,6 +117,7 @@ export default function ApplyPage() {
   const t = useTranslations('apply')
 
   const [programs, setPrograms] = useState<Program[]>([])
+  const [config, setConfig] = useState<PublicFormConfig | null>(null)
   const [form, setForm] = useState({
     first_name: '', last_name: '', phone: '', email: '',
     birth_date: '', city: '', direction_id: '', website: '',
@@ -130,7 +132,27 @@ export default function ApplyPage() {
       .then(r => (r.ok ? r.json() : []))
       .then((data: Program[]) => setPrograms(Array.isArray(data) ? data : []))
       .catch(() => setPrograms([]))
+    fetch('/api/public/form-config')
+      .then(r => (r.ok ? r.json() : null))
+      .then((c: PublicFormConfig | null) => { if (c) setConfig(c) })
+      .catch(() => { /* конфиг недоступен — форма работает по дефолту */ })
   }, [])
+
+  // Настройка встроенного поля (видимость/обязательность). До загрузки конфига
+  // и для неизвестного ключа — дефолт (видимо, необязательно): форма не «мигает».
+  function fld(key: BuiltinFieldKey): { visible: boolean; required: boolean } {
+    const f = config?.fields.find(x => x.key === key)
+    return f ? { visible: f.visible, required: f.required } : { visible: true, required: false }
+  }
+  // Текст с переопределением набора (иначе — перевод по умолчанию).
+  function tx(key: string): string {
+    const o = config?.texts?.[lang]?.[key]
+    return o && o.trim() ? o : t(key)
+  }
+  // Направления с учётом режима (все активные / выбранное подмножество).
+  const visiblePrograms = config?.directions.mode === 'subset'
+    ? programs.filter(p => config.directions.ids.includes(p.id))
+    : programs
 
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -211,17 +233,17 @@ export default function ApplyPage() {
           </g>
         </svg>
         <div className="ap-hero-in">
-          <div className="ap-eyebrow">{t('hero_eyebrow')}</div>
-          <h1>{t('campus_title')}</h1>
-          <p className="ap-lede">{t('hero_tagline')}</p>
+          <div className="ap-eyebrow">{tx('hero_eyebrow')}</div>
+          <h1>{tx('campus_title')}</h1>
+          <p className="ap-lede">{tx('hero_tagline')}</p>
           <div className="ap-cta-row">
             <a className="ap-btn-gold" href="#register">
-              {t('hero_cta')}
+              {tx('hero_cta')}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d={isRTL ? 'M14 6l-6 6 6 6' : 'M10 6l6 6-6 6'} stroke="#3a2a08" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </a>
-            <a className="ap-btn-ghost" href="#programs">{t('hero_cta_secondary')}</a>
+            <a className="ap-btn-ghost" href="#programs">{tx('hero_cta_secondary')}</a>
           </div>
         </div>
         <div className="ap-hero-rule" />
@@ -232,18 +254,18 @@ export default function ApplyPage() {
         <div className="ap-values">
           <div className="ap-value">
             <svg className="ap-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#F7EEF3" /><path d="M15 24l5 5 10-12" stroke="#6A2E52" strokeWidth="2.4" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <h3>{t('value1_title')}</h3>
-            <p>{t('value1_body')}</p>
+            <h3>{tx('value1_title')}</h3>
+            <p>{tx('value1_body')}</p>
           </div>
           <div className="ap-value">
             <svg className="ap-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#FBF3E4" /><path d="M22 13c4 0 7 3 7 6 0 5-7 10-7 10s-7-5-7-10c0-3 3-6 7-6z" stroke="#C0912F" strokeWidth="2.2" fill="none" strokeLinejoin="round" /></svg>
-            <h3>{t('value2_title')}</h3>
-            <p>{t('value2_body')}</p>
+            <h3>{tx('value2_title')}</h3>
+            <p>{tx('value2_body')}</p>
           </div>
           <div className="ap-value">
             <svg className="ap-mark" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#F7EEF3" /><path d="M16 27c0-3 2.5-5 6-5s6 2 6 5M22 20a3.4 3.4 0 100-6.8 3.4 3.4 0 000 6.8z" stroke="#6A2E52" strokeWidth="2.2" fill="none" strokeLinecap="round" /></svg>
-            <h3>{t('value3_title')}</h3>
-            <p>{t('value3_body')}</p>
+            <h3>{tx('value3_title')}</h3>
+            <p>{tx('value3_body')}</p>
           </div>
         </div>
       </section>
@@ -251,15 +273,15 @@ export default function ApplyPage() {
       {/* ── Programs ─────────────────────────────────────────────── */}
       <section className="ap-section" id="programs">
         <div className="ap-head">
-          <div className="ap-eyebrow">{t('programs_eyebrow')}</div>
-          <h2>{t('programs_heading')}</h2>
-          <p>{t('programs_note')}</p>
+          <div className="ap-eyebrow">{tx('programs_eyebrow')}</div>
+          <h2>{tx('programs_heading')}</h2>
+          <p>{tx('programs_note')}</p>
         </div>
-        {programs.length === 0 ? (
+        {visiblePrograms.length === 0 ? (
           <p style={{ textAlign: 'center', fontSize: 14, color: '#9CA3AF' }}>{t('programs_empty')}</p>
         ) : (
           <div className="ap-prog-grid">
-            {programs.map(p => (
+            {visiblePrograms.map(p => (
               <div key={p.id} className="ap-prog">
                 <div className="pname">{p.name}</div>
                 {p.institution_name && <div className="pinst">{p.institution_name}</div>}
@@ -274,8 +296,8 @@ export default function ApplyPage() {
         <div className="ap-form-card">
           <div className="ap-form-top" />
           <div className="ap-form-head">
-            <h2>{t('register_heading')}</h2>
-            <p>{t('form_subtitle')}</p>
+            <h2>{tx('register_heading')}</h2>
+            <p>{tx('form_subtitle')}</p>
           </div>
 
           {done ? (
@@ -298,68 +320,87 @@ export default function ApplyPage() {
                 </label>
               </div>
 
-              <div className="ap-field">
-                <label>{t('applicant_type_label')}</label>
-                <div className="ap-seg">
-                  {types.map(([val, lbl]) => (
-                    <button key={val} type="button" className={form.applicant_type === val ? 'on' : ''}
-                      onClick={() => set('applicant_type', val)}>
-                      {lbl}
-                    </button>
-                  ))}
+              {fld('applicant_type').visible && (
+                <div className="ap-field">
+                  <label>{t('applicant_type_label')}</label>
+                  <div className="ap-seg">
+                    {types.map(([val, lbl]) => (
+                      <button key={val} type="button" className={form.applicant_type === val ? 'on' : ''}
+                        onClick={() => set('applicant_type', val)}>
+                        {lbl}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="ap-grid2">
+              {/* Имя (ядро, всегда) + фамилия (настраиваемая) */}
+              <div className={fld('last_name').visible ? 'ap-grid2' : undefined}>
                 <div className="ap-field">
                   <label>{t('label_first_name')} <span className="ap-req">*</span></label>
                   <input value={form.first_name} onChange={e => set('first_name', e.target.value)} required />
                 </div>
-                <div className="ap-field">
-                  <label>{t('label_last_name')}</label>
-                  <input value={form.last_name} onChange={e => set('last_name', e.target.value)} />
-                </div>
+                {fld('last_name').visible && (
+                  <div className="ap-field">
+                    <label>{t('label_last_name')}{fld('last_name').required && <span className="ap-req"> *</span>}</label>
+                    <input value={form.last_name} onChange={e => set('last_name', e.target.value)} required={fld('last_name').required} />
+                  </div>
+                )}
               </div>
 
-              <div className="ap-grid2">
+              {/* Телефон (ядро) + email */}
+              <div className={fld('email').visible ? 'ap-grid2' : undefined}>
                 <div className="ap-field">
                   <label>{t('label_phone')} <span className="ap-req">*</span></label>
                   <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} required />
                 </div>
-                <div className="ap-field">
-                  <label>{t('label_email')}</label>
-                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)} />
-                </div>
+                {fld('email').visible && (
+                  <div className="ap-field">
+                    <label>{t('label_email')}{fld('email').required && <span className="ap-req"> *</span>}</label>
+                    <input type="email" value={form.email} onChange={e => set('email', e.target.value)} required={fld('email').required} />
+                  </div>
+                )}
               </div>
 
-              <div className="ap-grid2">
-                <div className="ap-field">
-                  <label>{t('label_birth_date')}</label>
-                  <input type="date" value={form.birth_date} onChange={e => set('birth_date', e.target.value)} />
+              {/* Дата рождения + город */}
+              {(fld('birth_date').visible || fld('city').visible) && (
+                <div className={fld('birth_date').visible && fld('city').visible ? 'ap-grid2' : undefined}>
+                  {fld('birth_date').visible && (
+                    <div className="ap-field">
+                      <label>{t('label_birth_date')}{fld('birth_date').required && <span className="ap-req"> *</span>}</label>
+                      <input type="date" value={form.birth_date} onChange={e => set('birth_date', e.target.value)} required={fld('birth_date').required} />
+                    </div>
+                  )}
+                  {fld('city').visible && (
+                    <div className="ap-field">
+                      <label>{t('label_city')}{fld('city').required && <span className="ap-req"> *</span>}</label>
+                      <input value={form.city} onChange={e => set('city', e.target.value)} required={fld('city').required} />
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {fld('direction').visible && (
                 <div className="ap-field">
-                  <label>{t('label_city')}</label>
-                  <input value={form.city} onChange={e => set('city', e.target.value)} />
+                  <label>{t('label_program')}{fld('direction').required && <span className="ap-req"> *</span>}</label>
+                  <select value={form.direction_id} onChange={e => set('direction_id', e.target.value)} required={fld('direction').required}>
+                    <option value="">{t('program_placeholder')}</option>
+                    {visiblePrograms.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}{p.institution_name ? ` — ${p.institution_name}` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
-              <div className="ap-field">
-                <label>{t('label_program')}</label>
-                <select value={form.direction_id} onChange={e => set('direction_id', e.target.value)}>
-                  <option value="">{t('program_placeholder')}</option>
-                  {programs.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}{p.institution_name ? ` — ${p.institution_name}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="ap-field">
-                <label>{t('label_comment')}</label>
-                <textarea value={form.comment} onChange={e => set('comment', e.target.value)}
-                  placeholder={t('comment_placeholder')} rows={3} />
-              </div>
+              {fld('comment').visible && (
+                <div className="ap-field">
+                  <label>{t('label_comment')}{fld('comment').required && <span className="ap-req"> *</span>}</label>
+                  <textarea value={form.comment} onChange={e => set('comment', e.target.value)}
+                    placeholder={t('comment_placeholder')} rows={3} required={fld('comment').required} />
+                </div>
+              )}
 
               <button className="ap-submit" type="submit" disabled={submitting}>
                 {submitting ? t('submitting') : t('submit')}
