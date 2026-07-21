@@ -120,6 +120,7 @@ export default function EducationPage() {
   const [applicants, setApplicants] = useState<ApplicantJourney[]>([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
   const [expandedApplicantId, setExpandedApplicantId] = useState<string | null>(null)  // прогрессивное раскрытие строки абитуриента
+  const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null)  // прогрессивное раскрытие строки лида
 
   // «Приём» и «Комиссия» объединены владельцем в один раздел «קבלה» (это и есть
   // доска приёмной комиссии). Три раздела: набор / приём / учёба.
@@ -372,11 +373,7 @@ export default function EducationPage() {
                   <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                     {([
                       { label: t('leads.table.full_name'),        key: 'full_name'        as LeadSortKey },
-                      { label: t('leads.table.institution'),       key: null },
-                      { label: t('leads.table.direction'),         key: null },
                       { label: t('leads.table.phone'),             key: null },
-                      { label: t('leads.table.email'),             key: null },
-                      { label: t('leads.table.application_date'), key: 'application_date' as LeadSortKey },
                       { label: t('leads.table.current_stage'),     key: null },
                       { label: '',                                  key: null },
                     ] as { label: string; key: LeadSortKey | null }[]).map(({ label, key }, idx) => (
@@ -389,7 +386,7 @@ export default function EducationPage() {
                           textAlign: 'start', whiteSpace: 'nowrap',
                           cursor: key ? 'pointer' : 'default',
                           userSelect: 'none',
-                          width: idx === 7 ? 48 : undefined,
+                          width: idx === 3 ? 48 : undefined,
                         }}
                       >
                         {label}
@@ -401,14 +398,27 @@ export default function EducationPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(lead => (
-                    <tr key={lead.profile_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
+                  {filtered.map(lead => {
+                    const open = expandedLeadId === lead.profile_id
+                    const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
+                    const institution = depts.length === 0 ? '—' : depts.join(', ')
+                    const directionTexts = lead.interests.map(i => {
+                      if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
+                      return (i.free_text ?? '').trim()
+                    }).filter(Boolean)
+                    const direction = directionTexts.length === 0 ? '—' : directionTexts.join(', ')
+                    return (
+                    <Fragment key={lead.profile_id}>
+                    <tr
+                      onClick={() => setExpandedLeadId(open ? null : lead.profile_id)}
+                      style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                      onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                      onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
                       {/* Фото + Имя */}
                       <td style={{ padding: '11px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)`, flexShrink: 0 }}>▶</span>
                           {lead.photo_url ? (
                             <img src={lead.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                           ) : (
@@ -417,7 +427,7 @@ export default function EducationPage() {
                             </div>
                           )}
                           <span
-                            onClick={() => router.push(`/dashboard/education/leads/${lead.profile_id}`)}
+                            onClick={e => { e.stopPropagation(); router.push(`/dashboard/education/leads/${lead.profile_id}`) }}
                             style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent-strong)', cursor: 'pointer' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
@@ -434,37 +444,6 @@ export default function EducationPage() {
                         </div>
                       </td>
 
-                      {/* Учреждение */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text)', maxWidth: 160 }}>
-                        {(() => {
-                          const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
-                          return depts.length === 0 ? (
-                            <span style={{ color: 'var(--text-faint)' }}>—</span>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              {depts.map((d, idx) => <span key={idx}>{d}</span>)}
-                            </div>
-                          )
-                        })()}
-                      </td>
-
-                      {/* Направление */}
-                      <td style={{ padding: '11px 14px', maxWidth: 200 }}>
-                        {(() => {
-                          const texts = lead.interests.map(i => {
-                            if (i.direction_name) return i.level_name ? `${i.direction_name}, ${i.level_name}` : i.direction_name
-                            return (i.free_text ?? '').trim()
-                          }).filter(Boolean)
-                          return texts.length === 0 ? (
-                            <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>—</span>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12, color: 'var(--text)' }}>
-                              {texts.map((txt, idx) => <span key={idx}>{txt}</span>)}
-                            </div>
-                          )
-                        })()}
-                      </td>
-
                       {/* Телефон */}
                       <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                         {lead.phones.length === 0 ? (
@@ -474,16 +453,6 @@ export default function EducationPage() {
                             {lead.phones.map((p, idx) => <span key={idx} style={{ whiteSpace: 'nowrap' }}>{p}</span>)}
                           </div>
                         )}
-                      </td>
-
-                      {/* Email */}
-                      <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
-                        {lead.email ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}
-                      </td>
-
-                      {/* Дата */}
-                      <td style={{ padding: '11px 14px', fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                        {formatDate(lead.application_date)}
                       </td>
 
                       {/* Текущий этап и задачи */}
@@ -513,7 +482,7 @@ export default function EducationPage() {
                       </td>
 
                       {/* Действия */}
-                      <td style={{ padding: '11px 8px', width: 48 }}>
+                      <td onClick={e => e.stopPropagation()} style={{ padding: '11px 8px', width: 48 }}>
                         <button
                           onClick={e => openRowMenu(e, lead.profile_id)}
                           style={{
@@ -582,7 +551,21 @@ export default function EducationPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
+                    {open && (
+                      <tr style={{ background: 'var(--surface-2)' }}>
+                        <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                            <ApplicantDetail label={t('leads.table.institution')} value={institution} />
+                            <ApplicantDetail label={t('leads.table.direction')} value={direction} />
+                            <ApplicantDetail label={t('leads.table.email')} value={lead.email ?? '—'} />
+                            <ApplicantDetail label={t('leads.table.application_date')} value={formatDate(lead.application_date)} />
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
+                    )
+                  })}
                 </tbody>
               </table>
             )}

@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
+import { firstPhone } from '@/lib/persons/phone'
 import type { EmploymentType } from '@/types/database'
 
 export async function GET(request: NextRequest) {
@@ -65,7 +66,6 @@ export async function GET(request: NextRequest) {
       .map(pos => {
         const person = personMap.get(pos.person_id)!
         const profile = profileMap.get(pos.person_id)
-        const phones = (person.phones as string[] | null) ?? []
         const status = profile?.fire_date ? 'fired' : 'active'
         return {
           position_id: pos.id,
@@ -74,7 +74,9 @@ export async function GET(request: NextRequest) {
           full_name: person.full_name,
           photo_url: person.photo_url,
           gender: person.gender ?? null,
-          phone: phones[0] ?? null,
+          // phones — JSONB [{type, number}] (или легаси-строки): всегда строкой,
+          // иначе объект телефона рендерится в JSX → React error #31.
+          phone: firstPhone(person.phones),
           email: person.email,
           position: pos.position_ru,
           is_head: pos.is_head,
