@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -25,12 +26,6 @@ import { mapDbError } from '@/lib/finance/http'
 const PERSON_SELECT =
   'id, full_name, hebrew_name, email, phones, photo_url'
 
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
 // Размер страницы для агрегации баланса. PostgREST по умолчанию отдаёт не
 // более db-max-rows (обычно 1000) строк за запрос и МОЛЧА обрезает остальное.

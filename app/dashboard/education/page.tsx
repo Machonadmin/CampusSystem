@@ -1,4 +1,5 @@
 'use client'
+import { flattenPhones } from '@/lib/persons/phone'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -60,12 +61,6 @@ function initials(name: string) {
 function formatDate(d: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
 }
 function interestLabel(i: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }): string {
   if (i.direction_name) {

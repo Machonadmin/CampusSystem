@@ -28,3 +28,12 @@ export function phoneList(phones: unknown): string[] {
   if (!Array.isArray(phones)) return []
   return phones.map(numberOf).filter((n): n is string => !!n)
 }
+
+/**
+ * Псевдоним phoneList — исторически многие роуты определяли локальную
+ * flattenPhones с идентичным поведением. Единый источник, чтобы починка
+ * формата телефона (React #31) жила в одном месте.
+ */
+export function flattenPhones(raw: unknown): string[] {
+  return phoneList(raw)
+}
