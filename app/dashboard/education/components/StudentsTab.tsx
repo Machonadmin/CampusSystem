@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -40,10 +40,11 @@ interface Student {
   primary_department: { id: string; name: string } | null
 }
 
+// Цвет = только статус (правило цвета, спринт 0.3): токены success/warn/info/muted.
 const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
-  student:   { background: '#ECFDF5', color: '#065F46' },
-  on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: 'var(--accent-tint)', color: '#1E40AF' },
+  student:   { background: 'var(--success-tint)', color: 'var(--success)' },
+  on_leave:  { background: 'var(--warn-tint)', color: 'var(--warn)' },
+  graduated: { background: 'var(--info-tint)', color: 'var(--info)' },
   expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
@@ -65,6 +66,7 @@ export default function StudentsTab() {
   const [filterStatus, setFilterStatus] = useState('')  // '' = active+on_leave
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   // ── Массовое назначение (bulk): класс / маршрут / кодеш ──
   const [selectMode, setSelectMode] = useState(false)
@@ -290,7 +292,7 @@ export default function StudentsTab() {
       {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -311,13 +313,10 @@ export default function StudentsTab() {
                     </th>
                   )}
                   <th style={thStyle}>{t('students.table_name')}</th>
-                  <th style={thStyle}>{t('students.table_contacts')}</th>
                   <th style={thStyle}>{t('students.table_department')}</th>
                   <th style={thStyle}>{t('students.table_group')}</th>
-                  <th style={thStyle}>{t('students.table_specialty')}</th>
-                  <th style={{ ...thStyle, width: 60, textAlign: 'center' }}>{t('students.table_year')}</th>
                   <th style={{ ...thStyle, width: 110 }}>{t('students.table_status')}</th>
-                  <th style={{ ...thStyle, width: 160 }}>{t('students.table_actions')}</th>
+                  <th style={{ ...thStyle, width: 170 }}>{t('students.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,68 +324,68 @@ export default function StudentsTab() {
                   const phone = s.person?.phones?.[0]?.number ?? null
                   const expelled = s.education_status === 'expelled'
                   const cardHref = `/dashboard/education/students/${s.id}`
+                  const open = expandedId === s.id
+                  const colCount = selectMode ? 6 : 5
                   return (
-                    <tr
-                      key={s.id}
-                      style={{ borderTop: '1px solid var(--surface-2)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                    >
-                      {selectMode && (
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
-                          <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} />
-                        </td>
-                      )}
-                      <td style={{ ...tdStyle, fontWeight: 500 }}>
-                        <button
-                          onClick={() => router.push(cardHref)}
-                          style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'var(--accent-strong)', fontWeight: 500, fontSize: 13, textAlign: 'inherit' }}
-                        >
-                          {s.person?.full_name ?? '—'}
-                        </button>
-                        {s.person?.hebrew_name && (
-                          <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start' }}>{s.person.hebrew_name}</div>
+                    <Fragment key={s.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : s.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        {selectMode && (
+                          <td style={{ ...tdStyle, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                            <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} />
+                          </td>
                         )}
-                      </td>
-                      <td style={tdStyle}>
-                        {s.person?.email && <div style={{ color: 'var(--text)' }}>{s.person.email}</div>}
-                        {phone && <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{phone}</div>}
-                        {!s.person?.email && !phone && <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? '—'}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}</td>
-                      <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
-                        {s.specialty
-                          ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name)
-                          : <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {s.year_level ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                      </td>
-                      <td style={tdStyle}>
-                        <span style={{
-                          fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
-                          ...(STATUS_STYLE[s.education_status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
-                        }}>
-                          {STATUS_LABEL[s.education_status] ?? s.education_status}
-                        </span>
-                      </td>
-                      <td style={tdStyle}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => router.push(cardHref)} style={btnSecondary}>
-                            {t('students.open_card')}
-                          </button>
-                          {!expelled && (
-                            <button
-                              onClick={() => handleExpel(s)}
-                              style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                            >
-                              {t('students.expel_button')}
-                            </button>
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{s.person?.full_name ?? '—'}</span>
+                          </span>
+                          {s.person?.hebrew_name && (
+                            <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}</td>
+                        <td style={tdStyle}>
+                          <span style={{
+                            fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
+                            ...(STATUS_STYLE[s.education_status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
+                          }}>
+                            {STATUS_LABEL[s.education_status] ?? s.education_status}
+                          </span>
+                        </td>
+                        <td style={tdStyle} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => router.push(cardHref)} style={btnSecondary}>
+                              {t('students.open_card')}
+                            </button>
+                            {!expelled && (
+                              <button
+                                onClick={() => handleExpel(s)}
+                                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('students.expel_button')}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('students.table_contacts')} value={[s.person?.email, phone].filter(Boolean).join('  ·  ') || '—'} />
+                              <Detail label={t('students.table_specialty')} value={s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : '—'} />
+                              <Detail label={t('students.table_year')} value={s.year_level != null ? String(s.year_level) : '—'} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -411,3 +410,13 @@ const thStyle: React.CSSProperties = {
   textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}
