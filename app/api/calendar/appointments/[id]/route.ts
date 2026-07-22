@@ -5,6 +5,7 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isAppointmentStatus, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment } from '@/lib/calendar/overlap'
+import { isAboveInHierarchy } from '@/lib/org/hierarchy'
 import type { AppointmentUpdate } from '@/types/database'
 
 /**
@@ -32,6 +33,7 @@ export async function PATCH(
       reason?: string | null
       notes?: string | null
       status?: string
+      attendee_person_ids?: string[]
     }
 
     const sb = createServerClient()
@@ -95,7 +97,34 @@ export async function PATCH(
     if (body.reason !== undefined) update.reason = body.reason?.trim() || null
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
+    // Синхронизация участников (добавить новых с проверкой иерархии, убрать
+    // исчезнувших). Деплой-безопасно: нет таблицы → тихо пропускаем.
+    let attendeesChanged = false
+    if (body.attendee_person_ids !== undefined) {
+      const wanted = new Set((body.attendee_person_ids ?? [])
+        .map(x => (x ?? '').trim()).filter(Boolean).filter(id => id !== session.person_id))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const exRes = await (sb as any).from('appointment_attendees').select('person_id').eq('appointment_id', params.id)
+      if (!exRes.error) {
+        const existingIds = new Set<string>(((exRes.data ?? []) as Array<{ person_id: string }>).map(r => r.person_id))
+        const toAdd = [...wanted].filter(id => !existingIds.has(id))
+        const toRemove = [...existingIds].filter(id => !wanted.has(id))
+        for (const pid of toAdd) {
+          const above = await isAboveInHierarchy(pid, session.person_id)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (sb as any).from('appointment_attendees').insert({ appointment_id: params.id, person_id: pid, requires_approval: above, status: above ? 'pending_approval' : 'invited' })
+        }
+        if (toRemove.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (sb as any).from('appointment_attendees').delete().eq('appointment_id', params.id).in('person_id', toRemove)
+        }
+        attendeesChanged = toAdd.length > 0 || toRemove.length > 0
+      }
+    }
+
     if (Object.keys(update).length === 0) {
+      // Только участники поменялись — этого достаточно, не 400.
+      if (attendeesChanged) return NextResponse.json({ ok: true })
       return apiError('no_changes', 400)
     }
 

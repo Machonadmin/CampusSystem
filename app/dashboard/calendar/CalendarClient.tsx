@@ -372,6 +372,17 @@ export default function CalendarClient() {
     } catch { setError(t('load_error')) }
   }
 
+  async function respondAttendance(a: Appointment, action: 'accept' | 'decline') {
+    try {
+      const res = await fetch(`/api/calendar/appointments/${a.id}/respond`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setError(b.error ?? t('load_error')); return }
+      setDetail(null)
+      await load()
+    } catch { setError(t('load_error')) }
+  }
+
   async function deleteAppointment(a: Appointment) {
     if (!window.confirm(t('confirm_delete'))) return
     try {
@@ -556,6 +567,7 @@ export default function CalendarClient() {
           onEdit={() => openEdit(detail)}
           onStatus={(s) => changeStatus(detail, s)}
           onDelete={() => deleteAppointment(detail)}
+          onRespond={(action) => respondAttendance(detail, action)}
           t={t}
           tCommon={tCommon}
           locale={locale}
@@ -1348,6 +1360,14 @@ function AppointmentForm({
   const [studentOpts, setStudentOpts] = useState<StudentOption[]>([])
   const [pickerOpen, setPickerOpen] = useState(false)
 
+  // Приглашённые участники — ЛЮБЫЕ persons (не только студенты).
+  const [invitees, setInvitees] = useState<{ id: string; name: string }[]>(
+    (editing?.attendees ?? []).map(x => ({ id: x.person_id, name: x.name ?? '' })),
+  )
+  const [inviteeSearch, setInviteeSearch] = useState('')
+  const [inviteeOpts, setInviteeOpts] = useState<{ id: string; full_name: string | null }[]>([])
+  const [inviteeOpen, setInviteeOpen] = useState(false)
+
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -1365,6 +1385,20 @@ function AppointmentForm({
     return () => clearTimeout(h)
   }, [studentSearch, pickerOpen])
 
+  // Поиск любых persons для приглашения.
+  useEffect(() => {
+    if (!inviteeOpen) return
+    const h = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/persons?search=${encodeURIComponent(inviteeSearch)}`)
+        if (!res.ok) return
+        const b = await res.json()
+        setInviteeOpts(b.people ?? [])
+      } catch { /* keep */ }
+    }, 250)
+    return () => clearTimeout(h)
+  }, [inviteeSearch, inviteeOpen])
+
   async function submit() {
     setErr(null)
     if (!title.trim()) { setErr(t('err_title_required')); return }
@@ -1377,6 +1411,7 @@ function AppointmentForm({
         starts_at: `${date}T${start}`,
         ends_at: `${date}T${end}`,
         reason: reason.trim() || null,
+        attendee_person_ids: invitees.map(i => i.id),
       }
       const res = editing
         ? await fetch(`/api/calendar/appointments/${editing.id}`, {
@@ -1459,6 +1494,48 @@ function AppointmentForm({
           </div>
         </Field>
 
+        <Field label={t('form_invitees')}>
+          {invitees.length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+              {invitees.map(iv => (
+                <span key={iv.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 99, padding: '4px 6px 4px 11px' }}>
+                  {iv.name || '—'}
+                  <button type="button" onClick={() => setInvitees(prev => prev.filter(x => x.id !== iv.id))} style={{ border: 'none', background: 'rgba(0,0,0,0.06)', color: 'inherit', width: 18, height: 18, borderRadius: '50%', cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>✕</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => { setInviteeOpen(o => !o); if (!inviteeOpen) setInviteeSearch('') }}
+              style={{ ...input, textAlign: isRTL ? 'right' : 'left', cursor: 'pointer', color: 'var(--text-faint)' }}
+            >
+              {t('form_invitees_none')}
+            </button>
+            {inviteeOpen && (
+              <div style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 220, overflowY: 'auto' }}>
+                <input value={inviteeSearch} onChange={e => setInviteeSearch(e.target.value)} placeholder={t('form_invitees_search')} style={{ ...input, borderRadius: 0, border: 'none', borderBottom: '1px solid var(--surface-2)' }} autoFocus />
+                {inviteeOpts.filter(o => !invitees.some(iv => iv.id === o.id)).length === 0 ? (
+                  <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '8px 12px' }}>{t('form_invitees_empty')}</div>
+                ) : inviteeOpts.filter(o => !invitees.some(iv => iv.id === o.id)).map(o => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => { setInvitees(prev => [...prev, { id: o.id, name: o.full_name || '' }]); setInviteeOpen(false) }}
+                    style={{ display: 'block', width: '100%', textAlign: isRTL ? 'right' : 'left', fontSize: 13, color: 'var(--text)', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                  >
+                    {o.full_name || '—'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('invitees_hint')}</div>
+        </Field>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
           <Field label={t('form_date')}>
             <input type="date" value={date} onChange={e => setDate(e.target.value)} style={input} />
@@ -1493,13 +1570,14 @@ function AppointmentForm({
 // ─────────────────────────────────────────────
 
 function AppointmentDetail({
-  a, onClose, onEdit, onStatus, onDelete, t, tCommon, locale, primary, hebrewDates,
+  a, onClose, onEdit, onStatus, onDelete, onRespond, t, tCommon, locale, primary, hebrewDates,
 }: {
   a: Appointment
   onClose: () => void
   onEdit: () => void
   onStatus: (s: Status) => void
   onDelete: () => void
+  onRespond: (action: 'accept' | 'decline') => void
   t: (k: string, f?: string) => string
   tCommon: (k: string, f?: string) => string
   locale: string
@@ -1537,6 +1615,30 @@ function AppointmentDetail({
           ? <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('booked_by')}:</b> {providerWho ?? '—'}</div>
           : who && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('form_student')}:</b> {who}</div>}
         {a.reason && <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6 }}><b>{t('form_reason')}:</b> {a.reason}</div>}
+
+        {a.attendees && a.attendees.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)', marginBottom: 5 }}>{t('attendees_title')}</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {a.attendees.map(at => (
+                <span key={at.person_id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 99, padding: '3px 10px' }}>
+                  {at.name || '—'}
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: at.status === 'accepted' ? '#047857' : at.status === 'declined' ? '#DC2626' : at.status === 'pending_approval' ? '#B45309' : 'var(--text-faint)' }}>· {t(`att_${at.status}`)}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(a.my_attendance_status === 'invited' || a.my_attendance_status === 'pending_approval') && (
+          <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--accent-tint)', borderRadius: 8 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--text)', marginBottom: 8 }}>{t('my_pending_prompt')} <b>{a.title}</b></div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => onRespond('accept')} style={statusBtn('#047857', '#D1FAE5')}>{t('respond_approve')}</button>
+              <button onClick={() => onRespond('decline')} style={statusBtn('#DC2626', '#FEE2E2')}>{t('respond_decline')}</button>
+            </div>
+          </div>
+        )}
 
         {isParticipant ? (
           // READ-ONLY: назначено мне кем-то другим — без правки/удаления/статусов.
