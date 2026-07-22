@@ -57,7 +57,12 @@ export default function TasksPage() {
     try {
       const params = new URLSearchParams()
       params.set('view', view)
-      if (statusFilter !== 'all' && statusFilter !== 'active') {
+      // «הכל» — реально всё (раньше не слал status и молча прятал завершённые/
+      // отменённые). «בוטל» = отменённые + отклонённые вместе (получаем всё,
+      // отбираем клиентом). «פעיל» — без status (API отдаёт не-завершённые).
+      if (statusFilter === 'all' || statusFilter === 'cancelled') {
+        params.set('status', 'all')
+      } else if (statusFilter !== 'active') {
         params.set('status', statusFilter)
       }
       if (priorityFilter !== 'all') params.set('priority', priorityFilter)
@@ -72,6 +77,8 @@ export default function TasksPage() {
 
       if (statusFilter === 'active') {
         list = list.filter(task => !(TERMINAL_STATUSES as readonly string[]).includes(task.status))
+      } else if (statusFilter === 'cancelled') {
+        list = list.filter(task => task.status === 'cancelled' || task.status === 'declined')
       }
 
       setTasks(list)
@@ -183,7 +190,7 @@ export default function TasksPage() {
       <ModuleTabs
         tabs={[
           { key: 'assigned',   label: t('filters.assigned') },
-          { key: 'created',    label: t('filters.my') },
+          { key: 'created',    label: t('filters.created') },
           { key: 'department', label: t('filters.department') },
           { key: 'watching',   label: t('filters.watching') },
         ]}
@@ -204,14 +211,9 @@ export default function TasksPage() {
         <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('filter_labels.status')}</label>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as StatusFilter)} style={inp}>
           <option value="active">{t('filters.active')}</option>
-          <option value="all">{t('filters.all')}</option>
-          <option value="unassigned">{t('status.unassigned')}</option>
-          <option value="pending">{t('status.pending')}</option>
-          <option value="in_progress">{t('status.in_progress')}</option>
-          <option value="review">{t('status.review')}</option>
           <option value="completed">{t('status.completed')}</option>
           <option value="cancelled">{t('status.cancelled')}</option>
-          <option value="declined">{t('status.declined')}</option>
+          <option value="all">{t('filters.all')}</option>
         </select>
 
         <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500, marginLeft: 4 }}>{t('filter_labels.priority')}</label>

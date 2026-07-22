@@ -1670,7 +1670,8 @@
       "active": "פעילות",
       "my": "שלי",
       "department": "מחלקה",
-      "assigned": "מוקצות",
+      "assigned": "שהוקצו לי",
+      "created": "שיצרתי",
       "watching": "במעקב"
     },
     "filter_labels": {
@@ -1702,7 +1703,8 @@
       "reopen": "פתיחה מחדש",
       "cancel": "ביטול",
       "assign": "הקצאה",
-      "cancel_series": "ביטול סדרה…"
+      "cancel_series": "ביטול סדרה…",
+        "delete": "מחיקה"
     },
     "card": {
       "watchers": "עוקבים",
@@ -1749,6 +1751,7 @@
       "decline_reason_required": "יש לציין סיבת דחייה",
       "cancel_series_failed": "ביטול הסדרה נכשל",
       "action_failed": "הפעולה נכשלה",
+        "delete_confirm": "למחוק את המשימה לצמיתות?",
       "comment_failed": "הוספת ההערה נכשלה",
       "add_watcher_failed": "הוספת העוקב נכשלה",
       "remove_watcher_failed": "הסרת העוקב נכשלה"

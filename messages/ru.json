@@ -1670,7 +1670,8 @@
       "active": "Активные",
       "my": "Мои",
       "department": "Отдел",
-      "assigned": "Назначенные",
+      "assigned": "Назначенные мне",
+      "created": "Созданные мной",
       "watching": "Наблюдаю"
     },
     "filter_labels": {
@@ -1702,7 +1703,8 @@
       "reopen": "Открыть заново",
       "cancel": "Отменить",
       "assign": "Назначить",
-      "cancel_series": "Отменить серию..."
+      "cancel_series": "Отменить серию...",
+        "delete": "Удалить"
     },
     "card": {
       "watchers": "Наблюдатели",
@@ -1749,6 +1751,7 @@
       "decline_reason_required": "Укажите причину отклонения",
       "cancel_series_failed": "Не удалось отменить серию",
       "action_failed": "Не удалось выполнить действие",
+        "delete_confirm": "Удалить задачу навсегда?",
       "comment_failed": "Не удалось добавить комментарий",
       "add_watcher_failed": "Не удалось добавить наблюдателя",
       "remove_watcher_failed": "Не удалось снять наблюдателя"

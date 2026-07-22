@@ -1670,7 +1670,8 @@
       "active": "Active",
       "my": "My",
       "department": "Department",
-      "assigned": "Assigned",
+      "assigned": "Assigned to me",
+      "created": "Created by me",
       "watching": "Watching"
     },
     "filter_labels": {
@@ -1702,7 +1703,8 @@
       "reopen": "Reopen",
       "cancel": "Cancel",
       "assign": "Assign",
-      "cancel_series": "Cancel Series..."
+      "cancel_series": "Cancel Series...",
+        "delete": "Delete"
     },
     "card": {
       "watchers": "Watchers",
@@ -1749,6 +1751,7 @@
       "decline_reason_required": "Specify a reason for declining",
       "cancel_series_failed": "Failed to cancel series",
       "action_failed": "Failed to perform action",
+        "delete_confirm": "Delete this task permanently?",
       "comment_failed": "Failed to add comment",
       "add_watcher_failed": "Failed to add watcher",
       "remove_watcher_failed": "Failed to remove watcher"
