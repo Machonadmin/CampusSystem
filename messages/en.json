@@ -144,6 +144,14 @@
     "logging_in": "Signing in..."
   },
   "education": {
+    "structures": {
+          "title": "Additional structures",
+          "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
+          "add": "Add structure",
+          "pick": "Pick a structure",
+          "none": "Primary structure only",
+          "remove": "Remove"
+    },
     "recruitment_report": {
       "title": "Recruitment reports",
       "subtitle": "Recruitment metrics: leads, sources, stages, age, geography and conversion",

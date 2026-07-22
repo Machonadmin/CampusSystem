@@ -91,4 +91,36 @@ UNION ALL SELECT 'slot.is_kodesh_block' WHERE EXISTS (SELECT 1 FROM information_
 5. **יהדות** — אם קורס רגיל מקבל משבצת בשעות 09:15/11:00 (ב׳–ה׳) תופיע אזהרה.
 6. **קידום מחזור** — במסך התלמידות: «בחירה מרובה» → «קדם שנה +1».
 
+---
+
+# תוספת: תלמיד ברב-מבנים (טורו⊂אוניברסיטה)
+
+יש **SQL שני קצר** להרצה כדי להפעיל חברות רב-מבנית (תלמידה אחת ששייכת גם
+לאוניברסיטה וגם לטורו, עם גישה משותפת לשני המנהלים). גם זה deploy-safe —
+עד ההרצה הכפתור פשוט לא פעיל.
+
+הקובץ: `supabase/migrations/20260721140000_journey_structures.sql`
+
+```sql
+CREATE TABLE IF NOT EXISTS journey_structures (
+  journey_id     uuid NOT NULL REFERENCES education_journeys(id) ON DELETE CASCADE,
+  department_id  uuid NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  added_by       uuid REFERENCES persons(id),
+  added_at       timestamptz DEFAULT now(),
+  PRIMARY KEY (journey_id, department_id)
+);
+CREATE INDEX IF NOT EXISTS idx_journey_structures_dept ON journey_structures(department_id);
+CREATE INDEX IF NOT EXISTS idx_journey_structures_journey ON journey_structures(journey_id);
+```
+
+בדיקה (צריך להחזיר שורה אחת «journey_structures»):
+```sql
+SELECT 'journey_structures' WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='journey_structures');
+```
+
+**איך זה עובד:** בכרטיס התלמידה (סטטוס «תלמידה») יופיע פאנל **«מבנים נוספים»** —
+מנהל של מבנה יכול לשייך אליו תלמידה שהמבנה הראשי שלה אחר. מרגע השיוך, גם מנהל
+הטורו רואה אותה ברשימות ובבחירת תלמידות לסמסטר — **אותה תלמידה, אותו כרטיס**.
+ההרשאה: צריך «ניהול תלמידות» ב**מבנה היעד**.
+
 </div>

@@ -16,6 +16,7 @@ import StaffChavrutaPanel from '@/components/education/StaffChavrutaPanel'
 import StaffShabbatPanel from '@/components/education/StaffShabbatPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 import PortalCredentialsPanel from '@/components/education/PortalCredentialsPanel'
+import StudentStructuresPanel from '@/components/education/StudentStructuresPanel'
 import StaffStudentMessagesPanel from '@/components/education/StaffStudentMessagesPanel'
 import KodeshExceptionsPanel from '@/components/education/KodeshExceptionsPanel'
 import HandoffButton from '@/components/education/HandoffButton'
@@ -432,6 +433,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               {t('card.preview_as_student', 'Просмотр глазами студентки')}
             </a>
           )}
+          {data.status === 'student' && canManage && <StudentStructuresPanel journeyId={data.journeyId} />}
           {data.status === 'student' && canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
           {data.status === 'student' && canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
           {data.status === 'student' && <KodeshExceptionsPanel journeyId={data.journeyId} />}
