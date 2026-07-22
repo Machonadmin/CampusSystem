@@ -32,6 +32,8 @@ export default function RecruitmentTab() {
   const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
   const [stageFilter, setStageFilter] = useState<'all' | 'interested' | 'in_process'>('all')
   const [mineOnly, setMineOnly] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilters = (processStatus !== 'active' ? 1 : 0) + (stageFilter !== 'all' ? 1 : 0) + (mineOnly ? 1 : 0)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   // Меню ··· рендерим position:fixed по координатам кнопки, иначе overflow:auto
   // таблицы его обрезает / уводит за экран. Считаем позицию при открытии.
@@ -135,43 +137,32 @@ export default function RecruitmentTab() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setOpenMenuId(null)} />
       )}
 
-      {/* Toolbar */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      {/* Toolbar — только поиск, «Фильтры», создать, экспорт всегда видимы */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder={t('leads.search_placeholder')}
           style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}
         />
-        <select
-          value={processStatus}
-          onChange={e => setProcessStatus(e.target.value as ProcessStatusFilter)}
-          style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
-        >
-          <option value="active">{t('leads.process_status.active')}</option>
-          <option value="closed">{t('leads.process_status.closed')}</option>
-          <option value="all">{t('leads.process_status.all')}</option>
-          <option value="deleted">{t('leads.process_status.deleted')}</option>
-        </select>
-        <select
-          value={stageFilter}
-          onChange={e => setStageFilter(e.target.value as 'all' | 'interested' | 'in_process')}
-          style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
-        >
-          <option value="all">{t('recruitment_stage.filter_all')}</option>
-          <option value="interested">{t('recruitment_stage.interested')}</option>
-          <option value="in_process">{t('recruitment_stage.in_process')}</option>
-        </select>
         <button
           type="button"
-          onClick={() => setMineOnly(v => !v)}
+          onClick={() => setFiltersOpen(v => !v)}
           style={{
-            padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
-            border: `1px solid ${mineOnly ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
-            background: mineOnly ? 'var(--accent-tint)' : 'var(--surface)',
-            color: mineOnly ? 'var(--accent-strong)' : 'var(--text-muted)', whiteSpace: 'nowrap',
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 12px', fontSize: 13,
+            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+            background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
+            color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
           }}
         >
-          {mineOnly ? t('leads.my_leads') : t('leads.all_leads')}
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+          </svg>
+          {t('students.filters_label')}
+          {activeFilters > 0 && (
+            <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
+          )}
+          <span style={{ fontSize: 9, opacity: 0.75 }}>{filtersOpen ? '▲' : '▼'}</span>
         </button>
         <PageActionButton
           label={t('leads.create_button')}
@@ -187,6 +178,52 @@ export default function RecruitmentTab() {
           ⭳ {tCommon('export_csv')}
         </button>
       </div>
+
+      {/* Свёрнутые фильтры */}
+      {filtersOpen && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
+          <select
+            value={processStatus}
+            onChange={e => setProcessStatus(e.target.value as ProcessStatusFilter)}
+            style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
+          >
+            <option value="active">{t('leads.process_status.active')}</option>
+            <option value="closed">{t('leads.process_status.closed')}</option>
+            <option value="all">{t('leads.process_status.all')}</option>
+            <option value="deleted">{t('leads.process_status.deleted')}</option>
+          </select>
+          <select
+            value={stageFilter}
+            onChange={e => setStageFilter(e.target.value as 'all' | 'interested' | 'in_process')}
+            style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
+          >
+            <option value="all">{t('recruitment_stage.filter_all')}</option>
+            <option value="interested">{t('recruitment_stage.interested')}</option>
+            <option value="in_process">{t('recruitment_stage.in_process')}</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => setMineOnly(v => !v)}
+            style={{
+              padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
+              border: `1px solid ${mineOnly ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+              background: mineOnly ? 'var(--accent-tint)' : 'var(--surface)',
+              color: mineOnly ? 'var(--accent-strong)' : 'var(--text-muted)', whiteSpace: 'nowrap',
+            }}
+          >
+            {mineOnly ? t('leads.my_leads') : t('leads.all_leads')}
+          </button>
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={() => { setProcessStatus('active'); setStageFilter('all'); setMineOnly(false) }}
+              style={{ padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--accent-strong)', fontWeight: 600, fontFamily: 'inherit' }}
+            >
+              {t('students.filters_clear')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Table card */}
       <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>

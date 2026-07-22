@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -43,6 +42,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   // add-document form
   const [busy, setBusy] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [dType, setDType] = useState<string>('other')
   const [dTitle, setDTitle] = useState('')
@@ -193,9 +193,6 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
-        <Link href="/dashboard/documents" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
@@ -203,10 +200,18 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
-          {/* Add document */}
-          {canManage && (
+          {/* Add document — collapsed by default */}
+          {canManage && !showAddForm && (
+            <button onClick={() => setShowAddForm(true)} style={{ ...btn(primary), alignSelf: 'flex-start' }}>
+              + {t('add.title')}
+            </button>
+          )}
+          {canManage && showAddForm && (
             <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('add.title')}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('add.title')}</h2>
+                <button onClick={() => setShowAddForm(false)} aria-label={tCommon('cancel')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1 }}>×</button>
+              </div>
               {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('fields.doc_type')}>
