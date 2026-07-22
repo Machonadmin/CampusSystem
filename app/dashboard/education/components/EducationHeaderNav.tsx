@@ -12,18 +12,20 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface NavLink { href: string; label: string }
 
-// Ежедневные ссылки — белые «таблетки» с зелёным текстом: читаемо на зелёной шапке
-// (было — белый текст на светло-зелёном фоне, почти нечитаемо).
+// Ежедневные ссылки — лёгкие «морозные» чипы (запрос владельца: белые таблетки
+// слишком кричат). Полупрозрачный фон + белый текст: тот же язык, что и у кнопки
+// «Управление», всё в шапке единым спокойным стилем.
 const linkChip: React.CSSProperties = {
-  fontSize: 12.5, fontWeight: 700, color: '#047857', background: '#fff',
-  padding: '6px 13px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
-  display: 'inline-block', boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+  fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.15)',
+  padding: '6px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
+  display: 'inline-block', border: '1px solid rgba(255,255,255,0.28)',
+  transition: 'background 0.12s',
 }
-// Кнопка меню «Управление» — прозрачная с контуром, визуально отделена от ссылок.
+// Кнопка меню «Управление» — тот же морозный стиль, чуть заметнее контур.
 const menuChip: React.CSSProperties = {
-  fontSize: 12.5, fontWeight: 650, color: '#fff', background: 'rgba(255,255,255,0.16)',
+  fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.15)',
   padding: '6px 12px', borderRadius: 8, whiteSpace: 'nowrap',
-  border: '1px solid rgba(255,255,255,0.45)', cursor: 'pointer',
+  border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer',
 }
 
 export default function EducationHeaderNav() {
@@ -63,7 +65,15 @@ export default function EducationHeaderNav() {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
       {daily.map(l => (
-        <a key={l.href} href={l.href} style={linkChip}>{l.label}</a>
+        <a
+          key={l.href}
+          href={l.href}
+          style={linkChip}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.26)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.15)' }}
+        >
+          {l.label}
+        </a>
       ))}
 
       <div ref={wrapRef} style={{ position: 'relative' }}>
