@@ -958,6 +958,8 @@
         "filter_active_on_leave": "Активные и в отпуске",
         "filter_active_only": "Только активные",
         "filter_all": "Все статусы",
+        "filters_label": "Фильтры",
+        "filters_clear": "Сбросить",
         "add_button": "Студент",
         "bulk": {
           "select": "Выбор",

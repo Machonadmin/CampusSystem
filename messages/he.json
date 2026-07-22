@@ -958,6 +958,8 @@
         "filter_active_on_leave": "פעילים וחופשה",
         "filter_active_only": "פעילים בלבד",
         "filter_all": "כל הסטטוסים",
+        "filters_label": "מסננים",
+        "filters_clear": "נקה סינון",
         "add_button": "סטודנט",
         "bulk": {
           "select": "בחירה מרובה",

@@ -958,6 +958,8 @@
         "filter_active_on_leave": "Active & On Leave",
         "filter_active_only": "Active Only",
         "filter_all": "All Statuses",
+        "filters_label": "Filters",
+        "filters_clear": "Clear",
         "add_button": "Student",
         "bulk": {
           "select": "Select",
