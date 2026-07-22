@@ -40,17 +40,14 @@ export default function EducationHeaderNav() {
     { href: '/dashboard/education/reports', label: t('reports.title') },
   ]
 
-  // Инструменты управления/настройки — под меню.
+  // Инструменты управления — под меню (сокращено с 7 до 4: שיבוץ קודש /
+  // קהילות / יבוא תלמידות переехали в «⚙ הגדרות לימודים» под рельсом «לימודים»,
+  // чтобы меню не пестрило. Все экраны по-прежнему в один клик).
   const management: NavLink[] = [
     { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
     { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
     { href: '/dashboard/education/units', label: t('units.title') },
     { href: '/dashboard/education/structure', label: t('structure.title') },
-    // סמסטרים (ישן) ושיוך מסלול הוסרו מהתפריט — הוחלפו בזרימה המאוחדת «סמסטרים»
-    // תחת מרחב הלימודים. הנתיבים עדיין נגישים ישירות אם צריך.
-    { href: '/dashboard/education/kodesh', label: t('kodesh.nav') },
-    { href: '/dashboard/education/communities', label: t('communities.nav') },
-    { href: '/dashboard/education/students/import', label: t('import.title') },
   ]
 
   useEffect(() => {

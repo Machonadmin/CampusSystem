@@ -808,6 +808,7 @@
               "rooms_count": "{n} rooms",
               "no_rooms": "No rooms"
       },
+      "settings_hint": "Rare setup screens — one click away, out of the daily flow",
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",
@@ -836,7 +837,8 @@
         "students": "Students",
         "class_groups": "Class groups",
         "semester_groups": "Semesters",
-        "buildings": "Buildings"
+        "buildings": "Buildings",
+        "settings": "Studies settings"
       },
       "common": {
         "all_departments": "All Departments",

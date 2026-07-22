@@ -808,6 +808,7 @@
               "rooms_count": "Аудиторий: {n}",
               "no_rooms": "Нет аудиторий"
       },
+      "settings_hint": "Редкие настройки и экраны — в одном клике, но не мешают ежедневной работе",
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",
@@ -836,7 +837,8 @@
         "students": "Студенты",
         "class_groups": "Учебные группы",
         "semester_groups": "Семестры",
-        "buildings": "Здания"
+        "buildings": "Здания",
+        "settings": "Настройки учёбы"
       },
       "common": {
         "all_departments": "Все подразделения",

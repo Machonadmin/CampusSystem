@@ -808,6 +808,7 @@
               "rooms_count": "{n} כיתות",
               "no_rooms": "אין כיתות"
       },
+      "settings_hint": "הגדרות ומסכים נדירים — במרחק קליק, אבל לא בדרך של העבודה היומיומית",
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",
@@ -836,7 +837,8 @@
         "students": "סטודנטים",
         "class_groups": "קבוצות לימוד",
         "semester_groups": "סמסטרים",
-        "buildings": "בניינים"
+        "buildings": "בניינים",
+        "settings": "הגדרות לימודים"
       },
       "common": {
         "all_departments": "כל המחלקות",
