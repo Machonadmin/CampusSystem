@@ -187,6 +187,7 @@ export default function FillCheckPage() {
 
   const [check, setCheck] = useState<CheckFull | null>(null)
   const [tmpl, setTmpl] = useState<TData | null>(null)
+  const [templateError, setTemplateError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -225,6 +226,7 @@ export default function FillCheckPage() {
         if (c.template_id) {
           const tr = await fetch(`/api/settings/quality-templates/${c.template_id}`)
           if (tr.ok) setTmpl(await tr.json())
+          else setTemplateError(true)
         }
       } finally {
         setLoading(false)
@@ -444,8 +446,10 @@ export default function FillCheckPage() {
         ))}
 
         {!tmpl && (
-          <div style={{ backgroundColor: 'var(--surface-2)', borderRadius: 10, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16, textAlign: 'center' }}>
-            <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: 0 }}>{t('fill.no_template_hint')}</p>
+          <div style={{ backgroundColor: templateError ? 'var(--danger-tint)' : 'var(--surface-2)', borderRadius: 10, border: `1px solid ${templateError ? 'var(--danger)' : 'var(--border)'}`, padding: '16px 20px', marginBottom: 16, textAlign: 'center' }}>
+            <p style={{ color: templateError ? 'var(--danger)' : 'var(--text-faint)', fontSize: 13, margin: 0 }}>
+              {templateError ? t('fill.template_load_error') : t('fill.no_template_hint')}
+            </p>
           </div>
         )}
 

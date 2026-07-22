@@ -362,7 +362,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
           <div>
             <label style={lbl}>{t('name_he_label')}</label>
-            <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder="מורה" dir="rtl" style={inp} />
+            <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('name_he_placeholder')} dir="rtl" style={inp} />
           </div>
 
           <div>

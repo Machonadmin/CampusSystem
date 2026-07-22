@@ -130,9 +130,9 @@ export default function KodeshAssignmentPage() {
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{
               fontSize: 13, fontWeight: 700,
-              color: unassignedCount > 0 ? 'var(--warning, #b45309)' : 'var(--success)',
-              background: unassignedCount > 0 ? 'var(--warning-tint, rgba(180,83,9,0.10))' : 'var(--success-tint, rgba(16,122,87,0.10))',
-              border: `1px solid ${unassignedCount > 0 ? 'var(--warning, #b45309)' : 'var(--success)'}`,
+              color: unassignedCount > 0 ? 'var(--warn)' : 'var(--success)',
+              background: unassignedCount > 0 ? 'var(--warn-tint)' : 'var(--success-tint)',
+              border: `1px solid ${unassignedCount > 0 ? 'var(--warn)' : 'var(--success)'}`,
               borderRadius: 8, padding: '6px 12px',
             }}>
               {t('unassigned_count', '{n}').replace('{n}', String(unassignedCount))}
@@ -182,7 +182,7 @@ export default function KodeshAssignmentPage() {
                     onChange={e => assign(s.journey_id, e.target.value)}
                     style={{
                       minWidth: 180, padding: '7px 10px', fontSize: 13, borderRadius: 8,
-                      border: `1px solid ${unassigned ? 'var(--warning, #b45309)' : 'var(--border-strong)'}`,
+                      border: `1px solid ${unassigned ? 'var(--warn)' : 'var(--border-strong)'}`,
                       background: 'var(--surface)', color: 'var(--text)',
                       opacity: busyId === s.journey_id ? 0.55 : 1,
                     }}

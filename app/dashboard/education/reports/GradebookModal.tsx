@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 
 interface Assessment { id: string; title: string; max_score: number; assessment_date: string | null; graded_count: number; average: number | null }
@@ -66,7 +67,7 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
           </div>
           <button onClick={exportCsv} disabled={!data || data.assessments.length === 0}
             style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>
-            ⭳ {t('export_csv')}
+            <DownloadIcon /> {t('export_csv')}
           </button>
           <button onClick={onClose}
             style={{ padding: '6px 10px', fontSize: 15, lineHeight: 1, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>✕</button>

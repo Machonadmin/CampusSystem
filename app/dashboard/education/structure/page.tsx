@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -157,7 +158,10 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
   const [editName, setEditName] = useState(node.name)
   const [editTier, setEditTier] = useState(node.tier ?? '')
 
-  const kids = childrenOf.get(node.is_root ? '__root__' : node.id) ?? []
+  // Дети узла всегда лежат в корзине по его id (у прямых детей корня
+  // parent_id === unitId === root.id). Раньше для корня читалась корзина
+  // '__root__', где лежит сам корень → бесконечная рекурсия (зависание).
+  const kids = childrenOf.get(node.id) ?? []
 
   return (
     <div style={{ marginInlineStart: depth > 0 ? 18 : 0, borderInlineStart: depth > 0 ? '2px solid var(--border)' : undefined, paddingInlineStart: depth > 0 ? 12 : 0, marginTop: depth > 0 ? 6 : 0 }}>
@@ -178,10 +182,19 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 99, padding: '1px 8px' }}>{node.tier}</span>
             )}
             <span style={{ fontSize: depth === 0 ? 14 : 13, fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)' }}>
-              {depth === 0 && '🏛️ '}{node.name}
+              {depth === 0 && (
+                <svg style={{ width: 15, height: 15, marginInlineEnd: 5, verticalAlign: '-2px', display: 'inline' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+                </svg>
+              )}{node.name}
             </span>
             {node.head && (
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 99, padding: '1px 8px' }}>👤 {node.head}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 99, padding: '1px 8px' }}>
+                <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                {node.head}
+              </span>
             )}
             {node.groups.length > 0 && (
               <span style={{ fontSize: 11, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 99, padding: '1px 8px' }}>
@@ -189,10 +202,17 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
               </span>
             )}
             <button onClick={() => { setAdding(a => !a); setAddName('') }} style={miniBtn('accent')}>+ {t('add_child')}</button>
-            {!node.is_root && index > 0 && <button disabled={busy} title={t('move_up')} onClick={() => onMove(node.id, 'up')} style={miniBtn()}>↑</button>}
-            {!node.is_root && index < siblingCount - 1 && <button disabled={busy} title={t('move_down')} onClick={() => onMove(node.id, 'down')} style={miniBtn()}>↓</button>}
-            {!node.is_root && <button onClick={() => { setEditing(true); setEditName(node.name) }} style={miniBtn()}>{t('rename')}</button>}
-            {!node.is_root && <button disabled={busy} onClick={() => { if (confirm(t('confirm_delete'))) onRemove(node.id) }} style={miniBtn('danger')}>{t('delete')}</button>}
+            {!node.is_root && (
+              <RowActionsMenu
+                accentColor="var(--accent-strong)"
+                actions={[
+                  { key: 'rename', label: t('rename'), onClick: () => { setEditing(true); setEditName(node.name) } },
+                  { key: 'up', label: t('move_up'), onClick: () => onMove(node.id, 'up'), disabled: busy, hidden: index === 0 },
+                  { key: 'down', label: t('move_down'), onClick: () => onMove(node.id, 'down'), disabled: busy, hidden: index >= siblingCount - 1 },
+                  { key: 'delete', label: t('delete'), onClick: () => { if (confirm(t('confirm_delete'))) onRemove(node.id) }, disabled: busy, danger: true },
+                ]}
+              />
+            )}
           </>
         )}
       </div>
@@ -201,7 +221,10 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 4px' }}>
           {node.groups.map(g => (
             <span key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px 2px 8px' }}>
-              📚 {g.name}
+              <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+              {g.name}
               <select value="" disabled={busy} title={t('move_group')} onChange={e => { if (e.target.value) onMoveGroup(g.id, e.target.value) }}
                 style={{ fontSize: 10.5, border: '1px solid var(--border-strong)', borderRadius: 5, background: 'var(--surface)', color: 'var(--text-muted)', padding: '0 2px', cursor: 'pointer' }}>
                 <option value="">⇄</option>

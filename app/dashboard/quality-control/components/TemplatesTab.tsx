@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FeaturePerms } from '@/lib/permissions'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { getModuleColor } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -571,7 +573,7 @@ export default function TemplatesTab({ perms }: Props) {
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <button
             onClick={() => setBuilderState({ mode: 'create' })}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#EC4899', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: getModuleColor('quality_control'), color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
           >
             <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -616,23 +618,15 @@ export default function TemplatesTab({ perms }: Props) {
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.question_count}</td>
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(tpl.created_at)}</td>
                   <td style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      <button onClick={() => openEdit(tpl.id, 'view')} disabled={loadingDetail}
-                        style={{ ...btnSm, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }}>
-                        {t('templates.action_view', 'View')}
-                      </button>
-                      {perms.can_edit && (
-                        <button onClick={() => openEdit(tpl.id, 'edit')} disabled={loadingDetail}
-                          style={{ ...btnSm, border: '1px solid #BFDBFE', background: 'var(--accent-tint)', color: '#1D4ED8' }}>
-                          {tCommon('edit')}
-                        </button>
-                      )}
-                      {perms.can_delete && (
-                        <button onClick={() => handleDelete(tpl.id, tpl.name)}
-                          style={{ ...btnSm, border: '1px solid #FEE2E2', background: '#FEF2F2', color: '#DC2626' }}>
-                          {tCommon('delete')}
-                        </button>
-                      )}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <RowActionsMenu
+                        accentColor={getModuleColor('quality_control')}
+                        actions={[
+                          { key: 'view', label: t('templates.action_view', 'View'), onClick: () => openEdit(tpl.id, 'view'), disabled: loadingDetail },
+                          { key: 'edit', label: tCommon('edit'), onClick: () => openEdit(tpl.id, 'edit'), disabled: loadingDetail, hidden: !perms.can_edit },
+                          { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(tpl.id, tpl.name), danger: true, hidden: !perms.can_delete },
+                        ]}
+                      />
                     </div>
                   </td>
                 </tr>

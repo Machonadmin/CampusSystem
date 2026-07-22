@@ -112,6 +112,18 @@ export async function GET(request: NextRequest) {
     }
     // 'own' scope для journeys пока не реализуем (упрощение шага 2A)
 
+    // Многоструктурное членство (טורו ⊂ אוניברסיטה): journey_ids, чьё членство
+    // (journey_structures) попадает в scope руководителя — он видит их наравне с
+    // primary-студентками. Деплой-безопасно: нет таблицы → пустой набор (как раньше).
+    let membershipIds: string[] = []
+    if (myDepts && myDepts.length > 0 && scopedByPrimary) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const msRes = await (sb as any).from('journey_structures').select('journey_id').in('department_id', myDepts)
+      if (!msRes.error && msRes.data) {
+        membershipIds = Array.from(new Set((msRes.data as Array<{ journey_id: string }>).map(r => r.journey_id)))
+      }
+    }
+
     // Собирает запрос заново под конкретный набор статусов (нужно для fallback,
     // т.к. PostgrestBuilder одноразовый).
     function buildQuery(statuses: JourneyStatus[]) {
@@ -126,9 +138,14 @@ export async function GET(request: NextRequest) {
       }
       if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
       if (myDepts) {
-        qb = scopedByPrimary
-          ? qb.in('primary_department_id', myDepts)
-          : qb.in('desired_department_id', myDepts)
+        if (scopedByPrimary) {
+          // primary в scope ИЛИ есть членство в scope (общий доступ к студентке).
+          qb = membershipIds.length > 0
+            ? qb.or(`primary_department_id.in.(${myDepts.join(',')}),id.in.(${membershipIds.join(',')})`)
+            : qb.in('primary_department_id', myDepts)
+        } else {
+          qb = qb.in('desired_department_id', myDepts)
+        }
       }
       return qb.order('opened_at', { ascending: false })
     }

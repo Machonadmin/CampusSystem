@@ -10,6 +10,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Department {
   id: string
@@ -314,7 +315,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
 
         <td style={{ padding: '7px 12px' }}>
           <button onClick={() => setStaffOpen(v => !v)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : 'var(--surface-2)', color: staffOpen ? '#1D4ED8' : 'var(--text-muted)', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? 'var(--accent-tint)' : 'var(--surface-2)', color: staffOpen ? 'var(--accent-strong)' : 'var(--text-muted)', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
             {node.employee_count} {tStaff('employees_short')}
             <svg style={{ width: 9, height: 9, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -323,7 +324,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
         </td>
 
         <td style={{ padding: '7px 12px' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             <button onClick={() => onAddStaff(node.id)}
               style={{ ...btnBase, border: 'none', background: getModuleColor('staff'), color: '#fff' }}>
               + {tStaff('employee')}
@@ -332,20 +333,19 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
               style={{ ...btnBase, border: `1px solid ${getModuleColor('staff', 'medium')}`, background: getModuleColor('staff', 'light'), color: getModuleColor('staff') }}>
               + {tStaff('subdept')}
             </button>
-            <button onClick={() => onRename(node)}
-              style={{ ...btnBase, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
-              {tStaff('rename')}
-            </button>
-            <button onClick={() => onDelete(node)}
-              style={{ ...btnBase, border: 'none', background: '#FEF2F2', color: '#DC2626' }}>
-              {tStaff('delete')}
-            </button>
+            <RowActionsMenu
+              accentColor={getModuleColor('staff')}
+              actions={[
+                { key: 'rename', label: tStaff('rename'), onClick: () => onRename(node) },
+                { key: 'delete', label: tStaff('delete'), onClick: () => onDelete(node), danger: true },
+              ]}
+            />
           </div>
         </td>
       </tr>
 
       {staffOpen && (
-        <tr style={{ backgroundColor: '#F8FAFF' }}>
+        <tr style={{ backgroundColor: 'var(--surface-2)' }}>
           <td colSpan={4} style={{ padding: '6px 12px 10px' }}>
             <div style={{ paddingInlineStart: depth * 18 + 40 }}>
               {staffLoading ? (
@@ -356,7 +356,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {staff.map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'var(--surface)', borderRadius: 7, border: '1px solid var(--border)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#0369A1' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)' }}>
                         {s.full_name.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -367,15 +367,14 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                           {s.is_head && ` · ${tStaff('dept.head_label')}`}
                         </p>
                       </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => setEditingMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid #BFDBFE', background: 'var(--accent-tint)', fontSize: 11, cursor: 'pointer', color: '#1D4ED8' }}>
-                          {tStaff('edit')}
-                        </button>
-                        <button onClick={() => deactivateMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>
-                          {tStaff('deactivate')}
-                        </button>
+                      <div style={{ flexShrink: 0 }}>
+                        <RowActionsMenu
+                          accentColor={getModuleColor('staff')}
+                          actions={[
+                            { key: 'edit', label: tStaff('edit'), onClick: () => setEditingMember(s) },
+                            { key: 'deactivate', label: tStaff('deactivate'), onClick: () => deactivateMember(s), danger: true },
+                          ]}
+                        />
                       </div>
                     </div>
                   ))}
@@ -583,30 +582,25 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       </span>
                     </td>
                     <td style={{ padding: '10px 14px' }}>
-                      <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                        {isSuperadmin && (
-                          <button
-                            onClick={() => router.push(`/dashboard/settings/users?person=${emp.person_id}`)}
-                            style={{ padding: '5px 12px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 6, background: getModuleColor('staff', 'light'), cursor: 'pointer', color: getModuleColor('staff') }}
-                          >
-                            {t('create_login')}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => emp.profile_id && onAdd(emp)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: 'var(--text)', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('edit')}
-                        </button>
-                        <button
-                          onClick={() => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#DC2626', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('delete')}
-                        </button>
-                      </div>
+                      <RowActionsMenu
+                        accentColor={getModuleColor('staff')}
+                        actions={[
+                          {
+                            key: 'login',
+                            label: t('create_login'),
+                            onClick: () => router.push(`/dashboard/settings/users?person=${emp.person_id}`),
+                            hidden: !isSuperadmin,
+                          },
+                          { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
+                          {
+                            key: 'delete',
+                            label: tCommon('delete'),
+                            onClick: () => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name),
+                            disabled: !emp.profile_id,
+                            danger: true,
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 )

@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Role {
   id: string
@@ -748,38 +749,20 @@ function UsersPageContent() {
                     {user.last_login ? new Date(user.last_login).toLocaleDateString() : t('never')}
                   </td>
                   <td style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button
-                        onClick={() => setEditTarget(user)}
-                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
-                      >
-                        {t('edit_button')}
-                      </button>
-                      <button
-                        onClick={() => setRolesTarget(user)}
-                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
-                      >
-                        {t('manage_roles_button')}
-                      </button>
-                      <button
-                        onClick={() => setPrivTarget(user)}
-                        style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', fontSize: 12, cursor: 'pointer', color: 'var(--text)' }}
-                      >
-                        {tPriv('button')}
-                      </button>
-                      {!user.roles.some(r => r.code === 'superadmin') && (
-                        <button
-                          onClick={() => toggleActive(user)}
-                          style={{
-                            padding: '5px 10px', borderRadius: 6, border: 'none', fontSize: 12, cursor: 'pointer',
-                            backgroundColor: user.is_active ? '#FEF2F2' : '#F0FDF4',
-                            color: user.is_active ? '#DC2626' : '#16A34A',
-                          }}
-                        >
-                          {user.is_active ? t('deactivate_button') : t('activate_button')}
-                        </button>
-                      )}
-                    </div>
+                    <RowActionsMenu
+                      actions={[
+                        { key: 'edit', label: t('edit_button'), onClick: () => setEditTarget(user) },
+                        { key: 'roles', label: t('manage_roles_button'), onClick: () => setRolesTarget(user) },
+                        { key: 'priv', label: tPriv('button'), onClick: () => setPrivTarget(user) },
+                        {
+                          key: 'active',
+                          label: user.is_active ? t('deactivate_button') : t('activate_button'),
+                          onClick: () => toggleActive(user),
+                          danger: user.is_active,
+                          hidden: user.roles.some(r => r.code === 'superadmin'),
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

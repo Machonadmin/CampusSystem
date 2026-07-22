@@ -44,6 +44,7 @@
     "label_doc_expired": "פג תוקף"
   },
   "common": {
+    "actions": "פעולות",
     "cancel": "ביטול",
     "delete": "מחיקה",
     "back": "חזרה",
@@ -144,6 +145,14 @@
     "logging_in": "מתחבר…"
   },
   "education": {
+    "structures": {
+          "title": "מבנים נוספים",
+          "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
+          "add": "שייך למבנה נוסף",
+          "pick": "בחר מבנה",
+          "none": "משתייכת רק למבנה הראשי",
+          "remove": "הסר"
+    },
     "recruitment_report": {
       "title": "דוחות גיוס",
       "subtitle": "מדדי גיוס: לידים, מקורות, שלבים, גיל, גאוגרפיה והמרה",
@@ -299,6 +308,10 @@
       "no_assessments": "אין עדיין מטלות"
     },
     "schedule": {
+      "building_label": "בניין",
+      "room_select_label": "כיתה",
+      "none_option": "— בחר —",
+      "or_free_text": "או הקלד ידנית",
       "tab_schedule": "מערכת שעות",
       "section_title": "מערכת שעות שבועית",
       "add_slot": "הוסף משבצת",
@@ -759,6 +772,52 @@
     "study": {
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
+      "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },
+      "workspace": {
+        "all_structures": "כל המבנים",
+        "structure_one": "מבנה",
+        "pick_year": "בחירת שנה",
+        "pick_cohort": "בחירת מחזור (שנה עברית)",
+        "semesters": "סמסטרים",
+        "no_year": "ללא שנה",
+        "no_cohort": "ללא מחזור",
+        "empty": "אין סמסטרים כאן עדיין",
+        "manage": "ניהול הסמסטר",
+        "count_semesters": "{n} סמסטרים",
+        "count_students": "{n} תלמידות",
+        "structures_hint": "בחר מבנה כדי לראות שנים ומחזורים"
+      },
+      "courses": {
+        "title": "קורסים",
+        "add_button": "קורס חדש",
+        "modal_title": "קורס חדש בסמסטר",
+        "empty": "אין קורסים בסמסטר הזה עדיין",
+        "name_label": "שם הקורס",
+        "name_placeholder": "גמרא · הלכה · מחשבת ישראל…",
+        "subject_label": "מקצוע (מהקטלוג)",
+        "subject_none": "— ללא מקצוע —",
+        "teachers_label": "מורים",
+        "students_label": "תלמידות בקורס",
+        "students_hint": "אפשר לשבץ רק תלמידות שנמצאות בסמסטר",
+        "no_roster": "אין תלמידות בסמסטר — שבץ קודם תלמידות לסמסטר",
+        "open": "פתח קורס",
+        "back": "חזרה לרשימת הסמסטרים",
+        "count_teachers": "{n} מורים"
+      },
+      "buildings": {
+              "title": "בניינים וכיתות",
+              "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
+              "add_building": "בניין חדש",
+              "building_name": "שם הבניין",
+              "building_code": "קוד",
+              "add_room": "הוספת כיתה",
+              "room_name": "מספר/שם כיתה",
+              "capacity": "קיבולת",
+              "empty": "אין בניינים עדיין",
+              "rooms_count": "{n} כיתות",
+              "no_rooms": "אין כיתות"
+      },
+      "settings_hint": "הגדרות ומסכים נדירים — במרחק קליק, אבל לא בדרך של העבודה היומיומית",
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",
@@ -786,7 +845,9 @@
         "study_groups": "קבוצות בסיס",
         "students": "סטודנטים",
         "class_groups": "קבוצות לימוד",
-        "semester_groups": "סמסטרים"
+        "semester_groups": "סמסטרים",
+        "buildings": "בניינים",
+        "settings": "הגדרות לימודים"
       },
       "common": {
         "all_departments": "כל המחלקות",
@@ -957,6 +1018,8 @@
         "filter_active_on_leave": "פעילים וחופשה",
         "filter_active_only": "פעילים בלבד",
         "filter_all": "כל הסטטוסים",
+        "filters_label": "מסננים",
+        "filters_clear": "נקה סינון",
         "add_button": "סטודנט",
         "bulk": {
           "select": "בחירה מרובה",
@@ -967,7 +1030,10 @@
           "type_kodesh": "קבוצת קודש",
           "pick_target": "בחר יעד",
           "apply": "שייך",
-          "result": "{ok} שויכו, {fail} נכשלו"
+          "result": "{ok} שויכו, {fail} נכשלו",
+          "advance_year": "קדם שנה +1",
+          "advance_confirm": "לקדם {n} תלמידות בשנה אחת (א→ב→ג)?",
+          "advance_result": "{ok} קודמו, {fail} נכשלו"
         },
         "empty_none": "אין עדיין סטודנטים",
         "empty_search": "לא נמצאו תוצאות",
@@ -994,8 +1060,9 @@
         "modal_create_title": "סמסטר חדש",
         "modal_edit_title": "עריכת סמסטר",
         "name_placeholder": "סמסטר א׳ תשפ״ה",
-        "year_label": "שנה",
+        "year_label": "שנה עברית (מחזור)",
         "year_placeholder": "תשפ״ה",
+        "year_level_label": "שנה (א/ב/ג)",
         "term_label": "מספר סמסטר",
         "track_label": "מסלול",
         "track_placeholder": "— בחר מסלול —",
@@ -1218,6 +1285,7 @@
       "mode_existing": "אדם קיים",
       "mode_create": "אדם חדש",
       "person_id_ph": "מזהה אדם / חיפוש",
+      "person_search_ph": "חיפוש לפי שם...",
       "first_name": "שם פרטי",
       "last_name": "שם משפחה",
       "email": "אימייל",
@@ -1604,7 +1672,8 @@
       "active": "פעילות",
       "my": "שלי",
       "department": "מחלקה",
-      "assigned": "מוקצות",
+      "assigned": "שהוקצו לי",
+      "created": "שיצרתי",
       "watching": "במעקב"
     },
     "filter_labels": {
@@ -1636,7 +1705,8 @@
       "reopen": "פתיחה מחדש",
       "cancel": "ביטול",
       "assign": "הקצאה",
-      "cancel_series": "ביטול סדרה…"
+      "cancel_series": "ביטול סדרה…",
+        "delete": "מחיקה"
     },
     "card": {
       "watchers": "עוקבים",
@@ -1683,6 +1753,7 @@
       "decline_reason_required": "יש לציין סיבת דחייה",
       "cancel_series_failed": "ביטול הסדרה נכשל",
       "action_failed": "הפעולה נכשלה",
+        "delete_confirm": "למחוק את המשימה לצמיתות?",
       "comment_failed": "הוספת ההערה נכשלה",
       "add_watcher_failed": "הוספת העוקב נכשלה",
       "remove_watcher_failed": "הסרת העוקב נכשלה"
@@ -2015,6 +2086,7 @@
       "tech_issues_placeholder": "תאר תקלות טכניות, אם היו…",
       "no_questions_block": "אין שאלות",
       "no_template_hint": "לא נבחרה תבנית — יש למלא את חלק הסיכום למטה",
+      "template_load_error": "טעינת רשימת הבדיקה נכשלה — רענן את הדף ונסה שוב",
       "summary_title": "סיכום הבדיקה",
       "strengths_label": "חוזקות השיעור",
       "areas_label": "תחומים לשיפור",
@@ -2248,6 +2320,7 @@
       "modal_edit_title": "עריכת תפקיד",
       "name_ru_label": "שם ברוסית",
       "name_ru_placeholder": "מורה",
+      "name_he_placeholder": "מלמד",
       "name_he_label": "שם בעברית",
       "category_label": "קטגוריה",
       "is_teaching_label": "תפקיד הוראה",
@@ -2876,6 +2949,7 @@
       "assignee": "אחראי",
       "you": "אתה",
       "unassigned": "לא הוקצה",
+      "assigned_other": "עובד אחר",
       "description": "תיאור",
       "actions": "פעולות",
       "change_status": "שינוי סטטוס",
@@ -2938,6 +3012,7 @@
       "assignee": "אחראי",
       "you": "אתה",
       "unassigned": "לא הוקצה",
+      "assigned_other": "עובד אחר",
       "description": "תיאור",
       "resolution": "פתרון",
       "resolution_placeholder": "תאר כיצד האירוע טופל",
@@ -3532,9 +3607,26 @@
     "relation_other": "אחר"
   },
   "calendar": {
+    "form_invitees": "משתתפים",
+    "form_invitees_none": "הוסף אנשים לפגישה…",
+    "form_invitees_search": "חיפוש אדם…",
+    "form_invitees_empty": "לא נמצאו",
+    "invitees_hint": "אפשר להזמין כל אחד. מי שמעליך בהיררכיה — יידרש אישורו.",
+    "attendees_title": "משתתפים",
+    "respond_approve": "אשר",
+    "respond_decline": "דחה",
+    "my_pending_prompt": "הוזמנת לפגישה זו:",
+    "att_invited": "מוזמן",
+    "att_accepted": "אישר",
+    "att_declined": "דחה",
+    "att_pending_approval": "ממתין לאישורו",
     "title": "יומן",
     "subtitle": "היומן האישי שלך פגישות וימי היעדרות",
     "new_appointment": "פגישה חדשה",
+    "add_button": "הוסף",
+    "add_appointment_hint": "פגישה עם משתתפים ואישורים",
+    "add_personal_event": "אירוע / תזכורת אישית",
+    "add_personal_hint": "רק עבורך, עם תזכורת אופציונלית",
     "edit_appointment": "עריכת פגישה",
     "prev": "הקודם",
     "next": "הבא",
@@ -3611,6 +3703,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
     "no_access": "אין גישה",

@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { yearLevelLabel } from '@/lib/education/year-level'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null }
@@ -17,6 +18,7 @@ interface SemesterGroupInitial {
   name: string
   year_label: string | null
   term_number: number | null
+  year_level?: number | null
   study_track_id: string | null
   department_id: string
   tuition_amount: number | null
@@ -26,10 +28,18 @@ interface SemesterGroupInitial {
   students: { journey_id: string; full_name: string | null }[]
 }
 
+/** Предзаполнение при создании из контекста drill-down (структура/год/набор). */
+interface SemesterDefaults {
+  department_id?: string | null
+  year_level?: number | null
+  year_label?: string | null
+}
+
 interface Props {
   mode: 'create' | 'edit'
   initial: SemesterGroupInitial | null
   departments: Department[]
+  defaults?: SemesterDefaults
   onClose: () => void
   onSaved: () => void
 }
@@ -42,15 +52,19 @@ function trackLabel(tr: StudyTrack, lang: string): string {
   return (tr.name_he && tr.name_he.trim()) || tr.name_ru || tr.name_en || ''
 }
 
-export default function SemesterGroupModal({ mode, initial, departments, onClose, onSaved }: Props) {
+export default function SemesterGroupModal({ mode, initial, departments, defaults, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
   const { lang } = useLang()
 
   const [name, setName] = useState(initial?.name ?? '')
-  const [yearLabel, setYearLabel] = useState(initial?.year_label ?? '')
+  const [yearLabel, setYearLabel] = useState(initial?.year_label ?? defaults?.year_label ?? '')
   const [termNumber, setTermNumber] = useState(initial?.term_number != null ? String(initial.term_number) : '')
+  const [yearLevel, setYearLevel] = useState(
+    initial?.year_level != null ? String(initial.year_level)
+      : defaults?.year_level != null ? String(defaults.year_level) : '',
+  )
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? '')
-  const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
+  const [departmentId, setDepartmentId] = useState(initial?.department_id ?? defaults?.department_id ?? '')
   const [tuition, setTuition] = useState(initial?.tuition_amount != null ? String(initial.tuition_amount) : '')
   const [periodStart, setPeriodStart] = useState(initial?.period_start ?? '')
   const [periodEnd, setPeriodEnd] = useState(initial?.period_end ?? '')
@@ -124,6 +138,7 @@ export default function SemesterGroupModal({ mode, initial, departments, onClose
         name: name.trim(),
         year_label: yearLabel.trim() || null,
         term_number: termNumber.trim() ? Number(termNumber) : null,
+        year_level: yearLevel.trim() ? Number(yearLevel) : null,
         study_track_id: trackId || null,
         department_id: departmentId,
         tuition_amount: tuition.trim() ? Number(tuition) : null,
@@ -198,13 +213,20 @@ export default function SemesterGroupModal({ mode, initial, departments, onClose
             <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('semester_groups.name_placeholder')} />
           </div>
 
-          {/* 2. Год + номер семестра */}
+          {/* 2. Год-ступень (א/ב/ג) + еврейский год (набор) + номер семестра */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <div style={{ width: 110 }}>
+              <label style={lbl}>{t('semester_groups.year_level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
+              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
+                <option value="">—</option>
+                {[1, 2, 3, 4].map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
+              </select>
+            </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('semester_groups.year_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <input type="text" value={yearLabel} onChange={e => setYearLabel(e.target.value)} style={inp} placeholder={t('semester_groups.year_placeholder')} />
             </div>
-            <div style={{ width: 130 }}>
+            <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.term_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <input type="number" min={1} value={termNumber} onChange={e => setTermNumber(e.target.value)} style={inp} placeholder="1" />
             </div>

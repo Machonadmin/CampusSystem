@@ -325,8 +325,11 @@ function Cell({
       {cell.signer_name && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{cell.signer_name}</span>}
       {cell.note && <span style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }} title={cell.note}>{cell.note.length > 28 ? cell.note.slice(0, 28) + '…' : cell.note}</span>}
       {cell.can_sign && cell.finals.length > 0 && (
-        <button onClick={onSign} style={{ justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          ✍ {signLabel}
+        <button onClick={onSign} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+          {signLabel}
         </button>
       )}
     </div>

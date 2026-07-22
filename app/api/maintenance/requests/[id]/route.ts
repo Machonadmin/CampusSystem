@@ -41,7 +41,19 @@ interface RequestRow {
 
 type SB = ReturnType<typeof createServerClient>
 
-/** Дополняет строку заявки именами локации и флагом просрочки. */
+/** Имя человека по id (deploy-safe: при любой ошибке — null). */
+async function personName(sb: SB, id: string | null): Promise<string | null> {
+  if (!id) return null
+  try {
+    const { data } = await sb.from('persons').select('full_name, hebrew_name').eq('id', id).maybeSingle()
+    const p = data as { full_name?: string | null; hebrew_name?: string | null } | null
+    return p ? (p.full_name || p.hebrew_name || null) : null
+  } catch {
+    return null
+  }
+}
+
+/** Дополняет строку заявки именами локации, ответственного и флагом просрочки. */
 async function withMeta(sb: SB, row: RequestRow) {
   const buildingMap = await buildingNamesByIds(sb, row.building_id ? [row.building_id] : [])
   const roomMap = await roomNumbersByIds(sb, row.room_id ? [row.room_id] : [])
@@ -49,6 +61,7 @@ async function withMeta(sb: SB, row: RequestRow) {
     ...row,
     building_name: row.building_id ? buildingMap.get(row.building_id) ?? null : null,
     room_number: row.room_id ? roomMap.get(row.room_id) ?? null : null,
+    assigned_to_name: await personName(sb, row.assigned_to),
     is_overdue: isOverdue(row, new Date().toISOString()),
   }
 }

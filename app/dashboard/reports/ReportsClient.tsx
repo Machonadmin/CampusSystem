@@ -125,7 +125,14 @@ function ReportCard<T>({
         padding: '10px 16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: primary }}>{title}</h2>
+          {href ? (
+            <Link href={href} className="no-underline" style={{ fontSize: 15, fontWeight: 600, margin: 0, color: primary, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              {title}
+              <span style={{ fontSize: 13, opacity: 0.7 }}>‹</span>
+            </Link>
+          ) : (
+            <h2 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: primary }}>{title}</h2>
+          )}
           {periodBadge && (
             <span style={{ fontSize: 10.5, fontWeight: 600, color: primary, background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 6, padding: '1px 6px', whiteSpace: 'nowrap' }}>{periodBadge}</span>
           )}
@@ -144,23 +151,6 @@ function ReportCard<T>({
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('empty')}</div>
         )}
       </div>
-      {href && (
-        <Link
-          href={href}
-          className="no-underline"
-          style={{
-            display: 'block',
-            padding: '8px 16px',
-            borderTop: '1px solid var(--border)',
-            fontSize: 12,
-            fontWeight: 600,
-            color: primary,
-            background: 'var(--surface)',
-          }}
-        >
-          {t('open_module')}
-        </Link>
-      )}
     </div>
   )
 }

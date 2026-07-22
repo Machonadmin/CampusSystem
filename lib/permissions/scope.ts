@@ -88,3 +88,39 @@ export function grantsAccess(
   }
   return false
 }
+
+/** Ребро дерева подразделений: узел и его родитель (или null для корня). */
+export interface DepartmentEdge {
+  id: string
+  parent_id: string | null
+}
+
+/**
+ * Иерархический scope: расширяет набор ПРЯМО назначенных подразделений вниз по
+ * дереву `departments.parent_id` — к каждому корню добавляются ВСЕ его потомки
+ * (рекурсивно), чтобы менеджер верхнего узла автоматически видел под-единицы.
+ *
+ * Свойства (важно для безопасности): добавляются ТОЛЬКО потомки корней — ничего
+ * «вбок» или «вверх». Циклобезопасно (visited-множество). Возвращает
+ * уникальный набор id (корни включены).
+ */
+export function expandDepartmentTree(rootIds: string[], edges: DepartmentEdge[]): string[] {
+  const childrenByParent = new Map<string, string[]>()
+  for (const e of edges) {
+    if (e.parent_id) {
+      const arr = childrenByParent.get(e.parent_id)
+      if (arr) arr.push(e.id)
+      else childrenByParent.set(e.parent_id, [e.id])
+    }
+  }
+  const result = new Set<string>()
+  const stack = [...rootIds]
+  while (stack.length > 0) {
+    const id = stack.pop()!
+    if (result.has(id)) continue
+    result.add(id)
+    const children = childrenByParent.get(id)
+    if (children) for (const c of children) if (!result.has(c)) stack.push(c)
+  }
+  return Array.from(result)
+}

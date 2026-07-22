@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
 
@@ -42,6 +42,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   // add-document form
   const [busy, setBusy] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [dType, setDType] = useState<string>('other')
   const [dTitle, setDTitle] = useState('')
@@ -192,9 +193,6 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
-        <Link href="/dashboard/documents" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
@@ -202,10 +200,18 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
-          {/* Add document */}
-          {canManage && (
+          {/* Add document — collapsed by default */}
+          {canManage && !showAddForm && (
+            <button onClick={() => setShowAddForm(true)} style={{ ...btn(primary), alignSelf: 'flex-start' }}>
+              + {t('add.title')}
+            </button>
+          )}
+          {canManage && showAddForm && (
             <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('add.title')}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('add.title')}</h2>
+                <button onClick={() => setShowAddForm(false)} aria-label={tCommon('cancel')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1 }}>×</button>
+              </div>
               {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('fields.doc_type')}>
@@ -299,14 +305,15 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           </span>
                         </td>
                         <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          {canManage && d.status === 'active' && (
-                            <button onClick={() => setStatus(d, 'archived')} disabled={busy} style={linkBtn(primary)}>{t('archive')}</button>
-                          )}
-                          {canManage && d.status === 'archived' && (
-                            <button onClick={() => setStatus(d, 'active')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('unarchive')}</button>
-                          )}
                           {canManage && (
-                            <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>
+                            <RowActionsMenu
+                              accentColor={primary}
+                              actions={[
+                                { key: 'archive', label: t('archive'), onClick: () => setStatus(d, 'archived'), disabled: busy, hidden: d.status !== 'active' },
+                                { key: 'unarchive', label: t('unarchive'), onClick: () => setStatus(d, 'active'), disabled: busy, hidden: d.status !== 'archived' },
+                                { key: 'delete', label: tCommon('delete'), onClick: () => remove(d), disabled: busy, danger: true },
+                              ]}
+                            />
                           )}
                         </td>
                       </tr>

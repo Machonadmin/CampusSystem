@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -211,7 +212,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                         )}
                       </td>
                       <td style={{ ...td, whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           <button
                             onClick={() => setAttendanceLesson(lesson)}
                             style={{ ...btnSmall, color: accentColor, borderColor: accentColor }}
@@ -219,20 +220,14 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                             {t('action_attendance')}
                           </button>
                           {canManageLessons && (
-                            <>
-                              <button onClick={() => setFormLesson(lesson)} style={btnSmall}>
-                                {t('action_edit')}
-                              </button>
-                              <button onClick={() => handleToggleCancel(lesson)} style={btnSmall}>
-                                {lesson.is_cancelled ? t('action_restore') : t('action_cancel')}
-                              </button>
-                              <button
-                                onClick={() => handleDelete(lesson)}
-                                style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                              >
-                                {t('action_delete')}
-                              </button>
-                            </>
+                            <RowActionsMenu
+                              accentColor={accentColor}
+                              actions={[
+                                { key: 'edit', label: t('action_edit'), onClick: () => setFormLesson(lesson) },
+                                { key: 'cancel', label: lesson.is_cancelled ? t('action_restore') : t('action_cancel'), onClick: () => handleToggleCancel(lesson) },
+                                { key: 'delete', label: t('action_delete'), onClick: () => handleDelete(lesson), danger: true },
+                              ]}
+                            />
                           )}
                         </div>
                       </td>

@@ -5,6 +5,7 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isIsoDate, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment } from '@/lib/calendar/overlap'
+import { isAboveInHierarchy } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
 
 /**
@@ -118,6 +119,22 @@ export async function GET(request: NextRequest) {
       participantRows = await fetchAllPaged({ by: 'journeys', ids: journeyIds })
     }
 
+    // 3) Встречи, где я — приглашённый участник (appointment_attendees). Деплой-
+    // безопасно: нет таблицы → пусто, поведение как раньше.
+    let attendeeRows: GetRow[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const myAtt = await (sb as any).from('appointment_attendees').select('appointment_id').eq('person_id', session.person_id)
+    if (!myAtt.error && myAtt.data) {
+      const ids = Array.from(new Set((myAtt.data as Array<{ appointment_id: string }>).map(r => r.appointment_id)))
+      if (ids.length > 0) {
+        let q = sb.from('appointments').select(GET_SELECT).in('id', ids).order('starts_at', { ascending: true })
+        if (from) q = q.gte('starts_at', `${from}T00:00:00`)
+        if (to) q = q.lte('starts_at', `${to}T23:59:59.999`)
+        const { data } = await q
+        attendeeRows = (data ?? []) as unknown as GetRow[]
+      }
+    }
+
     function mapRow(r: GetRow, role: 'provider' | 'participant') {
       const journey = r.journey as { person?: PersonLite } | null
       const student = journey?.person ?? null
@@ -145,10 +162,40 @@ export async function GET(request: NextRequest) {
     for (const r of participantRows) {
       if (!byId.has(r.id)) byId.set(r.id, mapRow(r, 'participant'))
     }
+    for (const r of attendeeRows) {
+      if (!byId.has(r.id)) byId.set(r.id, mapRow(r, 'participant'))
+    }
 
-    const appointments = [...byId.values()].sort((a, b) =>
-      a.starts_at < b.starts_at ? -1 : a.starts_at > b.starts_at ? 1 : 0,
-    )
+    // Список приглашённых участников (persons) + мой статус участия — деплой-
+    // безопасно (нет таблицы → пусто).
+    const allIds = [...byId.keys()]
+    const attendeesByAppt = new Map<string, Array<{ person_id: string; name: string | null; status: string }>>()
+    const myStatusByAppt = new Map<string, string>()
+    if (allIds.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const attRes = await (sb as any).from('appointment_attendees').select('appointment_id, person_id, status').in('appointment_id', allIds)
+      if (!attRes.error && attRes.data) {
+        const rows = attRes.data as Array<{ appointment_id: string; person_id: string; status: string }>
+        const pids = [...new Set(rows.map(r => r.person_id))]
+        const nameById = new Map<string, string | null>()
+        if (pids.length > 0) {
+          const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', pids)
+          for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
+            nameById.set(p.id, p.full_name ?? p.hebrew_name ?? null)
+          }
+        }
+        for (const a of rows) {
+          const arr = attendeesByAppt.get(a.appointment_id) ?? []
+          arr.push({ person_id: a.person_id, name: nameById.get(a.person_id) ?? null, status: a.status })
+          attendeesByAppt.set(a.appointment_id, arr)
+          if (a.person_id === session.person_id) myStatusByAppt.set(a.appointment_id, a.status)
+        }
+      }
+    }
+
+    const appointments = [...byId.values()]
+      .map(a => ({ ...a, attendees: attendeesByAppt.get(a.id) ?? [], my_attendance_status: myStatusByAppt.get(a.id) ?? null }))
+      .sort((a, b) => (a.starts_at < b.starts_at ? -1 : a.starts_at > b.starts_at ? 1 : 0))
 
     return NextResponse.json({ appointments })
   } catch (err: unknown) {
@@ -172,6 +219,7 @@ export async function POST(request: NextRequest) {
       ends_at?: string
       reason?: string | null
       notes?: string | null
+      attendee_person_ids?: string[]
     }
 
     const title = body.title?.trim()
@@ -214,7 +262,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // Участники: можно пригласить ЛЮБОГО человека. Кто ВЫШЕ создателя по
+    // иерархии — его участие требует подтверждения (pending_approval). Деплой-
+    // безопасно: если таблицы ещё нет (42P01) — встреча всё равно создана.
+    const appointmentId = (data as { id: string }).id
+    const attendeeIds = Array.from(new Set((body.attendee_person_ids ?? [])
+      .map(x => (x ?? '').trim()).filter(Boolean).filter(id => id !== session.person_id)))
+    let pendingApprovalCount = 0
+    if (attendeeIds.length > 0) {
+      const rows: Array<Record<string, unknown>> = []
+      for (const pid of attendeeIds) {
+        const above = await isAboveInHierarchy(pid, session.person_id)
+        if (above) pendingApprovalCount++
+        rows.push({
+          appointment_id: appointmentId,
+          person_id: pid,
+          requires_approval: above,
+          status: above ? 'pending_approval' : 'invited',
+        })
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: aErr } = await (sb as any).from('appointment_attendees').insert(rows)
+      void aErr // 42P01 / прочее — не фатально: встреча создана
+    }
+
+    return NextResponse.json({ ...(data as object), pending_approval_count: pendingApprovalCount }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

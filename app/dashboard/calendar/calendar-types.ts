@@ -18,6 +18,9 @@ export interface Appointment {
   role: 'provider' | 'participant'
   provider_name: string | null
   provider_hebrew_name: string | null
+  // Приглашённые участники (любые persons) + мой статус участия, если я приглашён.
+  attendees?: { person_id: string; name: string | null; status: string }[]
+  my_attendance_status?: string | null
 }
 
 export interface Block {

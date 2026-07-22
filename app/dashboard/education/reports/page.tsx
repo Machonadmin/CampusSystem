@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { downloadCsv } from '@/lib/csv'
@@ -161,7 +162,7 @@ export default function ReportsPage() {
             ))}
             <button onClick={() => exportSummary(report, tab, t)}
               style={{ marginInlineStart: 'auto', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>
-              ⭳ {t('export_csv')}
+              <DownloadIcon /> {t('export_csv')}
             </button>
           </div>
 

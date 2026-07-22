@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 
 interface Student {
@@ -34,7 +35,6 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
 
-  const primary = getModuleColor('documents', 'primary')
   const light = getModuleColor('documents', 'light')
 
   const [students, setStudents] = useState<Student[]>([])
@@ -161,7 +161,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
           disabled={filtered.length === 0}
           style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
         >
-          ⭳ {tCommon('export_csv')}
+          <DownloadIcon /> {tCommon('export_csv')}
         </button>
       </div>
 
@@ -219,7 +219,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                       </div>
                     </td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: primary }}>{t('list.open_card')}</span>
+                      <span aria-hidden style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-faint)' }}>‹</span>
                     </td>
                   </tr>
                 ))}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -227,9 +226,6 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
             {t('list.occupied')}: {totals.occupied} / {totals.capacity} · {t('list.rooms')}: {rooms.length}
           </div>
         </div>
-        <Link href="/dashboard/dormitory" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {/* Rooms section */}
@@ -246,12 +242,12 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
           <input value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
           <input value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
           <button onClick={addRoom} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
-          {roomError && <span style={{ fontSize: 12, color: '#DC2626' }}>{roomError}</span>}
+          {roomError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{roomError}</span>}
         </div>
       )}
 
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : rooms.length === 0 ? (
@@ -270,8 +266,8 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{r.room_number}</span>
                 {r.is_full
-                  ? <span style={{ fontSize: 10, fontWeight: 700, color: '#DC2626' }}>{t('room.full')}</span>
-                  : <span style={{ fontSize: 10, fontWeight: 700, color: '#059669' }}>{t('list.free')}: {r.free}</span>}
+                  ? <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)' }}>{t('room.full')}</span>
+                  : <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--success)' }}>{t('list.free')}: {r.free}</span>}
               </div>
               {r.floor !== null && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{t('form.floor')}: {r.floor}</div>}
               <OccupancyBar occupied={r.occupied} capacity={r.capacity} color={primary} />
@@ -291,7 +287,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
             <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
           </div>
 
-          {panelError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{panelError}</div>}
+          {panelError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{panelError}</div>}
 
           {/* Assign form */}
           {canManage && (
@@ -362,8 +358,8 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                       <td style={td}>
                         <span style={{
                           fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-                          background: a.status === 'active' ? '#CFFAFE' : 'var(--surface-2)',
-                          color: a.status === 'active' ? '#0E7490' : 'var(--text-muted)',
+                          background: a.status === 'active' ? 'var(--accent-tint)' : 'var(--surface-2)',
+                          color: a.status === 'active' ? 'var(--accent-strong)' : 'var(--text-muted)',
                         }}>
                           {t(`status.${a.status}`)}
                         </span>

@@ -134,6 +134,14 @@ export default function DashboardPage() {
           {t.availableModules}
         </h2>
 
+        {visibleModules.length === 0 ? (
+          <div style={{
+            border: '1px dashed var(--border-strong)', borderRadius: 12, padding: '28px 20px',
+            textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
+          }}>
+            {t.noModules}
+          </div>
+        ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {visibleModules.map(key => {
             const ready = isModuleImplemented(key)
@@ -203,6 +211,7 @@ export default function DashboardPage() {
             )
           })}
         </div>
+        )}
       </div>
     </div>
   )

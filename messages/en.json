@@ -44,6 +44,7 @@
     "label_doc_expired": "Expired"
   },
   "common": {
+    "actions": "Actions",
     "cancel": "Cancel",
     "delete": "Delete",
     "back": "Back",
@@ -144,6 +145,14 @@
     "logging_in": "Signing in..."
   },
   "education": {
+    "structures": {
+          "title": "Additional structures",
+          "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
+          "add": "Add structure",
+          "pick": "Pick a structure",
+          "none": "Primary structure only",
+          "remove": "Remove"
+    },
     "recruitment_report": {
       "title": "Recruitment reports",
       "subtitle": "Recruitment metrics: leads, sources, stages, age, geography and conversion",
@@ -299,6 +308,10 @@
       "no_assessments": "No assessments yet"
     },
     "schedule": {
+      "building_label": "Building",
+      "room_select_label": "Room",
+      "none_option": "— select —",
+      "or_free_text": "or type manually",
       "tab_schedule": "Schedule",
       "section_title": "Weekly schedule",
       "add_slot": "Add slot",
@@ -759,6 +772,52 @@
     "study": {
       "setup_label": "Setup",
       "advanced_label": "Advanced",
+      "rail": { "collapse": "Collapse", "expand": "Expand" },
+      "workspace": {
+        "all_structures": "All structures",
+        "structure_one": "Structure",
+        "pick_year": "Pick a year",
+        "pick_cohort": "Pick a cohort (Hebrew year)",
+        "semesters": "Semesters",
+        "no_year": "No year",
+        "no_cohort": "No cohort",
+        "empty": "No semesters here yet",
+        "manage": "Manage semester",
+        "count_semesters": "{n} semesters",
+        "count_students": "{n} students",
+        "structures_hint": "Pick a structure to see years and cohorts"
+      },
+      "courses": {
+        "title": "Courses",
+        "add_button": "New course",
+        "modal_title": "New course in semester",
+        "empty": "No courses in this semester yet",
+        "name_label": "Course name",
+        "name_placeholder": "Gemara · Halacha · Jewish thought…",
+        "subject_label": "Subject (from catalog)",
+        "subject_none": "— no subject —",
+        "teachers_label": "Teachers",
+        "students_label": "Students in course",
+        "students_hint": "Only students already in the semester can be added",
+        "no_roster": "No students in the semester — enroll them into the semester first",
+        "open": "Open course",
+        "back": "Back to semesters",
+        "count_teachers": "{n} teachers"
+      },
+      "buildings": {
+              "title": "Buildings & rooms",
+              "hint": "Define buildings and rooms to pick in the schedule",
+              "add_building": "New building",
+              "building_name": "Building name",
+              "building_code": "Code",
+              "add_room": "Add room",
+              "room_name": "Room number/name",
+              "capacity": "Capacity",
+              "empty": "No buildings yet",
+              "rooms_count": "{n} rooms",
+              "no_rooms": "No rooms"
+      },
+      "settings_hint": "Rare setup screens — one click away, out of the daily flow",
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",
@@ -786,7 +845,9 @@
         "study_groups": "Study groups",
         "students": "Students",
         "class_groups": "Class groups",
-        "semester_groups": "Semesters"
+        "semester_groups": "Semesters",
+        "buildings": "Buildings",
+        "settings": "Studies settings"
       },
       "common": {
         "all_departments": "All Departments",
@@ -957,6 +1018,8 @@
         "filter_active_on_leave": "Active & On Leave",
         "filter_active_only": "Active Only",
         "filter_all": "All Statuses",
+        "filters_label": "Filters",
+        "filters_clear": "Clear",
         "add_button": "Student",
         "bulk": {
           "select": "Select",
@@ -967,7 +1030,10 @@
           "type_kodesh": "Kodesh group",
           "pick_target": "Pick target",
           "apply": "Assign",
-          "result": "{ok} assigned, {fail} failed"
+          "result": "{ok} assigned, {fail} failed",
+          "advance_year": "Advance year +1",
+          "advance_confirm": "Advance {n} students by one year (1→2→3)?",
+          "advance_result": "{ok} advanced, {fail} failed"
         },
         "empty_none": "No students yet",
         "empty_search": "Nothing found",
@@ -994,8 +1060,9 @@
         "modal_create_title": "New semester",
         "modal_edit_title": "Edit semester",
         "name_placeholder": "Semester A 5785",
-        "year_label": "Year",
+        "year_label": "Hebrew year (cohort)",
         "year_placeholder": "5785",
+        "year_level_label": "Year (1/2/3)",
         "term_label": "Term number",
         "track_label": "Track",
         "track_placeholder": "— select a track —",
@@ -1218,6 +1285,7 @@
       "mode_existing": "Existing person",
       "mode_create": "New person",
       "person_id_ph": "Person id / search",
+      "person_search_ph": "Search by name...",
       "first_name": "First name",
       "last_name": "Last name",
       "email": "Email",
@@ -1604,7 +1672,8 @@
       "active": "Active",
       "my": "My",
       "department": "Department",
-      "assigned": "Assigned",
+      "assigned": "Assigned to me",
+      "created": "Created by me",
       "watching": "Watching"
     },
     "filter_labels": {
@@ -1636,7 +1705,8 @@
       "reopen": "Reopen",
       "cancel": "Cancel",
       "assign": "Assign",
-      "cancel_series": "Cancel Series..."
+      "cancel_series": "Cancel Series...",
+        "delete": "Delete"
     },
     "card": {
       "watchers": "Watchers",
@@ -1683,6 +1753,7 @@
       "decline_reason_required": "Specify a reason for declining",
       "cancel_series_failed": "Failed to cancel series",
       "action_failed": "Failed to perform action",
+        "delete_confirm": "Delete this task permanently?",
       "comment_failed": "Failed to add comment",
       "add_watcher_failed": "Failed to add watcher",
       "remove_watcher_failed": "Failed to remove watcher"
@@ -2015,6 +2086,7 @@
       "tech_issues_placeholder": "Describe technical issues, if any...",
       "no_questions_block": "No questions",
       "no_template_hint": "No template selected — fill in the summary section below",
+      "template_load_error": "Couldn't load the checklist — refresh the page and try again",
       "summary_title": "Check Summary",
       "strengths_label": "Lesson strengths",
       "areas_label": "Areas for improvement",
@@ -2248,6 +2320,7 @@
       "modal_edit_title": "Edit Position",
       "name_ru_label": "Name (Russian)",
       "name_ru_placeholder": "Teacher",
+      "name_he_placeholder": "Melamed",
       "name_he_label": "Name (Hebrew)",
       "category_label": "Category",
       "is_teaching_label": "Teaching position",
@@ -2876,6 +2949,7 @@
       "assignee": "Assignee",
       "you": "You",
       "unassigned": "Unassigned",
+      "assigned_other": "Another staff member",
       "description": "Description",
       "actions": "Actions",
       "change_status": "Change status",
@@ -2938,6 +3012,7 @@
       "assignee": "Assignee",
       "you": "You",
       "unassigned": "Unassigned",
+      "assigned_other": "Another staff member",
       "description": "Description",
       "resolution": "Resolution",
       "resolution_placeholder": "Describe how the incident was resolved",
@@ -3532,9 +3607,26 @@
     "relation_other": "Other"
   },
   "calendar": {
+    "form_invitees": "Participants",
+    "form_invitees_none": "Add people…",
+    "form_invitees_search": "Search a person…",
+    "form_invitees_empty": "Not found",
+    "invitees_hint": "You can invite anyone. Someone above you in the hierarchy will need to approve.",
+    "attendees_title": "Participants",
+    "respond_approve": "Approve",
+    "respond_decline": "Decline",
+    "my_pending_prompt": "You were invited to this meeting:",
+    "att_invited": "Invited",
+    "att_accepted": "Accepted",
+    "att_declined": "Declined",
+    "att_pending_approval": "Awaiting their approval",
     "title": "Calendar",
     "subtitle": "Your personal calendar: appointments and days off",
     "new_appointment": "New appointment",
+    "add_button": "Add",
+    "add_appointment_hint": "Meeting with attendees and approvals",
+    "add_personal_event": "Personal event / reminder",
+    "add_personal_hint": "Just for you, with an optional reminder",
     "edit_appointment": "Edit appointment",
     "prev": "Previous",
     "next": "Next",
@@ -3611,6 +3703,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
     "no_access": "No access",

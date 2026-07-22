@@ -20,6 +20,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@sentry/nextjs": "^10.67.0",
     "@supabase/supabase-js": "^2.103.3",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/bcryptjs": "^2.4.6",

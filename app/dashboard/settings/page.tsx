@@ -76,9 +76,10 @@ export default function SettingsPage() {
           return (
             <Link key={s.key} href={s.href} className="block group no-underline">
               <div
-                className="bg-white rounded-xl cursor-pointer"
+                className="rounded-xl cursor-pointer"
                 style={{
                   padding: 24,
+                  background: 'var(--surface)',
                   borderTop: `3px solid ${s.color}`,
                   boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
                   transition: 'box-shadow 0.15s ease',

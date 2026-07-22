@@ -128,7 +128,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
             />
           </div>
           {actionError && (
-            <div style={{ fontSize: 12, color: '#991B1B', marginBottom: 8 }}>{actionError}</div>
+            <div style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{actionError}</div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button
@@ -188,7 +188,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
                 )}
                 <button
                   onClick={() => handleRemove(tc.person_id)}
-                  style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
+                  style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}
                 >
                   {t('class_groups.remove_button')}
                 </button>

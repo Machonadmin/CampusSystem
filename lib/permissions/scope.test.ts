@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess, applyPersonGrants } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree } from './scope'
+import type { DepartmentEdge } from './scope'
 
 describe('applyPersonGrants', () => {
   it('без персональных выдач — карта не меняется', () => {
@@ -133,5 +134,53 @@ describe('grantsAccess', () => {
       expect(grantsAccess('own', undefined, ctx)).toBe(false)
       expect(grantsAccess('own', {}, ctx)).toBe(false)
     })
+  })
+})
+
+describe('expandDepartmentTree (иерархический scope)', () => {
+  // Дерево:  A → B → D,  A → C,  E (отдельный)
+  const edges: DepartmentEdge[] = [
+    { id: 'A', parent_id: null },
+    { id: 'B', parent_id: 'A' },
+    { id: 'C', parent_id: 'A' },
+    { id: 'D', parent_id: 'B' },
+    { id: 'E', parent_id: null },
+  ]
+  const set = (ids: string[]) => new Set(ids)
+
+  it('корень включает ВСЕХ потомков (рекурсивно)', () => {
+    expect(set(expandDepartmentTree(['A'], edges))).toEqual(set(['A', 'B', 'C', 'D']))
+  })
+
+  it('промежуточный узел — только своё поддерево', () => {
+    expect(set(expandDepartmentTree(['B'], edges))).toEqual(set(['B', 'D']))
+  })
+
+  it('лист — только он сам', () => {
+    expect(set(expandDepartmentTree(['D'], edges))).toEqual(set(['D']))
+  })
+
+  it('НЕ добавляет ничего вбок/вверх (безопасность): C не тянет B/D', () => {
+    expect(set(expandDepartmentTree(['C'], edges))).toEqual(set(['C']))
+  })
+
+  it('несколько корней объединяются без дублей', () => {
+    expect(set(expandDepartmentTree(['B', 'E'], edges))).toEqual(set(['B', 'D', 'E']))
+  })
+
+  it('пустой вход → пусто', () => {
+    expect(expandDepartmentTree([], edges)).toEqual([])
+  })
+
+  it('циклобезопасно (A↔B цикл не зацикливает)', () => {
+    const cyclic: DepartmentEdge[] = [
+      { id: 'A', parent_id: 'B' },
+      { id: 'B', parent_id: 'A' },
+    ]
+    expect(set(expandDepartmentTree(['A'], cyclic))).toEqual(set(['A', 'B']))
+  })
+
+  it('неизвестный корень возвращается как есть', () => {
+    expect(expandDepartmentTree(['Z'], edges)).toEqual(['Z'])
   })
 })

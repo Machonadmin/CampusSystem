@@ -26,8 +26,8 @@ interface Props {
 }
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: 'var(--accent-tint)', color: '#1E40AF' },
+  on_leave:  { background: 'var(--warn-tint)', color: 'var(--warn)' },
+  graduated: { background: 'var(--accent-tint)', color: 'var(--accent-strong)' },
   expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
@@ -128,7 +128,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
               </div>
               <button
                 onClick={() => handleRemove(s.id)}
-                style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
+                style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}
               >
                 {t('class_groups.remove_button')}
               </button>

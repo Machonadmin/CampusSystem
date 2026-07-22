@@ -86,7 +86,7 @@ const FALLBACK_KEYS = MODULES.filter(m => !GROUPED_KEYS.has(m.key)).map(m => m.k
 
 // ── Nav link — defined outside Sidebar to avoid reconciliation issues ────────
 function SidebarNavLink({
-  href, iconPath, label, active, isOpen, isRTL, moduleKey,
+  href, iconPath, label, active, isOpen, isRTL, moduleKey, soonLabel,
 }: {
   href: string
   iconPath: string
@@ -95,6 +95,7 @@ function SidebarNavLink({
   isOpen: boolean
   isRTL: boolean
   moduleKey: string
+  soonLabel: string
 }) {
   // 'home' и 'calendar' — личные страницы: всегда доступны.
   const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar'
@@ -145,7 +146,7 @@ function SidebarNavLink({
             fontSize: 9, fontWeight: 700, color: 'var(--warn)',
             letterSpacing: '0.05em', flexShrink: 0,
           }}>
-            СКОРО
+            {soonLabel}
           </span>
         )}
       </Link>
@@ -263,7 +264,7 @@ export default function Sidebar() {
           {isOpen && !isMobile && (
             <button
               onClick={() => setPin(!isPinned)}
-              title={isPinned ? 'Открепить' : 'Закрепить'}
+              title={isPinned ? t.unpin : t.pin}
               className="icon-ghost p-1.5 rounded transition-colors"
               style={isPinned
                 ? { color: 'var(--accent-strong)', background: 'var(--accent-tint)' }
@@ -278,7 +279,7 @@ export default function Sidebar() {
           {/* Toggle button */}
           <button
             onClick={toggle}
-            title={isOpen ? 'Свернуть' : 'Развернуть'}
+            title={isOpen ? t.collapse : t.expand}
             className="icon-ghost p-1.5 rounded transition-colors"
             style={{ color: 'var(--text-faint)' }}
           >
@@ -308,6 +309,7 @@ export default function Sidebar() {
             isOpen={isOpen}
             isRTL={isRTL}
             moduleKey={item.key}
+              soonLabel={t.soon}
           />
         ))}
 
@@ -352,6 +354,7 @@ export default function Sidebar() {
                   isOpen={isOpen}
                   isRTL={isRTL}
                   moduleKey={item.key}
+              soonLabel={t.soon}
                 />
               ))}
             </div>

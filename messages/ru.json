@@ -44,6 +44,7 @@
     "label_doc_expired": "Просрочено"
   },
   "common": {
+    "actions": "Действия",
     "cancel": "Отмена",
     "delete": "Удалить",
     "back": "Назад",
@@ -144,6 +145,14 @@
     "logging_in": "Вход..."
   },
   "education": {
+    "structures": {
+          "title": "Дополнительные структуры",
+          "hint": "Студентка также состоит в этих структурах (кроме основной). Руководитель каждой видит её карточку.",
+          "add": "Добавить структуру",
+          "pick": "Выберите структуру",
+          "none": "Только основная структура",
+          "remove": "Убрать"
+    },
     "recruitment_report": {
       "title": "Отчёты по набору",
       "subtitle": "Метрики набора: лиды, источники, этапы, возраст, география и конверсия",
@@ -299,6 +308,10 @@
       "no_assessments": "Заданий пока нет"
     },
     "schedule": {
+      "building_label": "Здание",
+      "room_select_label": "Аудитория",
+      "none_option": "— выбрать —",
+      "or_free_text": "или введите вручную",
       "tab_schedule": "Расписание",
       "section_title": "Недельное расписание",
       "add_slot": "Добавить слот",
@@ -759,6 +772,52 @@
     "study": {
       "setup_label": "Настройки",
       "advanced_label": "Дополнительно",
+      "rail": { "collapse": "Свернуть панель", "expand": "Развернуть панель" },
+      "workspace": {
+        "all_structures": "Все структуры",
+        "structure_one": "Структура",
+        "pick_year": "Выбор года",
+        "pick_cohort": "Выбор набора (еврейский год)",
+        "semesters": "Семестры",
+        "no_year": "Без года",
+        "no_cohort": "Без набора",
+        "empty": "Здесь ещё нет семестров",
+        "manage": "Управление семестром",
+        "count_semesters": "Семестров: {n}",
+        "count_students": "Студенток: {n}",
+        "structures_hint": "Выберите структуру, чтобы увидеть годы и наборы"
+      },
+      "courses": {
+        "title": "Курсы",
+        "add_button": "Новый курс",
+        "modal_title": "Новый курс в семестре",
+        "empty": "В этом семестре ещё нет курсов",
+        "name_label": "Название курса",
+        "name_placeholder": "Гмара · Галаха · Еврейская мысль…",
+        "subject_label": "Предмет (из каталога)",
+        "subject_none": "— без предмета —",
+        "teachers_label": "Преподаватели",
+        "students_label": "Студентки курса",
+        "students_hint": "Можно выбрать только студенток семестра",
+        "no_roster": "В семестре нет студенток — сначала запишите их в семестр",
+        "open": "Открыть курс",
+        "back": "Назад к списку семестров",
+        "count_teachers": "Преподавателей: {n}"
+      },
+      "buildings": {
+              "title": "Здания и аудитории",
+              "hint": "Задайте здания и аудитории для выбора в расписании",
+              "add_building": "Новое здание",
+              "building_name": "Название здания",
+              "building_code": "Код",
+              "add_room": "Добавить аудиторию",
+              "room_name": "Номер/название аудитории",
+              "capacity": "Вместимость",
+              "empty": "Зданий пока нет",
+              "rooms_count": "Аудиторий: {n}",
+              "no_rooms": "Нет аудиторий"
+      },
+      "settings_hint": "Редкие настройки и экраны — в одном клике, но не мешают ежедневной работе",
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",
@@ -786,7 +845,9 @@
         "study_groups": "Базовые группы",
         "students": "Студенты",
         "class_groups": "Учебные группы",
-        "semester_groups": "Семестры"
+        "semester_groups": "Семестры",
+        "buildings": "Здания",
+        "settings": "Настройки учёбы"
       },
       "common": {
         "all_departments": "Все подразделения",
@@ -957,6 +1018,8 @@
         "filter_active_on_leave": "Активные и в отпуске",
         "filter_active_only": "Только активные",
         "filter_all": "Все статусы",
+        "filters_label": "Фильтры",
+        "filters_clear": "Сбросить",
         "add_button": "Студент",
         "bulk": {
           "select": "Выбор",
@@ -967,7 +1030,10 @@
           "type_kodesh": "Группа кодеша",
           "pick_target": "Выберите цель",
           "apply": "Назначить",
-          "result": "Назначено: {ok}, не удалось: {fail}"
+          "result": "Назначено: {ok}, не удалось: {fail}",
+          "advance_year": "Повысить год +1",
+          "advance_confirm": "Повысить {n} студенток на год (1→2→3)?",
+          "advance_result": "{ok} повышено, {fail} не удалось"
         },
         "empty_none": "Студентов пока нет",
         "empty_search": "Ничего не найдено",
@@ -994,8 +1060,9 @@
         "modal_create_title": "Новый семестр",
         "modal_edit_title": "Редактирование семестра",
         "name_placeholder": "Семестр А 5785",
-        "year_label": "Год",
+        "year_label": "Еврейский год (набор)",
         "year_placeholder": "5785",
+        "year_level_label": "Год (1/2/3)",
         "term_label": "Номер семестра",
         "track_label": "Маршрут",
         "track_placeholder": "— выберите маршрут —",
@@ -1218,6 +1285,7 @@
       "mode_existing": "Существующий человек",
       "mode_create": "Новый человек",
       "person_id_ph": "ID человека / поиск",
+      "person_search_ph": "Поиск по имени...",
       "first_name": "Имя",
       "last_name": "Фамилия",
       "email": "Email",
@@ -1604,7 +1672,8 @@
       "active": "Активные",
       "my": "Мои",
       "department": "Отдел",
-      "assigned": "Назначенные",
+      "assigned": "Назначенные мне",
+      "created": "Созданные мной",
       "watching": "Наблюдаю"
     },
     "filter_labels": {
@@ -1636,7 +1705,8 @@
       "reopen": "Открыть заново",
       "cancel": "Отменить",
       "assign": "Назначить",
-      "cancel_series": "Отменить серию..."
+      "cancel_series": "Отменить серию...",
+        "delete": "Удалить"
     },
     "card": {
       "watchers": "Наблюдатели",
@@ -1683,6 +1753,7 @@
       "decline_reason_required": "Укажите причину отклонения",
       "cancel_series_failed": "Не удалось отменить серию",
       "action_failed": "Не удалось выполнить действие",
+        "delete_confirm": "Удалить задачу навсегда?",
       "comment_failed": "Не удалось добавить комментарий",
       "add_watcher_failed": "Не удалось добавить наблюдателя",
       "remove_watcher_failed": "Не удалось снять наблюдателя"
@@ -2015,6 +2086,7 @@
       "tech_issues_placeholder": "Опишите технические проблемы, если были...",
       "no_questions_block": "Нет вопросов",
       "no_template_hint": "Шаблон не выбран — заполните итоговый раздел ниже",
+      "template_load_error": "Не удалось загрузить чек-лист — обновите страницу и попробуйте снова",
       "summary_title": "Итог проверки",
       "strengths_label": "Сильные стороны урока",
       "areas_label": "Области для улучшения",
@@ -2248,6 +2320,7 @@
       "modal_edit_title": "Редактировать должность",
       "name_ru_label": "Название (русский)",
       "name_ru_placeholder": "Преподаватель",
+      "name_he_placeholder": "Меламед",
       "name_he_label": "Название (иврит)",
       "category_label": "Категория",
       "is_teaching_label": "Преподавательская должность",
@@ -2876,6 +2949,7 @@
       "assignee": "Ответственный",
       "you": "Вы",
       "unassigned": "Не назначен",
+      "assigned_other": "Другой сотрудник",
       "description": "Описание",
       "actions": "Действия",
       "change_status": "Сменить статус",
@@ -2938,6 +3012,7 @@
       "assignee": "Ответственный",
       "you": "Вы",
       "unassigned": "Не назначен",
+      "assigned_other": "Другой сотрудник",
       "description": "Описание",
       "resolution": "Разрешение",
       "resolution_placeholder": "Опишите, как инцидент был разрешён",
@@ -3532,9 +3607,26 @@
     "relation_other": "Другое"
   },
   "calendar": {
+    "form_invitees": "Участники",
+    "form_invitees_none": "Добавить людей…",
+    "form_invitees_search": "Поиск человека…",
+    "form_invitees_empty": "Не найдено",
+    "invitees_hint": "Можно пригласить любого. Кто выше вас по иерархии — потребуется его подтверждение.",
+    "attendees_title": "Участники",
+    "respond_approve": "Принять",
+    "respond_decline": "Отклонить",
+    "my_pending_prompt": "Вас пригласили на встречу:",
+    "att_invited": "Приглашён",
+    "att_accepted": "Принял",
+    "att_declined": "Отклонил",
+    "att_pending_approval": "Ждёт его подтверждения",
     "title": "Календарь",
     "subtitle": "Ваш личный календарь: встречи и выходные дни",
     "new_appointment": "Новая встреча",
+    "add_button": "Добавить",
+    "add_appointment_hint": "Встреча с участниками и согласованием",
+    "add_personal_event": "Личное событие / напоминание",
+    "add_personal_hint": "Только для вас, с необязательным напоминанием",
     "edit_appointment": "Редактировать встречу",
     "prev": "Назад",
     "next": "Вперёд",
@@ -3611,6 +3703,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "Внимание: это время зарезервировано под первые два урока иудаики. Слот сохранён — проверьте наложение.",
     "unauthorized": "Не авторизован",
     "forbidden": "Недостаточно прав",
     "no_access": "Нет доступа",

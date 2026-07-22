@@ -58,7 +58,7 @@ const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
   low: 'var(--text-faint)', normal: 'var(--text-muted)', high: '#F59E0B', urgent: '#DC2626',
 }
 
-type ActionKey = 'claim' | 'start' | 'review' | 'complete' | 'reopen' | 'decline' | 'cancel' | 'cancelSeries'
+type ActionKey = 'claim' | 'start' | 'review' | 'complete' | 'reopen' | 'decline' | 'cancel' | 'delete' | 'cancelSeries'
 
 interface ActionDef {
   label: string
@@ -189,6 +189,8 @@ export default function TaskPage() {
       out.push({ label: t('actions.cancel_series'), action: 'cancelSeries', danger: true })
     }
 
+    if (isCreator) out.push({ label: t('actions.delete'), action: 'delete', danger: true })
+
     return out
   }
 
@@ -233,17 +235,22 @@ export default function TaskPage() {
 
       if (action === 'claim') {
         resp = await fetch(`/api/tasks/${taskId}/claim`, { method: 'POST' })
-      } else if (action === 'cancel') {
+      } else if (action === 'delete') {
+        if (!window.confirm(t('detail.delete_confirm'))) { setActionInProgress(false); return }
         resp = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
+      } else if (action === 'cancel') {
+        resp = await fetch(`/api/tasks/${taskId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled' }),
+        })
       } else {
-        const STATUS_BY_ACTION: Record<Exclude<ActionKey, 'claim' | 'cancel' | 'cancelSeries'>, TaskRow['status']> = {
+        const STATUS_BY_ACTION: Record<Exclude<ActionKey, 'claim' | 'cancel' | 'delete' | 'cancelSeries'>, TaskRow['status']> = {
           start:    'in_progress',
           review:   'review',
           complete: 'completed',
           reopen:   'in_progress',
           decline:  'declined',
         }
-        const newStatus = STATUS_BY_ACTION[action as Exclude<ActionKey, 'claim' | 'cancel' | 'cancelSeries'>]
+        const newStatus = STATUS_BY_ACTION[action as Exclude<ActionKey, 'claim' | 'cancel' | 'delete' | 'cancelSeries'>]
         const body: Record<string, unknown> = { status: newStatus }
         if (action === 'decline' && declineReason.trim()) {
           body.status_note = declineReason.trim()

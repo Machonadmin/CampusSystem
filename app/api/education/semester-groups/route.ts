@@ -35,6 +35,26 @@ const SEMESTER_GROUP_SELECT = `
   department:departments(id, name, name_he, name_en)
 `
 
+/**
+ * Деплой-безопасно подтягивает year_level (колонка из миграции studies_drilldown).
+ * Если миграция ещё не применена (42703/42P01) — возвращает пустую карту, и
+ * список семестров продолжает работать (year_level = null у всех).
+ */
+async function fetchYearLevels(
+  sb: ReturnType<typeof createServerClient>,
+  groupIds: string[],
+): Promise<Map<string, number | null>> {
+  const map = new Map<string, number | null>()
+  if (groupIds.length === 0) return map
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (u(sb).from('class_groups').select('id, year_level').in('id', groupIds) as any)
+  if (error) return map
+  for (const r of (data ?? []) as Array<{ id: string; year_level: number | null }>) {
+    map.set(r.id, r.year_level ?? null)
+  }
+  return map
+}
+
 async function buildCounts(
   sb: ReturnType<typeof createServerClient>,
   groupIds: string[],
@@ -93,13 +113,17 @@ export async function GET() {
     if (rows.length === 0) return NextResponse.json({ semester_groups: [] })
 
     const groupIds = rows.map(g => g.id as string)
-    const { teachersByGroup, studentsByGroup } = await buildCounts(sb, groupIds)
+    const [{ teachersByGroup, studentsByGroup }, yearLevels] = await Promise.all([
+      buildCounts(sb, groupIds),
+      fetchYearLevels(sb, groupIds),
+    ])
 
     const result = rows.map(g => ({
       id: g.id,
       name: g.name,
       year_label: g.year_label ?? null,
       term_number: g.term_number ?? null,
+      year_level: yearLevels.get(g.id) ?? null,
       sem_status: g.sem_status ?? null,
       tuition_amount: g.tuition_amount ?? null,
       period_start: g.period_start ?? null,
@@ -142,6 +166,7 @@ export async function POST(request: NextRequest) {
       name?: string
       year_label?: string | null
       term_number?: number | null
+      year_level?: number | null
       study_track_id?: string | null
       department_id?: string
       tuition_amount?: number | null
@@ -210,6 +235,16 @@ export async function POST(request: NextRequest) {
     }
 
     const groupId = group.id as string
+
+    // (2b) year_level (год א/ב/ג/ד) — отдельным деплой-безопасным UPDATE, чтобы
+    // отсутствие этой новой колонки не роняло основную вставку с остальными полями.
+    if (body.year_level != null) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level } as any).eq('id', groupId) as any)
+      if (ylErr && ylErr.code === '42703') {
+        warning = (warning ? warning + ' ' : '') + 'Год (year_level) не сохранён: миграция studies_drilldown ещё не применена.'
+      }
+    }
 
     // (3) Преподаватели class_teachers (с monthly_rate, untyped).
     const teachers = (body.teachers ?? []).filter(t => t.person_id)

@@ -67,6 +67,9 @@ export default function StudentsTab() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
+  // Фильтры (подразделение/группа/статус) свёрнуты за одной кнопкой «Фильтры»,
+  // чтобы тулбар не пестрил — на виду только поиск и «+ студент».
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   // ── Массовое назначение (bulk): класс / маршрут / кодеш ──
   const [selectMode, setSelectMode] = useState(false)
@@ -190,6 +193,28 @@ export default function StudentsTab() {
     loadStudents(search)
   }
 
+  // Ручное повышение года (א→ב→ג): year_level += 1 у выбранных. По умолчанию —
+  // ручное действие (решение владельца).
+  async function advanceYear() {
+    if (selected.size === 0) return
+    if (!confirm(t('students.bulk.advance_confirm').replace('{n}', String(selected.size)))) return
+    setBulkBusy(true); setBulkMsg(null)
+    let ok = 0, fail = 0
+    for (const id of selected) {
+      const st = students.find(s => s.id === id)
+      const cur = st?.year_level ?? 0
+      const res = await fetch(`/api/education/journeys/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year_level: cur + 1 }),
+      })
+      if (res.ok) ok++; else fail++
+    }
+    setBulkBusy(false)
+    setBulkMsg(t('students.bulk.advance_result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    loadStudents(search)
+  }
+
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
     if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
@@ -215,6 +240,9 @@ export default function StudentsTab() {
     ? studyGroups.filter(g => g.department_id === filterDept)
     : studyGroups
 
+  // Сколько фильтров активно — показываем счётчиком на кнопке «Фильтры».
+  const activeFilters = (filterDept ? 1 : 0) + (filterGroup ? 1 : 0) + (filterStatus ? 1 : 0)
+
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
     padding: '5px 10px', fontSize: 12, color: 'var(--text)',
@@ -223,44 +251,88 @@ export default function StudentsTab() {
 
   return (
     <div>
-      {/* Тулбар */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + «+ студент». */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: filtersOpen ? 10 : 16, flexWrap: 'wrap' }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('students.search_placeholder')}
-          style={{ ...inp, minWidth: 220, flex: '1 1 220px' }}
+          style={{ ...inp, minWidth: 220, flex: '1 1 240px' }}
         />
-        <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
-          <option value="">{t('students.all_departments')}</option>
-          {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
-        </select>
-        <select
-          value={filterGroup}
-          onChange={e => setFilterGroup(e.target.value)}
-          disabled={filteredGroups.length === 0}
-          style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
-        >
-          <option value="">{t('students.all_groups')}</option>
-          {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
-          <option value="">{t('students.filter_active_on_leave')}</option>
-          <option value="active">{t('students.filter_active_only')}</option>
-          <option value="all">{t('students.filter_all')}</option>
-        </select>
         <button
+          type="button"
+          onClick={() => setFiltersOpen(v => !v)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+            background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
+            color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
+          }}
+        >
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+          </svg>
+          {t('students.filters_label')}
+          {activeFilters > 0 && (
+            <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
+          )}
+          <span style={{ fontSize: 9, opacity: 0.75 }}>{filtersOpen ? '▲' : '▼'}</span>
+        </button>
+        <button
+          type="button"
           onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
-          style={{ ...inp, cursor: 'pointer', fontWeight: 600, background: selectMode ? 'var(--accent-tint)' : 'var(--surface)', color: selectMode ? 'var(--accent-strong)' : 'var(--text)', borderColor: selectMode ? 'var(--accent-strong)' : 'var(--border-strong)' }}
+          style={{
+            padding: '7px 12px', fontSize: 13, cursor: 'pointer', borderRadius: 8, fontWeight: 600,
+            fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: `1px solid ${selectMode ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+            background: selectMode ? 'var(--accent-tint)' : 'var(--surface)',
+            color: selectMode ? 'var(--accent-strong)' : 'var(--text-muted)',
+          }}
         >
           {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
         </button>
-        <PageActionButton
-          label={t('students.add_button')}
-          onClick={() => setModalOpen(true)}
-          accentColor={accent}
-        />
+        <div style={{ marginInlineStart: 'auto' }}>
+          <PageActionButton
+            label={t('students.add_button')}
+            onClick={() => setModalOpen(true)}
+            accentColor={accent}
+          />
+        </div>
       </div>
+
+      {/* Свёрнутые фильтры — открываются по кнопке «Фильтры». */}
+      {filtersOpen && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
+          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
+            <option value="">{t('students.all_departments')}</option>
+            {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
+          </select>
+          <select
+            value={filterGroup}
+            onChange={e => setFilterGroup(e.target.value)}
+            disabled={filteredGroups.length === 0}
+            style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
+          >
+            <option value="">{t('students.all_groups')}</option>
+            {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
+            <option value="">{t('students.filter_active_on_leave')}</option>
+            <option value="active">{t('students.filter_active_only')}</option>
+            <option value="all">{t('students.filter_all')}</option>
+          </select>
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={() => { setFilterDept(''); setFilterGroup(''); setFilterStatus('') }}
+              style={{ padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--accent-strong)', fontWeight: 600, fontFamily: 'inherit' }}
+            >
+              {t('students.filters_clear')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Панель массового назначения */}
       {selectMode && (
@@ -281,6 +353,14 @@ export default function StudentsTab() {
             style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
           >
             {t('students.bulk.apply')}
+          </button>
+          <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
+          <button
+            onClick={advanceYear}
+            disabled={bulkBusy || selected.size === 0}
+            style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
+          >
+            {t('students.bulk.advance_year')}
           </button>
         </div>
       )}

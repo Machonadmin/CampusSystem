@@ -408,30 +408,18 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                 <input type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
               </div>
 
-              {/* Frequency cards */}
+              {/* Frequency */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {FREQ_OPTIONS.map(opt => {
-                    const active = frequency === opt.value
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setFrequency(opt.value)}
-                        style={{
-                          padding: '10px 12px', textAlign: 'start',
-                          border: '2px solid ' + (active ? '#F59E0B' : 'var(--border)'),
-                          borderRadius: 10, cursor: 'pointer',
-                          background: active ? '#FFFBEB' : 'var(--surface)',
-                        }}
-                      >
-                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? '#92400E' : 'var(--text)' }}>{opt.label}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{opt.sub}</div>
-                      </button>
-                    )
-                  })}
-                </div>
+                <select
+                  value={frequency}
+                  onChange={e => setFrequency(e.target.value as RecurrenceFrequency)}
+                  style={{ ...inp, maxWidth: 260 }}
+                >
+                  {FREQ_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label} — {opt.sub}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Weekly weekdays */}
@@ -511,22 +499,15 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Series end */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  {([
-                    ['never',       t('create_modal.series_end_never')],
-                    ['until_date',  t('create_modal.series_end_until')],
-                    ['after_count', t('create_modal.series_end_after_count')],
-                  ] as const).map(([val, lbl]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setSeriesEnd(val)}
-                      style={segBtn(seriesEnd === val)}
-                    >
-                      {lbl}
-                    </button>
-                  ))}
-                </div>
+                <select
+                  value={seriesEnd}
+                  onChange={e => setSeriesEnd(e.target.value as SeriesEnd)}
+                  style={{ ...inp, maxWidth: 260, marginBottom: 8 }}
+                >
+                  <option value="never">{t('create_modal.series_end_never')}</option>
+                  <option value="until_date">{t('create_modal.series_end_until')}</option>
+                  <option value="after_count">{t('create_modal.series_end_after_count')}</option>
+                </select>
                 {seriesEnd === 'until_date' && (
                   <input type="date" value={seriesUntilDate} onChange={e => setSeriesUntilDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
                 )}

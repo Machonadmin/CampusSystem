@@ -20,6 +20,7 @@ interface Ticket {
   status: string
   reported_by: string | null
   assigned_to: string | null
+  assigned_to_name?: string | null
   reported_at: string
   resolved_at: string | null
   building_name: string | null
@@ -169,7 +170,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
               <Field label={t('detail.location')} value={locationLabel} />
               <Field label={t('detail.reported_at')} value={fmtDate(ticket.reported_at)} />
               <Field label={t('detail.resolved_at')} value={fmtDate(ticket.resolved_at)} />
-              <Field label={t('detail.assignee')} value={ticket.assigned_to ? (assignedToMe ? t('detail.you') : ticket.assigned_to) : t('detail.unassigned')} />
+              <Field label={t('detail.assignee')} value={ticket.assigned_to ? (assignedToMe ? t('detail.you') : (ticket.assigned_to_name || t('detail.assigned_other'))) : t('detail.unassigned')} />
             </div>
 
             {ticket.description && (
