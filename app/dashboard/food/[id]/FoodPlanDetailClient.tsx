@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -198,9 +197,6 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{planName}</h1>
           <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.enrolled')}: {activeShown}</div>
         </div>
-        <Link href="/dashboard/food" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {panelError && <div style={{ fontSize: 13, color: '#DC2626' }}>{panelError}</div>}

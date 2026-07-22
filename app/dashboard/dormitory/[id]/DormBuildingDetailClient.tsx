@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -227,9 +226,6 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
             {t('list.occupied')}: {totals.occupied} / {totals.capacity} · {t('list.rooms')}: {rooms.length}
           </div>
         </div>
-        <Link href="/dashboard/dormitory" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {/* Rooms section */}

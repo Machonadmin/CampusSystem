@@ -182,17 +182,6 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
               )}
             </div>
           </div>
-          <button
-            onClick={() => router.push('/dashboard/education')}
-            style={{
-              padding: '8px 14px', fontSize: 13, fontWeight: 500,
-              background: 'rgba(255,255,255,0.2)', color: '#fff',
-              border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8,
-              cursor: 'pointer',
-            }}
-          >
-            {t('class_groups.back_to_list')}
-          </button>
         </div>
       </div>
 
