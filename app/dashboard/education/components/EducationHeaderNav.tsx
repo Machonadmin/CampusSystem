@@ -33,17 +33,18 @@ export default function EducationHeaderNav() {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  // Ежедневные ссылки — всегда на виду.
+  // Ежедневные ссылки — всегда на виду. Только два самых частых (расписание +
+  // «мой день»). «Отчёты» ушли в меню — они не ежедневные.
   const daily: NavLink[] = [
     { href: '/dashboard/education/timetable', label: t('timetable.title') },
     { href: '/dashboard/education/my-day', label: t('my_day.title') },
-    { href: '/dashboard/education/reports', label: t('reports.title') },
   ]
 
-  // Инструменты управления — под меню (сокращено с 7 до 4: שיבוץ קודש /
-  // קהילות / יבוא תלמידות переехали в «⚙ הגדרות לימודים» под рельсом «לימודים»,
-  // чтобы меню не пестрило. Все экраны по-прежнему в один клик).
+  // Меню «Управление» — отчёты + инструменты настройки. שיבוץ קודש / קהילות /
+  // יבוא תלמידות живут в «⚙ הגדרות לימודים» под рельсом «לימודים». Все экраны в
+  // один клик, но шапка не пестрит.
   const management: NavLink[] = [
+    { href: '/dashboard/education/reports', label: t('reports.title') },
     { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
     { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
     { href: '/dashboard/education/units', label: t('units.title') },
