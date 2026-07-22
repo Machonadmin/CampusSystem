@@ -315,7 +315,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
 
         <td style={{ padding: '7px 12px' }}>
           <button onClick={() => setStaffOpen(v => !v)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : 'var(--surface-2)', color: staffOpen ? '#1D4ED8' : 'var(--text-muted)', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? 'var(--accent-tint)' : 'var(--surface-2)', color: staffOpen ? 'var(--accent-strong)' : 'var(--text-muted)', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
             {node.employee_count} {tStaff('employees_short')}
             <svg style={{ width: 9, height: 9, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -345,7 +345,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
       </tr>
 
       {staffOpen && (
-        <tr style={{ backgroundColor: '#F8FAFF' }}>
+        <tr style={{ backgroundColor: 'var(--surface-2)' }}>
           <td colSpan={4} style={{ padding: '6px 12px 10px' }}>
             <div style={{ paddingInlineStart: depth * 18 + 40 }}>
               {staffLoading ? (
@@ -356,7 +356,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {staff.map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'var(--surface)', borderRadius: 7, border: '1px solid var(--border)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#0369A1' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)' }}>
                         {s.full_name.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>

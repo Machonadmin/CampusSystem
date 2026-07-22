@@ -324,7 +324,7 @@ export default function RecruitmentTab() {
                   {/* Текущий этап и задачи */}
                   <td style={{ padding: '11px 14px', minWidth: 200 }}>
                     {processStatus === 'deleted' ? (
-                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: '#FEE2E2', color: '#991B1B', fontWeight: 500 }}>
+                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'var(--danger-tint)', color: 'var(--danger)', fontWeight: 500 }}>
                         {t('page_status_deleted')}
                       </span>
                     ) : lead.active_stages_with_tasks.length === 0 ? (
@@ -370,7 +370,7 @@ export default function RecruitmentTab() {
                         {lead.is_deleted ? (
                           <button
                             onClick={() => { setOpenMenuId(null); handleRestore(lead) }}
-                            style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#059669' }}
+                            style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--success)' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDF4' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           >
@@ -405,8 +405,8 @@ export default function RecruitmentTab() {
                             <div style={{ borderTop: '1px solid var(--surface-2)', margin: '2px 0' }} />
                             <button
                               onClick={() => { setOpenMenuId(null); setDeleteTarget(lead) }}
-                              style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: '#DC2626' }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2' }}
+                              style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--danger)' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--danger-tint)' }}
                               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                             >
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>

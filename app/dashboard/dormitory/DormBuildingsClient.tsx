@@ -125,13 +125,13 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
           </select>
           <input value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
           <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
-          {formError && <span style={{ fontSize: 12, color: '#DC2626' }}>{formError}</span>}
+          {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}
 
       {/* Body */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (
@@ -159,7 +159,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
                 <span>{t('list.rooms')}: {b.rooms_count}</span>
                 <span>{t('list.occupied')}: {b.occupied} / {b.total_capacity}</span>
-                <span style={{ color: b.free > 0 ? '#059669' : '#DC2626', fontWeight: 600 }}>{t('list.free')}: {b.free}</span>
+                <span style={{ color: b.free > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>{t('list.free')}: {b.free}</span>
               </div>
             </div>
           ))}
@@ -177,7 +177,7 @@ export function OccupancyBar({ occupied, capacity, color }: { occupied: number; 
   return (
     <div style={{ marginTop: 10 }}>
       <div style={{ height: 8, borderRadius: 999, background: 'var(--surface-2)', overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: full ? '#DC2626' : color, transition: 'width 0.2s ease' }} />
+        <div style={{ width: `${pct}%`, height: '100%', background: full ? 'var(--danger)' : color, transition: 'width 0.2s ease' }} />
       </div>
     </div>
   )

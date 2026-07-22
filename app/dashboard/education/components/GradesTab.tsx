@@ -172,7 +172,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
       {loading ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
-        <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
+        <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : assessments.length === 0 ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
@@ -199,7 +199,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     </div>
                     <div style={{
                       fontWeight: 400, marginTop: 2, textTransform: 'none',
-                      color: a.graded_count > 0 ? '#059669' : 'var(--text-faint)',
+                      color: a.graded_count > 0 ? 'var(--success)' : 'var(--text-faint)',
                     }}>
                       {a.graded_count} / {enrolledCount}
                     </div>
@@ -408,7 +408,7 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
 
         {formError && (
           <div style={{
-            marginTop: 12, padding: '8px 12px', background: '#FEE2E2', color: '#991B1B',
+            marginTop: 12, padding: '8px 12px', background: 'var(--danger-tint)', color: 'var(--danger)',
             borderRadius: 8, fontSize: 13,
           }}>
             {formError}

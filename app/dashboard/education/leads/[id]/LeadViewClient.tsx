@@ -265,7 +265,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {interestTexts.map((text, idx) => (
-              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: '#3730A3' }}>
+              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
                 {text}
               </span>
             ))}
@@ -340,7 +340,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             {/* Avatar */}
             <div style={{
               width: 80, height: 80, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-              background: '#DBEAFE', color: '#1E40AF',
+              background: 'var(--accent-tint)', color: 'var(--accent-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 28, fontWeight: 700, border: '2px solid rgba(255,255,255,0.5)',
             }}>

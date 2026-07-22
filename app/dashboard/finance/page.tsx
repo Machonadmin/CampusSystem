@@ -184,9 +184,9 @@ export default function FinancePage() {
             onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
             style={{
               fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
-              background: selectMode ? '#D1FAE5' : 'var(--surface)',
-              color: selectMode ? '#065F46' : 'var(--text)',
-              border: `1px solid ${selectMode ? '#065F46' : 'var(--border-strong)'}`,
+              background: selectMode ? 'var(--success-tint)' : 'var(--surface)',
+              color: selectMode ? 'var(--success)' : 'var(--text)',
+              border: `1px solid ${selectMode ? 'var(--success)' : 'var(--border-strong)'}`,
             }}
           >
             {selectMode ? t('bulk.exit') : t('bulk.select')}
@@ -196,7 +196,7 @@ export default function FinancePage() {
 
       {/* Панель массового начисления */}
       {selectMode && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 16px', background: 'var(--surface)', border: '1px solid #059669', borderRadius: 10 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 16px', background: 'var(--surface)', border: '1px solid var(--success)', borderRadius: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</span>
           <div style={{ flex: 1 }} />
           <button
@@ -215,7 +215,7 @@ export default function FinancePage() {
 
       {/* Body */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : filtered.length === 0 ? (
@@ -241,7 +241,7 @@ export default function FinancePage() {
                     key={s.journey_id}
                     onClick={() => selectMode ? toggleSelect(s.journey_id) : router.push(`/dashboard/finance/${s.journey_id}`)}
                     style={{ cursor: 'pointer' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#ECFDF5' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--success-tint)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                   >
                     {selectMode && (
@@ -253,7 +253,7 @@ export default function FinancePage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: '#D1FAE5', color: primary,
+                          background: 'var(--success-tint)', color: primary,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 12, fontWeight: 700,
                         }}>
@@ -266,7 +266,7 @@ export default function FinancePage() {
                     </td>
                     <td style={tdNum}>{fmtMoney(s.charges_total)}</td>
                     <td style={tdNum}>{fmtMoney(s.payments_total)}</td>
-                    <td style={{ ...tdNum, fontWeight: 700, color: owes ? '#DC2626' : '#059669' }}>
+                    <td style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
                       {fmtMoney(s.balance)}
                     </td>
                   </tr>

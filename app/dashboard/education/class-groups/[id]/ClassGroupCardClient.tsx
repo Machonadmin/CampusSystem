@@ -119,7 +119,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
           { label: t('class_groups.card_not_found') },
         ]} />
         <div style={{
-          padding: 24, background: '#FEE2E2', color: '#991B1B',
+          padding: 24, background: 'var(--danger-tint)', color: 'var(--danger)',
           borderRadius: 8, fontSize: 14,
         }}>
           {error ?? t('class_groups.group_not_found_short')}
@@ -226,8 +226,8 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
           {/* Заметки */}
           {group.notes && (
             <div style={{
-              background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
-              padding: '12px 16px', fontSize: 13, color: '#92400E',
+              background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 10,
+              padding: '12px 16px', fontSize: 13, color: 'var(--warn)',
             }}>
               <strong style={{ marginRight: 6 }}>{t('class_groups.notes_prefix')}</strong>{group.notes}
             </div>

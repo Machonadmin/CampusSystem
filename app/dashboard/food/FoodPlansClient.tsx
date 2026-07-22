@@ -139,13 +139,13 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
           <label style={chk}><input type="checkbox" checked={lunch} onChange={e => setLunch(e.target.checked)} /> {t('meal.lunch')}</label>
           <label style={chk}><input type="checkbox" checked={dinner} onChange={e => setDinner(e.target.checked)} /> {t('meal.dinner')}</label>
           <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
-          {formError && <span style={{ fontSize: 12, color: '#DC2626' }}>{formError}</span>}
+          {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}
 
       {/* Body */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (
