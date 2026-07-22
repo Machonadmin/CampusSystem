@@ -1019,7 +1019,10 @@
           "type_kodesh": "Kodesh group",
           "pick_target": "Pick target",
           "apply": "Assign",
-          "result": "{ok} assigned, {fail} failed"
+          "result": "{ok} assigned, {fail} failed",
+          "advance_year": "Advance year +1",
+          "advance_confirm": "Advance {n} students by one year (1→2→3)?",
+          "advance_result": "{ok} advanced, {fail} failed"
         },
         "empty_none": "No students yet",
         "empty_search": "Nothing found",

@@ -193,6 +193,28 @@ export default function StudentsTab() {
     loadStudents(search)
   }
 
+  // Ручное повышение года (א→ב→ג): year_level += 1 у выбранных. По умолчанию —
+  // ручное действие (решение владельца).
+  async function advanceYear() {
+    if (selected.size === 0) return
+    if (!confirm(t('students.bulk.advance_confirm').replace('{n}', String(selected.size)))) return
+    setBulkBusy(true); setBulkMsg(null)
+    let ok = 0, fail = 0
+    for (const id of selected) {
+      const st = students.find(s => s.id === id)
+      const cur = st?.year_level ?? 0
+      const res = await fetch(`/api/education/journeys/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year_level: cur + 1 }),
+      })
+      if (res.ok) ok++; else fail++
+    }
+    setBulkBusy(false)
+    setBulkMsg(t('students.bulk.advance_result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    loadStudents(search)
+  }
+
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
     if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
@@ -331,6 +353,14 @@ export default function StudentsTab() {
             style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
           >
             {t('students.bulk.apply')}
+          </button>
+          <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
+          <button
+            onClick={advanceYear}
+            disabled={bulkBusy || selected.size === 0}
+            style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
+          >
+            {t('students.bulk.advance_year')}
           </button>
         </div>
       )}

@@ -1019,7 +1019,10 @@
           "type_kodesh": "קבוצת קודש",
           "pick_target": "בחר יעד",
           "apply": "שייך",
-          "result": "{ok} שויכו, {fail} נכשלו"
+          "result": "{ok} שויכו, {fail} נכשלו",
+          "advance_year": "קדם שנה +1",
+          "advance_confirm": "לקדם {n} תלמידות בשנה אחת (א→ב→ג)?",
+          "advance_result": "{ok} קודמו, {fail} נכשלו"
         },
         "empty_none": "אין עדיין סטודנטים",
         "empty_search": "לא נמצאו תוצאות",

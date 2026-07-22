@@ -124,6 +124,12 @@ export async function GET(
       })
     }
 
+    // year_level (новая колонка) — деплой-безопасно отдельным запросом.
+    let year_level: number | null = null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ylRes = await (u(sb).from('class_groups').select('year_level').eq('id', params.id).maybeSingle() as any)
+    if (!ylRes.error && ylRes.data) year_level = (ylRes.data as { year_level: number | null }).year_level ?? null
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const g = group as any
     return NextResponse.json({
@@ -132,6 +138,7 @@ export async function GET(
       department_id: g.department_id,
       study_track_id: g.study_track_id ?? null,
       year_label: g.year_label ?? null,
+      year_level,
       term_number: g.term_number ?? null,
       sem_status: g.sem_status ?? null,
       tuition_amount: g.tuition_amount ?? null,
@@ -165,6 +172,7 @@ export async function PATCH(
       name?: string
       year_label?: string | null
       term_number?: number | null
+      year_level?: number | null
       study_track_id?: string | null
       department_id?: string
       tuition_amount?: number | null
@@ -238,6 +246,13 @@ export async function PATCH(
       }
     }
     void newDepartmentId
+
+    // year_level — отдельным деплой-безопасным UPDATE (новая колонка).
+    if (body.year_level !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level ?? null } as any).eq('id', params.id) as any)
+      if (ylErr && ylErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Год (year_level) не обновлён: миграция studies_drilldown не применена.'
+    }
 
     // ── Синхронизация преподавателей ──────────────────────────────────────
     if (body.teachers !== undefined) {
