@@ -3,7 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
-import { reduceScopes, grantsAccess, applyPersonGrants, type Scope } from '@/lib/permissions/scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,22 @@ export async function getUserDepartmentIds(personId: string): Promise<string[]> 
       if (row.department_id) ids.add(row.department_id)
     }
   }
-  return Array.from(ids)
+  const directIds = Array.from(ids)
+  if (directIds.length === 0) return []
+
+  // Иерархический scope (решение владельца): менеджер узла видит и под-единицы.
+  // Тянем дерево (id, parent_id) и расширяем набор ВНИЗ. Deploy-safe: при любой
+  // ошибке/отсутствии данных возвращаем прямые назначения без расширения —
+  // безопасный фолбэк (не шире прежнего поведения).
+  try {
+    const { data: depts, error: deptErr } = await sb
+      .from('departments')
+      .select('id, parent_id')
+    if (deptErr || !depts) return directIds
+    return expandDepartmentTree(directIds, depts as DepartmentEdge[])
+  } catch {
+    return directIds
+  }
 }
 
 /**
