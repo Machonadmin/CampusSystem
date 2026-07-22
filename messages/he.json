@@ -759,6 +759,7 @@
     "study": {
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
+      "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",

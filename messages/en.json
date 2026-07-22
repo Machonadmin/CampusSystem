@@ -759,6 +759,7 @@
     "study": {
       "setup_label": "Setup",
       "advanced_label": "Advanced",
+      "rail": { "collapse": "Collapse", "expand": "Expand" },
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",

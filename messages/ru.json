@@ -759,6 +759,7 @@
     "study": {
       "setup_label": "Настройки",
       "advanced_label": "Дополнительно",
+      "rail": { "collapse": "Свернуть панель", "expand": "Развернуть панель" },
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",
