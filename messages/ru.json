@@ -299,6 +299,10 @@
       "no_assessments": "Заданий пока нет"
     },
     "schedule": {
+      "building_label": "Здание",
+      "room_select_label": "Аудитория",
+      "none_option": "— выбрать —",
+      "or_free_text": "или введите вручную",
       "tab_schedule": "Расписание",
       "section_title": "Недельное расписание",
       "add_slot": "Добавить слот",
@@ -791,6 +795,19 @@
         "back": "Назад к списку семестров",
         "count_teachers": "Преподавателей: {n}"
       },
+      "buildings": {
+              "title": "Здания и аудитории",
+              "hint": "Задайте здания и аудитории для выбора в расписании",
+              "add_building": "Новое здание",
+              "building_name": "Название здания",
+              "building_code": "Код",
+              "add_room": "Добавить аудиторию",
+              "room_name": "Номер/название аудитории",
+              "capacity": "Вместимость",
+              "empty": "Зданий пока нет",
+              "rooms_count": "Аудиторий: {n}",
+              "no_rooms": "Нет аудиторий"
+      },
       "dashboard": {
         "title": "Панель",
         "loading": "Загрузка…",
@@ -818,7 +835,8 @@
         "study_groups": "Базовые группы",
         "students": "Студенты",
         "class_groups": "Учебные группы",
-        "semester_groups": "Семестры"
+        "semester_groups": "Семестры",
+        "buildings": "Здания"
       },
       "common": {
         "all_departments": "Все подразделения",
@@ -3647,6 +3665,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "Внимание: это время зарезервировано под первые два урока иудаики. Слот сохранён — проверьте наложение.",
     "unauthorized": "Не авторизован",
     "forbidden": "Недостаточно прав",
     "no_access": "Нет доступа",

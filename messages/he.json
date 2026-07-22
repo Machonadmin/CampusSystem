@@ -299,6 +299,10 @@
       "no_assessments": "אין עדיין מטלות"
     },
     "schedule": {
+      "building_label": "בניין",
+      "room_select_label": "כיתה",
+      "none_option": "— בחר —",
+      "or_free_text": "או הקלד ידנית",
       "tab_schedule": "מערכת שעות",
       "section_title": "מערכת שעות שבועית",
       "add_slot": "הוסף משבצת",
@@ -791,6 +795,19 @@
         "back": "חזרה לרשימת הסמסטרים",
         "count_teachers": "{n} מורים"
       },
+      "buildings": {
+              "title": "בניינים וכיתות",
+              "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
+              "add_building": "בניין חדש",
+              "building_name": "שם הבניין",
+              "building_code": "קוד",
+              "add_room": "הוספת כיתה",
+              "room_name": "מספר/שם כיתה",
+              "capacity": "קיבולת",
+              "empty": "אין בניינים עדיין",
+              "rooms_count": "{n} כיתות",
+              "no_rooms": "אין כיתות"
+      },
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",
@@ -818,7 +835,8 @@
         "study_groups": "קבוצות בסיס",
         "students": "סטודנטים",
         "class_groups": "קבוצות לימוד",
-        "semester_groups": "סמסטרים"
+        "semester_groups": "סמסטרים",
+        "buildings": "בניינים"
       },
       "common": {
         "all_departments": "כל המחלקות",
@@ -3647,6 +3665,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
     "no_access": "אין גישה",

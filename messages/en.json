@@ -299,6 +299,10 @@
       "no_assessments": "No assessments yet"
     },
     "schedule": {
+      "building_label": "Building",
+      "room_select_label": "Room",
+      "none_option": "— select —",
+      "or_free_text": "or type manually",
       "tab_schedule": "Schedule",
       "section_title": "Weekly schedule",
       "add_slot": "Add slot",
@@ -791,6 +795,19 @@
         "back": "Back to semesters",
         "count_teachers": "{n} teachers"
       },
+      "buildings": {
+              "title": "Buildings & rooms",
+              "hint": "Define buildings and rooms to pick in the schedule",
+              "add_building": "New building",
+              "building_name": "Building name",
+              "building_code": "Code",
+              "add_room": "Add room",
+              "room_name": "Room number/name",
+              "capacity": "Capacity",
+              "empty": "No buildings yet",
+              "rooms_count": "{n} rooms",
+              "no_rooms": "No rooms"
+      },
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",
@@ -818,7 +835,8 @@
         "study_groups": "Study groups",
         "students": "Students",
         "class_groups": "Class groups",
-        "semester_groups": "Semesters"
+        "semester_groups": "Semesters",
+        "buildings": "Buildings"
       },
       "common": {
         "all_departments": "All Departments",
@@ -3647,6 +3665,7 @@
     }
   },
   "errors": {
+    "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
     "no_access": "No access",

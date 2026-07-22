@@ -8,6 +8,7 @@ import StudyGroupsTab from './StudyGroupsTab'
 import StudentsTab from './StudentsTab'
 import ClassGroupsTab from './ClassGroupsTab'
 import StudiesWorkspace from './StudiesWorkspace'
+import BuildingsTab from './BuildingsTab'
 import StudiesDashboard from './StudiesDashboard'
 
 /**
@@ -19,7 +20,7 @@ import StudiesDashboard from './StudiesDashboard'
  * настроечные разделы, но они в клике.
  */
 
-type Section = 'dashboard' | 'semester_groups' | 'students' | 'class_groups' | 'study_groups' | 'subjects' | 'specialties'
+type Section = 'dashboard' | 'semester_groups' | 'students' | 'class_groups' | 'study_groups' | 'subjects' | 'specialties' | 'buildings'
 
 // Основной поток — всегда на виду.
 const PRIMARY: { key: Section; labelKey: string }[] = [
@@ -32,6 +33,7 @@ const ADVANCED: { key: Section; labelKey: string }[] = [
   { key: 'study_groups', labelKey: 'study_groups' },
   { key: 'subjects', labelKey: 'subjects' },
   { key: 'specialties', labelKey: 'specialties' },
+  { key: 'buildings', labelKey: 'buildings' },
 ]
 
 // Линейные иконки (Heroicons outline, 24) — единый стиль со всей системой.
@@ -43,6 +45,7 @@ const ICON: Record<Section, string> = {
   study_groups: 'M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122',
   subjects: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
   specialties: 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3zM6 6h.008v.008H6V6z',
+  buildings: 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21',
 }
 
 const STORE_KEY = 'edu_study_rail_collapsed'
@@ -167,6 +170,7 @@ export default function StudyTab() {
           {active === 'study_groups' && <StudyGroupsTab />}
           {active === 'subjects' && <SubjectsTab />}
           {active === 'specialties' && <SpecialtiesTab />}
+          {active === 'buildings' && <BuildingsTab />}
         </div>
       </div>
 

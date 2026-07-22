@@ -220,6 +220,18 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
+  // Здания/аудитории — если заданы, можно выбрать; иначе — свободный текст.
+  const [buildings, setBuildings] = useState<{ id: string; name: string; rooms: { id: string; name: string }[] }[]>([])
+  const [buildingId, setBuildingId] = useState('')
+  const [roomId, setRoomId] = useState('')
+  useEffect(() => {
+    fetch('/api/education/buildings')
+      .then(r => (r.ok ? r.json() : { buildings: [] }))
+      .then(b => setBuildings(b.buildings ?? []))
+      .catch(() => setBuildings([]))
+  }, [])
+  const pickedBuilding = buildings.find(b => b.id === buildingId)
+
   const handleSubmit = async () => {
     if (!startTime || !endTime) {
       setFormError(t('time_required'))
@@ -237,6 +249,8 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
         start_time: startTime,
         end_time: endTime,
         room: room.trim() || null,
+        building_id: buildingId || null,
+        room_id: roomId || null,
       }
       const resp = slot
         ? await fetch(`/api/education/schedule/slots/${slot.id}`, {
@@ -245,11 +259,13 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
         : await fetch(`/api/education/class-groups/${groupId}/schedule/slots`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
           })
+      const respBody = await resp.json().catch(() => ({}))
       if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        setFormError(err.error ?? t('action_failed'))
+        setFormError(respBody.error ?? t('action_failed'))
         return
       }
+      // Мягкое правило иудаики: слот сохранён, но время зарезервировано — предупреждаем.
+      if (respBody.warning) toast(respBody.warning, 'info')
       onDone()
     } catch {
       setFormError(t('action_failed'))
@@ -285,8 +301,40 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
             <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} style={inputStyle} />
           </div>
         </div>
+        {buildings.length > 0 && (
+          <div className="resp-grid-2" style={{ gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('building_label')}</label>
+              <select
+                value={buildingId}
+                onChange={e => { setBuildingId(e.target.value); setRoomId('') }}
+                style={inputStyle}
+              >
+                <option value="">{t('none_option')}</option>
+                {buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('room_select_label')}</label>
+              <select
+                value={roomId}
+                onChange={e => {
+                  const rid = e.target.value
+                  setRoomId(rid)
+                  const rm = pickedBuilding?.rooms.find(r => r.id === rid)
+                  if (rm && pickedBuilding) setRoom(`${pickedBuilding.name} / ${rm.name}`)
+                }}
+                disabled={!pickedBuilding || pickedBuilding.rooms.length === 0}
+                style={inputStyle}
+              >
+                <option value="">{t('none_option')}</option>
+                {(pickedBuilding?.rooms ?? []).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
+          </div>
+        )}
         <div>
-          <label style={labelStyle}>{t('room_label')}</label>
+          <label style={labelStyle}>{t('room_label')} {buildings.length > 0 && <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>· {t('or_free_text')}</span>}</label>
           <input value={room} onChange={e => setRoom(e.target.value)} placeholder={t('room_placeholder')} style={inputStyle} />
         </div>
       </div>
