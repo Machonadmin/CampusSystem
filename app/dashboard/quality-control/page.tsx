@@ -84,18 +84,25 @@ export default function QualityControlPage() {
 
   const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
 
+  // Дебаунс поиска — не бьём по API на каждой букве (как в staff/jewishness).
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(id)
+  }, [search])
+
   const load = useCallback(async () => {
     if (tab === 'templates') return
     setLoading(true)
     try {
       const params = new URLSearchParams({ tab })
-      if (search.trim()) params.set('search', search.trim())
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
       const res = await fetch(`/api/quality-control?${params}`)
       if (res.ok) setChecks(await res.json())
     } finally {
       setLoading(false)
     }
-  }, [tab, search, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab, debouncedSearch, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load() }, [load])
 

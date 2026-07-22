@@ -41,12 +41,25 @@ interface IncidentRow {
 
 type SB = ReturnType<typeof createServerClient>
 
-/** Дополняет строку инцидента именем здания. */
+/** Имя человека по id (deploy-safe: при любой ошибке — null). */
+async function personName(sb: SB, id: string | null): Promise<string | null> {
+  if (!id) return null
+  try {
+    const { data } = await sb.from('persons').select('full_name, hebrew_name').eq('id', id).maybeSingle()
+    const p = data as { full_name?: string | null; hebrew_name?: string | null } | null
+    return p ? (p.full_name || p.hebrew_name || null) : null
+  } catch {
+    return null
+  }
+}
+
+/** Дополняет строку инцидента именем здания и именем ответственного. */
 async function withMeta(sb: SB, row: IncidentRow) {
   const buildingMap = await buildingNamesByIds(sb, row.building_id ? [row.building_id] : [])
   return {
     ...row,
     building_name: row.building_id ? buildingMap.get(row.building_id) ?? null : null,
+    assigned_to_name: await personName(sb, row.assigned_to),
   }
 }
 

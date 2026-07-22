@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 
 const GRANTABLE = [
@@ -246,7 +247,13 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
             <input style={inp} placeholder={t('units.email')} value={email} onChange={e => setEmail(e.target.value)} />
           </>
         ) : (
-          <input style={inp} placeholder={t('units.person_id_ph')} value={personId} onChange={e => setPersonId(e.target.value)} />
+          <PersonSelect
+            value={personId || null}
+            onChange={id => setPersonId(id ?? '')}
+            placeholder={t('units.person_search_ph')}
+            accentColor={accent}
+            allowShowAll
+          />
         )}
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>

@@ -20,6 +20,7 @@ interface Incident {
   status: string
   reported_by: string | null
   assigned_to: string | null
+  assigned_to_name?: string | null
   resolution: string | null
   resolved_at: string | null
   building_name: string | null
@@ -171,7 +172,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
               <Field label={t('detail.location')} value={locationLabel} />
               <Field label={t('detail.occurred_at')} value={fmtDate(incident.occurred_at)} />
               <Field label={t('detail.resolved_at')} value={fmtDate(incident.resolved_at)} />
-              <Field label={t('detail.assignee')} value={incident.assigned_to ? (assignedToMe ? t('detail.you') : incident.assigned_to) : t('detail.unassigned')} />
+              <Field label={t('detail.assignee')} value={incident.assigned_to ? (assignedToMe ? t('detail.you') : (incident.assigned_to_name || t('detail.assigned_other'))) : t('detail.unassigned')} />
             </div>
 
             {incident.description && (

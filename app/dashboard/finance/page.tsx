@@ -91,7 +91,7 @@ export default function FinancePage() {
 
   async function applyBulkCharge() {
     const amount = Number(cAmount)
-    if (!Number.isFinite(amount) || amount < 0 || !cDescription.trim() || selected.size === 0) return
+    if (!Number.isFinite(amount) || amount <= 0 || !cDescription.trim() || selected.size === 0) return
     setBulkBusy(true); setBulkMsg(null)
     let ok = 0, fail = 0
     for (const jid of selected) {
@@ -306,7 +306,7 @@ export default function FinancePage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
               <button onClick={() => setChargeOpen(false)} disabled={bulkBusy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
-              <button onClick={applyBulkCharge} disabled={bulkBusy || !cAmount || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: bulkBusy || !cAmount || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !cAmount || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
+              <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
             </div>
           </div>
         </div>
