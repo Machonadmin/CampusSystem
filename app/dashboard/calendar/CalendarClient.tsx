@@ -511,8 +511,6 @@ export default function CalendarClient() {
           light={light}
           isRTL={isRTL}
           hebrewDates={hebrewDates}
-          onDayNew={openNew}
-          onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
           onOpenLesson={setDetailLesson}
           onOpenTask={setDetailTask}
@@ -635,6 +633,7 @@ export default function CalendarClient() {
           lang={lang}
           onClose={() => setDayOpen(null)}
           onNew={() => { const d = dayOpen; setDayOpen(null); openNew(d) }}
+          onToggleDayOff={toggleDayOff}
           onOpen={setDetail}
           onOpenLesson={setDetailLesson}
           onOpenTask={setDetailTask}
@@ -694,7 +693,7 @@ function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () 
 function DayDetail({
   dateISO, appointments, lessons, schedule, tasks, birthdays, calEvents, blocks,
   locale, isRTL, hebrewDates, primary, light, lang,
-  onClose, onNew, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
+  onClose, onNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, t,
 }: {
   dateISO: string
   appointments: Appointment[]
@@ -712,6 +711,7 @@ function DayDetail({
   lang: string
   onClose: () => void
   onNew: () => void
+  onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
   onOpenLesson: (l: Lesson) => void
   onOpenTask: (task: Task) => void
@@ -810,9 +810,14 @@ function DayDetail({
           </div>
         )}
 
-        <button onClick={onNew} style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, border: `1px solid ${primary}`, borderRadius: 8, padding: '9px 14px', cursor: 'pointer', justifySelf: isRTL ? 'end' : 'start' }}>
-          + {t('new_appointment')}
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={onNew} style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, border: `1px solid ${primary}`, borderRadius: 8, padding: '9px 14px', cursor: 'pointer' }}>
+            + {t('new_appointment')}
+          </button>
+          <button onClick={() => onToggleDayOff(dateISO)} style={{ fontSize: 13, fontWeight: 500, color: blocked ? '#B45309' : 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '9px 14px', cursor: 'pointer' }}>
+            {blocked ? t('remove_day_off') : t('mark_day_off')}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -848,7 +853,7 @@ function statusStyle(status: Status, primary: string, light: string): { bg: stri
 
 function MonthView({
   weeks, weekdayLabels, appointments, blocks, lessons, schedule, tasks, birthdays, calEvents, today, primary, light, isRTL, hebrewDates,
-  onDayNew, onToggleDayOff, onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, onOpenDay, t,
+  onOpen, onOpenLesson, onOpenTask, onOpenSchedule, onOpenEvent, onOpenDay, t,
 }: {
   weeks: { dateISO: string; inMonth: boolean }[][]
   weekdayLabels: string[]
@@ -864,8 +869,6 @@ function MonthView({
   light: string
   isRTL: boolean
   hebrewDates: boolean
-  onDayNew: (d: string) => void
-  onToggleDayOff: (d: string) => void
   onOpen: (a: Appointment) => void
   onOpenLesson: (l: Lesson) => void
   onOpenTask: (task: Task) => void
@@ -923,18 +926,11 @@ function MonthView({
                       </span>
                     )}
                   </span>
-                  <span style={{ display: 'inline-flex', gap: 2 }}>
-                    {blocked && (
-                      <span title={t('day_off')} style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: 0.3 }}>
-                        {t('day_off_short')}
-                      </span>
-                    )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDayNew(cell.dateISO) }}
-                      title={t('new_appointment')}
-                      style={dayAddBtn}
-                    >+</button>
-                  </span>
+                  {blocked && (
+                    <span title={t('day_off')} style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: 0.3 }}>
+                      {t('day_off_short')}
+                    </span>
+                  )}
                 </div>
 
                 <div style={{ marginTop: 4, display: 'grid', gap: 3 }}>
@@ -1069,18 +1065,6 @@ function MonthView({
                     </button>
                   )}
                 </div>
-
-                {/* Быстрая пометка выходного при наведении — через двойной клик по дню */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); onToggleDayOff(cell.dateISO) }}
-                  title={blocked ? t('remove_day_off') : t('mark_day_off')}
-                  style={{
-                    position: 'absolute', bottom: 4, insetInlineEnd: 4, fontSize: 10, color: blocked ? '#B45309' : '#C4C9D0',
-                    background: 'transparent', border: 'none', cursor: 'pointer', padding: 2,
-                  }}
-                >
-                  {blocked ? '⊘' : '○'}
-                </button>
               </div>
             )
           })}
@@ -1676,6 +1660,7 @@ function AppointmentDetail({
 // ─────────────────────────────────────────────
 
 function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary: string }) {
+  const [open, setOpen] = useState(false)
   const item = (swatch: React.ReactNode, label: string) => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
       {swatch}<span>{label}</span>
@@ -1684,7 +1669,14 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
   const box: React.CSSProperties = { width: 14, height: 14, borderRadius: 4, flexShrink: 0 }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)' }}>{t('legend.title')}</span>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        {t('legend.title')}
+        <span style={{ fontSize: 10, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>▾</span>
+      </button>
+      {!open ? null : <>
       {item(<span style={{ ...box, background: primary }} />, t('legend.appointment'))}
       {item(
         <span style={{ ...box, background: LESSON_BG, border: '1px solid #A7F3D0', borderInlineStart: `3px solid ${LESSON_ACCENT}` }} />,
@@ -1709,6 +1701,7 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
         }} />,
         t('legend.day_off'),
       )}
+      </>}
     </div>
   )
 }
@@ -1908,10 +1901,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const navBtn: React.CSSProperties = {
   width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)',
   color: 'var(--text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-}
-const dayAddBtn: React.CSSProperties = {
-  fontSize: 14, lineHeight: 1, color: '#C4C9D0', background: 'transparent', border: 'none',
-  cursor: 'pointer', padding: '0 2px', fontWeight: 700,
 }
 const smallLink: React.CSSProperties = {
   fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer',
