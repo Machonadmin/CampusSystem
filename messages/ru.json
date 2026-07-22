@@ -2248,6 +2248,7 @@
       "modal_edit_title": "Редактировать должность",
       "name_ru_label": "Название (русский)",
       "name_ru_placeholder": "Преподаватель",
+      "name_he_placeholder": "Меламед",
       "name_he_label": "Название (иврит)",
       "category_label": "Категория",
       "is_teaching_label": "Преподавательская должность",

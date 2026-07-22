@@ -2248,6 +2248,7 @@
       "modal_edit_title": "Edit Position",
       "name_ru_label": "Name (Russian)",
       "name_ru_placeholder": "Teacher",
+      "name_he_placeholder": "Melamed",
       "name_he_label": "Name (Hebrew)",
       "category_label": "Category",
       "is_teaching_label": "Teaching position",
