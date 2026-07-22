@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type ApplicantJourney,
@@ -56,7 +57,7 @@ export default function AdmissionTab() {
             onClick={exportApplicants}
             style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}
           >
-            ⭳ {tCommon('export_csv')}
+            <DownloadIcon /> {tCommon('export_csv')}
           </button>
         </div>
       )}

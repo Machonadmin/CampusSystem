@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
@@ -215,7 +216,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
           ))}
         </select>
         <button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ ...btnGhost, marginInlineStart: 'auto', opacity: filtered.length === 0 ? 0.5 : 1, cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-          ⭳ {tCommon('export_csv')}
+          <DownloadIcon /> {tCommon('export_csv')}
         </button>
       </div>
 

@@ -8,6 +8,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
@@ -175,7 +176,7 @@ export default function RecruitmentTab() {
           disabled={filtered.length === 0}
           style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
         >
-          ⭳ {tCommon('export_csv')}
+          <DownloadIcon /> {tCommon('export_csv')}
         </button>
       </div>
 

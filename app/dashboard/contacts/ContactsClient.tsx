@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
@@ -267,7 +268,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           ))}
         </select>
         <button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ ...btnGhost, marginInlineStart: 'auto', opacity: filtered.length === 0 ? 0.5 : 1, cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-          ⭳ {tCommon('export_csv')}
+          <DownloadIcon /> {tCommon('export_csv')}
         </button>
       </div>
 
