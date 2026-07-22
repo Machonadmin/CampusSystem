@@ -44,6 +44,7 @@
     "label_doc_expired": "Expired"
   },
   "common": {
+    "actions": "Actions",
     "cancel": "Cancel",
     "delete": "Delete",
     "back": "Back",

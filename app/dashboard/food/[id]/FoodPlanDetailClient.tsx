@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Enrollment {
   id: string
@@ -277,10 +278,13 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                     </td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {canManage && (
-                        <button onClick={() => openDiet(e)} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('dietary.edit')}</button>
-                      )}
-                      {canManage && e.status === 'active' && (
-                        <button onClick={() => endEnrollment(e)} disabled={busy} style={linkBtn('#D97706')}>{t('plan.end_enrollment')}</button>
+                        <RowActionsMenu
+                          accentColor={primary}
+                          actions={[
+                            { key: 'diet', label: t('dietary.edit'), onClick: () => openDiet(e), disabled: busy },
+                            { key: 'end', label: t('plan.end_enrollment'), onClick: () => endEnrollment(e), disabled: busy, danger: true, hidden: e.status !== 'active' },
+                          ]}
+                        />
                       )}
                     </td>
                   </tr>
@@ -335,7 +339,4 @@ function inp(width: number): React.CSSProperties {
 }
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
-}
-function linkBtn(color: string): React.CSSProperties {
-  return { background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '2px 6px' }
 }

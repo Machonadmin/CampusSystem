@@ -44,6 +44,7 @@
     "label_doc_expired": "פג תוקף"
   },
   "common": {
+    "actions": "פעולות",
     "cancel": "ביטול",
     "delete": "מחיקה",
     "back": "חזרה",

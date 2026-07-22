@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
@@ -300,14 +301,15 @@ export default function FinanceLedgerClient({
                     <td style={tdNum}>{fmtMoney(c.amount)}</td>
                     <td style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      {canCreateInvoice && c.status === 'active' && (
-                        <ActionLink onClick={() => openDiscount(c.id)} disabled={busy} color="#7C3AED">{t('ledger.give_discount')}</ActionLink>
-                      )}
-                      {canCreateInvoice && c.status === 'active' && (
-                        <ActionLink onClick={() => { if (confirm(t('confirm.cancel_charge'))) mutate(`/api/finance/charges/${c.id}`, 'PATCH', { status: 'cancelled' }) }} disabled={busy} color="#D97706">{t('action.cancel')}</ActionLink>
-                      )}
                       {canCreateInvoice && (
-                        <ActionLink onClick={() => { if (confirm(t('confirm.delete_charge'))) mutate(`/api/finance/charges/${c.id}`, 'DELETE') }} disabled={busy} color="#DC2626">{tCommon('delete')}</ActionLink>
+                        <RowActionsMenu
+                          accentColor={primary}
+                          actions={[
+                            { key: 'discount', label: t('ledger.give_discount'), onClick: () => openDiscount(c.id), disabled: busy, hidden: c.status !== 'active' },
+                            { key: 'cancel', label: t('action.cancel'), onClick: () => { if (confirm(t('confirm.cancel_charge'))) mutate(`/api/finance/charges/${c.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, hidden: c.status !== 'active' },
+                            { key: 'delete', label: tCommon('delete'), onClick: () => { if (confirm(t('confirm.delete_charge'))) mutate(`/api/finance/charges/${c.id}`, 'DELETE') }, disabled: busy, danger: true },
+                          ]}
+                        />
                       )}
                     </td>
                   </tr>
@@ -420,12 +422,13 @@ export default function FinanceLedgerClient({
                     <td style={tdNum}>{fmtMoney(p.amount)}</td>
                     <td style={td}><StatusBadge kind={p.status} label={t(`status.${p.status}`)} /></td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      {canApprove && p.status === 'pending' && (
-                        <ActionLink onClick={() => { if (confirm(t('confirm.approve_payment'))) mutate(`/api/finance/payments/${p.id}/approve`, 'POST') }} disabled={busy} color="#059669">{t('action.approve')}</ActionLink>
-                      )}
-                      {canCreateInvoice && p.status !== 'cancelled' && (
-                        <ActionLink onClick={() => { if (confirm(t('confirm.cancel_payment'))) mutate(`/api/finance/payments/${p.id}`, 'PATCH', { status: 'cancelled' }) }} disabled={busy} color="#D97706">{t('action.cancel')}</ActionLink>
-                      )}
+                      <RowActionsMenu
+                        accentColor={primary}
+                        actions={[
+                          { key: 'approve', label: t('action.approve'), onClick: () => { if (confirm(t('confirm.approve_payment'))) mutate(`/api/finance/payments/${p.id}/approve`, 'POST') }, disabled: busy, hidden: !(canApprove && p.status === 'pending') },
+                          { key: 'cancel', label: t('action.cancel'), onClick: () => { if (confirm(t('confirm.cancel_payment'))) mutate(`/api/finance/payments/${p.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, danger: true, hidden: !(canCreateInvoice && p.status !== 'cancelled') },
+                        ]}
+                      />
                     </td>
                   </tr>
                   )
@@ -530,18 +533,5 @@ function StatusBadge({ kind, label }: { kind: 'active' | 'cancelled' | 'pending'
     }}>
       {label}
     </span>
-  )
-}
-
-function ActionLink({ onClick, disabled, color, children }: {
-  onClick: () => void; disabled?: boolean; color: string; children: React.ReactNode
-}) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{
-      background: 'none', border: 'none', color, cursor: disabled ? 'default' : 'pointer',
-      fontSize: 12, fontWeight: 600, padding: '2px 6px', opacity: disabled ? 0.5 : 1,
-    }}>
-      {children}
-    </button>
   )
 }
