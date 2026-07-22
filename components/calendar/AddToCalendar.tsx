@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Props {
@@ -16,6 +16,10 @@ interface Props {
   /** Компактная кнопка-ссылка вместо обычной. */
   variant?: 'button' | 'link'
   onAdded?: () => void
+  /** Не рендерить собственную кнопку-триггер (диалог открывается извне). */
+  hideTrigger?: boolean
+  /** Пока значение меняется (>0) — открыть диалог. Для внешнего управления. */
+  openSignal?: number
 }
 
 type ReminderOpt = 'none' | 'at' | '10m' | '1h' | '1d'
@@ -32,6 +36,7 @@ const OFFSETS: Record<Exclude<ReminderOpt, 'none'>, number> = {
  */
 export default function AddToCalendar({
   defaultTitle = '', defaultDate, defaultTime = '', sourceType = 'manual', sourceId, link, variant = 'button', onAdded,
+  hideTrigger = false, openSignal = 0,
 }: Props) {
   const t = useTranslations('add_to_calendar')
 
@@ -60,6 +65,12 @@ export default function AddToCalendar({
     setDone(null); setError('')
     setOpen(true)
   }
+
+  // Внешнее открытие диалога (из общего меню «добавить»).
+  useEffect(() => {
+    if (openSignal > 0) openDialog()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal])
 
   function computeReminderAt(): string | null {
     if (reminder === 'none') return null
@@ -100,12 +111,12 @@ export default function AddToCalendar({
 
   return (
     <>
-      {variant === 'link' ? (
+      {hideTrigger ? null : variant === 'link' ? (
         <button onClick={openDialog} style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           📅 {t('button')}
         </button>
       ) : (
-        <button onClick={openDialog} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid #BFDBFE', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
+        <button onClick={openDialog} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
           📅 {t('button')}
         </button>
       )}

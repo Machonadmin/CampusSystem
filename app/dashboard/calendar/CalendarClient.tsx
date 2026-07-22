@@ -151,6 +151,8 @@ export default function CalendarClient() {
   const [detailTask, setDetailTask] = useState<Task | null>(null)  // read-only задача
   const [detailSchedule, setDetailSchedule] = useState<ScheduleInstance | null>(null) // слот
   const [dayOpen, setDayOpen] = useState<string | null>(null) // открытый день (детали дня)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)       // меню «добавить»: тип записи
+  const [personalSignal, setPersonalSignal] = useState(0)     // триггер личного события
 
   const anchorYear = Number(anchor.slice(0, 4))
   const anchorMonth = Number(anchor.slice(5, 7))
@@ -417,16 +419,52 @@ export default function CalendarClient() {
             <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>{formatHebrewDate(TODAY)}</div>
           )}
         </div>
-        <button
-          onClick={() => openNew(view === 'month' ? TODAY : anchor)}
-          style={{
-            background: 'var(--surface)', color: primary, fontWeight: 600, fontSize: 13,
-            border: 'none', borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
-          }}
-        >
-          + {t('new_appointment')}
-        </button>
-        <AddToCalendar variant="button" onAdded={load} />
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setAddMenuOpen(v => !v)}
+            aria-haspopup="menu"
+            aria-expanded={addMenuOpen}
+            style={{
+              background: 'var(--surface)', color: primary, fontWeight: 600, fontSize: 13,
+              border: 'none', borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            + {t('add_button')}
+            <span style={{ fontSize: 10 }}>▾</span>
+          </button>
+          {addMenuOpen && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 45 }} onClick={() => setAddMenuOpen(false)} />
+              <div
+                role="menu"
+                style={{
+                  position: 'absolute', zIndex: 46, top: 'calc(100% + 4px)', insetInlineEnd: 0, minWidth: 220,
+                  background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.12)', padding: 4, display: 'grid', gap: 1,
+                }}
+              >
+                <button
+                  role="menuitem"
+                  onClick={() => { setAddMenuOpen(false); openNew(view === 'month' ? TODAY : anchor) }}
+                  style={addMenuItem}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>{t('new_appointment')}</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('add_appointment_hint')}</span>
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => { setAddMenuOpen(false); setPersonalSignal(s => s + 1) }}
+                  style={addMenuItem}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>{t('add_personal_event')}</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('add_personal_hint')}</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        <AddToCalendar variant="button" hideTrigger openSignal={personalSignal} onAdded={load} />
       </div>
 
       {/* Toolbar: navigation + view toggle */}
@@ -1901,6 +1939,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const navBtn: React.CSSProperties = {
   width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)',
   color: 'var(--text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+}
+const addMenuItem: React.CSSProperties = {
+  display: 'grid', gap: 2, textAlign: 'start', background: 'none', border: 'none',
+  borderRadius: 7, cursor: 'pointer', padding: '9px 12px', width: '100%',
 }
 const smallLink: React.CSSProperties = {
   fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer',

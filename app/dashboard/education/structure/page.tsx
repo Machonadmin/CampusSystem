@@ -158,7 +158,10 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
   const [editName, setEditName] = useState(node.name)
   const [editTier, setEditTier] = useState(node.tier ?? '')
 
-  const kids = childrenOf.get(node.is_root ? '__root__' : node.id) ?? []
+  // Дети узла всегда лежат в корзине по его id (у прямых детей корня
+  // parent_id === unitId === root.id). Раньше для корня читалась корзина
+  // '__root__', где лежит сам корень → бесконечная рекурсия (зависание).
+  const kids = childrenOf.get(node.id) ?? []
 
   return (
     <div style={{ marginInlineStart: depth > 0 ? 18 : 0, borderInlineStart: depth > 0 ? '2px solid var(--border)' : undefined, paddingInlineStart: depth > 0 ? 12 : 0, marginTop: depth > 0 ? 6 : 0 }}>

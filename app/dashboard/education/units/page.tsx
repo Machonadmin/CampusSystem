@@ -192,7 +192,7 @@ function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; p
 function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; accent: string; onClose: () => void; onDone: () => void }) {
   const t = useTranslations('education')
   const [role, setRole] = useState<'secretary' | 'deputy' | 'teacher'>('secretary')
-  const [mode, setMode] = useState<'existing' | 'create'>('create')
+  const [mode, setMode] = useState<'existing' | 'create'>('existing')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -233,7 +233,7 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
 
         {/* mode */}
         <div style={{ display: 'flex', gap: 8 }}>
-          {(['create', 'existing'] as const).map(mo => (
+          {(['existing', 'create'] as const).map(mo => (
             <button key={mo} onClick={() => setMode(mo)} style={{ flex: 1, padding: '7px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: `1px solid ${mode === mo ? accent : 'var(--border)'}`, background: mode === mo ? 'var(--accent-tint)' : 'var(--surface)', color: mode === mo ? 'var(--accent-strong)' : 'var(--text-muted)' }}>
               {t(`units.mode_${mo}`)}
             </button>
