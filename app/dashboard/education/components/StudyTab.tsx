@@ -7,7 +7,7 @@ import SpecialtiesTab from './SpecialtiesTab'
 import StudyGroupsTab from './StudyGroupsTab'
 import StudentsTab from './StudentsTab'
 import ClassGroupsTab from './ClassGroupsTab'
-import SemesterGroupsTab from './SemesterGroupsTab'
+import StudiesWorkspace from './StudiesWorkspace'
 import StudiesDashboard from './StudiesDashboard'
 
 /**
@@ -161,7 +161,7 @@ export default function StudyTab() {
         {/* Контент */}
         <div style={{ padding: 18, overflowX: 'auto', minWidth: 0 }}>
           {active === 'dashboard' && <StudiesDashboard />}
-          {active === 'semester_groups' && <SemesterGroupsTab />}
+          {active === 'semester_groups' && <StudiesWorkspace />}
           {active === 'students' && <StudentsTab />}
           {active === 'class_groups' && <ClassGroupsTab />}
           {active === 'study_groups' && <StudyGroupsTab />}
