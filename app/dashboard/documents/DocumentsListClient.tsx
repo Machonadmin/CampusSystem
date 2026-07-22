@@ -34,7 +34,6 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
 
-  const primary = getModuleColor('documents', 'primary')
   const light = getModuleColor('documents', 'light')
 
   const [students, setStudents] = useState<Student[]>([])
@@ -219,7 +218,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                       </div>
                     </td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: primary }}>{t('list.open_card')}</span>
+                      <span aria-hidden style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-faint)' }}>‹</span>
                     </td>
                   </tr>
                 ))}

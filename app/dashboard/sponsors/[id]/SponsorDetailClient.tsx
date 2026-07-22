@@ -1,7 +1,6 @@
 'use client'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -284,9 +283,6 @@ export default function SponsorDetailClient({
             {!sponsor.is_active && <> · {t('status.inactive')}</>}
           </div>
         </div>
-        <Link href="/dashboard/sponsors" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {/* Sponsor details / editor */}

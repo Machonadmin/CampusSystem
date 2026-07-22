@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import EducationHeaderNav from './components/EducationHeaderNav'
@@ -20,10 +19,8 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 // комиссия, учёба грузятся и владеют своим состоянием сами.
 
 export default function EducationPage() {
-  const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
 
   const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>('recruitment')
   // Какие вкладки вправе видеть пользователь (null = ещё грузим). «Каждый видит только своё».
@@ -60,25 +57,10 @@ export default function EducationPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
-            color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)',
-            borderRadius: 8, padding: '6px 13px', cursor: 'pointer', whiteSpace: 'nowrap',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface)' }}
-        >
-          <span style={{ fontSize: 15, lineHeight: 1 }}>›</span>{tCommon('back')}
-        </button>
-        <Breadcrumb items={[
-          { label: tNav('home'), href: '/dashboard' },
-          { label: tNav('education') },
-        ]} />
-      </div>
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education') },
+      ]} />
 
       <div style={{
         background: getModuleHeaderGradient('education'),
