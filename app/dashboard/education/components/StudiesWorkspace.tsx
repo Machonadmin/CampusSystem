@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SemesterGroupModal from './SemesterGroupModal'
+import SemesterCourses from './SemesterCourses'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { yearLevelTitle } from '@/lib/education/year-level'
@@ -58,6 +59,7 @@ export default function StudiesWorkspace() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingInitial, setEditingInitial] = useState<SemesterGroupInitial | null>(null)
+  const [openSem, setOpenSem] = useState<{ id: string; name: string } | null>(null)  // открытый семестр → его курсы
 
   const loadData = useCallback(async () => {
     setLoading(true); setError(null)
@@ -158,9 +160,10 @@ export default function StudiesWorkspace() {
   const crumbs: { label: string; onClick: () => void }[] = [
     { label: t('workspace.all_structures'), onClick: () => { setStructId(null); setYearLevel(null); setCohort(null) } },
   ]
-  if (structId != null) crumbs.push({ label: structLabel(structId), onClick: () => { setYearLevel(null); setCohort(null) } })
-  if (yearLevel != null) crumbs.push({ label: yearLevel === 'none' ? t('workspace.no_year') : yearLevelTitle(yearLevel, lang), onClick: () => setCohort(null) })
-  if (cohort != null) crumbs.push({ label: cohort === 'none' ? t('workspace.no_cohort') : cohort, onClick: () => {} })
+  if (structId != null) crumbs.push({ label: structLabel(structId), onClick: () => { setYearLevel(null); setCohort(null); setOpenSem(null) } })
+  if (yearLevel != null) crumbs.push({ label: yearLevel === 'none' ? t('workspace.no_year') : yearLevelTitle(yearLevel, lang), onClick: () => { setCohort(null); setOpenSem(null) } })
+  if (cohort != null) crumbs.push({ label: cohort === 'none' ? t('workspace.no_cohort') : cohort, onClick: () => setOpenSem(null) })
+  if (openSem != null) crumbs.push({ label: openSem.name, onClick: () => {} })
 
   return (
     <div>
@@ -188,9 +191,13 @@ export default function StudiesWorkspace() {
             )
           })}
         </nav>
-        <PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} />
+        {openSem == null && <PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} />}
       </div>
 
+      {openSem != null ? (
+        <SemesterCourses semesterId={openSem.id} semesterName={openSem.name} />
+      ) : (
+      <>
       {loading && <div style={pad}>{t('common.loading')}</div>}
       {error && <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>{error}</div>}
 
@@ -240,11 +247,14 @@ export default function StudiesWorkspace() {
               : <Grid>
                   {semesters.map(g => (
                     <SemesterCard key={g.id} g={g} students={t('workspace.count_students').replace('{n}', String(g.counts.students))}
-                      manageLabel={t('workspace.manage')} onManage={() => openEdit(g.id)} />
+                      manageLabel={t('workspace.manage')} onManage={() => openEdit(g.id)}
+                      onOpen={() => setOpenSem({ id: g.id, name: g.name })} />
                   ))}
                 </Grid>
           )}
         </>
+      )}
+      </>
       )}
 
       {modalMode && (
@@ -294,9 +304,17 @@ function Card({ title, sub, icon, onClick }: { title: string; sub: string; icon:
   )
 }
 
-function SemesterCard({ g, students, manageLabel, onManage }: { g: SemesterGroup; students: string; manageLabel: string; onManage: () => void }) {
+function SemesterCard({ g, students, manageLabel, onManage, onOpen }: { g: SemesterGroup; students: string; manageLabel: string; onManage: () => void; onOpen: () => void }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 15px', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen() } }}
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 15px', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer', transition: 'border-color 0.12s, transform 0.12s' }}
+      onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--accent-strong)'; el.style.transform = 'translateY(-1px)' }}
+      onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.transform = 'translateY(0)' }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--accent-tint)', color: 'var(--accent-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg style={{ width: 18, height: 18 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={ICON_SEM} /></svg>
@@ -310,8 +328,8 @@ function SemesterCard({ g, students, manageLabel, onManage }: { g: SemesterGroup
       </div>
       <button
         type="button"
-        onClick={onManage}
-        style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}
+        onClick={e => { e.stopPropagation(); onManage() }}
+        style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}
       >
         {manageLabel}
       </button>

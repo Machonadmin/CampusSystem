@@ -774,6 +774,23 @@
         "count_students": "{n} תלמידות",
         "structures_hint": "בחר מבנה כדי לראות שנים ומחזורים"
       },
+      "courses": {
+        "title": "קורסים",
+        "add_button": "קורס חדש",
+        "modal_title": "קורס חדש בסמסטר",
+        "empty": "אין קורסים בסמסטר הזה עדיין",
+        "name_label": "שם הקורס",
+        "name_placeholder": "גמרא · הלכה · מחשבת ישראל…",
+        "subject_label": "מקצוע (מהקטלוג)",
+        "subject_none": "— ללא מקצוע —",
+        "teachers_label": "מורים",
+        "students_label": "תלמידות בקורס",
+        "students_hint": "אפשר לשבץ רק תלמידות שנמצאות בסמסטר",
+        "no_roster": "אין תלמידות בסמסטר — שבץ קודם תלמידות לסמסטר",
+        "open": "פתח קורס",
+        "back": "חזרה לרשימת הסמסטרים",
+        "count_teachers": "{n} מורים"
+      },
       "dashboard": {
         "title": "דשבורד",
         "loading": "טוען…",

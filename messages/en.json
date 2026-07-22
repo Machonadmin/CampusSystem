@@ -774,6 +774,23 @@
         "count_students": "{n} students",
         "structures_hint": "Pick a structure to see years and cohorts"
       },
+      "courses": {
+        "title": "Courses",
+        "add_button": "New course",
+        "modal_title": "New course in semester",
+        "empty": "No courses in this semester yet",
+        "name_label": "Course name",
+        "name_placeholder": "Gemara · Halacha · Jewish thought…",
+        "subject_label": "Subject (from catalog)",
+        "subject_none": "— no subject —",
+        "teachers_label": "Teachers",
+        "students_label": "Students in course",
+        "students_hint": "Only students already in the semester can be added",
+        "no_roster": "No students in the semester — enroll them into the semester first",
+        "open": "Open course",
+        "back": "Back to semesters",
+        "count_teachers": "{n} teachers"
+      },
       "dashboard": {
         "title": "Dashboard",
         "loading": "Loading…",
