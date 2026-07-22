@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import GradeEntryPanel from './GradeEntryPanel'
 import { toast } from '@/components/ui/toast'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -133,10 +134,6 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
     }
   }
 
-  const btnSmall: React.CSSProperties = {
-    padding: '3px 8px', fontSize: 11, color: 'var(--text)',
-    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
-  }
   const th: React.CSSProperties = {
     textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     padding: '10px 12px', borderBottom: '1px solid var(--border)', verticalAlign: 'top',
@@ -207,14 +204,14 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                       {a.graded_count} / {enrolledCount}
                     </div>
                     {canSetGrades && (
-                      <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                        <button onClick={() => setFormAssessment(a)} style={btnSmall}>{t('action_edit')}</button>
-                        <button
-                          onClick={() => handleDelete(a)}
-                          style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
-                        >
-                          {t('action_delete')}
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
+                        <RowActionsMenu
+                          align="start"
+                          actions={[
+                            { key: 'edit', label: t('action_edit'), onClick: () => setFormAssessment(a) },
+                            { key: 'delete', label: t('action_delete'), onClick: () => handleDelete(a), danger: true },
+                          ]}
+                        />
                       </div>
                     )}
                   </th>

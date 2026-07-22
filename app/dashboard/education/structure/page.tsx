@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -198,10 +199,17 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
               </span>
             )}
             <button onClick={() => { setAdding(a => !a); setAddName('') }} style={miniBtn('accent')}>+ {t('add_child')}</button>
-            {!node.is_root && index > 0 && <button disabled={busy} title={t('move_up')} onClick={() => onMove(node.id, 'up')} style={miniBtn()}>↑</button>}
-            {!node.is_root && index < siblingCount - 1 && <button disabled={busy} title={t('move_down')} onClick={() => onMove(node.id, 'down')} style={miniBtn()}>↓</button>}
-            {!node.is_root && <button onClick={() => { setEditing(true); setEditName(node.name) }} style={miniBtn()}>{t('rename')}</button>}
-            {!node.is_root && <button disabled={busy} onClick={() => { if (confirm(t('confirm_delete'))) onRemove(node.id) }} style={miniBtn('danger')}>{t('delete')}</button>}
+            {!node.is_root && (
+              <RowActionsMenu
+                accentColor="var(--accent-strong)"
+                actions={[
+                  { key: 'rename', label: t('rename'), onClick: () => { setEditing(true); setEditName(node.name) } },
+                  { key: 'up', label: t('move_up'), onClick: () => onMove(node.id, 'up'), disabled: busy, hidden: index === 0 },
+                  { key: 'down', label: t('move_down'), onClick: () => onMove(node.id, 'down'), disabled: busy, hidden: index >= siblingCount - 1 },
+                  { key: 'delete', label: t('delete'), onClick: () => { if (confirm(t('confirm_delete'))) onRemove(node.id) }, disabled: busy, danger: true },
+                ]}
+              />
+            )}
           </>
         )}
       </div>

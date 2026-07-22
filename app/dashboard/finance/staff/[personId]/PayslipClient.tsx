@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 import ShabbatPanel from './ShabbatPanel'
 
@@ -582,14 +583,13 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                           </td>
                           {canManage && (
                             <td style={{ ...td, textAlign: 'end', whiteSpace: 'nowrap' }}>
-                              <button onClick={() => { setEditingId(en.id); setAdding(false) }}
-                                style={{ fontSize: 12, padding: '4px 10px', border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', marginInlineEnd: 6 }}>
-                                {tCommon('edit')}
-                              </button>
-                              <button onClick={() => deleteEntry(en.id)}
-                                style={{ fontSize: 12, padding: '4px 10px', border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}>
-                                {tCommon('delete')}
-                              </button>
+                              <RowActionsMenu
+                                accentColor={primary}
+                                actions={[
+                                  { key: 'edit', label: tCommon('edit'), onClick: () => { setEditingId(en.id); setAdding(false) } },
+                                  { key: 'delete', label: tCommon('delete'), onClick: () => deleteEntry(en.id), danger: true },
+                                ]}
+                              />
                             </td>
                           )}
                         </tr>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
 
@@ -299,14 +300,15 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           </span>
                         </td>
                         <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          {canManage && d.status === 'active' && (
-                            <button onClick={() => setStatus(d, 'archived')} disabled={busy} style={linkBtn(primary)}>{t('archive')}</button>
-                          )}
-                          {canManage && d.status === 'archived' && (
-                            <button onClick={() => setStatus(d, 'active')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('unarchive')}</button>
-                          )}
                           {canManage && (
-                            <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>
+                            <RowActionsMenu
+                              accentColor={primary}
+                              actions={[
+                                { key: 'archive', label: t('archive'), onClick: () => setStatus(d, 'archived'), disabled: busy, hidden: d.status !== 'active' },
+                                { key: 'unarchive', label: t('unarchive'), onClick: () => setStatus(d, 'active'), disabled: busy, hidden: d.status !== 'archived' },
+                                { key: 'delete', label: tCommon('delete'), onClick: () => remove(d), disabled: busy, danger: true },
+                              ]}
+                            />
                           )}
                         </td>
                       </tr>

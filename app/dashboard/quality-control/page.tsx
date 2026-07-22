@@ -8,6 +8,7 @@ import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -223,7 +224,7 @@ export default function QualityControlPage() {
                           <RatingStars rating={c.overall_rating} />
                         </td>
                         <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <Link
                               href={`/dashboard/quality-control/${c.id}`}
                               style={{
@@ -235,13 +236,11 @@ export default function QualityControlPage() {
                             >
                               {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}
                             </Link>
-                            <button
-                              onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
-                              disabled={deletingId === c.id}
-                              style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
-                            >
-                              {tCommon('delete')}
-                            </button>
+                            <RowActionsMenu
+                              actions={[
+                                { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(c.id, formatDate(c.lesson_date)), disabled: deletingId === c.id, danger: true },
+                              ]}
+                            />
                           </div>
                         </td>
                       </tr>

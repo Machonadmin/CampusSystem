@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
 import type { SponsorRow } from '@/types/database'
@@ -463,13 +464,14 @@ export default function SponsorDetailClient({
                         <td style={td}><StatusBadge status={d.status} label={t(`statuses.${d.status}`)} /></td>
                         {canManage && (
                           <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                            {d.status !== 'received' && (
-                              <ActionLink onClick={() => changeStatus(d, 'received')} disabled={busy} color="var(--success)">{t('detail.mark_received')}</ActionLink>
-                            )}
-                            {d.status !== 'cancelled' && (
-                              <ActionLink onClick={() => changeStatus(d, 'cancelled')} disabled={busy} color="var(--warn)">{t('detail.mark_cancelled')}</ActionLink>
-                            )}
-                            <ActionLink onClick={() => openEditDonation(d)} disabled={busy} color={primary}>{tCommon('edit')}</ActionLink>
+                            <RowActionsMenu
+                              accentColor={primary}
+                              actions={[
+                                { key: 'received', label: t('detail.mark_received'), onClick: () => changeStatus(d, 'received'), disabled: busy, hidden: d.status === 'received' },
+                                { key: 'cancelled', label: t('detail.mark_cancelled'), onClick: () => changeStatus(d, 'cancelled'), disabled: busy, hidden: d.status === 'cancelled' },
+                                { key: 'edit', label: tCommon('edit'), onClick: () => openEditDonation(d), disabled: busy },
+                              ]}
+                            />
                           </td>
                         )}
                       </tr>
@@ -561,19 +563,6 @@ function StatusBadge({ status, label }: { status: 'pledged' | 'received' | 'canc
     }}>
       {label}
     </span>
-  )
-}
-
-function ActionLink({ onClick, disabled, color, children }: {
-  onClick: () => void; disabled?: boolean; color: string; children: React.ReactNode
-}) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{
-      background: 'none', border: 'none', color, cursor: disabled ? 'default' : 'pointer',
-      fontSize: 12, fontWeight: 600, padding: '2px 6px', opacity: disabled ? 0.5 : 1,
-    }}>
-      {children}
-    </button>
   )
 }
 
