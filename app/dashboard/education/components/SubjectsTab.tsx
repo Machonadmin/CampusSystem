@@ -4,11 +4,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SubjectModal from './SubjectModal'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { toast } from '@/components/ui/toast'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface Subject {
@@ -27,6 +31,7 @@ const accent = getModuleColor('education')
 
 export default function SubjectsTab() {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,12 +72,12 @@ export default function SubjectsTab() {
       const resp = await fetch(`/api/education/subjects/${subj.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_delete_failed'))
+        toast(err.error ?? t('common.error_delete_failed'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_delete_generic'), 'error')
     }
   }
 
@@ -86,10 +91,10 @@ export default function SubjectsTab() {
     ? subjects.filter(s => s.department_id === filterDept)
     : subjects
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -103,7 +108,7 @@ export default function SubjectsTab() {
         >
           <option value="">{t('common.all_departments')}</option>
           {departments.map(d => (
-            <option key={d.id} value={d.id}>{d.name}</option>
+            <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
           ))}
         </select>
 
@@ -126,7 +131,7 @@ export default function SubjectsTab() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
       )}
 
       {error && (
@@ -137,14 +142,14 @@ export default function SubjectsTab() {
 
       {!loading && !error && (
         filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {subjects.length === 0 ? t('subjects.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('subjects.table_name')}</th>
                   <th style={thStyle}>{t('subjects.table_department')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('subjects.table_sort_order')}</th>
@@ -156,18 +161,18 @@ export default function SubjectsTab() {
                 {filtered.map(s => (
                   <tr
                     key={s.id}
-                    style={{ borderTop: '1px solid #F3F4F6' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    style={{ borderTop: '1px solid var(--surface-2)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
                     <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>{s.sort_order}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.department?.name ?? '—'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>{s.sort_order}</td>
                     <td style={tdStyle}>
                       {s.is_active ? (
                         <span style={{ color: '#10B981', fontWeight: 500 }}>{t('subjects.status_active')}</span>
                       ) : (
-                        <span style={{ color: '#9CA3AF' }}>{t('subjects.status_inactive')}</span>
+                        <span style={{ color: 'var(--text-faint)' }}>{t('subjects.status_inactive')}</span>
                       )}
                     </td>
                     <td style={tdStyle}>
@@ -208,7 +213,7 @@ export default function SubjectsTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }

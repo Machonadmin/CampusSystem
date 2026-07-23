@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { parseBody, jsonError } from '@/lib/api/handler'
+import { serverT } from '@/lib/i18n/api-errors'
 import { rateLimit, clientIp } from '@/lib/public/rate-limit'
+import { getPublicFormConfig } from '@/lib/public/form-config'
 
 /** Служебный «актёр» публичной формы (см. 20260703150000_*.sql). */
 const SYSTEM_PERSON_ID = 'ffffffff-0000-4000-8000-000000000001'
@@ -31,6 +33,11 @@ const publicApplicationSchema = z.object({
   birth_date: z.string().trim().max(20).optional().or(z.literal('')),
   city: z.string().trim().max(120).optional().or(z.literal('')),
   direction_id: z.string().uuid().optional().or(z.literal('')),
+  // Кто подаёт: сама абитуриентка / родитель / представитель.
+  applicant_type: z.enum(['student', 'parent', 'representative']).optional(),
+  comment: z.string().trim().max(2000).optional().or(z.literal('')),
+  // Ответы на кастомные поля, добавленные набором: { <fieldKey>: <answer> }.
+  custom: z.record(z.string(), z.string().max(2000)).optional(),
   // honeypot: реальные пользователи оставляют пустым
   website: z.string().max(0).optional().or(z.literal('')),
 })
@@ -42,7 +49,7 @@ export async function POST(request: NextRequest) {
     const rl = rateLimit(`public-application:${ip}`, 5, 10 * 60 * 1000)
     if (!rl.ok) {
       return NextResponse.json(
-        { error: 'Слишком много заявок. Попробуйте позже.' },
+        { error: serverT('rate_limited_applications') },
         { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
       )
     }
@@ -56,6 +63,31 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
+    // Тип подающего кодируем в referral_source (машиночитаемо) и в comment лида.
+    const applicantType = body.applicant_type ?? 'student'
+    const referralSource = applicantType === 'student' ? 'public_form' : `public_form_${applicantType}`
+
+    // Кастомные поля (добавленные набором): проверяем обязательные и сворачиваем
+    // ответы в комментарий лида — чтобы рекрутёр видел их прямо в карточке/задаче
+    // (отдельная колонка не нужна). Метка — на иврите с запасными языками.
+    const cfg = await getPublicFormConfig()
+    const custom = body.custom ?? {}
+    const missing: string[] = []
+    const answerLines: string[] = []
+    for (const f of cfg.customFields) {
+      if (!f.visible) continue
+      const label = f.label.he || f.label.ru || f.label.en || f.key
+      const ans = (custom[f.key] ?? '').trim()
+      if (f.required && !ans) { missing.push(label); continue }
+      if (ans) answerLines.push(`${label}: ${ans}`)
+    }
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `${serverT('required_fields')}: ${missing.join(', ')}` }, { status: 400 })
+    }
+
+    const baseComment = body.comment?.trim() || ''
+    const comment = [baseComment, answerLines.join('\n')].filter(Boolean).join('\n\n') || null
+
     // 3. Создание заявки — атомарно, всегда новая запись (person_id не передаём)
     const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', {
       payload: {
@@ -66,27 +98,44 @@ export async function POST(request: NextRequest) {
         birth_date: body.birth_date?.trim() || null,
         address: body.city?.trim() ? { city: body.city.trim() } : null,
         interests: body.direction_id ? [{ direction_id: body.direction_id }] : [],
-        referral_source: 'public_form',
+        referral_source: referralSource,
+        comment,
         actor_id: SYSTEM_PERSON_ID,
       },
     })
     if (rpcErr) throw rpcErr
     const { journey_id: journeyId } = rpcResult as { person_id: string; journey_id: string }
 
+    // 3b. Запускаем процесс «Набор», чтобы у публичного лида была та же цепочка,
+    //     что и у заведённого вручную: рекрутёр видит кнопку «Передать в приёмную
+    //     комиссию» и двигает заявку дальше. Best-effort — ошибка не валит приём.
+    const { error: startErr } = await sb.rpc('start_process', {
+      p_process_code: 'recruitment',
+      p_journey_id: journeyId,
+      p_actor_id: SYSTEM_PERSON_ID,
+    })
+    if (startErr) console.error('[public/applications] start recruitment:', startErr)
+
     // 4. Уведомление персоналу — задача отделу «Администрация».
     //    Ищем отдел по имени; если нет — задача уходит в общий пул
     //    (unassigned), чтобы уведомление не потерялось. Best-effort.
     try {
-      const { data: dept } = await sb
+      // Новые лиды идут в пул отдела «Набор» (גיוס); до его создания — в
+      // «Администрация»; если и его нет — в общий пул (unassigned).
+      const { data: deptRows } = await sb
         .from('departments')
-        .select('id')
-        .eq('name', 'Администрация')
-        .maybeSingle()
+        .select('id, name')
+        .in('name', ['גיוס', 'Администрация'])
+      const dept = (deptRows ?? []).find(d => d.name === 'גיוס')
+        ?? (deptRows ?? []).find(d => d.name === 'Администрация')
+        ?? null
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
+      const typeNote = applicantType !== 'student' ? `\nОт: ${applicantType}` : ''
+      const commentNote = comment ? `\n${comment}` : ''
       const base = {
         title: `Новая заявка с сайта: ${applicantName}`,
-        description: `Телефон: ${body.phone}${body.email ? `\nEmail: ${body.email}` : ''}`,
+        description: `Телефон: ${body.phone}${body.email ? `\nEmail: ${body.email}` : ''}${typeNote}${commentNote}`,
         module: 'education' as const,
         metadata: { source: 'public_form', journey_id: journeyId },
         creator_id: SYSTEM_PERSON_ID,

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
+import HomeWidgets from '@/components/dashboard/HomeWidgets'
 
 interface MeResponse {
   full_name: string | null
@@ -19,6 +20,8 @@ const ICONS: Record<string, string> = {
     'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z',
   education:
     'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
+  jewishness:
+    'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
   finance:
     'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z',
   dormitory:
@@ -57,7 +60,7 @@ const HREF_OVERRIDES: Record<string, string> = {
 
 // Full ordered list — always shown, implemented ones first
 const ALL_MODULE_CARDS = [
-  'persons', 'staff', 'quality_control', 'education', 'tasks', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'tasks', 'finance', 'dormitory', 'food',
   'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
   'documents', 'reports', 'contacts', 'settings',
 ]
@@ -66,8 +69,8 @@ function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boo
   const path = ICONS[moduleKey] ?? ''
   const iconColor = getModuleColor(moduleKey, 'primary')
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : 'rgba(255,255,255,0.6)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg style={{ width: 22, height: 22, color: disabled ? '#9CA3AF' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 22, height: 22, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
@@ -90,10 +93,14 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  // Implemented modules first, then coming-soon modules
+  // Show ONLY the modules the user actually has access to — same source as the
+  // sidebar (accessible_modules from /api/auth/me). A user must not see, or even
+  // know about, modules they cannot open. superadmin gets all module codes.
+  const accessible = user?.accessible_modules ?? []
+  const accessibleCards = ALL_MODULE_CARDS.filter(k => accessible.includes(k))
   const visibleModules = [
-    ...ALL_MODULE_CARDS.filter(k => isModuleImplemented(k)),
-    ...ALL_MODULE_CARDS.filter(k => !isModuleImplemented(k)),
+    ...accessibleCards.filter(k => isModuleImplemented(k)),
+    ...accessibleCards.filter(k => !isModuleImplemented(k)),
   ]
 
   return (
@@ -103,11 +110,12 @@ export default function DashboardPage() {
         className="flex items-center justify-between rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('dashboard'),
-          padding: '12px 24px',
+          padding: '20px 24px',
           boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+          gap: 12,
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#fff', lineHeight: 1.3, margin: 0 }}>
           {greeting}
         </h1>
         {user?.roles && user.roles.length > 0 && (
@@ -117,33 +125,44 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Personal "what needs attention" widgets — hidden when everything is empty */}
+      <HomeWidgets />
+
       {/* Modules grid */}
       <div>
-        <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">
+        <h2 className="text-sm font-bold tracking-widest uppercase mb-5" style={{ color: 'var(--text-faint)' }}>
           {t.availableModules}
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {visibleModules.length === 0 ? (
+          <div style={{
+            border: '1px dashed var(--border-strong)', borderRadius: 12, padding: '28px 20px',
+            textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
+          }}>
+            {t.noModules}
+          </div>
+        ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {visibleModules.map(key => {
             const ready = isModuleImplemented(key)
             const primary = getModuleColor(key, 'primary')
-            const lightBg = getModuleColor(key, 'light')
             const name = t.nav[key as keyof typeof t.nav] ?? key
             const desc = t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               padding: 20,
-              backgroundColor: ready ? lightBg : '#F9FAFB',
-              borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
+              backgroundColor: ready ? 'var(--surface)' : 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderInlineStart: `4px solid ${ready ? primary : 'var(--border-strong)'}`,
               borderRadius: 12,
-              opacity: ready ? 1 : 0.65,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              opacity: ready ? 1 : 0.7,
+              boxShadow: 'var(--shadow)',
               transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',
             }
             const badge = !ready && (
               <span style={{
-                position: 'absolute', top: 10, right: 10,
-                background: '#F59E0B', color: '#fff',
+                position: 'absolute', top: 10, insetInlineEnd: 10,
+                background: 'var(--warn)', color: '#fff',
                 padding: '3px 8px', borderRadius: 6,
                 fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
@@ -156,8 +175,8 @@ export default function DashboardPage() {
                 {badge}
                 <ModuleIcon moduleKey={key} disabled={!ready} />
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
-                  <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#9CA3AF', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : 'var(--text-faint)', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                  <p style={{ fontSize: 12, color: ready ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
                 </div>
               </>
             )
@@ -175,7 +194,7 @@ export default function DashboardPage() {
                 }}
                 onMouseLeave={e => {
                   const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
+                  el.style.boxShadow = 'var(--shadow)'
                   el.style.transform = 'translateY(0)'
                 }}
               >
@@ -192,6 +211,7 @@ export default function DashboardPage() {
             )
           })}
         </div>
+        )}
       </div>
     </div>
   )

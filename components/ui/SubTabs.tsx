@@ -21,8 +21,8 @@ export default function SubTabs({ tabs, active, onChange, accentColor }: Props) 
   return (
     <div style={{
       display: 'flex',
-      borderBottom: '1px solid #E5E7EB',
-      background: '#F9FAFB',
+      borderBottom: '1px solid var(--border)',
+      background: 'var(--surface-2)',
     }}>
       {visibleTabs.map(t => {
         const isActive = t.key === active
@@ -30,8 +30,8 @@ export default function SubTabs({ tabs, active, onChange, accentColor }: Props) 
           padding: '11px 20px',
           fontSize: 13,
           fontWeight: isActive ? 600 : 500,
-          color: isActive ? accentColor : '#6B7280',
-          background: isActive ? '#fff' : 'transparent',
+          color: isActive ? accentColor : 'var(--text-muted)',
+          background: isActive ? 'var(--surface)' : 'transparent',
           border: 'none',
           borderBottom: `2px solid ${isActive ? accentColor : 'transparent'}`,
           cursor: 'pointer',

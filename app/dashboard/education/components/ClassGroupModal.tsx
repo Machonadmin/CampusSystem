@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Subject { id: string; name: string }
 
 interface ClassGroupInitial {
@@ -33,6 +34,7 @@ const accent = getModuleColor('education')
 
 export default function ClassGroupModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
   const [subjectId, setSubjectId] = useState(initial?.subject_id ?? '')
@@ -47,6 +49,15 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
 
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [subjectsLoading, setSubjectsLoading] = useState(false)
+  const [levelOptions, setLevelOptions] = useState<string[]>([])
+
+  // Уже используемые уровни — для выбора из существующих (не плодить варианты).
+  useEffect(() => {
+    fetch('/api/education/class-groups/levels')
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => { if (b?.levels) setLevelOptions(b.levels) })
+      .catch(() => {})
+  }, [])
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -117,13 +128,13 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
     }
   }
 
-  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
+    border: '1px solid var(--border-strong)', borderRadius: 8,
     boxSizing: 'border-box', outline: 'none',
   }
-  const hint: React.CSSProperties = { padding: '7px 10px', fontSize: 13, color: '#9CA3AF', border: '1px solid #E5E7EB', borderRadius: 8 }
+  const hint: React.CSSProperties = { padding: '7px 10px', fontSize: 13, color: 'var(--text-faint)', border: '1px solid var(--border)', borderRadius: 8 }
 
   return (
     <div
@@ -137,17 +148,17 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 540,
           maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('class_groups.modal_create_title') : t('class_groups.modal_edit_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -162,7 +173,7 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
             <label style={lbl}>{t('common.department_label')} *</label>
             <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
               <option value="">{t('common.select_placeholder')}</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
             </select>
           </div>
 
@@ -185,16 +196,19 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
 
           {/* Уровень */}
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('class_groups.level_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
-            <input type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} />
+            <label style={lbl}>{t('class_groups.level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
+            <input type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} list="cg-level-options" />
+            <datalist id="cg-level-options">
+              {levelOptions.map(lv => <option key={lv} value={lv} />)}
+            </datalist>
           </div>
 
           {/* Период */}
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('class_groups.period_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('class_groups.period_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} style={{ ...inp, flex: 1 }} />
-              <span style={{ color: '#9CA3AF', fontSize: 13, flexShrink: 0 }}>—</span>
+              <span style={{ color: 'var(--text-faint)', fontSize: 13, flexShrink: 0 }}>—</span>
               <input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} style={{ ...inp, flex: 1 }} />
             </div>
           </div>
@@ -202,14 +216,14 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
           {/* Основной преподаватель — только в create */}
           {mode === 'create' && (
             <div style={{ marginBottom: 12 }}>
-              <label style={lbl}>{t('class_groups.primary_teacher_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+              <label style={lbl}>{t('class_groups.primary_teacher_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <PersonSelect
                 value={primaryTeacherId}
                 onChange={id => setPrimaryTeacherId(id)}
                 placeholder={t('class_groups.primary_teacher_placeholder')}
                 accentColor={accent}
               />
-              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
                 {t('class_groups.primary_teacher_hint')}
               </div>
             </div>
@@ -227,7 +241,7 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
 
           {/* Заметки */}
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder={t('common.notes_placeholder')} />
           </div>
 
@@ -237,10 +251,10 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button
               type="button" onClick={onClose} disabled={saving}
-              style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+              style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
             >
               {t('common.cancel')}
             </button>

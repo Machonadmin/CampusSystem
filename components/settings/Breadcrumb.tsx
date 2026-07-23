@@ -19,34 +19,34 @@ export function Breadcrumb({ items }: Props) {
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 8,
       padding: '8px 14px',
-      background: '#F3F4F6',
+      background: 'var(--surface-2)',
       borderRadius: 8,
       fontSize: 13,
-      border: '1px solid #E5E7EB',
+      border: '1px solid var(--border)',
     }}>
       {items.map((item, idx) => {
         const isLast = idx === items.length - 1
         return (
           <Fragment key={idx}>
             {idx > 0 && (
-              <span style={{ color: '#D1D5DB', fontSize: 12 }}>{isRTL ? '‹' : '›'}</span>
+              <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>{isRTL ? '‹' : '›'}</span>
             )}
             {isLast ? (
-              <span style={{ color: '#111827', fontWeight: 600 }}>
+              <span style={{ color: 'var(--text)', fontWeight: 600 }}>
                 {item.label}
               </span>
             ) : item.href ? (
               <Link
                 href={item.href}
                 style={{
-                  color: '#6B7280',
+                  color: 'var(--text-muted)',
                   textDecoration: 'none',
                 }}
               >
                 {item.label}
               </Link>
             ) : (
-              <span style={{ color: '#6B7280' }}>{item.label}</span>
+              <span style={{ color: 'var(--text-muted)' }}>{item.label}</span>
             )}
           </Fragment>
         )

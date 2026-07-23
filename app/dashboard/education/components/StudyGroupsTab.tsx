@@ -1,12 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import StudyGroupModal from './StudyGroupModal'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { toast } from '@/components/ui/toast'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
 
 interface StudyGroup {
@@ -27,6 +29,7 @@ const accent = getModuleColor('education')
 
 export default function StudyGroupsTab() {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [groups, setGroups] = useState<StudyGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [specialties, setSpecialties] = useState<Specialty[]>([])
@@ -39,6 +42,7 @@ export default function StudyGroupsTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingGroup, setEditingGroup] = useState<StudyGroup | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -77,12 +81,12 @@ export default function StudyGroupsTab() {
       const resp = await fetch(`/api/education/study-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('common.error_delete_failed'))
+        toast(err.error ?? t('common.error_delete_failed'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_delete_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_delete_generic'), 'error')
     }
   }
 
@@ -104,10 +108,10 @@ export default function StudyGroupsTab() {
     return true
   })
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -116,14 +120,14 @@ export default function StudyGroupsTab() {
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
           <option value="">{t('common.all_departments')}</option>
-          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
         </select>
 
         <select
           value={filterSpec}
           onChange={e => setFilterSpec(e.target.value)}
           disabled={filteredSpecOptions.length === 0}
-          style={{ ...inp, color: filterSpec ? '#1F2937' : '#9CA3AF', opacity: filteredSpecOptions.length === 0 ? 0.5 : 1 }}
+          style={{ ...inp, color: filterSpec ? 'var(--text)' : 'var(--text-faint)', opacity: filteredSpecOptions.length === 0 ? 0.5 : 1 }}
         >
           <option value="">{t('groups.all_specialties')}</option>
           {filteredSpecOptions.map(s => (
@@ -147,85 +151,94 @@ export default function StudyGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
 
       {!loading && !error && (
         filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {groups.length === 0 ? t('groups.empty_none') : t('common.nothing_found')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('groups.table_name')}</th>
                   <th style={thStyle}>{t('groups.table_department')}</th>
                   <th style={thStyle}>{t('groups.table_specialty')}</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('groups.table_year_level')}</th>
-                  <th style={{ ...thStyle, width: 90, textAlign: 'center' }}>{t('groups.table_year_start')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('groups.table_students')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('groups.table_status')}</th>
-                  <th style={{ ...thStyle, width: 160 }}>{t('groups.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(g => (
-                  <tr
-                    key={g.id}
-                    style={{ borderTop: '1px solid #F3F4F6' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                  >
-                    <td style={{ ...tdStyle, fontWeight: 500 }}>{g.name}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>{g.department?.name ?? '—'}</td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>
-                      {g.specialty
-                        ? (g.specialty.code ? `[${g.specialty.code}] ${g.specialty.name}` : g.specialty.name)
-                        : <span style={{ color: '#D1D5DB' }}>—</span>}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                      {g.year_level ?? <span style={{ color: '#D1D5DB' }}>—</span>}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                      {g.year_start ?? <span style={{ color: '#D1D5DB' }}>—</span>}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: 12, padding: '2px 8px', borderRadius: 99,
-                        background: g.counts.students > 0 ? '#EEF2FF' : '#F3F4F6',
-                        color: g.counts.students > 0 ? '#3730A3' : '#9CA3AF',
-                        fontWeight: 500,
-                      }}>
-                        {g.counts.students}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      {g.is_active
-                        ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('groups.status_active')}</span>
-                        : <span style={{ color: '#9CA3AF' }}>{t('groups.status_inactive')}</span>}
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
-                          {t('common.edit')}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(g)}
-                          style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filtered.map(g => {
+                  const open = expandedId === g.id
+                  return (
+                    <Fragment key={g.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : g.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{g.department?.name ?? '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
+                          {g.specialty
+                            ? (g.specialty.code ? `[${g.specialty.code}] ${g.specialty.name}` : g.specialty.name)
+                            : <span style={{ color: 'var(--border-strong)' }}>—</span>}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: 12, padding: '2px 8px', borderRadius: 99,
+                            background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
+                            color: g.counts.students > 0 ? 'var(--accent-strong)' : 'var(--text-faint)',
+                            fontWeight: 500,
+                          }}>
+                            {g.counts.students}
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          {g.is_active
+                            ? <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('groups.status_active')}</span>
+                            : <span style={{ color: 'var(--text-faint)' }}>{t('groups.status_inactive')}</span>}
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('groups.table_year_level')} value={g.year_level != null ? String(g.year_level) : '—'} />
+                              <Detail label={t('groups.table_year_start')} value={g.year_start != null ? String(g.year_start) : '—'} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                              <button onClick={() => { setEditingGroup(g); setModalMode('edit') }} style={btnSecondary}>
+                                {t('common.edit')}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(g)}
+                                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('common.delete')}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -246,7 +259,17 @@ export default function StudyGroupsTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}

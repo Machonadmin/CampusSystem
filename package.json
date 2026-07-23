@@ -9,6 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "seed:workflow-recruitment": "tsx scripts/seed-workflow-recruitment.ts"
   },
   "repository": {
@@ -17,6 +20,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@sentry/nextjs": "^10.67.0",
     "@supabase/supabase-js": "^2.103.3",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/bcryptjs": "^2.4.6",
@@ -39,6 +43,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "^4.21.0"
+    "@playwright/test": "^1.61.1",
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.10"
   }
 }

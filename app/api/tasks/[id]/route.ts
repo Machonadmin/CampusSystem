@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
+import { createNotifications } from '@/lib/notifications/create'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -43,10 +45,10 @@ export async function GET(
       .maybeSingle()
 
     if (taskErr) throw taskErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
     const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) return NextResponse.json({ error: 'Нет доступа к задаче' }, { status: 403 })
+    if (!access.canView) return apiError('no_access_to_task', 403)
 
     const [
       { data: comments, error: cErr },
@@ -79,7 +81,7 @@ export async function GET(
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -114,10 +116,10 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (tErr) throw tErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
     const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) return NextResponse.json({ error: 'Нет доступа к задаче' }, { status: 403 })
+    if (!access.canView) return apiError('no_access_to_task', 403)
 
     const update: TaskUpdate = {}
 
@@ -127,12 +129,12 @@ export async function PATCH(
 
     if (hasEditFields) {
       if (!access.canEdit) {
-        return NextResponse.json({ error: 'Изменять задачу может только автор' }, { status: 403 })
+        return apiError('only_author_can_edit_task', 403)
       }
       if (body.title !== undefined) {
         const t = body.title?.trim()
-        if (!t) return NextResponse.json({ error: 'Заголовок не может быть пустым' }, { status: 400 })
-        if (t.length > 500) return NextResponse.json({ error: 'Заголовок слишком длинный' }, { status: 400 })
+        if (!t) return apiError('heading_not_empty', 400)
+        if (t.length > 500) return apiError('heading_too_long', 400)
         update.title = t
       }
       if (body.description !== undefined) update.description = body.description?.trim() || null
@@ -150,7 +152,7 @@ export async function PATCH(
 
     if (body.status !== undefined && body.status !== task.status) {
       if (!access.canChangeStatus) {
-        return NextResponse.json({ error: 'Менять статус может только автор или исполнитель' }, { status: 403 })
+        return apiError('only_author_or_assignee_status', 403)
       }
       const currentStatus = task.status as TaskStatus
       const allowed = ALLOWED_TRANSITIONS[currentStatus] ?? []
@@ -161,10 +163,10 @@ export async function PATCH(
         )
       }
       if (body.status === 'declined' && !access.isAssignee && !access.isSuperadmin) {
-        return NextResponse.json({ error: 'Отказаться от задачи может только исполнитель' }, { status: 403 })
+        return apiError('only_assignee_can_release', 403)
       }
       if (body.status === 'cancelled' && !access.isCreator && !access.isSuperadmin) {
-        return NextResponse.json({ error: 'Отменить задачу может только автор' }, { status: 403 })
+        return apiError('only_author_can_cancel_task', 403)
       }
       update.status = body.status
       statusChange = { from: currentStatus, to: body.status }
@@ -176,7 +178,7 @@ export async function PATCH(
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data: updated, error: uErr } = await sb
@@ -197,6 +199,28 @@ export async function PATCH(
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+
+      // Уведомляем «другую сторону» о смене статуса (best-effort).
+      const creatorId = (task as { creator_id: string | null }).creator_id
+      const assigneeId = (task as { assignee_id: string | null }).assignee_id
+      const recipient = session.person_id === creatorId ? assigneeId : creatorId
+      const TITLE_HE: Partial<Record<TaskStatus, string>> = {
+        review:      'משימה נשלחה לבדיקתך',
+        completed:   'המשימה הושלמה',
+        declined:    'משימה נדחתה',
+        cancelled:   'משימה בוטלה',
+        in_progress: 'המשימה הוחזרה אליך',
+      }
+      const heading = TITLE_HE[statusChange.to]
+      if (recipient && recipient !== session.person_id && heading) {
+        await createNotifications(sb, [{
+          person_id: recipient,
+          type: 'task_status',
+          title: `${heading}: ${(task as { title: string }).title}`,
+          link: `/dashboard/tasks/${params.id}`,
+          metadata: { task_id: params.id, status: statusChange.to },
+        }])
+      }
 
       // Дублируем заметку смены статуса в общий фид комментариев, чтобы она
       // не «терялась» (видна только в истории). Ошибка вставки не должна
@@ -230,7 +254,7 @@ export async function PATCH(
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -250,12 +274,12 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (tErr) throw tErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
     const isCreator = task.creator_id === session.person_id
     const isSuperadmin = session.roles?.includes('superadmin') ?? false
     if (!isCreator && !isSuperadmin) {
-      return NextResponse.json({ error: 'Удалить задачу может только автор' }, { status: 403 })
+      return apiError('only_author_can_delete_task', 403)
     }
 
     const { error: dErr } = await sb.from('tasks').delete().eq('id', params.id)
@@ -265,6 +289,6 @@ export async function DELETE(
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

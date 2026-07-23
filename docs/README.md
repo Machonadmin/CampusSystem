@@ -14,9 +14,27 @@ CRM-система образовательного кампуса: работа
 | [recruitment-template.md](./recruitment-template.md) | Шаблон процесса «Набор»: подэтапы, финалы, переходы |
 | [admission-template.md](./admission-template.md) | Шаблон процесса «Приём»: абитуриент → студент |
 | [education-module.md](./education-module.md) | Модуль «Образование»: journey лид → абитуриент → студент |
+| [alumni-module.md](./alumni-module.md) | Модуль «Выпускники»: авто-наполнение при выпуске, API, карточка |
+| [finance-module.md](./finance-module.md) | Модуль «Финансы»: биллинг обучения (ПНК), начисления/платежи, баланс |
+| [dormitory-module.md](./dormitory-module.md) | Модуль «Общежитие»: здания, комнаты, заселение, расчёт занятости |
+| [food-module.md](./food-module.md) | Модуль «Питание»: планы питания, запись студентов, диет-профили |
+| [maintenance-module.md](./maintenance-module.md) | Модуль «Эксплуатация»: заявки на обслуживание, SLA/просрочка, машина статусов |
+| [security-module.md](./security-module.md) | Модуль «Безопасность»: журнал инцидентов кампуса, ранг серьёзности, машина статусов open→investigating→resolved→closed |
+| [doctor-module.md](./doctor-module.md) | Модуль «Врач / Медпункт»: медкарты студентов, приёмы, контрольные визиты, статусы |
+| [psychologist-module.md](./psychologist-module.md) | Модуль «Психолог / Консультации»: карты сопровождения, консультации, контрольные визиты, уровень риска |
+| [reports-module.md](./reports-module.md) | Модуль «Отчёты / Обзор»: READ-ONLY дашборд сводок по всем модулям, корректная агрегация без обрезки db-max-rows |
+| [documents-module.md](./documents-module.md) | Модуль «Документы»: пер-студенческий реестр документов с контролем срока годности (`document_records`), worklist истекающих, legacy `document_*` не трогаем |
+| [contacts-module.md](./contacts-module.md) | Модуль «Контакты»: самостоятельный справочник внешних контактов и организаций, поиск/фильтры/сводка, без привязки к студентам |
+| [sponsors-module.md](./sponsors-module.md) | Модуль «Спонсоры / Доноры»: справочник доноров + реестр пожертвований, суммы в копейках, НОВЫЕ таблицы `sponsors`/`donations` (legacy `sponsor_profiles` не трогаем) |
+| [persons-module.md](./persons-module.md) | Модуль «Люди»: READ-ONLY справочник сотрудников и студентов для поиска человека и контактов, НЕ владеет таблицами (только читает `persons`/`staff_positions`/`education_journeys`/…), детальный путь `…/directory/[id]` во избежание конфликта с существующим `/api/persons/[id]` |
+| [calendar-module.md](./calendar-module.md) | «Календарь»: ЛИЧНЫЙ self-scoped календарь сотрудника — встречи с опциональным студентом и выходные дни, защита от двойного бронирования, auth-gate без привилегий, все операции по `provider_id = session.person_id` |
+| [student-overview.md](./student-overview.md) | «Обзор студента 360»: READ-ONLY вкладка карточки студента со сводкой по всем модулям, посекционный гейт по привилегиям, без миграции |
+| [study-management.md](./study-management.md) | Управление учёбой, этап 1: журнал класса — уроки и посещаемость |
 | [db-schema.md](./db-schema.md) | Ключевые таблицы БД и триггеры `updated_at` |
+| [staging.md](./staging.md) | Решётка безопасности: staging + E2E Playwright, шаги в аккаунтах, стоимость |
 | [conventions.md](./conventions.md) | Соглашения проекта и типичные подводные камни |
 | [onboarding.md](./onboarding.md) | Запуск проекта и навигация для нового разработчика |
+| [progress/](./progress/) | Ежедневные сводки прогресса (напр. `2026-07-07.md`) |
 
 ## Кратко о стеке
 

@@ -8,6 +8,7 @@ import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -29,7 +30,7 @@ interface CheckRow {
 }
 
 const STATUS_COLOR: Record<string, [string, string]> = {
-  planned:     ['#EFF6FF', '#3B82F6'],
+  planned:     ['var(--accent-tint)', 'var(--accent)'],
   in_progress: ['#FFFBEB', '#D97706'],
   completed:   ['#F0FDF4', '#16A34A'],
 }
@@ -37,7 +38,7 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
 
 function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?: string) => string }) {
-  const [bg, color] = STATUS_COLOR[status] ?? ['#F3F4F6', '#6B7280']
+  const [bg, color] = STATUS_COLOR[status] ?? ['var(--surface-2)', 'var(--text-muted)']
   return (
     <span style={{ padding: '2px 10px', borderRadius: 20, backgroundColor: bg, color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
       {t(`status.${status}`, status)}
@@ -46,11 +47,11 @@ function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?
 }
 
 function RatingStars({ rating }: { rating: number | null }) {
-  if (rating === null) return <span style={{ color: '#D1D5DB', fontSize: 12 }}>—</span>
+  if (rating === null) return <span style={{ color: 'var(--border-strong)', fontSize: 12 }}>—</span>
   return (
     <span style={{ fontSize: 13, color: '#F59E0B', fontWeight: 700 }}>
       {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
-      <span style={{ color: '#6B7280', fontWeight: 400, fontSize: 11, marginLeft: 4 }}>{rating}/5</span>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 11, marginLeft: 4 }}>{rating}/5</span>
     </span>
   )
 }
@@ -83,18 +84,25 @@ export default function QualityControlPage() {
 
   const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
 
+  // Дебаунс поиска — не бьём по API на каждой букве (как в staff/jewishness).
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(id)
+  }, [search])
+
   const load = useCallback(async () => {
     if (tab === 'templates') return
     setLoading(true)
     try {
       const params = new URLSearchParams({ tab })
-      if (search.trim()) params.set('search', search.trim())
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
       const res = await fetch(`/api/quality-control?${params}`)
       if (res.ok) setChecks(await res.json())
     } finally {
       setLoading(false)
     }
-  }, [tab, search, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab, debouncedSearch, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load() }, [load])
 
@@ -133,11 +141,11 @@ export default function QualityControlPage() {
         className="rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('quality_control'),
-          padding: '12px 24px',
+          padding: '16px 24px',
           boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
       </div>
 
       {/* Tabs */}
@@ -149,7 +157,7 @@ export default function QualityControlPage() {
       />
 
       {/* Content */}
-      <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
         {/* Templates tab */}
         {tab === 'templates' && (
           <TemplatesTab perms={templatePerms} />
@@ -160,14 +168,14 @@ export default function QualityControlPage() {
           <>
             {/* Search toolbar */}
             <div style={{
-              padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA',
+              padding: '12px 16px', borderBottom: '1px solid var(--surface-2)', backgroundColor: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('list.search_placeholder')}
-                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
+                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid var(--border)', borderRadius: 6, outline: 'none', width: 280 }}
               />
               <div style={{ flex: 1 }} />
               {canCreateCheck && (
@@ -182,17 +190,17 @@ export default function QualityControlPage() {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
               ) : checks.length === 0 ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
                   {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#F9FAFB' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2)' }}>
                       {[t('list.table_date_time'), t('list.table_teacher'), t('list.table_group_course'), t('list.table_observer'), t('list.table_status'), t('list.table_rating'), t('list.table_actions')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                           {h}
                         </th>
                       ))}
@@ -200,21 +208,21 @@ export default function QualityControlPage() {
                   </thead>
                   <tbody>
                     {checks.map((c, i) => (
-                      <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
+                      <tr key={c.id} style={{ borderTop: '1px solid var(--surface-2)', backgroundColor: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
                         <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{formatDate(c.lesson_date)}</div>
-                          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{formatDate(c.lesson_date)}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontSize: 13, color: '#374151' }}>{c.teacher_name ?? '—'}</div>
+                          <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.teacher_name ?? '—'}</div>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          {c.group_name && <div style={{ fontSize: 13, color: '#374151' }}>{c.group_name}</div>}
-                          {c.course_name && <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.course_name}</div>}
-                          {!c.group_name && !c.course_name && <span style={{ color: '#D1D5DB', fontSize: 13 }}>—</span>}
+                          {c.group_name && <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.group_name}</div>}
+                          {c.course_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.course_name}</div>}
+                          {!c.group_name && !c.course_name && <span style={{ color: 'var(--border-strong)', fontSize: 13 }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontSize: 13, color: '#374151' }}>{c.observer_name ?? '—'}</div>
+                          <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.observer_name ?? '—'}</div>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <StatusBadge status={c.status} t={t} />
@@ -223,25 +231,23 @@ export default function QualityControlPage() {
                           <RatingStars rating={c.overall_rating} />
                         </td>
                         <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <Link
                               href={`/dashboard/quality-control/${c.id}`}
                               style={{
                                 padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
-                                border: c.status === 'completed' ? '1px solid #D1D5DB' : '1px solid #BFDBFE',
-                                background: c.status === 'completed' ? '#F9FAFB' : '#EFF6FF',
-                                color: c.status === 'completed' ? '#374151' : '#1D4ED8',
+                                border: c.status === 'completed' ? '1px solid var(--border-strong)' : '1px solid #BFDBFE',
+                                background: c.status === 'completed' ? 'var(--surface-2)' : 'var(--accent-tint)',
+                                color: c.status === 'completed' ? 'var(--text)' : '#1D4ED8',
                               }}
                             >
                               {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}
                             </Link>
-                            <button
-                              onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
-                              disabled={deletingId === c.id}
-                              style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
-                            >
-                              {tCommon('delete')}
-                            </button>
+                            <RowActionsMenu
+                              actions={[
+                                { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(c.id, formatDate(c.lesson_date)), disabled: deletingId === c.id, danger: true },
+                              ]}
+                            />
                           </div>
                         </td>
                       </tr>

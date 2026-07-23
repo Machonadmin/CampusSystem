@@ -1,5 +1,5 @@
 export const IMPLEMENTED_MODULES = new Set([
-  'education', 'tasks', 'settings', 'staff', 'quality_control',
+  'persons', 'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance', 'security', 'doctor', 'psychologist', 'reports', 'documents', 'contacts', 'sponsors', 'jewishness', 'chavruta',
 ])
 
 export function isModuleImplemented(moduleCode: string): boolean {
@@ -10,6 +10,8 @@ export const MODULE_COLORS = {
   dashboard:       { primary: '#3B82F6', light: '#DBEAFE', medium: '#60A5FA' },
   persons:         { primary: '#2563EB', light: '#DBEAFE', medium: '#60A5FA' },
   education:       { primary: '#10B981', light: '#D1FAE5', medium: '#34D399' },
+  chavruta:        { primary: '#0D9488', light: '#CCFBF1', medium: '#2DD4BF' },
+  jewishness:      { primary: '#CA8A04', light: '#FEF9C3', medium: '#EAB308' },
   staff:           { primary: '#8B5CF6', light: '#EDE9FE', medium: '#A78BFA' },
   quality_control: { primary: '#EC4899', light: '#FCE7F3', medium: '#F472B6' },
   tasks:           { primary: '#F59E0B', light: '#FEF3C7', medium: '#FBBF24' },

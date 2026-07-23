@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 
 // Всегда свежий список программ (иначе Next закэширует ответ на этапе сборки).
@@ -47,6 +48,6 @@ export async function GET() {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
   }
 }

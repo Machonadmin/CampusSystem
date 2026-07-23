@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { requirePersonsPrivilege } from '@/lib/persons/permissions'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { parseBody, jsonError } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    // Возвращает PII людей (справочник/пикер) — требуем persons.view,
+    // как сиблинг /api/persons/staff (раньше был только логин-гейт).
+    await requirePersonsPrivilege('view')
 
     const { searchParams } = request.nextUrl
-    const q = (searchParams.get('search') ?? searchParams.get('q') ?? '').trim()
+    // q попадает в строку .or() — очищаем спецсимволы PostgREST-фильтра.
+    const q = sanitizeOrSearch(searchParams.get('search') ?? searchParams.get('q'))
     const role = searchParams.get('role')
     const departmentId = searchParams.get('department_id')
 
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ people })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -85,7 +89,7 @@ const personQuickAddSchema = z.object({
   enroll_as_teacher: z.boolean().optional(),
   department_id: z.string().uuid().optional(),
   position_id: z.string().uuid().optional(),
-}).refine(d => d.first_name?.trim() || d.full_name?.trim(), { message: 'Имя обязательно' })
+}).refine(d => d.first_name?.trim() || d.full_name?.trim(), { message: serverT('name_required') })
 
 /**
  * POST /api/persons
@@ -106,7 +110,7 @@ export async function POST(request: NextRequest) {
     const middleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
 
     if (body.enroll_as_teacher && !body.department_id) {
-      throw Object.assign(new Error('Для оформления укажите подразделение'), { status: 400 })
+      throw Object.assign(new Error(serverT('enroll_specify_department')), { status: 400 })
     }
 
     // Без enroll_as_teacher — создание "голой" персоны (create, без department-таргета).

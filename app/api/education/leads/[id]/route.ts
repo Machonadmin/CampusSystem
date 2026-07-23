@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 
 /**
  * DELETE /api/education/leads/[id]
@@ -14,7 +15,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
 
@@ -24,14 +25,25 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
 
-    if (!journey) return NextResponse.json({ error: 'Лид не найден' }, { status: 404 })
+    if (!journey) return apiError('lead_not_found', 404)
     if ((journey as unknown as { is_deleted: boolean }).is_deleted) {
-      return NextResponse.json({ error: 'Лид уже удалён' }, { status: 409 })
+      return apiError('lead_already_deleted', 409)
     }
 
+    const leadDept = (journey as unknown as { primary_department_id: string | null }).primary_department_id
     await requireEducationPrivilege('manage_leads', {
-      department_id: (journey as unknown as { primary_department_id: string | null }).primary_department_id ?? undefined,
+      department_id: leadDept ?? undefined,
     })
+
+    // F3: правка/удаление СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead)
+    // разрешена только при scope='all'. Иначе department-scoped пользователь смог
+    // бы удалять ЛЮБОГО «ничьего» лида. На создание это НЕ распространяется.
+    if (leadDept == null) {
+      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      if (scope !== 'all') {
+        return apiError('forbidden', 403)
+      }
+    }
 
     const { error } = await sb
       .from('education_journeys')
@@ -44,7 +56,7 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -71,7 +83,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const body = await request.json() as {
       // Person fields
@@ -90,6 +102,7 @@ export async function PATCH(
       // Journey fields
       referral_source?: string | null
       comment?: string | null
+      recruitment_stage?: string | null
       // Interests (B1: delete+insert)
       interests?: { direction_id?: string | null; level_id?: string | null; free_text?: string | null }[]
       // Relatives (C1: diff)
@@ -105,14 +118,23 @@ export async function PATCH(
       .select('id, person_id, education_status, primary_department_id')
       .eq('id', params.id)
       .maybeSingle()
-    if (!journey) return NextResponse.json({ error: 'Journey не найден' }, { status: 404 })
+    if (!journey) return apiError('journey_not_found', 404)
     if (journey.education_status !== 'lead') {
-      return NextResponse.json({ error: 'Это не лид' }, { status: 400 })
+      return apiError('not_a_lead', 400)
     }
 
     await requireEducationPrivilege('manage_leads', {
       department_id: journey.primary_department_id ?? undefined,
     })
+
+    // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead) разрешена
+    // только при scope='all' (см. DELETE выше). На создание не распространяется.
+    if (journey.primary_department_id == null) {
+      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      if (scope !== 'all') {
+        return apiError('forbidden', 403)
+      }
+    }
 
     const personId = journey.person_id
 
@@ -141,6 +163,12 @@ export async function PATCH(
     const journeyUpdate: Record<string, unknown> = {}
     if (body.referral_source !== undefined) journeyUpdate.referral_source = body.referral_source
     if (body.comment !== undefined)         journeyUpdate.notes           = body.comment?.trim() || null
+    if (body.recruitment_stage !== undefined) {
+      if (body.recruitment_stage !== 'interested' && body.recruitment_stage !== 'in_process') {
+        return apiError('validation_error', 400)
+      }
+      journeyUpdate.recruitment_stage = body.recruitment_stage
+    }
     if (Object.keys(journeyUpdate).length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await sb.from('education_journeys').update(journeyUpdate as any).eq('id', params.id)
@@ -249,6 +277,6 @@ export async function PATCH(
     return NextResponse.json({ ok: true, journey_id: params.id })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

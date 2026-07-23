@@ -1,7 +1,9 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode } from '@/types/database'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -23,8 +25,10 @@ export type EducationPrivilege =
   | 'mark_attendance'
   | 'set_grades'
   | 'set_lesson_topics'
+  | 'manage_communities'
+  | 'write_evaluation'
 
-export type Scope = 'all' | 'department' | 'own'
+export type { Scope }
 
 /**
  * Цель проверки прав. Что именно мы пытаемся сделать.
@@ -99,7 +103,22 @@ export async function getUserDepartmentIds(personId: string): Promise<string[]> 
       if (row.department_id) ids.add(row.department_id)
     }
   }
-  return Array.from(ids)
+  const directIds = Array.from(ids)
+  if (directIds.length === 0) return []
+
+  // Иерархический scope (решение владельца): менеджер узла видит и под-единицы.
+  // Тянем дерево (id, parent_id) и расширяем набор ВНИЗ. Deploy-safe: при любой
+  // ошибке/отсутствии данных возвращаем прямые назначения без расширения —
+  // безопасный фолбэк (не шире прежнего поведения).
+  try {
+    const { data: depts, error: deptErr } = await sb
+      .from('departments')
+      .select('id, parent_id')
+    if (deptErr || !depts) return directIds
+    return expandDepartmentTree(directIds, depts as DepartmentEdge[])
+  } catch {
+    return directIds
+  }
 }
 
 /**
@@ -132,18 +151,26 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
   if (privsErr || !privs) return {}
 
   // 3. Сложить, выбирая максимальный scope
-  const scopeRank: Record<Scope, number> = { all: 3, department: 2, own: 1 }
-  const result: PrivilegesMap = {}
+  return reduceScopes<EducationPrivilege>(privs)
+}
 
-  for (const row of privs) {
-    const pc = row.privilege_code as EducationPrivilege
-    const sc = row.scope as Scope
-    const existing = result[pc]
-    if (!existing || scopeRank[sc] > scopeRank[existing]) {
-      result[pc] = sc
-    }
-  }
-  return result
+/**
+ * Персональные education-привилегии (person_privileges) человека — активные
+ * (не истёкшие). Управляются руководителем направления через UI. Устойчиво к
+ * отсутствию таблицы (deploy до миграции) — тогда просто нет персональных выдач.
+ */
+async function loadPersonPrivileges(personId: string): Promise<Array<{ code: string; is_granted: boolean }>> {
+  const sb = createServerClient()
+  const nowIso = new Date().toISOString()
+  const { data, error } = await sb
+    .from('person_privileges')
+    .select('privilege_code, is_granted, expires_at')
+    .eq('person_id', personId)
+    .eq('module', 'education')
+  if (error || !data) return []
+  return data
+    .filter(r => !r.expires_at || (r.expires_at as string) > nowIso)
+    .map(r => ({ code: r.privilege_code as string, is_granted: !!r.is_granted }))
 }
 
 /**
@@ -151,13 +178,29 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
  * Использует кэш.
  */
 async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
+  // Изоляция портала: токен студентки (principal='student', roles:[]) НЕ несёт
+  // никаких штатных education-прав, даже если этот же person где-то оформлен как
+  // сотрудник (staff_positions / person_privileges по person_id). Иначе двойная
+  // роль (студентка И сотрудница) при входе через портал смогла бы читать чужие
+  // journeys. Портальные роуты дают доступ к СВОЕЙ journey через явный self-gate
+  // (principal==='student' && student_journey_id===id) ещё до попадания сюда.
+  // Кэш НЕ трогаем: ключ = person_id общий для staff- и student-входа одного
+  // человека, поэтому пустой результат не должен ни читаться, ни писаться в него.
+  if (session.principal === 'student') {
+    return { privileges: {}, departmentIds: [], expiresAt: Date.now() + CACHE_TTL_MS }
+  }
+
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [privileges, departmentIds] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
+    loadPersonPrivileges(session.person_id),
   ])
+
+  // Персональные выдачи/запреты поверх ролевых (см. applyPersonGrants).
+  const privileges = applyPersonGrants<EducationPrivilege>(rolePrivileges, personGrants)
 
   setCached(session.person_id, privileges, departmentIds)
   return { privileges, departmentIds, expiresAt: Date.now() + CACHE_TTL_MS }
@@ -188,27 +231,16 @@ export async function hasEducationPrivilege(
   target?: PrivilegeTarget,
 ): Promise<boolean> {
   if (!session) return false
+  // superadmin (штатный, НЕ студенческий principal — портальная изоляция) — всё.
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
 
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
-  if (!scope) return false
 
-  if (scope === 'all') return true
-
-  if (scope === 'department') {
-    // Если объект не привязан к конкретному department
-    // (например, лид ещё не определился с учреждением) —
-    // доступ разрешён как для общего пула.
-    if (!target?.department_id) return true
-    return access.departmentIds.includes(target.department_id)
-  }
-
-  if (scope === 'own') {
-    if (!target?.teacher_ids || target.teacher_ids.length === 0) return false
-    return target.teacher_ids.includes(session.person_id)
-  }
-
-  return false
+  return grantsAccess(scope, target, {
+    departmentIds: access.departmentIds,
+    personId: session.person_id,
+  })
 }
 
 /**
@@ -223,6 +255,7 @@ export async function canDoEducationInAny(
   privilege: EducationPrivilege,
 ): Promise<boolean> {
   if (!session) return false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
 
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
@@ -244,6 +277,7 @@ export async function getEducationPrivilegeScope(
   privilege: EducationPrivilege,
 ): Promise<Scope | null> {
   if (!session) return null
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return 'all'
   const access = await getUserAccess(session)
   return access.privileges[privilege] ?? null
 }
@@ -263,11 +297,11 @@ export async function requireEducationPrivilege(
 ): Promise<SessionPayload> {
   const session = await getSession()
   if (!session) {
-    throw Object.assign(new Error('Не авторизован'), { status: 401 })
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
   const ok = await hasEducationPrivilege(session, privilege, target)
   if (!ok) {
-    throw Object.assign(new Error('Недостаточно прав'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   }
   return session
 }

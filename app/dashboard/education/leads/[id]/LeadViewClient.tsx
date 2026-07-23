@@ -5,8 +5,29 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { phoneList } from '@/lib/persons/phone'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
-import DocumentsTab from '@/components/education/DocumentsTab'
+import StageSignatures from '@/components/workflow/StageSignatures'
+import StudyTrackPanel from '@/components/education/StudyTrackPanel'
+import StudyPlanPanel from '@/components/education/StudyPlanPanel'
+import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
+import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
+import StaffChavrutaPanel from '@/components/education/StaffChavrutaPanel'
+import StaffShabbatPanel from '@/components/education/StaffShabbatPanel'
+import MeetingsPanel from '@/components/education/MeetingsPanel'
+import PortalCredentialsPanel from '@/components/education/PortalCredentialsPanel'
+import StudentStructuresPanel from '@/components/education/StudentStructuresPanel'
+import StaffStudentMessagesPanel from '@/components/education/StaffStudentMessagesPanel'
+import KodeshExceptionsPanel from '@/components/education/KodeshExceptionsPanel'
+import HandoffButton from '@/components/education/HandoffButton'
+import JourneyTimeline from '@/components/education/JourneyTimeline'
+import PlacementsPanel from '@/components/education/PlacementsPanel'
+import EvaluationsPanel from '@/components/education/EvaluationsPanel'
+import JourneyDocumentsPanel from '@/components/education/JourneyDocumentsPanel'
+import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
+import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
+import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
+import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,6 +67,15 @@ export interface LeadViewData {
   relatives: { relation_type: string; full_name: string; notes: string | null }[]
   referral_source: string | null
   comment: string | null
+  /** Академические данные — только для карточки студента. */
+  academic?: {
+    departmentName: string | null
+    specialtyName: string | null
+    groupName: string | null
+    yearLevel: number | null
+    yearStart: number | null
+    enrolledAt: string | null
+  } | null
 }
 
 interface Props {
@@ -53,6 +83,31 @@ interface Props {
   showEditButton: boolean
   canManage: boolean
   canConvert: boolean
+  /** Когда задано — показывается вкладка «Учебный цикл» (карточка студента). */
+  studyLifecycle?: { history: StatusHistoryEntry[] } | null
+  /** Когда true — показывается вкладка «Успеваемость» (посещаемость + оценки). */
+  showReport?: boolean
+  /** Когда true — первой показывается вкладка «Обзор 360» (сводка по всем модулям). */
+  showOverview?: boolean
+  /** База ссылки редактирования/списка: 'leads' (по умолчанию) или 'students'. */
+  routeBase?: 'leads' | 'students'
+  /**
+   * Контекст модуля для переиспользования карточки вне «Образования»
+   * (например, «Выпускники»). По умолчанию — education. Переопределяет
+   * хлебные крошки, кнопку «назад» и цвет шапки; поведение education не меняется.
+   */
+  navContext?: {
+    moduleLabel: string
+    moduleHref: string
+    colorKey: string
+    /** Средняя крошка (раздел). Если не задана — не отображается. */
+    sectionLabel?: string
+  } | null
+  /**
+   * Дополнительная панель — на всю ширину под основной сеткой.
+   * Используется для редактируемой панели профиля выпускника.
+   */
+  extraPanel?: React.ReactNode
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -74,14 +129,14 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra'
+type TabKey = 'overview' | 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '16px 20px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
         {title}
       </div>
       {children}
@@ -92,22 +147,28 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', gap: 12, padding: '4px 0' }}>
-      <div style={{ fontSize: 13, color: '#9CA3AF', minWidth: 160, flexShrink: 0 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#1F2937' }}>{value || '—'}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-faint)', minWidth: 160, flexShrink: 0 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value || '—'}</div>
     </div>
   )
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const { person } = data
-  const [tab, setTab] = useState<TabKey>('personal')
+  const [tab, setTab] = useState<TabKey>(showOverview ? 'overview' : 'personal')
+
+  // Контекст модуля: по умолчанию — «Образование» (поведение не меняется).
+  const moduleLabel = navContext?.moduleLabel ?? tNav('education')
+  const moduleHref = navContext?.moduleHref ?? '/dashboard/education'
+  const headerColorKey = navContext?.colorKey ?? 'education'
 
   const TABS: { key: TabKey; labelKey: string }[] = [
+    ...(showOverview ? [{ key: 'overview' as TabKey, labelKey: 'overview' }] : []),
     { key: 'personal',   labelKey: 'personal' },
     { key: 'contacts',   labelKey: 'contacts' },
     { key: 'family',     labelKey: 'family' },
@@ -115,6 +176,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     { key: 'directions', labelKey: 'directions' },
     { key: 'documents',  labelKey: 'documents' },
     { key: 'extra',      labelKey: 'extra' },
+    ...(studyLifecycle ? [{ key: 'study' as TabKey, labelKey: 'study' }] : []),
+    ...(showReport ? [{ key: 'report' as TabKey, labelKey: 'report' }] : []),
   ]
 
   const statusLabel = data.status ? t(`card.status.${data.status}`, data.status) : '—'
@@ -153,7 +216,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       case 'contacts':
         return (
           <>
-            <Field label={t('card.labels.phone')} value={person.phones.length > 0 ? person.phones.join(', ') : '—'} />
+            <Field label={t('card.labels.phone')} value={phoneList(person.phones).length > 0 ? phoneList(person.phones).join(', ') : '—'} />
             <Field label={t('card.labels.email')} value={person.email} />
             <Field label={t('card.labels.country')} value={addr.country} />
             <Field label={t('card.labels.city')} value={addr.city} />
@@ -165,30 +228,30 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'family':
         return data.relatives.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_relatives')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_relatives')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.relatives.map((r, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: '#1F2937' }}>
+              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
                 {r.full_name || '—'} — {t(`card.relation.${r.relation_type}`, r.relation_type).toLowerCase()}
-                {r.notes ? <span style={{ color: '#9CA3AF' }}> ({r.notes})</span> : null}
+                {r.notes ? <span style={{ color: 'var(--text-faint)' }}> ({r.notes})</span> : null}
               </div>
             ))}
           </div>
         )
       case 'community':
         return data.communities.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_communities')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_communities')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.communities.map((c, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: '#1F2937' }}>
+              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
                 <div style={{ fontWeight: 500 }}>
                   {c.name || '—'}
-                  {(c.city || c.country) ? <span style={{ color: '#9CA3AF', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
+                  {(c.city || c.country) ? <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
                 </div>
                 {(c.contact_name || c.contact_role || c.contact_phone || c.contact_email) && (
-                  <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     {[c.contact_name, c.contact_role, c.contact_phone, c.contact_email].filter(Boolean).join(' · ')}
                   </div>
                 )}
@@ -198,11 +261,11 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'directions':
         return interestTexts.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#9CA3AF' }}>{t('card.labels.no_directions')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_directions')}</div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {interestTexts.map((text, idx) => (
-              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: '#EEF2FF', color: '#3730A3' }}>
+              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
                 {text}
               </span>
             ))}
@@ -210,7 +273,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         )
       case 'documents':
         return (
-          <DocumentsTab personId={data.personId} canManage={canManage} />
+          <JourneyDocumentsPanel journeyId={data.journeyId} canManage={canManage} />
         )
       case 'extra':
         return (
@@ -219,6 +282,36 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.comment')} value={data.comment} />
           </>
         )
+      case 'study':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Академические данные */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                {t('card.lifecycle.academic_title')}
+              </div>
+              <Field label={t('card.labels.department')} value={data.academic?.departmentName} />
+              <Field label={t('card.labels.specialty')} value={data.academic?.specialtyName} />
+              <Field label={t('card.labels.group')} value={data.academic?.groupName} />
+              <Field label={t('card.labels.year_level')} value={data.academic?.yearLevel ?? '—'} />
+              <Field label={t('card.labels.year_start')} value={data.academic?.yearStart ?? '—'} />
+              <Field label={t('card.labels.enrolled_at')} value={formatDate(data.academic?.enrolledAt ?? null)} />
+            </div>
+            {/* Учебный цикл */}
+            {studyLifecycle && (
+              <StudentLifecyclePanel
+                journeyId={data.journeyId}
+                currentStatus={data.status}
+                canManage={canManage}
+                history={studyLifecycle.history}
+              />
+            )}
+          </div>
+        )
+      case 'overview':
+        return <StudentOverviewTab journeyId={data.journeyId} />
+      case 'report':
+        return <StudentReportTab journeyId={data.journeyId} />
       default:
         return null
     }
@@ -228,14 +321,17 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        { label: sectionLabel, href: '/dashboard/education' },
+        { label: moduleLabel, href: moduleHref },
+        ...(() => {
+          const crumb = navContext ? navContext.sectionLabel : sectionLabel
+          return crumb ? [{ label: crumb, href: moduleHref }] : []
+        })(),
         { label: person.full_name || cardTypeLabel },
       ]} />
 
       {/* Header with avatar */}
       <div style={{
-        background: getModuleHeaderGradient('education'),
+        background: getModuleHeaderGradient(headerColorKey),
         borderRadius: 12, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
       }}>
@@ -244,7 +340,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             {/* Avatar */}
             <div style={{
               width: 80, height: 80, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-              background: '#DBEAFE', color: '#1E40AF',
+              background: 'var(--accent-tint)', color: 'var(--accent-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 28, fontWeight: 700, border: '2px solid rgba(255,255,255,0.5)',
             }}>
@@ -267,32 +363,22 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           <div style={{ display: 'flex', gap: 8 }}>
             {showEditButton && (
               <button
-                onClick={() => router.push(`/dashboard/education/leads/${data.journeyId}/edit`)}
+                onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
                 style={{
                   padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                  background: '#fff', color: '#065F46',
+                  background: 'var(--surface)', color: '#065F46',
                   border: 'none', borderRadius: 8, cursor: 'pointer',
                 }}
               >
                 {t('card.labels.edit')}
               </button>
             )}
-            <button
-              onClick={() => router.push('/dashboard/education')}
-              style={{
-                padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                background: 'rgba(255,255,255,0.2)', color: '#fff',
-                border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
-              }}
-            >
-              {t('card.labels.back_to_list')}
-            </button>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid #E5E7EB', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
         {TABS.map(tabItem => {
           const active = tab === tabItem.key
           return (
@@ -302,12 +388,12 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               style={{
                 padding: '8px 14px', fontSize: 13,
                 fontWeight: active ? 600 : 400,
-                color: active ? '#3B82F6' : '#9CA3AF',
+                color: active ? 'var(--accent)' : 'var(--text-faint)',
                 background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: active ? '2px solid #3B82F6' : '2px solid transparent',
+                borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
                 marginBottom: -1, transition: 'color 0.15s, background 0.15s',
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             >
               {t(`card.tabs.${tabItem.labelKey}`)}
@@ -323,10 +409,40 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             {renderTab()}
           </Section>
         </div>
-        <div>
+        <div style={{ display: 'grid', gap: 16 }}>
+          {data.status === 'lead' && canConvert && <HandoffButton journeyId={data.journeyId} />}
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
+          <StageSignatures journeyId={data.journeyId} />
+          {data.status === 'student' && (
+            <a href={`/dashboard/education/student-view/${data.journeyId}?name=${encodeURIComponent(person.full_name || '')}`}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: 'var(--violet)', background: 'var(--violet-tint)', border: '1px solid var(--violet)', borderRadius: 10, padding: '9px 14px', textDecoration: 'none' }}>
+              <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {t('card.preview_as_student', 'Просмотр глазами студентки')}
+            </a>
+          )}
+          {data.status === 'student' && canManage && <StudentStructuresPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
+          {data.status === 'student' && <KodeshExceptionsPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <StudentFinancePanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <StaffChavrutaPanel journeyId={data.journeyId} canManage={canManage} />}
+          {data.status === 'student' && <StaffShabbatPanel journeyId={data.journeyId} canManage={canManage} />}
+          {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />}
+          {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
+          {data.status === 'student' && <StudyPlanPanel journeyId={data.journeyId} canEdit={canManage} />}
+          {data.status === 'student' && <PlacementsPanel journeyId={data.journeyId} />}
+          {data.status === 'student' && <EvaluationsPanel journeyId={data.journeyId} />}
+          <JourneyTimeline journeyId={data.journeyId} />
         </div>
       </div>
+
+      {/* Дополнительная панель на всю ширину (профиль выпускника) */}
+      {extraPanel}
     </div>
   )
 }

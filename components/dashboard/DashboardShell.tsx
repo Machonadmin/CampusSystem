@@ -32,7 +32,8 @@ function ShellContent({ children, userName, roles }: Props) {
           paddingInlineStart: mainStart,
           transition: 'padding-inline-start 0.2s ease',
           minHeight: '100vh',
-          backgroundColor: '#F9FAFB',
+          backgroundColor: 'var(--bg)',
+          color: 'var(--text)',
         }}
       >
         {children}

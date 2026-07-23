@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import type { ClassGroupUpdate } from '@/types/database'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
@@ -18,15 +19,18 @@ const CLASS_GROUP_SELECT = `
 
 /**
  * GET /api/education/class-groups/[id]
- * Доступен любому авторизованному.
  * Возвращает детальную карточку: поля группы + teachers[] + students[].
+ *
+ * Право: view_students в подразделении группы. Карточка отдаёт состав
+ * (ФИО студенток) — как в enrollments/assessments/lessons той же группы, —
+ * поэтому одной авторизации мало.
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const sb = createServerClient()
 
     const { data: group, error } = await sb
@@ -35,11 +39,17 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (error) throw error
-    if (!group) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+    if (!group) return apiError('group_not_found', 404)
+
+    const groupDept = (group as { department_id?: string | null }).department_id ?? null
+    const canView = await hasEducationPrivilege(
+      session, 'view_students', groupDept ? { department_id: groupDept } : undefined,
+    )
+    if (!canView) return apiError('forbidden', 403)
 
     const [teachersRes, enrollsRes] = await Promise.all([
       sb.from('class_teachers')
-        .select('teacher_id, is_primary, person:persons(id, full_name)')
+        .select('teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
         .eq('class_group_id', params.id),
       sb.from('class_enrollments')
         .select('journey_id')
@@ -86,7 +96,7 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -120,7 +130,7 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+    if (!current) return apiError('group_not_found', 404)
 
     await requireEducationPrivilege('manage_class_groups', { department_id: current.department_id })
 
@@ -136,16 +146,16 @@ export async function PATCH(
         .select('department_id')
         .eq('id', newSubjectId)
         .maybeSingle()
-      if (!subject) return NextResponse.json({ error: 'Предмет не найден' }, { status: 400 })
+      if (!subject) return apiError('subject_not_found', 400)
       if (subject.department_id !== newDepartmentId) {
-        return NextResponse.json({ error: 'Предмет принадлежит другому подразделению' }, { status: 400 })
+        return apiError('subject_other_department', 400)
       }
     }
 
     const update: ClassGroupUpdate = {}
     if (body.name !== undefined) {
       const n = body.name?.trim()
-      if (!n) return NextResponse.json({ error: 'Название не может быть пустым' }, { status: 400 })
+      if (!n) return apiError('title_not_empty', 400)
       update.name = n
     }
     if (body.subject_id !== undefined) update.subject_id = body.subject_id
@@ -157,7 +167,7 @@ export async function PATCH(
     if (body.is_active !== undefined) update.is_active = body.is_active
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -168,10 +178,10 @@ export async function PATCH(
       .single()
 
     if (error) {
-      if (error.code === '23505') return NextResponse.json({ error: 'Группа с таким названием уже существует' }, { status: 409 })
-      if (error.code === '23503') return NextResponse.json({ error: 'Некорректная ссылка' }, { status: 400 })
+      if (error.code === '23505') return apiError('group_name_exists', 409)
+      if (error.code === '23503') return apiError('invalid_reference_generic', 400)
       if (error.code === '23514') {
-        if (error.message?.includes('period_consistency')) return NextResponse.json({ error: 'period_end должен быть после period_start' }, { status: 400 })
+        if (error.message?.includes('period_consistency')) return apiError('period_end_after_start', 400)
       }
       throw error
     }
@@ -179,7 +189,7 @@ export async function PATCH(
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -202,7 +212,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+    if (!current) return apiError('group_not_found', 404)
 
     await requireEducationPrivilege('manage_class_groups', { department_id: current.department_id })
 
@@ -225,6 +235,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
