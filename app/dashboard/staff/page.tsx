@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -15,6 +17,8 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   parent_id: string | null
   head_name: string | null
   employee_count: number
@@ -66,7 +70,10 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   onSaved: () => void
 }) {
   const t = useTranslations('staff')
+  const { lang } = useLang()
   const [name, setName] = useState('')
+  const [nameHe, setNameHe] = useState('')
+  const [nameEn, setNameEn] = useState('')
   const [selectedParent, setSelectedParent] = useState(parentId ?? '')
   const [sortOrder, setSortOrder] = useState('0')
   const [description, setDescription] = useState('')
@@ -83,17 +90,17 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   }
   const parentOptions: { id: string; label: string }[] = []
   function walkParents(node: D, depth: number) {
-    parentOptions.push({ id: node.id, label: '  '.repeat(depth) + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walkParents(c, depth + 1))
+    parentOptions.push({ id: node.id, label: '  '.repeat(depth) + localizedDeptName(node, lang) })
+    node.children.sort((a, b) => localizedDeptName(a, lang).localeCompare(localizedDeptName(b, lang))).forEach(c => walkParents(c, depth + 1))
   }
-  roots2.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walkParents(r, 0))
+  roots2.sort((a, b) => localizedDeptName(a, lang).localeCompare(localizedDeptName(b, lang))).forEach(r => walkParents(r, 0))
 
   async function save() {
     if (!name.trim()) { setErr(t('name_required')); return }
     setSaving(true)
     const res = await fetch('/api/settings/departments', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), parent_id: selectedParent || null, sort_order: Number(sortOrder) || 0, description: description.trim() || null }),
+      body: JSON.stringify({ name: name.trim(), name_he: nameHe.trim() || null, name_en: nameEn.trim() || null, parent_id: selectedParent || null, sort_order: Number(sortOrder) || 0, description: description.trim() || null }),
     })
     setSaving(false)
     if (res.ok) onSaved()
@@ -112,6 +119,16 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
             <label style={lbl}>{t('name_ru_label')}</label>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
               placeholder={t('dept_name_placeholder')} style={inp} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>{t('name_he_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+              <input value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>{t('name_en_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+              <input value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12 }}>
             <div>
@@ -150,26 +167,40 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
 function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: () => void; onSaved: () => void }) {
   const t = useTranslations('staff')
   const [name, setName] = useState(node.name)
+  const [nameHe, setNameHe] = useState(node.name_he ?? '')
+  const [nameEn, setNameEn] = useState(node.name_en ?? '')
   const [saving, setSaving] = useState(false)
 
   async function save() {
     if (!name.trim()) return
     setSaving(true)
     await fetch(`/api/settings/departments/${node.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim() }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), name_he: nameHe.trim() || null, name_en: nameEn.trim() || null }),
     })
     setSaving(false); onSaved()
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('rename_dept')}</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
-        <div style={{ padding: '16px 20px' }}>
-          <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={lbl}>{t('name_ru_label')}</label>
+            <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>{t('name_he_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+            <input value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>{t('name_en_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+            <input value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+          </div>
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
@@ -263,6 +294,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   refreshSignal: number
 }) {
   const tStaff = useTranslations('staff')
+  const { lang } = useLang()
   const [expanded, setExpanded] = useState(true)
   const [staffOpen, setStaffOpen] = useState(false)
   const [staff, setStaff] = useState<StaffMember[]>([])
@@ -305,7 +337,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                 </svg>
               )}
             </button>
-            <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: 'var(--text)' }}>{node.name}</span>
+            <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: 'var(--text)' }}>{localizedDeptName(node, lang)}</span>
           </div>
         </td>
 
@@ -442,7 +474,7 @@ function initials(name: string) {
 
 type DeptWithKids = Department & { children: DeptWithKids[] }
 
-function flattenDeptOptions(depts: Department[]): { id: string; label: string }[] {
+function flattenDeptOptions(depts: Department[], lang: Lang): { id: string; label: string }[] {
   const map = new Map<string, DeptWithKids>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: DeptWithKids[] = []
@@ -451,11 +483,12 @@ function flattenDeptOptions(depts: Department[]): { id: string; label: string }[
     else roots.push(node)
   }
   const out: { id: string; label: string }[] = []
+  const nm = (d: Department) => localizedDeptName(d, lang)
   function walk(node: DeptWithKids, depth: number) {
-    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walk(c, depth + 1))
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + nm(node) })
+    node.children.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(c => walk(c, depth + 1))
   }
-  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  roots.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(r => walk(r, 0))
   return out
 }
 
@@ -470,7 +503,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
-  const deptOptions = flattenDeptOptions(depts)
+  const { lang } = useLang()
+  const deptOptions = flattenDeptOptions(depts, lang)
 
   function genderLabel(g: string | null): string | null {
     if (g === 'male') return t('gender.male')

@@ -70,13 +70,20 @@ export async function POST(request: NextRequest) {
   try {
     await requireSuperadmin()
     const sb = createServerClient()
-    const body = await request.json() as { name: string; parent_id?: string | null; sort_order?: number; description?: string | null }
+    const body = await request.json() as { name: string; name_he?: string | null; name_en?: string | null; parent_id?: string | null; sort_order?: number; description?: string | null }
 
     if (!body.name) return apiError('title_required', 400)
 
-    // Try inserting with sort_order/description; fall back to base columns if migration not yet applied
+    // Try inserting with sort_order/description/переводы; fall back to base columns
+    // if migration not yet applied (deploy-safe).
     const insertFull = await sb.from('departments')
-      .insert({ name: body.name, parent_id: body.parent_id ?? null, head_person_id: null, sort_order: body.sort_order ?? 0, description: body.description ?? null })
+      .insert({
+        name: body.name,
+        name_he: body.name_he?.trim() || null,
+        name_en: body.name_en?.trim() || null,
+        parent_id: body.parent_id ?? null, head_person_id: null,
+        sort_order: body.sort_order ?? 0, description: body.description ?? null,
+      })
       .select('*').single()
 
     let data = insertFull.data
