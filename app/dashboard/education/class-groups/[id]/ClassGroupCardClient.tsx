@@ -10,6 +10,7 @@ import LessonsJournalTab from '@/app/dashboard/education/components/LessonsJourn
 import GradesTab from '@/app/dashboard/education/components/GradesTab'
 import ScheduleTab from '@/app/dashboard/education/components/ScheduleTab'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedName } from '@/lib/i18n/localized-name'
 
 interface Teacher {
   person_id: string
@@ -32,6 +33,8 @@ interface StudentMini {
 interface ClassGroupDetail {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   level: string | null
   period_start: string | null
   period_end: string | null
@@ -158,7 +161,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
-        { label: group.name },
+        { label: localizedName(group, lang) },
       ]} />
 
       {/* Хедер */}
@@ -171,7 +174,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{group.name}</h1>
+            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{localizedName(group, lang)}</h1>
             <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>
               {group.subject?.name && <span>{group.subject.name}</span>}
               {group.department?.name && <span> · {group.department.name}</span>}

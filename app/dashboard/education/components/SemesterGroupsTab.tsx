@@ -6,6 +6,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import SemesterGroupModal from './SemesterGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
@@ -14,6 +15,8 @@ interface StudyTrackRef { id: string; name_he: string | null; name_ru: string | 
 interface SemesterGroup {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   year_label: string | null
   term_number: number | null
   sem_status: string | null
@@ -26,6 +29,8 @@ interface SemesterGroup {
 interface SemesterGroupInitial {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   year_label: string | null
   term_number: number | null
   study_track_id: string | null
@@ -166,7 +171,7 @@ export default function SemesterGroupsTab() {
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
-                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
                             {(g.year_label || g.term_number != null) && (
                               <span style={{ color: 'var(--text-faint)', fontSize: 12, fontWeight: 400 }}>
                                 {[g.year_label, g.term_number != null ? `#${g.term_number}` : null].filter(Boolean).join(' · ')}

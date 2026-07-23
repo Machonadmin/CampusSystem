@@ -27,10 +27,11 @@ function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
   return sb as unknown as SupabaseClient
 }
 
+// `*` вместо явного списка колонок — deploy-safe: возвращает name_he/name_en
+// сразу после применения миграции class_groups_multilang и просто опускает их
+// до неё (не роняет запрос отсутствующей колонкой).
 const SEMESTER_GROUP_SELECT = `
-  id, name, department_id, study_track_id,
-  is_semester, year_label, term_number, sem_status, tuition_amount,
-  period_start, period_end,
+  *,
   track:study_tracks(id, name_he, name_ru, name_en),
   department:departments(id, name, name_he, name_en)
 `
@@ -164,6 +165,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as {
       name?: string
+      name_he?: string | null
+      name_en?: string | null
       year_label?: string | null
       term_number?: number | null
       year_level?: number | null
@@ -243,6 +246,15 @@ export async function POST(request: NextRequest) {
       const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level } as any).eq('id', groupId) as any)
       if (ylErr && ylErr.code === '42703') {
         warning = (warning ? warning + ' ' : '') + 'Год (year_level) не сохранён: миграция studies_drilldown ещё не применена.'
+      }
+    }
+
+    // (2c) Переводы имени — отдельным деплой-безопасным UPDATE.
+    if ((body.name_he && body.name_he.trim()) || (body.name_en && body.name_en.trim())) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: trErr } = await (u(sb).from('class_groups').update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null } as any).eq('id', groupId) as any)
+      if (trErr && trErr.code === '42703') {
+        warning = (warning ? warning + ' ' : '') + 'Переводы имени не сохранены: миграция class_groups_multilang ещё не применена.'
       }
     }
 

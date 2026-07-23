@@ -16,6 +16,8 @@ interface TeacherRow { person_id: string | null; monthly_rate: string; is_primar
 interface SemesterGroupInitial {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   year_label: string | null
   term_number: number | null
   year_level?: number | null
@@ -57,6 +59,8 @@ export default function SemesterGroupModal({ mode, initial, departments, default
   const { lang } = useLang()
 
   const [name, setName] = useState(initial?.name ?? '')
+  const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
+  const [nameEn, setNameEn] = useState(initial?.name_en ?? '')
   const [yearLabel, setYearLabel] = useState(initial?.year_label ?? defaults?.year_label ?? '')
   const [termNumber, setTermNumber] = useState(initial?.term_number != null ? String(initial.term_number) : '')
   const [yearLevel, setYearLevel] = useState(
@@ -136,6 +140,8 @@ export default function SemesterGroupModal({ mode, initial, departments, default
 
       const payload: Record<string, unknown> = {
         name: name.trim(),
+        name_he: nameHe.trim() || null,
+        name_en: nameEn.trim() || null,
         year_label: yearLabel.trim() || null,
         term_number: termNumber.trim() ? Number(termNumber) : null,
         year_level: yearLevel.trim() ? Number(yearLevel) : null,
@@ -207,10 +213,20 @@ export default function SemesterGroupModal({ mode, initial, departments, default
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* 1. Название */}
+          {/* 1. Название (RU обяз. + he/en опц.) */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.name_label')} *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('semester_groups.name_placeholder')} />
+          </div>
+          <div style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={lbl}>{t('name_he_optional')}</label>
+              <input type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>{t('name_en_optional')}</label>
+              <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+            </div>
           </div>
 
           {/* 2. Год-ступень (א/ב/ג) + еврейский год (набор) + номер семестра */}

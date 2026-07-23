@@ -770,6 +770,8 @@
       "loading_directions": "טוען תוכניות…"
     },
     "study": {
+      "name_he_optional": "שם (עברית, לא חובה)",
+      "name_en_optional": "שם (אנגלית, לא חובה)",
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
       "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },

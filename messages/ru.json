@@ -770,6 +770,8 @@
       "loading_directions": "Загрузка направлений…"
     },
     "study": {
+      "name_he_optional": "Название (иврит, необяз.)",
+      "name_en_optional": "Название (англ., необяз.)",
       "setup_label": "Настройки",
       "advanced_label": "Дополнительно",
       "rail": { "collapse": "Свернуть панель", "expand": "Развернуть панель" },

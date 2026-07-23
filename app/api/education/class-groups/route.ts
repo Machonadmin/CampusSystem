@@ -141,6 +141,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as {
       name?: string
+      name_he?: string | null
+      name_en?: string | null
       subject_id?: string
       department_id?: string
       teacher_ids?: string[]
@@ -191,6 +193,17 @@ export async function POST(request: NextRequest) {
     if (insertErr) {
       const m = mapDbError(insertErr)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+
+    // Переводы имени — отдельным deploy-safe апдейтом: если столбцов name_he/
+    // name_en ещё нет (миграция не применена), это тихо игнорируется и не роняет
+    // создание группы.
+    if ((body.name_he && body.name_he.trim()) || (body.name_en && body.name_en.trim())) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: trErr } = await (sb as any).from('class_groups')
+        .update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null })
+        .eq('id', group.id)
+      if (trErr && trErr.code !== '42703') { /* столбца нет — ок; иная ошибка не критична для создания */ }
     }
 
     let teachers: TeacherEntry[] = []

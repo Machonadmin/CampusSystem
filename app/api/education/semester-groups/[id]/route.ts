@@ -22,10 +22,9 @@ async function requireAuth() {
   return session
 }
 
+// `*` — deploy-safe: подтягивает name_he/name_en после миграции и опускает до неё.
 const DETAIL_SELECT = `
-  id, name, department_id, study_track_id, subject_id,
-  is_semester, year_label, term_number, sem_status, tuition_amount,
-  period_start, period_end,
+  *,
   track:study_tracks(id, name_he, name_ru, name_en),
   department:departments(id, name, name_he, name_en)
 `
@@ -170,6 +169,8 @@ export async function PATCH(
   try {
     const body = await request.json() as {
       name?: string
+      name_he?: string | null
+      name_en?: string | null
       year_label?: string | null
       term_number?: number | null
       year_level?: number | null
@@ -252,6 +253,16 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level ?? null } as any).eq('id', params.id) as any)
       if (ylErr && ylErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Год (year_level) не обновлён: миграция studies_drilldown не применена.'
+    }
+
+    // Переводы имени — отдельным деплой-безопасным UPDATE.
+    if (body.name_he !== undefined || body.name_en !== undefined) {
+      const tr: Record<string, string | null> = {}
+      if (body.name_he !== undefined) tr.name_he = body.name_he?.trim() || null
+      if (body.name_en !== undefined) tr.name_en = body.name_en?.trim() || null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: trErr } = await (u(sb).from('class_groups').update(tr as any).eq('id', params.id) as any)
+      if (trErr && trErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
     }
 
     // ── Синхронизация преподавателей ──────────────────────────────────────

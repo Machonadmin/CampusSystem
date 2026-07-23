@@ -770,6 +770,8 @@
       "loading_directions": "Loading directions..."
     },
     "study": {
+      "name_he_optional": "Name (Hebrew, optional)",
+      "name_en_optional": "Name (English, optional)",
       "setup_label": "Setup",
       "advanced_label": "Advanced",
       "rail": { "collapse": "Collapse", "expand": "Expand" },
