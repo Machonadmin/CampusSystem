@@ -206,9 +206,26 @@ export async function POST(
     // набор. Best-effort, никогда не роняет ответ.
     const finish = (result as CompleteStageResult).finish_reason
 
+    // «לימודים חיצוניים» (external_studies) — тоже приём (положительный исход), но
+    // движок конвертирует только 'admitted'/'admitted_conditional'. Доводим journey
+    // до 'student' здесь (best-effort). Форма/маршрут обучения уже сохранены выше в
+    // journey_study_tracks (track_id). Счёт НЕ создаётся автоматически.
+    if (ctx.journeyId && finish === 'external_studies') {
+      try {
+        const { error: convErr } = await sb
+          .from('education_journeys')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ education_status: 'student' } as any)
+          .eq('id', ctx.journeyId)
+        if (convErr) console.error('[complete] external_studies → student:', convErr)
+      } catch (convCatch) {
+        console.error('[complete] external_studies → student:', convCatch)
+      }
+    }
+
     // Приём состоялся → авто-создаём действующий договор (חוזה), копируя льготы
     // из профиля. Идемпотентно, best-effort, деплой-безопасно.
-    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional')) {
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'external_studies')) {
       try {
         await createAdmissionContract(sb, { journeyId: ctx.journeyId, createdBy: session.person_id })
       } catch (cErr) {
@@ -216,7 +233,7 @@ export async function POST(
       }
     }
 
-    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'rejected')) {
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'external_studies' || finish === 'rejected')) {
       try {
         const { data: si } = await sb
           .from('stage_instances')
