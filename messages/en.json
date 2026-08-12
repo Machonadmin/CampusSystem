@@ -3360,6 +3360,7 @@
     },
     "fields": {
       "doc_type": "Type",
+      "category": "Category",
       "title": "Title",
       "issued_date": "Issued date",
       "expiry_date": "Expiry date",
@@ -3382,6 +3383,20 @@
     "status": {
       "active": "Active",
       "archived": "Archived"
+    },
+    "categories": {
+      "general": "General",
+      "jewish": "Jewishness",
+      "academic": "Studies",
+      "dormitory": "Dormitory",
+      "other": "Other"
+    },
+    "review": {
+      "received": "Received",
+      "checked": "Checked",
+      "rejected": "Rejected",
+      "mark_checked": "Mark checked",
+      "mark_rejected": "Mark rejected"
     },
     "add": {
       "title": "Add document",

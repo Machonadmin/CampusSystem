@@ -16,8 +16,7 @@ import type { DocumentRecordInsert } from '@/types/database'
  *   created_by заполняется из сессии; статус нового документа — 'active'.
  */
 
-const DOC_COLS =
-  'id, journey_id, doc_type, title, issued_date, expiry_date, file_url, storage_path, file_name, mime_type, size_bytes, status, notes, created_by, created_at, updated_at'
+const DOC_COLS = '*'
 
 const PAGE = 1000
 

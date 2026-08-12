@@ -3360,6 +3360,7 @@
     },
     "fields": {
       "doc_type": "סוג",
+      "category": "קטגוריה",
       "title": "כותרת",
       "issued_date": "תאריך הנפקה",
       "expiry_date": "תאריך תפוגה",
@@ -3382,6 +3383,20 @@
     "status": {
       "active": "פעיל",
       "archived": "בארכיון"
+    },
+    "categories": {
+      "general": "כללי",
+      "jewish": "יהדות",
+      "academic": "לימודים",
+      "dormitory": "פנימייה",
+      "other": "נוסף"
+    },
+    "review": {
+      "received": "התקבל",
+      "checked": "נבדק",
+      "rejected": "נדחה",
+      "mark_checked": "סמן כנבדק",
+      "mark_rejected": "סמן כנדחה"
     },
     "add": {
       "title": "הוספת מסמך",

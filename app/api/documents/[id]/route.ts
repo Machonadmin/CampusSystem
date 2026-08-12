@@ -17,8 +17,7 @@ import type { DocumentRecordUpdate } from '@/types/database'
  *   делается через PATCH status='archived'.
  */
 
-const DOC_COLS =
-  'id, journey_id, doc_type, title, issued_date, expiry_date, file_url, status, notes, created_by, created_at, updated_at'
+const DOC_COLS = '*'
 
 export async function GET(
   _request: NextRequest,

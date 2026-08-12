@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageJourneyDocs } from '@/lib/documents/journey-access'
 import { notifyOwnerOfDocument } from '@/lib/notifications/journey-owner'
 import { mapDbError } from '@/lib/documents/http'
-import { isDocType, isIsoDate } from '@/lib/documents/validation'
+import { isDocType, isIsoDate, isDocCategory } from '@/lib/documents/validation'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
 import type { DocumentRecordInsert } from '@/types/database'
 
@@ -18,8 +18,7 @@ import type { DocumentRecordInsert } from '@/types/database'
 
 export const runtime = 'nodejs'
 
-const DOC_COLS =
-  'id, journey_id, doc_type, title, issued_date, expiry_date, file_url, storage_path, file_name, mime_type, size_bytes, status, notes, created_by, created_at, updated_at'
+const DOC_COLS = '*'
 
 function formStr(form: FormData, key: string): string | null {
   const v = form.get(key)
@@ -73,6 +72,11 @@ export async function POST(
 
     const notes = formStr(form, 'notes')
 
+    // Категория (группировка): необязательна, по умолчанию 'general'. Пишется
+    // отдельным deploy-safe update ниже (колонка может быть ещё не мигрирована).
+    const rawCategory = formStr(form, 'category')
+    if (rawCategory && !isDocCategory(rawCategory)) return apiError('invalid_reference', 400)
+
     const { data: journey, error: jErr } = await sb
       .from('education_journeys').select('id').eq('id', params.id).maybeSingle()
     if (jErr) throw jErr
@@ -106,6 +110,20 @@ export async function POST(
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+
+    // Категория — deploy-safe: колонки может ещё не быть (42703) → тихо пропускаем.
+    if (rawCategory && (data as { id?: string })?.id) {
+      try {
+        const { error: catErr } = await sb
+          .from('document_records')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ category: rawCategory } as any)
+          .eq('id', (data as { id: string }).id)
+        if (catErr && catErr.code !== '42703') console.error('[upload] category set:', catErr)
+      } catch (catCatch) {
+        if ((catCatch as { code?: string }).code !== '42703') console.error('[upload] category set:', catCatch)
+      }
     }
 
     await notifyOwnerOfDocument(sb, params.id, session.person_id)

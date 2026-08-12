@@ -3360,6 +3360,7 @@
     },
     "fields": {
       "doc_type": "Тип",
+      "category": "Категория",
       "title": "Название",
       "issued_date": "Дата выдачи",
       "expiry_date": "Дата окончания",
@@ -3382,6 +3383,20 @@
     "status": {
       "active": "Активен",
       "archived": "Архив"
+    },
+    "categories": {
+      "general": "Общие",
+      "jewish": "Еврейство",
+      "academic": "Учёба",
+      "dormitory": "Общежитие",
+      "other": "Прочее"
+    },
+    "review": {
+      "received": "Получен",
+      "checked": "Проверен",
+      "rejected": "Отклонён",
+      "mark_checked": "Отметить проверенным",
+      "mark_rejected": "Отметить отклонённым"
     },
     "add": {
       "title": "Добавить документ",
