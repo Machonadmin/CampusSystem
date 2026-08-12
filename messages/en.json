@@ -2631,6 +2631,8 @@
       "discounts_total": "Discounts",
       "give_discount": "Give discount",
       "percent": "Percent",
+      "suggested_discount": "Suggested (Jewishness)",
+      "suggested_discount_hint": "Discount set by the Jewishness check. Click to fill",
       "reason": "Reason",
       "reason_ph": "Needy family / sponsored / …",
       "signature": "Electronic signature — type your full name",

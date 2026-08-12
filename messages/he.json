@@ -2631,6 +2631,8 @@
       "discounts_total": "הנחות",
       "give_discount": "מתן הנחה",
       "percent": "אחוז",
+      "suggested_discount": "מומלץ מבירור יהדות",
+      "suggested_discount_hint": "אחוז ההנחה שנקבע בבדיקת היהדות. לחיצה ממלאת את השדה",
       "reason": "סיבה",
       "reason_ph": "משפחה נזקקת / ממומן / …",
       "signature": "חתימה אלקטרונית — הקלד/י שם מלא",

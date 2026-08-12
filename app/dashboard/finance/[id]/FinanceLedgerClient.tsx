@@ -53,6 +53,7 @@ interface Ledger {
   charges: Charge[]
   payments: Payment[]
   totals: Totals
+  suggested_discount_percent?: number | null
 }
 
 interface Props {
@@ -194,9 +195,12 @@ export default function FinanceLedgerClient({
     )
   }
 
+  const suggestedDiscount = ledger?.suggested_discount_percent ?? null
   function openDiscount(chargeId: string) {
     setActionError(null)
-    setDPercent(''); setDReason(''); setDSignature('')
+    // Предзаполняем рекомендованной скидкой из профиля (проверка еврейства).
+    setDPercent(suggestedDiscount != null ? String(suggestedDiscount) : '')
+    setDReason(''); setDSignature('')
     setDiscountChargeId(prev => (prev === chargeId ? null : chargeId))
   }
   const dPercentNum = Number(dPercent)
@@ -343,6 +347,13 @@ export default function FinanceLedgerClient({
                               }}>{p}%</button>
                             ))}
                           </div>
+                          {suggestedDiscount != null && (
+                            <button type="button" onClick={() => setDPercent(String(suggestedDiscount))} style={{
+                              fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+                              border: '1px solid #0F766E', background: dPercent === String(suggestedDiscount) ? '#0F766E' : '#CCFBF1',
+                              color: dPercent === String(suggestedDiscount) ? '#fff' : '#0F766E',
+                            }} title={t('ledger.suggested_discount_hint')}>{t('ledger.suggested_discount')}: {suggestedDiscount}%</button>
+                          )}
                           <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
                           <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
                           <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
