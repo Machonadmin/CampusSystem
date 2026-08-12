@@ -4186,7 +4186,12 @@
     "no_date": "No date",
     "stalled": "Stuck in process",
     "days_waiting": "{n} d",
-    "my_lessons_today": "My lessons today"
+    "my_lessons_today": "My lessons today",
+    "agenda_title": "Coming days",
+    "agenda_open": "Open calendar",
+    "agenda_empty": "No meetings or events in the coming week",
+    "agenda_today": "Today",
+    "agenda_all_day": "All day"
   },
   "search": {
     "placeholder": "Search a person…",

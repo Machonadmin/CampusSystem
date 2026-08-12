@@ -4186,7 +4186,12 @@
     "no_date": "Без даты",
     "stalled": "Застряли в процессе",
     "days_waiting": "{n} дн.",
-    "my_lessons_today": "Мои уроки сегодня"
+    "my_lessons_today": "Мои уроки сегодня",
+    "agenda_title": "Ближайшие дни",
+    "agenda_open": "Открыть календарь",
+    "agenda_empty": "Нет встреч и событий на ближайшую неделю",
+    "agenda_today": "Сегодня",
+    "agenda_all_day": "Весь день"
   },
   "search": {
     "placeholder": "Поиск человека…",

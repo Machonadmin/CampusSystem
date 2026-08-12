@@ -4186,7 +4186,12 @@
     "no_date": "ללא תאריך",
     "stalled": "תקועות בתהליך",
     "days_waiting": "{n} ימים",
-    "my_lessons_today": "השיעורים שלי היום"
+    "my_lessons_today": "השיעורים שלי היום",
+    "agenda_title": "הימים הקרובים",
+    "agenda_open": "פתח יומן",
+    "agenda_empty": "אין אירועים או פגישות בשבוע הקרוב",
+    "agenda_today": "היום",
+    "agenda_all_day": "כל היום"
   },
   "search": {
     "placeholder": "חיפוש אדם…",
