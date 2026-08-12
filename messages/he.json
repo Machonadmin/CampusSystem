@@ -768,7 +768,16 @@
         "error_date_required": "יש לציין תאריך",
         "error_generic": "שינוי הסטטוס נכשל"
       },
-      "preview_as_student": "צפה כתלמידה"
+      "preview_as_student": "צפה כתלמידה",
+      "dormitory": {
+        "title": "פנימייה",
+        "question": "צריכה פנימייה?",
+        "needed": "צריכה",
+        "not_needed": "לא צריכה",
+        "undecided": "טרם הוחלט",
+        "hint": "מפעיל את שלבי הרופא והפסיכולוג; אם אין צורך בפנימייה — שלב הפנימייה מדולג.",
+        "updated": "עודכן"
+      }
     },
     "cascade": {
       "institution_label": "מוסד",

@@ -768,7 +768,16 @@
         "error_date_required": "Date is required",
         "error_generic": "Failed to change status"
       },
-      "preview_as_student": "Preview as student"
+      "preview_as_student": "Preview as student",
+      "dormitory": {
+        "title": "Boarding",
+        "question": "Needs boarding?",
+        "needed": "Needed",
+        "not_needed": "Not needed",
+        "undecided": "Undecided",
+        "hint": "Activates the doctor and psychologist stages; if boarding is not needed, the dormitory stage is skipped.",
+        "updated": "Updated"
+      }
     },
     "cascade": {
       "institution_label": "Institution",

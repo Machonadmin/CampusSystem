@@ -141,6 +141,15 @@ export async function POST(
         p_actor_id: session.person_id,
       })
       if (admErr) console.error('[complete] авто-запуск «Приём»:', admErr)
+
+      // Условный «Пансион»: привести врача/психолога/общежитие в соответствие
+      // с флагом needs_dormitory сразу после старта приёма (best-effort,
+      // идемпотентно; NULL-флаг — no-op). См. 20260724190000.
+      const { error: gateErr } = await sb.rpc('acceptance_apply_dormitory_gating', {
+        p_journey_id: ctx.journeyId,
+        p_actor_id: session.person_id,
+      })
+      if (gateErr) console.error('[complete] dormitory gating:', gateErr)
     }
 
     // Синхронизация автозадач приёма (напоминание + календарь) — best-effort,

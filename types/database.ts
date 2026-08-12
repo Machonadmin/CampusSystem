@@ -156,6 +156,9 @@ export interface EducationJourneyRow {
   referral_source: string | null
   rejection_reason: string | null
 
+  // Приём: нужен ли пансион (гейтит этапы врача/психолога/общежития). NULL = не решено.
+  needs_dormitory: boolean | null
+
   // ЛЕГАСИ-поля (удалим в Part 2)
   community_contact_name: string | null
   community_contact_role: string | null
@@ -213,6 +216,7 @@ export type EducationJourneyInsert = {
   decision_date?: string | null
   referral_source?: string | null
   rejection_reason?: string | null
+  needs_dormitory?: boolean | null
   community_contact_name?: string | null
   community_contact_role?: string | null
   community_phone?: string | null
@@ -2082,6 +2086,16 @@ export interface Database {
           p_effective_date?: string | null
         }
         Returns: { journey_id: string; from_status: string; to_status: string }
+      }
+      acceptance_apply_dormitory_gating: {
+        Args: { p_journey_id: string; p_actor_id: string | null }
+        Returns: {
+          applied: boolean
+          reason?: string
+          needs_dormitory?: boolean
+          activated?: string[]
+          skipped?: string[]
+        }
       }
     }
     Enums: Record<string, never>

@@ -135,6 +135,7 @@ export async function PATCH(
       decision_date?: string | null
       referral_source?: string | null
       rejection_reason?: string | null
+      needs_dormitory?: boolean | null
       notes?: string | null
       status?: string | null
     }
@@ -207,6 +208,7 @@ export async function PATCH(
     if (body.decision_date !== undefined) update.decision_date = body.decision_date
     if (body.referral_source !== undefined) update.referral_source = body.referral_source
     if (body.rejection_reason !== undefined) update.rejection_reason = body.rejection_reason
+    if (body.needs_dormitory !== undefined) update.needs_dormitory = body.needs_dormitory
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
     if (body.status !== undefined) update.status = body.status
 
@@ -225,6 +227,17 @@ export async function PATCH(
     if (error) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
+    }
+
+    // Если менялся флаг «нужен пансион» — привести этапы приёма в соответствие
+    // (активировать/пропустить врача/психолога/общежитие). Best-effort,
+    // идемпотентно; no-op, если активного приёма нет. См. 20260724190000.
+    if (body.needs_dormitory !== undefined) {
+      const { error: gateErr } = await sb.rpc('acceptance_apply_dormitory_gating', {
+        p_journey_id: params.id,
+        p_actor_id: session.person_id,
+      })
+      if (gateErr) console.error('[journeys.PATCH] dormitory gating:', gateErr)
     }
 
     return NextResponse.json(data)

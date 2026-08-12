@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { phoneList } from '@/lib/persons/phone'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
+import DormitoryFlagPanel from '@/components/education/DormitoryFlagPanel'
 import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import StudyPlanPanel from '@/components/education/StudyPlanPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
@@ -418,6 +419,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         <div style={{ display: 'grid', gap: 16 }}>
           {data.status === 'lead' && canConvert && <HandoffButton journeyId={data.journeyId} />}
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
+          {(data.status === 'lead' || data.status === 'applicant') && (
+            <DormitoryFlagPanel journeyId={data.journeyId} canManage={canManage} />
+          )}
           <StageSignatures journeyId={data.journeyId} />
           {data.status === 'student' && (
             <a href={`/dashboard/education/student-view/${data.journeyId}?name=${encodeURIComponent(person.full_name || '')}`}
