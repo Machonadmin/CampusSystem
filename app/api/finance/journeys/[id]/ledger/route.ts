@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinance } from '@/lib/finance/access'
 import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
+import { getActiveContract } from '@/lib/admission/benefits'
 
 /**
  * GET /api/finance/journeys/[id]/ledger
@@ -161,12 +162,16 @@ export async function GET(
       if ((e as { code?: string }).code !== '42703') throw e
     }
 
+    // Действующий договор приёма (חוזה) — показываем сводку льгот. Деплой-безопасно.
+    const contract = await getActiveContract(sb, params.id)
+
     return NextResponse.json({
       journey,
       charges,
       payments: paymentRows,
       totals: computeLedgerTotals(chargeRows, paymentRows, activeDiscounts),
       suggested_discount_percent: suggestedDiscount,
+      contract,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }

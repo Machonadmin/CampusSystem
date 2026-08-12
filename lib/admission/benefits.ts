@@ -95,6 +95,43 @@ export async function setAdmissionBenefits(
  * Best-effort / деплой-безопасно. Возвращает 'created' | 'exists' | 'skipped'
  * ('skipped' — фича не мигрирована).
  */
+export interface AdmissionContract {
+  id: string
+  journey_id: string
+  tuition_discount_percent: number | null
+  support_amount: number | null
+  benefits_notes: string | null
+  status: 'draft' | 'active' | 'void'
+  created_at: string
+}
+
+/**
+ * Возвращает действующий (status='active') договор journey, либо null.
+ * Деплой-безопасно: нет таблицы (42P01) → null.
+ */
+export async function getActiveContract(
+  sb: SB,
+  journeyId: string,
+): Promise<AdmissionContract | null> {
+  const u = sb as unknown as SupabaseClient
+  try {
+    const { data, error } = await u
+      .from('admission_contracts')
+      .select('id, journey_id, tuition_discount_percent, support_amount, benefits_notes, status, created_at')
+      .eq('journey_id', journeyId)
+      .eq('status', 'active')
+      .maybeSingle()
+    if (error) {
+      if (MISSING.has((error as { code?: string }).code ?? '')) return null
+      throw error
+    }
+    return (data as AdmissionContract | null) ?? null
+  } catch (e) {
+    if (MISSING.has((e as { code?: string }).code ?? '')) return null
+    throw e
+  }
+}
+
 export async function createAdmissionContract(
   sb: SB,
   opts: { journeyId: string; createdBy: string | null },
