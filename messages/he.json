@@ -592,7 +592,10 @@
         "refused": "סירב להגיע",
         "convert_to_applicant": "העבר למועמד",
         "approved": "אושר",
-        "refer_to_doctor": "הפניה לרופא/פסיכולוג",
+        "refer_to_doctor": "הפניה לרופא",
+        "refer_to_psychologist": "הפניה לפסיכולוג",
+        "exam_required": "נדרשים מבחני קבלה",
+        "external_studies": "לימודים חיצוניים",
         "admitted": "התקבלה",
         "admitted_conditional": "התקבלה על תנאי"
       },

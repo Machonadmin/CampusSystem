@@ -593,6 +593,9 @@
         "convert_to_applicant": "Convert to applicant",
         "approved": "Approved",
         "refer_to_doctor": "Refer to doctor",
+        "refer_to_psychologist": "Refer to psychologist",
+        "exam_required": "Entrance exams required",
+        "external_studies": "External studies",
         "admitted": "Admitted",
         "admitted_conditional": "Admitted (conditional)"
       },

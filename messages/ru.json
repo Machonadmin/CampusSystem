@@ -593,6 +593,9 @@
         "convert_to_applicant": "Перевести в абитуриенты",
         "approved": "Одобрено",
         "refer_to_doctor": "Направить к врачу",
+        "refer_to_psychologist": "Направить к психологу",
+        "exam_required": "Нужны вступительные экзамены",
+        "external_studies": "Внешнее обучение",
         "admitted": "Принята",
         "admitted_conditional": "Условно принята"
       },
