@@ -1141,7 +1141,11 @@
       "refer_to_doctor": "Направить к врачу",
       "refer_to_psychologist": "Направить к психологу",
       "admitted": "Принята",
-      "admitted_conditional": "Условно принята"
+      "admitted_conditional": "Условно принята",
+      "partial": "Подтверждено частично",
+      "exam_required": "Нужны вступительные экзамены",
+      "external_studies": "Внешнее обучение",
+      "postponed": "Приём отложен"
     },
     "signatures": {
       "title": "Подписи и утверждения",

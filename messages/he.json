@@ -1141,7 +1141,11 @@
       "refer_to_doctor": "הפניה לרופא",
       "refer_to_psychologist": "הפניה לפסיכולוג",
       "admitted": "התקבלה",
-      "admitted_conditional": "התקבלה על תנאי"
+      "admitted_conditional": "התקבלה על תנאי",
+      "partial": "אישור חלקי",
+      "exam_required": "נדרשים מבחני קבלה",
+      "external_studies": "לימודים חיצוניים",
+      "postponed": "קבלה נדחית"
     },
     "signatures": {
       "title": "חתימות ואישורים",

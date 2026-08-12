@@ -1141,7 +1141,11 @@
       "refer_to_doctor": "Refer to doctor",
       "refer_to_psychologist": "Refer to psychologist",
       "admitted": "Admitted",
-      "admitted_conditional": "Conditionally admitted"
+      "admitted_conditional": "Conditionally admitted",
+      "partial": "Partially confirmed",
+      "exam_required": "Entrance exams required",
+      "external_studies": "External studies",
+      "postponed": "Admission postponed"
     },
     "signatures": {
       "title": "Signatures & approvals",

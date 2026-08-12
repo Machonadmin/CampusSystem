@@ -70,7 +70,8 @@ export default function AcceptanceOverviewTab() {
     (lang === 'he' ? tr.name_he : lang === 'ru' ? tr.name_ru : tr.name_en) || tr.name_he
   const isAdmit = selectedFinal === 'admitted' || selectedFinal === 'admitted_conditional'
   // Маршрут выбирается и на учебном этапе (academic, «אחראי לימודים»), и при финале.
-  const showTrackPicker = isAdmit || (modal?.cell.stage_code === 'academic' && selectedFinal === 'approved')
+  const showTrackPicker = isAdmit || selectedFinal === 'external_studies'
+    || (modal?.cell.stage_code === 'academic' && selectedFinal === 'approved')
 
   useEffect(() => {
     fetch('/api/education/study-tracks')
@@ -308,7 +309,7 @@ function Cell({
   finalLabel: (code: string) => string
 }) {
   const done = cell.status === 'completed' && cell.final_code
-  const positive = ['approved', 'admitted', 'admitted_conditional'].includes(cell.final_code ?? '')
+  const positive = ['approved', 'admitted', 'admitted_conditional', 'external_studies', 'partial'].includes(cell.final_code ?? '')
   return (
     <div style={{ display: 'grid', gap: 4 }}>
       {done ? (
