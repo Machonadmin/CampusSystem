@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { isJewishnessStatus, setJewishnessStatus } from '@/lib/jewishness/status'
+import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefits'
 
 /**
  * POST /api/jewishness/journeys/[journeyId]/status
@@ -39,6 +40,16 @@ export async function POST(request: NextRequest, { params }: { params: { journey
       source: 'module',
     })
     if (!ok) return apiError('feature_not_migrated', 503)
+
+    // Льготы приёма (скидка/поддержка/заметки), если переданы. Best-effort.
+    const benefits = parseBenefitsInput(body)
+    if (benefits) {
+      try {
+        await setAdmissionBenefits(sb, { journeyId: params.journeyId, benefits, setBy: session.person_id })
+      } catch (bErr) {
+        console.error('[jewishness/status] benefits:', bErr)
+      }
+    }
 
     return NextResponse.json({ ok: true, status: body.status })
   } catch (err: unknown) {

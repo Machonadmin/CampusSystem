@@ -7,6 +7,7 @@ import { jsonError } from '@/lib/api/handler'
 import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { finalCodeToStatus, setJewishnessStatus } from '@/lib/jewishness/status'
+import { parseBenefitsInput, setAdmissionBenefits, createAdmissionContract } from '@/lib/admission/benefits'
 import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
@@ -188,12 +189,33 @@ export async function POST(
           console.error('[complete] jewishness status sync:', jErr)
         }
       }
+      // Льготы приёма (скидка/поддержка/заметки), если офицер передал их при
+      // завершении этапа еврейства. Best-effort, деплой-безопасно.
+      const benefits = parseBenefitsInput(body.result_data)
+      if (benefits) {
+        try {
+          await setAdmissionBenefits(sb, { journeyId: ctx.journeyId, benefits, setBy: session.person_id })
+        } catch (bErr) {
+          console.error('[complete] admission benefits:', bErr)
+        }
+      }
     }
 
     // Когда приёмная комиссия ЗАВЕРШИЛАСЬ (принята/условно/отклонена) — уведомляем
     // того, кто запустил приём (набор), результатом. Замыкает петлю обратно на
     // набор. Best-effort, никогда не роняет ответ.
     const finish = (result as CompleteStageResult).finish_reason
+
+    // Приём состоялся → авто-создаём действующий договор (חוזה), копируя льготы
+    // из профиля. Идемпотентно, best-effort, деплой-безопасно.
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional')) {
+      try {
+        await createAdmissionContract(sb, { journeyId: ctx.journeyId, createdBy: session.person_id })
+      } catch (cErr) {
+        console.error('[complete] admission contract create:', cErr)
+      }
+    }
+
     if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'rejected')) {
       try {
         const { data: si } = await sb
