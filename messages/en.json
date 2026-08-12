@@ -672,9 +672,12 @@
         "on_leave": "Card (academic leave)"
       },
       "source": {
+        "self": "Called themselves",
+        "event_community": "Via event or community",
+        "referral": "Referral",
+        "import": "List import",
         "website": "Website",
         "social": "Social media",
-        "referral": "Referral",
         "call": "Phone call",
         "exhibition": "Exhibition",
         "other": "Other"

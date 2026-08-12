@@ -672,9 +672,12 @@
         "on_leave": "כרטיס סטודנט בחופשת לימודים"
       },
       "source": {
+        "self": "התקשרה בעצמה",
+        "event_community": "דרך אירוע או קהילה",
+        "referral": "המלצה",
+        "import": "ייבוא רשימה",
         "website": "אתר",
         "social": "רשתות חברתיות",
-        "referral": "המלצה",
         "call": "שיחת טלפון",
         "exhibition": "תערוכה",
         "other": "אחר"

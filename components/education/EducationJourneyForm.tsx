@@ -34,7 +34,9 @@ export interface EducationJourneyFormProps {
 const TAB_LABEL_KEYS_BASE = ['personal', 'contacts', 'family', 'community', 'directions', 'additional']
 const TAB_LABEL_KEYS_WITH_ACADEMIC = [...TAB_LABEL_KEYS_BASE, 'academic']
 
-const SOURCE_CODES = ['website', 'social', 'referral', 'call', 'exhibition', 'other']
+// Источники по бизнес-процессу v2 (док. «גיוס וקבלה», п. «מקור»):
+// התקשרה בעצמה / דרך אירוע או קהילה / המלצה / ייבוא רשימה.
+const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
 
 const MODE_CONFIG = {
   lead:      { titleKey: 'add_lead',      saveKey: 'create_lead' },
