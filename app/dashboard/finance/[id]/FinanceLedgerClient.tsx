@@ -49,10 +49,20 @@ interface Totals {
   discounts_total: number
   balance: number
 }
+interface Contract {
+  id: string
+  tuition_discount_percent: number | null
+  support_amount: number | null
+  benefits_notes: string | null
+  status: string
+  created_at: string
+}
 interface Ledger {
   charges: Charge[]
   payments: Payment[]
   totals: Totals
+  suggested_discount_percent?: number | null
+  contract?: Contract | null
 }
 
 interface Props {
@@ -125,7 +135,13 @@ export default function FinanceLedgerClient({
         return
       }
       const body = await res.json()
-      setLedger({ charges: body.charges ?? [], payments: body.payments ?? [], totals: body.totals })
+      setLedger({
+        charges: body.charges ?? [],
+        payments: body.payments ?? [],
+        totals: body.totals,
+        suggested_discount_percent: body.suggested_discount_percent ?? null,
+        contract: body.contract ?? null,
+      })
     } catch {
       setError(t('ledger.load_error'))
     } finally {
@@ -194,9 +210,12 @@ export default function FinanceLedgerClient({
     )
   }
 
+  const suggestedDiscount = ledger?.suggested_discount_percent ?? null
   function openDiscount(chargeId: string) {
     setActionError(null)
-    setDPercent(''); setDReason(''); setDSignature('')
+    // Предзаполняем рекомендованной скидкой из профиля (проверка еврейства).
+    setDPercent(suggestedDiscount != null ? String(suggestedDiscount) : '')
+    setDReason(''); setDSignature('')
     setDiscountChargeId(prev => (prev === chargeId ? null : chargeId))
   }
   const dPercentNum = Number(dPercent)
@@ -263,6 +282,21 @@ export default function FinanceLedgerClient({
             <TotalCard label={t('ledger.payments_pending')} value={fmtMoney(ledger.totals.payments_pending)} color="#D97706" />
             <TotalCard label={t('ledger.discounts_total')} value={fmtMoney(ledger.totals.discounts_total)} color="#7C3AED" />
           </div>
+
+          {ledger.contract && (
+            <div style={{ border: '1px solid #0F766E', background: '#F0FDFA', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#0F766E' }}>{t('ledger.contract_title')}</span>
+              {ledger.contract.tuition_discount_percent != null && (
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_discount')}: <b>{ledger.contract.tuition_discount_percent}%</b></span>
+              )}
+              {ledger.contract.support_amount != null && (
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_support')}: <b>{fmtMoney(ledger.contract.support_amount)}</b></span>
+              )}
+              {ledger.contract.benefits_notes && (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{ledger.contract.benefits_notes}</span>
+              )}
+            </div>
+          )}
 
           {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
 
@@ -343,6 +377,13 @@ export default function FinanceLedgerClient({
                               }}>{p}%</button>
                             ))}
                           </div>
+                          {suggestedDiscount != null && (
+                            <button type="button" onClick={() => setDPercent(String(suggestedDiscount))} style={{
+                              fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+                              border: '1px solid #0F766E', background: dPercent === String(suggestedDiscount) ? '#0F766E' : '#CCFBF1',
+                              color: dPercent === String(suggestedDiscount) ? '#fff' : '#0F766E',
+                            }} title={t('ledger.suggested_discount_hint')}>{t('ledger.suggested_discount')}: {suggestedDiscount}%</button>
+                          )}
                           <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
                           <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
                           <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />

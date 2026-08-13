@@ -98,6 +98,11 @@
     "status_verified": "מאושר",
     "status_rejected": "נדחה",
     "status_needs_review": "דורש בדיקה נוספת",
+    "status_partial": "אישור חלקי",
+    "benefits_hint": "אם בדיקת היהדות קובעת הטבות — מלא/י כאן (יישמרו בפרופיל ובחוזה)",
+    "benefits_discount_label": "הנחה על שכר לימוד (%)",
+    "benefits_support_label": "סכום תמיכה (₪)",
+    "benefits_notes_label": "הערות על הטבות",
     "filter_all": "הכול",
     "module_subtitle": "כל המועמדות והתלמידות עם סטטוס בירור היהדות",
     "search_placeholder": "חיפוש לפי שם או אימייל",
@@ -587,7 +592,10 @@
         "refused": "סירב להגיע",
         "convert_to_applicant": "העבר למועמד",
         "approved": "אושר",
-        "refer_to_doctor": "הפניה לרופא/פסיכולוג",
+        "refer_to_doctor": "הפניה לרופא",
+        "refer_to_psychologist": "הפניה לפסיכולוג",
+        "exam_required": "נדרשים מבחני קבלה",
+        "external_studies": "לימודים חיצוניים",
         "admitted": "התקבלה",
         "admitted_conditional": "התקבלה על תנאי"
       },
@@ -637,6 +645,7 @@
       "tabs": {
         "personal": "נתונים אישיים",
         "contacts": "פרטי קשר",
+        "communication": "תקשורת",
         "family": "משפחה",
         "community": "קהילה",
         "directions": "כיוונים",
@@ -663,9 +672,12 @@
         "on_leave": "כרטיס סטודנט בחופשת לימודים"
       },
       "source": {
+        "self": "התקשרה בעצמה",
+        "event_community": "דרך אירוע או קהילה",
+        "referral": "המלצה",
+        "import": "ייבוא רשימה",
         "website": "אתר",
         "social": "רשתות חברתיות",
-        "referral": "המלצה",
         "call": "שיחת טלפון",
         "exhibition": "תערוכה",
         "other": "אחר"
@@ -756,7 +768,16 @@
         "error_date_required": "יש לציין תאריך",
         "error_generic": "שינוי הסטטוס נכשל"
       },
-      "preview_as_student": "צפה כתלמידה"
+      "preview_as_student": "צפה כתלמידה",
+      "dormitory": {
+        "title": "פנימייה",
+        "question": "צריכה פנימייה?",
+        "needed": "צריכה",
+        "not_needed": "לא צריכה",
+        "undecided": "טרם הוחלט",
+        "hint": "מפעיל את שלבי הרופא והפסיכולוג; אם אין צורך בפנימייה — שלב הפנימייה מדולג.",
+        "updated": "עודכן"
+      }
     },
     "cascade": {
       "institution_label": "מוסד",
@@ -770,6 +791,8 @@
       "loading_directions": "טוען תוכניות…"
     },
     "study": {
+      "name_he_optional": "שם (עברית, לא חובה)",
+      "name_en_optional": "שם (אנגלית, לא חובה)",
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
       "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },
@@ -1134,7 +1157,11 @@
       "refer_to_doctor": "הפניה לרופא",
       "refer_to_psychologist": "הפניה לפסיכולוג",
       "admitted": "התקבלה",
-      "admitted_conditional": "התקבלה על תנאי"
+      "admitted_conditional": "התקבלה על תנאי",
+      "partial": "אישור חלקי",
+      "exam_required": "נדרשים מבחני קבלה",
+      "external_studies": "לימודים חיצוניים",
+      "postponed": "קבלה נדחית"
     },
     "signatures": {
       "title": "חתימות ואישורים",
@@ -2624,6 +2651,11 @@
       "discounts_total": "הנחות",
       "give_discount": "מתן הנחה",
       "percent": "אחוז",
+      "suggested_discount": "מומלץ מבירור יהדות",
+      "suggested_discount_hint": "אחוז ההנחה שנקבע בבדיקת היהדות. לחיצה ממלאת את השדה",
+      "contract_title": "חוזה קבלה",
+      "contract_discount": "הנחה",
+      "contract_support": "תמיכה",
       "reason": "סיבה",
       "reason_ph": "משפחה נזקקת / ממומן / …",
       "signature": "חתימה אלקטרונית — הקלד/י שם מלא",
@@ -3344,6 +3376,7 @@
     },
     "fields": {
       "doc_type": "סוג",
+      "category": "קטגוריה",
       "title": "כותרת",
       "issued_date": "תאריך הנפקה",
       "expiry_date": "תאריך תפוגה",
@@ -3366,6 +3399,20 @@
     "status": {
       "active": "פעיל",
       "archived": "בארכיון"
+    },
+    "categories": {
+      "general": "כללי",
+      "jewish": "יהדות",
+      "academic": "לימודים",
+      "dormitory": "פנימייה",
+      "other": "נוסף"
+    },
+    "review": {
+      "received": "התקבל",
+      "checked": "נבדק",
+      "rejected": "נדחה",
+      "mark_checked": "סמן כנבדק",
+      "mark_rejected": "סמן כנדחה"
     },
     "add": {
       "title": "הוספת מסמך",
@@ -4154,7 +4201,12 @@
     "no_date": "ללא תאריך",
     "stalled": "תקועות בתהליך",
     "days_waiting": "{n} ימים",
-    "my_lessons_today": "השיעורים שלי היום"
+    "my_lessons_today": "השיעורים שלי היום",
+    "agenda_title": "הימים הקרובים",
+    "agenda_open": "פתח יומן",
+    "agenda_empty": "אין אירועים או פגישות בשבוע הקרוב",
+    "agenda_today": "היום",
+    "agenda_all_day": "כל היום"
   },
   "search": {
     "placeholder": "חיפוש אדם…",

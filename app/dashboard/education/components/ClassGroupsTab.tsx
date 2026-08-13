@@ -7,6 +7,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import ClassGroupModal from './ClassGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
@@ -21,6 +22,8 @@ interface Teacher {
 interface ClassGroup {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   level: string | null
   period_start: string | null
   period_end: string | null
@@ -197,7 +200,7 @@ export default function ClassGroupsTab() {
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
-                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
                           </span>
                         </td>
                         <td style={{ ...tdStyle, color: 'var(--text)' }}>{g.subject?.name ?? '—'}</td>

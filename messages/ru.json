@@ -98,6 +98,11 @@
     "status_verified": "Подтверждено",
     "status_rejected": "Отклонено",
     "status_needs_review": "Требует доп. проверки",
+    "status_partial": "Подтверждено частично",
+    "benefits_hint": "Если проверка еврейства определяет льготы — заполните здесь (сохранится в профиле и договоре)",
+    "benefits_discount_label": "Скидка на обучение (%)",
+    "benefits_support_label": "Сумма поддержки (₪)",
+    "benefits_notes_label": "Заметки о льготах",
     "filter_all": "Все",
     "module_subtitle": "Все абитуриентки и студентки со статусом проверки еврейства",
     "search_placeholder": "Поиск по имени или эл. почте",
@@ -588,6 +593,9 @@
         "convert_to_applicant": "Перевести в абитуриенты",
         "approved": "Одобрено",
         "refer_to_doctor": "Направить к врачу",
+        "refer_to_psychologist": "Направить к психологу",
+        "exam_required": "Нужны вступительные экзамены",
+        "external_studies": "Внешнее обучение",
         "admitted": "Принята",
         "admitted_conditional": "Условно принята"
       },
@@ -637,6 +645,7 @@
       "tabs": {
         "personal": "Личные данные",
         "contacts": "Контакты и адрес",
+        "communication": "Общение",
         "family": "Семья",
         "community": "Община",
         "directions": "Направления",
@@ -663,9 +672,12 @@
         "on_leave": "Карточка (акад. отпуск)"
       },
       "source": {
+        "self": "Позвонила сама",
+        "event_community": "Через мероприятие или общину",
+        "referral": "Рекомендация",
+        "import": "Импорт списка",
         "website": "Сайт",
         "social": "Соцсети",
-        "referral": "Рекомендация",
         "call": "Звонок",
         "exhibition": "Выставка",
         "other": "Другое"
@@ -756,7 +768,16 @@
         "error_date_required": "Укажите дату",
         "error_generic": "Не удалось изменить статус"
       },
-      "preview_as_student": "Просмотр глазами студентки"
+      "preview_as_student": "Просмотр глазами студентки",
+      "dormitory": {
+        "title": "Пансион",
+        "question": "Нужен пансион?",
+        "needed": "Нужен",
+        "not_needed": "Не нужен",
+        "undecided": "Не решено",
+        "hint": "Активирует этапы врача и психолога; если пансион не нужен — этап общежития пропускается.",
+        "updated": "Обновлено"
+      }
     },
     "cascade": {
       "institution_label": "Учреждение",
@@ -770,6 +791,8 @@
       "loading_directions": "Загрузка направлений…"
     },
     "study": {
+      "name_he_optional": "Название (иврит, необяз.)",
+      "name_en_optional": "Название (англ., необяз.)",
       "setup_label": "Настройки",
       "advanced_label": "Дополнительно",
       "rail": { "collapse": "Свернуть панель", "expand": "Развернуть панель" },
@@ -1134,7 +1157,11 @@
       "refer_to_doctor": "Направить к врачу",
       "refer_to_psychologist": "Направить к психологу",
       "admitted": "Принята",
-      "admitted_conditional": "Условно принята"
+      "admitted_conditional": "Условно принята",
+      "partial": "Подтверждено частично",
+      "exam_required": "Нужны вступительные экзамены",
+      "external_studies": "Внешнее обучение",
+      "postponed": "Приём отложен"
     },
     "signatures": {
       "title": "Подписи и утверждения",
@@ -2624,6 +2651,11 @@
       "discounts_total": "Скидки",
       "give_discount": "Скидка",
       "percent": "Процент",
+      "suggested_discount": "Рекомендовано (еврейство)",
+      "suggested_discount_hint": "Скидка, определённая при проверке еврейства. Нажмите, чтобы подставить",
+      "contract_title": "Договор приёма",
+      "contract_discount": "Скидка",
+      "contract_support": "Поддержка",
       "reason": "Причина",
       "reason_ph": "Нуждающаяся семья / спонсор / …",
       "signature": "Электронная подпись — введите ФИО",
@@ -3344,6 +3376,7 @@
     },
     "fields": {
       "doc_type": "Тип",
+      "category": "Категория",
       "title": "Название",
       "issued_date": "Дата выдачи",
       "expiry_date": "Дата окончания",
@@ -3366,6 +3399,20 @@
     "status": {
       "active": "Активен",
       "archived": "Архив"
+    },
+    "categories": {
+      "general": "Общие",
+      "jewish": "Еврейство",
+      "academic": "Учёба",
+      "dormitory": "Общежитие",
+      "other": "Прочее"
+    },
+    "review": {
+      "received": "Получен",
+      "checked": "Проверен",
+      "rejected": "Отклонён",
+      "mark_checked": "Отметить проверенным",
+      "mark_rejected": "Отметить отклонённым"
     },
     "add": {
       "title": "Добавить документ",
@@ -4154,7 +4201,12 @@
     "no_date": "Без даты",
     "stalled": "Застряли в процессе",
     "days_waiting": "{n} дн.",
-    "my_lessons_today": "Мои уроки сегодня"
+    "my_lessons_today": "Мои уроки сегодня",
+    "agenda_title": "Ближайшие дни",
+    "agenda_open": "Открыть календарь",
+    "agenda_empty": "Нет встреч и событий на ближайшую неделю",
+    "agenda_today": "Сегодня",
+    "agenda_all_day": "Весь день"
   },
   "search": {
     "placeholder": "Поиск человека…",

@@ -7,8 +7,8 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 
-type Status = 'pending' | 'verified' | 'rejected' | 'needs_review'
-const STATUSES: Status[] = ['pending', 'verified', 'rejected', 'needs_review']
+type Status = 'pending' | 'verified' | 'rejected' | 'needs_review' | 'partial'
+const STATUSES: Status[] = ['pending', 'verified', 'partial', 'rejected', 'needs_review']
 
 interface ListStudent {
   journey_id: string
@@ -21,7 +21,7 @@ interface ListStudent {
   doc_count: number
   has_active_stage: boolean
 }
-interface Counts { pending: number; verified: number; rejected: number; needs_review: number }
+interface Counts { pending: number; verified: number; rejected: number; needs_review: number; partial: number }
 
 interface DetailDoc { id: string; doc_type: string; title: string | null; file_name: string | null; created_at: string }
 interface HistoryItem { status: string; note: string | null; source: string | null; created_at: string; changed_by_name: string | null }
@@ -44,6 +44,7 @@ interface Detail {
 function statusColors(s: string): { bg: string; fg: string } {
   switch (s) {
     case 'verified': return { bg: '#D1FAE5', fg: '#047857' }
+    case 'partial': return { bg: '#CCFBF1', fg: '#0F766E' }
     case 'rejected': return { bg: '#FEE2E2', fg: '#B91C1C' }
     case 'needs_review': return { bg: '#FEF3C7', fg: '#92400E' }
     default: return { bg: 'var(--surface-2)', fg: 'var(--text-muted)' }
@@ -73,7 +74,7 @@ export default function JewishnessListClient() {
   const primary = getModuleColor('jewishness', 'primary')
 
   const [students, setStudents] = useState<ListStudent[]>([])
-  const [counts, setCounts] = useState<Counts>({ pending: 0, verified: 0, rejected: 0, needs_review: 0 })
+  const [counts, setCounts] = useState<Counts>({ pending: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
   const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -100,7 +101,7 @@ export default function JewishnessListClient() {
       if (!res.ok) { setError(t('load_error')); setStudents([]); return }
       const b = await res.json()
       setStudents(b.students ?? [])
-      setCounts(b.counts ?? { pending: 0, verified: 0, rejected: 0, needs_review: 0 })
+      setCounts(b.counts ?? { pending: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
       setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
     } catch {
       setError(t('load_error'))
@@ -111,11 +112,12 @@ export default function JewishnessListClient() {
 
   useEffect(() => { load() }, [load])
 
-  const total = counts.pending + counts.verified + counts.rejected + counts.needs_review
+  const total = counts.pending + counts.verified + counts.partial + counts.rejected + counts.needs_review
   const chips: Array<{ key: Status | 'all'; label: string; count: number }> = [
     { key: 'all', label: t('filter_all'), count: total },
     { key: 'pending', label: t('status_pending'), count: counts.pending },
     { key: 'verified', label: t('status_verified'), count: counts.verified },
+    { key: 'partial', label: t('status_partial'), count: counts.partial },
     { key: 'rejected', label: t('status_rejected'), count: counts.rejected },
     { key: 'needs_review', label: t('status_needs_review'), count: counts.needs_review },
   ]
@@ -416,6 +418,7 @@ function SetStatusSection({
 }) {
   const t = useTranslations('jewishness')
   const [note, setNote] = useState('')
+  const [benefits, setBenefits] = useState<BenefitsState>(emptyBenefits)
   const [saving, setSaving] = useState<Status | null>(null)
   const [error, setError] = useState('')
 
@@ -425,13 +428,13 @@ function SetStatusSection({
       const res = await fetch(`/api/jewishness/journeys/${journeyId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, note: note.trim() || undefined }),
+        body: JSON.stringify({ status, note: note.trim() || undefined, ...benefitsToBody(benefits) }),
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({})) as { error?: string }
         setError(d.error ?? t('set_status_error')); return
       }
-      setNote('')
+      setNote(''); setBenefits(emptyBenefits)
       await reload()
     } catch {
       setError(t('set_status_error'))
@@ -450,6 +453,7 @@ function SetStatusSection({
         rows={2}
         style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }}
       />
+      <BenefitsFields value={benefits} onChange={setBenefits} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {STATUSES.map(s => {
           const c = statusColors(s)
@@ -599,12 +603,14 @@ function AcceptanceDecisionSection({
   const [selectedFinal, setSelectedFinal] = useState<string | null>(null)
   const [sig, setSig] = useState<SignaturePayload | null>(null)
   const [note, setNote] = useState('')
+  const [benefits, setBenefits] = useState<BenefitsState>(emptyBenefits)
   const [signing, setSigning] = useState(false)
   const [error, setError] = useState('')
 
   function finalLabel(f: Final): string {
     if (f.code === 'approved') return t('final_approved')
     if (f.code === 'rejected') return t('final_rejected')
+    if (f.code === 'partial') return t('status_partial')
     return f.name_ru
   }
 
@@ -629,7 +635,7 @@ function AcceptanceDecisionSection({
         }
       }
 
-      const rd: Record<string, unknown> = {}
+      const rd: Record<string, unknown> = { ...benefitsToBody(benefits) }
       if (signatureBody) rd.signature = signatureBody
       if (note.trim()) rd.note = note.trim()
       const body: Record<string, unknown> = { final_code: selectedFinal }
@@ -682,6 +688,7 @@ function AcceptanceDecisionSection({
             rows={2}
             style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
           />
+          <BenefitsFields value={benefits} onChange={setBenefits} />
           <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
           {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
           <button
@@ -699,6 +706,46 @@ function AcceptanceDecisionSection({
         </div>
       )}
     </Section>
+  )
+}
+
+// ── Льготы приёма (скидка/поддержка/заметки) — общий блок для модульного и
+//    подписанного путей. Пустые поля не отправляются (льготы не трогаются).
+interface BenefitsState { discount: string; support: string; notes: string }
+const emptyBenefits: BenefitsState = { discount: '', support: '', notes: '' }
+
+function benefitsToBody(b: BenefitsState): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  if (b.discount.trim() !== '') out.discount_percent = Number(b.discount)
+  if (b.support.trim() !== '') out.support_amount = Number(b.support)
+  if (b.notes.trim() !== '') out.benefits_notes = b.notes.trim()
+  return out
+}
+
+const benefitsInputStyle: React.CSSProperties = {
+  fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%',
+}
+
+function BenefitsFields({ value, onChange }: { value: BenefitsState; onChange: (b: BenefitsState) => void }) {
+  const t = useTranslations('jewishness')
+  return (
+    <div style={{ display: 'grid', gap: 8, marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('benefits_hint')}</div>
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+        <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'grid', gap: 4 }}>
+          {t('benefits_discount_label')}
+          <input type="number" min={0} max={100} value={value.discount}
+            onChange={e => onChange({ ...value, discount: e.target.value })} style={benefitsInputStyle} />
+        </label>
+        <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'grid', gap: 4 }}>
+          {t('benefits_support_label')}
+          <input type="number" min={0} value={value.support}
+            onChange={e => onChange({ ...value, support: e.target.value })} style={benefitsInputStyle} />
+        </label>
+      </div>
+      <input value={value.notes} onChange={e => onChange({ ...value, notes: e.target.value })}
+        placeholder={t('benefits_notes_label')} style={benefitsInputStyle} />
+    </div>
   )
 }
 

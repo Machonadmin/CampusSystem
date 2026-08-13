@@ -24,7 +24,8 @@ const STAGE_TITLE_HE: Record<string, string> = {
   academic:       'בדיקה לימודית',
   dormitory:      'פנימייה',
   jewishness:     'בירור יהדות',
-  medical:        'חוות דעת רפואית',
+  medical:        'חוות דעת רופא',
+  medical_psych:  'חוות דעת פסיכולוג',
   final_approval: 'אישור סופי',
 }
 
@@ -38,6 +39,7 @@ function tomorrowISO(): string {
 function stageLink(code: string, journeyId: string): string {
   if (code === 'jewishness') return '/dashboard/jewishness'
   if (code === 'medical') return '/dashboard/doctor'
+  if (code === 'medical_psych') return '/dashboard/psychologist'
   return `/dashboard/education/leads/${journeyId}`
 }
 

@@ -21,6 +21,23 @@ export function isDocStatus(v: unknown): v is DocStatus {
   return typeof v === 'string' && (DOC_STATUSES as readonly string[]).includes(v)
 }
 
+// Категория документа (группировка по спецификации): общие / еврейство /
+// учёба / общежитие / прочее. Отдельно от doc_type (вид документа).
+export const DOC_CATEGORIES = ['general', 'jewish', 'academic', 'dormitory', 'other'] as const
+export type DocCategory = (typeof DOC_CATEGORIES)[number]
+
+export function isDocCategory(v: unknown): v is DocCategory {
+  return typeof v === 'string' && (DOC_CATEGORIES as readonly string[]).includes(v)
+}
+
+// Статус проверки загруженного документа: получен / проверен / отклонён.
+export const REVIEW_STATUSES = ['received', 'checked', 'rejected'] as const
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number]
+
+export function isReviewStatus(v: unknown): v is ReviewStatus {
+  return typeof v === 'string' && (REVIEW_STATUSES as readonly string[]).includes(v)
+}
+
 /**
  * Строгая проверка ISO-даты 'YYYY-MM-DD'. Отсекает и неверный формат, и
  * несуществующие календарные даты (напр. 2026-02-31), чтобы кривой ввод

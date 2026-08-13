@@ -12,6 +12,8 @@ interface Subject { id: string; name: string }
 interface ClassGroupInitial {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   level: string | null
   period_start: string | null
   period_end: string | null
@@ -36,6 +38,8 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
   const t = useTranslations('education.study')
   const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
+  const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
+  const [nameEn, setNameEn] = useState(initial?.name_en ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
   const [subjectId, setSubjectId] = useState(initial?.subject_id ?? '')
   const [level, setLevel] = useState(initial?.level ?? '')
@@ -92,6 +96,8 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
     try {
       const payload: Record<string, unknown> = {
         name: name.trim(),
+        name_he: nameHe.trim() || null,
+        name_en: nameEn.trim() || null,
         department_id: departmentId,
         subject_id: subjectId,
         level: level.trim() || null,
@@ -162,10 +168,20 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Название */}
+          {/* Название (RU обяз. + he/en опц.) */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.name_label')} *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('class_groups.name_placeholder')} />
+          </div>
+          <div style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={lbl}>{t('name_he_optional')}</label>
+              <input type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>{t('name_en_optional')}</label>
+              <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+            </div>
           </div>
 
           {/* Подразделение */}

@@ -7,6 +7,7 @@ import { jsonError } from '@/lib/api/handler'
 import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { finalCodeToStatus, setJewishnessStatus } from '@/lib/jewishness/status'
+import { parseBenefitsInput, setAdmissionBenefits, createAdmissionContract } from '@/lib/admission/benefits'
 import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
@@ -140,6 +141,15 @@ export async function POST(
         p_actor_id: session.person_id,
       })
       if (admErr) console.error('[complete] авто-запуск «Приём»:', admErr)
+
+      // Условный «Пансион»: привести врача/психолога/общежитие в соответствие
+      // с флагом needs_dormitory сразу после старта приёма (best-effort,
+      // идемпотентно; NULL-флаг — no-op). См. 20260724190000.
+      const { error: gateErr } = await sb.rpc('acceptance_apply_dormitory_gating', {
+        p_journey_id: ctx.journeyId,
+        p_actor_id: session.person_id,
+      })
+      if (gateErr) console.error('[complete] dormitory gating:', gateErr)
     }
 
     // Синхронизация автозадач приёма (напоминание + календарь) — best-effort,
@@ -188,13 +198,51 @@ export async function POST(
           console.error('[complete] jewishness status sync:', jErr)
         }
       }
+      // Льготы приёма (скидка/поддержка/заметки), если офицер передал их при
+      // завершении этапа еврейства. Best-effort, деплой-безопасно.
+      const benefits = parseBenefitsInput(body.result_data)
+      if (benefits) {
+        try {
+          await setAdmissionBenefits(sb, { journeyId: ctx.journeyId, benefits, setBy: session.person_id })
+        } catch (bErr) {
+          console.error('[complete] admission benefits:', bErr)
+        }
+      }
     }
 
     // Когда приёмная комиссия ЗАВЕРШИЛАСЬ (принята/условно/отклонена) — уведомляем
     // того, кто запустил приём (набор), результатом. Замыкает петлю обратно на
     // набор. Best-effort, никогда не роняет ответ.
     const finish = (result as CompleteStageResult).finish_reason
-    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'rejected')) {
+
+    // «לימודים חיצוניים» (external_studies) — тоже приём (положительный исход), но
+    // движок конвертирует только 'admitted'/'admitted_conditional'. Доводим journey
+    // до 'student' здесь (best-effort). Форма/маршрут обучения уже сохранены выше в
+    // journey_study_tracks (track_id). Счёт НЕ создаётся автоматически.
+    if (ctx.journeyId && finish === 'external_studies') {
+      try {
+        const { error: convErr } = await sb
+          .from('education_journeys')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ education_status: 'student' } as any)
+          .eq('id', ctx.journeyId)
+        if (convErr) console.error('[complete] external_studies → student:', convErr)
+      } catch (convCatch) {
+        console.error('[complete] external_studies → student:', convCatch)
+      }
+    }
+
+    // Приём состоялся → авто-создаём действующий договор (חוזה), копируя льготы
+    // из профиля. Идемпотентно, best-effort, деплой-безопасно.
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'external_studies')) {
+      try {
+        await createAdmissionContract(sb, { journeyId: ctx.journeyId, createdBy: session.person_id })
+      } catch (cErr) {
+        console.error('[complete] admission contract create:', cErr)
+      }
+    }
+
+    if (ctx.journeyId && (finish === 'admitted' || finish === 'admitted_conditional' || finish === 'external_studies' || finish === 'rejected')) {
       try {
         const { data: si } = await sb
           .from('stage_instances')

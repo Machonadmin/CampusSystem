@@ -98,6 +98,11 @@
     "status_verified": "Verified",
     "status_rejected": "Rejected",
     "status_needs_review": "Needs review",
+    "status_partial": "Partially confirmed",
+    "benefits_hint": "If the Jewishness check sets benefits — fill them here (saved to the profile and contract)",
+    "benefits_discount_label": "Tuition discount (%)",
+    "benefits_support_label": "Support amount (₪)",
+    "benefits_notes_label": "Benefits notes",
     "filter_all": "All",
     "module_subtitle": "All applicants and students with their Jewishness verification status",
     "search_placeholder": "Search by name or email",
@@ -588,6 +593,9 @@
         "convert_to_applicant": "Convert to applicant",
         "approved": "Approved",
         "refer_to_doctor": "Refer to doctor",
+        "refer_to_psychologist": "Refer to psychologist",
+        "exam_required": "Entrance exams required",
+        "external_studies": "External studies",
         "admitted": "Admitted",
         "admitted_conditional": "Admitted (conditional)"
       },
@@ -637,6 +645,7 @@
       "tabs": {
         "personal": "Personal data",
         "contacts": "Contacts & address",
+        "communication": "Communication",
         "family": "Family",
         "community": "Community",
         "directions": "Directions",
@@ -663,9 +672,12 @@
         "on_leave": "Card (academic leave)"
       },
       "source": {
+        "self": "Called themselves",
+        "event_community": "Via event or community",
+        "referral": "Referral",
+        "import": "List import",
         "website": "Website",
         "social": "Social media",
-        "referral": "Referral",
         "call": "Phone call",
         "exhibition": "Exhibition",
         "other": "Other"
@@ -756,7 +768,16 @@
         "error_date_required": "Date is required",
         "error_generic": "Failed to change status"
       },
-      "preview_as_student": "Preview as student"
+      "preview_as_student": "Preview as student",
+      "dormitory": {
+        "title": "Boarding",
+        "question": "Needs boarding?",
+        "needed": "Needed",
+        "not_needed": "Not needed",
+        "undecided": "Undecided",
+        "hint": "Activates the doctor and psychologist stages; if boarding is not needed, the dormitory stage is skipped.",
+        "updated": "Updated"
+      }
     },
     "cascade": {
       "institution_label": "Institution",
@@ -770,6 +791,8 @@
       "loading_directions": "Loading directions..."
     },
     "study": {
+      "name_he_optional": "Name (Hebrew, optional)",
+      "name_en_optional": "Name (English, optional)",
       "setup_label": "Setup",
       "advanced_label": "Advanced",
       "rail": { "collapse": "Collapse", "expand": "Expand" },
@@ -1134,7 +1157,11 @@
       "refer_to_doctor": "Refer to doctor",
       "refer_to_psychologist": "Refer to psychologist",
       "admitted": "Admitted",
-      "admitted_conditional": "Conditionally admitted"
+      "admitted_conditional": "Conditionally admitted",
+      "partial": "Partially confirmed",
+      "exam_required": "Entrance exams required",
+      "external_studies": "External studies",
+      "postponed": "Admission postponed"
     },
     "signatures": {
       "title": "Signatures & approvals",
@@ -2624,6 +2651,11 @@
       "discounts_total": "Discounts",
       "give_discount": "Give discount",
       "percent": "Percent",
+      "suggested_discount": "Suggested (Jewishness)",
+      "suggested_discount_hint": "Discount set by the Jewishness check. Click to fill",
+      "contract_title": "Admission contract",
+      "contract_discount": "Discount",
+      "contract_support": "Support",
       "reason": "Reason",
       "reason_ph": "Needy family / sponsored / …",
       "signature": "Electronic signature — type your full name",
@@ -3344,6 +3376,7 @@
     },
     "fields": {
       "doc_type": "Type",
+      "category": "Category",
       "title": "Title",
       "issued_date": "Issued date",
       "expiry_date": "Expiry date",
@@ -3366,6 +3399,20 @@
     "status": {
       "active": "Active",
       "archived": "Archived"
+    },
+    "categories": {
+      "general": "General",
+      "jewish": "Jewishness",
+      "academic": "Studies",
+      "dormitory": "Dormitory",
+      "other": "Other"
+    },
+    "review": {
+      "received": "Received",
+      "checked": "Checked",
+      "rejected": "Rejected",
+      "mark_checked": "Mark checked",
+      "mark_rejected": "Mark rejected"
     },
     "add": {
       "title": "Add document",
@@ -4154,7 +4201,12 @@
     "no_date": "No date",
     "stalled": "Stuck in process",
     "days_waiting": "{n} d",
-    "my_lessons_today": "My lessons today"
+    "my_lessons_today": "My lessons today",
+    "agenda_title": "Coming days",
+    "agenda_open": "Open calendar",
+    "agenda_empty": "No meetings or events in the coming week",
+    "agenda_today": "Today",
+    "agenda_all_day": "All day"
   },
   "search": {
     "placeholder": "Search a person…",

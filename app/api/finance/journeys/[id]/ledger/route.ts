@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinance } from '@/lib/finance/access'
 import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
+import { getActiveContract } from '@/lib/admission/benefits'
 
 /**
  * GET /api/finance/journeys/[id]/ledger
@@ -146,11 +147,31 @@ export async function GET(
 
     const charges = chargeRows.map(c => ({ ...c, discounts: discountsByCharge.get(c.id) ?? [] }))
 
+    // Рекомендованная скидка из профиля (итог проверки еврейства) — подсказка при
+    // выставлении скидки на счёт. Деплой-безопасно: колонки может не быть (42703).
+    let suggestedDiscount: number | null = null
+    try {
+      const { data: b, error: bErr } = await (sb as unknown as SupabaseClient)
+        .from('education_journeys')
+        .select('tuition_discount_percent')
+        .eq('id', params.id)
+        .maybeSingle()
+      if (bErr) { if ((bErr as { code?: string }).code !== '42703') throw bErr }
+      else suggestedDiscount = (b?.tuition_discount_percent as number | null) ?? null
+    } catch (e) {
+      if ((e as { code?: string }).code !== '42703') throw e
+    }
+
+    // Действующий договор приёма (חוזה) — показываем сводку льгот. Деплой-безопасно.
+    const contract = await getActiveContract(sb, params.id)
+
     return NextResponse.json({
       journey,
       charges,
       payments: paymentRows,
       totals: computeLedgerTotals(chargeRows, paymentRows, activeDiscounts),
+      suggested_discount_percent: suggestedDiscount,
+      contract,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }

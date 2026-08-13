@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
-import { DOC_TYPES } from '@/lib/documents/validation'
+import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/validation'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -29,6 +29,14 @@ interface Doc {
   file_name: string | null
   status: 'active' | 'archived'
   notes: string | null
+  category?: string | null
+  review_status?: string | null
+}
+
+const REVIEW_COLORS: Record<string, { bg: string; fg: string }> = {
+  received: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
+  checked: { bg: '#D1FAE5', fg: '#047857' },
+  rejected: { bg: '#FEE2E2', fg: '#B91C1C' },
 }
 
 interface Props {
@@ -50,6 +58,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [dType, setDType] = useState<string>('passport')
+  const [dCategory, setDCategory] = useState<string>('general')
   const [dTitle, setDTitle] = useState('')
   const [dIssued, setDIssued] = useState('')
   const [dExpiry, setDExpiry] = useState('')
@@ -85,6 +94,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
       fd.append('file', dFile)
       fd.append('title', dTitle.trim())
       fd.append('doc_type', dType)
+      fd.append('category', dCategory)
       if (dIssued) fd.append('issued_date', dIssued)
       if (dExpiry) fd.append('expiry_date', dExpiry)
       if (dNotes) fd.append('notes', dNotes)
@@ -93,7 +103,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.add')); return
       }
-      setDType('passport'); setDTitle(''); setDIssued(''); setDExpiry(''); setDNotes('')
+      setDType('passport'); setDCategory('general'); setDTitle(''); setDIssued(''); setDExpiry(''); setDNotes('')
       setDFile(null); setFileKey(k => k + 1)
       await load()
     } catch {
@@ -136,6 +146,26 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
     }
   }
 
+  async function setReview(d: Doc, review_status: string) {
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch(`/api/documents/${d.id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ review_status }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('errors.action')); return
+      }
+      await load()
+    } catch {
+      setError(t('errors.action'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   function expiryColor(d: Doc): string {
     if (isExpired(d, today)) return '#B91C1C'
     if (isExpiringSoon(d, today)) return '#B45309'
@@ -158,6 +188,13 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
               </div>
               {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                <Field label={t('fields.category')}>
+                  <select value={dCategory} onChange={e => setDCategory(e.target.value)} style={inp}>
+                    {DOC_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
+                    ))}
+                  </select>
+                </Field>
                 <Field label={t('fields.doc_type')}>
                   <select value={dType} onChange={e => setDType(e.target.value)} style={inp}>
                     {DOC_TYPES.map(tp => (
@@ -202,35 +239,57 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
             {docs.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>{t('registry.empty')}</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {docs.map(d => (
-                  <div key={d.id} style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 10,
-                    padding: '8px 12px', borderRadius: 8,
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                  }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`types.${d.doc_type}`)}</span>
-                        {(d.storage_path || d.file_url) ? (
-                          <button onClick={() => openDoc(d)} style={linkBtn('var(--accent)')}>{d.title}</button>
-                        ) : (
-                          <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{d.title}</span>
-                        )}
-                      </div>
-                      {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
-                      {d.expiry_date && (
-                        <div style={{ fontSize: 11, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
-                          {t('fields.expiry_date')}: {d.expiry_date}
-                          {isExpired(d, today) && <span style={{ marginInlineStart: 6 }}>{t('list.expired_flag')}</span>}
-                          {isExpiringSoon(d, today) && <span style={{ marginInlineStart: 6 }}>{t('list.expiring_flag')}</span>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {DOC_CATEGORIES.filter(cat => docs.some(d => (d.category || 'general') === cat)).map(cat => (
+                  <div key={cat}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6 }}>{t(`categories.${cat}`)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {docs.filter(d => (d.category || 'general') === cat).map(d => (
+                        <div key={d.id} style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 10,
+                          padding: '8px 12px', borderRadius: 8,
+                          background: 'var(--surface)', border: '1px solid var(--border)',
+                        }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`types.${d.doc_type}`)}</span>
+                              {d.review_status && (
+                                <span style={{
+                                  fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 999,
+                                  background: REVIEW_COLORS[d.review_status]?.bg ?? 'var(--surface-2)',
+                                  color: REVIEW_COLORS[d.review_status]?.fg ?? 'var(--text-muted)',
+                                }}>{t(`review.${d.review_status}`)}</span>
+                              )}
+                              {(d.storage_path || d.file_url) ? (
+                                <button onClick={() => openDoc(d)} style={linkBtn('var(--accent)')}>{d.title}</button>
+                              ) : (
+                                <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{d.title}</span>
+                              )}
+                            </div>
+                            {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
+                            {d.expiry_date && (
+                              <div style={{ fontSize: 11, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
+                                {t('fields.expiry_date')}: {d.expiry_date}
+                                {isExpired(d, today) && <span style={{ marginInlineStart: 6 }}>{t('list.expired_flag')}</span>}
+                                {isExpiringSoon(d, today) && <span style={{ marginInlineStart: 6 }}>{t('list.expiring_flag')}</span>}
+                              </div>
+                            )}
+                            {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
+                          </div>
+                          {canManage && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                {REVIEW_STATUSES.filter(rs => rs !== 'received' && rs !== d.review_status).map(rs => (
+                                  <button key={rs} onClick={() => setReview(d, rs)} disabled={busy}
+                                    style={linkBtn(rs === 'checked' ? '#047857' : '#B91C1C')}>{t(`review.mark_${rs}`)}</button>
+                                ))}
+                              </div>
+                              <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
+                      ))}
                     </div>
-                    {canManage && (
-                      <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>
-                    )}
                   </div>
                 ))}
               </div>

@@ -15,7 +15,7 @@ import { createServerClient } from '@/lib/supabase/server'
  * функция тихо возвращает false (42703 undefined_column / 42P01 undefined_table).
  */
 
-export const JEWISHNESS_STATUSES = ['pending', 'verified', 'rejected', 'needs_review'] as const
+export const JEWISHNESS_STATUSES = ['pending', 'verified', 'rejected', 'needs_review', 'partial'] as const
 export type JewishnessStatus = (typeof JEWISHNESS_STATUSES)[number]
 
 export function isJewishnessStatus(s: unknown): s is JewishnessStatus {
@@ -26,6 +26,7 @@ export function isJewishnessStatus(s: unknown): s is JewishnessStatus {
 export function finalCodeToStatus(finalCode: string | null | undefined): JewishnessStatus | null {
   if (finalCode === 'approved') return 'verified'
   if (finalCode === 'rejected') return 'rejected'
+  if (finalCode === 'partial') return 'partial'
   return null
 }
 
@@ -50,7 +51,8 @@ export async function setJewishnessStatus(
 ): Promise<boolean> {
   const { journeyId, status, changedBy, source } = opts
   const note = opts.note?.trim() ? opts.note.trim().slice(0, 2000) : null
-  const decided = status === 'verified' || status === 'rejected'
+  // 'partial' (אישור חלקי) — тоже решение офицера: фиксируем кто/когда.
+  const decided = status === 'verified' || status === 'rejected' || status === 'partial'
   const u = sb as unknown as SupabaseClient
 
   try {

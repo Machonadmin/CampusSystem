@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { phoneList } from '@/lib/persons/phone'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
+import DormitoryFlagPanel from '@/components/education/DormitoryFlagPanel'
 import StudyTrackPanel from '@/components/education/StudyTrackPanel'
 import StudyPlanPanel from '@/components/education/StudyPlanPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
@@ -24,6 +25,7 @@ import JourneyTimeline from '@/components/education/JourneyTimeline'
 import PlacementsPanel from '@/components/education/PlacementsPanel'
 import EvaluationsPanel from '@/components/education/EvaluationsPanel'
 import JourneyDocumentsPanel from '@/components/education/JourneyDocumentsPanel'
+import LeadCommunicationPanel from '@/components/education/LeadCommunicationPanel'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
@@ -129,7 +131,7 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'overview' | 'personal' | 'contacts' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
+type TabKey = 'overview' | 'personal' | 'contacts' | 'communication' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -171,6 +173,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     ...(showOverview ? [{ key: 'overview' as TabKey, labelKey: 'overview' }] : []),
     { key: 'personal',   labelKey: 'personal' },
     { key: 'contacts',   labelKey: 'contacts' },
+    { key: 'communication', labelKey: 'communication' },
     { key: 'family',     labelKey: 'family' },
     { key: 'community',  labelKey: 'community' },
     { key: 'directions', labelKey: 'directions' },
@@ -225,6 +228,10 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.apartment')} value={addr.apartment} />
             <Field label={t('card.labels.postal_code')} value={addr.postal_code} />
           </>
+        )
+      case 'communication':
+        return (
+          <LeadCommunicationPanel journeyId={data.journeyId} canManage={canManage} />
         )
       case 'family':
         return data.relatives.length === 0 ? (
@@ -412,6 +419,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         <div style={{ display: 'grid', gap: 16 }}>
           {data.status === 'lead' && canConvert && <HandoffButton journeyId={data.journeyId} />}
           <ProcessInfoBlock journeyId={data.journeyId} canManage={canManage} canConvert={canConvert} />
+          {(data.status === 'lead' || data.status === 'applicant') && (
+            <DormitoryFlagPanel journeyId={data.journeyId} canManage={canManage} />
+          )}
           <StageSignatures journeyId={data.journeyId} />
           {data.status === 'student' && (
             <a href={`/dashboard/education/student-view/${data.journeyId}?name=${encodeURIComponent(person.full_name || '')}`}

@@ -113,6 +113,8 @@ export async function PATCH(
   try {
     const body = await request.json() as {
       name?: string
+      name_he?: string | null
+      name_en?: string | null
       subject_id?: string
       department_id?: string
       level?: string | null
@@ -166,25 +168,40 @@ export async function PATCH(
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
     if (body.is_active !== undefined) update.is_active = body.is_active
 
-    if (Object.keys(update).length === 0) {
+    const hasTranslations = body.name_he !== undefined || body.name_en !== undefined
+    if (Object.keys(update).length === 0 && !hasTranslations) {
       return apiError('no_changes', 400)
     }
 
-    const { data, error } = await sb
-      .from('class_groups')
-      .update(update)
-      .eq('id', params.id)
-      .select(CLASS_GROUP_SELECT)
-      .single()
-
-    if (error) {
-      if (error.code === '23505') return apiError('group_name_exists', 409)
-      if (error.code === '23503') return apiError('invalid_reference_generic', 400)
-      if (error.code === '23514') {
-        if (error.message?.includes('period_consistency')) return apiError('period_end_after_start', 400)
+    // Основные поля — обычным апдейтом.
+    if (Object.keys(update).length > 0) {
+      const { error } = await sb.from('class_groups').update(update).eq('id', params.id)
+      if (error) {
+        if (error.code === '23505') return apiError('group_name_exists', 409)
+        if (error.code === '23503') return apiError('invalid_reference_generic', 400)
+        if (error.code === '23514') {
+          if (error.message?.includes('period_consistency')) return apiError('period_end_after_start', 400)
+        }
+        throw error
       }
-      throw error
     }
+
+    // Переводы имени — отдельным deploy-safe апдейтом (нет столбца → тихо ок).
+    if (hasTranslations) {
+      const tr: Record<string, string | null> = {}
+      if (body.name_he !== undefined) tr.name_he = body.name_he?.trim() || null
+      if (body.name_en !== undefined) tr.name_en = body.name_en?.trim() || null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: trErr } = await (sb as any).from('class_groups').update(tr).eq('id', params.id)
+      if (trErr && trErr.code !== '42703') { /* столбца нет — ок */ }
+    }
+
+    const { data, error: reErr } = await sb
+      .from('class_groups')
+      .select(CLASS_GROUP_SELECT)
+      .eq('id', params.id)
+      .single()
+    if (reErr) throw reErr
 
     return NextResponse.json(data)
   } catch (err: unknown) {

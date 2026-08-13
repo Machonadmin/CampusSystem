@@ -81,6 +81,14 @@ export async function POST(
         p_actor_id: session.person_id,
       })
       if (admErr) console.error('[close-early] авто-запуск «Приёмная комиссия»:', admErr)
+
+      // Условный «Пансион» — гейтинг по needs_dormitory сразу после старта
+      // приёма (best-effort, идемпотентно; NULL-флаг — no-op). См. 20260724190000.
+      const { error: gateErr } = await sb.rpc('acceptance_apply_dormitory_gating', {
+        p_journey_id: journeyId,
+        p_actor_id: session.person_id,
+      })
+      if (gateErr) console.error('[close-early] dormitory gating:', gateErr)
     }
 
     return NextResponse.json({ success: true, ...(result as CloseProcessEarlyResult) })
