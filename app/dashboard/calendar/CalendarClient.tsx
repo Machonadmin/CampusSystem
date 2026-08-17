@@ -495,13 +495,13 @@ export default function CalendarClient() {
             title={t('hebrew_dates')}
             aria-pressed={hebrewDates}
             style={{
-              fontSize: 14, fontWeight: 700, padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
               border: `1px solid ${hebrewDates ? primary : 'var(--border)'}`,
               background: hebrewDates ? light : 'var(--surface)',
               color: hebrewDates ? primary : 'var(--text-muted)',
             }}
           >
-            {t('hebrew_short')}
+            {t('hebrew_dates')}
           </button>
 
           <div style={{ display: 'inline-flex', background: 'var(--surface-2)', borderRadius: 8, padding: 3 }}>

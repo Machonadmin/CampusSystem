@@ -149,7 +149,7 @@ export default function RecruitmentTab() {
           type="button"
           onClick={() => setFiltersOpen(v => !v)}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 12px', fontSize: 13,
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 14px', fontSize: 13,
             cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
             border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
             background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
@@ -174,7 +174,7 @@ export default function RecruitmentTab() {
           type="button"
           onClick={exportLeads}
           disabled={filtered.length === 0}
-          style={{ padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
         >
           <DownloadIcon /> {tCommon('export_csv')}
         </button>

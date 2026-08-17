@@ -3683,8 +3683,8 @@
     "next": "הבא",
     "today": "היום",
     "view": {
-      "month": "חודש",
-      "week": "שבוע"
+      "month": "חודשי",
+      "week": "שבועי"
     },
     "status": {
       "scheduled": "מתוכננת",
