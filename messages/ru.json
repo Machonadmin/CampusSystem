@@ -179,6 +179,8 @@
       "forbidden": "У вас нет доступа к этому отчёту",
       "stage_interested": "Интересуется",
       "stage_in_process": "В процессе",
+      "dash_top_source": "Топ-источник",
+      "dash_full_report": "Полный отчёт →",
       "age_lt18": "До 18",
       "age_18_20": "18–20",
       "age_21_25": "21–25",

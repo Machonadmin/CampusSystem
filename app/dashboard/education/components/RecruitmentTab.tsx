@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import RecruitmentSummary from './RecruitmentSummary'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
@@ -140,6 +141,8 @@ export default function RecruitmentTab() {
 
       {/* Инструменты набора (переехали из меню «ניהול», п. ט): отчёты набора +
           настройки страницы регистрации — теперь живут в самой вкладке גיוס. */}
+      <RecruitmentSummary />
+
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         {[
           { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },

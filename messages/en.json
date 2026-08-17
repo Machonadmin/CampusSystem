@@ -179,6 +179,8 @@
       "forbidden": "You don't have access to this report",
       "stage_interested": "Interested",
       "stage_in_process": "In process",
+      "dash_top_source": "Top source",
+      "dash_full_report": "Full report →",
       "age_lt18": "Under 18",
       "age_18_20": "18–20",
       "age_21_25": "21–25",
