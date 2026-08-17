@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import PendingSignatures from './PendingSignatures'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -127,9 +126,6 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      {/* Ожидают моей подписи — первая, остальные под стрелкой «ещё N». */}
-      <PendingSignatures />
-
       {/* KPI */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 11 }}>
         <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" />
