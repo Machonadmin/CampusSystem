@@ -3,8 +3,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
-import PageActionButton from '@/components/ui/PageActionButton'
-import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
@@ -65,10 +63,10 @@ export default function StudentsTab() {
   const [filterGroup, setFilterGroup] = useState('')
   const [filterStatus, setFilterStatus] = useState('')  // '' = active+on_leave
 
-  const [modalOpen, setModalOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
   // Фильтры (подразделение/группа/статус) свёрнуты за одной кнопкой «Фильтры»,
-  // чтобы тулбар не пестрил — на виду только поиск и «+ студент».
+  // чтобы тулбар не пестрил — на виду поиск, фильтры и экспорт. Добавление
+  // студентки убрано из «Учёбы» (решение владельца): ученицы приходят из набора.
   const [filtersOpen, setFiltersOpen] = useState(false)
 
   // ── Массовое назначение (bulk): класс / маршрут / кодеш ──
@@ -267,11 +265,6 @@ export default function StudentsTab() {
     }
   }
 
-  const handleSaved = () => {
-    setModalOpen(false)
-    loadStudents(search)
-  }
-
   const filteredGroups = filterDept
     ? studyGroups.filter(g => g.department_id === filterDept)
     : studyGroups
@@ -287,7 +280,7 @@ export default function StudentsTab() {
 
   return (
     <div>
-      {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + «+ студент». */}
+      {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + экспорт. */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: filtersOpen ? 10 : 16, flexWrap: 'wrap' }}>
         <input
           value={search}
@@ -345,13 +338,6 @@ export default function StudentsTab() {
           </svg>
           {t('students.export_button')}
         </button>
-        <div style={{ marginInlineStart: 'auto' }}>
-          <PageActionButton
-            label={t('students.add_button')}
-            onClick={() => setModalOpen(true)}
-            accentColor={accent}
-          />
-        </div>
       </div>
 
       {/* Свёрнутые фильтры — открываются по кнопке «Фильтры». */}
@@ -527,13 +513,6 @@ export default function StudentsTab() {
         )
       )}
 
-      {modalOpen && (
-        <EducationJourneyForm
-          mode="student"
-          onClose={() => setModalOpen(false)}
-          onSaved={handleSaved}
-        />
-      )}
     </div>
   )
 }
