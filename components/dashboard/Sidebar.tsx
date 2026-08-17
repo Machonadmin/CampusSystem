@@ -86,7 +86,7 @@ const FALLBACK_KEYS = MODULES.filter(m => !GROUPED_KEYS.has(m.key)).map(m => m.k
 
 // ── Nav link — defined outside Sidebar to avoid reconciliation issues ────────
 function SidebarNavLink({
-  href, iconPath, label, active, isOpen, isRTL, moduleKey, soonLabel,
+  href, iconPath, label, active, isOpen, isRTL, moduleKey, soonLabel, dot,
 }: {
   href: string
   iconPath: string
@@ -96,6 +96,8 @@ function SidebarNavLink({
   isRTL: boolean
   moduleKey: string
   soonLabel: string
+  /** Небольшая точка на иконке — сигнал «есть что-то моё» (напр. открытые задачи). */
+  dot?: boolean
 }) {
   // 'home' и 'calendar' — личные страницы: всегда доступны.
   const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar'
@@ -124,9 +126,21 @@ function SidebarNavLink({
               }
         }
       >
-        <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={iconPath} />
-        </svg>
+        <span style={{ position: 'relative', flexShrink: 0, width: 18, height: 18, display: 'inline-flex' }}>
+          <svg style={{ width: 18, height: 18 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={iconPath} />
+          </svg>
+          {dot && (
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute', top: -3, [isRTL ? 'left' : 'right']: -3,
+                width: 8, height: 8, borderRadius: '50%',
+                background: 'var(--warn)', border: '1.5px solid var(--surface)',
+              }}
+            />
+          )}
+        </span>
         <span
           style={{
             maxWidth: isOpen ? 180 : 0,
@@ -161,6 +175,8 @@ export default function Sidebar() {
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
   const [isChavrutaTeacher, setIsChavrutaTeacher] = useState(false)
+  // Есть ли у меня открытые задачи (для точки на пункте «Задачи»).
+  const [hasOpenTasks, setHasOpenTasks] = useState(false)
   // Свёрнутые группы: открыта только та, где активный маршрут; остальные скрыты
   // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
@@ -173,6 +189,17 @@ export default function Sidebar() {
         if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
       })
   }, [])
+
+  // Точка на «Задачах»: есть ли открытые задачи, назначенные на меня. Обновляем
+  // при смене маршрута — вернувшись со страницы задач, точка отражает актуальное.
+  useEffect(() => {
+    let alive = true
+    fetch('/api/tasks?view=assigned&status=active')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (alive) setHasOpenTasks(((data?.tasks ?? []) as unknown[]).length > 0) })
+      .catch(() => { /* тихо */ })
+    return () => { alive = false }
+  }, [pathname])
 
   // Click-outside to close when unpinned on desktop
   useEffect(() => {
@@ -310,6 +337,7 @@ export default function Sidebar() {
             isRTL={isRTL}
             moduleKey={item.key}
               soonLabel={t.soon}
+            dot={item.key === 'tasks' && hasOpenTasks}
           />
         ))}
 
