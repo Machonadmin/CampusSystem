@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 
 // useLayoutEffect применяет коррекцию мобильного оффсета ДО отрисовки (без
 // «прыжка» с десктопной раскладки), но на сервере его нет — используем useEffect.
@@ -24,8 +25,22 @@ const SidebarContext = createContext<SidebarCtx>({
   setPin: () => {},
 })
 
+// Модули, где сайдбар автоматически сворачивается в плотный (иконочный) режим —
+// «Образование/Учёба» как отдельное рабочее пространство (запрос владельца).
+// Плотно ТОЛЬКО здесь; глобальное предпочтение (sidebar_open) не меняется.
+function isDenseRoute(pathname: string | null): boolean {
+  return (pathname ?? '').startsWith('/dashboard/education')
+}
+
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true)
+  const pathname = usePathname()
+  const dense = isDenseRoute(pathname)
+
+  // userOpen — глобальное предпочтение (персистится). eduOpen — временное
+  // состояние ВНУТРИ «Образования» (по умолчанию свёрнут; можно временно
+  // развернуть, при повторном входе снова свёрнут). Не персистится.
+  const [userOpen, setUserOpen] = useState(true)
+  const [eduOpen, setEduOpen] = useState(false)
   const [isPinned, setIsPinned] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -33,36 +48,47 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const mobile = window.innerWidth < 768
     setIsMobile(mobile)
     if (mobile) {
-      setIsOpen(false)
+      setUserOpen(false)
       setIsPinned(false)
     } else {
       const savedOpen = localStorage.getItem('sidebar_open')
       const savedPin = localStorage.getItem('sidebar_pinned')
-      if (savedOpen !== null) setIsOpen(savedOpen === 'true')
+      if (savedOpen !== null) setUserOpen(savedOpen === 'true')
       if (savedPin !== null) setIsPinned(savedPin === 'true')
     }
 
     function onResize() {
       const m = window.innerWidth < 768
       setIsMobile(m)
-      if (m) setIsOpen(false)
+      if (m) setUserOpen(false)
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  // При каждом ВХОДЕ в плотный маршрут — свернуть (без персиста). Навигация
+  // между под-страницами «Образования» сюда не попадает (dense не меняется),
+  // поэтому ручное разворачивание внутри модуля сохраняется.
+  useEffect(() => { if (dense) setEduOpen(false) }, [dense])
+
+  // Эффективное состояние: на мобиле всегда свёрнут; в «Образовании» — eduOpen;
+  // иначе — глобальное предпочтение.
+  const isOpen = isMobile ? false : (dense ? eduOpen : userOpen)
+
   const toggle = useCallback(() => {
-    setIsOpen(v => {
+    if (dense) { setEduOpen(v => !v); return }
+    setUserOpen(v => {
       const next = !v
       if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', String(next))
       return next
     })
-  }, [])
+  }, [dense])
 
   const close = useCallback(() => {
-    setIsOpen(false)
+    if (dense) { setEduOpen(false); return }
+    setUserOpen(false)
     if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', 'false')
-  }, [])
+  }, [dense])
 
   const setPin = useCallback((v: boolean) => {
     setIsPinned(v)
