@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
     if (!session) return apiError('unauthorized', 401)
     const isSuper = session.roles.includes('superadmin')
     if (!isSuper && !(await hasEducationPrivilege(session, 'view_students'))) return apiError('forbidden', 403)
+    // Может ли двигать слоты (drag-drop). Точную проверку по каждому слоту делает
+    // PATCH; это лишь признак «показывать ли перетаскивание».
+    const canEdit = isSuper || await hasEducationPrivilege(session, 'set_lesson_topics')
 
     const sb = createServerClient()
     const unit = (request.nextUrl.searchParams.get('unit') ?? '').trim()
@@ -113,7 +116,7 @@ export async function GET(request: NextRequest) {
     const unitOptions = [...new Map(groups.filter(g => g.department).map(g => [g.department!.id, g.department!.name])).entries()]
       .map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'he'))
 
-    return NextResponse.json({ slots: out, conflicts, units: unitOptions })
+    return NextResponse.json({ slots: out, conflicts, units: unitOptions, can_edit: canEdit })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

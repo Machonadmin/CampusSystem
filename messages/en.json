@@ -1422,6 +1422,10 @@
       "teacher_dbl": "Teacher double-booked",
       "room_dbl": "Room double-booked",
       "students_dbl": "Overlapping students",
+      "drag_hint": "Drag a lesson to another day",
+      "move_failed": "Couldn't move",
+      "moved_ok": "Moved",
+      "moved_with_conflict": "Moved — note: there's a conflict",
       "days": {
         "1": "Mon",
         "2": "Tue",

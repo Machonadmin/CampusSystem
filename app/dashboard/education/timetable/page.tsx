@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
+import { toast } from '@/components/ui/toast'
 
 interface Slot {
   id: string
@@ -32,15 +33,47 @@ export default function TimetablePage() {
   const [units, setUnits] = useState<Unit[]>([])
   const [unit, setUnit] = useState('')
   const [loading, setLoading] = useState(true)
+  const [canEdit, setCanEdit] = useState(false)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overDay, setOverDay] = useState<number | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   const load = useCallback(async (u: string) => {
     setLoading(true)
     try {
       const res = await fetch(`/api/education/timetable${u ? `?unit=${u}` : ''}`)
-      if (res.ok) { const b = await res.json(); setSlots(b.slots ?? []); setConflicts(b.conflicts ?? []); if (b.units) setUnits(b.units) }
+      if (res.ok) { const b = await res.json(); setSlots(b.slots ?? []); setConflicts(b.conflicts ?? []); if (b.units) setUnits(b.units); setCanEdit(!!b.can_edit) }
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { load(unit) }, [unit, load])
+
+  // Перетаскивание слота в другой день недели → PATCH day_of_week (время/комната
+  // те же). Не блокируем при конфликте — предупреждаем (решение владельца ז).
+  const moveToDay = useCallback(async (slotId: string, day: number) => {
+    const slot = slots.find(s => s.id === slotId)
+    if (!slot || slot.day_of_week === day) return
+    setSavingId(slotId)
+    // Оптимистично двигаем в UI.
+    setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: day } : s))
+    try {
+      const res = await fetch(`/api/education/schedule/slots/${slotId}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day_of_week: day }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: slot.day_of_week } : s)) // откат
+        toast(b.error || t('move_failed', 'לא ניתן להזיז'), 'error')
+        return
+      }
+      const b = await res.json().catch(() => ({})) as { conflicts?: ScheduleConflict[] }
+      if (b.conflicts?.length) toast(t('moved_with_conflict', 'הוזז — יש התנגשות'), 'info')
+      else toast(t('moved_ok', 'הוזז'), 'success')
+      await load(unit) // пересчитать все конфликты в сетке
+    } catch {
+      setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: slot.day_of_week } : s))
+      toast(t('move_failed', 'לא ניתן להזיז'), 'error')
+    } finally { setSavingId(null) }
+  }, [slots, load, unit, t])
 
   const conflicted = useMemo(() => conflictedSlotIds(conflicts), [conflicts])
   // slotId → набор видов конфликта (teacher/room/students), чтобы показать какой именно.
@@ -84,6 +117,7 @@ export default function TimetablePage() {
         <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
           {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
         </span>
+        {canEdit && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור ליום אחר')}</span>}
       </div>
 
       {loading ? (
@@ -94,18 +128,28 @@ export default function TimetablePage() {
         <div style={{ overflowX: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${DAY_ORDER.length}, minmax(150px, 1fr))`, gap: 10, minWidth: 900 }}>
             {DAY_ORDER.map(day => (
-              <div key={day}>
+              <div key={day}
+                onDragOver={canEdit ? (e => { e.preventDefault(); setOverDay(day) }) : undefined}
+                onDragLeave={canEdit ? (() => setOverDay(prev => prev === day ? null : prev)) : undefined}
+                onDrop={canEdit ? (e => { e.preventDefault(); setOverDay(null); if (dragId) moveToDay(dragId, day) }) : undefined}
+                style={{ borderRadius: 10, transition: 'background 0.12s', background: overDay === day && dragId ? 'var(--accent-tint)' : 'transparent', padding: 2 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textAlign: 'center', padding: '6px 0', marginBottom: 6, borderBottom: '2px solid var(--border)' }}>
                   {t(`days.${day}`, String(day))}
                 </div>
-                <div style={{ display: 'grid', gap: 8 }}>
+                <div style={{ display: 'grid', gap: 8, minHeight: 40 }}>
                   {(byDay.get(day) ?? []).map(s => {
                     const bad = conflicted.has(s.id)
                     return (
-                      <div key={s.id} style={{
+                      <div key={s.id}
+                        draggable={canEdit}
+                        onDragStart={canEdit ? (e => { setDragId(s.id); e.dataTransfer.effectAllowed = 'move' }) : undefined}
+                        onDragEnd={canEdit ? (() => { setDragId(null); setOverDay(null) }) : undefined}
+                        style={{
                         background: 'var(--surface)', borderRadius: 10, padding: '9px 11px',
                         border: `1px solid ${bad ? 'var(--danger)' : 'var(--border)'}`,
                         boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
+                        cursor: canEdit ? 'grab' : 'default',
+                        opacity: savingId === s.id ? 0.5 : dragId === s.id ? 0.4 : 1,
                       }}>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--accent-strong)' }}>
                           {hhmm(s.start_time)}–{hhmm(s.end_time)}
