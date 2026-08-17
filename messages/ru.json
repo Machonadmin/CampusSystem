@@ -147,7 +147,8 @@
     "heading": "Вход в систему",
     "error_login_failed": "Ошибка входа в систему",
     "error_connection": "Ошибка соединения с сервером. Попробуйте ещё раз",
-    "logging_in": "Вход..."
+    "logging_in": "Вход...",
+    "student_portal_link": "Студентка? Вход в портал учениц"
   },
   "education": {
     "structures": {

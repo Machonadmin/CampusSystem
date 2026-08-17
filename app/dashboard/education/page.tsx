@@ -9,7 +9,6 @@ import AcceptanceOverviewTab from './components/AcceptanceOverviewTab'
 import RecruitmentTab from './components/RecruitmentTab'
 import AdmissionTab from './components/AdmissionTab'
 import ModuleTabs from '@/components/ui/ModuleTabs'
-import PendingSignatures from '@/components/workflow/PendingSignatures'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Страница модуля «Обучение» ──────────────────────────────────────────────
@@ -75,9 +74,6 @@ export default function EducationPage() {
         </h1>
         <EducationHeaderNav />
       </div>
-
-      {/* Личная очередь «Ожидают моей подписи» — видна только при наличии */}
-      <PendingSignatures />
 
       {/* Tabs */}
       {visibleTabs.length > 1 && (

@@ -147,7 +147,8 @@
     "heading": "Sign in",
     "error_login_failed": "Sign-in failed",
     "error_connection": "Connection error. Please try again",
-    "logging_in": "Signing in..."
+    "logging_in": "Signing in...",
+    "student_portal_link": "Student? Go to the student portal"
   },
   "education": {
     "structures": {

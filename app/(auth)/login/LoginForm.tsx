@@ -113,6 +113,18 @@ export default function LoginForm() {
         </button>
 
       </form>
+
+      {/* Вход студентки — ОТДЕЛЬНЫЙ портал (student_credentials, не person_accounts).
+          Без этой ссылки студентки пытались войти здесь и получали «аккаунт
+          заблокирован» (это staff-логин). */}
+      <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+        <a
+          href="/portal/login"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+        >
+          {t('student_portal_link')}
+        </a>
+      </div>
     </div>
   )
 }

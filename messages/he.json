@@ -147,7 +147,8 @@
     "heading": "כניסה למערכת",
     "error_login_failed": "הכניסה נכשלה",
     "error_connection": "שגיאה בהתחברות לשרת. נסה שוב",
-    "logging_in": "מתחבר…"
+    "logging_in": "מתחבר…",
+    "student_portal_link": "תלמידה? כניסה לפורטל התלמידות"
   },
   "education": {
     "structures": {
