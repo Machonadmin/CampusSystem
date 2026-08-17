@@ -4283,6 +4283,21 @@
     "deleted": "Deleted",
     "teacher_added": "Teacher added",
     "teacher_removed": "Teacher removed",
+    "hub_title": "Chavruta Center",
+    "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
+    "pool_title": "Teacher pool",
+    "assign_title": "Chavruta pairing",
+    "assign_hint": "Pair a teacher with a student. The pairing is used for tracking and for chavruta-plus pay calculation.",
+    "assign_pair": "Pair",
+    "select_teacher": "Select teacher",
+    "no_pairs": "No pairings yet",
+    "col_student": "Student",
+    "confirm_remove_pair": "Remove this pairing?",
+    "pair_added": "Pairing added",
+    "pair_removed": "Pairing removed",
+    "teacher_journal_title": "Session journal",
+    "open_teacher_journal": "Open chavruta session journal",
+    "forbidden_hub": "You do not have permission to manage chavrutas",
     "error": "An error occurred"
   }
 }

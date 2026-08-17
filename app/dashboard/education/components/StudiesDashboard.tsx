@@ -313,7 +313,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh' },
   ] },
   { key: 'launch_chavruta', fb: 'חברותא', badge: 'חדש בלימודים', items: [
-    { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/chavruta' },
+    { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta' },
   ] },
   { key: 'launch_admin', fb: 'ניהול ותצורה', items: [
     { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters' },

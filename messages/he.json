@@ -4283,6 +4283,21 @@
     "deleted": "נמחק",
     "teacher_added": "המורה נוספה",
     "teacher_removed": "המורה הוסרה",
+    "hub_title": "מרכז חברותא",
+    "hub_subtitle": "מאגר מורות, שיוך חברותות ומעקב מפגשים",
+    "pool_title": "מאגר מורות",
+    "assign_title": "שיוך חברותא",
+    "assign_hint": "שייכי מורה לתלמידה. השיוך משמש למעקב וגם לתחשיב חברותא-פלוס בשכר.",
+    "assign_pair": "שיוך",
+    "select_teacher": "בחרי מורה",
+    "no_pairs": "עדיין אין שיוכים",
+    "col_student": "תלמידה",
+    "confirm_remove_pair": "לבטל את השיוך?",
+    "pair_added": "השיוך נוסף",
+    "pair_removed": "השיוך בוטל",
+    "teacher_journal_title": "יומן מפגשים",
+    "open_teacher_journal": "פתחי יומן מפגשי חברותא",
+    "forbidden_hub": "אין לך הרשאה לנהל חברותות",
     "error": "אירעה שגיאה"
   }
 }
