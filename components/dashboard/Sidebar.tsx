@@ -425,13 +425,19 @@ export default function Sidebar() {
                       />
                     ))
                 }
+                // «Хеврута»: преподаватель хавруты → его журнал; менеджер (не
+                // преподаватель) → управляющий хаб (иначе он попадал на страницу
+                // «для преподавателей» и «не мог ничего сделать»).
+                const href = item.key === 'chavruta' && !isChavrutaTeacher
+                  ? '/dashboard/education/chavruta'
+                  : item.href
                 return [(
                   <SidebarNavLink
                     key={item.key}
-                    href={item.href}
+                    href={href}
                     iconPath={item.icon}
                     label={t.nav[item.key]}
-                    active={isActive(item.href)}
+                    active={isActive(href)}
                     isOpen={isOpen}
                     isRTL={isRTL}
                     moduleKey={item.key}

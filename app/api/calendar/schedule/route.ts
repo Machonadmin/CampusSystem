@@ -44,13 +44,16 @@ export async function GET(request: NextRequest) {
     //    (superadmin) видит расписание ВСЕХ — по запросу владельца («מנהלים
     //    ואחראי לימודים צריכים לראות את הלו"ז של כולם»). Остальные — свои
     //    группы (преподаватель ∪ студент).
-    const isSuper = session.roles.includes('superadmin')
-    let ids: string[]
-    if (isSuper) {
+    // ПОЛНАЯ СИНХРОНИЗАЦИЯ (требование владельца): каждый видит расписание групп,
+    // где он ЗАКРЕПЛЁН (преподаватель ∪ студент) — ВСЕГДА, независимо от is_active
+    // (иначе урок преподавателя в неактивной группе пропадал из календаря, хотя
+    // «мои уроки сегодня» его показывали). superadmin ДОПОЛНИТЕЛЬНО видит все
+    // активные группы (лу"з всех).
+    const mine = await resolveMyClassGroupIds(sb, session.person_id)
+    let ids = mine
+    if (session.roles.includes('superadmin')) {
       const { data: allG } = await sb.from('class_groups').select('id').eq('is_active', true)
-      ids = [...new Set((allG ?? []).map(g => (g as { id: string }).id))]
-    } else {
-      ids = await resolveMyClassGroupIds(sb, session.person_id)
+      ids = [...new Set([...mine, ...(allG ?? []).map(g => (g as { id: string }).id)])]
     }
     if (ids.length === 0) {
       return NextResponse.json({ slots: [] })

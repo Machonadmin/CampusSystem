@@ -25,11 +25,12 @@ const SidebarContext = createContext<SidebarCtx>({
   setPin: () => {},
 })
 
-// Авто-сворачивание сайдбара в «Образовании» ОТКЛЮЧЕНО (запрос владельца): теперь
-// набор/приём/учёба — три отдельных пункта в самом сайдбаре, поэтому рейл должен
-// оставаться раскрытым, иначе их названий не видно.
-function isDenseRoute(_pathname: string | null): boolean {
-  return false
+// «Образование/Учёба» — отдельное рабочее пространство: рейл автоматически
+// сворачивается в иконочный режим (запрос владельца), чтобы контент занимал
+// экран. Три пункта (набор/приём/учёба) остаются — как иконки; по toggle рейл
+// раскрывается с названиями.
+function isDenseRoute(pathname: string | null): boolean {
+  return (pathname ?? '').startsWith('/dashboard/education')
 }
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
