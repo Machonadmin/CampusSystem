@@ -1744,6 +1744,36 @@
       "status_reported": "Pending",
       "status_approved": "Approved",
       "status_rejected": "Rejected"
+    },
+    "teaching_surveys": {
+      "title": "Teaching evaluation",
+      "subtitle": "End-of-semester teaching survey — students and managers",
+      "survey_title_placeholder": "Survey name, e.g. Semester A 2026",
+      "create": "Create survey",
+      "empty": "No surveys yet",
+      "responses_short": "responses",
+      "is_open": "Open for responses",
+      "is_closed": "Closed",
+      "open": "Open",
+      "close": "Close",
+      "manage": "Manage",
+      "delete": "Delete",
+      "confirm_delete": "Delete the survey and all its responses?",
+      "not_available": "Survey not available",
+      "edit_questions": "Survey questions",
+      "questions_locked": "Responses exist — questions can't be changed",
+      "question_placeholder": "Write a question",
+      "kind_rating": "Rating 1–5",
+      "kind_text": "Free text",
+      "add_question": "Add question",
+      "save_questions": "Save questions",
+      "fill_title": "Fill in as manager",
+      "pick_teacher": "Pick a teacher",
+      "submit": "Submit",
+      "results": "Results",
+      "no_results": "No responses yet",
+      "source_manager": "Manager",
+      "source_student": "Student"
     }
   },
   "tasks": {
@@ -4154,6 +4184,8 @@
     "note_required": "Please write a note",
     "feature_not_migrated": "Feature not yet enabled in the database",
     "feature_unavailable": "Feature not available yet (migration not run)",
+    "survey_has_responses": "Cannot change questions once responses exist",
+    "survey_closed": "The survey is closed for responses",
     "already_enrolled": "Student is already enrolled in the lesson's group",
     "structure_has_children": "Can't delete — the node has sub-units. Move or delete them first.",
     "structure_has_groups": "Can't delete — teaching groups are attached to the node. Detach them first.",
@@ -4302,7 +4334,15 @@
     "error": "Sign-in failed. Check your email and password",
     "greeting": "Hello",
     "logout": "Log out",
-    "my_studies": "My studies"
+    "my_studies": "My studies",
+    "teaching_survey": {
+      "title": "Teaching feedback",
+      "hint": "Rate your teachers. Feedback is not anonymous.",
+      "rate": "Give feedback",
+      "cancel": "Cancel",
+      "answered": "Done",
+      "submit": "Submit"
+    }
   },
   "chavruta": {
     "title": "Chavruta",

@@ -1744,6 +1744,36 @@
       "status_reported": "ממתין",
       "status_approved": "אושר",
       "status_rejected": "נדחה"
+    },
+    "teaching_surveys": {
+      "title": "הערכת הוראה",
+      "subtitle": "סקר סוף-סמסטר על ההוראה — תלמידות ומנהלים",
+      "survey_title_placeholder": "שם הסקר, למשל: סמסטר א׳ תשפ״ו",
+      "create": "צור סקר",
+      "empty": "אין סקרים עדיין",
+      "responses_short": "תשובות",
+      "is_open": "פתוח לתשובות",
+      "is_closed": "סגור",
+      "open": "פתח",
+      "close": "סגור",
+      "manage": "נהל",
+      "delete": "מחק",
+      "confirm_delete": "למחוק את הסקר וכל התשובות שלו?",
+      "not_available": "הסקר אינו זמין",
+      "edit_questions": "שאלות הסקר",
+      "questions_locked": "כבר יש תשובות — אי אפשר לשנות שאלות",
+      "question_placeholder": "נסח שאלה",
+      "kind_rating": "דירוג 1–5",
+      "kind_text": "טקסט חופשי",
+      "add_question": "הוסף שאלה",
+      "save_questions": "שמור שאלות",
+      "fill_title": "מילוי כמנהל",
+      "pick_teacher": "בחר מורה",
+      "submit": "שלח",
+      "results": "תוצאות",
+      "no_results": "אין תשובות עדיין",
+      "source_manager": "מנהל",
+      "source_student": "תלמידה"
     }
   },
   "tasks": {
@@ -4154,6 +4184,8 @@
     "note_required": "נא לכתוב הערה",
     "feature_not_migrated": "התכונה עדיין לא הופעלה במסד הנתונים",
     "feature_unavailable": "התכונה עדיין לא זמינה (המיגרציה טרם הורצה)",
+    "survey_has_responses": "לא ניתן לשנות שאלות אחרי שכבר יש תשובות",
+    "survey_closed": "הסקר סגור לתשובות",
     "already_enrolled": "התלמידה כבר רשומה לקבוצת השיעור",
     "structure_has_children": "לא ניתן למחוק — יש תת-יחידות תחת הצומת. העבר או מחק אותן קודם.",
     "structure_has_groups": "לא ניתן למחוק — יש קבוצות לימוד מקושרות לצומת. נתק אותן קודם.",
@@ -4302,7 +4334,15 @@
     "error": "ההתחברות נכשלה. בדקי אימייל וסיסמה",
     "greeting": "שלום",
     "logout": "יציאה",
-    "my_studies": "הלימודים שלי"
+    "my_studies": "הלימודים שלי",
+    "teaching_survey": {
+      "title": "משוב על ההוראה",
+      "hint": "דרגי את המורות שלך. המשוב אינו אנונימי.",
+      "rate": "מלאי משוב",
+      "cancel": "ביטול",
+      "answered": "מולא",
+      "submit": "שליחה"
+    }
   },
   "chavruta": {
     "title": "חברותא",
