@@ -12,13 +12,6 @@ interface Lesson {
 interface Meeting { id: string; date: string; time: string | null; title: string; status: string }
 interface PersonalEvent { id: string; event_date: string; event_time: string | null; title: string; notes: string | null }
 
-// Приоритет цвета дня: пропуск > опоздание > присутствие; иначе — нейтрально.
-function dayColor(statuses: Array<string | null>): 'absent' | 'late' | 'present' | null {
-  if (statuses.some(s => s === 'absent')) return 'absent'
-  if (statuses.some(s => s === 'late')) return 'late'
-  if (statuses.some(s => s === 'present')) return 'present'
-  return null
-}
 const TINT: Record<'absent' | 'late' | 'present', { bg: string; fg: string }> = {
   present: { bg: 'var(--success-tint)', fg: 'var(--success)' },
   late: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
@@ -120,6 +113,26 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
 
   const selectedLessons = selected ? (byDay.get(selected) ?? []) : []
 
+  // Событийные «чипы» дня — показываем ВНУТРИ ячейки (не только снизу списком),
+  // чтобы ученица видела прямо в дне, что у неё есть. Уроки → цвет по статусу
+  // посещаемости; личные события → акцент; встречи → фиолетовый.
+  type Chip = { key: string; time: string | null; label: string; fg: string; bg: string; dim?: boolean }
+  function dayChips(dateISO: string): Chip[] {
+    const chips: Chip[] = []
+    for (const l of byDay.get(dateISO) ?? []) {
+      const st = l.status ? TINT[l.status] : null
+      chips.push({ key: `l-${l.id}`, time: l.time, label: l.subject || l.group_name, fg: st ? st.fg : 'var(--accent-strong)', bg: st ? st.bg : 'var(--surface)', dim: l.is_cancelled })
+    }
+    for (const pe of personalByDay.get(dateISO) ?? []) {
+      chips.push({ key: `p-${pe.id}`, time: pe.event_time, label: pe.title, fg: 'var(--accent-strong)', bg: 'var(--accent-tint)' })
+    }
+    for (const mt of meetingsByDay.get(dateISO) ?? []) {
+      chips.push({ key: `m-${mt.id}`, time: mt.time, label: mt.title, fg: 'var(--violet)', bg: 'var(--violet-tint)' })
+    }
+    chips.sort((a, b) => (a.time ?? '99').localeCompare(b.time ?? '99'))
+    return chips
+  }
+
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
@@ -148,26 +161,30 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
       {/* Сетка месяца */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3, opacity: loading ? 0.5 : 1 }}>
         {weeks.flat().map(cell => {
-          const dl = byDay.get(cell.dateISO) ?? []
-          const col = dayColor(dl.map(l => l.status))
-          const tint = col ? TINT[col] : null
           const isToday = cell.dateISO === todayISO
           const isSel = cell.dateISO === selected
           const dayNum = Number(cell.dateISO.slice(8, 10))
+          const chips = dayChips(cell.dateISO)
           return (
             <button key={cell.dateISO} onClick={() => setSelected(isSel ? null : cell.dateISO)}
               style={{
-                aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, borderRadius: 7, cursor: 'pointer', position: 'relative',
+                minHeight: 56, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2,
+                padding: '3px 3px 2px', fontSize: 12, borderRadius: 7, cursor: 'pointer', overflow: 'hidden',
                 border: `1px solid ${isSel ? 'var(--accent)' : isToday ? 'var(--border-strong)' : 'transparent'}`,
-                background: tint ? tint.bg : 'var(--surface-2)',
-                color: cell.inMonth ? (tint ? tint.fg : 'var(--text)') : 'var(--text-faint)',
-                opacity: cell.inMonth ? 1 : 0.4, fontWeight: isToday ? 800 : 500,
+                background: isToday ? 'var(--surface)' : 'var(--surface-2)',
+                color: cell.inMonth ? 'var(--text)' : 'var(--text-faint)',
+                opacity: cell.inMonth ? 1 : 0.4,
               }}>
-              {dayNum}
-              {dl.length > 0 && <span style={{ position: 'absolute', bottom: 3, width: 4, height: 4, borderRadius: '50%', background: tint ? tint.fg : 'var(--text-faint)' }} />}
-              {(meetingsByDay.get(cell.dateISO)?.length ?? 0) > 0 && <span style={{ position: 'absolute', top: 3, insetInlineEnd: 3, width: 5, height: 5, borderRadius: '50%', background: 'var(--violet)' }} />}
-              {(personalByDay.get(cell.dateISO)?.length ?? 0) > 0 && <span style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)' }} />}
+              <div style={{ fontSize: 11, fontWeight: isToday ? 800 : 500, textAlign: 'center', flexShrink: 0 }}>{dayNum}</div>
+              <div style={{ display: 'grid', gap: 1, minWidth: 0 }}>
+                {chips.slice(0, 2).map(ch => (
+                  <span key={ch.key} title={ch.label}
+                    style={{ fontSize: 8.5, lineHeight: 1.25, padding: '1px 3px', borderRadius: 3, background: ch.bg, color: ch.fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: `1px solid ${ch.fg}`, opacity: ch.dim ? 0.5 : 1 }}>
+                    {ch.time ? `${ch.time.slice(0, 5)} ` : ''}{ch.label}
+                  </span>
+                ))}
+                {chips.length > 2 && <span style={{ fontSize: 8, color: 'var(--text-faint)', paddingInlineStart: 2 }}>+{chips.length - 2}</span>}
+              </div>
             </button>
           )
         })}
