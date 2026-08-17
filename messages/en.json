@@ -4297,7 +4297,7 @@
     "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
     "pool_title": "Teacher pool",
     "assign_title": "Chavruta pairing",
-    "assign_hint": "Pair a teacher with a student. The pairing is used for tracking and for chavruta-plus pay calculation.",
+    "assign_hint": "Pair a teacher with a student to track chavrutas. The pairing does not affect pay.",
     "assign_pair": "Pair",
     "select_teacher": "Select teacher",
     "no_pairs": "No pairings yet",

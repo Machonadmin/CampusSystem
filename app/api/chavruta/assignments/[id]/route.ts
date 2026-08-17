@@ -8,8 +8,8 @@ import { canManageStaffComp } from '@/lib/finance/staff-comp'
 /**
  * DELETE /api/chavruta/assignments/[id]
  * Снять пару хавруты (шиюх) — деактивация (is_active=false), не физическое
- * удаление: пара сохраняется для истории начислений. Право: manage staff-comp.
- * Деплой-безопасно (42P01).
+ * удаление: пара сохраняется для истории. Таблица chavruta_pairs — учебная,
+ * БЕЗ влияния на зарплату. Право: manage staff-comp. Деплой-безопасно (42P01).
  */
 function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
@@ -21,7 +21,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 
     const sb = createServerClient()
     try {
-      const { error } = await u(sb).from('chavruta_plus_assignments')
+      const { error } = await u(sb).from('chavruta_pairs')
         .update({ is_active: false }).eq('id', params.id)
       if (error) throw error
     } catch (e) {

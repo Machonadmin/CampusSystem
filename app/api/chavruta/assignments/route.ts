@@ -9,9 +9,9 @@ import type { JourneyStatus } from '@/types/database'
 /**
  * Управляющая сводка пар хавруты (шиюх) для «мרכз חברותא» в модуле лимудим.
  *
- * Пары хранятся в chavruta_plus_assignments (постоянные пары мора↔ученица —
- * та же таблица, что использует finance для менторства-хеврута+). Здесь —
- * АГРЕГАТ по всем морам (в finance управление было per-teacher).
+ * Пары хранятся в chavruta_pairs — ОТДЕЛЬНОЙ учебной таблице БЕЗ влияния на
+ * зарплату (в отличие от chavruta_plus_assignments, которая идёт в расчёт
+ * оплаты). Решение владельца: «שיוך חברותא נפרד ללא שכר».
  *
  *   GET  → { assignments: [{ id, teacher_person_id, teacher_name,
  *            student_journey_id, student_name }], students: [{ journey_id, name }] }
@@ -60,7 +60,7 @@ export async function GET() {
     // Активные пары.
     let rows: Array<{ id: string; teacher_person_id: string; student_journey_id: string }> = []
     try {
-      const { data, error } = await u(sb).from('chavruta_plus_assignments')
+      const { data, error } = await u(sb).from('chavruta_pairs')
         .select('id, teacher_person_id, student_journey_id')
         .eq('is_active', true)
         .order('created_at', { ascending: true })
