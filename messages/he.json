@@ -154,12 +154,12 @@
   },
   "education": {
     "structures": {
-          "title": "מבנים נוספים",
-          "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
-          "add": "שייך למבנה נוסף",
-          "pick": "בחר מבנה",
-          "none": "משתייכת רק למבנה הראשי",
-          "remove": "הסר"
+      "title": "מבנים נוספים",
+      "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
+      "add": "שייך למבנה נוסף",
+      "pick": "בחר מבנה",
+      "none": "משתייכת רק למבנה הראשי",
+      "remove": "הסר"
     },
     "recruitment_report": {
       "title": "דוחות גיוס",
@@ -806,7 +806,10 @@
       "name_en_optional": "שם (אנגלית, לא חובה)",
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
-      "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },
+      "rail": {
+        "collapse": "כווץ סרגל",
+        "expand": "הרחב סרגל"
+      },
       "workspace": {
         "all_structures": "כל המבנים",
         "structure_one": "מבנה",
@@ -839,17 +842,17 @@
         "count_teachers": "{n} מורים"
       },
       "buildings": {
-              "title": "בניינים וכיתות",
-              "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
-              "add_building": "בניין חדש",
-              "building_name": "שם הבניין",
-              "building_code": "קוד",
-              "add_room": "הוספת כיתה",
-              "room_name": "מספר/שם כיתה",
-              "capacity": "קיבולת",
-              "empty": "אין בניינים עדיין",
-              "rooms_count": "{n} כיתות",
-              "no_rooms": "אין כיתות"
+        "title": "בניינים וכיתות",
+        "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
+        "add_building": "בניין חדש",
+        "building_name": "שם הבניין",
+        "building_code": "קוד",
+        "add_room": "הוספת כיתה",
+        "room_name": "מספר/שם כיתה",
+        "capacity": "קיבולת",
+        "empty": "אין בניינים עדיין",
+        "rooms_count": "{n} כיתות",
+        "no_rooms": "אין כיתות"
       },
       "settings_hint": "הגדרות ומסכים נדירים — במרחק קליק, אבל לא בדרך של העבודה היומיומית",
       "dashboard": {
@@ -1708,6 +1711,17 @@
       "custom_required": "חובה",
       "custom_remove": "הסר",
       "custom_empty": "אין שדות מותאמים עדיין"
+    },
+    "teachers_hours": {
+      "title": "מורים ושעות",
+      "subtitle": "שעות הוראה שבועיות לכל מורה",
+      "col_teacher": "מורה",
+      "col_groups": "קבוצות",
+      "col_hours": "שעות שבועיות",
+      "hours_short": "ש׳",
+      "schedule": "מערכת שעות",
+      "no_data": "אין מורים משובצים",
+      "room": "כיתה"
     }
   },
   "tasks": {
@@ -1763,7 +1777,7 @@
       "cancel": "ביטול",
       "assign": "הקצאה",
       "cancel_series": "ביטול סדרה…",
-        "delete": "מחיקה"
+      "delete": "מחיקה"
     },
     "card": {
       "watchers": "עוקבים",
@@ -1810,7 +1824,7 @@
       "decline_reason_required": "יש לציין סיבת דחייה",
       "cancel_series_failed": "ביטול הסדרה נכשל",
       "action_failed": "הפעולה נכשלה",
-        "delete_confirm": "למחוק את המשימה לצמיתות?",
+      "delete_confirm": "למחוק את המשימה לצמיתות?",
       "comment_failed": "הוספת ההערה נכשלה",
       "add_watcher_failed": "הוספת העוקב נכשלה",
       "remove_watcher_failed": "הסרת העוקב נכשלה"

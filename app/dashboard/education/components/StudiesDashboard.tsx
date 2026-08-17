@@ -311,6 +311,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   { key: 'launch_students', fb: 'תלמידות ומבנה', items: [
     { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment' },
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh' },
+    { key: 'launch_teachers_hours', fb: 'מורים ושעות', icon: LIC.users, href: '/dashboard/education/teachers-hours' },
   ] },
   { key: 'launch_chavruta', fb: 'חברותא', badge: 'חדש בלימודים', items: [
     { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta' },

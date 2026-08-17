@@ -154,12 +154,12 @@
   },
   "education": {
     "structures": {
-          "title": "Additional structures",
-          "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
-          "add": "Add structure",
-          "pick": "Pick a structure",
-          "none": "Primary structure only",
-          "remove": "Remove"
+      "title": "Additional structures",
+      "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
+      "add": "Add structure",
+      "pick": "Pick a structure",
+      "none": "Primary structure only",
+      "remove": "Remove"
     },
     "recruitment_report": {
       "title": "Recruitment reports",
@@ -806,7 +806,10 @@
       "name_en_optional": "Name (English, optional)",
       "setup_label": "Setup",
       "advanced_label": "Advanced",
-      "rail": { "collapse": "Collapse", "expand": "Expand" },
+      "rail": {
+        "collapse": "Collapse",
+        "expand": "Expand"
+      },
       "workspace": {
         "all_structures": "All structures",
         "structure_one": "Structure",
@@ -839,17 +842,17 @@
         "count_teachers": "{n} teachers"
       },
       "buildings": {
-              "title": "Buildings & rooms",
-              "hint": "Define buildings and rooms to pick in the schedule",
-              "add_building": "New building",
-              "building_name": "Building name",
-              "building_code": "Code",
-              "add_room": "Add room",
-              "room_name": "Room number/name",
-              "capacity": "Capacity",
-              "empty": "No buildings yet",
-              "rooms_count": "{n} rooms",
-              "no_rooms": "No rooms"
+        "title": "Buildings & rooms",
+        "hint": "Define buildings and rooms to pick in the schedule",
+        "add_building": "New building",
+        "building_name": "Building name",
+        "building_code": "Code",
+        "add_room": "Add room",
+        "room_name": "Room number/name",
+        "capacity": "Capacity",
+        "empty": "No buildings yet",
+        "rooms_count": "{n} rooms",
+        "no_rooms": "No rooms"
       },
       "settings_hint": "Rare setup screens — one click away, out of the daily flow",
       "dashboard": {
@@ -1708,6 +1711,17 @@
       "custom_required": "Required",
       "custom_remove": "Remove",
       "custom_empty": "No custom fields yet"
+    },
+    "teachers_hours": {
+      "title": "Teachers & hours",
+      "subtitle": "Weekly teaching hours per teacher",
+      "col_teacher": "Teacher",
+      "col_groups": "Groups",
+      "col_hours": "Weekly hours",
+      "hours_short": "h",
+      "schedule": "Schedule",
+      "no_data": "No teachers assigned",
+      "room": "Room"
     }
   },
   "tasks": {
@@ -1763,7 +1777,7 @@
       "cancel": "Cancel",
       "assign": "Assign",
       "cancel_series": "Cancel Series...",
-        "delete": "Delete"
+      "delete": "Delete"
     },
     "card": {
       "watchers": "Watchers",
@@ -1810,7 +1824,7 @@
       "decline_reason_required": "Specify a reason for declining",
       "cancel_series_failed": "Failed to cancel series",
       "action_failed": "Failed to perform action",
-        "delete_confirm": "Delete this task permanently?",
+      "delete_confirm": "Delete this task permanently?",
       "comment_failed": "Failed to add comment",
       "add_watcher_failed": "Failed to add watcher",
       "remove_watcher_failed": "Failed to remove watcher"
