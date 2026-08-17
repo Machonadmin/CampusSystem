@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { createNotifications } from '@/lib/notifications/create'
 import type { NotificationInsert } from '@/types/database'
 
@@ -85,7 +86,7 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
     .from('process_instances')
     .select('id, process_template:process_templates!inner(code)')
     .eq('journey_id', journeyId)
-    .eq('process_template.code', 'acceptance')
+    .in('process_template.code', ACCEPTANCE_PROCESS_CODES)
   const instanceIds = (pis ?? []).map(p => p.id)
   if (instanceIds.length === 0) return
 

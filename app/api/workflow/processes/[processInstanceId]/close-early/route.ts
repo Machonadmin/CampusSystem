@@ -76,7 +76,7 @@ export async function POST(
     // идемпотентно) — та же логика, что и в /stages/[id]/complete.
     if ((result as CloseProcessEarlyResult).finish_reason === 'converted' && journeyId) {
       const { error: admErr } = await sb.rpc('start_process', {
-        p_process_code: 'acceptance',
+        p_process_code: 'acceptance_v2',
         p_journey_id: journeyId,
         p_actor_id: session.person_id,
       })

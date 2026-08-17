@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { requireReportsPrivilege } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
@@ -57,7 +58,7 @@ export async function GET() {
     const stageRows = await pageAll<{ status: string; stage_template: unknown; process_instance: unknown }>((from, to) =>
       sb.from('stage_instances')
         .select('status, stage_template:stage_templates!inner(code, required_role_code, sort_order), process_instance:process_instances!inner(process_template:process_templates!inner(code))')
-        .eq('process_instance.process_template.code', 'acceptance')
+        .in('process_instance.process_template.code', ACCEPTANCE_PROCESS_CODES)
         .order('id', { ascending: true })
         .range(from, to),
     )

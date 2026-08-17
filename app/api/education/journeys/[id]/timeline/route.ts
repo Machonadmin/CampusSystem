@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 
 /**
  * GET /api/education/journeys/[id]/timeline — единая хронология по абитуриентке/
@@ -53,7 +54,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .from('process_instances')
       .select('id, process_template:process_templates!inner(code)')
       .eq('journey_id', params.id)
-      .eq('process_template.code', 'acceptance')
+      .in('process_template.code', ACCEPTANCE_PROCESS_CODES)
     const instanceIds = (pis ?? []).map(p => p.id)
 
     let stageIdToCode = new Map<string, string>()

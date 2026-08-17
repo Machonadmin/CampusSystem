@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 
 /**
  * GET /api/education/acceptance-overview?status=active|completed|all
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
         process_template:process_templates!inner(code),
         journey:education_journeys!inner(id, education_status, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url, phones))
       `)
-      .eq('process_template.code', 'acceptance')
+      .in('process_template.code', ACCEPTANCE_PROCESS_CODES)
       .order('started_at', { ascending: false })
     if (statusFilter === 'active') piQuery = piQuery.eq('status', 'active')
     // «Завершённые» = процессы status='completed' И успешно принятые: движок
