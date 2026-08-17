@@ -40,8 +40,18 @@ export async function GET(request: NextRequest) {
       return apiError('to_must_be_date', 400)
     }
 
-    // 1. Мои учебные группы: объединение «преподаватель ∪ студент» (постранично).
-    const ids = await resolveMyClassGroupIds(sb, session.person_id)
+    // 1. Учебные группы для расписания. Руководитель/аresponsable за учёбу
+    //    (superadmin) видит расписание ВСЕХ — по запросу владельца («מנהלים
+    //    ואחראי לימודים צריכים לראות את הלו"ז של כולם»). Остальные — свои
+    //    группы (преподаватель ∪ студент).
+    const isSuper = session.roles.includes('superadmin')
+    let ids: string[]
+    if (isSuper) {
+      const { data: allG } = await sb.from('class_groups').select('id').eq('is_active', true)
+      ids = [...new Set((allG ?? []).map(g => (g as { id: string }).id))]
+    } else {
+      ids = await resolveMyClassGroupIds(sb, session.person_id)
+    }
     if (ids.length === 0) {
       return NextResponse.json({ slots: [] })
     }
