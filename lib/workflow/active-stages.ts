@@ -4,6 +4,8 @@ type Sb = ReturnType<typeof createServerClient>
 
 export interface ActiveStageWithTasks {
   stage_name: string
+  /** Код подэтапа — чтобы клиент показал название на иврите (i18n), а не name_ru. */
+  stage_code: string | null
   tasks: string[]
 }
 
@@ -38,7 +40,7 @@ export async function getActiveStagesWithTasks(
 
   const { data: stageInstances } = await sb
     .from('stage_instances')
-    .select('id, process_instance_id, stage_template:stage_templates(name_ru)')
+    .select('id, process_instance_id, stage_template:stage_templates(name_ru, code)')
     .in('process_instance_id', [...piToJourney.keys()])
     .eq('status', 'active')
 
@@ -46,9 +48,10 @@ export async function getActiveStagesWithTasks(
   for (const si of stageInstances ?? []) {
     const journeyId = piToJourney.get(si.process_instance_id as string)
     if (!journeyId) continue
-    const name = (si.stage_template as unknown as { name_ru: string } | null)?.name_ru
+    const tmpl = si.stage_template as unknown as { name_ru: string; code: string | null } | null
+    const name = tmpl?.name_ru
     if (!name) continue
-    const entry: ActiveStageWithTasks = { stage_name: name, tasks: [] }
+    const entry: ActiveStageWithTasks = { stage_name: name, stage_code: tmpl?.code ?? null, tasks: [] }
     siToEntry.set(si.id as string, entry)
     result.get(journeyId)!.push(entry)
   }

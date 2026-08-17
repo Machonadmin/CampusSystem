@@ -17,7 +17,7 @@ export interface Lead {
   is_deleted: boolean
   recruitment_stage: 'interested' | 'in_process'
   interests: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
-  active_stages_with_tasks: { stage_name: string; tasks: string[] }[]
+  active_stages_with_tasks: { stage_name: string; stage_code?: string | null; tasks: string[] }[]
 }
 
 export type LeadSortKey = 'full_name' | 'application_date'
@@ -37,7 +37,7 @@ export interface ApplicantJourney {
   desired_department: { name: string } | null
   desired_specialty: { name: string } | null
   interests?: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
-  active_stages_with_tasks?: { stage_name: string; tasks: string[] }[]
+  active_stages_with_tasks?: { stage_name: string; stage_code?: string | null; tasks: string[] }[]
 }
 
 type Interest = { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }

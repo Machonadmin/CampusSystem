@@ -352,18 +352,21 @@ export default function RecruitmentTab() {
                     ) : lead.active_stages_with_tasks.length === 0 ? (
                       <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('leads.no_stages')}</span>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {lead.active_stages_with_tasks.map(stage => (
-                          <div key={stage.stage_name}>
-                            <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{stage.stage_name}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {lead.active_stages_with_tasks.map((stage, i) => (
+                          <span key={`${stage.stage_code ?? stage.stage_name}-${i}`}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600,
+                              color: 'var(--accent-strong)', background: 'var(--accent-tint)',
+                              border: '1px solid var(--accent)', borderRadius: 999, padding: '3px 10px',
+                            }}>
+                            {t(`process.stages.${stage.stage_code}`, stage.stage_name)}
                             {stage.tasks.length > 0 && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginLeft: 8 }}>
-                                {stage.tasks.map((task, idx) => (
-                                  <div key={idx} style={{ fontSize: 11, color: 'var(--text-muted)' }}>• {task}</div>
-                                ))}
-                              </div>
+                              <span style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'var(--accent)', borderRadius: 999, padding: '0 6px', minWidth: 16, textAlign: 'center' }}>
+                                {stage.tasks.length}
+                              </span>
                             )}
-                          </div>
+                          </span>
                         ))}
                       </div>
                     )}
