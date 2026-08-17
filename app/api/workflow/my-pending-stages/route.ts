@@ -4,6 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 
 /**
  * GET /api/workflow/my-pending-stages — личная очередь «Ожидают моей подписи».
@@ -38,7 +39,7 @@ export async function GET() {
         process_instance:process_instances!inner(id, journey_id, process_template:process_templates!inner(code))
       `)
       .eq('status', 'active')
-      .eq('process_instance.process_template.code', 'acceptance')
+      .in('process_instance.process_template.code', ACCEPTANCE_PROCESS_CODES)
       .order('activated_at', { ascending: true })
     if (error) throw error
 

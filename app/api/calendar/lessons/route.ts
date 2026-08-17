@@ -47,10 +47,19 @@ export async function GET(request: NextRequest) {
       return apiError('to_must_be_date', 400)
     }
 
-    // 1. Мои учебные группы: объединение «преподаватель ∪ студент» (постранично).
-    const ids = await resolveMyClassGroupIds(sb, session.person_id)
+    // 1. Учебные группы. Руководитель/аresponsable за учёбу (superadmin) видит
+    //    уроки ВСЕХ групп (по запросу владельца — «видеть весь לו"ז»).
+    //    Остальные — свои (преподаватель ∪ студент); чужих уроков не отдаём.
+    // ПОЛНАЯ СИНХРОНИЗАЦИЯ (требование владельца): всегда включаем группы, где я
+    // закреплён (преподаватель ∪ студент) — независимо от is_active; superadmin
+    // ДОПОЛНИТЕЛЬНО видит все активные. См. тот же приём в schedule/route.ts.
+    const mine = await resolveMyClassGroupIds(sb, session.person_id)
+    let ids = mine
+    if (session.roles.includes('superadmin')) {
+      const { data: allG } = await sb.from('class_groups').select('id').eq('is_active', true)
+      ids = [...new Set([...mine, ...(allG ?? []).map(g => (g as { id: string }).id)])]
+    }
 
-    // Ни одной моей группы → пусто. Никогда не отдаём чужие уроки.
     if (ids.length === 0) {
       return NextResponse.json({ lessons: [] })
     }

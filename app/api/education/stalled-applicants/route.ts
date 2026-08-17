@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 
 /**
  * GET /api/education/stalled-applicants?days=N
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('status', 'active')
       .eq('process_instance.status', 'active')
-      .eq('process_instance.process_template.code', 'acceptance')
+      .in('process_instance.process_template.code', ACCEPTANCE_PROCESS_CODES)
       .lt('activated_at', cutoff)
       .order('activated_at', { ascending: true })
     if (error) {

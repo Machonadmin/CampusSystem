@@ -266,6 +266,16 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
       }
       // Мягкое правило иудаики: слот сохранён, но время зарезервировано — предупреждаем.
       if (respBody.warning) toast(respBody.warning, 'info')
+      // Конфликты кабинет/преподаватель/ученицы — не блокируют, но предупреждаем.
+      const conflicts = (respBody.conflicts ?? []) as Array<{ kind: 'room' | 'teacher' | 'students'; group_name: string; detail?: string }>
+      for (const c of conflicts) {
+        const msg = c.kind === 'room'
+          ? t('conflict_room').replace('{room}', c.detail ?? '').replace('{group}', c.group_name)
+          : c.kind === 'teacher'
+            ? t('conflict_teacher').replace('{group}', c.group_name)
+            : t('conflict_students').replace('{n}', c.detail ?? '').replace('{group}', c.group_name)
+        toast(msg, 'error')
+      }
       onDone()
     } catch {
       setFormError(t('action_failed'))

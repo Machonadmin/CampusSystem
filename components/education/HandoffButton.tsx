@@ -45,7 +45,12 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
         body: JSON.stringify({ final_code: 'convert_to_applicant' }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('handoff.error')); return }
-      router.refresh()
+      // После конверсии лид становится מועמדת. Тот, кто конвертировал (напр.
+      // рекрутёр), может НЕ иметь права смотреть карточку абитуриентки —
+      // router.refresh() перезагрузил бы эту же страницу как карточку
+      // абитуриентки и упал бы в 403 (Server Components render → error boundary).
+      // Поэтому уводим на список образования, а не обновляем на месте.
+      router.push('/dashboard/education')
     } finally {
       setBusy(false)
     }

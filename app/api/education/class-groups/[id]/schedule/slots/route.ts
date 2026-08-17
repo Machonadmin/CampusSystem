@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { detectSlotConflicts } from '@/lib/education/slot-conflict-check'
 import type { ScheduleSlotInsert } from '@/types/database'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -144,7 +145,19 @@ export async function POST(
       ? serverT('kodesh_slot_warning')
       : undefined
 
-    return NextResponse.json({ ...(data as object), ...(warning ? { warning } : {}) }, { status: 201 })
+    // Конфликты кабинет/преподаватель/ученицы — предупреждаем, НЕ блокируем.
+    let conflicts: Awaited<ReturnType<typeof detectSlotConflicts>> = []
+    try {
+      conflicts = await detectSlotConflicts(sb, {
+        classGroupId: params.id, dayOfWeek: dow, startSec, endSec, room: insert.room ?? null,
+      })
+    } catch { /* обнаружение конфликтов не должно ронять создание слота */ }
+
+    return NextResponse.json({
+      ...(data as object),
+      ...(warning ? { warning } : {}),
+      ...(conflicts.length ? { conflicts } : {}),
+    }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

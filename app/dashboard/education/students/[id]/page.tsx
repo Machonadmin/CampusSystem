@@ -198,7 +198,7 @@ export default async function StudentViewPage({ params }: Props) {
   return (
     <LeadViewClient
       data={data}
-      showEditButton={false}
+      showEditButton={canManage}
       canManage={canManage}
       canConvert={false}
       studyLifecycle={{ history: historyEntries }}

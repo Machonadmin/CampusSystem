@@ -147,16 +147,19 @@
     "heading": "Sign in",
     "error_login_failed": "Sign-in failed",
     "error_connection": "Connection error. Please try again",
-    "logging_in": "Signing in..."
+    "logging_in": "Signing in...",
+    "student_portal_link": "Student? Go to the student portal",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "education": {
     "structures": {
-          "title": "Additional structures",
-          "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
-          "add": "Add structure",
-          "pick": "Pick a structure",
-          "none": "Primary structure only",
-          "remove": "Remove"
+      "title": "Additional structures",
+      "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
+      "add": "Add structure",
+      "pick": "Pick a structure",
+      "none": "Primary structure only",
+      "remove": "Remove"
     },
     "recruitment_report": {
       "title": "Recruitment reports",
@@ -178,6 +181,8 @@
       "forbidden": "You don't have access to this report",
       "stage_interested": "Interested",
       "stage_in_process": "In process",
+      "dash_top_source": "Top source",
+      "dash_full_report": "Full report →",
       "age_lt18": "Under 18",
       "age_18_20": "18–20",
       "age_21_25": "21–25",
@@ -340,6 +345,9 @@
       "room_placeholder": "Room / building",
       "time_required": "Enter start and end time",
       "end_after_start": "End must be after start",
+      "conflict_room": "Room {room} is already used by {group} at this time",
+      "conflict_teacher": "The teacher is already assigned to {group} at this time",
+      "conflict_students": "{n} students overlap with {group} at this time",
       "btn_cancel": "Cancel",
       "btn_save": "Save",
       "btn_saving": "Saving…",
@@ -576,6 +584,7 @@
       },
       "actions": {
         "activate_stage": "▶ Activate",
+        "change_decision": "Change decision",
         "close_process_early": "⚙ Close process early",
         "view_graph": "⛁ Process diagram"
       },
@@ -587,8 +596,8 @@
         "all_collected": "All collected",
         "partial": "Partially collected",
         "not_provided": "Not provided",
-        "feedback_received": "Feedback received",
-        "no_show": "No show",
+        "feedback_received": "Event held",
+        "no_show": "Event not held",
         "refused": "Refused to come",
         "convert_to_applicant": "Convert to applicant",
         "approved": "Approved",
@@ -637,6 +646,7 @@
       "names": {
         "recruitment": "Recruitment",
         "acceptance": "Acceptance",
+        "acceptance_v2": "Acceptance",
         "admission": "Admission"
       },
       "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then."
@@ -734,6 +744,7 @@
         "back_to_list": "← Back to list",
         "back_to_view": "← Back to view",
         "lead_editing": "Edit lead",
+        "student_editing": "Edit student details",
         "data_saved": "Data saved",
         "department": "Department",
         "specialty": "Specialty",
@@ -795,7 +806,10 @@
       "name_en_optional": "Name (English, optional)",
       "setup_label": "Setup",
       "advanced_label": "Advanced",
-      "rail": { "collapse": "Collapse", "expand": "Expand" },
+      "rail": {
+        "collapse": "Collapse",
+        "expand": "Expand"
+      },
       "workspace": {
         "all_structures": "All structures",
         "structure_one": "Structure",
@@ -828,17 +842,17 @@
         "count_teachers": "{n} teachers"
       },
       "buildings": {
-              "title": "Buildings & rooms",
-              "hint": "Define buildings and rooms to pick in the schedule",
-              "add_building": "New building",
-              "building_name": "Building name",
-              "building_code": "Code",
-              "add_room": "Add room",
-              "room_name": "Room number/name",
-              "capacity": "Capacity",
-              "empty": "No buildings yet",
-              "rooms_count": "{n} rooms",
-              "no_rooms": "No rooms"
+        "title": "Buildings & rooms",
+        "hint": "Define buildings and rooms to pick in the schedule",
+        "add_building": "New building",
+        "building_name": "Building name",
+        "building_code": "Code",
+        "add_room": "Add room",
+        "room_name": "Room number/name",
+        "capacity": "Capacity",
+        "empty": "No buildings yet",
+        "rooms_count": "{n} rooms",
+        "no_rooms": "No rooms"
       },
       "settings_hint": "Rare setup screens — one click away, out of the daily flow",
       "dashboard": {
@@ -1044,6 +1058,16 @@
         "filters_label": "Filters",
         "filters_clear": "Clear",
         "add_button": "Student",
+        "export_button": "Export",
+        "export_col_name": "Full name",
+        "export_col_hebrew_name": "Hebrew name",
+        "export_col_phone": "Phone",
+        "export_col_email": "Email",
+        "export_col_department": "Department",
+        "export_col_group": "Group",
+        "export_col_specialty": "Specialty",
+        "export_col_year": "Year",
+        "export_col_status": "Status",
         "bulk": {
           "select": "Select",
           "exit": "Cancel selection",
@@ -1397,6 +1421,11 @@
       "room": "Room",
       "teacher_dbl": "Teacher double-booked",
       "room_dbl": "Room double-booked",
+      "students_dbl": "Overlapping students",
+      "drag_hint": "Drag a lesson to another day",
+      "move_failed": "Couldn't move",
+      "moved_ok": "Moved",
+      "moved_with_conflict": "Moved — note: there's a conflict",
       "days": {
         "1": "Mon",
         "2": "Tue",
@@ -1548,7 +1577,15 @@
       "meeting_scheduled": "scheduled",
       "meeting_completed": "done",
       "meeting_cancelled": "cancelled",
-      "meeting_no_show": "no-show"
+      "meeting_no_show": "no-show",
+      "personal_title": "Personal events",
+      "personal_hint": "Personal events — fully private, staff cannot see them.",
+      "personal_add": "Add personal event",
+      "personal_name_placeholder": "What's up?",
+      "personal_time_optional": "Time (optional)",
+      "personal_save": "Add",
+      "personal_delete": "Delete",
+      "personal_none": "No personal events on this day"
     },
     "student_dashboard": {
       "title": "Dashboard",
@@ -1641,6 +1678,7 @@
     "recruitment_form": {
       "title": "Application page settings",
       "subtitle": "Recruitment controls what appears on the public form",
+      "preview": "Preview",
       "section_fields": "Form fields",
       "section_fields_note": "Choose which fields appear and which are required",
       "col_field": "Field",
@@ -1678,6 +1716,64 @@
       "custom_required": "Required",
       "custom_remove": "Remove",
       "custom_empty": "No custom fields yet"
+    },
+    "teachers_hours": {
+      "title": "Teachers & hours",
+      "subtitle": "Weekly teaching hours per teacher",
+      "col_teacher": "Teacher",
+      "col_groups": "Groups",
+      "col_hours": "Weekly hours",
+      "hours_short": "h",
+      "schedule": "Schedule",
+      "no_data": "No teachers assigned",
+      "room": "Room"
+    },
+    "teacher_attendance": {
+      "title": "Teacher attendance",
+      "subtitle": "Teacher marks attendance, secretariat approves",
+      "my_lessons_title": "My lessons",
+      "my_lessons_hint": "Mark that you taught the lesson. The secretariat will approve.",
+      "my_lessons_empty": "No lessons in the date range",
+      "pending_title": "Awaiting approval",
+      "pending_hint": "Teachers who marked attendance — approve or reject",
+      "pending_empty": "No requests to approve",
+      "report": "I was there",
+      "re_report": "Mark again",
+      "approve": "Approve",
+      "reject": "Reject",
+      "status_reported": "Pending",
+      "status_approved": "Approved",
+      "status_rejected": "Rejected"
+    },
+    "teaching_surveys": {
+      "title": "Teaching evaluation",
+      "subtitle": "End-of-semester teaching survey — students and managers",
+      "survey_title_placeholder": "Survey name, e.g. Semester A 2026",
+      "create": "Create survey",
+      "empty": "No surveys yet",
+      "responses_short": "responses",
+      "is_open": "Open for responses",
+      "is_closed": "Closed",
+      "open": "Open",
+      "close": "Close",
+      "manage": "Manage",
+      "delete": "Delete",
+      "confirm_delete": "Delete the survey and all its responses?",
+      "not_available": "Survey not available",
+      "edit_questions": "Survey questions",
+      "questions_locked": "Responses exist — questions can't be changed",
+      "question_placeholder": "Write a question",
+      "kind_rating": "Rating 1–5",
+      "kind_text": "Free text",
+      "add_question": "Add question",
+      "save_questions": "Save questions",
+      "fill_title": "Fill in as manager",
+      "pick_teacher": "Pick a teacher",
+      "submit": "Submit",
+      "results": "Results",
+      "no_results": "No responses yet",
+      "source_manager": "Manager",
+      "source_student": "Student"
     }
   },
   "tasks": {
@@ -1733,7 +1829,7 @@
       "cancel": "Cancel",
       "assign": "Assign",
       "cancel_series": "Cancel Series...",
-        "delete": "Delete"
+      "delete": "Delete"
     },
     "card": {
       "watchers": "Watchers",
@@ -1780,7 +1876,7 @@
       "decline_reason_required": "Specify a reason for declining",
       "cancel_series_failed": "Failed to cancel series",
       "action_failed": "Failed to perform action",
-        "delete_confirm": "Delete this task permanently?",
+      "delete_confirm": "Delete this task permanently?",
       "comment_failed": "Failed to add comment",
       "add_watcher_failed": "Failed to add watcher",
       "remove_watcher_failed": "Failed to remove watcher"
@@ -3722,6 +3818,7 @@
     "booked_by": "Booked by",
     "lesson": "Lesson",
     "my_lessons": "My lessons",
+    "take_attendance": "Attendance",
     "lesson_readonly": "Read only",
     "lesson_cancelled": "Lesson cancelled",
     "lesson_details": "Lesson details",
@@ -3756,6 +3853,7 @@
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
+    "stage_reopen_blocked": "Cannot change this decision now — the next stage was already handled",
     "no_access": "No access",
     "no_view_permission": "No permission to view",
     "invalid_credentials": "Invalid email or password",
@@ -3765,6 +3863,7 @@
     "invalid_email": "Invalid email",
     "all_fields_required": "All fields are required",
     "new_password_min_8": "New password must be at least 8 characters",
+    "password_need_letter_and_digit": "Password must include a letter and a digit",
     "password_min_8": "Password must be at least 8 characters",
     "password_min_8_short": "Password must be at least 8 characters",
     "invalid_current_password": "Current password is incorrect",
@@ -4086,6 +4185,8 @@
     "note_required": "Please write a note",
     "feature_not_migrated": "Feature not yet enabled in the database",
     "feature_unavailable": "Feature not available yet (migration not run)",
+    "survey_has_responses": "Cannot change questions once responses exist",
+    "survey_closed": "The survey is closed for responses",
     "already_enrolled": "Student is already enrolled in the lesson's group",
     "structure_has_children": "Can't delete — the node has sub-units. Move or delete them first.",
     "structure_has_groups": "Can't delete — teaching groups are attached to the node. Detach them first.",
@@ -4198,6 +4299,7 @@
     "upcoming": "Upcoming in the calendar",
     "view_all": "View all",
     "more": "more",
+    "today": "Today",
     "no_date": "No date",
     "stalled": "Stuck in process",
     "days_waiting": "{n} d",
@@ -4227,10 +4329,32 @@
     "email": "Email",
     "password": "Password",
     "sign_in": "Sign in",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "forgot_password": "Forgot your password? Contact the institution office.",
     "error": "Sign-in failed. Check your email and password",
     "greeting": "Hello",
     "logout": "Log out",
-    "my_studies": "My studies"
+    "my_studies": "My studies",
+    "teaching_survey": {
+      "title": "Teaching feedback",
+      "hint": "Rate your teachers. Feedback is not anonymous.",
+      "rate": "Give feedback",
+      "cancel": "Cancel",
+      "answered": "Done",
+      "submit": "Submit"
+    }
+  },
+  "force_password": {
+    "title": "Update your password",
+    "subtitle": "This is your first sign-in. Please choose a personal, strong password to continue.",
+    "new_password": "New password",
+    "confirm_password": "Confirm password",
+    "show": "Show password",
+    "hint": "At least 8 characters, a letter and a digit",
+    "mismatch": "Passwords do not match",
+    "error": "Update failed, please try again",
+    "submit": "Save and continue"
   },
   "chavruta": {
     "title": "Chavruta",
@@ -4281,6 +4405,21 @@
     "deleted": "Deleted",
     "teacher_added": "Teacher added",
     "teacher_removed": "Teacher removed",
+    "hub_title": "Chavruta Center",
+    "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
+    "pool_title": "Teacher pool",
+    "assign_title": "Chavruta pairing",
+    "assign_hint": "Pair a teacher with a student to track chavrutas. The pairing does not affect pay.",
+    "assign_pair": "Pair",
+    "select_teacher": "Select teacher",
+    "no_pairs": "No pairings yet",
+    "col_student": "Student",
+    "confirm_remove_pair": "Remove this pairing?",
+    "pair_added": "Pairing added",
+    "pair_removed": "Pairing removed",
+    "teacher_journal_title": "Session journal",
+    "open_teacher_journal": "Open chavruta session journal",
+    "forbidden_hub": "You do not have permission to manage chavrutas",
     "error": "An error occurred"
   }
 }

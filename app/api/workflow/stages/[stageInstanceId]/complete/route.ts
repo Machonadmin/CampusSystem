@@ -133,18 +133,25 @@ export async function POST(
       }
     }
 
-    // Автозапуск процесса «Приём» при переходе лида в абитуриенты (best-effort, идемпотентно).
+    // Автозапуск процесса «Приём» (последовательный v2) при переходе лида в
+    // абитуриенты (best-effort, идемпотентно). Последовательность — только для
+    // новых приёмов; уже запущенные `acceptance` не затрагиваются.
     if ((result as CompleteStageResult).finish_reason === 'converted' && ctx.journeyId) {
       const { error: admErr } = await sb.rpc('start_process', {
-        p_process_code: 'acceptance',
+        p_process_code: 'acceptance_v2',
         p_journey_id: ctx.journeyId,
         p_actor_id: session.person_id,
       })
       if (admErr) console.error('[complete] авто-запуск «Приём»:', admErr)
+    }
 
-      // Условный «Пансион»: привести врача/психолога/общежитие в соответствие
-      // с флагом needs_dormitory сразу после старта приёма (best-effort,
-      // идемпотентно; NULL-флаг — no-op). См. 20260724190000.
+    // Условный «Пансион»: привести врача/психолога/общежитие в соответствие с
+    // флагом needs_dormitory. В последовательном графе фаза пансиона наступает
+    // ПОСЛЕ завершения учебного этапа, поэтому гейтинг вызывается на КАЖДОМ
+    // завершении этапа приёма (идемпотентно; NULL-флаг и отсутствие активного
+    // приёма — no-op). Вызывается ДО syncAcceptanceTasks, чтобы автозадачи
+    // отражали уже пересчитанные статусы этапов. См. 20260813121000.
+    if (ctx.journeyId) {
       const { error: gateErr } = await sb.rpc('acceptance_apply_dormitory_gating', {
         p_journey_id: ctx.journeyId,
         p_actor_id: session.person_id,

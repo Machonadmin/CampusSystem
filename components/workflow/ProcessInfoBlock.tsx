@@ -80,6 +80,8 @@ interface StageDetail {
   tasks: TaskInfo[]
   finals: FinalInfo[]
   can_manage: boolean
+  can_sign?: boolean
+  required_role_code?: string | null
   can_convert: boolean
   signature_method?: SignatureMethod
 }
@@ -161,6 +163,9 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
+  // «Занавес»: закрытые процессы (набор/старый приём) свёрнуты по умолчанию,
+  // раскрываются по клику — на карточке остаётся виден только активный.
+  const [pastOpen, setPastOpen] = useState(false)
 
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null)
   const [stageDetail, setStageDetail] = useState<StageDetail | null>(null)
@@ -386,10 +391,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     )
   }
 
-  return (
-    <>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {processes.map(proc => (
+  const renderProcCard = (proc: ProcessInfo) => (
           <div key={proc.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
@@ -465,6 +467,23 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         {t('process.actions.activate_stage')}
                       </button>
                     )}
+                    {/* Переоткрыть ЗАВЕРШЁННЫЙ подэтап — изменить решение (п. י"ב).
+                        Только «фронтир» (RPC сам блокирует, если поток ушёл дальше). */}
+                    {stage.status === 'completed' && proc.status === 'active' && canManage && (
+                      <button
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '' })}
+                        title={t('process.actions.change_decision')}
+                        style={{
+                          flexShrink: 0, marginInlineStart: 6, background: 'none', border: 'none', cursor: 'pointer',
+                          padding: '2px 6px', fontSize: 11, fontWeight: 500, color: 'var(--text-muted)',
+                          whiteSpace: 'nowrap', borderRadius: 4,
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-strong)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)' }}
+                      >
+                        {t('process.actions.change_decision')}
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
@@ -485,7 +504,29 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               </button>
             )}
           </div>
-        ))}
+  )
+
+  const activeProcs = processes.filter(p => p.status === 'active')
+  const pastProcs = processes.filter(p => p.status !== 'active')
+
+  return (
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {activeProcs.map(renderProcCard)}
+        {pastProcs.length > 0 && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+            <button type="button" onClick={() => setPastOpen(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
+              <svg style={{ width: 15, height: 15, color: 'var(--text-faint)', flexShrink: 0, transform: pastOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6l6 6-6 6" /></svg>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('process.past_processes', 'תהליכים קודמים')}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 999, padding: '1px 8px', marginInlineStart: 4 }}>{pastProcs.length}</span>
+            </button>
+            {pastOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+                {pastProcs.map(renderProcCard)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* StageCard modal */}
@@ -610,7 +651,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                     )
                   )}
 
-                  {stageDetail.status === 'active' && stageDetail.finals.length > 0 && stageDetail.can_manage && (
+                  {stageDetail.status === 'active' && stageDetail.finals.length > 0 && (stageDetail.stage_template?.requires_signature ? stageDetail.can_sign : stageDetail.can_manage) && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
                         {t('process.close_stage_section')}
@@ -644,9 +685,11 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                     </div>
                   )}
 
-                  {stageDetail.status === 'active' && !stageDetail.can_manage && (
+                  {stageDetail.status === 'active' && !(stageDetail.stage_template?.requires_signature ? stageDetail.can_sign : stageDetail.can_manage) && (
                     <div style={{ padding: '10px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-muted)' }}>
-                      {t('process.no_rights')}
+                      {stageDetail.stage_template?.requires_signature && stageDetail.can_manage
+                        ? t('process.sign_not_your_authority', 'החתימה על שלב זה שמורה לבעל התפקיד המתאים')
+                        : t('process.no_rights')}
                     </div>
                   )}
 

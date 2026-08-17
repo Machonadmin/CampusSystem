@@ -147,16 +147,19 @@
     "heading": "כניסה למערכת",
     "error_login_failed": "הכניסה נכשלה",
     "error_connection": "שגיאה בהתחברות לשרת. נסה שוב",
-    "logging_in": "מתחבר…"
+    "logging_in": "מתחבר…",
+    "student_portal_link": "תלמידה? כניסה לפורטל התלמידות",
+    "show_password": "הצג סיסמה",
+    "hide_password": "הסתר סיסמה"
   },
   "education": {
     "structures": {
-          "title": "מבנים נוספים",
-          "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
-          "add": "שייך למבנה נוסף",
-          "pick": "בחר מבנה",
-          "none": "משתייכת רק למבנה הראשי",
-          "remove": "הסר"
+      "title": "מבנים נוספים",
+      "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
+      "add": "שייך למבנה נוסף",
+      "pick": "בחר מבנה",
+      "none": "משתייכת רק למבנה הראשי",
+      "remove": "הסר"
     },
     "recruitment_report": {
       "title": "דוחות גיוס",
@@ -178,6 +181,8 @@
       "forbidden": "אין לך הרשאה לצפות בדוח זה",
       "stage_interested": "מתעניינת",
       "stage_in_process": "בתהליך",
+      "dash_top_source": "מקור מוביל",
+      "dash_full_report": "דוח מלא ←",
       "age_lt18": "מתחת ל-18",
       "age_18_20": "18–20",
       "age_21_25": "21–25",
@@ -340,6 +345,9 @@
       "room_placeholder": "חדר / בניין",
       "time_required": "יש להזין שעת התחלה וסיום",
       "end_after_start": "הסיום חייב להיות אחרי ההתחלה",
+      "conflict_room": "כיתה {room} כבר תפוסה על ידי {group} באותה שעה",
+      "conflict_teacher": "המורה כבר משובץ/ת ל{group} באותה שעה",
+      "conflict_students": "יש {n} תלמידות משותפות עם {group} באותה שעה",
       "btn_cancel": "ביטול",
       "btn_save": "שמירה",
       "btn_saving": "שומר…",
@@ -576,6 +584,7 @@
       },
       "actions": {
         "activate_stage": "▶ הפעלה",
+        "change_decision": "שנה החלטה",
         "close_process_early": "⚙ סגירה מוקדמת של התהליך",
         "view_graph": "⛁ תרשים תהליך"
       },
@@ -587,8 +596,8 @@
         "all_collected": "הכל נאסף",
         "partial": "נאסף חלקית",
         "not_provided": "לא סופק",
-        "feedback_received": "התקבל משוב",
-        "no_show": "לא הגיע",
+        "feedback_received": "האירוע התקיים",
+        "no_show": "האירוע לא התקיים",
         "refused": "סירב להגיע",
         "convert_to_applicant": "העבר למועמד",
         "approved": "אושר",
@@ -637,6 +646,7 @@
       "names": {
         "recruitment": "גיוס",
         "acceptance": "קבלה",
+        "acceptance_v2": "קבלה",
         "admission": "קבלה"
       },
       "stage_waiting_hint": "השלב הזה יופעל אוטומטית לאחר סיום השלב הקודם — ואז תיווצר המשימה המתאימה (למשל \"בקשת מסמכים\")."
@@ -734,6 +744,7 @@
         "back_to_list": "→ לרשימה",
         "back_to_view": "→ חזרה לצפייה",
         "lead_editing": "עריכת ליד",
+        "student_editing": "עריכת פרטי תלמידה",
         "data_saved": "הנתונים נשמרו",
         "department": "מחלקה",
         "specialty": "התמחות",
@@ -795,7 +806,10 @@
       "name_en_optional": "שם (אנגלית, לא חובה)",
       "setup_label": "הגדרות",
       "advanced_label": "מתקדם",
-      "rail": { "collapse": "כווץ סרגל", "expand": "הרחב סרגל" },
+      "rail": {
+        "collapse": "כווץ סרגל",
+        "expand": "הרחב סרגל"
+      },
       "workspace": {
         "all_structures": "כל המבנים",
         "structure_one": "מבנה",
@@ -828,17 +842,17 @@
         "count_teachers": "{n} מורים"
       },
       "buildings": {
-              "title": "בניינים וכיתות",
-              "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
-              "add_building": "בניין חדש",
-              "building_name": "שם הבניין",
-              "building_code": "קוד",
-              "add_room": "הוספת כיתה",
-              "room_name": "מספר/שם כיתה",
-              "capacity": "קיבולת",
-              "empty": "אין בניינים עדיין",
-              "rooms_count": "{n} כיתות",
-              "no_rooms": "אין כיתות"
+        "title": "בניינים וכיתות",
+        "hint": "הגדר בניינים וכיתות לבחירה במערכת השעות",
+        "add_building": "בניין חדש",
+        "building_name": "שם הבניין",
+        "building_code": "קוד",
+        "add_room": "הוספת כיתה",
+        "room_name": "מספר/שם כיתה",
+        "capacity": "קיבולת",
+        "empty": "אין בניינים עדיין",
+        "rooms_count": "{n} כיתות",
+        "no_rooms": "אין כיתות"
       },
       "settings_hint": "הגדרות ומסכים נדירים — במרחק קליק, אבל לא בדרך של העבודה היומיומית",
       "dashboard": {
@@ -1044,6 +1058,16 @@
         "filters_label": "מסננים",
         "filters_clear": "נקה סינון",
         "add_button": "סטודנט",
+        "export_button": "יצוא",
+        "export_col_name": "שם מלא",
+        "export_col_hebrew_name": "שם עברי",
+        "export_col_phone": "טלפון",
+        "export_col_email": "אימייל",
+        "export_col_department": "מחלקה",
+        "export_col_group": "קבוצה",
+        "export_col_specialty": "התמחות",
+        "export_col_year": "שנה",
+        "export_col_status": "סטטוס",
         "bulk": {
           "select": "בחירה מרובה",
           "exit": "ביטול בחירה",
@@ -1397,6 +1421,11 @@
       "room": "חדר",
       "teacher_dbl": "מורה כפול",
       "room_dbl": "חדר כפול",
+      "students_dbl": "תלמידות חופפות",
+      "drag_hint": "גרור שיעור ליום אחר",
+      "move_failed": "לא ניתן להזיז",
+      "moved_ok": "הוזז",
+      "moved_with_conflict": "הוזז — שים לב, יש התנגשות",
       "days": {
         "1": "שני",
         "2": "שלישי",
@@ -1548,7 +1577,15 @@
       "meeting_scheduled": "מתוכננת",
       "meeting_completed": "בוצעה",
       "meeting_cancelled": "בוטלה",
-      "meeting_no_show": "לא הגיעה"
+      "meeting_no_show": "לא הגיעה",
+      "personal_title": "אירועים אישיים",
+      "personal_hint": "אירועים אישיים — פרטיים לחלוטין, הצוות לא רואה אותם.",
+      "personal_add": "הוספת אירוע אישי",
+      "personal_name_placeholder": "מה יש לך?",
+      "personal_time_optional": "שעה (לא חובה)",
+      "personal_save": "הוספה",
+      "personal_delete": "מחיקה",
+      "personal_none": "אין אירועים אישיים ביום זה"
     },
     "student_dashboard": {
       "title": "דשבורד",
@@ -1641,6 +1678,7 @@
     "recruitment_form": {
       "title": "הגדרות דף ההרשמה",
       "subtitle": "הגיוס שולט במה שמופיע בטופס הציבורי",
+      "preview": "תצוגה מקדימה",
       "section_fields": "שדות הטופס",
       "section_fields_note": "בחר אילו שדות יופיעו למועמדת ואילו יהיו חובה",
       "col_field": "שדה",
@@ -1678,6 +1716,64 @@
       "custom_required": "חובה",
       "custom_remove": "הסר",
       "custom_empty": "אין שדות מותאמים עדיין"
+    },
+    "teachers_hours": {
+      "title": "מורים ושעות",
+      "subtitle": "שעות הוראה שבועיות לכל מורה",
+      "col_teacher": "מורה",
+      "col_groups": "קבוצות",
+      "col_hours": "שעות שבועיות",
+      "hours_short": "ש׳",
+      "schedule": "מערכת שעות",
+      "no_data": "אין מורים משובצים",
+      "room": "כיתה"
+    },
+    "teacher_attendance": {
+      "title": "נוכחות מורים",
+      "subtitle": "המורה מסמן שהגיע, המזכירות מאשרת",
+      "my_lessons_title": "השיעורים שלי",
+      "my_lessons_hint": "סמן שהעברת את השיעור. המזכירות תאשר.",
+      "my_lessons_empty": "אין שיעורים בטווח התאריכים",
+      "pending_title": "ממתין לאישור",
+      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה",
+      "pending_empty": "אין בקשות לאישור",
+      "report": "הייתי בשיעור",
+      "re_report": "סמן שוב",
+      "approve": "אשר",
+      "reject": "דחה",
+      "status_reported": "ממתין",
+      "status_approved": "אושר",
+      "status_rejected": "נדחה"
+    },
+    "teaching_surveys": {
+      "title": "הערכת הוראה",
+      "subtitle": "סקר סוף-סמסטר על ההוראה — תלמידות ומנהלים",
+      "survey_title_placeholder": "שם הסקר, למשל: סמסטר א׳ תשפ״ו",
+      "create": "צור סקר",
+      "empty": "אין סקרים עדיין",
+      "responses_short": "תשובות",
+      "is_open": "פתוח לתשובות",
+      "is_closed": "סגור",
+      "open": "פתח",
+      "close": "סגור",
+      "manage": "נהל",
+      "delete": "מחק",
+      "confirm_delete": "למחוק את הסקר וכל התשובות שלו?",
+      "not_available": "הסקר אינו זמין",
+      "edit_questions": "שאלות הסקר",
+      "questions_locked": "כבר יש תשובות — אי אפשר לשנות שאלות",
+      "question_placeholder": "נסח שאלה",
+      "kind_rating": "דירוג 1–5",
+      "kind_text": "טקסט חופשי",
+      "add_question": "הוסף שאלה",
+      "save_questions": "שמור שאלות",
+      "fill_title": "מילוי כמנהל",
+      "pick_teacher": "בחר מורה",
+      "submit": "שלח",
+      "results": "תוצאות",
+      "no_results": "אין תשובות עדיין",
+      "source_manager": "מנהל",
+      "source_student": "תלמידה"
     }
   },
   "tasks": {
@@ -1733,7 +1829,7 @@
       "cancel": "ביטול",
       "assign": "הקצאה",
       "cancel_series": "ביטול סדרה…",
-        "delete": "מחיקה"
+      "delete": "מחיקה"
     },
     "card": {
       "watchers": "עוקבים",
@@ -1780,7 +1876,7 @@
       "decline_reason_required": "יש לציין סיבת דחייה",
       "cancel_series_failed": "ביטול הסדרה נכשל",
       "action_failed": "הפעולה נכשלה",
-        "delete_confirm": "למחוק את המשימה לצמיתות?",
+      "delete_confirm": "למחוק את המשימה לצמיתות?",
       "comment_failed": "הוספת ההערה נכשלה",
       "add_watcher_failed": "הוספת העוקב נכשלה",
       "remove_watcher_failed": "הסרת העוקב נכשלה"
@@ -3682,8 +3778,8 @@
     "next": "הבא",
     "today": "היום",
     "view": {
-      "month": "חודש",
-      "week": "שבוע"
+      "month": "חודשי",
+      "week": "שבועי"
     },
     "status": {
       "scheduled": "מתוכננת",
@@ -3722,6 +3818,7 @@
     "booked_by": "נקבע על ידי",
     "lesson": "שיעור",
     "my_lessons": "השיעורים שלי",
+    "take_attendance": "נוכחות",
     "lesson_readonly": "לקריאה בלבד",
     "lesson_cancelled": "השיעור בוטל",
     "lesson_details": "פרטי שיעור",
@@ -3756,6 +3853,7 @@
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
+    "stage_reopen_blocked": "לא ניתן לשנות את ההחלטה כעת — השלב הבא כבר טופל",
     "no_access": "אין גישה",
     "no_view_permission": "אין הרשאת צפייה",
     "invalid_credentials": "אימייל או סיסמה שגויים",
@@ -3765,6 +3863,7 @@
     "invalid_email": "אימייל שגוי",
     "all_fields_required": "כל השדות הם חובה",
     "new_password_min_8": "הסיסמה החדשה חייבת להכיל לפחות 8 תווים",
+    "password_need_letter_and_digit": "הסיסמה חייבת לכלול אות וגם ספרה",
     "password_min_8": "הסיסמה חייבת להכיל לפחות 8 תווים",
     "password_min_8_short": "סיסמה באורך 8 תווים לפחות",
     "invalid_current_password": "הסיסמה הנוכחית שגויה",
@@ -4086,6 +4185,8 @@
     "note_required": "נא לכתוב הערה",
     "feature_not_migrated": "התכונה עדיין לא הופעלה במסד הנתונים",
     "feature_unavailable": "התכונה עדיין לא זמינה (המיגרציה טרם הורצה)",
+    "survey_has_responses": "לא ניתן לשנות שאלות אחרי שכבר יש תשובות",
+    "survey_closed": "הסקר סגור לתשובות",
     "already_enrolled": "התלמידה כבר רשומה לקבוצת השיעור",
     "structure_has_children": "לא ניתן למחוק — יש תת-יחידות תחת הצומת. העבר או מחק אותן קודם.",
     "structure_has_groups": "לא ניתן למחוק — יש קבוצות לימוד מקושרות לצומת. נתק אותן קודם.",
@@ -4198,6 +4299,7 @@
     "upcoming": "ביומן בקרוב",
     "view_all": "הצג הכל",
     "more": "ועוד",
+    "today": "היום",
     "no_date": "ללא תאריך",
     "stalled": "תקועות בתהליך",
     "days_waiting": "{n} ימים",
@@ -4227,10 +4329,32 @@
     "email": "אימייל",
     "password": "סיסמה",
     "sign_in": "כניסה",
+    "show_password": "הצג סיסמה",
+    "hide_password": "הסתר סיסמה",
+    "forgot_password": "שכחת סיסמה? פני למזכירות המוסד.",
     "error": "ההתחברות נכשלה. בדקי אימייל וסיסמה",
     "greeting": "שלום",
     "logout": "יציאה",
-    "my_studies": "הלימודים שלי"
+    "my_studies": "הלימודים שלי",
+    "teaching_survey": {
+      "title": "משוב על ההוראה",
+      "hint": "דרגי את המורות שלך. המשוב אינו אנונימי.",
+      "rate": "מלאי משוב",
+      "cancel": "ביטול",
+      "answered": "מולא",
+      "submit": "שליחה"
+    }
+  },
+  "force_password": {
+    "title": "עדכון סיסמה",
+    "subtitle": "זו הכניסה הראשונה. יש לבחור סיסמה אישית וחזקה כדי להמשיך.",
+    "new_password": "סיסמה חדשה",
+    "confirm_password": "אישור סיסמה",
+    "show": "הצגת סיסמה",
+    "hint": "לפחות 8 תווים, אות וגם ספרה",
+    "mismatch": "הסיסמאות אינן תואמות",
+    "error": "העדכון נכשל, נסו שוב",
+    "submit": "שמירה והמשך"
   },
   "chavruta": {
     "title": "חברותא",
@@ -4281,6 +4405,21 @@
     "deleted": "נמחק",
     "teacher_added": "המורה נוספה",
     "teacher_removed": "המורה הוסרה",
+    "hub_title": "מרכז חברותא",
+    "hub_subtitle": "מאגר מורות, שיוך חברותות ומעקב מפגשים",
+    "pool_title": "מאגר מורות",
+    "assign_title": "שיוך חברותא",
+    "assign_hint": "שייכי מורה לתלמידה למעקב אחר חברותות. השיוך אינו משפיע על שכר.",
+    "assign_pair": "שיוך",
+    "select_teacher": "בחרי מורה",
+    "no_pairs": "עדיין אין שיוכים",
+    "col_student": "תלמידה",
+    "confirm_remove_pair": "לבטל את השיוך?",
+    "pair_added": "השיוך נוסף",
+    "pair_removed": "השיוך בוטל",
+    "teacher_journal_title": "יומן מפגשים",
+    "open_teacher_journal": "פתחי יומן מפגשי חברותא",
+    "forbidden_hub": "אין לך הרשאה לנהל חברותות",
     "error": "אירעה שגיאה"
   }
 }

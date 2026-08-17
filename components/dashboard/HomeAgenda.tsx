@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 
@@ -27,7 +26,6 @@ const DAYS_AHEAD = 7
 export default function HomeAgenda() {
   const t = useTranslations('home')
   const { lang } = useLang()
-  const router = useRouter()
   const [items, setItems] = useState<AgendaItem[]>([])
   const [visible, setVisible] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -89,16 +87,10 @@ export default function HomeAgenda() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ marginBottom: 12 }}>
         <h2 className="text-sm font-bold tracking-widest uppercase" style={{ color: 'var(--text-faint)', margin: 0 }}>
           {t('agenda_title')}
         </h2>
-        <button
-          onClick={() => router.push('/dashboard/calendar')}
-          style={{ fontSize: 12, fontWeight: 600, color: 'var(--violet)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-        >
-          {t('agenda_open')} →
-        </button>
       </div>
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)', borderInlineStart: '4px solid var(--violet)' }}>

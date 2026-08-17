@@ -44,6 +44,9 @@ export default function PendingSignatures() {
   const [stages, setStages] = useState<PendingStage[]>([])
   const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   const [loaded, setLoaded] = useState(false)
+  // Свёрнуто по умолчанию: показываем первую (самую давнюю), остальные — под
+  // «ещё N» (запрос владельца — не заваливать список подписей).
+  const [showAll, setShowAll] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -71,10 +74,30 @@ export default function PendingSignatures() {
       <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{t('pending_signatures.subtitle')}</div>
 
       <div style={{ display: 'grid', gap: 12 }}>
-        {stages.map(s => (
+        {(showAll ? stages : stages.slice(0, 1)).map(s => (
           <PendingCard key={s.stage_instance_id} stage={s} sigMethod={sigMethod} onSigned={load} />
         ))}
       </div>
+
+      {stages.length > 1 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(v => !v)}
+          style={{
+            marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            width: '100%', padding: '9px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)',
+            borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: primary,
+          }}
+        >
+          {showAll
+            ? t('pending_signatures.show_less', 'הסתר')
+            : `${t('pending_signatures.show_more', 'עוד')} ${stages.length - 1}`}
+          <svg style={{ width: 14, height: 14, transform: showAll ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }

@@ -81,7 +81,7 @@ function MyLessonsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('my_lessons_today')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education/my-day')}>
+    <Card title={t('my_lessons_today')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/calendar')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(l => (
           <Row key={l.id}
@@ -163,7 +163,18 @@ function PendingSignaturesWidget({ onData }: { onData: () => void }) {
 }
 
 // ── Мои задачи ───────────────────────────────────────────────────────────────
-interface MyTask { id: string; title: string; due_date: string | null }
+type TaskPriority = 'urgent' | 'high' | 'normal' | 'low'
+interface MyTask { id: string; title: string; due_date: string | null; due_time?: string | null; priority?: TaskPriority }
+
+const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
+  urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-faint)',
+}
+
+function localTodayISO(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function MyTasksWidget({ onData }: { onData: () => void }) {
   const t = useTranslations('home')
   const { lang } = useLang()
@@ -186,13 +197,26 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
   useEffect(() => { load() }, [load])
 
   if (!loaded || items.length === 0) return null
+  const today = localTodayISO()
   return (
     <Card title={t('my_tasks')} accent="var(--warn)" count={items.length} onClick={() => router.push('/dashboard/tasks')}>
-      <div style={{ display: 'grid', gap: 5 }}>
-        {items.slice(0, 4).map(tk => (
-          <Row key={tk.id} main={tk.title} sub={tk.due_date ? formatDate(tk.due_date, lang) : t('no_date')} />
-        ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
+      <div style={{ display: 'grid', gap: 7 }}>
+        {items.slice(0, 4).map(tk => {
+          const overdue = tk.due_date != null && tk.due_date < today
+          const isToday = tk.due_date === today
+          const dueColor = overdue ? 'var(--danger, #DC2626)' : isToday ? 'var(--warn)' : 'var(--text-faint)'
+          const dueLabel = tk.due_date
+            ? (isToday ? t('today', 'היום') : formatDate(tk.due_date, lang)) + (tk.due_time ? ` · ${tk.due_time.slice(0, 5)}` : '')
+            : t('no_date')
+          return (
+            <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: TASK_PRIORITY_COLOR[tk.priority ?? 'normal'] }} />
+              <span style={{ flex: 1, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: overdue ? 600 : 400 }}>{tk.title}</span>
+              <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: overdue || isToday ? 700 : 500, color: dueColor }}>{dueLabel}</span>
+            </div>
+          )
+        })}
+        {items.length > 4 && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )

@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationPrivilegeScope, type EducationPrivilege } from '@/lib/education/permissions'
+
+/**
+ * Привилегия управления по education_status journey. Правка карточки (person +
+ * journey + interests + relatives + communities) идентична на всех этапах, но
+ * гейтится привилегией, соответствующей статусу: лид → manage_leads,
+ * абитуриент → manage_applicants, студент(и учебный цикл) → manage_students.
+ */
+function pickManagePrivilege(status: string | null): EducationPrivilege {
+  if (status === 'lead') return 'manage_leads'
+  if (status === 'applicant') return 'manage_applicants'
+  return 'manage_students'
+}
 
 /**
  * DELETE /api/education/leads/[id]
@@ -119,18 +131,19 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (!journey) return apiError('journey_not_found', 404)
-    if (journey.education_status !== 'lead') {
-      return apiError('not_a_lead', 400)
-    }
 
-    await requireEducationPrivilege('manage_leads', {
+    // Правка доступна на любом этапе (лид/абитуриент/студент) — по запросу
+    // владельца «редактировать данные ученицы и когда она уже ученица, а не
+    // только в гиюсе». Гейтим привилегией по статусу (см. pickManagePrivilege).
+    const managePriv = pickManagePrivilege(journey.education_status)
+    await requireEducationPrivilege(managePriv, {
       department_id: journey.primary_department_id ?? undefined,
     })
 
-    // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead) разрешена
+    // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less) разрешена
     // только при scope='all' (см. DELETE выше). На создание не распространяется.
     if (journey.primary_department_id == null) {
-      const scope = await getEducationPrivilegeScope(session, 'manage_leads')
+      const scope = await getEducationPrivilegeScope(session, managePriv)
       if (scope !== 'all') {
         return apiError('forbidden', 403)
       }

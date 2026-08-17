@@ -167,9 +167,18 @@ export default function RecruitmentFormSettingsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
-        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.88)', marginTop: 3 }}>{t('subtitle')}</p>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
+          <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.88)', marginTop: 3 }}>{t('subtitle')}</p>
+        </div>
+        {/* Просмотр публичной страницы регистрации «как видит абитуриентка». */}
+        <a
+          href="/apply" target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 13, fontWeight: 600, color: '#065F46', background: 'var(--surface)', border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+        >
+          {t('preview', 'תצוגה מקדימה')}
+        </a>
       </div>
 
       {loading ? (

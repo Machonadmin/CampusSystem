@@ -11,11 +11,12 @@ export interface SlotForConflict {
   end_time: string
   room: string | null
   teacher_ids: string[]
+  student_ids?: string[]       // ученицы группы (для конфликта «одни и те же ученицы»)
 }
 
 export interface ScheduleConflict {
-  kind: 'teacher' | 'room'
-  key: string                  // teacher_id или название комнаты
+  kind: 'teacher' | 'room' | 'students'
+  key: string                  // teacher_id / название комнаты / кол-во общих учениц
   slot_a: string
   slot_b: string
   day_of_week: number
@@ -47,6 +48,14 @@ export function detectScheduleConflicts(slots: SlotForConflict[]): ScheduleConfl
       // Одна и та же комната.
       if (a.room && b.room && a.room.trim() && a.room.trim() === b.room.trim()) {
         out.push({ kind: 'room', key: a.room.trim(), slot_a: a.id, slot_b: b.id, day_of_week: a.day_of_week })
+      }
+      // Одни и те же ученицы в двух местах одновременно (пересечение состава).
+      if (a.student_ids?.length && b.student_ids?.length) {
+        const bSet = new Set(b.student_ids)
+        const shared = a.student_ids.filter(sid => bSet.has(sid)).length
+        if (shared > 0) {
+          out.push({ kind: 'students', key: String(shared), slot_a: a.id, slot_b: b.id, day_of_week: a.day_of_week })
+        }
       }
     }
   }
