@@ -1722,6 +1722,23 @@
       "schedule": "Schedule",
       "no_data": "No teachers assigned",
       "room": "Room"
+    },
+    "teacher_attendance": {
+      "title": "Teacher attendance",
+      "subtitle": "Teacher marks attendance, secretariat approves",
+      "my_lessons_title": "My lessons",
+      "my_lessons_hint": "Mark that you taught the lesson. The secretariat will approve.",
+      "my_lessons_empty": "No lessons in the date range",
+      "pending_title": "Awaiting approval",
+      "pending_hint": "Teachers who marked attendance — approve or reject",
+      "pending_empty": "No requests to approve",
+      "report": "I was there",
+      "re_report": "Mark again",
+      "approve": "Approve",
+      "reject": "Reject",
+      "status_reported": "Pending",
+      "status_approved": "Approved",
+      "status_rejected": "Rejected"
     }
   },
   "tasks": {

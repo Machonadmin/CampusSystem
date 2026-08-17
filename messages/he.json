@@ -1722,6 +1722,23 @@
       "schedule": "מערכת שעות",
       "no_data": "אין מורים משובצים",
       "room": "כיתה"
+    },
+    "teacher_attendance": {
+      "title": "נוכחות מורים",
+      "subtitle": "המורה מסמן שהגיע, המזכירות מאשרת",
+      "my_lessons_title": "השיעורים שלי",
+      "my_lessons_hint": "סמן שהעברת את השיעור. המזכירות תאשר.",
+      "my_lessons_empty": "אין שיעורים בטווח התאריכים",
+      "pending_title": "ממתין לאישור",
+      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה",
+      "pending_empty": "אין בקשות לאישור",
+      "report": "הייתי בשיעור",
+      "re_report": "סמן שוב",
+      "approve": "אשר",
+      "reject": "דחה",
+      "status_reported": "ממתין",
+      "status_approved": "אושר",
+      "status_rejected": "נדחה"
     }
   },
   "tasks": {
