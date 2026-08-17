@@ -166,6 +166,42 @@ export default function StudentsTab() {
   }
   function exitSelect() { setSelectMode(false); setSelected(new Set()) }
 
+  // Экспорт текущего (уже отфильтрованного сервером) списка учениц в CSV.
+  // BOM в начале — чтобы Excel правильно открыл иврит/кириллицу.
+  function exportCsv() {
+    const esc = (v: unknown): string => {
+      const s = v === null || v === undefined ? '' : String(v)
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const headers = [
+      t('students.export_col_name'), t('students.export_col_hebrew_name'),
+      t('students.export_col_phone'), t('students.export_col_email'),
+      t('students.export_col_department'), t('students.export_col_group'),
+      t('students.export_col_specialty'), t('students.export_col_year'),
+      t('students.export_col_status'),
+    ]
+    const rows = students.map(s => {
+      const p = s.person
+      const phone = (p?.phones ?? []).map(ph => ph.number).filter(Boolean)[0] ?? ''
+      const specialty = s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : ''
+      return [
+        p?.full_name ?? '', p?.hebrew_name ?? '', phone, p?.email ?? '',
+        s.primary_department?.name ?? '', s.main_group?.name ?? '', specialty,
+        s.year_level ?? '', STATUS_LABEL[s.education_status],
+      ].map(esc).join(',')
+    })
+    const csv = '﻿' + [headers.map(esc).join(','), ...rows].join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `students-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const bulkTargets = bulkType === 'class' ? classGroups : bulkType === 'track' ? tracks : kodeshGroups
 
   async function applyBulk() {
@@ -291,6 +327,23 @@ export default function StudentsTab() {
           }}
         >
           {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
+        </button>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={students.length === 0}
+          title={t('students.export_button')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: students.length === 0 ? 'not-allowed' : 'pointer', borderRadius: 8, fontWeight: 600,
+            fontFamily: 'inherit', whiteSpace: 'nowrap', border: '1px solid var(--border-strong)',
+            background: 'var(--surface)', color: 'var(--text-muted)', opacity: students.length === 0 ? 0.5 : 1,
+          }}
+        >
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          {t('students.export_button')}
         </button>
         <div style={{ marginInlineStart: 'auto' }}>
           <PageActionButton
