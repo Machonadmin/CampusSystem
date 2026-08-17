@@ -637,6 +637,7 @@
       "names": {
         "recruitment": "Recruitment",
         "acceptance": "Acceptance",
+        "acceptance_v2": "Acceptance",
         "admission": "Admission"
       },
       "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then."

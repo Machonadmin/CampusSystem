@@ -304,17 +304,13 @@ const LIC = {
   chart: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z',
 }
 
+// Дедуп (запрос владельца): убраны дубли рельса StudyTab (תלמידות / קבוצות סמסטר /
+// הגדרות — они в рельсе слева), «מערכת שעות»/«היום שלי» (живут на главной), и
+// «קהילות» (не относится к «Учёбе»). Остаются ярлыки на то, чего нет в рельсе.
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
-  { key: 'launch_daily', fb: 'יומיומי', items: [
-    { key: 'launch_timetable', fb: 'מערכת שעות', icon: LIC.cal, href: '/dashboard/education/timetable' },
-    { key: 'launch_myday', fb: 'היום שלי', icon: LIC.clock, href: '/dashboard/education/my-day' },
-  ] },
   { key: 'launch_students', fb: 'תלמידות ומבנה', items: [
-    { key: 'launch_students_l', fb: 'תלמידות', icon: LIC.cap, nav: 'students' },
-    { key: 'launch_semgroups', fb: 'קבוצות סמסטר', icon: LIC.grid, nav: 'semester_groups' },
     { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment' },
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh' },
-    { key: 'launch_communities', fb: 'קהילות', icon: LIC.users, href: '/dashboard/education/communities' },
   ] },
   { key: 'launch_chavruta', fb: 'חברותא', badge: 'חדש בלימודים', items: [
     { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/chavruta' },
@@ -323,7 +319,6 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters' },
     { key: 'launch_structure', fb: 'מבנה אקדמי', icon: LIC.bld, href: '/dashboard/education/structure' },
     { key: 'launch_units', fb: 'יחידות לימוד', icon: LIC.grid, href: '/dashboard/education/units' },
-    { key: 'launch_settings', fb: 'הגדרות לימודים', icon: LIC.cog, nav: 'settings' },
     { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports' },
   ] },
 ]
