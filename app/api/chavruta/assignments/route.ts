@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
+import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
 
 /**
@@ -15,9 +15,10 @@ import type { JourneyStatus } from '@/types/database'
  *
  *   GET  → { assignments: [{ id, teacher_person_id, teacher_name,
  *            student_journey_id, student_name }], students: [{ journey_id, name }] }
- *          Право: view staff-comp. students — активные ученицы для пикера.
+ *          Право: view chavruta (staff-comp ЛИБО manage_students). students —
+ *          активные ученицы для пикера.
  *   POST → создать/реактивировать пару { teacher_person_id, student_journey_id }.
- *          Право: manage staff-comp.
+ *          Право: manage chavruta (staff-comp ЛИБО manage_students).
  * Деплой-безопасно (42P01 → пустая сводка).
  */
 function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
@@ -40,7 +41,7 @@ export async function GET() {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canViewStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canViewChavruta(session))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canManageChavruta(session))) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { teacher_person_id?: string; student_journey_id?: string }
     const teacherId = (body.teacher_person_id ?? '').trim()
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     if (!teacherId || !journeyId) return apiError('invalid_reference', 400)
 
     const sb = createServerClient()
-    const { data, error } = await u(sb).from('chavruta_plus_assignments')
+    const { data, error } = await u(sb).from('chavruta_pairs')
       .insert({ teacher_person_id: teacherId, student_journey_id: journeyId, is_active: true, created_by: session.person_id })
       .select('id, teacher_person_id, student_journey_id, is_active')
       .single()
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
       const code = (error as { code?: string }).code
       if (code === '42P01') return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
-        const { data: re } = await u(sb).from('chavruta_plus_assignments')
+        const { data: re } = await u(sb).from('chavruta_pairs')
           .update({ is_active: true }).eq('teacher_person_id', teacherId).eq('student_journey_id', journeyId)
           .select('id, teacher_person_id, student_journey_id, is_active').single()
         return NextResponse.json({ assignment: re }, { status: 200 })

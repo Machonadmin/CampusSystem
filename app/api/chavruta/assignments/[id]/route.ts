@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canManageStaffComp } from '@/lib/finance/staff-comp'
+import { canManageChavruta } from '@/lib/chavruta/access'
 
 /**
  * DELETE /api/chavruta/assignments/[id]
@@ -17,7 +17,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canManageChavruta(session))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
     try {

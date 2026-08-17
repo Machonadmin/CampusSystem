@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
-import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
+import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import ChavrutaHubClient from './ChavrutaHubClient'
 
 /**
@@ -15,9 +15,9 @@ import ChavrutaHubClient from './ChavrutaHubClient'
 export default async function ChavrutaHubPage() {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (!(await canViewStaffComp(session))) redirect('/dashboard/education')
+  if (!(await canViewChavruta(session))) redirect('/dashboard/education')
 
-  const canManage = await canManageStaffComp(session)
+  const canManage = await canManageChavruta(session)
 
   return <ChavrutaHubClient canManage={canManage} />
 }
