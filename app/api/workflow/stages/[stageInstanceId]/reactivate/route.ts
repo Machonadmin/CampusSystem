@@ -64,7 +64,14 @@ export async function POST(
       p_stage_instance_id: params.stageInstanceId,
       p_actor_id: session.person_id,
     })
-    if (rpcErr) throw rpcErr
+    if (rpcErr) {
+      // 22023 = RPC заблокировал переоткрытие (напр. следующий этап уже завершён).
+      // Отдаём дружелюбное сообщение вместо сырого текста функции.
+      if ((rpcErr as { code?: string }).code === '22023') {
+        return apiError('stage_reopen_blocked', 400)
+      }
+      throw rpcErr
+    }
 
     // Возврат обновлённого stage_instance
     const { data: updated } = await sb

@@ -467,6 +467,23 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         {t('process.actions.activate_stage')}
                       </button>
                     )}
+                    {/* Переоткрыть ЗАВЕРШЁННЫЙ подэтап — изменить решение (п. י"ב).
+                        Только «фронтир» (RPC сам блокирует, если поток ушёл дальше). */}
+                    {stage.status === 'completed' && proc.status === 'active' && canManage && (
+                      <button
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '' })}
+                        title={t('process.actions.change_decision')}
+                        style={{
+                          flexShrink: 0, marginInlineStart: 6, background: 'none', border: 'none', cursor: 'pointer',
+                          padding: '2px 6px', fontSize: 11, fontWeight: 500, color: 'var(--text-muted)',
+                          whiteSpace: 'nowrap', borderRadius: 4,
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-strong)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)' }}
+                      >
+                        {t('process.actions.change_decision')}
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>

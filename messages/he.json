@@ -582,6 +582,7 @@
       },
       "actions": {
         "activate_stage": "▶ הפעלה",
+        "change_decision": "שנה החלטה",
         "close_process_early": "⚙ סגירה מוקדמת של התהליך",
         "view_graph": "⛁ תרשים תהליך"
       },
@@ -3784,6 +3785,7 @@
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
+    "stage_reopen_blocked": "לא ניתן לשנות את ההחלטה כעת — השלב הבא כבר טופל",
     "no_access": "אין גישה",
     "no_view_permission": "אין הרשאת צפייה",
     "invalid_credentials": "אימייל או סיסמה שגויים",

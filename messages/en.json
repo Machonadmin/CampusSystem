@@ -582,6 +582,7 @@
       },
       "actions": {
         "activate_stage": "▶ Activate",
+        "change_decision": "Change decision",
         "close_process_early": "⚙ Close process early",
         "view_graph": "⛁ Process diagram"
       },
@@ -3784,6 +3785,7 @@
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
+    "stage_reopen_blocked": "Cannot change this decision now — the next stage was already handled",
     "no_access": "No access",
     "no_view_permission": "No permission to view",
     "invalid_credentials": "Invalid email or password",
