@@ -3743,6 +3743,7 @@
     "booked_by": "Booked by",
     "lesson": "Lesson",
     "my_lessons": "My lessons",
+    "take_attendance": "Attendance",
     "lesson_readonly": "Read only",
     "lesson_cancelled": "Lesson cancelled",
     "lesson_details": "Lesson details",

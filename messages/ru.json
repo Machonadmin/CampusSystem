@@ -3743,6 +3743,7 @@
     "booked_by": "Назначил",
     "lesson": "Урок",
     "my_lessons": "Мои уроки",
+    "take_attendance": "Посещаемость",
     "lesson_readonly": "Только просмотр",
     "lesson_cancelled": "Урок отменён",
     "lesson_details": "Детали урока",

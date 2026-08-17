@@ -21,6 +21,8 @@ import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthda
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 import { formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
+import type { LessonItem } from '@/app/dashboard/education/components/LessonsJournalTab'
 import type {
   Appointment, Block, Lesson, Task, CalEvent, StudentOption, View, Status,
 } from './calendar-types'
@@ -148,6 +150,8 @@ export default function CalendarClient() {
   const [editing, setEditing] = useState<Appointment | null>(null) // редактируемая встреча
   const [detail, setDetail] = useState<Appointment | null>(null)   // открытая встреча
   const [detailLesson, setDetailLesson] = useState<Lesson | null>(null) // read-only урок
+  const [attendanceLesson, setAttendanceLesson] = useState<Lesson | null>(null) // отметка посещаемости из календаря
+  const [canMarkAttendance, setCanMarkAttendance] = useState(false)
   const [detailTask, setDetailTask] = useState<Task | null>(null)  // read-only задача
   const [detailSchedule, setDetailSchedule] = useState<ScheduleInstance | null>(null) // слот
   const [dayOpen, setDayOpen] = useState<string | null>(null) // открытый день (детали дня)
@@ -263,6 +267,21 @@ export default function CalendarClient() {
         const b = await res.json()
         if (!cancelled) setBirthDate(b.birth_date ?? null)
       } catch { /* ДР — вспомогательный слой: сбой игнорируем */ }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  // Может ли пользователь отмечать посещаемость — чтобы на уроке показать «נוכחות».
+  // Грузим один раз; сбой = кнопки нет (сервер всё равно финальный гейт).
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/education/attendance-capability')
+        if (!res.ok) return
+        const b = await res.json()
+        if (!cancelled) setCanMarkAttendance(!!b.can_mark)
+      } catch { /* без права — просто нет кнопки */ }
     })()
     return () => { cancelled = true }
   }, [])
@@ -620,6 +639,31 @@ export default function CalendarClient() {
           tCommon={tCommon}
           locale={locale}
           lang={lang}
+          canMark={canMarkAttendance}
+          onAttendance={(l) => { setDetailLesson(null); setAttendanceLesson(l) }}
+        />
+      )}
+
+      {/* Отметка посещаемости прямо из календаря (по запросу владельца: «נוכחות
+          מתוך היומן»). Панель сама грузит ростер по id урока; POST сервер гейтит
+          по mark_attendance в контексте группы. */}
+      {attendanceLesson && (
+        <AttendancePanel
+          lesson={{
+            id: attendanceLesson.id,
+            class_group_id: attendanceLesson.class_group_id,
+            scheduled_date: attendanceLesson.date,
+            scheduled_time: attendanceLesson.time,
+            topic: null,
+            description: null,
+            location: attendanceLesson.location,
+            is_cancelled: attendanceLesson.is_cancelled,
+            marked_count: 0,
+          } as LessonItem}
+          canMarkAttendance
+          accentColor={LESSON_ACCENT}
+          onClose={() => setAttendanceLesson(null)}
+          onSaved={() => { setAttendanceLesson(null); load() }}
         />
       )}
 
@@ -1749,7 +1793,7 @@ function Legend({ t, primary }: { t: (k: string, f?: string) => string; primary:
 // ─────────────────────────────────────────────
 
 function LessonDetail({
-  l, onClose, t, tCommon, locale, lang,
+  l, onClose, t, tCommon, locale, lang, canMark, onAttendance,
 }: {
   l: Lesson
   onClose: () => void
@@ -1757,6 +1801,8 @@ function LessonDetail({
   tCommon: (k: string, f?: string) => string
   locale: string
   lang: string
+  canMark: boolean
+  onAttendance: (l: Lesson) => void
 }) {
   const subj = subjectLabel(l, lang)
   const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -1791,6 +1837,14 @@ function LessonDetail({
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
           <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
+          {canMark && !l.is_cancelled && (
+            <button
+              onClick={() => onAttendance(l)}
+              style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: LESSON_ACCENT, color: '#fff' }}
+            >
+              {t('take_attendance', 'נוכחות')}
+            </button>
+          )}
         </div>
       </div>
     </Overlay>

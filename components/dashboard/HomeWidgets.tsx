@@ -81,7 +81,7 @@ function MyLessonsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('my_lessons_today')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education/my-day')}>
+    <Card title={t('my_lessons_today')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/calendar')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(l => (
           <Row key={l.id}
