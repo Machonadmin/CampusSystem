@@ -1561,7 +1561,15 @@
       "meeting_scheduled": "scheduled",
       "meeting_completed": "done",
       "meeting_cancelled": "cancelled",
-      "meeting_no_show": "no-show"
+      "meeting_no_show": "no-show",
+      "personal_title": "Personal events",
+      "personal_hint": "Personal events — fully private, staff cannot see them.",
+      "personal_add": "Add personal event",
+      "personal_name_placeholder": "What's up?",
+      "personal_time_optional": "Time (optional)",
+      "personal_save": "Add",
+      "personal_delete": "Delete",
+      "personal_none": "No personal events on this day"
     },
     "student_dashboard": {
       "title": "Dashboard",

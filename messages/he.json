@@ -1561,7 +1561,15 @@
       "meeting_scheduled": "מתוכננת",
       "meeting_completed": "בוצעה",
       "meeting_cancelled": "בוטלה",
-      "meeting_no_show": "לא הגיעה"
+      "meeting_no_show": "לא הגיעה",
+      "personal_title": "אירועים אישיים",
+      "personal_hint": "אירועים אישיים — פרטיים לחלוטין, הצוות לא רואה אותם.",
+      "personal_add": "הוספת אירוע אישי",
+      "personal_name_placeholder": "מה יש לך?",
+      "personal_time_optional": "שעה (לא חובה)",
+      "personal_save": "הוספה",
+      "personal_delete": "מחיקה",
+      "personal_none": "אין אירועים אישיים ביום זה"
     },
     "student_dashboard": {
       "title": "דשבורד",

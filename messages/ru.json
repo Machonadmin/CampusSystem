@@ -1561,7 +1561,15 @@
       "meeting_scheduled": "запланирована",
       "meeting_completed": "выполнена",
       "meeting_cancelled": "отменена",
-      "meeting_no_show": "неявка"
+      "meeting_no_show": "неявка",
+      "personal_title": "Личные события",
+      "personal_hint": "Личные события — полностью приватные, сотрудники их не видят.",
+      "personal_add": "Добавить личное событие",
+      "personal_name_placeholder": "Что у тебя?",
+      "personal_time_optional": "Время (необязательно)",
+      "personal_save": "Добавить",
+      "personal_delete": "Удалить",
+      "personal_none": "Нет личных событий в этот день"
     },
     "student_dashboard": {
       "title": "Дашборд",

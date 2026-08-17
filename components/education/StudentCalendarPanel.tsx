@@ -10,6 +10,7 @@ interface Lesson {
   teacher: string | null; status: 'present' | 'late' | 'absent' | null; is_cancelled: boolean
 }
 interface Meeting { id: string; date: string; time: string | null; title: string; status: string }
+interface PersonalEvent { id: string; event_date: string; event_time: string | null; title: string; notes: string | null }
 
 // Приоритет цвета дня: пропуск > опоздание > присутствие; иначе — нейтрально.
 function dayColor(statuses: Array<string | null>): 'absent' | 'late' | 'present' | null {
@@ -24,7 +25,7 @@ const TINT: Record<'absent' | 'late' | 'present', { bg: string; fg: string }> = 
   absent: { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
-export default function StudentCalendarPanel({ journeyId }: { journeyId: string; canEdit?: boolean }) {
+export default function StudentCalendarPanel({ journeyId, personal = false }: { journeyId: string; canEdit?: boolean; personal?: boolean }) {
   const t = useTranslations('education.student_calendar')
   const { lang } = useLang()
 
@@ -33,12 +34,29 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
   const [month, setMonth] = useState(now.getMonth() + 1) // 1-12
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [personalEvents, setPersonalEvents] = useState<PersonalEvent[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Форма добавления личного события (только в портале, personal=true).
+  const [peTitle, setPeTitle] = useState('')
+  const [peTime, setPeTime] = useState('')
+  const [peSaving, setPeSaving] = useState(false)
 
   const weeks = useMemo(() => monthGrid(year, month, 0), [year, month])
   const from = weeks[0][0].dateISO
   const to = weeks[weeks.length - 1][6].dateISO
+
+  // Личные события — ТОЛЬКО в портале (personal=true). В сотрудническом просмотре
+  // этот запрос не делается вовсе (и вернул бы 403 — приватность на структуре).
+  const loadPersonal = useCallback(async () => {
+    if (!personal) return
+    try {
+      const res = await fetch(`/api/portal/personal-events?from=${from}&to=${to}`)
+      if (res.ok) { const b = await res.json(); setPersonalEvents(b.events ?? []) }
+      else setPersonalEvents([])
+    } catch { setPersonalEvents([]) }
+  }, [personal, from, to])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -46,9 +64,28 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
       const res = await fetch(`/api/education/journeys/${journeyId}/calendar?from=${from}&to=${to}`)
       if (res.ok) { const b = await res.json(); setLessons(b.lessons ?? []); setMeetings(b.meetings ?? []) }
       else { setLessons([]); setMeetings([]) }
+      await loadPersonal()
     } finally { setLoading(false) }
-  }, [journeyId, from, to])
+  }, [journeyId, from, to, loadPersonal])
   useEffect(() => { load() }, [load])
+
+  async function addPersonal() {
+    const title = peTitle.trim()
+    if (!title || !selected || peSaving) return
+    setPeSaving(true)
+    try {
+      const res = await fetch('/api/portal/personal-events', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, event_date: selected, event_time: peTime || null }),
+      })
+      if (res.ok) { setPeTitle(''); setPeTime(''); await loadPersonal() }
+    } finally { setPeSaving(false) }
+  }
+
+  async function deletePersonal(id: string) {
+    const res = await fetch(`/api/portal/personal-events/${id}`, { method: 'DELETE' })
+    if (res.ok) await loadPersonal()
+  }
 
   const byDay = useMemo(() => {
     const m = new Map<string, Lesson[]>()
@@ -60,6 +97,11 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
     for (const mt of meetings) { const a = m.get(mt.date) ?? []; a.push(mt); m.set(mt.date, a) }
     return m
   }, [meetings])
+  const personalByDay = useMemo(() => {
+    const m = new Map<string, PersonalEvent[]>()
+    for (const pe of personalEvents) { const a = m.get(pe.event_date) ?? []; a.push(pe); m.set(pe.event_date, a) }
+    return m
+  }, [personalEvents])
 
   function shiftMonth(delta: number) {
     setSelected(null)
@@ -125,6 +167,7 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
               {dayNum}
               {dl.length > 0 && <span style={{ position: 'absolute', bottom: 3, width: 4, height: 4, borderRadius: '50%', background: tint ? tint.fg : 'var(--text-faint)' }} />}
               {(meetingsByDay.get(cell.dateISO)?.length ?? 0) > 0 && <span style={{ position: 'absolute', top: 3, insetInlineEnd: 3, width: 5, height: 5, borderRadius: '50%', background: 'var(--violet)' }} />}
+              {(personalByDay.get(cell.dateISO)?.length ?? 0) > 0 && <span style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)' }} />}
             </button>
           )
         })}
@@ -134,6 +177,37 @@ export default function StudentCalendarPanel({ journeyId }: { journeyId: string;
       {selected && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{selected}</div>
+
+          {/* Личные события — только в портале (personal). Приватность на уровне API. */}
+          {personal && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-strong)' }}>{t('personal_title')}</span>
+              </div>
+              {(personalByDay.get(selected) ?? []).map(pe => (
+                <div key={pe.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', marginBottom: 6, borderRadius: 8, background: 'var(--accent-tint)', border: '1px solid var(--accent)' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--accent-strong)', minWidth: 42 }}>{pe.event_time ?? '—'}</div>
+                  <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{pe.title}</div>
+                  <button onClick={() => deletePersonal(pe.id)} title={t('personal_delete')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger, #DC2626)', fontSize: 16, lineHeight: 1, padding: '0 2px' }}>×</button>
+                </div>
+              ))}
+              {/* Форма добавления */}
+              <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                <input value={peTitle} onChange={e => setPeTitle(e.target.value)} placeholder={t('personal_name_placeholder')}
+                  style={{ flex: '1 1 140px', minWidth: 120, padding: '6px 9px', fontSize: 12.5, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }} />
+                <input type="time" value={peTime} onChange={e => setPeTime(e.target.value)} aria-label={t('personal_time_optional')}
+                  style={{ width: 96, padding: '6px 9px', fontSize: 12.5, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }} />
+                <button onClick={addPersonal} disabled={!peTitle.trim() || peSaving}
+                  style={{ padding: '6px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, border: 'none', cursor: (!peTitle.trim() || peSaving) ? 'not-allowed' : 'pointer', background: (!peTitle.trim() || peSaving) ? 'var(--border)' : 'var(--accent)', color: (!peTitle.trim() || peSaving) ? 'var(--text-faint)' : 'var(--accent-contrast, #fff)' }}>
+                  {t('personal_save')}
+                </button>
+              </div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-faint)', marginTop: 5 }}>🔒 {t('personal_hint')}</div>
+            </div>
+          )}
+
           {(meetingsByDay.get(selected) ?? []).map(mt => (
             <div key={mt.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', marginBottom: 6, borderRadius: 8, background: 'var(--violet-tint)', border: '1px solid var(--violet)' }}>
               <span>🤝</span>
