@@ -1,0 +1,115 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createServerClient } from '@/lib/supabase/server'
+
+// ─── Проверка конфликтов ПРИ СОЗДАНИИ/ПРАВКЕ слота (מנוע התנגשויות) ───────────
+//
+// Отличается от schedule-conflicts.ts (чистая визуализация всей сетки:
+// teacher/room). Здесь — обращение к БД для ОДНОГО слота-кандидата: в одно время
+// МОЖНО несколько уроков, но НЕЛЬЗЯ совпадение (1) кабинета, (2) преподавателя,
+// (3) учениц. НЕ блокировка — возвращаем предупреждения, клиент показывает и
+// предлагает альтернативу. Кабинет — по нормализованному тексту room (пусто →
+// не проверяем).
+
+export type SlotConflictKind = 'room' | 'teacher' | 'students'
+
+export interface SlotConflict {
+  kind: SlotConflictKind
+  group_name: string
+  detail?: string // room — кабинет; students — сколько общих
+}
+
+interface Candidate {
+  classGroupId: string
+  dayOfWeek: number
+  startSec: number
+  endSec: number
+  room: string | null
+}
+
+function timeToSeconds(t: string | null): number | null {
+  if (!t) return null
+  const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  if (!m) return null
+  return Number(m[1]) * 3600 + Number(m[2]) * 60 + (m[3] ? Number(m[3]) : 0)
+}
+
+function normRoom(r: string | null): string { return (r ?? '').trim().toLowerCase() }
+function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
+
+export async function detectSlotConflicts(
+  sb: ReturnType<typeof createServerClient>,
+  cand: Candidate,
+  excludeSlotId?: string,
+): Promise<SlotConflict[]> {
+  const { data: slotRows } = await sb
+    .from('class_schedule_slots')
+    .select('id, class_group_id, start_time, end_time, room')
+    .eq('day_of_week', cand.dayOfWeek)
+  const others = (slotRows ?? []).filter(s => {
+    if (s.class_group_id === cand.classGroupId) return false
+    if (excludeSlotId && s.id === excludeSlotId) return false
+    const os = timeToSeconds(s.start_time), oe = timeToSeconds(s.end_time)
+    if (os === null || oe === null) return false
+    return os < cand.endSec && oe > cand.startSec
+  })
+  if (others.length === 0) return []
+
+  const otherGroupIds = [...new Set(others.map(s => s.class_group_id))]
+  const allGroupIds = [...new Set([cand.classGroupId, ...otherGroupIds])]
+
+  const nameById = new Map<string, string>()
+  {
+    const { data } = await sb.from('class_groups').select('id, name').in('id', allGroupIds)
+    for (const g of (data ?? []) as Array<{ id: string; name: string }>) nameById.set(g.id, g.name)
+  }
+
+  const teachersByGroup = new Map<string, Set<string>>()
+  {
+    const { data } = await sb.from('class_teachers').select('class_group_id, teacher_id').in('class_group_id', allGroupIds)
+    for (const r of (data ?? []) as Array<{ class_group_id: string; teacher_id: string }>) {
+      const set = teachersByGroup.get(r.class_group_id) ?? new Set<string>()
+      set.add(r.teacher_id); teachersByGroup.set(r.class_group_id, set)
+    }
+  }
+
+  const studentsByGroup = new Map<string, Set<string>>()
+  {
+    const { data } = await u(sb).from('class_enrollments').select('class_group_id, student_id').in('class_group_id', allGroupIds)
+    for (const r of (data ?? []) as Array<{ class_group_id: string; student_id: string }>) {
+      const set = studentsByGroup.get(r.class_group_id) ?? new Set<string>()
+      set.add(r.student_id); studentsByGroup.set(r.class_group_id, set)
+    }
+  }
+
+  const myTeachers = teachersByGroup.get(cand.classGroupId) ?? new Set<string>()
+  const myStudents = studentsByGroup.get(cand.classGroupId) ?? new Set<string>()
+  const myRoom = normRoom(cand.room)
+
+  const conflicts: SlotConflict[] = []
+  const seen = new Set<string>()
+
+  for (const s of others) {
+    const gid = s.class_group_id
+    const gname = nameById.get(gid) ?? '—'
+
+    if (myRoom && normRoom(s.room) === myRoom) {
+      const key = `${gid}:room`
+      if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'room', group_name: gname, detail: cand.room ?? undefined }) }
+    }
+    const theirTeachers = teachersByGroup.get(gid)
+    if (theirTeachers && [...myTeachers].some(t => theirTeachers.has(t))) {
+      const key = `${gid}:teacher`
+      if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'teacher', group_name: gname }) }
+    }
+    const theirStudents = studentsByGroup.get(gid)
+    if (theirStudents && myStudents.size > 0) {
+      const shared = [...myStudents].filter(st => theirStudents.has(st)).length
+      if (shared > 0) {
+        const key = `${gid}:students`
+        if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'students', group_name: gname, detail: String(shared) }) }
+      }
+    }
+  }
+
+  return conflicts
+}

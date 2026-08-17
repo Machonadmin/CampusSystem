@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getSlotAccess } from '@/lib/education/lesson-access'
+import { detectSlotConflicts } from '@/lib/education/slot-conflict-check'
 import type { ScheduleSlotUpdate } from '@/types/database'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -94,7 +95,19 @@ export async function PATCH(
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    return NextResponse.json(data)
+    // Конфликты кабинет/преподаватель/ученицы для итогового слота — предупреждаем.
+    let conflicts: Awaited<ReturnType<typeof detectSlotConflicts>> = []
+    if (effStart !== null && effEnd !== null) {
+      try {
+        const slotRow = data as { class_group_id: string; day_of_week: number; room: string | null }
+        conflicts = await detectSlotConflicts(sb, {
+          classGroupId: slotRow.class_group_id, dayOfWeek: slotRow.day_of_week,
+          startSec: effStart, endSec: effEnd, room: slotRow.room,
+        }, params.slotId)
+      } catch { /* не роняем правку из-за обнаружения конфликтов */ }
+    }
+
+    return NextResponse.json({ ...(data as object), ...(conflicts.length ? { conflicts } : {}) })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
