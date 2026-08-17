@@ -3863,6 +3863,7 @@
     "invalid_email": "אימייל שגוי",
     "all_fields_required": "כל השדות הם חובה",
     "new_password_min_8": "הסיסמה החדשה חייבת להכיל לפחות 8 תווים",
+    "password_need_letter_and_digit": "הסיסמה חייבת לכלול אות וגם ספרה",
     "password_min_8": "הסיסמה חייבת להכיל לפחות 8 תווים",
     "password_min_8_short": "סיסמה באורך 8 תווים לפחות",
     "invalid_current_password": "הסיסמה הנוכחית שגויה",
@@ -4343,6 +4344,17 @@
       "answered": "מולא",
       "submit": "שליחה"
     }
+  },
+  "force_password": {
+    "title": "עדכון סיסמה",
+    "subtitle": "זו הכניסה הראשונה. יש לבחור סיסמה אישית וחזקה כדי להמשיך.",
+    "new_password": "סיסמה חדשה",
+    "confirm_password": "אישור סיסמה",
+    "show": "הצגת סיסמה",
+    "hint": "לפחות 8 תווים, אות וגם ספרה",
+    "mismatch": "הסיסמאות אינן תואמות",
+    "error": "העדכון נכשל, נסו שוב",
+    "submit": "שמירה והמשך"
   },
   "chavruta": {
     "title": "חברותא",

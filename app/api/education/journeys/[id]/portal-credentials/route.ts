@@ -140,6 +140,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
     }
 
+    // Временный пароль → при первом входе студентка обязана сменить его.
+    // Best-effort: до миграции колонки может не быть (42703) — не роняем выдачу.
+    try {
+      const { error: flagErr } = await creds(sb).update({ must_change_password: true }).eq('journey_id', params.id)
+      if (flagErr && (flagErr as { code?: string }).code !== '42703') { /* прочие ошибки не критичны для выдачи */ }
+    } catch { /* колонки нет до миграции — игнорируем */ }
+
     // Возвращаем открытый пароль ОДИН раз — сотрудник передаёт его студентке.
     return NextResponse.json({ email, password })
   } catch (err: unknown) {

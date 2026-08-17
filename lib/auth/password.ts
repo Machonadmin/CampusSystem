@@ -34,3 +34,14 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash)
 }
+
+/**
+ * «Более сильный» пароль (требование владельца при первой смене): минимум 8
+ * символов И хотя бы одна буква И хотя бы одна цифра. Возвращает код проблемы
+ * ('too_short' | 'need_letter_and_digit') или null, если пароль подходит.
+ */
+export function passwordStrengthIssue(password: string): 'too_short' | 'need_letter_and_digit' | null {
+  if (!password || password.length < 8) return 'too_short'
+  if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) return 'need_letter_and_digit'
+  return null
+}

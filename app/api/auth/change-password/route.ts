@@ -38,6 +38,13 @@ export async function PATCH(request: NextRequest) {
       .eq('id', account.id)
     if (e2) throw e2
 
+    // Любая успешная смена пароля снимает флаг обязательной смены (если он есть).
+    // Best-effort: до миграции колонки может не быть (42703) — не критично.
+    try {
+      await (sb as unknown as import('@supabase/supabase-js').SupabaseClient)
+        .from('person_accounts').update({ must_change_password: false }).eq('id', account.id)
+    } catch { /* колонки нет до миграции — игнорируем */ }
+
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { message?: string }

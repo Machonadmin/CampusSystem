@@ -27,6 +27,15 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
       .eq('id', params.id)
     if (error) throw error
 
+    // Сгенерированный (временный) пароль → пользователь обязан сменить его при
+    // первом входе. Best-effort: до миграции колонки может не быть (42703).
+    if (wasGenerated) {
+      try {
+        await (sb as unknown as import('@supabase/supabase-js').SupabaseClient)
+          .from('person_accounts').update({ must_change_password: true }).eq('id', params.id)
+      } catch { /* колонки нет до миграции — игнорируем */ }
+    }
+
     return NextResponse.json({ ok: true, generated_password: wasGenerated ? password : undefined })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

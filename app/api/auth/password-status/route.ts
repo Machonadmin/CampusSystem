@@ -1,0 +1,38 @@
+import { NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { serverT } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/session'
+
+/**
+ * GET /api/auth/password-status → { must_change: boolean }
+ * Нужно ли текущему пользователю сменить временный пароль. Staff читает
+ * person_accounts, студентка — student_credentials. Deploy-safe: нет колонки
+ * (42703) / нет таблицы (42P01) → { must_change: false } (никого не блокируем).
+ */
+function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
+
+export async function GET() {
+  try {
+    const session = await getSession()
+    if (!session) return NextResponse.json({ must_change: false })
+    const sb = createServerClient()
+    try {
+      if (session.principal === 'student' && session.student_journey_id) {
+        const { data } = await u(sb).from('student_credentials')
+          .select('must_change_password').eq('journey_id', session.student_journey_id).maybeSingle()
+        return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
+      }
+      const { data } = await u(sb).from('person_accounts')
+        .select('must_change_password').eq('login_email', session.login_email).maybeSingle()
+      return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
+    } catch (e) {
+      const code = (e as { code?: string }).code
+      if (code === '42703' || code === '42P01') return NextResponse.json({ must_change: false })
+      throw e
+    }
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+  }
+}

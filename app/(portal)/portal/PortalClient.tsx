@@ -12,6 +12,7 @@ import StudentChavrutaPanel from '@/components/education/StudentChavrutaPanel'
 import StudentShabbatPanel from '@/components/education/StudentShabbatPanel'
 import StudentTeachingSurveyPanel from '@/components/education/StudentTeachingSurveyPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
+import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
 
 /**
  * Оболочка личного кабинета студентки: приветствие, три панели (дашборд,
@@ -37,6 +38,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: 16 }}>
+      <ForcePasswordChangeGate portal />
       <div style={{ maxWidth: 680, margin: '0 auto', display: 'grid', gap: 14 }}>
         {/* Приветствие + выход */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
