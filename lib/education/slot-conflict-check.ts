@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 // ─── Проверка конфликтов ПРИ СОЗДАНИИ/ПРАВКЕ слота (מנוע התנגשויות) ───────────
@@ -34,7 +33,6 @@ function timeToSeconds(t: string | null): number | null {
 }
 
 function normRoom(r: string | null): string { return (r ?? '').trim().toLowerCase() }
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function detectSlotConflicts(
   sb: ReturnType<typeof createServerClient>,
@@ -72,12 +70,23 @@ export async function detectSlotConflicts(
     }
   }
 
+  // Состав групп: class_enrollments → journey_id → education_journeys.person_id.
+  // Сверяем по person_id (реальная ученица), а не по journey.
   const studentsByGroup = new Map<string, Set<string>>()
   {
-    const { data } = await u(sb).from('class_enrollments').select('class_group_id, student_id').in('class_group_id', allGroupIds)
-    for (const r of (data ?? []) as Array<{ class_group_id: string; student_id: string }>) {
+    const { data } = await sb.from('class_enrollments').select('class_group_id, journey_id').in('class_group_id', allGroupIds)
+    const rows = (data ?? []) as Array<{ class_group_id: string; journey_id: string }>
+    const journeyIds = [...new Set(rows.map(r => r.journey_id).filter(Boolean))]
+    const personByJourney = new Map<string, string>()
+    if (journeyIds.length) {
+      const { data: jr } = await sb.from('education_journeys').select('id, person_id').in('id', journeyIds)
+      for (const j of (jr ?? []) as Array<{ id: string; person_id: string }>) personByJourney.set(j.id, j.person_id)
+    }
+    for (const r of rows) {
+      const pid = personByJourney.get(r.journey_id)
+      if (!pid) continue
       const set = studentsByGroup.get(r.class_group_id) ?? new Set<string>()
-      set.add(r.student_id); studentsByGroup.set(r.class_group_id, set)
+      set.add(pid); studentsByGroup.set(r.class_group_id, set)
     }
   }
 

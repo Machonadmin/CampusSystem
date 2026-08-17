@@ -55,6 +55,24 @@ describe('detectScheduleConflicts', () => {
     expect(c).toHaveLength(2)
   })
 
+  it('общие ученицы в пересекающихся слотах → конфликт students', () => {
+    const s = [
+      base({ id: 'a', student_ids: ['s1', 's2'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', student_ids: ['s2', 's3'] }),
+    ]
+    const c = detectScheduleConflicts(s)
+    expect(c).toHaveLength(1)
+    expect(c[0]).toMatchObject({ kind: 'students', key: '1', slot_a: 'a', slot_b: 'b' })
+  })
+
+  it('нет общих учениц → нет конфликта students', () => {
+    const s = [
+      base({ id: 'a', student_ids: ['s1'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', student_ids: ['s2'] }),
+    ]
+    expect(detectScheduleConflicts(s)).toEqual([])
+  })
+
   it('conflictedSlotIds собирает id из всех конфликтов', () => {
     const s = [
       base({ id: 'a', teacher_ids: ['t1'] }),

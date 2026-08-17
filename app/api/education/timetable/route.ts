@@ -63,9 +63,32 @@ export async function GET(request: NextRequest) {
       if (t.person?.full_name) teacherNameById.set(t.teacher_id, t.person.full_name)
     }
 
+    // Состав групп — для конфликта «одни и те же ученицы одновременно».
+    // class_enrollments привязан к journey_id → education_journeys.person_id = ученица.
+    // Сверяем по person_id (физически один человек не может быть в двух местах).
+    // Деплой-безопасно: при ошибке — просто без student-конфликтов.
+    const studentIdsByGroup = new Map<string, string[]>()
+    try {
+      const { data: enr } = await sb.from('class_enrollments').select('class_group_id, journey_id').in('class_group_id', groupIds)
+      const rows = (enr ?? []) as Array<{ class_group_id: string; journey_id: string }>
+      const journeyIds = [...new Set(rows.map(r => r.journey_id).filter(Boolean))]
+      const personByJourney = new Map<string, string>()
+      if (journeyIds.length) {
+        const { data: jr } = await sb.from('education_journeys').select('id, person_id').in('id', journeyIds)
+        for (const j of (jr ?? []) as Array<{ id: string; person_id: string }>) personByJourney.set(j.id, j.person_id)
+      }
+      for (const e of rows) {
+        const pid = personByJourney.get(e.journey_id)
+        if (!pid) continue
+        const arr = studentIdsByGroup.get(e.class_group_id) ?? []
+        arr.push(pid); studentIdsByGroup.set(e.class_group_id, arr)
+      }
+    } catch { /* без student-конфликтов */ }
+
     const forConflict: SlotForConflict[] = slots.map(s => ({
       id: s.id, day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time,
       room: s.room, teacher_ids: teacherIdsByGroup.get(s.class_group_id) ?? [],
+      student_ids: studentIdsByGroup.get(s.class_group_id) ?? [],
     }))
     const conflicts = detectScheduleConflicts(forConflict)
 

@@ -43,6 +43,17 @@ export default function TimetablePage() {
   useEffect(() => { load(unit) }, [unit, load])
 
   const conflicted = useMemo(() => conflictedSlotIds(conflicts), [conflicts])
+  // slotId → набор видов конфликта (teacher/room/students), чтобы показать какой именно.
+  const kindsBySlot = useMemo(() => {
+    const m = new Map<string, Set<ScheduleConflict['kind']>>()
+    for (const c of conflicts) {
+      for (const id of [c.slot_a, c.slot_b]) {
+        const set = m.get(id) ?? new Set<ScheduleConflict['kind']>()
+        set.add(c.kind); m.set(id, set)
+      }
+    }
+    return m
+  }, [conflicts])
   const byDay = useMemo(() => {
     const m = new Map<number, Slot[]>()
     for (const s of slots) { const arr = m.get(s.day_of_week) ?? []; arr.push(s); m.set(s.day_of_week, arr) }
@@ -104,7 +115,15 @@ export default function TimetablePage() {
                           {s.teachers.length > 0 && <span>{s.teachers.join(', ')}</span>}
                           {s.room && <span>{s.teachers.length ? ' · ' : ''}{t('room')} {s.room}</span>}
                         </div>
-                        {bad && <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--danger)', marginTop: 4 }}>⚠ {t('conflict')}</div>}
+                        {bad && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                            {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
+                              <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
+                                ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )
                   })}
