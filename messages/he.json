@@ -148,7 +148,9 @@
     "error_login_failed": "הכניסה נכשלה",
     "error_connection": "שגיאה בהתחברות לשרת. נסה שוב",
     "logging_in": "מתחבר…",
-    "student_portal_link": "תלמידה? כניסה לפורטל התלמידות"
+    "student_portal_link": "תלמידה? כניסה לפורטל התלמידות",
+    "show_password": "הצג סיסמה",
+    "hide_password": "הסתר סיסמה"
   },
   "education": {
     "structures": {
@@ -4258,6 +4260,9 @@
     "email": "אימייל",
     "password": "סיסמה",
     "sign_in": "כניסה",
+    "show_password": "הצג סיסמה",
+    "hide_password": "הסתר סיסמה",
+    "forgot_password": "שכחת סיסמה? פני למזכירות המוסד.",
     "error": "ההתחברות נכשלה. בדקי אימייל וסיסמה",
     "greeting": "שלום",
     "logout": "יציאה",

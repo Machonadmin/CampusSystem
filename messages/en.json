@@ -148,7 +148,9 @@
     "error_login_failed": "Sign-in failed",
     "error_connection": "Connection error. Please try again",
     "logging_in": "Signing in...",
-    "student_portal_link": "Student? Go to the student portal"
+    "student_portal_link": "Student? Go to the student portal",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "education": {
     "structures": {
@@ -4258,6 +4260,9 @@
     "email": "Email",
     "password": "Password",
     "sign_in": "Sign in",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "forgot_password": "Forgot your password? Contact the institution office.",
     "error": "Sign-in failed. Check your email and password",
     "greeting": "Hello",
     "logout": "Log out",

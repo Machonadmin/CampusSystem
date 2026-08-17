@@ -148,7 +148,9 @@
     "error_login_failed": "Ошибка входа в систему",
     "error_connection": "Ошибка соединения с сервером. Попробуйте ещё раз",
     "logging_in": "Вход...",
-    "student_portal_link": "Студентка? Вход в портал учениц"
+    "student_portal_link": "Студентка? Вход в портал учениц",
+    "show_password": "Показать пароль",
+    "hide_password": "Скрыть пароль"
   },
   "education": {
     "structures": {
@@ -4258,6 +4260,9 @@
     "email": "Email",
     "password": "Пароль",
     "sign_in": "Войти",
+    "show_password": "Показать пароль",
+    "hide_password": "Скрыть пароль",
+    "forgot_password": "Забыли пароль? Обратитесь в канцелярию.",
     "error": "Не удалось войти. Проверьте email и пароль",
     "greeting": "Здравствуйте",
     "logout": "Выйти",
