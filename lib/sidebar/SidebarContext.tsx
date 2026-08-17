@@ -25,11 +25,11 @@ const SidebarContext = createContext<SidebarCtx>({
   setPin: () => {},
 })
 
-// Модули, где сайдбар автоматически сворачивается в плотный (иконочный) режим —
-// «Образование/Учёба» как отдельное рабочее пространство (запрос владельца).
-// Плотно ТОЛЬКО здесь; глобальное предпочтение (sidebar_open) не меняется.
-function isDenseRoute(pathname: string | null): boolean {
-  return (pathname ?? '').startsWith('/dashboard/education')
+// Авто-сворачивание сайдбара в «Образовании» ОТКЛЮЧЕНО (запрос владельца): теперь
+// набор/приём/учёба — три отдельных пункта в самом сайдбаре, поэтому рейл должен
+// оставаться раскрытым, иначе их названий не видно.
+function isDenseRoute(_pathname: string | null): boolean {
+  return false
 }
 
 export function SidebarProvider({ children }: { children: ReactNode }) {

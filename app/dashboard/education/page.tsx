@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import EducationHeaderNav from './components/EducationHeaderNav'
@@ -21,7 +22,21 @@ export default function EducationPage() {
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
 
-  const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>('recruitment')
+  const searchParams = useSearchParams()
+  // Начальная вкладка из ?tab= (три пункта сайдбара: набор/приём/учёба).
+  const initialTab = ((): 'recruitment' | 'admission' | 'committee' | 'study' => {
+    const q = searchParams.get('tab')
+    return q === 'committee' || q === 'study' || q === 'admission' || q === 'recruitment' ? q : 'recruitment'
+  })()
+  const [tab, setTab] = useState<'recruitment' | 'admission' | 'committee' | 'study'>(initialTab)
+
+  // Синхронизация при клике по другому пункту сайдбара (?tab= меняется, страница
+  // не перемонтируется).
+  useEffect(() => {
+    const q = searchParams.get('tab')
+    if (q === 'committee' || q === 'study' || q === 'admission' || q === 'recruitment') setTab(q)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
   // Какие вкладки вправе видеть пользователь (null = ещё грузим). «Каждый видит только своё».
   const [tabAccess, setTabAccess] = useState<Record<string, boolean> | null>(null)
 

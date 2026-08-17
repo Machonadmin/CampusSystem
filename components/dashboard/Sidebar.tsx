@@ -2,10 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { isModuleImplemented } from '@/lib/module-colors'
+
+// Три раздела «Образования» как отдельные пункты сайдбара (запрос владельца):
+// набор / приём / учёба → /dashboard/education?tab=…
+const EDU_SECTIONS = [
+  { key: 'recruitment', labelKey: 'tabs.leads' },
+  { key: 'committee',   labelKey: 'tabs.applicants' },
+  { key: 'study',       labelKey: 'tabs.students' },
+] as const
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -170,13 +178,17 @@ function SidebarNavLink({
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { t, isRTL } = useLang()
+  const tEdu = useTranslations('education')
   const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
   const [isChavrutaTeacher, setIsChavrutaTeacher] = useState(false)
   // Есть ли у меня открытые задачи (для точки на пункте «Задачи»).
   const [hasOpenTasks, setHasOpenTasks] = useState(false)
+  // Доступ к вкладкам «Образования» (набор/приём/учёба) — гейтит три пункта.
+  const [eduTabAccess, setEduTabAccess] = useState<Record<string, boolean> | null>(null)
   // Свёрнутые группы: открыта только та, где активный маршрут; остальные скрыты
   // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
@@ -200,6 +212,24 @@ export default function Sidebar() {
       .catch(() => { /* тихо */ })
     return () => { alive = false }
   }, [pathname])
+
+  // Доступ к трём разделам «Образования» — грузим один раз (для гейтинга пунктов).
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/tab-access')
+      .then(r => r.ok ? r.json() : null)
+      .then(a => { if (alive && a) setEduTabAccess(a) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  // Какой из трёх разделов сейчас активен (для подсветки пункта).
+  function activeEduSection(): string | null {
+    if (pathname === '/dashboard/education') return searchParams.get('tab') || 'recruitment'
+    if (pathname.startsWith('/dashboard/education/leads') || pathname.startsWith('/dashboard/education/recruitment')) return 'recruitment'
+    if (pathname.startsWith('/dashboard/education/')) return 'study'
+    return null
+  }
 
   // Click-outside to close when unpinned on desktop
   useEffect(() => {
@@ -372,19 +402,43 @@ export default function Sidebar() {
                 </div>
               )}
 
-              {expanded && section.items.map(item => (
-                <SidebarNavLink
-                  key={item.key}
-                  href={item.href}
-                  iconPath={item.icon}
-                  label={t.nav[item.key]}
-                  active={isActive(item.href)}
-                  isOpen={isOpen}
-                  isRTL={isRTL}
-                  moduleKey={item.key}
-              soonLabel={t.soon}
-                />
-              ))}
+              {expanded && section.items.flatMap(item => {
+                // «Образование» разворачивается в три пункта: набор / приём / учёба.
+                if (item.key === 'education') {
+                  const activeSec = activeEduSection()
+                  const secIcon: Record<string, string> = {
+                    recruitment: I.persons, committee: I.quality_control, study: I.education,
+                  }
+                  return EDU_SECTIONS
+                    .filter(s => (eduTabAccess ? eduTabAccess[s.key] !== false : true))
+                    .map(s => (
+                      <SidebarNavLink
+                        key={`education-${s.key}`}
+                        href={`/dashboard/education?tab=${s.key}`}
+                        iconPath={secIcon[s.key] ?? item.icon}
+                        label={tEdu(s.labelKey)}
+                        active={activeSec === s.key}
+                        isOpen={isOpen}
+                        isRTL={isRTL}
+                        moduleKey="education"
+                        soonLabel={t.soon}
+                      />
+                    ))
+                }
+                return [(
+                  <SidebarNavLink
+                    key={item.key}
+                    href={item.href}
+                    iconPath={item.icon}
+                    label={t.nav[item.key]}
+                    active={isActive(item.href)}
+                    isOpen={isOpen}
+                    isRTL={isRTL}
+                    moduleKey={item.key}
+                    soonLabel={t.soon}
+                  />
+                )]
+              })}
             </div>
           )
         })}
