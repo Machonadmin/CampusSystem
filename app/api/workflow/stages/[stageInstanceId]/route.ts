@@ -101,6 +101,11 @@ export async function GET(
       tasks: tasks ?? [],
       finals: finals ?? [],
       can_manage,
+      // Право ПОДПИСАТЬ этап (ролевой подписант / superadmin) — уже, чем
+      // can_manage (у которого есть и manage_leads). На этапах-подписях кнопки
+      // финалов показываем только тем, кто реально может подписать.
+      can_sign: signerAuthority !== null,
+      required_role_code: tmpl?.required_role_code ?? null,
       can_convert,
       signature_method,
     })
