@@ -138,6 +138,24 @@ export default function RecruitmentTab() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setOpenMenuId(null)} />
       )}
 
+      {/* Инструменты набора (переехали из меню «ניהול», п. ט): отчёты набора +
+          настройки страницы регистрации — теперь живут в самой вкладке גיוס. */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+        {[
+          { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
+          { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
+        ].map(l => (
+          <a key={l.href} href={l.href}
+            style={{
+              fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)',
+              padding: '6px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
+              border: '1px solid var(--accent)',
+            }}>
+            {l.label}
+          </a>
+        ))}
+      </div>
+
       {/* Toolbar — только поиск, «Фильтры», создать, экспорт всегда видимы */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <input

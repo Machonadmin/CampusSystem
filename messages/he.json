@@ -1665,6 +1665,7 @@
     "recruitment_form": {
       "title": "הגדרות דף ההרשמה",
       "subtitle": "הגיוס שולט במה שמופיע בטופס הציבורי",
+      "preview": "תצוגה מקדימה",
       "section_fields": "שדות הטופס",
       "section_fields_note": "בחר אילו שדות יופיעו למועמדת ואילו יהיו חובה",
       "col_field": "שדה",

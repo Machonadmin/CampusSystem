@@ -1665,6 +1665,7 @@
     "recruitment_form": {
       "title": "Application page settings",
       "subtitle": "Recruitment controls what appears on the public form",
+      "preview": "Preview",
       "section_fields": "Form fields",
       "section_fields_note": "Choose which fields appear and which are required",
       "col_field": "Field",
