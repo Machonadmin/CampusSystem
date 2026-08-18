@@ -1851,7 +1851,8 @@
     "filter_labels": {
       "status": "Статус:",
       "priority": "Приоритет:",
-      "total": "Всего:"
+      "total": "Всего:",
+      "more": "Фильтры"
     },
     "status": {
       "unassigned": "Не назначена",
