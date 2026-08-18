@@ -30,6 +30,8 @@ export default function AssignmentBoardClient() {
   const [dragId, setDragId] = useState<string | null>(null)
   const [overGroup, setOverGroup] = useState<string | null>(null)
   const [busyGroup, setBusyGroup] = useState<string | null>(null)
+  // Клик-режим (touch/планшет + быстрее мыши): выбрать человека → кликнуть группу.
+  const [selected, setSelected] = useState<DragPayload | null>(null)
 
   const load = useCallback(async () => {
     const d = await fetch('/api/education/assignment-board').then(r => r.ok ? r.json() : null).catch(() => null)
@@ -68,6 +70,7 @@ export default function AssignmentBoardClient() {
       setGroups(gs => gs.map(g => g.id !== groupId ? g : payload.kind === 'students'
         ? { ...g, students: [...g.students, { journey_id: payload.id, name: payload.name }] }
         : { ...g, teachers: [...g.teachers, { person_id: payload.id, name: payload.name }] }))
+      setSelected(null)
     } finally { setBusyGroup(null) }
   }
 
@@ -116,18 +119,24 @@ export default function AssignmentBoardClient() {
             </div>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search')}
               style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, marginBottom: 10 }} />
-            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 8 }}>{t('drag_hint')}</div>
+            <div style={{ fontSize: 11, color: selected ? 'var(--accent-strong)' : 'var(--text-faint)', fontWeight: selected ? 600 : 400, marginBottom: 8 }}>
+              {selected ? t('click_target_hint').replace('{name}', selected.name) : t('drag_hint')}
+            </div>
             <div style={{ overflowY: 'auto', display: 'grid', gap: 6 }}>
               {pool.length === 0 ? (
                 <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('pool_empty')}</div>
-              ) : pool.map(p => (
+              ) : pool.map(p => {
+                const sel = selected?.kind === p.kind && selected?.id === p.id
+                return (
                 <div key={p.id} draggable
                   onDragStart={e => { e.dataTransfer.setData('text/plain', JSON.stringify(p)); e.dataTransfer.effectAllowed = 'copy'; setDragId(p.id) }}
                   onDragEnd={() => setDragId(null)}
-                  style={{ padding: '8px 10px', fontSize: 13, borderRadius: 8, background: dragId === p.id ? 'var(--accent-tint)' : 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'grab', opacity: dragId === p.id ? 0.6 : 1, userSelect: 'none' }}>
+                  onClick={() => setSelected(s => (s?.kind === p.kind && s?.id === p.id) ? null : p)}
+                  style={{ padding: '8px 10px', fontSize: 13, borderRadius: 8, background: sel ? 'var(--accent)' : dragId === p.id ? 'var(--accent-tint)' : 'var(--surface-2)', color: sel ? '#fff' : 'var(--text)', border: `1px solid ${sel ? 'var(--accent)' : 'var(--border)'}`, cursor: 'pointer', opacity: dragId === p.id ? 0.6 : 1, userSelect: 'none' }}>
                   {p.name}
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -137,6 +146,8 @@ export default function AssignmentBoardClient() {
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_groups')}</div>
             ) : groups.map(g => {
               const over = overGroup === g.id
+              const selectable = !!selected && !alreadyIn(g, selected)
+              const highlight = over || selectable
               return (
                 <div key={g.id}
                   onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (!over) setOverGroup(g.id) }}
@@ -145,7 +156,8 @@ export default function AssignmentBoardClient() {
                     e.preventDefault(); setOverGroup(null)
                     try { const p = JSON.parse(e.dataTransfer.getData('text/plain')) as DragPayload; if (p?.id) assign(g.id, p) } catch { /* ignore */ }
                   }}
-                  style={{ background: 'var(--surface)', border: `1.5px solid ${over ? 'var(--accent)' : 'var(--border)'}`, boxShadow: over ? '0 0 0 3px var(--accent-tint)' : 'none', borderRadius: 10, padding: 12, opacity: busyGroup === g.id ? 0.7 : 1, transition: 'box-shadow .1s, border-color .1s' }}>
+                  onClick={() => { if (selected && !alreadyIn(g, selected)) assign(g.id, selected) }}
+                  style={{ background: 'var(--surface)', border: `1.5px solid ${highlight ? 'var(--accent)' : 'var(--border)'}`, boxShadow: over ? '0 0 0 3px var(--accent-tint)' : 'none', borderRadius: 10, padding: 12, opacity: busyGroup === g.id ? 0.7 : 1, cursor: selectable ? 'pointer' : 'default', transition: 'box-shadow .1s, border-color .1s' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{g.name}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginBottom: 8 }}>
                     {[g.subject, g.unit].filter(Boolean).join(' · ') || '—'}
@@ -156,7 +168,7 @@ export default function AssignmentBoardClient() {
                     {g.teachers.length === 0 ? <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>—</span> : g.teachers.map(tc => (
                       <span key={tc.person_id} style={{ ...chip, background: 'var(--accent-tint)', color: 'var(--accent-strong)', borderColor: 'var(--accent)' }}>
                         {tc.name}
-                        <button onClick={() => remove(g.id, 'teachers', tc.person_id)} style={xBtn} title={t('remove')}>×</button>
+                        <button onClick={e => { e.stopPropagation(); remove(g.id, 'teachers', tc.person_id) }} style={xBtn} title={t('remove')}>×</button>
                       </span>
                     ))}
                   </div>
@@ -168,7 +180,7 @@ export default function AssignmentBoardClient() {
                     {g.students.length === 0 ? <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>—</span> : g.students.map(s => (
                       <span key={s.journey_id} style={chip}>
                         {s.name}
-                        <button onClick={() => remove(g.id, 'students', s.journey_id)} style={xBtn} title={t('remove')}>×</button>
+                        <button onClick={e => { e.stopPropagation(); remove(g.id, 'students', s.journey_id) }} style={xBtn} title={t('remove')}>×</button>
                       </span>
                     ))}
                   </div>
