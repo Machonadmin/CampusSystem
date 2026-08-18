@@ -164,13 +164,13 @@ export default function RecruitmentTab() {
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder={t('leads.search_placeholder')}
-          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}
+          style={{ flex: '1 1 220px', padding: '10px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}
         />
         <button
           type="button"
           onClick={() => setFiltersOpen(v => !v)}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 14px', fontSize: 13,
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', fontSize: 13,
             cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
             border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
             background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',

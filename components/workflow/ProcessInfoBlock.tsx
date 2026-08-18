@@ -180,6 +180,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   const [reactivatingStage, setReactivatingStage] = useState<{ id: string; name: string } | null>(null)
   const [reactivating, setReactivating] = useState(false)
+  // «Занавес» (п. י"ב): свёрнутая история завершённых шагов до текущего фронтира.
+  const [historyOpen, setHistoryOpen] = useState<Record<string, boolean>>({})
 
   const [closingProc, setClosingProc] = useState<ProcessInfo | null>(null)
   const [closingFinals, setClosingFinals] = useState<ClosingFinal[]>([])
@@ -422,9 +424,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {[...proc.stages]
-                .sort((a, b) => (a.stage_template?.sort_order ?? 0) - (b.stage_template?.sort_order ?? 0))
-                .map(stage => (
+              {(() => {
+                const sorted = [...proc.stages]
+                  .sort((a, b) => (a.stage_template?.sort_order ?? 0) - (b.stage_template?.sort_order ?? 0))
+                const stageRow = (stage: (typeof sorted)[number]) => (
                   <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <button
                       onClick={() => openStage(stage.id)}
@@ -485,7 +488,31 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       </button>
                     )}
                   </div>
-                ))}
+                )
+                // «Занавес» (п. י"ב): свернуть завершённую историю до текущего
+                // фронтира (первый active/waiting) под раскрывающийся заголовок
+                // «תחילת התהליך». Помогает после «изменить решение», когда набор
+                // шагов открылся заново — старый набор не загромождает вид.
+                const frontierIdx = sorted.findIndex(s => s.status === 'active' || s.status === 'waiting')
+                const history = frontierIdx > 0 ? sorted.slice(0, frontierIdx) : []
+                if (!(frontierIdx > 0 && history.length >= 3)) return sorted.map(stageRow)
+                const rest = sorted.slice(frontierIdx)
+                const open = !!historyOpen[proc.id]
+                return (
+                  <>
+                    <button
+                      onClick={() => setHistoryOpen(m => ({ ...m, [proc.id]: !open }))}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', width: '100%', textAlign: 'start' }}
+                    >
+                      <span style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
+                      <span>{t('process.history_curtain', 'תחילת התהליך')}</span>
+                      <span style={{ color: 'var(--text-faint)', fontWeight: 500 }}>· {history.length}</span>
+                    </button>
+                    {open && history.map(stageRow)}
+                    {rest.map(stageRow)}
+                  </>
+                )
+              })()}
             </div>
 
             {proc.status === 'active' && canManage && (
