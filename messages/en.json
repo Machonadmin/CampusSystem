@@ -1282,7 +1282,10 @@
       "saving": "Saving…",
       "saved": "Saved ✓",
       "save_error": "Save failed",
-      "choose": "Choose a track…"
+      "choose": "Choose a track…",
+      "year_label": "Study year",
+      "completed": "Completed",
+      "reactivate": "Reactivate (undo completion)"
     },
     "study_plan": {
       "title": "Study plan",
