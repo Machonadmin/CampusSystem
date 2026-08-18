@@ -1776,6 +1776,21 @@
       "no_results": "אין תשובות עדיין",
       "source_manager": "מנהל",
       "source_student": "תלמידה"
+    },
+    "assignment_board": {
+      "title": "שיבוץ",
+      "subtitle": "גרור תלמידות ומורים לתוך קבוצות השיעור",
+      "tab_students": "תלמידות",
+      "tab_teachers": "מורים",
+      "search": "חיפוש לפי שם",
+      "drag_hint": "גרור שם אל קבוצה כדי לשבץ",
+      "pool_empty": "אין תוצאות",
+      "no_groups": "אין קבוצות פעילות",
+      "teachers_label": "מורים",
+      "students_label": "תלמידות",
+      "remove": "הסר",
+      "assign_failed": "השיבוץ נכשל",
+      "remove_failed": "ההסרה נכשלה"
     }
   },
   "tasks": {
