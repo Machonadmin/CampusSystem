@@ -477,7 +477,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <div style={cardTitle}>{t('summary_title')}</div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 {approved ? (
-                  <span style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99, background: '#D1FAE5', color: '#065F46' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99, background: 'var(--success-tint)', color: 'var(--success)' }}>
                     {t('approved')} · {fmtDate(payslip?.approved_at ?? null)}
                   </span>
                 ) : canApprove && (

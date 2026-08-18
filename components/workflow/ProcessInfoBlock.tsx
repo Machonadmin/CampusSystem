@@ -106,9 +106,9 @@ interface Props {
 const POSITIVE_CLOSE_REASONS = new Set(['admitted', 'admitted_conditional'])
 
 function processStatusStyle(status: string): React.CSSProperties {
-  if (status === 'active') return { background: '#D1FAE5', color: '#065F46' }
+  if (status === 'active') return { background: 'var(--success-tint)', color: 'var(--success)' }
   if (status === 'completed') return { background: 'var(--border)', color: 'var(--text)' }
-  if (status === 'cancelled') return { background: '#FEE2E2', color: '#991B1B' }
+  if (status === 'cancelled') return { background: 'var(--danger-tint)', color: 'var(--danger)' }
   return {}
 }
 
@@ -146,9 +146,9 @@ function stageLabelStyle(status: string, accent: string): React.CSSProperties {
  */
 const ORANGE_FINAL_CODES = new Set(['postponed', 'partial', 'done_event_later', 'no_show'])
 function finalButtonColors(code: string, isPositive: boolean): { background: string; color: string } {
-  if (ORANGE_FINAL_CODES.has(code)) return { background: '#FED7AA', color: '#9A3412' }
-  if (isPositive) return { background: '#D1FAE5', color: '#065F46' }
-  return { background: '#FEE2E2', color: '#991B1B' }
+  if (ORANGE_FINAL_CODES.has(code)) return { background: 'var(--warn-tint)', color: 'var(--warn)' }
+  if (isPositive) return { background: 'var(--success-tint)', color: 'var(--success)' }
+  return { background: 'var(--danger-tint)', color: 'var(--danger)' }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -402,7 +402,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
                 ...(proc.status === 'cancelled' && proc.finish_reason && POSITIVE_CLOSE_REASONS.has(proc.finish_reason)
-                  ? { background: '#D1FAE5', color: '#065F46' }
+                  ? { background: 'var(--success-tint)', color: 'var(--success)' }
                   : processStatusStyle(proc.status)),
               }}>
                 {proc.status === 'cancelled' && proc.finish_reason && POSITIVE_CLOSE_REASONS.has(proc.finish_reason)
@@ -577,7 +577,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 {stageDetail && (
                   <span style={{
                     fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
-                    ...(stageDetail.status === 'active' ? { background: '#D1FAE5', color: '#065F46' }
+                    ...(stageDetail.status === 'active' ? { background: 'var(--success-tint)', color: 'var(--success)' }
                       : stageDetail.status === 'completed' ? { background: 'var(--border)', color: 'var(--text)' }
                       : { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
                   }}>
@@ -721,7 +721,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   )}
 
                   {stageDetail.status === 'completed' && stageDetail.final_code && (
-                    <div style={{ padding: '10px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, fontSize: 13, color: '#065F46' }}>
+                    <div style={{ padding: '10px 14px', background: 'var(--success-tint)', border: '1px solid var(--success)', borderRadius: 8, fontSize: 13, color: 'var(--success)' }}>
                       {t('process.completed_with')} <strong>
                         {t(`process.finals.${stageDetail.final_code}`,
                           stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code)}

@@ -230,9 +230,9 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
             {data && (
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
-                ...(data.process_status === 'active' ? { background: '#D1FAE5', color: '#065F46' }
+                ...(data.process_status === 'active' ? { background: 'var(--success-tint)', color: 'var(--success)' }
                   : data.process_status === 'completed' ? { background: 'var(--border)', color: 'var(--text)' }
-                  : { background: '#FEE2E2', color: '#991B1B' }),
+                  : { background: 'var(--danger-tint)', color: 'var(--danger)' }),
               }}>
                 {t(`process.process_status.${data.process_status}`, data.process_status)}
               </span>

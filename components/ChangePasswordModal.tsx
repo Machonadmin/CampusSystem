@@ -118,14 +118,14 @@ export default function ChangePasswordModal({ onClose }: Props) {
         {success ? (
           <div style={{ padding: '32px 20px', textAlign: 'center' }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%', backgroundColor: '#D1FAE5',
+              width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--success-tint)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px',
             }}>
-              <svg width="24" height="24" fill="none" stroke="#059669" viewBox="0 0 24 24">
+              <svg width="24" height="24" fill="none" stroke="var(--success)" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p style={{ fontWeight: 600, color: '#065F46', fontSize: 14 }}>{t('success')}</p>
+            <p style={{ fontWeight: 600, color: 'var(--success)', fontSize: 14 }}>{t('success')}</p>
           </div>
         ) : (
           <>

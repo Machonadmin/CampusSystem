@@ -430,7 +430,7 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
 
       {formError && <ModalError text={formError} />}
       {result && (
-        <div style={{ marginTop: 12, padding: '8px 12px', background: '#ECFDF5', color: '#065F46', borderRadius: 8, fontSize: 13 }}>
+        <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--success-tint)', color: 'var(--success)', borderRadius: 8, fontSize: 13 }}>
           {fill(t('generate_result'), { created: result.created, skipped: result.skipped })}
         </div>
       )}
@@ -486,7 +486,7 @@ function ModalHeader({ title, onClose }: { title: string; onClose: () => void })
 
 function ModalError({ text }: { text: string }) {
   return (
-    <div style={{ marginTop: 12, padding: '8px 12px', background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+    <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
       {text}
     </div>
   )

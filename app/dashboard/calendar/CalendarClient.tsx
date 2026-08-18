@@ -922,9 +922,9 @@ function dayRowBtn(isRTL: boolean, bg: string, color: string, accent: string): R
 
 function statusStyle(status: Status, primary: string, light: string): { bg: string; color: string; strike: boolean } {
   switch (status) {
-    case 'completed': return { bg: '#D1FAE5', color: '#047857', strike: false }
+    case 'completed': return { bg: 'var(--success-tint)', color: 'var(--success)', strike: false }
     case 'cancelled': return { bg: 'var(--surface-2)', color: 'var(--text-faint)', strike: true }
-    case 'no_show':   return { bg: '#FEF3C7', color: '#B45309', strike: false }
+    case 'no_show':   return { bg: 'var(--warn-tint)', color: 'var(--warn)', strike: false }
     default:          return { bg: light, color: primary, strike: false }
   }
 }
@@ -1207,7 +1207,7 @@ function WeekView({
                   <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)' }}>{formatHebrewDate(day)}</span>
                 )}
                 {blocked && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FEF3C7', borderRadius: 999, padding: '1px 8px' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', borderRadius: 999, padding: '1px 8px' }}>
                     {t('day_off')}
                   </span>
                 )}
@@ -1353,7 +1353,7 @@ function WeekView({
                     )
                   }
                   const a = ev.appointment!
-                  const st = statusStyle(a.status, primary, '#DBEAFE')
+                  const st = statusStyle(a.status, primary, 'var(--info-tint)')
                   const mins = minutesBetween(a.starts_at, a.ends_at)
                   const isParticipant = a.role === 'participant'
                   const who = isParticipant
@@ -1650,7 +1650,7 @@ function AppointmentDetail({
   primary: string
   hebrewDates: boolean
 }) {
-  const st = statusStyle(a.status, primary, '#DBEAFE')
+  const st = statusStyle(a.status, primary, 'var(--info-tint)')
   const dayISO = a.starts_at.slice(0, 10)
   const dateLabel = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${dayISO}T00:00:00Z`))
@@ -1689,7 +1689,7 @@ function AppointmentDetail({
               {a.attendees.map(at => (
                 <span key={at.person_id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 99, padding: '3px 10px' }}>
                   {at.name || '—'}
-                  <span style={{ fontSize: 10.5, fontWeight: 600, color: at.status === 'accepted' ? '#047857' : at.status === 'declined' ? '#DC2626' : at.status === 'pending_approval' ? '#B45309' : 'var(--text-faint)' }}>· {t(`att_${at.status}`)}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, color: at.status === 'accepted' ? 'var(--success)' : at.status === 'declined' ? 'var(--danger)' : at.status === 'pending_approval' ? 'var(--warn)' : 'var(--text-faint)' }}>· {t(`att_${at.status}`)}</span>
                 </span>
               ))}
             </div>
@@ -1700,8 +1700,8 @@ function AppointmentDetail({
           <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--accent-tint)', borderRadius: 8 }}>
             <div style={{ fontSize: 12.5, color: 'var(--text)', marginBottom: 8 }}>{t('my_pending_prompt')} <b>{a.title}</b></div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => onRespond('accept')} style={statusBtn('#047857', '#D1FAE5')}>{t('respond_approve')}</button>
-              <button onClick={() => onRespond('decline')} style={statusBtn('#DC2626', '#FEE2E2')}>{t('respond_decline')}</button>
+              <button onClick={() => onRespond('accept')} style={statusBtn('var(--success)', 'var(--success-tint)')}>{t('respond_approve')}</button>
+              <button onClick={() => onRespond('decline')} style={statusBtn('var(--danger)', 'var(--danger-tint)')}>{t('respond_decline')}</button>
             </div>
           </div>
         )}
@@ -1715,11 +1715,11 @@ function AppointmentDetail({
           <>
             {/* Status actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
-              <button onClick={() => onStatus('completed')} style={statusBtn('#047857', '#D1FAE5')}>{t('mark_completed')}</button>
+              <button onClick={() => onStatus('completed')} style={statusBtn('var(--success)', 'var(--success-tint)')}>{t('mark_completed')}</button>
               <button onClick={() => onStatus('cancelled')} style={statusBtn('var(--text-muted)', 'var(--surface-2)')}>{t('mark_cancelled')}</button>
-              <button onClick={() => onStatus('no_show')} style={statusBtn('#B45309', '#FEF3C7')}>{t('mark_no_show')}</button>
+              <button onClick={() => onStatus('no_show')} style={statusBtn('var(--warn)', 'var(--warn-tint)')}>{t('mark_no_show')}</button>
               {a.status !== 'scheduled' && (
-                <button onClick={() => onStatus('scheduled')} style={statusBtn(primary, '#DBEAFE')}>{t('mark_scheduled')}</button>
+                <button onClick={() => onStatus('scheduled')} style={statusBtn(primary, 'var(--info-tint)')}>{t('mark_scheduled')}</button>
               )}
             </div>
 

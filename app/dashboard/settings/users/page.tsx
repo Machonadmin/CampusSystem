@@ -739,8 +739,8 @@ function UsersPageContent() {
                   <td style={{ padding: '10px 14px' }}>
                     <span style={{
                       display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-                      backgroundColor: user.is_active ? '#D1FAE5' : '#FEE2E2',
-                      color: user.is_active ? '#065F46' : '#991B1B',
+                      backgroundColor: user.is_active ? 'var(--success-tint)' : 'var(--danger-tint)',
+                      color: user.is_active ? 'var(--success)' : 'var(--danger)',
                     }}>
                       {user.is_active ? t('active') : t('inactive')}
                     </span>

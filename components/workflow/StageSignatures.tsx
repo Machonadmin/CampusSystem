@@ -75,8 +75,8 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                 {decision ? (
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999,
-                    background: positive ? '#ECFDF5' : '#FEF2F2',
-                    color: positive ? '#047857' : '#B91C1C',
+                    background: positive ? 'var(--success-tint)' : 'var(--danger-tint)',
+                    color: positive ? 'var(--success)' : 'var(--danger)',
                   }}>
                     {decision}
                   </span>
@@ -88,7 +88,7 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
               </div>
 
               {st.note && (
-                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text)', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '6px 10px' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text)', background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '6px 10px' }}>
                   {st.note}
                 </div>
               )}

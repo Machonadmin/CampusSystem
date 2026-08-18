@@ -147,14 +147,14 @@ export default function StaffCompIndexClient() {
                   key={s.person_id}
                   onClick={() => router.push(`/dashboard/finance/staff/${s.person_id}`)}
                   style={{ cursor: 'pointer' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#ECFDF5' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--success-tint)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                 >
                   <td style={td}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                        background: '#D1FAE5', color: primary,
+                        background: 'var(--success-tint)', color: primary,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 12, fontWeight: 700,
                       }}>

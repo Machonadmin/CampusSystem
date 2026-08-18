@@ -204,12 +204,12 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                           </span>
                         )}
                         {s.has_expired && (
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: '#FEE2E2', color: '#B91C1C' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--danger-tint)', color: 'var(--danger)' }}>
                             {t('list.expired_flag')}
                           </span>
                         )}
                         {s.has_expiring_soon && (
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: '#FEF3C7', color: '#B45309' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--warn-tint)', color: 'var(--warn)' }}>
                             {t('list.expiring_flag')}
                           </span>
                         )}

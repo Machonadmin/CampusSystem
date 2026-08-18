@@ -229,8 +229,8 @@ function ReferralCard({
             ) : (
               <div style={{ display: 'grid', gap: 8 }}>
                 {referral.referrals.map((x, i) => (
-                  <div key={i} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#92400E' }}>{x.from_stage}</div>
+                  <div key={i} style={{ background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>{x.from_stage}</div>
                     <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{x.note || t('referrals.no_reason')}</div>
                     {x.signer_name && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>— {x.signer_name}</div>}
                   </div>
@@ -302,9 +302,9 @@ function ReferralCard({
                   onClick={() => { setSelectedFinal(f.code); setSig(null); setError('') }}
                   style={{
                     fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
-                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
-                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
                   }}
                 >
                   {finalLabel(f)}
