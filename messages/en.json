@@ -1776,6 +1776,21 @@
       "no_results": "No responses yet",
       "source_manager": "Manager",
       "source_student": "Student"
+    },
+    "assignment_board": {
+      "title": "Assignment",
+      "subtitle": "Drag students and teachers into class groups",
+      "tab_students": "Students",
+      "tab_teachers": "Teachers",
+      "search": "Search by name",
+      "drag_hint": "Drag a name onto a group to assign",
+      "pool_empty": "No results",
+      "no_groups": "No active groups",
+      "teachers_label": "Teachers",
+      "students_label": "Students",
+      "remove": "Remove",
+      "assign_failed": "Assignment failed",
+      "remove_failed": "Removal failed"
     }
   },
   "tasks": {

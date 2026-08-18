@@ -1776,6 +1776,21 @@
       "no_results": "Ответов пока нет",
       "source_manager": "Менеджер",
       "source_student": "Ученица"
+    },
+    "assignment_board": {
+      "title": "Распределение",
+      "subtitle": "Перетаскивайте учениц и преподавателей в учебные группы",
+      "tab_students": "Ученицы",
+      "tab_teachers": "Преподаватели",
+      "search": "Поиск по имени",
+      "drag_hint": "Перетащите имя на группу для назначения",
+      "pool_empty": "Ничего не найдено",
+      "no_groups": "Нет активных групп",
+      "teachers_label": "Преподаватели",
+      "students_label": "Ученицы",
+      "remove": "Убрать",
+      "assign_failed": "Не удалось назначить",
+      "remove_failed": "Не удалось убрать"
     }
   },
   "tasks": {
