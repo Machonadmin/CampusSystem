@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isIsoDate, isIsoDateTime } from '@/lib/calendar/validation'
-import { hasOverlappingAppointment } from '@/lib/calendar/overlap'
+import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { isAboveInHierarchy } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
 
@@ -239,6 +239,11 @@ export async function POST(request: NextRequest) {
     const overlap = await hasOverlappingAppointment(sb, session.person_id, body.starts_at, body.ends_at)
     if (overlap) {
       return apiError('meeting_overlap', 409)
+    }
+    // «Твой календарь занят»: нельзя ставить встречу поверх собственного урока.
+    const lessonConflict = await overlappingLesson(sb, session.person_id, body.starts_at, body.ends_at)
+    if (lessonConflict) {
+      return NextResponse.json({ error: serverT('lesson_overlap').replace('{time}', lessonConflict.time) }, { status: 409 })
     }
 
     const insert: AppointmentInsert = {

@@ -4083,6 +4083,7 @@
     "student_active_meal_plan_exists": "The student already has an active meal plan for the selected dates",
     "person_has_active_journey": "This person already has an active journey with a different status",
     "meeting_overlap": "The meeting overlaps with an already scheduled one",
+    "lesson_overlap": "Your calendar is busy — you have a lesson at {time}",
     "group_name_exists": "A group with this name already exists",
     "lesson_exists_date_time": "A lesson for this date and time already exists",
     "specialty_other_department": "The specialty belongs to a different department",

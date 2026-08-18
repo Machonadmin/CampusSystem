@@ -1486,7 +1486,7 @@ function AppointmentForm({
         : await fetch('/api/calendar/appointments', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
           })
-      if (res.status === 409) { setErr(t('overlap_error')); return }
+      if (res.status === 409) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('overlap_error')); return }
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('load_error')); return }
       onSaved()
     } catch {

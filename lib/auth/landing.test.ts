@@ -9,8 +9,8 @@ describe('landingRouteForRoles — умная посадка по роли', () 
     expect(landingRouteForRoles(['teacher', 'superadmin'])).toBe('/dashboard')
   })
 
-  it('учитель → мой день', () => {
-    expect(landingRouteForRoles(['teacher'])).toBe('/dashboard/education/my-day')
+  it('учитель → календарь (мой день удалён, уроки и посещаемость в календаре)', () => {
+    expect(landingRouteForRoles(['teacher'])).toBe('/dashboard/calendar')
   })
 
   it('набор/учёба → модуль обучения', () => {

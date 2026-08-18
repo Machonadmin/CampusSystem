@@ -4083,6 +4083,7 @@
     "student_active_meal_plan_exists": "לסטודנט כבר יש תוכנית הזנה פעילה בתאריכים שנבחרו",
     "person_has_active_journey": "לאדם זה כבר יש journey פעיל עם סטטוס אחר",
     "meeting_overlap": "הפגישה חופפת לפגישה שכבר מתוכננת",
+    "lesson_overlap": "היומן שלך תפוס — יש לך שיעור בשעה {time}",
     "group_name_exists": "קבוצה בשם זה כבר קיימת",
     "lesson_exists_date_time": "שיעור בתאריך ובשעה אלה כבר קיים",
     "specialty_other_department": "ההתמחות שייכת למחלקה אחרת",

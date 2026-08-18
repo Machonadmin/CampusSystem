@@ -6,7 +6,7 @@
 
 // Роль → её основной ежедневный экран. Роли без записи → общая сетка /dashboard.
 const ROLE_LANDING: Record<string, string> = {
-  teacher:            '/dashboard/education/my-day',
+  teacher:            '/dashboard/calendar',
   recruiter:          '/dashboard/education',
   studies_manager:    '/dashboard/education',
   studies_secretary:  '/dashboard/education',
