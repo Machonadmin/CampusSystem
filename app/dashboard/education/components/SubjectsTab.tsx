@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SubjectModal from './SubjectModal'
+import SubjectSemestersModal from './SubjectSemestersModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 
@@ -51,6 +52,7 @@ export default function SubjectsTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
+  const [semSubject, setSemSubject] = useState<Subject | null>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -163,7 +165,7 @@ export default function SubjectsTab() {
                   <th style={{ ...thStyle, width: 90 }}>{t('subjects.year_label')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('subjects.table_sort_order')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('subjects.table_status')}</th>
-                  <th style={{ ...thStyle, width: 160 }}>{t('subjects.table_actions')}</th>
+                  <th style={{ ...thStyle, width: 230 }}>{t('subjects.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -187,6 +189,12 @@ export default function SubjectsTab() {
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          onClick={() => setSemSubject(s)}
+                          style={{ ...btnSecondary, color: accent, borderColor: accent }}
+                        >
+                          {t('subjects.sem_button')}
+                        </button>
                         <button
                           onClick={() => { setEditingSubject(s); setModalMode('edit') }}
                           style={btnSecondary}
@@ -216,6 +224,14 @@ export default function SubjectsTab() {
           tracks={tracks}
           onClose={() => { setModalMode(null); setEditingSubject(null) }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {semSubject && (
+        <SubjectSemestersModal
+          subjectId={semSubject.id}
+          subjectName={semSubject.name}
+          onClose={() => setSemSubject(null)}
         />
       )}
     </div>

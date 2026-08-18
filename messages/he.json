@@ -955,7 +955,15 @@
         "semester_price_label": "מחיר סמסטר (₽)",
         "semester_price_hint": "ברירת מחדל 210000 ₽, ניתן לשינוי. נוצרים 2 סמסטרים אוטומטית.",
         "track_required": "נא לבחור מסלול",
-        "all_tracks": "כל המסלולים"
+        "all_tracks": "כל המסלולים",
+        "sem_button": "סמסטרים",
+        "semesters_title": "סמסטרים של המקצוע",
+        "semester_word": "סמסטר",
+        "sem_status_label": "סטטוס",
+        "sem_open": "פתוח",
+        "sem_closed": "סגור",
+        "sem_saved": "נשמר",
+        "sem_none": "אין למקצוע סמסטרים"
       },
       "specialties": {
         "add_button": "התמחות",

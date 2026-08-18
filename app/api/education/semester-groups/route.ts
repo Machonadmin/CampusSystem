@@ -84,7 +84,7 @@ async function buildCounts(
  * Право (чтение): manage_class_groups ИЛИ view_students в любом подразделении.
  * Деплой-безопасно: если колонки is_semester ещё нет (42703/42P01) → пустой список.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -93,14 +93,18 @@ export async function GET() {
       (await canDoEducationInAny(session, 'view_students'))
     if (!allowed) return apiError('forbidden', 403)
 
+    const subjectId = request.nextUrl.searchParams.get('subject_id')
+
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: groups, error } = await (u(sb)
+    let qb = u(sb)
       .from('class_groups')
       .select(SEMESTER_GROUP_SELECT)
       .eq('is_semester', true)
-      .order('name') as any)
+    if (subjectId) qb = qb.eq('subject_id', subjectId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: groups, error } = await (qb.order('term_number').order('name') as any)
 
     if (error) {
       if (error.code === '42703' || error.code === '42P01') {
