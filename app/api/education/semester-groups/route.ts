@@ -6,6 +6,8 @@ import { getSession } from '@/lib/auth/session'
 import {
   requireEducationPrivilege,
   canDoEducationInAny,
+  getEducationPrivilegeScope,
+  getUserDepartmentIds,
 } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
@@ -95,6 +97,18 @@ export async function GET(request: NextRequest) {
 
     const subjectId = request.nextUrl.searchParams.get('subject_id')
 
+    // Видимость по подразделению: scope='all' — все семестры; scope='department'
+    // — только class_groups.department_id из дерева подразделений пользователя.
+    const scope = session.roles.includes('superadmin')
+      ? 'all'
+      : ((await getEducationPrivilegeScope(session, 'manage_class_groups'))
+        ?? (await getEducationPrivilegeScope(session, 'view_students')))
+    let myDepts: string[] | null = null
+    if (scope === 'department') {
+      myDepts = await getUserDepartmentIds(session.person_id)
+      if (myDepts.length === 0) return NextResponse.json({ semester_groups: [] })
+    }
+
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,6 +117,7 @@ export async function GET(request: NextRequest) {
       .select(SEMESTER_GROUP_SELECT)
       .eq('is_semester', true)
     if (subjectId) qb = qb.eq('subject_id', subjectId)
+    if (myDepts) qb = qb.in('department_id', myDepts)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: groups, error } = await (qb.order('term_number').order('name') as any)
 
