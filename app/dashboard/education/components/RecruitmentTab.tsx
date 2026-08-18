@@ -150,9 +150,9 @@ export default function RecruitmentTab() {
         ].map(l => (
           <a key={l.href} href={l.href}
             style={{
-              fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)',
+              fontSize: 12.5, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--surface-2)',
               padding: '6px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
-              border: '1px solid var(--accent)',
+              border: '1px solid var(--border)',
             }}>
             {l.label}
           </a>
