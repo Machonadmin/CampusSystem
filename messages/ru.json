@@ -2267,7 +2267,26 @@
       "male": "Муж.",
       "female": "Жен."
     },
-    "create_login": "Создать логин"
+    "create_login": "Создать логин",
+    "seat_button": "Посадить на стул",
+    "seat_title": "Посадить человека на стул",
+    "seat_hint": "Подразделение (юнит) + должность + роль сразу. Юнит определяет, что человек видит.",
+    "seat_person": "Человек",
+    "seat_search_person": "Поиск по имени или email…",
+    "seat_department": "Подразделение",
+    "seat_position": "Должность (ярлык)",
+    "seat_role": "Роль (права)",
+    "seat_is_head": "Глава юнита (управляет командой)",
+    "seat_hire_date": "Дата начала",
+    "seat_choose": "Выберите…",
+    "seat_submit": "Посадить",
+    "seat_saving": "Сохранение…",
+    "seat_saved": "Человек посажен на стул",
+    "seat_err_person": "Выберите человека",
+    "seat_err_department": "Выберите подразделение",
+    "seat_err_position": "Выберите должность",
+    "seat_err_role": "Выберите роль",
+    "seat_err_generic": "Не удалось посадить на стул"
   },
   "quality": {
     "title": "Оценка преподавания",
@@ -4307,7 +4326,10 @@
     "study_track_required": "Выберите маршрут обучения",
     "year_level_required": "Выберите год обучения",
     "subject_semesters_partial": "Предмет создан, но часть семестров не удалось создать",
-    "subject_no_track_department": "Предмет создан, но у маршрута нет подразделения — семестры не созданы"
+    "subject_no_track_department": "Предмет создан, но у маршрута нет подразделения — семестры не созданы",
+    "person_required": "Выберите человека",
+    "role_required": "Выберите роль",
+    "role_not_found": "Роль не найдена"
   },
   "workflow": {
     "error": "Ошибка"

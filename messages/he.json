@@ -2267,7 +2267,26 @@
       "male": "זכר",
       "female": "נקבה"
     },
-    "create_login": "צור התחברות"
+    "create_login": "צור התחברות",
+    "seat_button": "שבץ אדם",
+    "seat_title": "שיבוץ אדם לכיסא",
+    "seat_hint": "מחלקה (יחידה) + תווית תפקיד + הרשאה — במקום אחד. המחלקה קובעת מה האדם רואה.",
+    "seat_person": "אדם",
+    "seat_search_person": "חיפוש לפי שם או אימייל…",
+    "seat_department": "מחלקה",
+    "seat_position": "תווית תפקיד",
+    "seat_role": "תפקיד (הרשאות)",
+    "seat_is_head": "ראש היחידה (מנהל את הצוות)",
+    "seat_hire_date": "תאריך תחילה",
+    "seat_choose": "בחר…",
+    "seat_submit": "שבץ",
+    "seat_saving": "שומר…",
+    "seat_saved": "האדם שובץ לכיסא",
+    "seat_err_person": "נא לבחור אדם",
+    "seat_err_department": "נא לבחור מחלקה",
+    "seat_err_position": "נא לבחור תווית תפקיד",
+    "seat_err_role": "נא לבחור תפקיד",
+    "seat_err_generic": "שיבוץ נכשל"
   },
   "quality": {
     "title": "הערכת הוראה",
@@ -4307,7 +4326,10 @@
     "study_track_required": "נא לבחור מסלול לימודים",
     "year_level_required": "נא לבחור שנת לימוד",
     "subject_semesters_partial": "המקצוע נוצר, אך חלק מהסמסטרים לא נוצרו",
-    "subject_no_track_department": "המקצוע נוצר, אך למסלול אין מחלקה — הסמסטרים לא נוצרו"
+    "subject_no_track_department": "המקצוע נוצר, אך למסלול אין מחלקה — הסמסטרים לא נוצרו",
+    "person_required": "נא לבחור אדם",
+    "role_required": "נא לבחור תפקיד",
+    "role_not_found": "התפקיד לא נמצא"
   },
   "workflow": {
     "error": "שגיאה"

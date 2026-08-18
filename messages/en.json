@@ -2267,7 +2267,26 @@
       "male": "Male",
       "female": "Female"
     },
-    "create_login": "Create login"
+    "create_login": "Create login",
+    "seat_button": "Seat a person",
+    "seat_title": "Seat a person",
+    "seat_hint": "Department (unit) + title + role in one place. The department sets what they see.",
+    "seat_person": "Person",
+    "seat_search_person": "Search by name or email…",
+    "seat_department": "Department",
+    "seat_position": "Title",
+    "seat_role": "Role (permissions)",
+    "seat_is_head": "Unit head (manages the team)",
+    "seat_hire_date": "Start date",
+    "seat_choose": "Choose…",
+    "seat_submit": "Seat",
+    "seat_saving": "Saving…",
+    "seat_saved": "Person seated",
+    "seat_err_person": "Select a person",
+    "seat_err_department": "Select a department",
+    "seat_err_position": "Select a title",
+    "seat_err_role": "Select a role",
+    "seat_err_generic": "Could not seat the person"
   },
   "quality": {
     "title": "Teaching Evaluation",
@@ -4307,7 +4326,10 @@
     "study_track_required": "Select a study track",
     "year_level_required": "Select a study year",
     "subject_semesters_partial": "Subject created, but some semesters could not be created",
-    "subject_no_track_department": "Subject created, but the track has no department — semesters were not created"
+    "subject_no_track_department": "Subject created, but the track has no department — semesters were not created",
+    "person_required": "Select a person",
+    "role_required": "Select a role",
+    "role_not_found": "Role not found"
   },
   "workflow": {
     "error": "Error"
