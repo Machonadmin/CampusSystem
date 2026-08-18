@@ -157,7 +157,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
             <div style={labelStyle}>{t('card.notes')}</div>
             <textarea style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
-          {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+          {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={save}

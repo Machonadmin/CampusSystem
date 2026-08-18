@@ -174,7 +174,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
               <span style={{ fontSize: 13, color: 'var(--text)' }}>{a.student_name || a.student_journey_id}</span>
               {canManage && (
                 <button onClick={() => removeAssignment(a.id)} title={t('cp_remove')}
-                  style={{ fontSize: 12, fontWeight: 600, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>× {t('cp_remove')}</button>
+                  style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>× {t('cp_remove')}</button>
               )}
             </div>
           ))}

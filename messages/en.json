@@ -46,6 +46,7 @@
   "common": {
     "actions": "Actions",
     "cancel": "Cancel",
+    "close": "Close",
     "delete": "Delete",
     "back": "Back",
     "edit": "Edit",

@@ -200,7 +200,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
         </div>
       </div>
 
-      {panelError && <div style={{ fontSize: 13, color: '#DC2626' }}>{panelError}</div>}
+      {panelError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{panelError}</div>}
 
       {/* Enroll panel */}
       {canManage && (
@@ -246,7 +246,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('plan.enrolled_section')}</h2>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : enrollments.length === 0 ? (
@@ -304,7 +304,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
             </h3>
             <button onClick={() => setDietFor(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
           </div>
-          {dietError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{dietError}</div>}
+          {dietError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{dietError}</div>}
           <div style={{ display: 'grid', gap: 10 }}>
             <label style={fieldLabel}>{t('dietary.restrictions')}
               <textarea value={diet.restrictions ?? ''} onChange={e => setDiet(d => ({ ...d, restrictions: e.target.value }))} rows={2} style={area} />

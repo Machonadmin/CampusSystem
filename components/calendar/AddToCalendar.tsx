@@ -157,7 +157,7 @@ export default function AddToCalendar({
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
                 </label>
 
-                {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+                {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
 
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>

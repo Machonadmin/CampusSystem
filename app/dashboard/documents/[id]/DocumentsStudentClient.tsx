@@ -195,7 +195,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
       </div>
 
-      {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
+      {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
@@ -212,7 +212,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                 <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('add.title')}</h2>
                 <button onClick={() => setShowAddForm(false)} aria-label={tCommon('cancel')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1 }}>×</button>
               </div>
-              {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
+              {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('fields.doc_type')}>
                   <select value={dType} onChange={e => setDType(e.target.value)} style={inp}>

@@ -381,7 +381,7 @@ export default function TaskPage() {
       )}
 
       {error && !task && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -574,7 +574,7 @@ export default function TaskPage() {
               )}
 
               {showDeclineInput && (
-                <div style={{ background: '#FEF2F2', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: 'var(--danger-tint)', padding: 12, borderRadius: 8 }}>
                   <label style={{ fontSize: 12, color: '#991B1B', marginBottom: 6, display: 'block' }}>
                     {t('card.decline_reason')}:
                   </label>
@@ -584,7 +584,7 @@ export default function TaskPage() {
                     placeholder={t('card.decline_placeholder')}
                     style={{
                       width: '100%', padding: '8px 10px', fontSize: 13,
-                      border: '1px solid #FCA5A5', borderRadius: 6, minHeight: 60,
+                      border: '1px solid var(--danger)', borderRadius: 6, minHeight: 60,
                       boxSizing: 'border-box', fontFamily: 'inherit',
                     }}
                   />
@@ -615,8 +615,8 @@ export default function TaskPage() {
           {/* Диалог отмены серии */}
           {showCancelSeriesDialog && (
             <div style={{
-              marginTop: 12, padding: 14, background: '#FEF2F2',
-              border: '1px solid #FCA5A5', borderRadius: 8,
+              marginTop: 12, padding: 14, background: 'var(--danger-tint)',
+              border: '1px solid var(--danger)', borderRadius: 8,
             }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#991B1B', marginBottom: 12 }}>
                 {t('cancel_series.title')}
@@ -651,7 +651,7 @@ export default function TaskPage() {
 
               <div style={{
                 padding: 10, background: 'var(--surface)', borderRadius: 6, marginBottom: 12,
-                border: '1px solid #FECACA',
+                border: '1px solid var(--danger)',
               }}>
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>
                   {t('cancel_series.preview_title')}
@@ -734,7 +734,7 @@ export default function TaskPage() {
           {/* Ошибка */}
           {error && (
             <div style={{
-              marginTop: 12, padding: 10, background: '#FEE2E2', color: '#991B1B',
+              marginTop: 12, padding: 10, background: 'var(--danger-tint)', color: '#991B1B',
               borderRadius: 6, fontSize: 13,
             }}>
               {error}

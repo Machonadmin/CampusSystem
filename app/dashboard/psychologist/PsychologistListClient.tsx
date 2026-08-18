@@ -33,7 +33,7 @@ interface FollowUp {
 const RISK_STYLE: Record<string, { bg: string; color: string }> = {
   low:    { bg: '#E0E7FF', color: '#3730A3' },
   medium: { bg: '#FEF3C7', color: '#B45309' },
-  high:   { bg: '#FEE2E2', color: '#B91C1C' },
+  high:   { bg: '#FEE2E2', color: 'var(--danger)' },
 }
 
 export default function PsychologistListClient({ canManage }: { canManage: boolean }) {
@@ -176,7 +176,7 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
       {/* Students list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (

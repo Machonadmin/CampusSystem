@@ -349,7 +349,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
           </div>
 
           {error && (
-            <div style={{ padding: 10, marginBottom: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>
+            <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>
               {error}
             </div>
           )}

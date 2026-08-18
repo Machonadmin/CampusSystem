@@ -166,8 +166,8 @@ export default function ReferenceCitiesPage() {
 
         {errMsg && (
           <div style={{
-            padding: '8px 12px', marginBottom: 12, background: '#FEF2F2',
-            border: '1px solid #FCA5A5', color: '#B91C1C', borderRadius: 6, fontSize: 12,
+            padding: '8px 12px', marginBottom: 12, background: 'var(--danger-tint)',
+            border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 6, fontSize: 12,
           }}>{errMsg}</div>
         )}
 
@@ -285,8 +285,8 @@ export default function ReferenceCitiesPage() {
                     <button
                       onClick={() => deleteCity(c.id, c.city)}
                       style={{
-                        padding: '5px 10px', fontSize: 12, color: '#DC2626',
-                        background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 4, cursor: 'pointer',
+                        padding: '5px 10px', fontSize: 12, color: 'var(--danger)',
+                        background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('delete_button')}</button>
                   </>

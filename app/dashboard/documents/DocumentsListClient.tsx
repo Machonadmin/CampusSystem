@@ -168,7 +168,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
       {/* Students list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (

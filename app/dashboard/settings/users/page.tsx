@@ -261,7 +261,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
 
         {/* ── Step 1: person search — outside overflowY container so dropdown isn't clipped ── */}
         <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
 
           <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>
             {t('search_existing_person_hint')}
@@ -473,7 +473,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
             <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
             <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('auto_generate')}</span>
@@ -553,7 +553,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
             <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+            {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('full_name')}</span>
               <input
@@ -575,7 +575,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
           <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button
               onClick={() => setPwdOpen(true)}
-              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2', fontSize: 12, cursor: 'pointer', color: '#DC2626' }}
+              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid var(--danger)', background: 'var(--danger-tint)', fontSize: 12, cursor: 'pointer', color: 'var(--danger)' }}
             >
               {t('reset_password_button')}
             </button>
@@ -705,7 +705,7 @@ function UsersPageContent() {
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
         ) : error ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_users')}</div>
         ) : (

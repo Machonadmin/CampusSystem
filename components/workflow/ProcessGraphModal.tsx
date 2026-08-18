@@ -254,7 +254,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
             <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
           )}
           {!loading && (error || renderError) && (
-            <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
+            <div style={{ color: 'var(--danger)', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
           )}
           {!loading && !error && !renderError && data && data.nodes.length === 0 && (
             <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>

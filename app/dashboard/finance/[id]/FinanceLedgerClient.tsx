@@ -269,7 +269,7 @@ export default function FinanceLedgerClient({
       </div>
 
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading || !ledger ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
@@ -298,7 +298,7 @@ export default function FinanceLedgerClient({
             </div>
           )}
 
-          {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
+          {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
 
           {/* Charges */}
           <Section

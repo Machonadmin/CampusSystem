@@ -757,7 +757,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
                       ×
                     </button>
                   )}
@@ -935,7 +935,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                           placeholder={t('form.ph.contact_value')} style={{ ...inp, flex: 1 }} />
                         <button
                           onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.filter((_, xi) => xi !== ci) } : c))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
                       </div>
@@ -979,7 +979,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 </div>
                 {interests.length > 1 && (
                   <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
                     ×
                   </button>
                 )}
@@ -1137,7 +1137,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
           }
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {error && <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
                 style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>

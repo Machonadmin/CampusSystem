@@ -115,7 +115,7 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
               resize: 'vertical', outline: 'none', color: 'var(--text)', boxSizing: 'border-box',
             }}
           />
-          {saveError && <div style={{ fontSize: 12, color: '#EF4444', marginTop: 6 }}>{saveError}</div>}
+          {saveError && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>{saveError}</div>}
           <button
             onClick={add}
             disabled={saving || !newContent.trim()}

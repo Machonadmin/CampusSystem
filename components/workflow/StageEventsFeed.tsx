@@ -168,7 +168,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
             }}
           />
           {saveError && (
-            <div style={{ fontSize: 11, color: '#EF4444', marginTop: 4 }}>{saveError}</div>
+            <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{saveError}</div>
           )}
           <button
             onClick={addEvent}

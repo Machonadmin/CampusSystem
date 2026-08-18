@@ -394,7 +394,7 @@ export default function TasksPage() {
       )}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
           {error}
         </div>
       )}

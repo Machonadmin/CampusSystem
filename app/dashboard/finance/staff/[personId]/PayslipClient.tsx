@@ -462,7 +462,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       )}
 
       {error ? (
-        <div style={{ ...card, color: '#DC2626', fontSize: 13 }}>{error}</div>
+        <div style={{ ...card, color: 'var(--danger)', fontSize: 13 }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
