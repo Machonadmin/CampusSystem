@@ -111,8 +111,12 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Предметы (name + name_he) по subject_id этих групп.
+    // ВАЖНО: отфильтровать null/пустые subject_id — иначе .in('id', [..., null])
+    // на subjects даёт 22P02 (invalid uuid) и роняет ВЕСЬ роут в 400. У superadmin
+    // набор — все активные группы, и хотя бы одна с subject_id=null блокировала
+    // показ ВСЕХ уроков в календаре (личный виджет работал: там subject валиден).
     const subjectIds = Array.from(
-      new Set(Array.from(groupById.values()).map(g => g.subject_id)),
+      new Set(Array.from(groupById.values()).map(g => g.subject_id).filter(Boolean)),
     )
     const subjectById = new Map<string, { name: string; name_he: string | null }>()
     if (subjectIds.length > 0) {
