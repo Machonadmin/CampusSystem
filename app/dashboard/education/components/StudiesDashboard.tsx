@@ -59,6 +59,15 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
 
+  // Авто-переход учебного года: тихая идемпотентная проверка при заходе.
+  // Выполняется максимум раз в год после заданной даты; иначе — мгновенный no-op.
+  useEffect(() => {
+    fetch('/api/education/year-rollover', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'auto' }),
+    }).catch(() => {})
+  }, [])
+
   useEffect(() => {
     let alive = true
     async function load() {
