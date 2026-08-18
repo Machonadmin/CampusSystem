@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
 import TaskCreateModal from './components/TaskCreateModal'
 import TaskDetailModal from './components/TaskDetailModal'
@@ -169,12 +168,26 @@ export default function TasksPage() {
     await load()
   }
 
-  // Список второстепенных вкладок для «спокойного» пустого экрана
-  const OTHER_VIEWS = ([
-    { key: 'created',    label: t('filters.created') },
+  // Смена раздела: сбрасываем фильтры к «по умолчанию»
+  function switchView(key: ViewMode) {
+    setView(key)
+    setStatusFilter('active')
+    setPriorityFilter('all')
+  }
+
+  // Два главных раздела (то, что реально нужно): назначенные мне и созданные мной.
+  const PRIMARY_VIEWS: { key: ViewMode; label: string }[] = [
+    { key: 'assigned', label: t('filters.assigned') },
+    { key: 'created',  label: t('filters.created') },
+  ]
+  // Второстепенные — отдел и наблюдение — доступны, но не в фокусе.
+  const SECONDARY_VIEWS: { key: ViewMode; label: string }[] = [
     { key: 'department', label: t('filters.department') },
     { key: 'watching',   label: t('filters.watching') },
-  ] as { key: ViewMode; label: string }[]).filter(v => v.key !== view)
+  ]
+
+  // Список второстепенных вкладок для «спокойного» пустого экрана
+  const OTHER_VIEWS = ([...PRIMARY_VIEWS, ...SECONDARY_VIEWS]).filter(v => v.key !== view)
 
   // «Первозданное» пустое состояние: вкладка по умолчанию, без фильтров и
   // без выделения. Тогда показываем ТОЛЬКО спокойный герой — ни шапки,
@@ -233,30 +246,60 @@ export default function TasksPage() {
         { label: t('title') },
       ]} />
 
-      {/* Tabs */}
-      <ModuleTabs
-        tabs={[
-          { key: 'assigned',   label: t('filters.assigned') },
-          { key: 'created',    label: t('filters.created') },
-          { key: 'department', label: t('filters.department') },
-          { key: 'watching',   label: t('filters.watching') },
-        ]}
-        active={view}
-        onChange={k => {
-          setView(k as ViewMode)
-          setStatusFilter('active')
-          setPriorityFilter('all')
-        }}
-        accentColor={accent}
-      />
+      {/* ── Основной ряд: два главных раздела + «Новая задача» ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'inline-flex', background: 'var(--surface-2)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {PRIMARY_VIEWS.map(v => {
+            const on = view === v.key
+            return (
+              <button
+                key={v.key}
+                onClick={() => switchView(v.key)}
+                style={{
+                  border: 'none', cursor: 'pointer', borderRadius: 8,
+                  padding: '7px 16px', fontSize: 13.5, fontWeight: 600,
+                  background: on ? 'var(--surface)' : 'transparent',
+                  color: on ? accent : 'var(--text-muted)',
+                  boxShadow: on ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                }}
+              >
+                {v.label}
+              </button>
+            )
+          })}
+        </div>
 
-      {/* Toolbar — נקי כברירת מחדל: סטטוס + משימה חדשה. מסננים מתקדמים מוסתרים. */}
-      <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
-        padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
-      }}>
-        <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('filter_labels.status')}</label>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as StatusFilter)} style={inp}>
+        <div style={{ flex: 1 }} />
+
+        <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
+      </div>
+
+      {/* ── Тонкая второстепенная полоса: доп. разделы · статус · всего · фильтры ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--text-muted)' }}>
+        {SECONDARY_VIEWS.map(v => {
+          const on = view === v.key
+          return (
+            <button
+              key={v.key}
+              onClick={() => switchView(v.key)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+                fontSize: 12.5, fontWeight: on ? 700 : 500,
+                color: on ? accent : 'var(--text-faint)',
+              }}
+            >
+              {v.label}
+            </button>
+          )
+        })}
+
+        <span style={{ color: 'var(--border-strong)' }}>·</span>
+
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value as StatusFilter)}
+          style={{ ...inp, padding: '4px 8px', fontSize: 12.5, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+        >
           <option value="active">{t('filters.active')}</option>
           <option value="completed">{t('status.completed')}</option>
           <option value="cancelled">{t('status.cancelled')}</option>
@@ -265,25 +308,20 @@ export default function TasksPage() {
 
         <div style={{ flex: 1 }} />
 
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('filter_labels.total')} {tasks.length}</span>
+        {tasks.length > 0 && (
+          <span>{t('filter_labels.total')} {tasks.length}</span>
+        )}
 
         <button
           onClick={() => setShowFilters(v => !v)}
           style={{
-            ...inp, cursor: 'pointer', fontWeight: 600,
-            background: showFilters ? '#FEF3C7' : 'var(--surface)',
-            color: showFilters ? '#92400E' : 'var(--text-muted)',
-            borderColor: showFilters ? '#F59E0B' : 'var(--border-strong)',
+            background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+            fontSize: 12.5, fontWeight: 600,
+            color: showFilters ? accent : 'var(--text-faint)',
           }}
         >
           {t('filter_labels.more')} {showFilters ? '▲' : '▾'}
         </button>
-
-        <PageActionButton
-          label={t('new_task')}
-          onClick={() => setCreateOpen(true)}
-          accentColor={accent}
-        />
       </div>
 
       {/* מסננים מתקדמים + בחירה מרובה — נפתחים לפי דרישה בלבד */}
