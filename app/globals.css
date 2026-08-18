@@ -127,6 +127,28 @@ body { transition: background-color .25s ease, color .25s ease; }
   .resp-grid-2, .resp-grid-3 { grid-template-columns: 1fr; }
 }
 
+/* ============================================================================
+   Мобильный слой оболочки. Телефонный брейкпоинт приложения — 768px (как в
+   SidebarContext). Цель — удобство как в мобильных приложениях.
+   ============================================================================ */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Переиспользуемая обёртка для широких таблиц — горизонтальный свайп вместо
+   обрезки. Новые таблицы должны использовать её, чтобы не ломаться на телефоне. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 767px) {
+  /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
+     !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */
+  main { padding-inline-start: 0 !important; }
+
+  /* Комфортные тач-таргеты для навигации (инлайновый padding перебиваем). */
+  .nav-link { padding-top: 12px !important; padding-bottom: 12px !important; }
+}
+
 /* Глобальный поиск в шапке. */
 .gsearch-input::placeholder { color: var(--text-faint); }
 .gsearch-input:focus {

@@ -44,6 +44,9 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [eduOpen, setEduOpen] = useState(false)
   const [isPinned, setIsPinned] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  // На мобиле сайдбар — выдвижной ящик (drawer); его открытость — отдельное
+  // состояние, иначе гамбургер «мёртвый» и навигации на телефоне нет.
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useIsoLayoutEffect(() => {
     const mobile = window.innerWidth < 768
@@ -61,7 +64,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     function onResize() {
       const m = window.innerWidth < 768
       setIsMobile(m)
-      if (m) setUserOpen(false)
+      if (m) { setUserOpen(false); setMobileOpen(false) }
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -72,24 +75,30 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   // поэтому ручное разворачивание внутри модуля сохраняется.
   useEffect(() => { if (dense) setEduOpen(false) }, [dense])
 
-  // Эффективное состояние: на мобиле всегда свёрнут; в «Образовании» — eduOpen;
-  // иначе — глобальное предпочтение.
-  const isOpen = isMobile ? false : (dense ? eduOpen : userOpen)
+  // На мобиле закрываем ящик при переходе на другую страницу (иначе он
+  // остаётся поверх открытой страницы).
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  // Эффективное состояние: на мобиле — состояние ящика; в «Образовании» —
+  // eduOpen; иначе — глобальное предпочтение.
+  const isOpen = isMobile ? mobileOpen : (dense ? eduOpen : userOpen)
 
   const toggle = useCallback(() => {
+    if (isMobile) { setMobileOpen(v => !v); return }
     if (dense) { setEduOpen(v => !v); return }
     setUserOpen(v => {
       const next = !v
-      if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', String(next))
+      localStorage.setItem('sidebar_open', String(next))
       return next
     })
-  }, [dense])
+  }, [isMobile, dense])
 
   const close = useCallback(() => {
+    if (isMobile) { setMobileOpen(false); return }
     if (dense) { setEduOpen(false); return }
     setUserOpen(false)
-    if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', 'false')
-  }, [dense])
+    localStorage.setItem('sidebar_open', 'false')
+  }, [isMobile, dense])
 
   const setPin = useCallback((v: boolean) => {
     setIsPinned(v)
