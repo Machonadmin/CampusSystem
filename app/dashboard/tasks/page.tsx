@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import TasksList from './components/TasksList'
@@ -169,23 +169,69 @@ export default function TasksPage() {
     await load()
   }
 
+  // Список второстепенных вкладок для «спокойного» пустого экрана
+  const OTHER_VIEWS = ([
+    { key: 'created',    label: t('filters.created') },
+    { key: 'department', label: t('filters.department') },
+    { key: 'watching',   label: t('filters.watching') },
+  ] as { key: ViewMode; label: string }[]).filter(v => v.key !== view)
+
+  // «Первозданное» пустое состояние: вкладка по умолчанию, без фильтров и
+  // без выделения. Тогда показываем ТОЛЬКО спокойный герой — ни шапки,
+  // ни вкладок, ни панели инструментов. Всё это появляется, как только
+  // есть чем управлять (появились задачи / сменили фильтр или вкладку).
+  const pristine =
+    view === 'assigned' && statusFilter === 'active' &&
+    priorityFilter === 'all' && !selectMode
+  const heroOnly = pristine && !loading && !error && tasks.length === 0
+
+  const emptyIcon = (
+    <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+  )
+
+  // ── Спокойный пустой экран: только контент, без обвязки ──
+  if (heroOnly) {
+    return (
+      <div className="p-6" style={{ minHeight: '72vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, textAlign: 'center' }}>
+        {emptyIcon}
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{emptyMsg()}</div>
+        <div style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 340 }}>{t('empty.hint')}</div>
+        <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
+
+        {/* Ненавязчивые ссылки на остальные разделы */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6 }}>
+          {OTHER_VIEWS.map(v => (
+            <button
+              key={v.key}
+              onClick={() => setView(v.key)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-faint)', padding: '4px 8px', borderRadius: 6 }}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+
+        {createOpen && currentUserId && (
+          <TaskCreateModal
+            currentUserId={currentUserId}
+            onClose={() => setCreateOpen(false)}
+            onSaved={() => { setCreateOpen(false); load() }}
+          />
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
       ]} />
-
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('tasks'),
-        borderRadius: 12,
-        padding: '12px 24px',
-        boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
-        color: '#fff',
-      }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-      </div>
 
       {/* Tabs */}
       <ModuleTabs
@@ -317,15 +363,11 @@ export default function TasksPage() {
 
       {!loading && !error && tasks.length === 0 && (
         <div style={{
-          padding: '56px 24px', textAlign: 'center',
+          padding: '48px 24px', textAlign: 'center',
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
         }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-          </div>
+          {emptyIcon}
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{emptyMsg()}</div>
           <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
         </div>

@@ -1919,7 +1919,8 @@
       "assigned": "No tasks assigned to you",
       "created": "You haven't created any tasks yet",
       "department": "No tasks in your department pool",
-      "watching": "You are not watching any tasks"
+      "watching": "You are not watching any tasks",
+      "hint": "This is where all your tasks live"
     },
     "detail": {
       "load_error": "Failed to load task",
