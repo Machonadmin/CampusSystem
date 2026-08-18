@@ -66,7 +66,7 @@ export default function Header({ userName, roles }: HeaderProps) {
   return (
     <>
     <header
-      className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-4 px-4"
+      className="fixed top-0 inset-x-0 z-50 h-16 flex items-center gap-2 md:gap-4 px-4"
       style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
     >
       {/* ── Hamburger (mobile only) — открывает off-canvas sidebar ── */}
@@ -95,15 +95,19 @@ export default function Header({ userName, roles }: HeaderProps) {
           {t.campusName}
         </span>
         <span
-          className="block lg:hidden"
+          className="hidden sm:block lg:hidden"
           style={{ color: 'var(--accent-strong)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
         >
           {t.campusNameShort}
         </span>
       </div>
 
-      {/* ── Search ── */}
-      <GlobalSearch searchHint={t.searchHint} />
+      {/* ── Search (скрыт на телефоне, чтобы шапка помещалась в 375px) ── */}
+      <div className="hidden sm:contents">
+        <GlobalSearch searchHint={t.searchHint} />
+      </div>
+      {/* Спейсер, когда поиск скрыт (мобайл) */}
+      <div className="flex-1 sm:hidden" />
 
       {/* ── Right actions ── */}
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -114,8 +118,8 @@ export default function Header({ userName, roles }: HeaderProps) {
         {/* Notification bell */}
         <NotificationBell />
 
-        {/* Language switcher */}
-        <div className="flex gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--surface-2)' }}>
+        {/* Language switcher — на телефоне переносим в меню пользователя */}
+        <div className="hidden sm:flex gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--surface-2)' }}>
           {(['ru', 'he', 'en'] as Lang[]).map(l => (
             <button
               key={l}
@@ -167,6 +171,22 @@ export default function Header({ userName, roles }: HeaderProps) {
               <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                 <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{userName ?? '—'}</p>
                 <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+              </div>
+
+              {/* Переключатель языка — только на телефоне (в шапке он скрыт) */}
+              <div className="sm:hidden flex gap-1 px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                {(['ru', 'he', 'en'] as Lang[]).map(l => (
+                  <button
+                    key={l}
+                    onClick={() => { setLang(l); router.refresh() }}
+                    className="flex-1 py-2 rounded text-xs font-semibold transition"
+                    style={lang === l
+                      ? { backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }
+                      : { color: 'var(--text-muted)', backgroundColor: 'var(--surface-2)' }}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
               </div>
 
               <button
