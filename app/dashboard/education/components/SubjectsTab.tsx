@@ -5,15 +5,14 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SubjectModal from './SubjectModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
-interface Department {
+interface Track {
   id: string
-  name: string
-  name_he?: string | null
-  name_en?: string | null
-  is_educational_institution?: boolean | null
+  code: string
+  name_he: string
+  name_ru: string
+  name_en: string
 }
 
 interface Subject {
@@ -22,23 +21,31 @@ interface Subject {
   name_he: string | null
   sort_order: number
   is_active: boolean
-  department_id: string
-  department: Department | null
+  study_track_id: string | null
+  year_level: number | null
+  track: Track | null
   created_at: string
   updated_at: string
 }
 
 const accent = getModuleColor('education')
 
+function trackName(tr: Track | null, lang: string): string {
+  if (!tr) return '—'
+  if (lang === 'he') return tr.name_he || tr.name_ru
+  if (lang === 'en') return tr.name_en || tr.name_ru
+  return tr.name_ru
+}
+
 export default function SubjectsTab() {
   const t = useTranslations('education.study')
   const { lang } = useLang()
   const [subjects, setSubjects] = useState<Subject[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
+  const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [filterDept, setFilterDept] = useState('')
+  const [filterTrack, setFilterTrack] = useState('')
   const [showInactive, setShowInactive] = useState(false)
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
@@ -48,16 +55,15 @@ export default function SubjectsTab() {
     setLoading(true)
     setError(null)
     try {
-      const [sResp, dResp] = await Promise.all([
+      const [sResp, tResp] = await Promise.all([
         fetch(`/api/education/subjects?active_only=${showInactive ? 'false' : 'true'}`),
-        fetch('/api/settings/departments'),
+        fetch('/api/education/study-tracks'),
       ])
       if (!sResp.ok) throw new Error(t('subjects.load_error').replace('{status}', String(sResp.status)))
-      if (!dResp.ok) throw new Error(t('common.error_generic'))
       const sJson = await sResp.json()
-      const dJson = await dResp.json()
+      const tJson = tResp.ok ? await tResp.json() : { tracks: [] }
       setSubjects(sJson.subjects ?? [])
-      setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
+      setTracks(tJson.tracks ?? [])
     } catch (e) {
       setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
@@ -88,16 +94,9 @@ export default function SubjectsTab() {
     loadData()
   }
 
-  const filtered = filterDept
-    ? subjects.filter(s => s.department_id === filterDept)
+  const filtered = filterTrack
+    ? subjects.filter(s => s.study_track_id === filterTrack)
     : subjects
-
-  // מקצוע נפתח רק תחת יחידה לימודית (מוסד חינוכי), לא תחת מטבח/הנהלה וכו'.
-  // אם אף מחלקה לא מסומנת כמוסד חינוכי (דאטה ישנה) — נציג הכל כדי לא להיתקע.
-  const eduDepartments = (() => {
-    const edu = departments.filter(d => d.is_educational_institution === true)
-    return edu.length > 0 ? edu : departments
-  })()
 
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
@@ -110,13 +109,13 @@ export default function SubjectsTab() {
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <select
-          value={filterDept}
-          onChange={e => setFilterDept(e.target.value)}
+          value={filterTrack}
+          onChange={e => setFilterTrack(e.target.value)}
           style={inp}
         >
-          <option value="">{t('common.all_departments')}</option>
-          {eduDepartments.map(d => (
-            <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
+          <option value="">{t('subjects.all_tracks')}</option>
+          {tracks.map(tr => (
+            <option key={tr.id} value={tr.id}>{trackName(tr, lang)}</option>
           ))}
         </select>
 
@@ -159,7 +158,8 @@ export default function SubjectsTab() {
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('subjects.table_name')}</th>
-                  <th style={thStyle}>{t('subjects.table_department')}</th>
+                  <th style={thStyle}>{t('subjects.track_label')}</th>
+                  <th style={{ ...thStyle, width: 90 }}>{t('subjects.year_label')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('subjects.table_sort_order')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('subjects.table_status')}</th>
                   <th style={{ ...thStyle, width: 160 }}>{t('subjects.table_actions')}</th>
@@ -174,7 +174,8 @@ export default function SubjectsTab() {
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
                     <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.department?.name ?? '—'}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{trackName(s.track, lang)}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.year_level ? t(`subjects.year_${s.year_level}`) : '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>{s.sort_order}</td>
                     <td style={tdStyle}>
                       {s.is_active ? (
@@ -211,7 +212,7 @@ export default function SubjectsTab() {
         <SubjectModal
           mode={modalMode}
           initial={editingSubject}
-          departments={eduDepartments}
+          tracks={tracks}
           onClose={() => { setModalMode(null); setEditingSubject(null) }}
           onSaved={handleSaved}
         />

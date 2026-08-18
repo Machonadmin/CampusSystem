@@ -807,7 +807,9 @@ export type SpecialtyUpdate = Partial<SpecialtyInsert>
 
 export interface SubjectRow {
   id: string
-  department_id: string
+  department_id: string | null
+  study_track_id: string | null
+  year_level: number | null
   name: string
   name_he: string | null
   sort_order: number
@@ -817,7 +819,9 @@ export interface SubjectRow {
 }
 export interface SubjectInsert {
   id?: string
-  department_id: string
+  department_id?: string | null
+  study_track_id?: string | null
+  year_level?: number | null
   name: string
   name_he?: string | null
   sort_order?: number
@@ -1724,14 +1728,15 @@ export type NotificationUpdate = Partial<Pick<NotificationRow, 'read_at'>>
 
 // ─── Study tracks (маршруты второй половины дня) ─────────────────────────────
 export interface StudyTrackRow {
-  id:         string
-  code:       string
-  name_he:    string
-  name_ru:    string
-  name_en:    string
-  sort_order: number
-  is_active:  boolean
-  created_at: string
+  id:            string
+  code:          string
+  name_he:       string
+  name_ru:       string
+  name_en:       string
+  department_id: string | null
+  sort_order:    number
+  is_active:     boolean
+  created_at:    string
 }
 export type StudyTrackInsert = Omit<StudyTrackRow, 'id' | 'created_at'>
 export type StudyTrackUpdate = Partial<StudyTrackInsert>

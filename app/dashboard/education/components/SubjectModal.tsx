@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { localizedDeptName } from '@/lib/departments/localized-name'
 
-interface Department {
+interface Track {
   id: string
-  name: string
-  name_he?: string | null
-  name_en?: string | null
+  code: string
+  name_he: string
+  name_ru: string
+  name_en: string
 }
 
 interface SubjectInitial {
@@ -18,33 +18,46 @@ interface SubjectInitial {
   name_he: string | null
   sort_order: number
   is_active: boolean
-  department_id: string
+  study_track_id: string | null
+  year_level: number | null
 }
 
 interface Props {
   mode: 'create' | 'edit'
   initial: SubjectInitial | null
-  departments: Department[]
+  tracks: Track[]
   onClose: () => void
   onSaved: () => void
 }
 
 const accent = getModuleColor('education')
+const DEFAULT_PRICE = 210000
 
-export default function SubjectModal({ mode, initial, departments, onClose, onSaved }: Props) {
+function trackName(tr: Track, lang: string): string {
+  if (lang === 'he') return tr.name_he || tr.name_ru
+  if (lang === 'en') return tr.name_en || tr.name_ru
+  return tr.name_ru
+}
+
+export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
   const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
-  const [departmentId, setDepartmentId] = useState(initial?.department_id ?? '')
+  const [trackId, setTrackId] = useState(initial?.study_track_id ?? '')
+  const [yearLevel, setYearLevel] = useState(String(initial?.year_level ?? 1))
+  const [price, setPrice] = useState(String(DEFAULT_PRICE))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // שנים אפשריות: א׳..ד׳ (1..4)
+  const YEARS = [1, 2, 3, 4]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) { setError(t('common.name_required')); return }
-    if (!departmentId) { setError(t('common.department_required')); return }
+    if (!trackId) { setError(t('subjects.track_required')); return }
 
     setSaving(true)
     setError(null)
@@ -52,8 +65,10 @@ export default function SubjectModal({ mode, initial, departments, onClose, onSa
       const payload: Record<string, unknown> = {
         name: name.trim(),
         sort_order: Number(sortOrder) || 0,
-        department_id: departmentId,
+        study_track_id: trackId,
+        year_level: Number(yearLevel) || 1,
       }
+      if (mode === 'create') payload.tuition_amount = Number(price) >= 0 ? Number(price) : DEFAULT_PRICE
       if (mode === 'edit') payload.is_active = isActive
 
       const url = mode === 'create'
@@ -118,19 +133,38 @@ export default function SubjectModal({ mode, initial, departments, onClose, onSa
             />
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.department_label')} *</label>
-            <select
-              value={departmentId}
-              onChange={e => setDepartmentId(e.target.value)}
-              style={inp}
-            >
-              <option value="">{t('common.select_placeholder')}</option>
-              {departments.map(d => (
-                <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
-              ))}
-            </select>
+          <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
+            <div style={{ flex: 2 }}>
+              <label style={lbl}>{t('subjects.track_label')} *</label>
+              <select value={trackId} onChange={e => setTrackId(e.target.value)} style={inp}>
+                <option value="">{t('common.select_placeholder')}</option>
+                {tracks.map(tr => (
+                  <option key={tr.id} value={tr.id}>{trackName(tr, lang)}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={lbl}>{t('subjects.year_label')} *</label>
+              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
+                {YEARS.map(y => (
+                  <option key={y} value={y}>{t(`subjects.year_${y}`)}</option>
+                ))}
+              </select>
+            </div>
           </div>
+
+          {mode === 'create' && (
+            <div style={{ marginBottom: 12 }}>
+              <label style={lbl}>{t('subjects.semester_price_label')}</label>
+              <input
+                type="number" value={price} onChange={e => setPrice(e.target.value)}
+                style={inp} min={0}
+              />
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
+                {t('subjects.semester_price_hint')}
+              </div>
+            </div>
+          )}
 
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>

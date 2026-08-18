@@ -19,7 +19,8 @@ export async function PATCH(
       name_he?: string | null
       sort_order?: number
       is_active?: boolean
-      department_id?: string
+      study_track_id?: string
+      year_level?: number
     }
 
     const sb = createServerClient()
@@ -32,11 +33,7 @@ export async function PATCH(
     if (fetchErr) throw fetchErr
     if (!current) return apiError('subject_not_found', 404)
 
-    await requireEducationPrivilege('manage_subjects', { department_id: current.department_id })
-
-    if (body.department_id && body.department_id !== current.department_id) {
-      await requireEducationPrivilege('manage_subjects', { department_id: body.department_id })
-    }
+    await requireEducationPrivilege('manage_subjects', { department_id: current.department_id ?? undefined })
 
     const update: SubjectUpdate = {}
     if (body.name !== undefined) {
@@ -47,7 +44,23 @@ export async function PATCH(
     if (body.name_he !== undefined) update.name_he = body.name_he?.trim() || null
     if (body.sort_order !== undefined) update.sort_order = body.sort_order
     if (body.is_active !== undefined) update.is_active = body.is_active
-    if (body.department_id !== undefined) update.department_id = body.department_id
+    if (body.year_level !== undefined) update.year_level = body.year_level
+
+    // Смена маршрута → перепроверка прав в новом подразделении + перенос department.
+    if (body.study_track_id !== undefined) {
+      const { data: track } = await sb
+        .from('study_tracks')
+        .select('id, department_id')
+        .eq('id', body.study_track_id)
+        .single()
+      if (!track) return apiError('study_track_required', 400)
+      const newDept = (track as { department_id: string | null }).department_id
+      if (newDept && newDept !== current.department_id) {
+        await requireEducationPrivilege('manage_subjects', { department_id: newDept })
+      }
+      update.study_track_id = body.study_track_id
+      update.department_id = newDept ?? null
+    }
 
     if (Object.keys(update).length === 0) {
       return apiError('no_changes', 400)
@@ -93,7 +106,7 @@ export async function DELETE(
     if (fetchErr) throw fetchErr
     if (!current) return apiError('subject_not_found', 404)
 
-    await requireEducationPrivilege('manage_subjects', { department_id: current.department_id })
+    await requireEducationPrivilege('manage_subjects', { department_id: current.department_id ?? undefined })
 
     const { error } = await sb.from('subjects').delete().eq('id', params.id)
     if (error) {
