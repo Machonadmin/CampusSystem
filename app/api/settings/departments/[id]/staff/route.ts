@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { EmploymentType } from '@/types/database'
@@ -20,9 +21,10 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     await requireAuth()
     const sb = createServerClient()
 
+    const lang = getCookieLocale()
     const { data: positions } = await sb
       .from('staff_positions')
-      .select('id, person_id, position_ru, is_head, start_date')
+      .select('id, person_id, position_ru, position_he, is_head, start_date, position:reference_positions(name_ru, name_he)')
       .eq('department_id', params.id)
       .is('end_date', null)
       .order('is_head', { ascending: false })
@@ -35,12 +37,21 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       sb.from('staff_profiles').select('person_id, employment_type').in('person_id', personIds),
     ])
 
-    const result = positions.map(pos => ({
-      ...pos,
-      full_name: persons?.find(p => p.id === pos.person_id)?.full_name ?? '',
-      photo_url: persons?.find(p => p.id === pos.person_id)?.photo_url ?? null,
-      employment_type: profiles?.find(p => p.person_id === pos.person_id)?.employment_type ?? null,
-    }))
+    const result = positions.map(pos => {
+      const rp = (pos as unknown as { position?: { name_ru: string | null; name_he: string | null } | null }).position
+      const ph = (pos as unknown as { position_he?: string | null }).position_he
+      // position_ru перезаписываем локализованным ярлыком (клиент показывает его).
+      const label = lang === 'he'
+        ? (rp?.name_he || ph || rp?.name_ru || pos.position_ru)
+        : (rp?.name_ru || pos.position_ru)
+      return {
+        ...pos,
+        position_ru: label,
+        full_name: persons?.find(p => p.id === pos.person_id)?.full_name ?? '',
+        photo_url: persons?.find(p => p.id === pos.person_id)?.photo_url ?? null,
+        employment_type: profiles?.find(p => p.person_id === pos.person_id)?.employment_type ?? null,
+      }
+    })
 
     return NextResponse.json(result)
   } catch (err: unknown) {

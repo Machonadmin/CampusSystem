@@ -9,6 +9,7 @@ import NotificationBell from '@/components/dashboard/NotificationBell'
 import GlobalSearch from '@/components/dashboard/GlobalSearch'
 import ThemeToggle from '@/components/dashboard/ThemeToggle'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
+import { useMe } from '@/lib/hooks/useMe'
 
 interface HeaderProps {
   userName: string | null
@@ -52,8 +53,12 @@ export default function Header({ userName, roles }: HeaderProps) {
     router.refresh()
   }
 
+  const me = useMe()
   const primaryRole = roles[0] ?? ''
   const roleName = t.roles[primaryRole as keyof typeof t.roles] ?? primaryRole
+  // Подпись под именем: конкретная должность-ярлык (напр. «מזכירת טורו»),
+  // с падением на имя роли, если должность не задана.
+  const subtitle = me?.position_title || roleName
   const initials = userName
     ? userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
@@ -136,7 +141,7 @@ export default function Header({ userName, roles }: HeaderProps) {
                 {userName ?? '—'}
               </p>
               <p className="text-[11px] truncate leading-tight" style={{ maxWidth: 160, color: 'var(--text-faint)' }}>
-                {roleName}
+                {subtitle}
               </p>
             </div>
             <div
@@ -161,7 +166,7 @@ export default function Header({ userName, roles }: HeaderProps) {
             >
               <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                 <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{userName ?? '—'}</p>
-                <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{roleName}</p>
+                <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
               </div>
 
               <button

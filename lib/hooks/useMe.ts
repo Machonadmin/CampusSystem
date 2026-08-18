@@ -6,6 +6,7 @@ export interface Me {
   person_id: string
   full_name: string | null
   roles: string[]
+  position_title?: string | null
 }
 
 // Модульный кэш: /api/auth/me тянется один раз на всё приложение.

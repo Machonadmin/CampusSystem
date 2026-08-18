@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
     // требуем persons.view (раньше был только логин-гейт).
     await requirePersonsPrivilege('view')
     const sb = createServerClient()
+    const lang = getCookieLocale()
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim() ?? ''
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
     // 1) Current positions (end_date IS NULL), optionally filtered by department
     let posQuery = sb
       .from('staff_positions')
-      .select('id, person_id, department_id, position_ru, is_head, start_date')
+      .select('id, person_id, department_id, position_ru, position_he, is_head, start_date, position:reference_positions(name_ru, name_he)')
       .is('end_date', null)
       .order('is_head', { ascending: false })
     if (departmentId) posQuery = posQuery.eq('department_id', departmentId)
@@ -78,7 +80,13 @@ export async function GET(request: NextRequest) {
           // иначе объект телефона рендерится в JSX → React error #31.
           phone: firstPhone(person.phones),
           email: person.email,
-          position: pos.position_ru,
+          position: (() => {
+            const rp = (pos as unknown as { position?: { name_ru: string | null; name_he: string | null } | null }).position
+            const ph = (pos as unknown as { position_he?: string | null }).position_he
+            return lang === 'he'
+              ? (rp?.name_he || ph || rp?.name_ru || pos.position_ru)
+              : (rp?.name_ru || pos.position_ru)
+          })(),
           is_head: pos.is_head,
           department_id: pos.department_id,
           department_name: deptMap.get(pos.department_id) ?? null,

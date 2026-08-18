@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
@@ -90,11 +91,47 @@ export async function GET() {
     } catch { /* нет таблицы — оставляем ролевой список */ }
   }
 
+  // Должность-ярлык для подписи в шапке (напр. «מזכירת טורו»). Живой запрос
+  // текущей должности + reference_positions, язык — из cookie, с падением на
+  // снапшот position_ru/position_he. Deploy-безопасно (при любой ошибке — null).
+  let position_title: string | null = null
+  try {
+    const sb2 = createServerClient()
+    const { data: pos } = await sb2
+      .from('staff_positions')
+      .select('position_ru, position_he, position_id')
+      .eq('person_id', session.person_id)
+      .is('end_date', null)
+      .order('is_head', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (pos) {
+      const p = pos as { position_ru: string | null; position_he: string | null; position_id: string | null }
+      let refRu: string | null = null
+      let refHe: string | null = null
+      if (p.position_id) {
+        const { data: rp } = await sb2
+          .from('reference_positions')
+          .select('name_ru, name_he')
+          .eq('id', p.position_id)
+          .maybeSingle()
+        const r = rp as { name_ru: string | null; name_he: string | null } | null
+        refRu = r?.name_ru ?? null
+        refHe = r?.name_he ?? null
+      }
+      const lang = getCookieLocale()
+      position_title = lang === 'he'
+        ? (refHe || p.position_he || refRu || p.position_ru || null)
+        : (refRu || p.position_ru || null)
+    }
+  } catch { /* deploy-безопасно */ }
+
   return NextResponse.json({
     person_id: session.person_id,
     login_email: session.login_email,
     full_name: session.full_name,
     roles: session.roles,
+    position_title,
     accessible_modules,
     feature_access,
     is_chavruta_teacher,

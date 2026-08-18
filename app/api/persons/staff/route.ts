@@ -1,6 +1,7 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
 import { mapDbError } from '@/lib/persons/http'
@@ -36,7 +37,16 @@ interface PositionRow {
   person_id: string
   department_id: string
   position_ru: string | null
+  position_he: string | null
+  position: { name_ru: string | null; name_he: string | null } | null
   is_head: boolean | null
+}
+
+/** Ярлык должности с учётом языка (name_he для иврита), падение на снапшот. */
+function positionLabel(p: PositionRow, lang: string): string | null {
+  return lang === 'he'
+    ? (p.position?.name_he || p.position_he || p.position?.name_ru || p.position_ru)
+    : (p.position?.name_ru || p.position_ru)
 }
 
 export async function GET(request: NextRequest) {
@@ -44,6 +54,7 @@ export async function GET(request: NextRequest) {
     await requirePersonsPrivilege('view')
 
     const sb = createServerClient()
+    const lang = getCookieLocale()
 
     // 1) Действующие должности — постранично (is_head first → основная должность
     //    и подразделение человека оказываются первыми в его группе).
@@ -52,13 +63,13 @@ export async function GET(request: NextRequest) {
     for (;;) {
       const { data, error } = await sb
         .from('staff_positions')
-        .select('person_id, department_id, position_ru, is_head')
+        .select('person_id, department_id, position_ru, position_he, is_head, position:reference_positions(name_ru, name_he)')
         .is('end_date', null)
         .order('is_head', { ascending: false })
         .order('person_id', { ascending: true })
         .range(from, from + PAGE - 1)
       if (error) throw error
-      const rows = (data ?? []) as PositionRow[]
+      const rows = (data ?? []) as unknown as PositionRow[]
       positions.push(...rows)
       if (rows.length < PAGE) break
       from += PAGE
@@ -117,8 +128,9 @@ export async function GET(request: NextRequest) {
         agg = { person_id: pos.person_id, positions: [], department: deptMap.get(pos.department_id) ?? null }
         aggMap.set(pos.person_id, agg)
       }
-      if (pos.position_ru && !agg.positions.includes(pos.position_ru)) {
-        agg.positions.push(pos.position_ru)
+      const label = positionLabel(pos, lang)
+      if (label && !agg.positions.includes(label)) {
+        agg.positions.push(label)
       }
     }
 
