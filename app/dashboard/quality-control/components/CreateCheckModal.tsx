@@ -72,8 +72,8 @@ function PersonAutocomplete({
         placeholder={t('create_modal.observer_placeholder')}
         style={{
           width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
-          borderRadius: 6, outline: 'none', backgroundColor: value ? '#F0FDF4' : 'var(--surface)',
-          borderColor: value ? '#86EFAC' : 'var(--border-strong)',
+          borderRadius: 6, outline: 'none', color: 'var(--text)', backgroundColor: value ? 'var(--accent-tint)' : 'var(--surface)',
+          borderColor: value ? 'var(--accent)' : 'var(--border-strong)',
           boxSizing: 'border-box',
         }}
       />

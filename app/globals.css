@@ -9,6 +9,9 @@
 :root {
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
+  /* Нативные контролы (select/option/scrollbar/date-picker) следуют теме. */
+  color-scheme: light;
+
   /* Светлая (по умолчанию) */
   --bg: #eef1f5;
   --surface: #ffffff;
@@ -38,6 +41,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     --bg: #0f1218;
     --surface: #161b25;
     --surface-2: #12161e;
@@ -67,6 +71,7 @@
 
 /* Явный выбор темы перекрывает системную настройку в обе стороны. */
 :root[data-theme="light"] {
+  color-scheme: light;
   --bg: #eef1f5; --surface: #ffffff; --surface-2: #f5f7fa;
   --border: #e3e7ee; --border-strong: #d5dae3;
   --text: #1b2230; --text-muted: #5d6577; --text-faint: #8b93a3;
@@ -81,6 +86,7 @@
   --shadow-lg: 0 24px 60px -24px rgba(20, 24, 33, .28);
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #0f1218; --surface: #161b25; --surface-2: #12161e;
   --border: #262d3b; --border-strong: #333c4d;
   --text: #e8ebf0; --text-muted: #8b93a3; --text-faint: #5d6577;
@@ -134,6 +140,14 @@ body { transition: background-color .25s ease, color .25s ease; }
    сглаживание. Всё через токены и адаптивно к теме. НЕ переопределяет
    собственную стилизацию с бо́льшей специфичностью (напр. публичная /apply).
    ============================================================================ */
+
+/* База нативных контролов: фон/цвет из токенов, чтобы закрытый select/input
+   не был белым в тёмной теме. Инлайновые стили компонентов имеют приоритет,
+   поэтому те, кто уже задал свой фон (напр. transparent), не затрагиваются. */
+select, input, textarea {
+  background-color: var(--surface);
+  color: var(--text);
+}
 
 /* Кольцо фокуса на полях ввода (клик + клавиатура) — доступность и аккуратность.
    box-shadow, а не outline: инлайновый outline:none его не перебивает. */

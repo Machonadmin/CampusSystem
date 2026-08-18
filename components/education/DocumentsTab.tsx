@@ -183,8 +183,8 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             title={t('docs_action_verify_title', 'Подтвердить документ')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #10B981', background: '#ECFDF5',
-                              color: '#065F46', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid var(--success)', background: 'var(--success-tint)',
+                              color: 'var(--success)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
                             {isSaving ? '…' : t('docs_action_verify', 'Подтвердить')}

@@ -8,34 +8,36 @@ import { roleLabel } from '@/lib/roles/role-label'
 type T = (key: string, fallback?: string) => string
 
 // ── Category display config ──────────────────────────────────────────────────
+// Фон/текст через токены темы (tint = полупрозрачный над surface), чтобы
+// баннеры категорий читались и в светлой, и в тёмной теме.
 const CAT_COLORS: Record<string, string> = {
-  system:            '#FEF3C7',
+  system:            'var(--warn-tint)',
   campus_management: 'var(--accent-tint)',
-  finance:           '#ECFDF5',
-  legal:             '#F0F9FF',
-  education:         '#F0FDF4',
-  dormitory:         '#FFF7ED',
-  medical:           '#FEE2E2',
-  security:          '#F1F5F9',
-  maintenance:       '#F8FAFC',
-  food:              '#FFFBEB',
+  finance:           'var(--success-tint)',
+  legal:             'var(--info-tint)',
+  education:         'var(--success-tint)',
+  dormitory:         'var(--warn-tint)',
+  medical:           'var(--danger-tint)',
+  security:          'var(--surface-2)',
+  maintenance:       'var(--surface-2)',
+  food:              'var(--warn-tint)',
   technical:         'var(--surface-2)',
-  external:          '#FAF5FF',
+  external:          'var(--violet-tint)',
 }
 
 const CAT_TEXT: Record<string, string> = {
-  system:            '#92400E',
-  campus_management: '#1E40AF',
-  finance:           '#065F46',
-  legal:             '#0369A1',
-  education:         '#166534',
-  dormitory:         '#9A3412',
-  medical:           '#991B1B',
-  security:          '#334155',
-  maintenance:       '#475569',
-  food:              '#78350F',
+  system:            'var(--warn)',
+  campus_management: 'var(--accent)',
+  finance:           'var(--success)',
+  legal:             'var(--info)',
+  education:         'var(--success)',
+  dormitory:         'var(--warn)',
+  medical:           'var(--danger)',
+  security:          'var(--text-muted)',
+  maintenance:       'var(--text-muted)',
+  food:              'var(--warn)',
   technical:         'var(--text-muted)',
-  external:          '#6D28D9',
+  external:          'var(--violet)',
 }
 
 // ── Interfaces ───────────────────────────────────────────────────────────────
@@ -354,8 +356,8 @@ export default function RolesPage() {
                         onMouseEnter={e => {
                           if (!isActive) {
                             const el = e.currentTarget as HTMLDivElement
-                            el.style.backgroundColor = '#F5F7FF'
-                            el.style.borderLeftColor = '#4BAED4'
+                            el.style.backgroundColor = 'var(--surface-2)'
+                            el.style.borderLeftColor = 'var(--accent)'
                           }
                         }}
                         onMouseLeave={e => {
@@ -379,7 +381,7 @@ export default function RolesPage() {
                           {!role.is_system && (
                             <button
                               onClick={e => { e.stopPropagation(); deleteRole(role) }}
-                              style={{ padding: '2px 7px', borderRadius: 6, border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: 12, cursor: 'pointer', lineHeight: 1 }}
+                              style={{ padding: '2px 7px', borderRadius: 6, border: 'none', backgroundColor: 'var(--danger-tint)', color: 'var(--danger)', fontSize: 12, cursor: 'pointer', lineHeight: 1 }}
                             >
                               ×
                             </button>
@@ -426,8 +428,8 @@ export default function RolesPage() {
                 {/* ── Доступные модули ── */}
                 <div style={{ marginBottom: 24 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#10B981', flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: 'var(--success)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                       {t('available_modules_title')}
                     </span>
                   </div>
@@ -438,8 +440,8 @@ export default function RolesPage() {
                         <div key={mod.code} style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '7px 10px', borderRadius: 8,
-                          border: `1px solid ${isOn ? '#A7F3D0' : 'var(--border)'}`,
-                          backgroundColor: isOn ? '#F0FDF4' : 'var(--surface-2)',
+                          border: `1px solid ${isOn ? 'var(--accent)' : 'var(--border)'}`,
+                          backgroundColor: isOn ? 'var(--accent-tint)' : 'var(--surface-2)',
                         }}>
                           <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: isOn ? 500 : 400 }}>{mod.name}</span>
                           <button
@@ -448,7 +450,7 @@ export default function RolesPage() {
                             style={{
                               width: 34, height: 18, borderRadius: 9, position: 'relative',
                               border: 'none', cursor: selectedRole.is_system ? 'default' : 'pointer',
-                              backgroundColor: isOn ? '#10B981' : 'var(--border-strong)',
+                              backgroundColor: isOn ? 'var(--success)' : 'var(--border-strong)',
                               transition: 'background-color 0.2s', flexShrink: 0, marginLeft: 8,
                             }}
                           >
@@ -482,7 +484,7 @@ export default function RolesPage() {
                           <div style={{
                             display: 'flex', alignItems: 'center', gap: 10,
                             padding: '8px 12px',
-                            backgroundColor: '#F8FAFC',
+                            backgroundColor: 'var(--surface-2)',
                             borderRadius: 8,
                             border: '1px solid var(--border)',
                             marginBottom: 10,

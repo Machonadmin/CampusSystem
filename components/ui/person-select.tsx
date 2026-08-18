@@ -205,10 +205,11 @@ export function PersonSelect({
             width: '100%',
             padding: '8px 32px 8px 10px',
             fontSize: 13,
-            border: `1px solid ${selected ? '#86EFAC' : 'var(--border-strong)'}`,
+            border: `1px solid ${selected ? 'var(--accent)' : 'var(--border-strong)'}`,
             borderRadius: 6,
             outline: 'none',
-            backgroundColor: selected ? '#F0FDF4' : 'var(--surface)',
+            color: 'var(--text)',
+            backgroundColor: selected ? 'var(--accent-tint)' : 'var(--surface)',
             cursor: disabled ? 'not-allowed' : 'text',
             boxSizing: 'border-box',
           }}

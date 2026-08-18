@@ -13,6 +13,7 @@ interface Department {
   name: string
   name_he?: string | null
   name_en?: string | null
+  is_educational_institution?: boolean | null
 }
 
 interface Subject {
@@ -91,6 +92,13 @@ export default function SubjectsTab() {
     ? subjects.filter(s => s.department_id === filterDept)
     : subjects
 
+  // מקצוע נפתח רק תחת יחידה לימודית (מוסד חינוכי), לא תחת מטבח/הנהלה וכו'.
+  // אם אף מחלקה לא מסומנת כמוסד חינוכי (דאטה ישנה) — נציג הכל כדי לא להיתקע.
+  const eduDepartments = (() => {
+    const edu = departments.filter(d => d.is_educational_institution === true)
+    return edu.length > 0 ? edu : departments
+  })()
+
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
     padding: '5px 10px', fontSize: 12, color: 'var(--text)',
@@ -107,7 +115,7 @@ export default function SubjectsTab() {
           style={inp}
         >
           <option value="">{t('common.all_departments')}</option>
-          {departments.map(d => (
+          {eduDepartments.map(d => (
             <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
           ))}
         </select>
@@ -203,7 +211,7 @@ export default function SubjectsTab() {
         <SubjectModal
           mode={modalMode}
           initial={editingSubject}
-          departments={departments}
+          departments={eduDepartments}
           onClose={() => { setModalMode(null); setEditingSubject(null) }}
           onSaved={handleSaved}
         />
