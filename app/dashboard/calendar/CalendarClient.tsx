@@ -122,7 +122,6 @@ export default function CalendarClient() {
   const [birthDate, setBirthDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [lessonsDbg, setLessonsDbg] = useState<string>('(טרם נטען)') // DEBUG זמני
 
   // Персональный тумблер еврейских дат. Хранится в localStorage per-user, читается
   // после монтирования (SSR-safe: typeof window). БД/миграции не нужны.
@@ -226,13 +225,9 @@ export default function CalendarClient() {
       // из них НЕ рушит календарь, просто этот слой пуст.
       if (lRes.ok) {
         const lBody = await lRes.json()
-        const arr = (lBody.lessons ?? []) as Lesson[]
-        setLessons(arr)
-        setLessonsDbg(`ok status=${lRes.status} count=${arr.length} dates=[${arr.map(l => l.date + (l.time ? ' ' + l.time.slice(0, 5) : '') + '/' + (l.class_group_name || '?')).join(' | ')}]`)
+        setLessons(lBody.lessons ?? [])
       } else {
         setLessons([])
-        const eb = await lRes.json().catch(() => ({}))
-        setLessonsDbg(`ERROR status=${lRes.status} ${(eb as { error?: string }).error ?? ''}`)
       }
       if (tRes.ok) {
         const tBody = await tRes.json()
@@ -548,13 +543,6 @@ export default function CalendarClient() {
       </div>
 
       <Legend t={t} primary={primary} />
-
-      {/* DEBUG זמני — לאבחון "השיעור לא מופיע ביומן". יוסר אחרי שנבין. */}
-      <div style={{ fontSize: 12, background: '#FEF9C3', border: '1px solid #FDE047', color: '#713F12', borderRadius: 8, padding: '8px 12px', fontFamily: 'monospace', direction: 'ltr', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-        {`DEBUG · view=${view} · range ${range.from} → ${range.to} · today=${TODAY}`}
-        {'\n'}{`lessons ${lessonsDbg}`}
-        {'\n'}{`schedule-instances=${scheduleInstances.length} · appointments=${appointments.length} · events=${calEvents.length}`}
-      </div>
 
       {error && (
         <div style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px' }}>
