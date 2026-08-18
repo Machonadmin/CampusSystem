@@ -945,7 +945,17 @@
         "modal_create_title": "New Subject",
         "modal_edit_title": "Edit Subject",
         "name_placeholder": "Mathematics",
-        "active_checkbox": "Active"
+        "active_checkbox": "Active",
+        "track_label": "Track",
+        "year_label": "Year",
+        "year_1": "Year 1",
+        "year_2": "Year 2",
+        "year_3": "Year 3",
+        "year_4": "Year 4",
+        "semester_price_label": "Semester price (₽)",
+        "semester_price_hint": "Default 210000 ₽, editable. Two semesters are created automatically.",
+        "track_required": "Select a track",
+        "all_tracks": "All tracks"
       },
       "specialties": {
         "add_button": "Specialty",
@@ -4267,7 +4277,11 @@
     "delegate_no_redelegate": "A delegate can't grant the delegation right",
     "delegate_cap": "You can't grant a permission you don't hold yourself",
     "medical_pending": "Can't approve yet — the referred doctor/psychologist hasn't signed",
-    "required_fields": "Please fill required fields"
+    "required_fields": "Please fill required fields",
+    "study_track_required": "Select a study track",
+    "year_level_required": "Select a study year",
+    "subject_semesters_partial": "Subject created, but some semesters could not be created",
+    "subject_no_track_department": "Subject created, but the track has no department — semesters were not created"
   },
   "workflow": {
     "error": "Error"

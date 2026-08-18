@@ -945,7 +945,17 @@
         "modal_create_title": "Новый предмет",
         "modal_edit_title": "Редактирование предмета",
         "name_placeholder": "Математика",
-        "active_checkbox": "Активный"
+        "active_checkbox": "Активный",
+        "track_label": "Маршрут",
+        "year_label": "Год",
+        "year_1": "1 курс",
+        "year_2": "2 курс",
+        "year_3": "3 курс",
+        "year_4": "4 курс",
+        "semester_price_label": "Цена семестра (₽)",
+        "semester_price_hint": "По умолчанию 210000 ₽, можно изменить. Автоматически создаются 2 семестра.",
+        "track_required": "Выберите маршрут",
+        "all_tracks": "Все маршруты"
       },
       "specialties": {
         "add_button": "Специальность",
@@ -4267,7 +4277,11 @@
     "delegate_no_redelegate": "Делегат не может выдавать право делегирования",
     "delegate_cap": "Нельзя выдать право, которого у вас самих нет",
     "medical_pending": "Пока нельзя утвердить — направленная к врачу/психологу ещё не подписала",
-    "required_fields": "Заполните обязательные поля"
+    "required_fields": "Заполните обязательные поля",
+    "study_track_required": "Выберите маршрут обучения",
+    "year_level_required": "Выберите год обучения",
+    "subject_semesters_partial": "Предмет создан, но часть семестров не удалось создать",
+    "subject_no_track_department": "Предмет создан, но у маршрута нет подразделения — семестры не созданы"
   },
   "workflow": {
     "error": "Ошибка"

@@ -19,7 +19,7 @@ export async function GET() {
     const sb = createServerClient()
     const { data, error } = await sb
       .from('study_tracks')
-      .select('id, code, name_he, name_ru, name_en, sort_order')
+      .select('id, code, name_he, name_ru, name_en, department_id, sort_order')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
     if (error) {

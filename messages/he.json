@@ -945,7 +945,17 @@
         "modal_create_title": "מקצוע חדש",
         "modal_edit_title": "עריכת מקצוע",
         "name_placeholder": "מתמטיקה",
-        "active_checkbox": "פעיל"
+        "active_checkbox": "פעיל",
+        "track_label": "מסלול",
+        "year_label": "שנה",
+        "year_1": "שנה א׳",
+        "year_2": "שנה ב׳",
+        "year_3": "שנה ג׳",
+        "year_4": "שנה ד׳",
+        "semester_price_label": "מחיר סמסטר (₽)",
+        "semester_price_hint": "ברירת מחדל 210000 ₽, ניתן לשינוי. נוצרים 2 סמסטרים אוטומטית.",
+        "track_required": "נא לבחור מסלול",
+        "all_tracks": "כל המסלולים"
       },
       "specialties": {
         "add_button": "התמחות",
@@ -4267,7 +4277,11 @@
     "delegate_no_redelegate": "נציג אינו יכול להעניק את הרשאת ההאצלה",
     "delegate_cap": "אי אפשר להעניק הרשאה שאין לך בעצמך",
     "medical_pending": "אי אפשר לאשר עדיין — רופא/פסיכולוג שהופנתה אליהם טרם חתמו",
-    "required_fields": "יש למלא שדות חובה"
+    "required_fields": "יש למלא שדות חובה",
+    "study_track_required": "נא לבחור מסלול לימודים",
+    "year_level_required": "נא לבחור שנת לימוד",
+    "subject_semesters_partial": "המקצוע נוצר, אך חלק מהסמסטרים לא נוצרו",
+    "subject_no_track_department": "המקצוע נוצר, אך למסלול אין מחלקה — הסמסטרים לא נוצרו"
   },
   "workflow": {
     "error": "שגיאה"
