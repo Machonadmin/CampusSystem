@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedRefName } from '@/lib/education/localized-ref'
 
 /**
  * GET /api/education/levels?direction_id={uuid}
@@ -31,15 +33,20 @@ export async function GET(request: NextRequest) {
     if (dirErr) throw dirErr
     if (!direction) return apiError('direction_not_found', 404)
 
-    const { data, error } = await sb
+    const lang = getCookieLocale()
+    const full = await sb
       .from('reference_levels')
-      .select('id, name_ru, sort_order')
+      .select('id, name_ru, name_he, name_en, sort_order')
       .eq('direction_id', directionId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
-    if (error) throw error
+    const rows = full.error
+      ? ((await sb.from('reference_levels').select('id, name_ru, sort_order').eq('direction_id', directionId).eq('is_active', true).order('sort_order', { ascending: true })).data ?? [])
+      : (full.data ?? [])
+    const levels = (rows as Array<{ id: string; name_ru: string; name_he?: string | null; name_en?: string | null; sort_order: number }>)
+      .map(l => ({ ...l, name: localizedRefName(l, lang) }))
 
-    return NextResponse.json({ levels: data ?? [] })
+    return NextResponse.json({ levels })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

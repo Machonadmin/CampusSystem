@@ -13,8 +13,8 @@ export interface CascadeValue {
 }
 
 interface Institution { id: string; name: string }
-interface Direction { id: string; name_ru: string; code: string | null; has_levels: boolean; sort_order: number }
-interface Level { id: string; name_ru: string; sort_order: number }
+interface Direction { id: string; name_ru: string; name?: string; code: string | null; has_levels: boolean; sort_order: number }
+interface Level { id: string; name_ru: string; name?: string; sort_order: number }
 
 interface Props {
   value: CascadeValue
@@ -139,7 +139,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
               style={{ ...inp, color: value.direction_id ? 'var(--text)' : 'var(--text-faint)' }}
             >
               <option value="">{t('cascade.direction_placeholder')}</option>
-              {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
+              {directions!.map(d => <option key={d.id} value={d.id}>{d.name ?? d.name_ru}</option>)}
             </select>
           </div>
         ) : null}
@@ -155,7 +155,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
               style={{ ...inp, color: value.level_id ? 'var(--text)' : 'var(--text-faint)' }}
             >
               <option value="">{t('cascade.level_placeholder')}</option>
-              {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}
+              {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name ?? l.name_ru}</option>)}
             </select>
           </div>
         ) : null}
