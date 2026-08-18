@@ -955,7 +955,15 @@
         "semester_price_label": "Semester price (₽)",
         "semester_price_hint": "Default 210000 ₽, editable. Two semesters are created automatically.",
         "track_required": "Select a track",
-        "all_tracks": "All tracks"
+        "all_tracks": "All tracks",
+        "sem_button": "Semesters",
+        "semesters_title": "Subject semesters",
+        "semester_word": "Semester",
+        "sem_status_label": "Status",
+        "sem_open": "Open",
+        "sem_closed": "Closed",
+        "sem_saved": "Saved",
+        "sem_none": "No semesters for this subject"
       },
       "specialties": {
         "add_button": "Specialty",

@@ -955,7 +955,15 @@
         "semester_price_label": "Цена семестра (₽)",
         "semester_price_hint": "По умолчанию 210000 ₽, можно изменить. Автоматически создаются 2 семестра.",
         "track_required": "Выберите маршрут",
-        "all_tracks": "Все маршруты"
+        "all_tracks": "Все маршруты",
+        "sem_button": "Семестры",
+        "semesters_title": "Семестры предмета",
+        "semester_word": "Семестр",
+        "sem_status_label": "Статус",
+        "sem_open": "Открыт",
+        "sem_closed": "Закрыт",
+        "sem_saved": "Сохранено",
+        "sem_none": "У предмета нет семестров"
       },
       "specialties": {
         "add_button": "Специальность",
