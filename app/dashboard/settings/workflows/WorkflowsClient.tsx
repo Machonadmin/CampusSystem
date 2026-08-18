@@ -395,7 +395,7 @@ function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
         <Field label={`${t('f_final_name')} *`}><input style={inputStyle} value={nameRu} onChange={e => setNameRu(e.target.value)} /></Field>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-        <button type="button" onClick={() => setIsPositive(true)} style={{ ...btnGhost, borderColor: isPositive ? '#16A34A' : 'var(--border-strong)', color: isPositive ? '#16A34A' : 'var(--text-muted)', background: isPositive ? '#F0FDF4' : 'var(--surface)' }}>{t('positive')}</button>
+        <button type="button" onClick={() => setIsPositive(true)} style={{ ...btnGhost, borderColor: isPositive ? 'var(--success)' : 'var(--border-strong)', color: isPositive ? 'var(--success)' : 'var(--text-muted)', background: isPositive ? 'var(--success-tint)' : 'var(--surface)' }}>{t('positive')}</button>
         <button type="button" onClick={() => setIsPositive(false)} style={{ ...btnGhost, borderColor: !isPositive ? 'var(--danger)' : 'var(--border-strong)', color: !isPositive ? 'var(--danger)' : 'var(--text-muted)', background: !isPositive ? 'var(--danger-tint)' : 'var(--surface)' }}>{t('negative')}</button>
       </div>
       <label style={{ ...labelStyle, marginTop: 14 }}>
@@ -781,7 +781,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{detail.template.name_ru}</h2>
                       <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>{detail.template.code}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: detail.template.is_active ? '#16A34A' : 'var(--text-faint)', background: detail.template.is_active ? '#F0FDF4' : 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: detail.template.is_active ? 'var(--success)' : 'var(--text-faint)', background: detail.template.is_active ? 'var(--success-tint)' : 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>
                         {detail.template.is_active ? t('status_active') : t('status_inactive')}
                       </span>
                     </div>

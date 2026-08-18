@@ -268,7 +268,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
           </p>
 
           {selectedPerson && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid #4BAED4', backgroundColor: '#F0F9FF' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--info)', backgroundColor: 'var(--info-tint)' }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{selectedPerson.full_name}</p>
                 {selectedPerson.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{selectedPerson.email}</p>}
