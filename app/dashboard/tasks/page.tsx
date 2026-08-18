@@ -32,6 +32,7 @@ export default function TasksPage() {
   const [view, setView] = useState<ViewMode>('assigned')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
+  const [showFilters, setShowFilters] = useState(false) // מסננים מתקדמים מוסתרים כברירת מחדל
 
   const [tasks, setTasks] = useState<TaskRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -203,7 +204,7 @@ export default function TasksPage() {
         accentColor={accent}
       />
 
-      {/* Filters */}
+      {/* Toolbar — נקי כברירת מחדל: סטטוס + משימה חדשה. מסננים מתקדמים מוסתרים. */}
       <div style={{
         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
         padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
@@ -216,31 +217,20 @@ export default function TasksPage() {
           <option value="all">{t('filters.all')}</option>
         </select>
 
-        <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500, marginLeft: 4 }}>{t('filter_labels.priority')}</label>
-        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
-          <option value="all">{t('filters.all')}</option>
-          <option value="urgent">{t('priority.urgent')}</option>
-          <option value="high">{t('priority.high')}</option>
-          <option value="normal">{t('priority.normal')}</option>
-          <option value="low">{t('priority.low')}</option>
-        </select>
-
         <div style={{ flex: 1 }} />
 
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          {t('filter_labels.total')} {tasks.length}
-        </div>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('filter_labels.total')} {tasks.length}</span>
 
         <button
-          onClick={() => { if (selectMode) exitSelectMode(); else { setSelectMode(true); setBulkMsg(null) } }}
+          onClick={() => setShowFilters(v => !v)}
           style={{
             ...inp, cursor: 'pointer', fontWeight: 600,
-            background: selectMode ? '#FEF3C7' : 'var(--surface)',
-            color: selectMode ? '#92400E' : 'var(--text)',
-            borderColor: selectMode ? '#F59E0B' : 'var(--border-strong)',
+            background: showFilters ? '#FEF3C7' : 'var(--surface)',
+            color: showFilters ? '#92400E' : 'var(--text-muted)',
+            borderColor: showFilters ? '#F59E0B' : 'var(--border-strong)',
           }}
         >
-          {selectMode ? t('bulk.exit') : t('bulk.select')}
+          {t('filter_labels.more')} {showFilters ? '▲' : '▾'}
         </button>
 
         <PageActionButton
@@ -249,6 +239,35 @@ export default function TasksPage() {
           accentColor={accent}
         />
       </div>
+
+      {/* מסננים מתקדמים + בחירה מרובה — נפתחים לפי דרישה בלבד */}
+      {showFilters && (
+        <div style={{
+          background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10,
+          padding: '10px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
+        }}>
+          <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('filter_labels.priority')}</label>
+          <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
+            <option value="all">{t('filters.all')}</option>
+            <option value="urgent">{t('priority.urgent')}</option>
+            <option value="high">{t('priority.high')}</option>
+            <option value="normal">{t('priority.normal')}</option>
+            <option value="low">{t('priority.low')}</option>
+          </select>
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={() => { if (selectMode) exitSelectMode(); else { setSelectMode(true); setBulkMsg(null) } }}
+            style={{
+              ...inp, cursor: 'pointer', fontWeight: 600,
+              background: selectMode ? '#FEF3C7' : 'var(--surface)',
+              color: selectMode ? '#92400E' : 'var(--text)',
+              borderColor: selectMode ? '#F59E0B' : 'var(--border-strong)',
+            }}
+          >
+            {selectMode ? t('bulk.exit') : t('bulk.select')}
+          </button>
+        </div>
+      )}
 
       {/* Панель массовых действий */}
       {selectMode && (
@@ -298,10 +317,17 @@ export default function TasksPage() {
 
       {!loading && !error && tasks.length === 0 && (
         <div style={{
-          padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14,
-          background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10,
+          padding: '56px 24px', textAlign: 'center',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
         }}>
-          {emptyMsg()}
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{emptyMsg()}</div>
+          <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
         </div>
       )}
 

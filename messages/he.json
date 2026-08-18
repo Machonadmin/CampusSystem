@@ -1851,7 +1851,8 @@
     "filter_labels": {
       "status": "סטטוס:",
       "priority": "עדיפות:",
-      "total": "סך הכול:"
+      "total": "סך הכול:",
+      "more": "מסננים"
     },
     "status": {
       "unassigned": "לא מוקצית",

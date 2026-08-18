@@ -1851,7 +1851,8 @@
     "filter_labels": {
       "status": "Status:",
       "priority": "Priority:",
-      "total": "Total:"
+      "total": "Total:",
+      "more": "Filters"
     },
     "status": {
       "unassigned": "Unassigned",
