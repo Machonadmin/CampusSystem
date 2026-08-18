@@ -241,7 +241,7 @@ export default function RecruitmentTab() {
               onClick={() => { setProcessStatus('active'); setStageFilter('all'); setMineOnly(false) }}
               style={{ padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--accent-strong)', fontWeight: 600, fontFamily: 'inherit' }}
             >
-              {t('students.filters_clear')}
+              {t('study.students.filters_clear')}
             </button>
           )}
         </div>

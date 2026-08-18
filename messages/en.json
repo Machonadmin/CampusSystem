@@ -545,6 +545,7 @@
       "no_processes": "No processes started",
       "close_stage_section": "Complete stage",
       "no_rights": "You don't have permission to complete this stage",
+      "sign_not_your_authority": "Signing this stage is reserved for the appropriate role-holder",
       "completed_with": "Completed with result:",
       "tasks_label": "Tasks",
       "no_tasks_created": "No tasks created",
@@ -2629,6 +2630,7 @@
     "process_names": {
       "Набор": "Recruitment",
       "Приёмная комиссия": "Acceptance committee",
+      "Приёмная комиссия (последовательная)": "Acceptance committee (sequential)",
       "Приём": "Acceptance"
     }
   },
