@@ -165,7 +165,7 @@ export default function FinancePage() {
       </div>
 
       {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -283,7 +283,7 @@ export default function FinancePage() {
           onClick={() => { if (!bulkBusy) setChargeOpen(false) }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 460, padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('bulk.charge_title')}</h2>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</p>
             <div style={{ display: 'grid', gap: 12 }}>

@@ -234,7 +234,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
   if (generatedPassword) {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
@@ -450,7 +450,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
   if (generatedPassword) {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('password_reset_done')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
@@ -467,7 +467,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {user.full_name}</p>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -547,7 +547,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('edit_modal_title')}</p>
             <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -709,7 +709,8 @@ function UsersPageContent() {
         ) : filtered.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_users')}</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-scroll">
+          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
@@ -768,6 +769,7 @@ function UsersPageContent() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
