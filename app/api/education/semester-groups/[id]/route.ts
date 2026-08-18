@@ -349,7 +349,8 @@ export async function PATCH(
 
     // ── Синхронизация студенток (только education_status='student') ────────
     if (body.student_journey_ids !== undefined) {
-      const desiredIds = Array.from(new Set(body.student_journey_ids))
+      // .filter(Boolean): null/'' → .in('id', [...]) даёт 22P02 (invalid uuid) и 500.
+      const desiredIds = Array.from(new Set((body.student_journey_ids ?? []).filter(Boolean)))
 
       const { data: existing, error: exErr } = await sb
         .from('class_enrollments')

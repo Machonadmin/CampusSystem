@@ -291,7 +291,9 @@ export async function POST(request: NextRequest) {
     }
 
     // (4) Зачисление студенток class_enrollments (только education_status='student').
-    const journeyIds = Array.from(new Set(body.student_journey_ids ?? []))
+    // .filter(Boolean): null/'' в списке → .in('id', [...]) даёт 22P02 (invalid uuid)
+    // и 500 + частичную запись (группа уже создана). Как в courses/route.ts.
+    const journeyIds = Array.from(new Set((body.student_journey_ids ?? []).filter(Boolean)))
     if (journeyIds.length > 0) {
       const { data: journeys, error: jErr } = await sb
         .from('education_journeys')
