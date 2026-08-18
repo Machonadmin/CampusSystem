@@ -545,7 +545,7 @@ export default function CalendarClient() {
       <Legend t={t} primary={primary} />
 
       {error && (
-        <div style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px' }}>
+        <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>
           {error}
         </div>
       )}
@@ -756,7 +756,7 @@ function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClose: () 
         {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}>🔔 {tAdd('has_reminder')}</div>}
         {ev.notes && <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
-          <button onClick={remove} disabled={deleting} style={{ fontSize: 13, fontWeight: 600, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
+          <button onClick={remove} disabled={deleting} style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
             {deleting ? tAdd('deleting') : tAdd('delete')}
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -801,6 +801,7 @@ function DayDetail({
   onOpenEvent: (e: CalEvent) => void
   t: (k: string, f?: string) => string
 }) {
+  const tCommon = useTranslations('common')
   // ПЕРЕИСПОЛЬЗУЕМ уже загруженные данные — никаких новых запросов. Тот же
   // mergeDayEvents, что и в сетке, но только для одной даты dateISO.
   const events = mergeDayEvents(appointments, lessons, schedule, tasks, birthdays, dateISO, calEvents)
@@ -821,7 +822,7 @@ function DayDetail({
               <div style={{ fontSize: 11, fontWeight: 600, color: '#B45309', marginTop: 4 }}>{t('day_off')}</div>
             )}
           </div>
-          <button onClick={onClose} aria-label={t('prev')} style={{ fontSize: 18, lineHeight: 1, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ fontSize: 18, lineHeight: 1, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>×</button>
         </div>
 
         {events.length === 0 ? (
@@ -1618,7 +1619,7 @@ function AppointmentForm({
           <textarea value={reason} onChange={e => setReason(e.target.value)} placeholder={t('form_reason_ph')} rows={2} style={{ ...input, resize: 'vertical' }} />
         </Field>
 
-        {err && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 4 }}>{err}</div>}
+        {err && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>{err}</div>}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
           <button onClick={onClose} style={btnGhost}>{tCommon('cancel')}</button>
@@ -1724,7 +1725,7 @@ function AppointmentDetail({
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
-              <button onClick={onDelete} style={{ ...btnGhost, color: '#DC2626' }}>{tCommon('delete')}</button>
+              <button onClick={onDelete} style={{ ...btnGhost, color: 'var(--danger)' }}>{tCommon('delete')}</button>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
                 <button onClick={onEdit} style={btnPrimary(primary)}>{tCommon('edit')}</button>

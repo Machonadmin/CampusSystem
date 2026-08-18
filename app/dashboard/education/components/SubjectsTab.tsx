@@ -145,7 +145,7 @@ export default function SubjectsTab() {
       )}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
@@ -203,7 +203,7 @@ export default function SubjectsTab() {
                         </button>
                         <button
                           onClick={() => handleDelete(s)}
-                          style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
+                          style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
                         >
                           {t('common.delete')}
                         </button>

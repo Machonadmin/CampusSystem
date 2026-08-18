@@ -132,7 +132,7 @@ export default function FinanceAccessPage() {
       </div>
 
       {forbidden ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{t('forbidden')}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{t('forbidden')}</div>
       ) : (
         <>
           {/* Add global access */}
@@ -166,7 +166,7 @@ export default function FinanceAccessPage() {
 
           {/* Grants list */}
           {error ? (
-            <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+            <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
           ) : loading ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
           ) : grants.length === 0 ? (
@@ -197,7 +197,7 @@ export default function FinanceAccessPage() {
                           onClick={() => revoke(g.id)}
                           style={{
                             fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 7,
-                            background: 'var(--surface)', color: '#DC2626',
+                            background: 'var(--surface)', color: 'var(--danger)',
                             border: '1px solid var(--border-strong)', cursor: 'pointer',
                           }}
                         >

@@ -101,7 +101,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
           {FIELDS.map(([field, label]) => (
             <label key={field} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{label}{field !== 'description' ? ' *' : ''}</span>
@@ -150,7 +150,7 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {err && <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{err}</p>}
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('priv_name_label')} *</span>
             <input

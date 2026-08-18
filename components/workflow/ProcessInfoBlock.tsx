@@ -210,8 +210,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     if (status === 'completed') return { color: 'var(--text-muted)', label }
     if (status === 'in_progress') return { color: 'var(--accent-strong)', label }
     if (status === 'review') return { color: '#7C3AED', label }
-    if (status === 'cancelled') return { color: '#EF4444', label }
-    if (status === 'declined') return { color: '#EF4444', label }
+    if (status === 'cancelled') return { color: 'var(--danger)', label }
+    if (status === 'declined') return { color: 'var(--danger)', label }
     if (status === 'pending') return { color: '#D97706', label }
     return { color: 'var(--text-faint)', label }
   }
@@ -737,7 +737,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             {/* Footer */}
             <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               {completeError
-                ? <span style={{ fontSize: 12, color: '#EF4444' }}>{completeError}</span>
+                ? <span style={{ fontSize: 12, color: 'var(--danger)' }}>{completeError}</span>
                 : <span />}
               <button onClick={closeModal} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('process.close')}
@@ -763,7 +763,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
             />
             <SignatureCapture method={stageDetail?.signature_method ?? 'both'} defaultTypedName={me?.full_name ?? undefined} onChange={setSigPayload} />
-            {completeError && <div style={{ fontSize: 13, color: '#DC2626' }}>{completeError}</div>}
+            {completeError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{completeError}</div>}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setPendingSig(null)}
@@ -849,7 +849,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             {/* Footer */}
             <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               {closeError
-                ? <span style={{ fontSize: 12, color: '#EF4444' }}>{closeError}</span>
+                ? <span style={{ fontSize: 12, color: 'var(--danger)' }}>{closeError}</span>
                 : <span />}
               <button onClick={closeCloseEarly} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('process.cancel')}

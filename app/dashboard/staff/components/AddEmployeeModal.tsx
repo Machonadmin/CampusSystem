@@ -552,7 +552,7 @@ export default function AddEmployeeModal({
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
                   )}
                 </div>
               ))}
@@ -602,7 +602,7 @@ export default function AddEmployeeModal({
                   <input value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
                     placeholder={t('add_modal.contact_value_placeholder')} disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
                   {!ro && <button onClick={() => setExtraContacts(prev => prev.filter((_, xi) => xi !== i))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
                 </div>
               ))}
             </div>

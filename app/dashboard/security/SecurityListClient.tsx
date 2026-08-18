@@ -276,7 +276,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
               {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity.${s}`)}</option>)}
             </select>
             <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
-            {formError && <span style={{ fontSize: 12, color: '#DC2626' }}>{formError}</span>}
+            {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
           </div>
         </div>
       )}
@@ -307,7 +307,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
 
       {/* Body */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : items.length === 0 ? (

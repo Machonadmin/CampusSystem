@@ -70,7 +70,7 @@ export default function SignatureMethodSetting() {
           </button>
         ))}
         {saved && <span style={{ fontSize: 12, fontWeight: 600, color: '#059669' }}>{t('signature.saved')}</span>}
-        {error && <span style={{ fontSize: 12, color: '#DC2626' }}>{error}</span>}
+        {error && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</span>}
       </div>
     </div>
   )

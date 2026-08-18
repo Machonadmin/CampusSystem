@@ -191,7 +191,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
         </Link>
       </div>
 
-      {error && <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>}
+      {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
@@ -199,7 +199,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
           {/* Medical profile */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
-            {profileError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{profileError}</div>}
+            {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
               <Field label={t('profile.blood_type')}>
                 <input value={profile.blood_type ?? ''} onChange={e => setField('blood_type', e.target.value)} disabled={!canManage} style={inp} />
@@ -232,7 +232,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
           {canManage && (
             <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
-              {visitError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{visitError}</div>}
+              {visitError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{visitError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Field label={t('visit.visit_date')}>
                   <input type="date" value={vDate} onChange={e => setVDate(e.target.value)} style={inp} />

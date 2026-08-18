@@ -153,7 +153,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 onToggle={() => setShowConfirm(v => !v)}
               />
               {error && (
-                <p style={{ fontSize: 12, color: '#DC2626', margin: 0 }}>{error}</p>
+                <p style={{ fontSize: 12, color: 'var(--danger)', margin: 0 }}>{error}</p>
               )}
             </div>
 

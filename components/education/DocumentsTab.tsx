@@ -122,7 +122,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
       </div>
 
       {error && (
-        <div style={{ fontSize: 12, color: '#EF4444' }}>{error}</div>
+        <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>
       )}
 
       {/* Grouped by category */}
@@ -153,7 +153,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                           {dt.name_ru}
                         </span>
                         {dt.is_required && (
-                          <span style={{ fontSize: 10, color: '#EF4444', fontWeight: 600 }}>*</span>
+                          <span style={{ fontSize: 10, color: 'var(--danger)', fontWeight: 600 }}>*</span>
                         )}
                       </div>
                       <span style={{ fontSize: 11, color: STATUS_COLOR[status], fontWeight: 500 }}>
@@ -197,7 +197,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             title={t('docs_action_reject_title', 'Отклонить документ')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #FCA5A5', background: '#FEF2F2',
+                              border: '1px solid var(--danger)', background: 'var(--danger-tint)',
                               color: '#991B1B', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >

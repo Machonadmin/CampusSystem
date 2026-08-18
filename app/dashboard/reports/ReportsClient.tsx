@@ -140,7 +140,7 @@ function ReportCard<T>({
       </div>
       <div style={{ padding: '14px 16px', minHeight: 96 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#B91C1C', background: '#FEE2E2', borderRadius: 8, padding: '8px 10px' }}>
+          <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', borderRadius: 8, padding: '8px 10px' }}>
             {error}
           </div>
         ) : loading ? (

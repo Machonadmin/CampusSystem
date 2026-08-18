@@ -185,7 +185,7 @@ export function PersonSelect({
       {label && (
         <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
           {label}
-          {required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+          {required && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
         </label>
       )}
 
@@ -329,7 +329,7 @@ export function PersonSelect({
                 {loading ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
                 ) : errMsg ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#EF4444' }}>{errMsg}</div>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--danger)' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>
                     {search.length >= 2 ? t('nothing_found') : (roleFilter && !showAll ? t('no_teachers') : t('no_saved_people'))}

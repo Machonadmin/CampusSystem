@@ -138,7 +138,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
       {loading ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
       ) : error ? (
-        <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
+        <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : slots.length === 0 ? (
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
@@ -162,7 +162,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
                     <td style={{ ...td, whiteSpace: 'nowrap', textAlign: 'end' }}>
                       <div style={{ display: 'inline-flex', gap: 4 }}>
                         <button onClick={() => setFormSlot(s)} style={btnSmall}>{t('action_edit')}</button>
-                        <button onClick={() => handleDelete(s)} style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}>{t('action_delete')}</button>
+                        <button onClick={() => handleDelete(s)} style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}>{t('action_delete')}</button>
                       </div>
                     </td>
                   )}

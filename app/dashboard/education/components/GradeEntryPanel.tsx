@@ -186,7 +186,7 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
           {loading ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('entry_loading')}</div>
           ) : error ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
           ) : students.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('entry_empty')}</div>
           ) : (

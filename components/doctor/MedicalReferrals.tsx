@@ -319,7 +319,7 @@ function ReferralCard({
                   style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
-                {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+                {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
                 <button
                   onClick={submit}
                   disabled={signing || !sig}

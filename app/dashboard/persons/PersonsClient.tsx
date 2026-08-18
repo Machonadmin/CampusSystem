@@ -172,7 +172,7 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
       {/* List */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626', padding: 8 }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)', padding: 8 }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{tCommon('loading')}</div>
         ) : rows.length === 0 ? (

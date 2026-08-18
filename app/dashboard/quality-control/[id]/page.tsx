@@ -129,7 +129,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
         <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5, flex: 1 }}>
           {q.text}
-          {q.required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+          {q.required && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
         </span>
         {!disabled && (
           <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
@@ -141,7 +141,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
 
       {inputEl()}
 
-      {err && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
+      {err && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{t('fill.required_field')}</p>}
 
       {(commentOpen || (disabled && entry.comment)) && (
         <textarea value={comment} disabled={disabled} rows={2}
@@ -333,7 +333,7 @@ export default function FillCheckPage() {
     return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
   }
   if (!check) {
-    return <div style={{ padding: 48, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{t('fill.not_found')}</div>
+    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{t('fill.not_found')}</div>
   }
 
   const blocks = tmpl?.structure.blocks ?? []
@@ -370,7 +370,7 @@ export default function FillCheckPage() {
         </div>
 
         {saveError && (
-          <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 8, fontSize: 13, color: '#DC2626' }}>
+          <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: 'var(--danger-tint)', border: '1px solid var(--danger-tint)', borderRadius: 8, fontSize: 13, color: 'var(--danger)' }}>
             {saveError}
           </div>
         )}
@@ -408,7 +408,7 @@ export default function FillCheckPage() {
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                   {t('fill.delay_minutes_label')}
-                  {errs['delayMin'] && <span style={{ color: '#EF4444' }}> *</span>}
+                  {errs['delayMin'] && <span style={{ color: 'var(--danger)' }}> *</span>}
                 </label>
                 <input type="number" min={1} value={delayMin ?? ''} disabled={isRO}
                   onChange={e => setDelayMin(e.target.value ? Number(e.target.value) : null)}
@@ -469,7 +469,7 @@ export default function FillCheckPage() {
                 <div key={f.key}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                     {f.label}
-                    {f.req && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+                    {f.req && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
                   </label>
                   <textarea value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
                     onChange={e => f.set(e.target.value)}
@@ -479,10 +479,10 @@ export default function FillCheckPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>
-                  {t('fill.overall_rating_label')} <span style={{ color: '#EF4444' }}>*</span>
+                  {t('fill.overall_rating_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <ScaleInput value={rating} onChange={setRating} disabled={isRO} err={!!errs['rating']} />
-                {errs['rating'] && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
+                {errs['rating'] && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{t('fill.required_field')}</p>}
               </div>
 
               <div>
@@ -507,7 +507,7 @@ export default function FillCheckPage() {
         transition: 'left 0.2s ease',
       }}>
         {saveError && (
-          <span style={{ fontSize: 12, color: '#DC2626', flex: 1, marginRight: 8 }}>{saveError}</span>
+          <span style={{ fontSize: 12, color: 'var(--danger)', flex: 1, marginRight: 8 }}>{saveError}</span>
         )}
         <Link href="/dashboard/quality-control"
           style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text)', textDecoration: 'none', backgroundColor: 'var(--surface)' }}>

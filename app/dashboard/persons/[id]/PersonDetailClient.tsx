@@ -70,7 +70,7 @@ export default function PersonDetailClient({
       ]} />
 
       {error ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: '#DC2626' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--danger)' }}>
           {error}
         </div>
       ) : loading || !data ? (

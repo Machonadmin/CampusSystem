@@ -63,7 +63,7 @@ function PersonAutocomplete({
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-        {label} <span style={{ color: '#EF4444' }}>*</span>
+        {label} <span style={{ color: 'var(--danger)' }}>*</span>
       </label>
       <input
         value={query}
@@ -255,13 +255,13 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
                 <label style={labelStyle}>
-                  {t('create_modal.lesson_date_label')} <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.lesson_date_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <DateInput value={lessonDate} onChange={setLessonDate} placeholder={t('create_modal.lesson_date_placeholder')} />
               </div>
               <div>
                 <label style={labelStyle}>
-                  {t('create_modal.time_label')} <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.time_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="time"
@@ -348,7 +348,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
           </div>
 
           {error && (
-            <div style={{ marginTop: 14, padding: '8px 12px', backgroundColor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 6, fontSize: 12, color: '#DC2626' }}>
+            <div style={{ marginTop: 14, padding: '8px 12px', backgroundColor: 'var(--danger-tint)', border: '1px solid var(--danger-tint)', borderRadius: 6, fontSize: 12, color: 'var(--danger)' }}>
               {error}
             </div>
           )}

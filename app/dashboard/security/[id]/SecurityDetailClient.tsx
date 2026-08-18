@@ -153,12 +153,12 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
       </div>
 
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading || !incident ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : (
         <>
-          {actionError && <div style={{ fontSize: 13, color: '#DC2626' }}>{actionError}</div>}
+          {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
 
           {/* Meta card */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>

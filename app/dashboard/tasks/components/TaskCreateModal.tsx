@@ -589,7 +589,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Error */}
           {error && (
-            <div style={{ padding: '10px 14px', background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+            <div style={{ padding: '10px 14px', background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
               {error}
             </div>
           )}

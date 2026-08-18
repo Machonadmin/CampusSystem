@@ -278,7 +278,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
             {editingId === '' ? t('form.new_title') : t('form.edit_title')}
           </h2>
-          {formError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 10 }}>{formError}</div>}
+          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Field label={t('fields.name')}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
@@ -328,7 +328,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             <button onClick={save} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
             <button onClick={closeForm} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
             {editingId !== '' && (
-              <button onClick={remove} disabled={busy} style={{ ...btnGhost, color: '#DC2626', borderColor: '#FCA5A5', marginInlineStart: 'auto' }}>
+              <button onClick={remove} disabled={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
                 {tCommon('delete')}
               </button>
             )}
@@ -339,7 +339,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       {/* Directory list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (

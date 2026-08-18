@@ -149,7 +149,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
               style={{ ...inp, resize: 'vertical' }} placeholder={t('short_description_placeholder')} />
           </div>
-          {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
+          {err && <p style={{ fontSize: 12, color: 'var(--danger)', margin: 0 }}>{err}</p>}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
@@ -270,7 +270,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
             <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
             {t('head_of_dept')}
           </label>
-          {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
+          {err && <p style={{ fontSize: 12, color: 'var(--danger)', margin: 0 }}>{err}</p>}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
@@ -732,7 +732,7 @@ export default function StaffPage() {
             {loading ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
             ) : error ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
             ) : tree.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_depts')}</div>
             ) : (

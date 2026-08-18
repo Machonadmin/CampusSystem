@@ -46,6 +46,7 @@
   "common": {
     "actions": "פעולות",
     "cancel": "ביטול",
+    "close": "סגירה",
     "delete": "מחיקה",
     "back": "חזרה",
     "edit": "עריכה",

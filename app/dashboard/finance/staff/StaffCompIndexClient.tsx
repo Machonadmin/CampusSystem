@@ -127,7 +127,7 @@ export default function StaffCompIndexClient() {
 
       {/* Body */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
       ) : filtered.length === 0 ? (

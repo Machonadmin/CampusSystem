@@ -119,7 +119,7 @@ export function RowActionsMenu({
                 opacity: a.disabled ? 0.45 : 1,
                 fontSize: 13,
                 fontWeight: 500,
-                color: a.danger ? '#DC2626' : 'var(--text)',
+                color: a.danger ? 'var(--danger)' : 'var(--text)',
                 padding: '8px 12px',
                 whiteSpace: 'nowrap',
               }}

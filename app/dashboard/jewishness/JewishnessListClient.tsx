@@ -177,7 +177,7 @@ export default function JewishnessListClient() {
 
       {/* Список */}
       {error ? (
-        <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
       ) : students.length === 0 ? (
@@ -310,7 +310,7 @@ function DetailModal({
 
         <div style={{ padding: 18 }}>
           {error ? (
-            <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+            <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
           ) : loading || !detail ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
           ) : (
@@ -478,7 +478,7 @@ function SetStatusSection({
           )
         })}
       </div>
-      {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 8 }}>{error}</div>}
+      {error && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>{error}</div>}
     </Section>
   )
 }
@@ -581,7 +581,7 @@ function DocumentsSection({
             {uploading ? t('uploading') : t('upload')}
           </button>
         </div>
-        {uploadError && <div style={{ fontSize: 12, color: '#DC2626' }}>{uploadError}</div>}
+        {uploadError && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{uploadError}</div>}
       </div>
     </Section>
   )
@@ -690,7 +690,7 @@ function AcceptanceDecisionSection({
           />
           <BenefitsFields value={benefits} onChange={setBenefits} />
           <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
-          {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+          {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <button
             onClick={submit}
             disabled={signing || !sig}

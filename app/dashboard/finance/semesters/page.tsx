@@ -77,7 +77,7 @@ export default function SemestersPage() {
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
       </div>
 
-      {err && <div style={{ fontSize: 13, color: '#DC2626' }}>{err}</div>}
+      {err && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{err}</div>}
 
       {loading ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>

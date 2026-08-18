@@ -142,7 +142,7 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
     return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
   }
   if (error) {
-    return <div style={{ color: '#DC2626', fontSize: 13, padding: '8px 0' }}>{error}</div>
+    return <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
   }
   if (!data || data.groups.length === 0) {
     return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>

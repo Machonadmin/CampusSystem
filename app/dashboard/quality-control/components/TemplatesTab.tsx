@@ -213,7 +213,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.4 }}>
                             {q.text}
-                            {q.required && <span style={{ color: '#DC2626', marginLeft: 4 }}>*</span>}
+                            {q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}
                           </div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
                             <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: 'var(--surface-2)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
@@ -420,7 +420,7 @@ function TemplateBuilder({
                     </button>
 
                     <button onClick={() => removeBlock(block._key)}
-                      style={{ background: '#FEF2F2', border: 'none', borderRadius: 5, cursor: 'pointer', color: '#DC2626', padding: '3px 7px', fontSize: 11, flexShrink: 0 }}>
+                      style={{ background: 'var(--danger-tint)', border: 'none', borderRadius: 5, cursor: 'pointer', color: 'var(--danger)', padding: '3px 7px', fontSize: 11, flexShrink: 0 }}>
                       {t('templates.remove_block_button')}
                     </button>
                   </div>
@@ -493,7 +493,7 @@ function TemplateBuilder({
         </div>
 
         <div style={{ padding: '12px 24px', borderTop: '1px solid var(--surface-2)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {err ? <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{err}</p> : <span />}
+          {err ? <p style={{ fontSize: 13, color: 'var(--danger)', margin: 0 }}>{err}</p> : <span />}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onClose} style={{ padding: '8px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>
               {tCommon('cancel')}
@@ -587,7 +587,7 @@ export default function TemplatesTab({ perms }: Props) {
         {loading ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : error ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : templates.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {t('templates.no_templates')}

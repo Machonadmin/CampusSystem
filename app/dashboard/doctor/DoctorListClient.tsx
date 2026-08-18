@@ -169,7 +169,7 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
       {/* Students list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
         {error ? (
-          <div style={{ fontSize: 13, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : filtered.length === 0 ? (
@@ -205,7 +205,7 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
                           </span>
                         )}
                         {s.has_allergies && (
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: '#FEE2E2', color: '#B91C1C' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--danger-tint)', color: 'var(--danger)' }}>
                             {t('list.allergies')}
                           </span>
                         )}
