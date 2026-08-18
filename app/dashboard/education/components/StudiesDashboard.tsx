@@ -58,6 +58,9 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
   const [atRisk, setAtRisk] = useState<AtRiskStudent[]>([])
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
+  // Доступ к карточкам пусковой панели (какие вправе видеть). null = ещё не
+  // загружено → показываем всё (fail-open), чтобы не мигало пустотой.
+  const [access, setAccess] = useState<Record<string, boolean> | null>(null)
 
   // Авто-переход учебного года: тихая идемпотентная проверка при заходе.
   // Выполняется максимум раз в год после заданной даты; иначе — мгновенный no-op.
@@ -66,6 +69,17 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'auto' }),
     }).catch(() => {})
+  }, [])
+
+  // Права на карточки пусковой панели. Ошибка/недоступность → оставляем null
+  // (fail-open): лучше показать лишнюю карточку, чем спрятать нужную.
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/launcher-access')
+      .then(r => r.ok ? r.json() : null)
+      .then(body => { if (alive && body && typeof body === 'object') setAccess(body) })
+      .catch(() => {})
+    return () => { alive = false }
   }, [])
 
   useEffect(() => {
@@ -144,7 +158,7 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
 
       {/* Пусковая панель — всё, что можно сделать под «Учёбой», сгруппировано
           (сгруппировано = «порядок», а не россыпь кнопок). */}
-      <Launcher t={t} onNavigate={onNavigate} />
+      <Launcher t={t} onNavigate={onNavigate} access={access} />
 
       {/* Требует внимания: студентки в зоне риска + зависшие абитуриентки.
           Каждая карточка независима и скрывается, если данных нет. */}
@@ -298,7 +312,10 @@ function Empty({ text }: { text: string }) {
 // Ссылки ведут либо на отдельные маршруты (href), либо переключают секцию рельса
 // StudyTab (nav). Подписи через t(key, fallback) — падают на иврит, если ключа
 // ещё нет (EN/RU-ключи добавим на шаге полировки; парити-тест не затрагивается).
-type LItem = { key: string; fb: string; icon: string; href?: string; nav?: NavSection }
+// `acc` — ключ в ответе /api/education/launcher-access: карточка скрывается,
+// если доступ явно false (клик всё равно упёрся бы в 403). Нет ключа → всегда
+// видна (структурные пункты рельса).
+type LItem = { key: string; fb: string; icon: string; href?: string; nav?: NavSection; acc?: string }
 
 const LIC = {
   cal: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
@@ -320,29 +337,35 @@ const LIC = {
 // «קהילות» (не относится к «Учёбе»). Остаются ярлыки на то, чего нет в рельсе.
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   { key: 'launch_students', fb: 'תלמידות ומבנה', items: [
-    { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment' },
-    { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment' },
-    { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh' },
-    { key: 'launch_teachers_hours', fb: 'מורים ושעות', icon: LIC.users, href: '/dashboard/education/teachers-hours' },
-    { key: 'launch_teacher_attendance', fb: 'נוכחות מורים', icon: LIC.check, href: '/dashboard/education/teacher-attendance' },
-    { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences' },
-    { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys' },
+    { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
+    { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment', acc: 'tracks' },
+    { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
+    { key: 'launch_teachers_hours', fb: 'מורים ושעות', icon: LIC.users, href: '/dashboard/education/teachers-hours', acc: 'teachers_hours' },
+    { key: 'launch_teacher_attendance', fb: 'נוכחות מורים', icon: LIC.check, href: '/dashboard/education/teacher-attendance', acc: 'teacher_attendance' },
+    { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
+    { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
   ] },
   { key: 'launch_chavruta', fb: 'חברותא', badge: 'חדש בלימודים', items: [
-    { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta' },
+    { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta', acc: 'chavruta' },
   ] },
   { key: 'launch_admin', fb: 'ניהול ותצורה', items: [
-    { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters' },
-    { key: 'launch_structure', fb: 'מבנה אקדמי', icon: LIC.bld, href: '/dashboard/education/structure' },
-    { key: 'launch_units', fb: 'יחידות לימוד', icon: LIC.grid, href: '/dashboard/education/units' },
-    { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports' },
+    { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters', acc: 'semesters' },
+    { key: 'launch_structure', fb: 'מבנה אקדמי', icon: LIC.bld, href: '/dashboard/education/structure', acc: 'structure' },
+    { key: 'launch_units', fb: 'יחידות לימוד', icon: LIC.grid, href: '/dashboard/education/units', acc: 'units' },
+    { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports', acc: 'reports' },
   ] },
 ]
 
-function Launcher({ t, onNavigate }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void }) {
+function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void; access: Record<string, boolean> | null }) {
+  // Карточка видна, если у неё нет ключа доступа ИЛИ доступ ещё не загружен
+  // (null) ИЛИ доступ явно true. Скрываем только при явном false.
+  const visible = (it: LItem) => !it.acc || !access || access[it.acc] !== false
+  const groups = LGROUPS
+    .map(g => ({ ...g, items: g.items.filter(visible) }))
+    .filter(g => g.items.length > 0)
   return (
     <div style={{ display: 'grid', gap: 16 }}>
-      {LGROUPS.map(g => (
+      {groups.map(g => (
         <div key={g.key}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 2px 9px' }}>
             <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>{t(g.key, g.fb)}</span>
