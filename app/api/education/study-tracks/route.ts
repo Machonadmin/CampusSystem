@@ -19,11 +19,21 @@ export async function GET() {
     const sb = createServerClient()
     const { data, error } = await sb
       .from('study_tracks')
-      .select('id, code, name_he, name_ru, name_en, department_id, sort_order')
+      .select('id, code, name_he, name_ru, name_en, department_id, years_count, sort_order')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ tracks: [] })
+      // Колонка years_count ещё не мигрирована — отдаём без неё (default 4 на клиенте).
+      if (error.code === '42703') {
+        const fb = await sb
+          .from('study_tracks')
+          .select('id, code, name_he, name_ru, name_en, department_id, sort_order')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true })
+        if (fb.error) throw fb.error
+        return NextResponse.json({ tracks: (fb.data ?? []).map(tr => ({ ...tr, years_count: 4 })) })
+      }
       throw error
     }
     return NextResponse.json({ tracks: data ?? [] })

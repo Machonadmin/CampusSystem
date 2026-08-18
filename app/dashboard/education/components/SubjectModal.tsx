@@ -10,6 +10,7 @@ interface Track {
   name_he: string
   name_ru: string
   name_en: string
+  years_count?: number
 }
 
 interface SubjectInitial {
@@ -51,8 +52,10 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // שנים אפשריות: א׳..ד׳ (1..4)
-  const YEARS = [1, 2, 3, 4]
+  // שנים אפשריות תלויות במסלול הנבחר (years_count). ברירת מחדל 4.
+  const selectedTrack = tracks.find(tr => tr.id === trackId)
+  const maxYears = Math.min(4, Math.max(1, selectedTrack?.years_count ?? 4))
+  const YEARS = Array.from({ length: maxYears }, (_, i) => i + 1)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -136,7 +139,17 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 2 }}>
               <label style={lbl}>{t('subjects.track_label')} *</label>
-              <select value={trackId} onChange={e => setTrackId(e.target.value)} style={inp}>
+              <select
+                value={trackId}
+                onChange={e => {
+                  const id = e.target.value
+                  setTrackId(id)
+                  const tr = tracks.find(x => x.id === id)
+                  const max = Math.min(4, Math.max(1, tr?.years_count ?? 4))
+                  if (Number(yearLevel) > max) setYearLevel('1')
+                }}
+                style={inp}
+              >
                 <option value="">{t('common.select_placeholder')}</option>
                 {tracks.map(tr => (
                   <option key={tr.id} value={tr.id}>{trackName(tr, lang)}</option>
