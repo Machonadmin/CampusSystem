@@ -1734,6 +1734,7 @@ export interface StudyTrackRow {
   name_ru:       string
   name_en:       string
   department_id: string | null
+  years_count:   number
   sort_order:    number
   is_active:     boolean
   created_at:    string

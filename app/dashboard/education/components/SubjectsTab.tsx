@@ -13,6 +13,7 @@ interface Track {
   name_he: string
   name_ru: string
   name_en: string
+  years_count?: number
 }
 
 interface Subject {
