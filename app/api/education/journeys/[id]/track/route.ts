@@ -24,11 +24,22 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
     if (!allowed) return apiError('forbidden', 403)
 
-    const { data, error } = await sb
+    // year_level/completed_at добавлены миграцией year_rollover — deploy-safe:
+    // при 42703 (нет колонок) откатываемся к базовому select.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let { data, error } = await (sb
       .from('journey_study_tracks')
-      .select('journey_id, track_id, notes, updated_at')
+      .select('journey_id, track_id, notes, year_level, completed_at, updated_at')
       .eq('journey_id', params.id)
-      .maybeSingle()
+      .maybeSingle() as any)
+    if (error && error.code === '42703') {
+      const base = await sb
+        .from('journey_study_tracks')
+        .select('journey_id, track_id, notes, updated_at')
+        .eq('journey_id', params.id)
+        .maybeSingle()
+      data = base.data; error = base.error
+    }
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ track: null })
       throw error
@@ -49,7 +60,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       || await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id))
     if (!allowed) return apiError('forbidden', 403)
 
-    const body = await request.json().catch(() => ({})) as { track_id?: string | null; notes?: string | null }
+    const body = await request.json().catch(() => ({})) as {
+      track_id?: string | null
+      notes?: string | null
+      year_level?: number
+      reactivate?: boolean
+    }
 
     const row: JourneyStudyTrackInsert = {
       journey_id: params.id,
@@ -58,10 +74,23 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updated_by: session.person_id,
     }
 
-    const { error } = await sb
-      .from('journey_study_tracks')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .upsert({ ...row, updated_at: new Date().toISOString() } as any, { onConflict: 'journey_id' })
+    // year_level / completed_at — новые колонки (year_rollover). Пишем их через
+    // untyped-объект; если колонок ещё нет (42703) — повторяем upsert без них.
+    const full: Record<string, unknown> = { ...row, updated_at: new Date().toISOString() }
+    if (typeof body.year_level === 'number' && body.year_level >= 1 && body.year_level <= 8) {
+      full.year_level = body.year_level
+    }
+    if (body.reactivate) full.completed_at = null
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let { error } = await (sb.from('journey_study_tracks').upsert(full as any, { onConflict: 'journey_id' }) as any)
+    if (error && error.code === '42703') {
+      const retry = await sb
+        .from('journey_study_tracks')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert({ ...row, updated_at: new Date().toISOString() } as any, { onConflict: 'journey_id' })
+      error = retry.error
+    }
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ ok: true }) // таблицы ещё нет
       throw error

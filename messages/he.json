@@ -1282,7 +1282,10 @@
       "saving": "שומר…",
       "saved": "נשמר ✓",
       "save_error": "השמירה נכשלה",
-      "choose": "בחר מסלול…"
+      "choose": "בחר מסלול…",
+      "year_label": "שנת לימוד",
+      "completed": "סיימה",
+      "reactivate": "החזר לפעילה (בטל סיום)"
     },
     "study_plan": {
       "title": "תוכנית לימודים",
