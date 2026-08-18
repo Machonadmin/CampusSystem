@@ -266,6 +266,8 @@ function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: Sl
       }
       // Мягкое правило иудаики: слот сохранён, но время зарезервировано — предупреждаем.
       if (respBody.warning) toast(respBody.warning, 'info')
+      // Перенос кабинета → уведомлены преподаватели/ученицы группы.
+      if (respBody.room_move_notified) toast(t('room_moved_notified').replace('{n}', String(respBody.room_move_notified)), 'info')
       // Конфликты кабинет/преподаватель/ученицы — не блокируют, но предупреждаем.
       const conflicts = (respBody.conflicts ?? []) as Array<{ kind: 'room' | 'teacher' | 'students'; group_name: string; detail?: string }>
       for (const c of conflicts) {

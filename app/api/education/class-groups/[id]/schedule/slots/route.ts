@@ -108,6 +108,24 @@ export async function POST(
 
     const session = await requireEducationPrivilege('set_lesson_topics', target)
 
+    // Детект конфликтов ДО создания. КОМНАТА — жёсткая блокировка (409, решение
+    // владельца «לכפות חדר חלופי»): заставляем выбрать свободный кабинет.
+    // Преподаватель / ученицы остаются мягкими предупреждениями.
+    let conflicts: Awaited<ReturnType<typeof detectSlotConflicts>> = []
+    try {
+      conflicts = await detectSlotConflicts(sb, {
+        classGroupId: params.id, dayOfWeek: dow, startSec, endSec,
+        room: body.room?.trim() || null, roomId: body.room_id ?? null,
+      })
+    } catch { /* детект не должен ронять создание */ }
+    const roomConflict = conflicts.find(c => c.kind === 'room')
+    if (roomConflict) {
+      return NextResponse.json({
+        error: serverT('room_taken').replace('{room}', roomConflict.detail ?? '').replace('{group}', roomConflict.group_name),
+        room_conflict: roomConflict,
+      }, { status: 409 })
+    }
+
     const insert: ScheduleSlotInsert = {
       class_group_id: params.id,
       day_of_week: dow,
@@ -145,18 +163,13 @@ export async function POST(
       ? serverT('kodesh_slot_warning')
       : undefined
 
-    // Конфликты кабинет/преподаватель/ученицы — предупреждаем, НЕ блокируем.
-    let conflicts: Awaited<ReturnType<typeof detectSlotConflicts>> = []
-    try {
-      conflicts = await detectSlotConflicts(sb, {
-        classGroupId: params.id, dayOfWeek: dow, startSec, endSec, room: insert.room ?? null,
-      })
-    } catch { /* обнаружение конфликтов не должно ронять создание слота */ }
+    // Мягкие конфликты (преподаватель / ученицы) — предупреждаем, НЕ блокируем.
+    const softConflicts = conflicts.filter(c => c.kind !== 'room')
 
     return NextResponse.json({
       ...(data as object),
       ...(warning ? { warning } : {}),
-      ...(conflicts.length ? { conflicts } : {}),
+      ...(softConflicts.length ? { conflicts: softConflicts } : {}),
     }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
