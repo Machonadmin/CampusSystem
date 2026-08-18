@@ -557,9 +557,9 @@ function Empty({ text }: { text: string }) {
 
 function StatusBadge({ kind, label }: { kind: 'active' | 'cancelled' | 'pending' | 'approved'; label: string }) {
   const palette: Record<string, { bg: string; fg: string }> = {
-    active:    { bg: '#D1FAE5', fg: '#047857' },
-    approved:  { bg: '#D1FAE5', fg: '#047857' },
-    pending:   { bg: '#FEF3C7', fg: '#B45309' },
+    active:    { bg: 'var(--success-tint)', fg: 'var(--success)' },
+    approved:  { bg: 'var(--success-tint)', fg: 'var(--success)' },
+    pending:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
     cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
   const c = palette[kind] ?? palette.cancelled

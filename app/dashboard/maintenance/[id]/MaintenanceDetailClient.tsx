@@ -36,16 +36,16 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  open:        { bg: '#DBEAFE', fg: '#1D4ED8' },
-  in_progress: { bg: '#FEF3C7', fg: '#B45309' },
-  resolved:    { bg: '#D1FAE5', fg: '#047857' },
+  open:        { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  in_progress: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  resolved:    { bg: 'var(--success-tint)', fg: 'var(--success)' },
   closed:      { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
-  cancelled:   { bg: '#FEE2E2', fg: '#B91C1C' },
+  cancelled:   { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 const PRIORITY_COLORS: Record<string, { bg: string; fg: string }> = {
-  urgent: { bg: '#FEE2E2', fg: '#B91C1C' },
-  high:   { bg: '#FFEDD5', fg: '#C2410C' },
-  normal: { bg: '#DBEAFE', fg: '#1D4ED8' },
+  urgent: { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
+  high:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  normal: { bg: 'var(--info-tint)', fg: 'var(--info)' },
   low:    { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
 }
 

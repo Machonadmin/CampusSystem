@@ -34,15 +34,15 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  open:          { bg: '#DBEAFE', fg: '#1D4ED8' },
-  investigating: { bg: '#FEF3C7', fg: '#B45309' },
-  resolved:      { bg: '#D1FAE5', fg: '#047857' },
+  open:          { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  investigating: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  resolved:      { bg: 'var(--success-tint)', fg: 'var(--success)' },
   closed:        { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
 }
 const SEVERITY_COLORS: Record<string, { bg: string; fg: string }> = {
-  critical: { bg: '#FEE2E2', fg: '#B91C1C' },
-  high:     { bg: '#FFEDD5', fg: '#C2410C' },
-  medium:   { bg: '#FEF3C7', fg: '#B45309' },
+  critical: { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
+  high:     { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  medium:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
   low:      { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
 }
 

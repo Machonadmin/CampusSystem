@@ -462,10 +462,10 @@ interface Employee {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  active:     { bg: '#ECFDF5', fg: '#065F46' },
-  sick_leave: { bg: '#FEF3C7', fg: '#92400E' },
-  vacation:   { bg: '#DBEAFE', fg: '#1E40AF' },
-  fired:      { bg: '#FEE2E2', fg: '#991B1B' },
+  active:     { bg: 'var(--success-tint)', fg: 'var(--success)' },
+  sick_leave: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  vacation:   { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  fired:      { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
 function initials(name: string) {

@@ -186,7 +186,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                 >
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{block.title}</span>
                   {block.type && (
-                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: '#DBEAFE', color: '#1D4ED8', fontWeight: 500 }}>
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'var(--info-tint)', color: 'var(--info)', fontWeight: 500 }}>
                       {blockTypeLabel(t, block.type)}
                     </span>
                   )}
@@ -220,7 +220,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                               {typeLabel(t, q.type)}
                             </span>
                             {q.maps_to && (
-                              <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: '#FEF3C7', color: '#92400E', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: 'var(--warn-tint)', color: 'var(--warn)', whiteSpace: 'nowrap' }}>
                                 → {q.maps_to}
                               </span>
                             )}
@@ -404,7 +404,7 @@ function TemplateBuilder({
                       style={{ flex: 1, padding: '4px 8px', fontSize: 13, fontWeight: 500, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', minWidth: 0 }} />
 
                     {block.type && (
-                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: '#DBEAFE', color: '#1D4ED8', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'var(--info-tint)', color: 'var(--info)', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}>
                         {blockTypeLabel(t, block.type)}
                       </span>
                     )}
@@ -465,7 +465,7 @@ function TemplateBuilder({
                           </label>
 
                           {q.maps_to && (
-                            <span style={{ fontSize: 10, padding: '2px 5px', borderRadius: 4, background: '#FEF3C7', color: '#92400E', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 10, padding: '2px 5px', borderRadius: 4, background: 'var(--warn-tint)', color: 'var(--warn)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                               → {q.maps_to}
                             </span>
                           )}

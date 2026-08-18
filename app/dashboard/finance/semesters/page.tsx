@@ -89,7 +89,7 @@ export default function SemestersPage() {
             <div key={s.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', padding: 16, opacity: s.status === 'closed' ? 0.65 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{s.name || `${s.year_label} · ${t('term_n').replace('{n}', String(s.term_number))}`}</div>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: s.status === 'open' ? '#D1FAE5' : 'var(--surface-2)', color: s.status === 'open' ? '#065F46' : 'var(--text-muted)' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: s.status === 'open' ? 'var(--success-tint)' : 'var(--surface-2)', color: s.status === 'open' ? 'var(--success)' : 'var(--text-muted)' }}>
                   {t(`status_${s.status}`)}
                 </span>
               </div>

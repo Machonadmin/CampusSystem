@@ -65,8 +65,8 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
 
       {savedAt && (
         <div style={{
-          background: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: 8,
-          padding: '10px 16px', fontSize: 13, color: '#065F46',
+          background: 'var(--success-tint)', border: '1px solid var(--success)', borderRadius: 8,
+          padding: '10px 16px', fontSize: 13, color: 'var(--success)',
         }}>
           {t('card.labels.data_saved')}
         </div>
