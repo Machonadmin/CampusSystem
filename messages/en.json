@@ -1169,6 +1169,21 @@
         "table_students": "Students",
         "table_tuition": "Tuition",
         "table_actions": "Actions"
+      },
+      "rollover": {
+        "tab": "Year rollover",
+        "hint": "On the set date each year, all students move automatically to the next year (up to their track length). Those who finished the last year are marked completed.",
+        "auto_enabled": "Enable automatic rollover",
+        "month": "Month",
+        "day": "Day",
+        "saved": "Settings saved",
+        "run_now": "Run now",
+        "run_confirm": "Move all students to the next year? This runs once per year.",
+        "run_done": "Done: {promoted} promoted, {graduated} completed.",
+        "run_skipped": "Rollover already ran this year.",
+        "last_run": "Last rollover: {year}.",
+        "never_run": "No rollover yet.",
+        "not_ready": "Rollover settings unavailable (migration not applied)."
       }
     },
     "docs_error": "Error",
