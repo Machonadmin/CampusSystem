@@ -346,6 +346,7 @@
       "time_required": "יש להזין שעת התחלה וסיום",
       "end_after_start": "הסיום חייב להיות אחרי ההתחלה",
       "conflict_room": "כיתה {room} כבר תפוסה על ידי {group} באותה שעה",
+      "room_moved_notified": "השיעור עבר חדר — נשלחה התראה ל-{n} משובצים",
       "conflict_teacher": "המורה כבר משובץ/ת ל{group} באותה שעה",
       "conflict_students": "יש {n} תלמידות משותפות עם {group} באותה שעה",
       "btn_cancel": "ביטול",
@@ -545,6 +546,7 @@
       "no_processes": "לא נוצרו תהליכים",
       "close_stage_section": "סיום תת-שלב",
       "no_rights": "אין לך הרשאה לסיים תת-שלב זה",
+      "sign_not_your_authority": "החתימה על שלב זה שמורה לבעל התפקיד המתאים",
       "completed_with": "הושלם עם תוצאה:",
       "tasks_label": "משימות",
       "no_tasks_created": "לא נוצרו משימות",
@@ -2629,6 +2631,7 @@
     "process_names": {
       "Набор": "גיוס",
       "Приёмная комиссия": "ועדת קבלה",
+      "Приёмная комиссия (последовательная)": "ועדת קבלה (עוקבת)",
       "Приём": "קבלה"
     }
   },
@@ -4070,6 +4073,7 @@
     "position_exists": "תפקיד בשם זה כבר קיים",
     "city_exists": "עיר כזו כבר קיימת",
     "slot_exists_day_time": "משבצת ליום ולשעה אלה כבר קיימת",
+    "room_taken": "החדר {room} תפוס בזמן הזה על ידי {group} — יש לבחור חדר אחר",
     "study_group_name_exists": "קבוצת לימוד בשם זה כבר קיימת",
     "study_group_not_found": "קבוצת הלימוד לא נמצאה",
     "base_group_exists": "קבוצת בסיס בשם זה כבר קיימת",
@@ -4081,6 +4085,7 @@
     "student_active_meal_plan_exists": "לסטודנט כבר יש תוכנית הזנה פעילה בתאריכים שנבחרו",
     "person_has_active_journey": "לאדם זה כבר יש journey פעיל עם סטטוס אחר",
     "meeting_overlap": "הפגישה חופפת לפגישה שכבר מתוכננת",
+    "lesson_overlap": "היומן שלך תפוס — יש לך שיעור בשעה {time}",
     "group_name_exists": "קבוצה בשם זה כבר קיימת",
     "lesson_exists_date_time": "שיעור בתאריך ובשעה אלה כבר קיים",
     "specialty_other_department": "ההתמחות שייכת למחלקה אחרת",

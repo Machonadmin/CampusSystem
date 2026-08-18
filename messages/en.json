@@ -346,6 +346,7 @@
       "time_required": "Enter start and end time",
       "end_after_start": "End must be after start",
       "conflict_room": "Room {room} is already used by {group} at this time",
+      "room_moved_notified": "Lesson moved room — notified {n} people",
       "conflict_teacher": "The teacher is already assigned to {group} at this time",
       "conflict_students": "{n} students overlap with {group} at this time",
       "btn_cancel": "Cancel",
@@ -545,6 +546,7 @@
       "no_processes": "No processes started",
       "close_stage_section": "Complete stage",
       "no_rights": "You don't have permission to complete this stage",
+      "sign_not_your_authority": "Signing this stage is reserved for the appropriate role-holder",
       "completed_with": "Completed with result:",
       "tasks_label": "Tasks",
       "no_tasks_created": "No tasks created",
@@ -2629,6 +2631,7 @@
     "process_names": {
       "Набор": "Recruitment",
       "Приёмная комиссия": "Acceptance committee",
+      "Приёмная комиссия (последовательная)": "Acceptance committee (sequential)",
       "Приём": "Acceptance"
     }
   },
@@ -4070,6 +4073,7 @@
     "position_exists": "A position with this name already exists",
     "city_exists": "This city already exists",
     "slot_exists_day_time": "A slot for this day and time already exists",
+    "room_taken": "Room {room} is taken at this time by {group} — choose another room",
     "study_group_name_exists": "A study group with this name already exists",
     "study_group_not_found": "Study group not found",
     "base_group_exists": "A base group with this name already exists",
@@ -4081,6 +4085,7 @@
     "student_active_meal_plan_exists": "The student already has an active meal plan for the selected dates",
     "person_has_active_journey": "This person already has an active journey with a different status",
     "meeting_overlap": "The meeting overlaps with an already scheduled one",
+    "lesson_overlap": "Your calendar is busy — you have a lesson at {time}",
     "group_name_exists": "A group with this name already exists",
     "lesson_exists_date_time": "A lesson for this date and time already exists",
     "specialty_other_department": "The specialty belongs to a different department",

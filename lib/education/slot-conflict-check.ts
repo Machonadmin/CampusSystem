@@ -23,6 +23,7 @@ interface Candidate {
   startSec: number
   endSec: number
   room: string | null
+  roomId?: string | null // приоритетное совпадение по реестру кабинетов
 }
 
 function timeToSeconds(t: string | null): number | null {
@@ -39,10 +40,23 @@ export async function detectSlotConflicts(
   cand: Candidate,
   excludeSlotId?: string,
 ): Promise<SlotConflict[]> {
-  const { data: slotRows } = await sb
-    .from('class_schedule_slots')
-    .select('id, class_group_id, start_time, end_time, room')
-    .eq('day_of_week', cand.dayOfWeek)
+  // room_id — из реестра кабинетов (buildings→rooms). Совпадение по room_id
+  // надёжнее текста (одна и та же комната, разное написание). Deploy-safe:
+  // колонки нет → '*'-fallback без room_id (тогда сверяем только по тексту).
+  let slotRows: Array<{ id: string; class_group_id: string; start_time: string; end_time: string; room: string | null; room_id?: string | null }> = []
+  {
+    const r = await sb.from('class_schedule_slots')
+      .select('id, class_group_id, start_time, end_time, room, room_id')
+      .eq('day_of_week', cand.dayOfWeek)
+    if (r.error) {
+      const r2 = await sb.from('class_schedule_slots')
+        .select('id, class_group_id, start_time, end_time, room')
+        .eq('day_of_week', cand.dayOfWeek)
+      slotRows = (r2.data ?? []) as typeof slotRows
+    } else {
+      slotRows = (r.data ?? []) as typeof slotRows
+    }
+  }
   const others = (slotRows ?? []).filter(s => {
     if (s.class_group_id === cand.classGroupId) return false
     if (excludeSlotId && s.id === excludeSlotId) return false
@@ -101,7 +115,9 @@ export async function detectSlotConflicts(
     const gid = s.class_group_id
     const gname = nameById.get(gid) ?? '—'
 
-    if (myRoom && normRoom(s.room) === myRoom) {
+    const roomMatchById = !!cand.roomId && !!s.room_id && s.room_id === cand.roomId
+    const roomMatchByText = !!myRoom && normRoom(s.room) === myRoom
+    if (roomMatchById || roomMatchByText) {
       const key = `${gid}:room`
       if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'room', group_name: gname, detail: cand.room ?? undefined }) }
     }

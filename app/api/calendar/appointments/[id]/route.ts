@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isAppointmentStatus, isIsoDateTime } from '@/lib/calendar/validation'
-import { hasOverlappingAppointment } from '@/lib/calendar/overlap'
+import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { isAboveInHierarchy } from '@/lib/org/hierarchy'
 import type { AppointmentUpdate } from '@/types/database'
 
@@ -90,6 +90,11 @@ export async function PATCH(
       const overlap = await hasOverlappingAppointment(sb, session.person_id, nextStarts, nextEnds, params.id)
       if (overlap) {
         return apiError('meeting_overlap', 409)
+      }
+      // «Твой календарь занят»: пересечение с собственным уроком.
+      const lessonConflict = await overlappingLesson(sb, session.person_id, nextStarts, nextEnds)
+      if (lessonConflict) {
+        return NextResponse.json({ error: serverT('lesson_overlap').replace('{time}', lessonConflict.time) }, { status: 409 })
       }
     }
 
