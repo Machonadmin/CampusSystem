@@ -1,6 +1,7 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePersonsPrivilege, hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { redactSensitivePerson } from '@/lib/persons/redact'
@@ -52,17 +53,22 @@ export async function GET(
       .filter((r): r is { code: string; name: string } => !!r && !!r.name)
 
     // 3) Действующие должности + подразделение (если сотрудник).
+    // Ярлык должности — с учётом языка (name_he для иврита), падение на снапшот.
+    const lang = getCookieLocale()
     const { data: posRows } = await sb
       .from('staff_positions')
-      .select('position_ru, is_head, department:departments(name)')
+      .select('position_ru, position_he, is_head, position:reference_positions(name_ru, name_he), department:departments(name)')
       .eq('person_id', params.id)
       .is('end_date', null)
       .order('is_head', { ascending: false })
     const positions: string[] = []
     let department: string | null = null
     for (const pos of posRows ?? []) {
-      const pr = pos as { position_ru: string | null; department: unknown }
-      if (pr.position_ru && !positions.includes(pr.position_ru)) positions.push(pr.position_ru)
+      const pr = pos as unknown as { position_ru: string | null; position_he: string | null; position: { name_ru: string | null; name_he: string | null } | null; department: unknown }
+      const label = lang === 'he'
+        ? (pr.position?.name_he || pr.position_he || pr.position?.name_ru || pr.position_ru)
+        : (pr.position?.name_ru || pr.position_ru)
+      if (label && !positions.includes(label)) positions.push(label)
       if (!department) {
         const dept = pr.department as { name?: string | null } | null
         department = dept?.name ?? null
