@@ -95,7 +95,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('new_role_title')}</p>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
@@ -144,7 +144,7 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', margin: 0 }}>{t('add_privilege_title')}: <span style={{ color: 'var(--accent)' }}>{module}</span></p>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
