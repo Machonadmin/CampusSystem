@@ -2,7 +2,9 @@ import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requirePersonsPrivilege } from '@/lib/persons/permissions'
+import { hasPersonsPrivilege } from '@/lib/persons/permissions'
+import { getSession } from '@/lib/auth/session'
+import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { mapDbError } from '@/lib/persons/http'
 
 /**
@@ -33,7 +35,20 @@ const DEFAULT_PAGE_SIZE = 50
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePersonsPrivilege('view')
+    // Доступ: persons.view (весь институт) ЛИБО образовательный view_students.
+    // Для scope='department' выдаём только студентов своих подразделений — иначе
+    // менеджер юнита увидел бы студентов всего института (утечка).
+    const session = await getSession()
+    if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+    let deptFilter: string[] | null = null
+    if (!(await hasPersonsPrivilege(session, 'view'))) {
+      const scope = await getEducationPrivilegeScope(session, 'view_students')
+      if (!scope) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
+      if (scope === 'department') {
+        deptFilter = await getUserDepartmentIds(session.person_id)
+        if (deptFilter.length === 0) return NextResponse.json({ students: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE })
+      }
+    }
 
     const sb = createServerClient()
 
@@ -48,7 +63,7 @@ export async function GET(request: NextRequest) {
     const rows: JourneyRow[] = []
     let jFrom = 0
     for (;;) {
-      const { data, error } = await sb
+      let q = sb
         .from('education_journeys')
         .select(`
           id, person_id, education_status, opened_at,
@@ -56,6 +71,8 @@ export async function GET(request: NextRequest) {
           primary_department:departments!education_journeys_primary_department_id_fkey(id, name)
         `)
         .eq('education_status', 'student')
+      if (deptFilter) q = q.in('primary_department_id', deptFilter)
+      const { data, error } = await q
         .order('opened_at', { ascending: false })
         .order('id', { ascending: true })
         .range(jFrom, jFrom + PAGE - 1)

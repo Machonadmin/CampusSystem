@@ -238,6 +238,9 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
                 onChange={id => setPrimaryTeacherId(id)}
                 placeholder={t('class_groups.primary_teacher_placeholder')}
                 accentColor={accent}
+                source="/api/education/teachers"
+                allowShowAll
+                allowAdd={false}
               />
               <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
                 {t('class_groups.primary_teacher_hint')}

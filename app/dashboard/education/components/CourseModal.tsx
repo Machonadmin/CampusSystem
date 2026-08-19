@@ -98,7 +98,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
             {teacherIds.map((tid, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
                 <div style={{ flex: 1 }}>
-                  <PersonSelect value={tid} onChange={id => setTeacherIds(prev => prev.map((v, i) => i === idx ? id : v))} placeholder={t('semester_groups.teacher_placeholder')} accentColor={accent} />
+                  <PersonSelect value={tid} onChange={id => setTeacherIds(prev => prev.map((v, i) => i === idx ? id : v))} placeholder={t('semester_groups.teacher_placeholder')} accentColor={accent} source="/api/education/teachers" allowShowAll allowAdd={false} />
                 </div>
                 {teacherIds.length > 1 && (
                   <button type="button" onClick={() => setTeacherIds(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>

@@ -316,3 +316,86 @@ export async function requireEducationPrivilege(
   }
   return session
 }
+
+/**
+ * department_id, к которым person привязан по «образовательным» связям:
+ *  - активные staff_positions (преподаватель/сотрудник юнита),
+ *  - students (primary_department_id + подразделение основной группы),
+ *  - education_journeys (лид/абитуриент/студент: desired/primary department).
+ *
+ * Используется, чтобы менеджер юнита (persons-модуль ему недоступен) мог читать
+ * карточку человека ТОЛЬКО если человек относится к его юниту — без доступа ко
+ * всему справочнику людей института.
+ */
+export async function getPersonEducationDepartments(personId: string): Promise<string[]> {
+  const sb = createServerClient()
+  const out = new Set<string>()
+
+  const { data: sp } = await sb
+    .from('staff_positions')
+    .select('department_id')
+    .eq('person_id', personId)
+    .or('end_date.is.null,end_date.gt.now()')
+  for (const r of (sp ?? []) as Array<{ department_id: string | null }>) if (r.department_id) out.add(r.department_id)
+
+  const { data: st } = await sb
+    .from('students')
+    .select('primary_department_id, main_group_id')
+    .eq('person_id', personId)
+  const groupIds: string[] = []
+  for (const r of (st ?? []) as Array<{ primary_department_id: string | null; main_group_id: string | null }>) {
+    if (r.primary_department_id) out.add(r.primary_department_id)
+    if (r.main_group_id) groupIds.push(r.main_group_id)
+  }
+  // main_group_id → study_groups(id) (НЕ class_groups) — берём department основной группы.
+  if (groupIds.length) {
+    const { data: g } = await sb.from('study_groups').select('department_id').in('id', groupIds)
+    for (const r of (g ?? []) as Array<{ department_id: string | null }>) if (r.department_id) out.add(r.department_id)
+  }
+
+  // Только primary_department_id (фактическое подразделение студента/заявки).
+  // desired_department_id (желаемое подразделение лида) НЕ считаем членством —
+  // иначе view_students дотягивался бы до карточек лидов.
+  const { data: jr } = await sb
+    .from('education_journeys')
+    .select('primary_department_id')
+    .eq('person_id', personId)
+  for (const r of (jr ?? []) as Array<{ primary_department_id: string | null }>) {
+    if (r.primary_department_id) out.add(r.primary_department_id)
+  }
+
+  return [...out]
+}
+
+/**
+ * Может ли пользователь ПРОЧИТАТЬ карточку person через образовательный доступ.
+ * superadmin / scope='all' → любой человек. scope='department' → только если
+ * человек относится к одному из подразделений пользователя. Нет образовательной
+ * просмотровой привилегии → false. Чувствительные PII здесь НЕ выдаются — их
+ * по-прежнему гейтит persons.view_sensitive на самом маршруте.
+ */
+export async function canReadPersonInEducationScope(
+  session: SessionPayload | null,
+  personId: string,
+): Promise<boolean> {
+  if (!session) return false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
+
+  // Только «студенческие» просмотровые привилегии дают доступ к карточке человека.
+  // НЕ включаем view_applicants / view_leads: роли-подписанты этапов приёма
+  // (напр. jewishness_officer) держат их со scope='all' без persons.view — иначе
+  // они получили бы чтение всего справочника людей института.
+  const scope = (await getEducationPrivilegeScope(session, 'view_students'))
+    ?? (await getEducationPrivilegeScope(session, 'manage_students'))
+  if (!scope) return false
+
+  const personDepts = await getPersonEducationDepartments(personId)
+  if (personDepts.length === 0) return false // человек без образовательной привязки
+
+  if (scope === 'all') return true // доступ ко всем образовательным людям
+  if (scope !== 'department') return false
+
+  const myDepts = await getUserDepartmentIds(session.person_id)
+  if (myDepts.length === 0) return false
+  return personDepts.some(d => myDepts.includes(d))
+}
