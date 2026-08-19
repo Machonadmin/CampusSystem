@@ -281,6 +281,9 @@ export default function SemesterGroupModal({ mode, initial, departments, default
                     onChange={id => setTeacherPerson(idx, id)}
                     placeholder={t('semester_groups.teacher_placeholder')}
                     accentColor={accent}
+                    source="/api/education/teachers"
+                    allowShowAll
+                    allowAdd={false}
                   />
                 </div>
                 <div style={{ width: 130, position: 'relative' }}>

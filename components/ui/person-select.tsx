@@ -28,6 +28,14 @@ interface PersonSelectProps {
   roleFilter?: 'teacher'
   allowShowAll?: boolean
   enrollOption?: EnrollOption
+  /**
+   * Альтернативный источник списка людей (напр. '/api/education/teachers').
+   * По умолчанию '/api/persons'. Нужен там, где у роли нет привилегии модуля
+   * «Люди», но есть право на профильный пул (преподаватели в «Обучении»).
+   */
+  source?: string
+  /** Показывать ли кнопку «+ добавить человека». По умолчанию true. */
+  allowAdd?: boolean
 }
 
 const personCache = new Map<string, Person>()
@@ -44,6 +52,8 @@ export function PersonSelect({
   roleFilter,
   allowShowAll = false,
   enrollOption,
+  source,
+  allowAdd = true,
 }: PersonSelectProps) {
   const t = useTranslations('persons')
   const [search, setSearch] = useState('')
@@ -70,8 +80,15 @@ export function PersonSelect({
     if (selected?.id === value) return
     const cached = personCache.get(value)
     if (cached) { setSelected(cached); return }
-    fetch(`/api/persons/${value}`)
-      .then(r => r.ok ? r.json() : null)
+    // При кастомном source резолвим имя через него (?ids=), т.к. у роли может не
+    // быть доступа к /api/persons/[id] (модуль «Люди»). Иначе — прежний путь.
+    const resolve: Promise<Person | null> = source
+      ? fetch(`${source}?ids=${encodeURIComponent(value)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then((d: { people?: Person[] } | null) => d?.people?.[0] ?? null)
+      : fetch(`/api/persons/${value}`)
+          .then(r => r.ok ? r.json() : null)
+    resolve
       .then((p: Person | null) => {
         if (p) { personCache.set(p.id, p); setSelected(p) }
       })
@@ -106,11 +123,18 @@ export function PersonSelect({
       const params = new URLSearchParams()
       if (q.length >= 2) params.set('search', q)
       if (roleFilter && !(all ?? showAll)) params.set('role', roleFilter)
-      const url = `/api/persons${params.size > 0 ? '?' + params.toString() : ''}`
+      const base = source ?? '/api/persons'
+      const url = `${base}${params.size > 0 ? '?' + params.toString() : ''}`
       const res = await fetch(url)
       if (res.ok) {
         const data: { people: Person[] } = await res.json()
         setPeople(data.people ?? [])
+      } else {
+        // Не глотаем 403/500 молча — иначе «нет прав» выглядит как «никого не
+        // найдено» (именно так пикер преподавателей падал для unit_manager).
+        setPeople([])
+        const body = await res.json().catch(() => ({}))
+        setErrMsg((body as { error?: string }).error || t('error_loading'))
       }
     } catch {
       setErrMsg(t('error_loading'))
@@ -332,7 +356,7 @@ export function PersonSelect({
                   <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--danger)' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
                   <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>
-                    {search.length >= 2 ? t('nothing_found') : (roleFilter && !showAll ? t('no_teachers') : t('no_saved_people'))}
+                    {search.length >= 2 ? t('nothing_found') : ((roleFilter || source) && !showAll ? t('no_teachers') : t('no_saved_people'))}
                   </div>
                 ) : (
                   people.map(p => (
@@ -360,7 +384,7 @@ export function PersonSelect({
                   ))
                 )}
               </div>
-              {allowShowAll && roleFilter && (
+              {allowShowAll && (roleFilter || source) && (
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
                   borderTop: '1px solid var(--surface-2)', cursor: 'pointer', userSelect: 'none',
@@ -374,18 +398,20 @@ export function PersonSelect({
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('show_all')}</span>
                 </label>
               )}
-              <button
-                type="button"
-                onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'start',
-                  padding: '9px 12px', fontSize: 12, fontWeight: 600,
-                  color: accentColor, background: 'var(--surface-2)',
-                  border: 'none', borderTop: '1px solid var(--border)', cursor: 'pointer',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
-              >+ {t('add_new_person')}</button>
+              {allowAdd && (
+                <button
+                  type="button"
+                  onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'start',
+                    padding: '9px 12px', fontSize: 12, fontWeight: 600,
+                    color: accentColor, background: 'var(--surface-2)',
+                    border: 'none', borderTop: '1px solid var(--border)', cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                >+ {t('add_new_person')}</button>
+              )}
             </>
           )}
         </div>

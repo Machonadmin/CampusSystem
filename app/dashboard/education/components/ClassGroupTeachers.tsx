@@ -116,7 +116,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
               onChange={id => setSelectedId(id)}
               placeholder={t('class_groups.teacher_select_placeholder')}
               accentColor={accentColor}
-              roleFilter="teacher"
+              source="/api/education/teachers"
               allowShowAll
               {...(departmentId ? {
                 enrollOption: {
