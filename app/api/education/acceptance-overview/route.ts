@@ -72,6 +72,13 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Раздел «קבלה» (приёмная комиссия) показывает тех, кто ещё в приёмном цикле.
+    // Кто уже перешёл в учебный цикл (education_status = student/…) живёт в разделе
+    // «לימודים» — исключаем его здесь, иначе под фильтром «завершённые/все» один и
+    // тот же человек попадал бы и в «קבלה», и в «לимודים» (утечка между разделами).
+    const STUDENT_LIFECYCLE = new Set(['student', 'on_leave', 'graduated', 'expelled'])
+    pis = pis.filter(p => !STUDENT_LIFECYCLE.has(p.journey?.education_status ?? ''))
+
     const signature_method = await getSignatureMethod()
 
     if (pis.length === 0) {
