@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 
 interface Track {
   id: string
@@ -42,6 +43,7 @@ function trackName(tr: Track, lang: string): string {
 
 export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
@@ -59,8 +61,8 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError(t('common.name_required')); return }
-    if (!trackId) { setError(t('subjects.track_required')); return }
+    if (!name.trim()) { setError(requiredFieldMsg(tCommon, t('subjects.name_field_label'))); return }
+    if (!trackId) { setError(requiredFieldMsg(tCommon, t('subjects.track_label'))); return }
 
     setSaving(true)
     setError(null)
@@ -129,7 +131,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.name_label')} *</label>
+            <label style={lbl}>{t('subjects.name_field_label')} *</label>
             <input
               type="text" value={name} onChange={e => setName(e.target.value)}
               style={inp} autoFocus placeholder={t('subjects.name_placeholder')}
@@ -204,7 +206,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           {error && (
             <div style={{
               padding: 10, marginBottom: 12, background: 'var(--danger-tint)',
-              color: '#991B1B', borderRadius: 6, fontSize: 13,
+              color: 'var(--danger)', borderRadius: 6, fontSize: 13,
             }}>
               {error}
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
 
@@ -56,6 +57,7 @@ function trackLabel(tr: StudyTrack, lang: string): string {
 
 export default function SemesterGroupModal({ mode, initial, departments, defaults, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [name, setName] = useState(initial?.name ?? '')
@@ -124,8 +126,10 @@ export default function SemesterGroupModal({ mode, initial, departments, default
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError(t('common.name_required')); return }
-    if (!departmentId) { setError(t('common.department_required')); return }
+    if (!name.trim()) { setError(requiredFieldMsg(tCommon, t('semester_groups.name_field_label'))); return }
+    if (!trackId) { setError(requiredFieldMsg(tCommon, t('semester_groups.track_label'))); return }
+    if (!yearLevel.trim()) { setError(requiredFieldMsg(tCommon, t('semester_groups.year_level_label'))); return }
+    if (!departmentId) { setError(requiredFieldMsg(tCommon, t('common.department_label'))); return }
 
     setSaving(true)
     setError(null)
@@ -215,7 +219,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
         <form onSubmit={handleSubmit}>
           {/* 1. Название (RU обяз. + he/en опц.) */}
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.name_label')} *</label>
+            <label style={lbl}>{t('semester_groups.name_field_label')} *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('semester_groups.name_placeholder')} />
           </div>
           <div style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -232,7 +236,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
           {/* 2. Год-ступень (א/ב/ג) + еврейский год (набор) + номер семестра */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 110 }}>
-              <label style={lbl}>{t('semester_groups.year_level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
+              <label style={lbl}>{t('semester_groups.year_level_label')} *</label>
               <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
                 <option value="">—</option>
                 {[1, 2, 3, 4].map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
@@ -250,7 +254,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
 
           {/* 3. Маршрут (study_track) */}
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('semester_groups.track_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('semester_groups.track_label')} *</label>
             <select value={trackId} onChange={e => setTrackId(e.target.value)} style={inp}>
               <option value="">{t('semester_groups.track_placeholder')}</option>
               {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackLabel(tr, lang)}</option>)}
@@ -349,7 +353,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
           </div>
 
           {error && (
-            <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>
+            <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 6, fontSize: 13 }}>
               {error}
             </div>
           )}
