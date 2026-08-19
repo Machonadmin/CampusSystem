@@ -893,7 +893,8 @@
         "launch_chavruta_hub": "מרכז חברותא",
         "launch_admin": "ניהול ותצורה",
         "launch_semesters": "סמסטרים",
-        "launch_structure": "מבנה אקדמי",
+        "launch_structure": "מבנה יחידות",
+        "launch_subjects": "מקצועות",
         "launch_units": "יחידות לימוד",
         "launch_reports": "דוחות"
       },
