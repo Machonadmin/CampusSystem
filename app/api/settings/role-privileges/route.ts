@@ -46,11 +46,31 @@ export async function PUT(request: NextRequest) {
       privileges: { module: string; privilege_code: string }[]
     }
 
+    // Сохраняем существующий scope каждой привилегии: колонка role_privileges.scope
+    // имеет DEFAULT 'all', а UI шлёт только {module, privilege_code} без scope.
+    // Без этого delete+insert молча повышал бы scope='department' → 'all' (доступ
+    // ко всему кампусу) при любом сохранении роли — тихая эскалация прав.
+    const { data: existing } = await sb
+      .from('role_privileges')
+      .select('module, privilege_code, scope')
+      .eq('role_id', role_id)
+    type Scope = 'all' | 'department' | 'own'
+    const scopeByKey = new Map<string, Scope>(
+      (existing ?? []).map(r => [`${r.module}::${r.privilege_code}`, r.scope as Scope]),
+    )
+
     await sb.from('role_privileges').delete().eq('role_id', role_id)
 
     if (privileges.length > 0) {
       const { error } = await sb.from('role_privileges').insert(
-        privileges.map(p => ({ role_id, module: p.module as PrivilegeModule, privilege_code: p.privilege_code, granted_by: session.person_id }))
+        privileges.map(p => ({
+          role_id,
+          module: p.module as PrivilegeModule,
+          privilege_code: p.privilege_code,
+          granted_by: session.person_id,
+          // существующим привилегиям — их прежний scope; новым — 'all' (как раньше).
+          scope: scopeByKey.get(`${p.module}::${p.privilege_code}`) ?? ('all' as Scope),
+        }))
       )
       if (error) throw error
     }

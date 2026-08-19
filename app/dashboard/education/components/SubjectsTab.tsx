@@ -145,7 +145,7 @@ export default function SubjectsTab() {
       )}
 
       {error && (
-        <div style={{ padding: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}

@@ -349,8 +349,9 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta', acc: 'chavruta' },
   ] },
   { key: 'launch_admin', fb: 'ניהול ותצורה', items: [
+    { key: 'launch_subjects', fb: 'מקצועות', icon: LIC.cap, href: '/dashboard/education/subjects', acc: 'structure' },
     { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters', acc: 'semesters' },
-    { key: 'launch_structure', fb: 'מבנה אקדמי', icon: LIC.bld, href: '/dashboard/education/structure', acc: 'structure' },
+    { key: 'launch_structure', fb: 'מבנה יחידות', icon: LIC.bld, href: '/dashboard/education/structure', acc: 'structure' },
     { key: 'launch_units', fb: 'יחידות לימוד', icon: LIC.grid, href: '/dashboard/education/units', acc: 'units' },
     { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports', acc: 'reports' },
   ] },
