@@ -46,7 +46,9 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
   const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
-  const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
+  // sort_order сохраняется в фоне (поле убрано из формы); при редактировании
+  // сохраняем прежнее значение, у новых предметов — 0.
+  const [sortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? '')
   const [yearLevel, setYearLevel] = useState(String(initial?.year_level ?? 1))
@@ -181,27 +183,20 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
             </div>
           )}
 
-          <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <label style={lbl}>{t('common.sort_order_label')}</label>
-              <input
-                type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)}
-                style={inp} min={0}
-              />
+          {/* «סדר מיון» убрали из формы по просьбе владельца — лишнее поле.
+              sort_order сохраняется в фоне (0 у новых, прежнее — при редактировании). */}
+          {mode === 'edit' && (
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={e => setIsActive(e.target.checked)}
+                />
+                {t('subjects.active_checkbox')}
+              </label>
             </div>
-            {mode === 'edit' && (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, paddingBottom: 8, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={e => setIsActive(e.target.checked)}
-                  />
-                  {t('subjects.active_checkbox')}
-                </label>
-              </div>
-            )}
-          </div>
+          )}
 
           {error && (
             <div style={{
