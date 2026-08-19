@@ -3828,7 +3828,8 @@
     "title": "People",
     "tabs": {
       "staff": "Staff",
-      "students": "Students"
+      "students": "Students",
+      "leads": "Leads"
     },
     "list": {
       "subtitle": "Directory of staff and students — look someone up and find their contacts",
