@@ -154,6 +154,7 @@
     "hide_password": "Hide password"
   },
   "education": {
+    "no_access": "You don't have permission to view this section.",
     "structures": {
       "title": "Additional structures",
       "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
