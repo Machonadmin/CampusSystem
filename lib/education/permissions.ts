@@ -2,7 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
-import type { RoleCode } from '@/types/database'
+import type { RoleCode, PrivilegeModule } from '@/types/database'
 import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
@@ -29,6 +29,14 @@ export type EducationPrivilege =
   | 'write_evaluation'
 
 export type { Scope }
+
+// Модули, под которыми могут лежать «тонкие» права «Учёбы». После разделения
+// матрицы ролей на три модуля (recruitment/admission/studies) права читаются из
+// всех них плюс зонтичный 'education' — так авторизация не зависит от ярлыка
+// модуля и ни один грант не теряется (в т.ч. при частичной миграции).
+// Приведение типа: recruitment/admission/studies добавляются миграцией и ещё не
+// попали в сгенерированный PrivilegeModule — но это валидные значения TEXT-колонки.
+const EDU_PRIV_MODULES = ['education', 'recruitment', 'admission', 'studies'] as unknown as PrivilegeModule[]
 
 /**
  * Цель проверки прав. Что именно мы пытаемся сделать.
@@ -141,11 +149,14 @@ async function loadPrivileges(roleCodes: string[]): Promise<PrivilegesMap> {
 
   const roleIds = roleRows.map(r => r.id)
 
-  // 2. Получить все привилегии education для этих ролей
+  // 2. Получить все привилегии education для этих ролей. Читаем из всех модулей
+  // «Учёбы»: после разделения матрицы тонкие права живут под recruitment/
+  // admission/studies, а 'education' сохранён как зонтик — читаем все четыре,
+  // поэтому ни один грант не теряется независимо от ярлыка модуля.
   const { data: privs, error: privsErr } = await sb
     .from('role_privileges')
     .select('privilege_code, scope')
-    .eq('module', 'education')
+    .in('module', EDU_PRIV_MODULES)
     .in('role_id', roleIds)
 
   if (privsErr || !privs) return {}
@@ -166,7 +177,7 @@ async function loadPersonPrivileges(personId: string): Promise<Array<{ code: str
     .from('person_privileges')
     .select('privilege_code, is_granted, expires_at')
     .eq('person_id', personId)
-    .eq('module', 'education')
+    .in('module', EDU_PRIV_MODULES)
   if (error || !data) return []
   return data
     .filter(r => !r.expires_at || (r.expires_at as string) > nowIso)

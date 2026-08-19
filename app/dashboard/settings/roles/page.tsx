@@ -491,7 +491,7 @@ export default function RolesPage() {
                           }}>
                             <div style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: 'var(--accent)', flexShrink: 0 }} />
                             <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1 }}>
-                              {module}
+                              {(tModules.nav as Record<string, string>)[module] ?? module}
                             </span>
                             {/* Select-all checkbox */}
                             <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: selectedRole.is_system ? 'default' : 'pointer', userSelect: 'none' }}>
