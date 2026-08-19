@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface DocumentCategory {
   id: string
@@ -42,23 +43,16 @@ const STATUS_ICON: Record<string, string> = {
   expired:  '⏰',
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  pending:  'Ожидается',
-  received: 'Получен',
-  verified: 'Проверен',
-  rejected: 'Отклонён',
-  expired:  'Просрочен',
-}
-
 const STATUS_COLOR: Record<string, string> = {
-  pending:  '#9CA3AF',
-  received: '#3B82F6',
+  pending:  'var(--text-faint)',
+  received: 'var(--accent)',
   verified: '#10B981',
   rejected: '#EF4444',
   expired:  '#F59E0B',
 }
 
 export default function DocumentsTab({ personId, canManage }: Props) {
+  const t = useTranslations('education')
   const [categories, setCategories] = useState<DocumentCategory[]>([])
   const [types, setTypes] = useState<DocumentType[]>([])
   const [docs, setDocs] = useState<PersonDocument[]>([])
@@ -95,7 +89,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
       })
       if (!res.ok) {
         const d = await res.json() as { error?: string }
-        setError(d.error ?? 'Ошибка')
+        setError(d.error ?? t('docs_error', 'Ошибка'))
         return
       }
       await load()
@@ -111,18 +105,18 @@ export default function DocumentsTab({ personId, canManage }: Props) {
   const pct = total > 0 ? Math.round((received / total) * 100) : 0
 
   if (loading) {
-    return <div style={{ color: '#9CA3AF', fontSize: 13, padding: '12px 0' }}>Загрузка документов…</div>
+    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '12px 0' }}>{t('docs_loading', 'Загрузка документов…')}</div>
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Progress */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#6B7280', marginBottom: 6 }}>
-          <span>Получено документов</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>
+          <span>{t('docs_progress_label', 'Получено документов')}</span>
           <span style={{ fontWeight: 600 }}>{received} / {total}</span>
         </div>
-        <div style={{ height: 6, background: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: '#10B981', borderRadius: 3, transition: 'width 0.3s' }} />
         </div>
       </div>
@@ -137,7 +131,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
         if (catTypes.length === 0) return null
         return (
           <div key={cat.id}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               {cat.name_ru}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -150,12 +144,12 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                   <div key={dt.id} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 12px', borderRadius: 8,
-                    background: '#fff', border: '1px solid #E5E7EB',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
                   }}>
                     <span style={{ fontSize: 16, flexShrink: 0 }}>{STATUS_ICON[status]}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 13, color: '#1F2937', fontWeight: dt.is_required ? 500 : 400 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: dt.is_required ? 500 : 400 }}>
                           {dt.name_ru}
                         </span>
                         {dt.is_required && (
@@ -163,7 +157,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                         )}
                       </div>
                       <span style={{ fontSize: 11, color: STATUS_COLOR[status], fontWeight: 500 }}>
-                        {STATUS_LABEL[status]}
+                        {t(`docs_status_${status}`, status)}
                       </span>
                     </div>
                     {canManage && (
@@ -172,70 +166,70 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                           <button
                             onClick={() => setStatus(dt.id, 'received')}
                             disabled={isSaving}
-                            title="Отметить как получен"
+                            title={t('docs_action_mark_received', 'Отметить как получен')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #D1D5DB', background: '#F9FAFB',
-                              color: '#374151', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+                              color: 'var(--text)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
-                            {isSaving ? '…' : 'Получен'}
+                            {isSaving ? '…' : t('docs_status_received', 'Получен')}
                           </button>
                         )}
                         {status === 'received' && (
                           <button
                             onClick={() => setStatus(dt.id, 'verified')}
                             disabled={isSaving}
-                            title="Подтвердить документ"
+                            title={t('docs_action_verify_title', 'Подтвердить документ')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
                               border: '1px solid #10B981', background: '#ECFDF5',
                               color: '#065F46', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
-                            {isSaving ? '…' : 'Подтвердить'}
+                            {isSaving ? '…' : t('docs_action_verify', 'Подтвердить')}
                           </button>
                         )}
                         {(status === 'received' || status === 'verified') && (
                           <button
                             onClick={() => setStatus(dt.id, 'rejected')}
                             disabled={isSaving}
-                            title="Отклонить документ"
+                            title={t('docs_action_reject_title', 'Отклонить документ')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
                               border: '1px solid #FCA5A5', background: '#FEF2F2',
                               color: '#991B1B', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
-                            {isSaving ? '…' : 'Отклонить'}
+                            {isSaving ? '…' : t('docs_action_reject', 'Отклонить')}
                           </button>
                         )}
                         {status === 'pending' && (
                           <button
                             onClick={() => setStatus(dt.id, 'expired')}
                             disabled={isSaving}
-                            title="Отметить как просроченный"
+                            title={t('docs_action_mark_expired', 'Отметить как просроченный')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
                               border: '1px solid #FCD34D', background: '#FFFBEB',
                               color: '#92400E', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
-                            {isSaving ? '…' : 'Просрочен'}
+                            {isSaving ? '…' : t('docs_status_expired', 'Просрочен')}
                           </button>
                         )}
                         {status !== 'pending' && status !== 'received' && status !== 'verified' && (
                           <button
                             onClick={() => setStatus(dt.id, 'pending')}
                             disabled={isSaving}
-                            title="Сбросить статус"
+                            title={t('docs_action_reset_title', 'Сбросить статус')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #D1D5DB', background: '#F9FAFB',
-                              color: '#6B7280', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+                              color: 'var(--text-muted)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
-                            {isSaving ? '…' : 'Сброс'}
+                            {isSaving ? '…' : t('docs_action_reset', 'Сброс')}
                           </button>
                         )}
                       </div>
@@ -249,7 +243,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
       })}
 
       {types.length === 0 && (
-        <div style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Типы документов не настроены</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>{t('docs_empty', 'Типы документов не настроены')}</div>
       )}
     </div>
   )

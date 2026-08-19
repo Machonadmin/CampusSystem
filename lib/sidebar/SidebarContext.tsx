@@ -1,6 +1,10 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback, type ReactNode } from 'react'
+
+// useLayoutEffect применяет коррекцию мобильного оффсета ДО отрисовки (без
+// «прыжка» с десктопной раскладки), но на сервере его нет — используем useEffect.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 interface SidebarCtx {
   isOpen: boolean
@@ -25,7 +29,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isPinned, setIsPinned] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const mobile = window.innerWidth < 768
     setIsMobile(mobile)
     if (mobile) {

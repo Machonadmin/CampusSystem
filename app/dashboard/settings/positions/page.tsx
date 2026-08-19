@@ -1,18 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 
 const accent = getModuleColor('settings')
 
 const CATEGORY_COLORS: Record<PositionCategory, { bg: string; fg: string }> = {
-  academic:       { bg: '#EEF2FF', fg: '#3730A3' },
-  administrative: { bg: '#FEF3C7', fg: '#92400E' },
-  support:        { bg: '#F0FDF4', fg: '#166534' },
+  academic:       { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' },
+  administrative: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  support:        { bg: 'var(--success-tint)', fg: 'var(--success)' },
 }
 
 interface ModalState {
@@ -31,6 +32,7 @@ export default function PositionsPage() {
   const [showInactive, setShowInactive] = useState(false)
 
   const [modal, setModal] = useState<ModalState | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
   const CATEGORY_LABELS: Record<PositionCategory, string> = {
     academic: t('cat_academic'),
@@ -64,12 +66,12 @@ export default function PositionsPage() {
       const resp = await fetch(`/api/settings/positions/${pos.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('error_generic'))
+        toast(err.error ?? t('error_generic'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('error_generic'))
+      toast(e instanceof Error ? e.message : t('error_generic'), 'error')
     }
   }
 
@@ -82,22 +84,22 @@ export default function PositionsPage() {
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('error_generic'))
+        toast(err.error ?? t('error_generic'), 'error')
         return
       }
       loadData()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('error_generic'))
+      toast(e instanceof Error ? e.message : t('error_generic'), 'error')
     }
   }
 
   const inp: React.CSSProperties = {
     padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none',
   }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
@@ -112,11 +114,11 @@ export default function PositionsPage() {
         className="flex items-center rounded-xl overflow-hidden"
         style={{
           background: getModuleHeaderGradient('settings'),
-          padding: '12px 24px',
+          padding: '16px 24px',
           boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>
           {t('title')}
         </h1>
       </div>
@@ -145,92 +147,97 @@ export default function PositionsPage() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('loading')}</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('loading')}</div>
       )}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
           {error}
         </div>
       )}
 
       {!loading && !error && (
         positions.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
             {filterCategory ? t('empty_search') : t('empty_none')}
           </div>
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('table_position')}</th>
                   <th style={thStyle}>{t('table_hebrew')}</th>
                   <th style={thStyle}>{t('table_category')}</th>
-                  <th style={{ ...thStyle, width: 110, textAlign: 'center' }}>{t('table_teaching')}</th>
-                  <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('table_sort_order')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
-                  <th style={{ ...thStyle, width: 200 }}>{t('table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {positions.map(pos => {
                   const catStyle = CATEGORY_COLORS[pos.category]
+                  const open = expandedId === pos.id
                   return (
-                    <tr
-                      key={pos.id}
-                      style={{ borderTop: '1px solid #F3F4F6', opacity: pos.is_active ? 1 : 0.55 }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                    >
-                      <td style={{ ...tdStyle, fontWeight: 500 }}>{pos.name_ru}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280', direction: 'rtl' }}>
-                        {pos.name_he ?? <span style={{ color: '#D1D5DB' }}>—</span>}
-                      </td>
-                      <td style={tdStyle}>
-                        <span style={{
-                          fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
-                          background: catStyle.bg, color: catStyle.fg,
-                        }}>
-                          {CATEGORY_LABELS[pos.category]}
-                        </span>
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        {pos.is_teaching
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('yes')}</span>
-                          : <span style={{ color: '#D1D5DB' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#9CA3AF' }}>
-                        {pos.sort_order}
-                      </td>
-                      <td style={tdStyle}>
-                        {pos.is_active
-                          ? <span style={{ color: '#10B981', fontWeight: 500 }}>{t('status_active')}</span>
-                          : <span style={{ color: '#9CA3AF' }}>{t('status_inactive')}</span>}
-                      </td>
-                      <td style={tdStyle}>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          <button onClick={() => setModal({ mode: 'edit', item: pos })} style={btnSecondary}>
-                            {t('edit')}
-                          </button>
-                          {pos.is_active ? (
-                            <button
-                              onClick={() => handleDeactivate(pos)}
-                              style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                            >
-                              {t('deactivate')}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleRestore(pos)}
-                              style={{ ...btnSecondary, color: '#059669', borderColor: '#6EE7B7' }}
-                            >
-                              {t('restore')}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                    <Fragment key={pos.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : pos.id)}
+                        style={{ borderTop: '1px solid var(--surface-2)', opacity: pos.is_active ? 1 : 0.55, cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : 0}deg)` }}>▶</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{pos.name_ru}</span>
+                          </span>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }}>
+                          {pos.name_he ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{
+                            fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
+                            background: catStyle.bg, color: catStyle.fg,
+                          }}>
+                            {CATEGORY_LABELS[pos.category]}
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          {pos.is_active
+                            ? <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('status_active')}</span>
+                            : <span style={{ color: 'var(--text-faint)' }}>{t('status_inactive')}</span>}
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)', opacity: pos.is_active ? 1 : 0.55 }}>
+                          <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <Detail label={t('table_teaching')} value={pos.is_teaching ? t('yes') : '—'} />
+                              <Detail label={t('table_sort_order')} value={String(pos.sort_order)} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                              <button onClick={() => setModal({ mode: 'edit', item: pos })} style={btnSecondary}>
+                                {t('edit')}
+                              </button>
+                              {pos.is_active ? (
+                                <button
+                                  onClick={() => handleDeactivate(pos)}
+                                  style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                                >
+                                  {t('deactivate')}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleRestore(pos)}
+                                  style={{ ...btnSecondary, color: 'var(--success)', borderColor: 'var(--success)' }}
+                                >
+                                  {t('restore')}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -318,9 +325,9 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '8px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
-  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
 
   return (
     <div
@@ -334,16 +341,16 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440,
+          background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440,
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)', position: 'relative',
         }}
       >
         <button onClick={onClose} style={{
           position: 'absolute', top: 14, right: 16,
-          background: 'none', border: 'none', fontSize: 22, color: '#9CA3AF', cursor: 'pointer', lineHeight: 1,
+          background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1,
         }}>×</button>
 
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px 0', color: '#111827' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 20px 0', color: 'var(--text)' }}>
           {mode === 'create' ? t('modal_create_title') : t('modal_edit_title')}
         </h2>
 
@@ -355,7 +362,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
           <div>
             <label style={lbl}>{t('name_he_label')}</label>
-            <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder="מורה" dir="rtl" style={inp} />
+            <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('name_he_placeholder')} dir="rtl" style={inp} />
           </div>
 
           <div>
@@ -388,7 +395,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             />
             {t('is_teaching_label')}
             {category !== 'academic' && (
-              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t('is_teaching_hint')}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('is_teaching_hint')}</span>
             )}
           </label>
 
@@ -399,15 +406,15 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
         </div>
 
         {error && (
-          <div style={{ marginTop: 12, padding: 10, background: '#FEE2E2', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>
+          <div style={{ marginTop: 12, padding: 10, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 6, fontSize: 13 }}>
             {error}
           </div>
         )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{
-            padding: '8px 16px', fontSize: 13, color: '#6B7280',
-            background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer',
+            padding: '8px 16px', fontSize: 13, color: 'var(--text-muted)',
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer',
           }}>
             {t('cancel')}
           </button>
@@ -429,7 +436,17 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    await requireDocumentsPrivilege('view')
 
     const sb = createServerClient()
     const { data, error } = await sb
@@ -16,7 +16,7 @@ export async function GET() {
 
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
-    const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: 500 })
+    const e = err as { message?: string; status?: number }
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

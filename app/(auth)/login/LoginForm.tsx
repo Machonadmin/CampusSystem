@@ -3,11 +3,13 @@
 import { useState, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { landingRouteForRoles } from '@/lib/auth/landing'
 
 export default function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const from = searchParams.get('from') ?? '/dashboard'
+  // Явный ?from (пришёл со страницы под гейтом) уважаем; иначе — посадка по роли.
+  const explicitFrom = searchParams.get('from')
   const t = useTranslations('auth')
 
   const [email, setEmail] = useState('')
@@ -34,7 +36,7 @@ export default function LoginForm() {
         return
       }
 
-      router.push(from)
+      router.push(explicitFrom || landingRouteForRoles(data.roles))
       router.refresh()
     } catch {
       setError(t('error_connection'))

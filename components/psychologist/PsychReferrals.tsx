@@ -1,0 +1,366 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import { useMe } from '@/lib/hooks/useMe'
+
+interface ReferralOrigin {
+  from_stage: string
+  note: string | null
+  signer_name: string | null
+  completed_at: string | null
+}
+interface DocItem {
+  id: string
+  doc_type: string
+  title: string
+  file_name: string | null
+  storage_path: string | null
+  file_url: string | null
+  created_at: string
+}
+interface PsychProfile {
+  presenting_concerns: string | null
+  background: string | null
+  risk_level: string | null
+  referral_source: string | null
+  notes: string | null
+}
+interface Applicant {
+  person_id: string | null
+  full_name: string
+  hebrew_name: string | null
+  email: string | null
+  phones: string[]
+  photo_url: string | null
+  birth_date: string | null
+  gender: string | null
+  citizenship: string | null
+}
+interface Referral {
+  stage_instance_id: string
+  activated_at: string | null
+  journey_id: string | null
+  applicant: Applicant
+  referrals: ReferralOrigin[]
+  documents: DocItem[]
+  psych_profile: PsychProfile | null
+  psych_sessions: Array<{ id: string; session_date: string; session_type: string | null; summary: string | null; status: string }>
+}
+interface Final {
+  id: string
+  code: string
+  name_ru: string
+  is_positive: boolean
+  sort_order: number
+}
+
+/**
+ * Очередь психолога «Направленные к психологу» (מטופלות). Самодостаточный блок:
+ * грузит /api/psychologist/referrals и рендерит НИЧЕГО, если направлений нет.
+ * Подписание идёт через общий /api/workflow/stages/.../complete (гейт по роли).
+ */
+export default function PsychReferrals() {
+  const t = useTranslations('psychologist')
+  const primary = getModuleColor('psychologist', 'primary')
+  const light = getModuleColor('psychologist', 'light')
+
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [finals, setFinals] = useState<Final[]>([])
+  const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/psychologist/referrals')
+      if (!res.ok) { setLoaded(true); return }
+      const b = await res.json()
+      setReferrals(b.referrals ?? [])
+      setFinals(b.finals ?? [])
+      setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
+    } catch { /* тихо — блок просто не покажется */ }
+    finally { setLoaded(true) }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  // Пока пусто — ничего не рендерим (чтобы страница психолога выглядела чисто).
+  if (!loaded || referrals.length === 0) return null
+
+  return (
+    <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('referrals.title')}</h2>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: '#6D28D9' }}>
+          {referrals.length} · {t('referrals.count_badge')}
+        </span>
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{t('referrals.subtitle')}</div>
+
+      <div style={{ display: 'grid', gap: 12 }}>
+        {referrals.map(r => (
+          <ReferralCard
+            key={r.stage_instance_id}
+            referral={r}
+            finals={finals}
+            sigMethod={sigMethod}
+            onSigned={load}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ReferralCard({
+  referral, finals, sigMethod, onSigned,
+}: {
+  referral: Referral
+  finals: Final[]
+  sigMethod: SignatureMethod
+  onSigned: () => void
+}) {
+  const t = useTranslations('psychologist')
+  const tCommon = useTranslations('common')
+  const me = useMe()
+  const primary = getModuleColor('psychologist', 'primary')
+
+  const [open, setOpen] = useState(false)
+  const [selectedFinal, setSelectedFinal] = useState<string | null>(null)
+  const [sig, setSig] = useState<SignaturePayload | null>(null)
+  const [note, setNote] = useState('')
+  const [signing, setSigning] = useState(false)
+  const [error, setError] = useState('')
+
+  const a = referral.applicant
+  const name = a.full_name || a.hebrew_name || '—'
+
+  function finalLabel(f: Final): string {
+    if (f.code === 'approved') return t('referrals.final_approved')
+    if (f.code === 'rejected') return t('referrals.final_rejected')
+    return f.name_ru
+  }
+
+  function riskLabel(level: string | null): string {
+    if (!level || level === 'none') return t('risk.none')
+    return `${t('risk.label')}: ${t(`risk.${level}`)}`
+  }
+
+  async function openDoc(docId: string) {
+    try {
+      const res = await fetch(`/api/psychologist/referrals/document/${docId}`)
+      if (!res.ok) return
+      const { url } = await res.json() as { url?: string }
+      if (url) window.open(url, '_blank', 'noopener')
+    } catch { /* игнор */ }
+  }
+
+  async function submit() {
+    if (!selectedFinal) return
+    setSigning(true)
+    setError('')
+    try {
+      let signatureBody: Record<string, unknown> | undefined
+      if (sig) {
+        if (sig.kind === 'drawn' && sig.drawing_blob) {
+          const fd = new FormData()
+          fd.append('file', sig.drawing_blob, 'signature.png')
+          const up = await fetch(`/api/workflow/stages/${referral.stage_instance_id}/signature/upload`, { method: 'POST', body: fd })
+          if (!up.ok) {
+            const d = await up.json().catch(() => ({})) as { error?: string }
+            setError(d.error ?? t('referrals.sign_error')); return
+          }
+          const { storage_path } = await up.json() as { storage_path: string }
+          signatureBody = { kind: 'drawn', drawing_path: storage_path }
+        } else if (sig.kind === 'typed' && sig.typed_name) {
+          signatureBody = { kind: 'typed', typed_name: sig.typed_name }
+        }
+      }
+
+      const rd: Record<string, unknown> = {}
+      if (signatureBody) rd.signature = signatureBody
+      if (note.trim()) rd.note = note.trim()
+      const body: Record<string, unknown> = { final_code: selectedFinal }
+      if (Object.keys(rd).length) body.result_data = rd
+
+      const res = await fetch(`/api/workflow/stages/${referral.stage_instance_id}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string }
+        setError(d.error ?? t('referrals.sign_error')); return
+      }
+      onSigned()
+    } finally {
+      setSigning(false)
+    }
+  }
+
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+      {/* Заголовок карточки */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: 'var(--surface-2)' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</div>
+          {referral.referrals.length > 0 && (
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              {t('referrals.referred_by')}: {referral.referrals.map(x => x.from_stage).join(', ')}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: primary, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          {open ? t('referrals.hide') : t('referrals.open')}
+        </button>
+      </div>
+
+      {open && (
+        <div style={{ padding: 14, display: 'grid', gap: 16 }}>
+          {/* Причина направления */}
+          <Section title={t('referrals.reason')}>
+            {referral.referrals.length === 0 ? (
+              <div style={muted}>{t('referrals.no_reason')}</div>
+            ) : (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {referral.referrals.map((x, i) => (
+                  <div key={i} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#92400E' }}>{x.from_stage}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{x.note || t('referrals.no_reason')}</div>
+                    {x.signer_name && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>— {x.signer_name}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* Личные данные */}
+          <Section title={t('referrals.personal_details')}>
+            <div style={{ display: 'grid', gap: 4, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+              {a.hebrew_name && <Field label={t('referrals.personal_details')} value={a.hebrew_name} />}
+              {a.email && <Field label={t('referrals.email')} value={a.email} />}
+              {a.phones.length > 0 && <Field label={t('referrals.phone')} value={a.phones.join(', ')} />}
+              {a.birth_date && <Field label={t('referrals.birth_date')} value={a.birth_date} />}
+              {a.gender && <Field label={t('referrals.gender')} value={a.gender} />}
+              {a.citizenship && <Field label={t('referrals.citizenship')} value={a.citizenship} />}
+            </div>
+          </Section>
+
+          {/* Документы */}
+          <Section title={t('referrals.documents')}>
+            {referral.documents.length === 0 ? (
+              <div style={muted}>{t('referrals.no_documents')}</div>
+            ) : (
+              <div style={{ display: 'grid', gap: 6 }}>
+                {referral.documents.map(d => (
+                  <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                    <span style={{ color: 'var(--text)' }}>📄 {d.title || d.file_name || d.doc_type}</span>
+                    {(d.storage_path || d.file_url) && (
+                      <button onClick={() => openDoc(d.id)} style={{ fontSize: 12, fontWeight: 600, color: primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        {t('referrals.download')}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* Рекорд рефёррал: прошлые псих-данные */}
+          <Section title={t('referrals.psych_history')}>
+            {!referral.psych_profile && referral.psych_sessions.length === 0 ? (
+              <div style={muted}>{t('referrals.no_psych_history')}</div>
+            ) : (
+              <div style={{ display: 'grid', gap: 4 }}>
+                {referral.psych_profile?.risk_level && referral.psych_profile.risk_level !== 'none' && (
+                  <Field label={t('referrals.risk_level')} value={riskLabel(referral.psych_profile.risk_level)} />
+                )}
+                {referral.psych_profile?.presenting_concerns && <Field label={t('referrals.presenting_concerns')} value={referral.psych_profile.presenting_concerns} />}
+                {referral.psych_profile?.background && <Field label={t('referrals.background')} value={referral.psych_profile.background} />}
+                {referral.psych_profile?.referral_source && <Field label={t('referrals.referral_source')} value={referral.psych_profile.referral_source} />}
+                {referral.psych_profile?.notes && <Field label={t('referrals.notes')} value={referral.psych_profile.notes} />}
+                {referral.psych_sessions.slice(0, 5).map(v => (
+                  <div key={v.id} style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {v.session_date} · {v.summary || v.session_type || '—'}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* Решение + подпись */}
+          <Section title={t('referrals.decision')}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: selectedFinal ? 12 : 0 }}>
+              {finals.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => { setSelectedFinal(f.code); setSig(null); setError('') }}
+                  style={{
+                    fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
+                    border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
+                    background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
+                    color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
+                  }}
+                >
+                  {finalLabel(f)}
+                </button>
+              ))}
+            </div>
+
+            {selectedFinal && (
+              <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('referrals.sign_title')}</div>
+                <textarea
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
+                  rows={2}
+                  style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                />
+                <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
+                {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+                <button
+                  onClick={submit}
+                  disabled={signing || !sig}
+                  style={{
+                    justifySelf: 'start', fontSize: 13, fontWeight: 600, color: '#fff',
+                    background: signing || !sig ? 'var(--text-faint)' : primary,
+                    border: 'none', borderRadius: 8, padding: '9px 20px',
+                    cursor: signing || !sig ? 'default' : 'pointer',
+                  }}
+                >
+                  {signing ? t('referrals.signing') : t('referrals.confirm')}
+                </button>
+              </div>
+            )}
+          </Section>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{title}</div>
+      {children}
+    </div>
+  )
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ fontSize: 13 }}>
+      <span style={{ color: 'var(--text-faint)' }}>{label}: </span>
+      <span style={{ color: 'var(--text)' }}>{value}</span>
+    </div>
+  )
+}
+
+const muted: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)' }

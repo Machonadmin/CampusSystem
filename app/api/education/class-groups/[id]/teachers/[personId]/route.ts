@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 
@@ -20,7 +21,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (groupErr) throw groupErr
-    if (!group) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+    if (!group) return apiError('group_not_found', 404)
 
     await requireEducationPrivilege('manage_class_teachers', { department_id: group.department_id })
 
@@ -31,7 +32,7 @@ export async function DELETE(
       .eq('teacher_id', params.personId)
       .maybeSingle()
     if (targetErr) throw targetErr
-    if (!target) return NextResponse.json({ error: 'Преподаватель не привязан к этой группе' }, { status: 404 })
+    if (!target) return apiError('teacher_not_linked_group', 404)
 
     const { error: delErr } = await sb
       .from('class_teachers')
@@ -61,7 +62,7 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -78,7 +79,7 @@ export async function PATCH(
   try {
     const body = await request.json() as { is_primary?: boolean }
     if (body.is_primary === undefined) {
-      return NextResponse.json({ error: 'is_primary обязателен' }, { status: 400 })
+      return apiError('is_primary_required', 400)
     }
 
     const sb = createServerClient()
@@ -89,7 +90,7 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (groupErr) throw groupErr
-    if (!group) return NextResponse.json({ error: 'Группа не найдена' }, { status: 404 })
+    if (!group) return apiError('group_not_found', 404)
 
     await requireEducationPrivilege('manage_class_teachers', { department_id: group.department_id })
 
@@ -100,7 +101,7 @@ export async function PATCH(
       .eq('teacher_id', params.personId)
       .maybeSingle()
     if (targetErr) throw targetErr
-    if (!target) return NextResponse.json({ error: 'Преподаватель не привязан к этой группе' }, { status: 404 })
+    if (!target) return apiError('teacher_not_linked_group', 404)
 
     if (body.is_primary) {
       // Снимаем primary у всех — уникальный частичный индекс позволяет только одного primary
@@ -123,6 +124,6 @@ export async function PATCH(
     return NextResponse.json({ ok: true, is_primary: body.is_primary })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { EmploymentType } from '@/types/database'
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
 }
 
 async function requireSuperadmin() {
@@ -44,7 +45,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -65,13 +66,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     if (!body.position_ru)
-      return NextResponse.json({ error: 'Должность обязательна' }, { status: 400 })
+      return apiError('position_required', 400)
 
     let person_id = body.person_id
 
     if (!person_id) {
       const deptFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
-      if (!deptFirstName) return NextResponse.json({ error: 'Имя обязательно' }, { status: 400 })
+      if (!deptFirstName) return apiError('name_required', 400)
       const deptLastName   = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
       const deptMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
       const { data: person, error: ep } = await sb.from('persons').insert({
@@ -110,6 +111,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

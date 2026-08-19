@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
@@ -9,6 +10,7 @@ import {
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import { getActiveStagesWithTasks } from '@/lib/workflow/active-stages'
+import { phoneList } from '@/lib/persons/phone'
 import type {
   EducationJourneyInsert,
   JourneyStatus,
@@ -25,16 +27,16 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
 
 async function requireAuth() {
   const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   return session
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Запись уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  if (error.code === '23514') return { status: 400, message: 'Нарушено ограничение БД' }
-  if (error.code === '22P02') return { status: 400, message: 'Неверное значение поля (возможно, неподдерживаемый статус)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('record_exists') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  if (error.code === '23514') return { status: 400, message: serverT('db_constraint') }
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_field_value_status') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 const STUDENT_STATUSES: ReadonlyArray<JourneyStatus> =
@@ -43,6 +45,14 @@ const STUDENT_STATUSES: ReadonlyArray<JourneyStatus> =
 function isStudentStatus(s: string | null): boolean {
   return !!s && (STUDENT_STATUSES as readonly string[]).includes(s)
 }
+
+/**
+ * Значения enum person_education_status, существовавшие ДО миграции
+ * 20260705120000 (расширение учебного цикла). Используются как безопасный
+ * fallback фильтра, если миграция ещё не применена (см. GET).
+ */
+const BASE_ENUM_STATUSES: ReadonlyArray<JourneyStatus> =
+  ['lead', 'applicant', 'student']
 
 const JOURNEY_SELECT = `
   *,
@@ -75,45 +85,84 @@ export async function GET(request: NextRequest) {
 
     const scope = await getEducationPrivilegeScope(session, 'view_students')
     if (!scope) {
-      return NextResponse.json({ error: 'Нет прав на просмотр' }, { status: 403 })
+      return apiError('no_view_permission', 403)
     }
 
     const sb = createServerClient()
-    let qb = sb.from('education_journeys').select(JOURNEY_SELECT)
 
-    const status = params.get('status') as JourneyStatus | null
-    if (status) qb = qb.eq('education_status', status)
+    // status может быть одиночным ('applicant') или списком через запятую
+    // ('student,on_leave,graduated,expelled') — для карточек учебного цикла.
+    const statusRaw = params.get('status')
+    const statusList = (statusRaw
+      ? statusRaw.split(',').map(s => s.trim()).filter(Boolean)
+      : []) as JourneyStatus[]
+
+    // Департамент для скоупа/фильтра: primary_department, если все статусы —
+    // студенческого цикла, иначе desired_department.
+    const scopedByPrimary = statusList.length > 0 && statusList.every(s => isStudentStatus(s))
 
     const personId = params.get('person_id')
-    if (personId) qb = qb.eq('person_id', personId)
-
     const deptFilter = params.get('department_id')
-    if (deptFilter) {
-      if (isStudentStatus(status)) {
-        qb = qb.eq('primary_department_id', deptFilter)
-      } else {
-        qb = qb.eq('desired_department_id', deptFilter)
-      }
-    }
-
     const mainGroupId = params.get('main_group_id')
-    if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
 
+    let myDepts: string[] | null = null
     if (scope === 'department') {
-      const myDepts = await getUserDepartmentIds(session.person_id)
+      myDepts = await getUserDepartmentIds(session.person_id)
       if (myDepts.length === 0) return NextResponse.json({ journeys: [] })
-
-      if (isStudentStatus(status)) {
-        qb = qb.in('primary_department_id', myDepts)
-      } else {
-        qb = qb.in('desired_department_id', myDepts)
-      }
     }
     // 'own' scope для journeys пока не реализуем (упрощение шага 2A)
 
-    qb = qb.order('opened_at', { ascending: false })
+    // Многоструктурное членство (טורו ⊂ אוניברסיטה): journey_ids, чьё членство
+    // (journey_structures) попадает в scope руководителя — он видит их наравне с
+    // primary-студентками. Деплой-безопасно: нет таблицы → пустой набор (как раньше).
+    let membershipIds: string[] = []
+    if (myDepts && myDepts.length > 0 && scopedByPrimary) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const msRes = await (sb as any).from('journey_structures').select('journey_id').in('department_id', myDepts)
+      if (!msRes.error && msRes.data) {
+        membershipIds = Array.from(new Set((msRes.data as Array<{ journey_id: string }>).map(r => r.journey_id)))
+      }
+    }
 
-    const { data, error } = await qb
+    // Собирает запрос заново под конкретный набор статусов (нужно для fallback,
+    // т.к. PostgrestBuilder одноразовый).
+    function buildQuery(statuses: JourneyStatus[]) {
+      let qb = sb.from('education_journeys').select(JOURNEY_SELECT)
+      if (statuses.length === 1) qb = qb.eq('education_status', statuses[0])
+      else if (statuses.length > 1) qb = qb.in('education_status', statuses)
+      if (personId) qb = qb.eq('person_id', personId)
+      if (deptFilter) {
+        qb = scopedByPrimary
+          ? qb.eq('primary_department_id', deptFilter)
+          : qb.eq('desired_department_id', deptFilter)
+      }
+      if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
+      if (myDepts) {
+        if (scopedByPrimary) {
+          // primary в scope ИЛИ есть членство в scope (общий доступ к студентке).
+          qb = membershipIds.length > 0
+            ? qb.or(`primary_department_id.in.(${myDepts.join(',')}),id.in.(${membershipIds.join(',')})`)
+            : qb.in('primary_department_id', myDepts)
+        } else {
+          qb = qb.in('desired_department_id', myDepts)
+        }
+      }
+      return qb.order('opened_at', { ascending: false })
+    }
+
+    let { data, error } = await buildQuery(statusList)
+
+    // Устойчивость к не-расширенному enum: если БД ещё не знает значения
+    // учебного цикла (on_leave/graduated/expelled — до применения миграции
+    // 20260705120000), PostgREST вернёт 22P02 на литерал в фильтре. В этом
+    // случае повторяем запрос только с базовыми (гарантированно существующими)
+    // статусами, чтобы список студентов не падал целиком.
+    if (error && error.code === '22P02' && statusList.length > 0) {
+      const safe = statusList.filter(s => BASE_ENUM_STATUSES.includes(s))
+      if (safe.length !== statusList.length) {
+        ;({ data, error } = await buildQuery(safe))
+      }
+    }
     if (error) throw error
 
     const search = params.get('search')?.trim().toLowerCase()
@@ -186,7 +235,7 @@ export async function GET(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -233,13 +282,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.person_id && !body.new_person) {
-      return NextResponse.json({ error: 'Укажите person_id или new_person' }, { status: 400 })
+      return apiError('person_id_or_new_person_required', 400)
     }
     if (body.person_id && body.new_person) {
-      return NextResponse.json({ error: 'Укажите только person_id ИЛИ new_person, не оба' }, { status: 400 })
+      return apiError('person_id_xor_new_person', 400)
     }
     if (!body.education_status) {
-      return NextResponse.json({ error: 'education_status обязателен' }, { status: 400 })
+      return apiError('education_status_required', 400)
     }
 
     const status = body.education_status
@@ -248,7 +297,7 @@ export async function POST(request: NextRequest) {
     if (isStudentStatus(status)) {
       deptForCheck = body.primary_department_id ?? null
       if (!deptForCheck) {
-        return NextResponse.json({ error: 'primary_department_id обязателен для студента' }, { status: 400 })
+        return apiError('primary_department_id_required_student', 400)
       }
     } else {
       deptForCheck = body.desired_department_id ?? null
@@ -260,7 +309,7 @@ export async function POST(request: NextRequest) {
     } else {
       const allowed = await hasEducationPrivilege(session, priv, {})
       if (!allowed) {
-        return NextResponse.json({ error: 'Нет прав на создание journey' }, { status: 403 })
+        return apiError('no_permission_create_journey', 403)
       }
     }
 
@@ -272,9 +321,9 @@ export async function POST(request: NextRequest) {
         .select('department_id')
         .eq('id', body.specialty_id)
         .maybeSingle()
-      if (!spec) return NextResponse.json({ error: 'Специальность не найдена' }, { status: 400 })
+      if (!spec) return apiError('specialty_not_found', 400)
       if (body.primary_department_id && spec.department_id !== body.primary_department_id) {
-        return NextResponse.json({ error: 'Специальность принадлежит другому подразделению' }, { status: 400 })
+        return apiError('specialty_other_department', 400)
       }
     }
 
@@ -287,12 +336,12 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('id', body.person_id)
         .maybeSingle()
-      if (!existing) return NextResponse.json({ error: 'Person не найден' }, { status: 400 })
+      if (!existing) return apiError('person_record_not_found', 400)
       personId = body.person_id
     } else {
       const np = body.new_person!
       const npFirstName = np.first_name?.trim() || np.full_name?.trim() || ''
-      if (!npFirstName) return NextResponse.json({ error: 'new_person: укажите имя' }, { status: 400 })
+      if (!npFirstName) return apiError('new_person_name_required', 400)
       const npLastName   = np.first_name?.trim() ? (np.last_name?.trim() || null) : null
       const npMiddleName = np.first_name?.trim() ? (np.middle_name?.trim() || null) : null
 
@@ -307,14 +356,16 @@ export async function POST(request: NextRequest) {
           gender: np.gender || null,
           birth_date: np.birth_date || null,
           email: np.email?.trim() || null,
-          phones: np.phones ?? [],
+          // Канонизируем в [{type, number}] как во всём приложении — раньше
+          // сюда могли попасть голые строки, и телефон «пропадал» у читателей.
+          phones: phoneList(np.phones).map(number => ({ type: 'mobile', number })),
           address: {},
           notes: null,
         } as any)
         .select('id')
         .single()
       if (createErr || !newP) {
-        const m = mapDbError(createErr ?? { message: 'Не удалось создать person' })
+        const m = mapDbError(createErr ?? { message: serverT('person_create_failed') })
         return NextResponse.json({ error: `Создание person: ${m.message}` }, { status: m.status })
       }
       personId = newP.id
@@ -371,6 +422,6 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(e)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

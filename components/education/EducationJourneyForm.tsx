@@ -429,8 +429,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setSaving(true)
     try {
       // Build communities list (applies regardless of view — bug fix)
+      // «Реальная» община = есть имя/контакт/телефон. Страна('Россия' по умолч.)
+      // и авто-заполненный город НЕ делают пустую запись валидной (иначе авто-город
+      // сохранял бы фантомные общины).
       const validCommunities = communities
-        .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
+        .filter(c => c.name || c.contact_person || c.phone)
         .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
 
       if (journeyId) {
@@ -608,38 +611,38 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
   const lbl: React.CSSProperties = {
-    fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
+    fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block',
   }
 
   function renderTab() {
     const ro = view === 'existing'
-    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: '#F9FAFB' } : {}
+    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--surface-2)' } : {}
 
     switch (tabIdx) {
       case 0:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {loadingPerson ? t('form.loading_data') : t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed var(--border-strong)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                 {photoPreview
                   ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', cursor: 'pointer', padding: '6px 14px', border: '1px solid var(--accent)', borderRadius: 8, display: 'inline-block' }}>
                   {t('form.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('form.photo_hint')}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('form.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               {!journeyId && (
@@ -655,21 +658,21 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                         <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
                           placeholder={t('form.ph.search')} style={{ ...inp, width: 220 }} />
                         <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
                       </div>
                       {(searching || results.length > 0) && (
-                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('form.searching')}</div>}
+                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('form.searching')}</div>}
                           {results.map(p => (
                             <button key={p.id} onClick={() => selectPerson(p)}
-                              style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                              style={{ width: '100%', textAlign: 'start', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', fontSize: 13 }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                             >
-                              <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                              {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                              <div style={{ fontWeight: 500, color: 'var(--text)' }}>{p.full_name}</div>
+                              {p.email && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.email}</div>}
                             </button>
                           ))}
                         </div>
@@ -679,7 +682,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 </div>
               )}
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('form.last_name')} *</label>
                 <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
@@ -732,15 +735,15 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
       case 1:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view === 'new' ? ' *' : ''}</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view !== 'existing' ? ' *' : ''}</label>
                 {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   {t('form.add_phone')}
@@ -769,7 +772,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.city')}</label>
-              <CitySelect country={country} value={city} onChange={setCity} disabled={ro} style={{ ...inp, ...dis }} />
+              <CitySelect country={country} value={city} onChange={v => {
+                setCity(v)
+                // Авто-заполнение: город общины по умолчанию = город проживания,
+                // пока пуст и в той же (или ещё не выбранной) стране. Ручной ввод не трогаем.
+                setCommunities(prev => prev.map(c =>
+                  (!c.city && (!c.country || c.country === country)) ? { ...c, city: v } : c,
+                ))
+              }} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.street')}</label>
@@ -794,7 +804,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {ro && (
-              <div style={{ background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
+              <div style={{ background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
                 {t('form.profile_readonly')}
               </div>
             )}
@@ -852,17 +862,17 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             {communities.map((comm, i) => {
               const isCard = communities.length > 1
               const wrap: React.CSSProperties = isCard
-                ? { background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
+                ? { background: 'var(--surface-2)', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
                 : {}
               return (
                 <div key={i} style={wrap}>
                   {isCard && (
                     <button onClick={() => setCommunities(prev => prev.filter((_, ci) => ci !== i))}
-                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0 }}>
                       ×
                     </button>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                  <div className="resp-grid-2" style={{ gap: '10px 16px' }}>
                     <div>
                       <label style={lbl}>{t('form.community_country')}</label>
                       <CountrySelect value={comm.country} onChange={ct => updateCommCountry(i, ct)} style={inp} />
@@ -951,7 +961,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 4:
         return (
           <div>
-            <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontStyle: 'italic' }}>
               {t('form.directions_hint')}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
@@ -961,7 +971,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
             </div>
             {interests.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'flex-start', border: '1px solid #F3F4F6', borderRadius: 8, padding: 10 }}>
+              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'flex-start', border: '1px solid var(--surface-2)', borderRadius: 8, padding: 10 }}>
                 <div style={{ flex: 1 }}>
                   <CascadeDirectionSelector value={item} onChange={v => setInterestAt(idx, v)} />
                 </div>
@@ -997,7 +1007,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 6: {
         const isStudent = mode === 'student'
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
+          <div className="resp-grid-2" style={{ gap: '16px 20px' }}>
             <div>
               <label style={lbl}>{t('form.academic_department')}{isStudent && ' *'}</label>
               <select
@@ -1061,20 +1071,20 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const saveLabel = journeyId ? t('form.save') : t(`form.${cfg.saveKey}`)
 
   const formInner = (
-    <div style={{ background: '#fff', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid #E5E7EB' : 'none' }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid var(--border)' : 'none' }}>
 
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{formTitle}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{formTitle}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}
         <>
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>
-                {t('form.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('form.person_label')} <strong style={{ color: 'var(--text)' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -1088,17 +1098,17 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--text-faint)'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? getModuleColor('education') : (i < tabIdx ? getModuleColor('education', 'medium') : '#E5E7EB'),
-                  color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                  background: tabIdx === i ? getModuleColor('education') : (i < tabIdx ? getModuleColor('education', 'medium') : 'var(--border)'),
+                  color: i <= tabIdx ? 'var(--surface)' : 'var(--text-faint)',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
                 </span>
@@ -1106,21 +1116,21 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
             ))}
           </div>
-          <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+          <div style={{ flexShrink: 0, height: 1, background: 'var(--border)' }} />
         </>
 
         {/* Form body */}
         <div style={{ ...(inline ? {} : { height: 560 }), overflowY: 'auto', padding: '16px 24px 8px' }}>
           {loading
-            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: '#9CA3AF', fontSize: 14 }}>{t('form.loading')}</div>
+            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: 'var(--text-faint)', fontSize: 14 }}>{t('form.loading')}</div>
             : renderTab()}
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {inline
             ? <div />
-            : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
+            : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)' }}>
                 {t('form.cancel')}
               </button>
           }
@@ -1128,13 +1138,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
-                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('form.back')}
               </button>
             )}
             {tabIdx < lastTabIdx && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 18px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('form.next')}
               </button>
             )}

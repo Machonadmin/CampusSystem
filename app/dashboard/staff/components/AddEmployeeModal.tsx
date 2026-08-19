@@ -50,6 +50,19 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
 type ModalView = 'new' | 'existing'
 interface DeptOption { id: string; label: string }
 
+// Passed when opening the modal to edit an existing employee (Task B).
+// Only the fields available on the staff-list row are needed here; the rest of
+// the person is fetched via /api/persons/[id] for prefill.
+export interface EditingEmployee {
+  person_id: string
+  position_id?: string | null
+  full_name?: string
+  department_id?: string | null
+  position?: string
+  hire_date?: string | null
+  employment_type?: string | null
+}
+
 function flattenTree(depts: Department[]): DeptOption[] {
   const map = new Map<string, Department & { children: Department[] }>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
@@ -69,14 +82,16 @@ function flattenTree(depts: Department[]): DeptOption[] {
 }
 
 export default function AddEmployeeModal({
-  onClose, onSaved, defaultDepartmentId,
+  onClose, onSaved, defaultDepartmentId, editing,
 }: {
   onClose: () => void
   onSaved: () => void
   defaultDepartmentId?: string
+  editing?: EditingEmployee | null
 }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const isEditing = !!editing
 
   const MODAL_TABS = [
     t('add_modal.tab_personal'), t('add_modal.tab_contacts'), t('add_modal.tab_position'),
@@ -149,7 +164,7 @@ export default function AddEmployeeModal({
   const [contractNumber, setContractNumber] = useState('')
   const [contractDate, setContractDate] = useState<Date | null>(null)
   const [salary, setSalary] = useState('')
-  const [currency, setCurrency] = useState('ILS')
+  const [currency, setCurrency] = useState('RUB')
   const [contractFile, setContractFile] = useState<File | null>(null)
 
   // Tab 5 — Дополнительно
@@ -191,7 +206,9 @@ export default function AddEmployeeModal({
   async function loadPersonData(id: string) {
     setLoadingPerson(true)
     try {
-      const res = await fetch(`/api/settings/persons/${id}`)
+      // Правильный существующий роут — /api/persons/[id]. Прежний
+      // /api/settings/persons/[id] не существует (был только .../search).
+      const res = await fetch(`/api/persons/${id}`)
       if (!res.ok) return
       const d = await res.json()
       setLastName(d.last_name ?? '')
@@ -203,8 +220,13 @@ export default function AddEmployeeModal({
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? d.nationality ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
-      if (Array.isArray(d.phones) && d.phones.length > 0) setPhones(d.phones)
-      else if (d.phone) setPhones([d.phone])
+      // persons.phones каноничны как [{type, number}] — в форме телефоны строки.
+      if (Array.isArray(d.phones) && d.phones.length > 0) {
+        const nums = d.phones
+          .map((p: unknown) => typeof p === 'string' ? p : ((p as { number?: string })?.number ?? ''))
+          .filter((n: string) => n)
+        setPhones(nums.length > 0 ? nums : [''])
+      } else if (d.phone) setPhones([d.phone])
       if (d.email) setEmail(d.email)
       const addr = d.address ?? {}
       setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
@@ -213,6 +235,27 @@ export default function AddEmployeeModal({
       setLoadingPerson(false)
     }
   }
+
+  // ── Edit mode (Task B): prefill from the passed employee + full person fetch.
+  // Fields stay editable (view='new'), but SAVE is disabled in edit mode — no
+  // person-update endpoint exists, and re-POSTing would create a duplicate
+  // person. See report.
+  useEffect(() => {
+    if (!editing) return
+    if (editing.department_id) setDepartmentId(editing.department_id)
+    if (editing.hire_date) setHireDate(new Date(editing.hire_date))
+    if (editing.employment_type) setEmploymentType(editing.employment_type)
+    loadPersonData(editing.person_id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing])
+
+  // Match the position by name once the reference list has loaded.
+  useEffect(() => {
+    if (!editing?.position || positions.length === 0) return
+    const m = positions.find(p => p.name_ru === editing.position)
+    if (m) setPositionId(m.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, positions])
 
   async function selectPerson(p: PersonResult) {
     setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0); setSearchExpanded(false)
@@ -236,8 +279,50 @@ export default function AddEmployeeModal({
 
   function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
 
+  // Редактирование: обновляем поля персоны через PATCH /api/persons/[id]
+  // (full_name — генерируемая колонка, не трогаем) и должность, если сменилась.
+  // Дубликат НЕ создаётся — это НЕ POST.
+  async function handleSaveEdit() {
+    if (!editing) return
+    setError(''); setSaving(true)
+    try {
+      const validPhones = phones.filter(p => p.trim())
+      const personBody: Record<string, unknown> = {
+        last_name: lastName.trim() || null,
+        first_name: firstName.trim() || null,
+        middle_name: middleName.trim() || null,
+        hebrew_name: hebrewName.trim() || null,
+        gender: gender || null,
+        email: email.trim() || null,
+        phones: validPhones,
+        birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+        marital_status: maritalStatus || null,
+        citizenship: citizenship.trim() || null,
+        address: { country, city, street, house, apartment, postal_code: postalCode },
+      }
+      const res = await fetch(`/api/persons/${editing.person_id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(personBody),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string }
+        setError(data.error ?? tCommon('error'))
+        return
+      }
+      // Должность (если запись позиции известна) — отражается в списке.
+      if (editing.position_id && positionId) {
+        await fetch(`/api/staff/positions/${editing.position_id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ position_id: positionId }),
+        })
+      }
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSave() {
     setError('')
+    if (isEditing) { await handleSaveEdit(); return }
     if (!departmentId) { setError(t('add_modal.error_department_required')); setTabIdx(2); return }
     if (!positionId) { setError(t('add_modal.error_position_required')); setTabIdx(2); return }
     if (!hireDate) { setError(t('add_modal.error_hire_date_required')); setTabIdx(2); return }
@@ -321,41 +406,41 @@ export default function AddEmployeeModal({
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
   const lbl: React.CSSProperties = {
-    fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
+    fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block',
   }
   const cardStyle: React.CSSProperties = {
-    background: '#F9FAFB', borderRadius: 10, padding: '14px 16px',
+    background: 'var(--surface-2)', borderRadius: 10, padding: '14px 16px',
   }
 
   function renderTab() {
     const ro = view === 'existing'
-    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: '#F9FAFB' } : {}
+    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--surface-2)' } : {}
 
     switch (tabIdx) {
       case 0:
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {loadingPerson ? t('add_modal.readonly_hint_loading') : t('add_modal.readonly_hint')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed var(--border-strong)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                 {photoPreview
                   ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', cursor: 'pointer', padding: '6px 14px', border: '1px solid var(--accent)', borderRadius: 8, display: 'inline-block' }}>
                   {t('add_modal.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.photo_hint')}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('add_modal.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -370,21 +455,21 @@ export default function AddEmployeeModal({
                       <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
                         placeholder={t('add_modal.search_placeholder')} style={{ ...inp, width: 220 }} />
                       <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                         ×
                       </button>
                     </div>
                     {(searching || results.length > 0) && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('add_modal.searching')}</div>}
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}
-                            style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                            style={{ width: '100%', textAlign: 'start', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', fontSize: 13 }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                           >
-                            <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                            {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                            <div style={{ fontWeight: 500, color: 'var(--text)' }}>{p.full_name}</div>
+                            {p.email && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.email}</div>}
                           </button>
                         ))}
                       </div>
@@ -449,7 +534,7 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
                 {t('add_modal.readonly_hint')}
               </div>
             )}
@@ -591,7 +676,7 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.passport_section')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{t('add_modal.passport_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_series')}</label>
@@ -612,7 +697,7 @@ export default function AddEmployeeModal({
               </div>
             </div>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.education_section')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{t('add_modal.education_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.education_level')}</label>
@@ -660,25 +745,25 @@ export default function AddEmployeeModal({
             <div>
               <label style={lbl}>{t('add_modal.currency')}</label>
               <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+                <option value="RUB">RUB (₽)</option>
                 <option value="ILS">ILS (₪)</option>
                 <option value="USD">USD ($)</option>
-                <option value="RUB">RUB (₽)</option>
                 <option value="EUR">EUR (€)</option>
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.attach_contract_file')}</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed #D1D5DB', borderRadius: 8, cursor: 'pointer', background: '#F9FAFB' }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', padding: '4px 12px', border: '1px solid #3B82F6', borderRadius: 6, background: '#fff' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed var(--border-strong)', borderRadius: 8, cursor: 'pointer', background: 'var(--surface-2)' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', padding: '4px 12px', border: '1px solid var(--accent)', borderRadius: 6, background: 'var(--surface)' }}>
                   {t('add_modal.choose_file')}
                 </span>
-                <span style={{ fontSize: 12, color: contractFile ? '#1F2937' : '#9CA3AF' }}>
+                <span style={{ fontSize: 12, color: contractFile ? 'var(--text)' : 'var(--text-faint)' }}>
                   {contractFile ? contractFile.name : t('add_modal.no_file_chosen')}
                 </span>
                 <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
                   onChange={e => setContractFile(e.target.files?.[0] ?? null)} />
               </label>
-              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.file_optional_hint')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('add_modal.file_optional_hint')}</div>
             </div>
           </div>
         )
@@ -698,20 +783,20 @@ export default function AddEmployeeModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
 
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{t('add_modal.title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{isEditing ? t('add_modal.edit_title') : t('add_modal.title')}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}
         <>
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>
-                {t('add_modal.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('add_modal.person_label')} <strong style={{ color: 'var(--text)' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -725,17 +810,17 @@ export default function AddEmployeeModal({
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--text-faint)'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
-                  color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                  background: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--border)'),
+                  color: i <= tabIdx ? 'var(--surface)' : 'var(--text-faint)',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
                 </span>
@@ -743,7 +828,7 @@ export default function AddEmployeeModal({
               </button>
             ))}
           </div>
-          <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+          <div style={{ flexShrink: 0, height: 1, background: 'var(--border)' }} />
         </>
 
         {/* Form body */}
@@ -752,27 +837,28 @@ export default function AddEmployeeModal({
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)' }}>
             {tCommon('cancel')}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {error && <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
-                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('add_modal.back_button')}
               </button>
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 {t('add_modal.next_button')}
               </button>
             )}
-            {tabIdx === 5 && (
+            {/* В режиме редактирования «Сохранить» доступна на любой вкладке. */}
+            {(tabIdx === 5 || isEditing) && (
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.5 : 1 }}>
                 {saving ? t('add_modal.saving') : t('add_modal.save_button')}
               </button>
             )}

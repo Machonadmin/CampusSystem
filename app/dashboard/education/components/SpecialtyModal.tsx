@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface SpecialtyInitial {
@@ -30,6 +33,7 @@ const accent = getModuleColor('education')
 
 export default function SpecialtyModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const { lang } = useLang()
   const [name, setName] = useState(initial?.name ?? '')
   const [code, setCode] = useState(initial?.code ?? '')
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
@@ -76,10 +80,10 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
     }
   }
 
-  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
+    border: '1px solid var(--border-strong)', borderRadius: 8,
     boxSizing: 'border-box', outline: 'none',
   }
 
@@ -95,16 +99,16 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 24,
+          background: 'var(--surface)', borderRadius: 12, padding: 24,
           width: '100%', maxWidth: 480,
           boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('specialties.modal_create_title') : t('specialties.modal_edit_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -117,7 +121,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('specialties.code_label')} <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('common.optional_suffix')}</span></label>
+            <label style={lbl}>{t('specialties.code_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <input
               type="text" value={code} onChange={e => setCode(e.target.value)}
               style={inp} placeholder={t('specialties.code_placeholder')}
@@ -134,7 +138,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
             >
               <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>
               ))}
             </select>
           </div>
@@ -170,14 +174,14 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
               style={{
-                padding: '8px 16px', fontSize: 13, color: '#374151',
-                background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer',
+                padding: '8px 16px', fontSize: 13, color: 'var(--text)',
+                background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
               }}
             >
               {t('common.cancel')}

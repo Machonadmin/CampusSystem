@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { SubjectUpdate } from '@/types/database'
@@ -29,7 +30,7 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Предмет не найден' }, { status: 404 })
+    if (!current) return apiError('subject_not_found', 404)
 
     await requireEducationPrivilege('manage_subjects', { department_id: current.department_id })
 
@@ -40,7 +41,7 @@ export async function PATCH(
     const update: SubjectUpdate = {}
     if (body.name !== undefined) {
       const n = body.name?.trim()
-      if (!n) return NextResponse.json({ error: 'Название не может быть пустым' }, { status: 400 })
+      if (!n) return apiError('title_not_empty', 400)
       update.name = n
     }
     if (body.name_he !== undefined) update.name_he = body.name_he?.trim() || null
@@ -49,7 +50,7 @@ export async function PATCH(
     if (body.department_id !== undefined) update.department_id = body.department_id
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -60,15 +61,15 @@ export async function PATCH(
       .single()
 
     if (error) {
-      if (error.code === '23505') return NextResponse.json({ error: 'Такой предмет уже существует' }, { status: 409 })
-      if (error.code === '23503') return NextResponse.json({ error: 'department_id некорректен' }, { status: 400 })
+      if (error.code === '23505') return apiError('subject_exists', 409)
+      if (error.code === '23503') return apiError('department_id_invalid', 400)
       throw error
     }
 
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
 
@@ -90,17 +91,14 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Предмет не найден' }, { status: 404 })
+    if (!current) return apiError('subject_not_found', 404)
 
     await requireEducationPrivilege('manage_subjects', { department_id: current.department_id })
 
     const { error } = await sb.from('subjects').delete().eq('id', params.id)
     if (error) {
       if (error.code === '23503') {
-        return NextResponse.json(
-          { error: 'Нельзя удалить предмет, у которого есть учебные группы. Сначала удалите/перенесите группы.' },
-          { status: 409 }
-        )
+        return apiError('cannot_delete_subject_has_groups', 409)
       }
       throw error
     }
@@ -108,6 +106,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

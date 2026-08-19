@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   onClose: () => void
@@ -34,7 +35,7 @@ function Field({
 }) {
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{label}</span>
       <div style={{ position: 'relative' }}>
         <input
           type={show ? 'text' : 'password'}
@@ -42,16 +43,16 @@ function Field({
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
           style={{
-            width: '100%', padding: '8px 38px 8px 10px', borderRadius: 8,
-            border: '1px solid #D1D5DB', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+            width: '100%', paddingBlock: 8, paddingInlineStart: 10, paddingInlineEnd: 38, borderRadius: 8,
+            border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none', boxSizing: 'border-box',
           }}
         />
         <button
           type="button"
           onClick={onToggle}
           style={{
-            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 0,
+            position: 'absolute', insetInlineEnd: 10, top: '50%', transform: 'translateY(-50%)',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', padding: 0,
             display: 'flex', alignItems: 'center',
           }}
         >
@@ -63,6 +64,7 @@ function Field({
 }
 
 export default function ChangePasswordModal({ onClose }: Props) {
+  const t = useTranslations('change_password')
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -75,9 +77,9 @@ export default function ChangePasswordModal({ onClose }: Props) {
 
   async function submit() {
     setError('')
-    if (!current) { setError('Введите текущий пароль'); return }
-    if (next.length < 8) { setError('Новый пароль должен быть не менее 8 символов'); return }
-    if (next !== confirm) { setError('Пароли не совпадают'); return }
+    if (!current) { setError(t('err_current_required')); return }
+    if (next.length < 8) { setError(t('err_min_8')); return }
+    if (next !== confirm) { setError(t('err_mismatch')); return }
 
     setSaving(true)
     try {
@@ -87,7 +89,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
         body: JSON.stringify({ current_password: current, new_password: next }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Ошибка'); return }
+      if (!res.ok) { setError(data.error ?? t('err_generic')); return }
       setSuccess(true)
       setTimeout(() => onClose(), 1000)
     } finally {
@@ -102,15 +104,15 @@ export default function ChangePasswordModal({ onClose }: Props) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
     }}>
       <div style={{
-        backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420,
+        backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420,
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
         <div style={{
-          padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
+          padding: '16px 20px', borderBottom: '1px solid var(--border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937' }}>Сменить пароль</p>
-          <button onClick={onClose} style={{ color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('title')}</p>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
         {success ? (
@@ -123,28 +125,28 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p style={{ fontWeight: 600, color: '#065F46', fontSize: 14 }}>Пароль успешно изменён</p>
+            <p style={{ fontWeight: 600, color: '#065F46', fontSize: 14 }}>{t('success')}</p>
           </div>
         ) : (
           <>
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Field
-                label="Текущий пароль"
+                label={t('current_label')}
                 value={current}
                 onChange={setCurrent}
                 show={showCurrent}
                 onToggle={() => setShowCurrent(v => !v)}
               />
               <Field
-                label="Новый пароль"
+                label={t('new_label')}
                 value={next}
                 onChange={setNext}
                 show={showNext}
                 onToggle={() => setShowNext(v => !v)}
-                placeholder="Минимум 8 символов"
+                placeholder={t('new_placeholder')}
               />
               <Field
-                label="Подтвердите пароль"
+                label={t('confirm_label')}
                 value={confirm}
                 onChange={setConfirm}
                 show={showConfirm}
@@ -156,25 +158,25 @@ export default function ChangePasswordModal({ onClose }: Props) {
             </div>
 
             <div style={{
-              padding: '12px 20px', borderTop: '1px solid #E5E7EB',
+              padding: '12px 20px', borderTop: '1px solid var(--border)',
               display: 'flex', justifyContent: 'flex-end', gap: 8,
             }}>
               <button
                 onClick={onClose}
-                style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}
+                style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}
               >
-                Отмена
+                {t('cancel')}
               </button>
               <button
                 onClick={submit}
                 disabled={saving}
                 style={{
-                  padding: '7px 16px', borderRadius: 8, backgroundColor: '#3B82F6',
+                  padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)',
                   color: '#fff', border: 'none', fontSize: 13,
                   cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
                 }}
               >
-                {saving ? 'Сохранение...' : 'Сохранить'}
+                {saving ? t('saving') : t('save')}
               </button>
             </div>
           </>

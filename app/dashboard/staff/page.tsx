@@ -1,16 +1,24 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import type { Lang } from '@/lib/i18n/translations'
+import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { toast } from '@/components/ui/toast'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   parent_id: string | null
   head_name: string | null
   employee_count: number
@@ -49,9 +57,9 @@ function buildTree(depts: Department[]): TreeNode[] {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '7px 10px', fontSize: 13,
-  border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+  border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
 }
-const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
+const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
 
 // ── Dept add modal ────────────────────────────────────────────────────────────
 
@@ -61,7 +69,11 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useTranslations('staff')
+  const { lang } = useLang()
   const [name, setName] = useState('')
+  const [nameHe, setNameHe] = useState('')
+  const [nameEn, setNameEn] = useState('')
   const [selectedParent, setSelectedParent] = useState(parentId ?? '')
   const [sortOrder, setSortOrder] = useState('0')
   const [description, setDescription] = useState('')
@@ -78,41 +90,51 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   }
   const parentOptions: { id: string; label: string }[] = []
   function walkParents(node: D, depth: number) {
-    parentOptions.push({ id: node.id, label: '  '.repeat(depth) + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walkParents(c, depth + 1))
+    parentOptions.push({ id: node.id, label: '  '.repeat(depth) + localizedDeptName(node, lang) })
+    node.children.sort((a, b) => localizedDeptName(a, lang).localeCompare(localizedDeptName(b, lang))).forEach(c => walkParents(c, depth + 1))
   }
-  roots2.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walkParents(r, 0))
+  roots2.sort((a, b) => localizedDeptName(a, lang).localeCompare(localizedDeptName(b, lang))).forEach(r => walkParents(r, 0))
 
   async function save() {
-    if (!name.trim()) { setErr('Название обязательно'); return }
+    if (!name.trim()) { setErr(t('name_required')); return }
     setSaving(true)
     const res = await fetch('/api/settings/departments', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), parent_id: selectedParent || null, sort_order: Number(sortOrder) || 0, description: description.trim() || null }),
+      body: JSON.stringify({ name: name.trim(), name_he: nameHe.trim() || null, name_en: nameEn.trim() || null, parent_id: selectedParent || null, sort_order: Number(sortOrder) || 0, description: description.trim() || null }),
     })
     setSaving(false)
     if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? t('error')) }
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Новый отдел</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('new_dept')}</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={lbl}>Название (рус.) *</label>
+            <label style={lbl}>{t('name_ru_label')}</label>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
-              placeholder="Бухгалтерия" style={inp} />
+              placeholder={t('dept_name_placeholder')} style={inp} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>{t('name_he_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+              <input value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>{t('name_en_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+              <input value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12 }}>
             <div>
-              <label style={lbl}>Родительский отдел</label>
+              <label style={lbl}>{t('parent_dept')}</label>
               <select value={selectedParent} onChange={e => setSelectedParent(e.target.value)} style={inp}>
-                <option value="">Нет (корневой отдел)</option>
+                <option value="">{t('no_parent_root')}</option>
                 {parentOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
               </select>
             </div>
@@ -122,17 +144,17 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
             </div>
           </div>
           <div>
-            <label style={lbl}>Описание отдела</label>
+            <label style={lbl}>{t('dept_description')}</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
-              style={{ ...inp, resize: 'vertical' }} placeholder="Краткое описание..." />
+              style={{ ...inp, resize: 'vertical' }} placeholder={t('short_description_placeholder')} />
           </div>
           {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving || !name.trim()}
             style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -143,33 +165,48 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
 // ── Dept rename modal ─────────────────────────────────────────────────────────
 
 function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: () => void; onSaved: () => void }) {
+  const t = useTranslations('staff')
   const [name, setName] = useState(node.name)
+  const [nameHe, setNameHe] = useState(node.name_he ?? '')
+  const [nameEn, setNameEn] = useState(node.name_en ?? '')
   const [saving, setSaving] = useState(false)
 
   async function save() {
     if (!name.trim()) return
     setSaving(true)
     await fetch(`/api/settings/departments/${node.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim() }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), name_he: nameHe.trim() || null, name_en: nameEn.trim() || null }),
     })
     setSaving(false); onSaved()
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Переименовать отдел</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('rename_dept')}</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
-        <div style={{ padding: '16px 20px' }}>
-          <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={lbl}>{t('name_ru_label')}</label>
+            <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>{t('name_he_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+            <input value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>{t('name_en_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
+            <input value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+          </div>
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving || !name.trim()}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -184,6 +221,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useTranslations('staff')
   const [position, setPosition] = useState(member.position_ru)
   const [empType, setEmpType] = useState(member.employment_type ?? 'staff')
   const [isHead, setIsHead] = useState(member.is_head)
@@ -191,7 +229,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   const [err, setErr] = useState('')
 
   async function save() {
-    if (!position.trim()) { setErr('Должность обязательна'); return }
+    if (!position.trim()) { setErr(t('position_required')); return }
     setSaving(true)
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -199,45 +237,45 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
     })
     setSaving(false)
     if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
+    else { const d = await res.json(); setErr(d.error ?? t('error')) }
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Изменить должность</p>
-            <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{member.full_name}</p>
+            <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('edit_position')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{member.full_name}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={lbl}>Должность *</label>
+            <label style={lbl}>{t('position_label')}</label>
             <input autoFocus value={position} onChange={e => setPosition(e.target.value)} style={inp} />
           </div>
           <div>
-            <label style={lbl}>Тип занятости</label>
+            <label style={lbl}>{t('employment_type')}</label>
             <select value={empType} onChange={e => setEmpType(e.target.value)} style={inp}>
-              <option value="staff">Штат</option>
-              <option value="part_time">Частичная ставка</option>
-              <option value="intern">Стажёр</option>
-              <option value="volunteer">Волонтёр</option>
-              <option value="contractor">Подрядчик</option>
+              <option value="staff">{t('employment.staff')}</option>
+              <option value="part_time">{t('employment.part_time')}</option>
+              <option value="intern">{t('employment.intern')}</option>
+              <option value="volunteer">{t('employment.volunteer')}</option>
+              <option value="contractor">{t('employment.contractor')}</option>
             </select>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
-            <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
-            Руководитель отдела
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+            {t('head_of_dept')}
           </label>
           {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
         </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
           <button onClick={save} disabled={saving}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>
@@ -256,6 +294,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   refreshSignal: number
 }) {
   const tStaff = useTranslations('staff')
+  const { lang } = useLang()
   const [expanded, setExpanded] = useState(true)
   const [staffOpen, setStaffOpen] = useState(false)
   const [staff, setStaff] = useState<StaffMember[]>([])
@@ -271,7 +310,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   }, [staffOpen, node.id, refreshSignal])
 
   async function deactivateMember(member: StaffMember) {
-    if (!confirm(`Деактивировать "${member.full_name}" (${member.position_ru})?\n\nСотрудник будет скрыт из списка, данные сохранятся.`)) return
+    if (!confirm(`${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`)) return
     const today = new Date().toISOString().split('T')[0]
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -284,32 +323,32 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
 
   return (
     <>
-      <tr style={{ borderBottom: '1px solid #F3F4F6' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '#F9FAFB' }}
+      <tr style={{ borderBottom: '1px solid var(--surface-2)' }}
+        onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = 'var(--surface-2)' }}
         onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}>
 
         <td style={{ padding: '7px 12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', paddingInlineStart: depth * 18 }}>
             <button onClick={() => setExpanded(v => !v)}
-              style={{ width: 16, height: 16, flexShrink: 0, background: 'none', border: 'none', cursor: node.children.length ? 'pointer' : 'default', color: '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginInlineEnd: 5 }}>
+              style={{ width: 16, height: 16, flexShrink: 0, background: 'none', border: 'none', cursor: node.children.length ? 'pointer' : 'default', color: 'var(--text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginInlineEnd: 5 }}>
               {node.children.length > 0 && (
                 <svg style={{ width: 10, height: 10, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               )}
             </button>
-            <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: '#1F2937' }}>{node.name}</span>
+            <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: 'var(--text)' }}>{localizedDeptName(node, lang)}</span>
           </div>
         </td>
 
-        <td style={{ padding: '7px 12px', fontSize: 12, color: '#6B7280' }}>
-          {node.head_name ?? <span style={{ color: '#D1D5DB' }}>—</span>}
+        <td style={{ padding: '7px 12px', fontSize: 12, color: 'var(--text-muted)' }}>
+          {node.head_name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
         </td>
 
         <td style={{ padding: '7px 12px' }}>
           <button onClick={() => setStaffOpen(v => !v)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : '#F3F4F6', color: staffOpen ? '#1D4ED8' : '#6B7280', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-            {node.employee_count} сотр.
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? 'var(--accent-tint)' : 'var(--surface-2)', color: staffOpen ? 'var(--accent-strong)' : 'var(--text-muted)', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            {node.employee_count} {tStaff('employees_short')}
             <svg style={{ width: 9, height: 9, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
@@ -317,59 +356,57 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
         </td>
 
         <td style={{ padding: '7px 12px' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             <button onClick={() => onAddStaff(node.id)}
               style={{ ...btnBase, border: 'none', background: getModuleColor('staff'), color: '#fff' }}>
-              + Сотрудник
+              + {tStaff('employee')}
             </button>
             <button onClick={() => onAddChild(node.id)}
               style={{ ...btnBase, border: `1px solid ${getModuleColor('staff', 'medium')}`, background: getModuleColor('staff', 'light'), color: getModuleColor('staff') }}>
-              + Подотдел
+              + {tStaff('subdept')}
             </button>
-            <button onClick={() => onRename(node)}
-              style={{ ...btnBase, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-              Переименовать
-            </button>
-            <button onClick={() => onDelete(node)}
-              style={{ ...btnBase, border: 'none', background: '#FEF2F2', color: '#DC2626' }}>
-              Удалить
-            </button>
+            <RowActionsMenu
+              accentColor={getModuleColor('staff')}
+              actions={[
+                { key: 'rename', label: tStaff('rename'), onClick: () => onRename(node) },
+                { key: 'delete', label: tStaff('delete'), onClick: () => onDelete(node), danger: true },
+              ]}
+            />
           </div>
         </td>
       </tr>
 
       {staffOpen && (
-        <tr style={{ backgroundColor: '#F8FAFF' }}>
+        <tr style={{ backgroundColor: 'var(--surface-2)' }}>
           <td colSpan={4} style={{ padding: '6px 12px 10px' }}>
             <div style={{ paddingInlineStart: depth * 18 + 40 }}>
               {staffLoading ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Загрузка...</p>
+                <p style={{ fontSize: 12, color: 'var(--text-faint)', margin: 0 }}>{tStaff('loading')}</p>
               ) : staff.length === 0 ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Нет сотрудников</p>
+                <p style={{ fontSize: 12, color: 'var(--text-faint)', margin: 0 }}>{tStaff('no_staff_in_dept')}</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {staff.map(s => (
-                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: '#fff', borderRadius: 7, border: '1px solid #E5E7EB' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#0369A1' }}>
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'var(--surface)', borderRadius: 7, border: '1px solid var(--border)' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)' }}>
                         {s.full_name.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#1F2937', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.full_name}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.full_name}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: 0 }}>
                           {s.position_ru}
                           {s.employment_type && s.employment_type !== 'staff' && ` · ${tStaff(`employment.${s.employment_type}`, s.employment_type)}`}
-                          {s.is_head && ' · Руководитель'}
+                          {s.is_head && ` · ${tStaff('dept.head_label')}`}
                         </p>
                       </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => setEditingMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid #BFDBFE', background: '#EFF6FF', fontSize: 11, cursor: 'pointer', color: '#1D4ED8' }}>
-                          Редактировать
-                        </button>
-                        <button onClick={() => deactivateMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>
-                          Деактивировать
-                        </button>
+                      <div style={{ flexShrink: 0 }}>
+                        <RowActionsMenu
+                          accentColor={getModuleColor('staff')}
+                          actions={[
+                            { key: 'edit', label: tStaff('edit'), onClick: () => setEditingMember(s) },
+                            { key: 'deactivate', label: tStaff('deactivate'), onClick: () => deactivateMember(s), danger: true },
+                          ]}
+                        />
                       </div>
                     </div>
                   ))}
@@ -412,6 +449,7 @@ interface Employee {
   person_id: string
   full_name: string
   photo_url: string | null
+  gender: string | null
   phone: string | null
   email: string | null
   position: string
@@ -436,7 +474,7 @@ function initials(name: string) {
 
 type DeptWithKids = Department & { children: DeptWithKids[] }
 
-function flattenDeptOptions(depts: Department[]): { id: string; label: string }[] {
+function flattenDeptOptions(depts: Department[], lang: Lang): { id: string; label: string }[] {
   const map = new Map<string, DeptWithKids>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: DeptWithKids[] = []
@@ -445,24 +483,34 @@ function flattenDeptOptions(depts: Department[]): { id: string; label: string }[
     else roots.push(node)
   }
   const out: { id: string; label: string }[] = []
+  const nm = (d: Department) => localizedDeptName(d, lang)
   function walk(node: DeptWithKids, depth: number) {
-    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walk(c, depth + 1))
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + nm(node) })
+    node.children.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(c => walk(c, depth + 1))
   }
-  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  roots.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(r => walk(r, 0))
   return out
 }
 
-function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; depts: Department[]; refreshSignal: number }) {
+function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; depts: Department[]; refreshSignal: number }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const router = useRouter()
+  const me = useMe()
+  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
-  const [editingEmployee, setEditingEmployee] = useState<string | null>(null)
-  const deptOptions = flattenDeptOptions(depts)
+  const { lang } = useLang()
+  const deptOptions = flattenDeptOptions(depts, lang)
+
+  function genderLabel(g: string | null): string | null {
+    if (g === 'male') return t('gender.male')
+    if (g === 'female') return t('gender.female')
+    return null
+  }
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -477,23 +525,18 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
     return () => clearTimeout(handle)
   }, [search, deptFilter, refreshSignal, localRefresh])
 
-  function handleEditEmployee(profileId: string) {
-    setEditingEmployee(profileId)
-    onAdd()
-  }
-
   async function handleDeleteEmployee(profileId: string, fullName: string) {
-    if (!confirm(`Вы уверены, что хотите удалить сотрудника ${fullName}?\n\nЭто действие нельзя отменить.`)) return
+    if (!confirm(`${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`)) return
     try {
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'Ошибка при удалении')
+        toast(data.error || t('delete_error'), 'error')
         return
       }
       setLocalRefresh(n => n + 1)
     } catch {
-      alert('Ошибка при удалении сотрудника')
+      toast(t('delete_employee_error'), 'error')
     }
   }
 
@@ -501,32 +544,32 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
-          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }} />
+          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
         <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
-          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', color: deptFilter ? '#1F2937' : '#9CA3AF', minWidth: 200 }}>
+          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
         <PageActionButton
           label={t('add_employee')}
-          onClick={onAdd}
+          onClick={() => onAdd()}
           accentColor={getModuleColor('staff')}
         />
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : employees.length === 0 ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {search || deptFilter ? t('no_results') : t('no_employees')}
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
+              <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -535,8 +578,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                 const statusKey = emp.status ?? 'active'
                 const sc = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
                 return (
-                  <tr key={emp.position_id} style={{ borderBottom: '1px solid #F9FAFB' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                  <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -546,42 +589,52 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                           : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(emp.full_name)}</div>
                         }
                         <div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{emp.full_name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{emp.full_name}</span>
+                            {genderLabel(emp.gender) && (
+                              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                                {genderLabel(emp.gender)}
+                              </span>
+                            )}
+                          </div>
                           {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>{t('dept.head_label')}</div>}
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
                       <div>{emp.position}</div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
-                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.department_name ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.email ?? '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? '—'}</td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
                         {t(`status.${statusKey}`, statusKey)}
                       </span>
                     </td>
                     <td style={{ padding: '10px 14px' }}>
-                      <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                        <button
-                          onClick={() => emp.profile_id && handleEditEmployee(emp.profile_id)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('edit')}
-                        </button>
-                        <button
-                          onClick={() => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#DC2626', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('delete')}
-                        </button>
-                      </div>
+                      <RowActionsMenu
+                        accentColor={getModuleColor('staff')}
+                        actions={[
+                          {
+                            key: 'login',
+                            label: t('create_login'),
+                            onClick: () => router.push(`/dashboard/settings/users?person=${emp.person_id}`),
+                            hidden: !isSuperadmin,
+                          },
+                          { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
+                          {
+                            key: 'delete',
+                            label: tCommon('delete'),
+                            onClick: () => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name),
+                            disabled: !emp.profile_id,
+                            danger: true,
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 )
@@ -613,18 +666,19 @@ export default function StaffPage() {
   const [modal, setModal] = useState<Modal>(null)
   const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/settings/departments')
-    if (!res.ok) { setError('Ошибка загрузки'); setLoading(false); return }
+    if (!res.ok) { setError(t('load_error')); setLoading(false); return }
     setDepts(await res.json()); setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
   async function handleDelete(node: TreeNode) {
-    if (!confirm('Удалить отдел? Дочерние отделы будут перенесены выше.')) return
+    if (!confirm(t('delete_dept_confirm'))) return
     await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
     load()
   }
@@ -640,10 +694,10 @@ export default function StaffPage() {
 
       <div style={{
         background: getModuleHeaderGradient('staff'),
-        borderRadius: 12, padding: '12px 24px',
+        borderRadius: 12, padding: '16px 24px',
         boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
       }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
       </div>
 
       <ModuleTabs
@@ -666,19 +720,19 @@ export default function StaffPage() {
             />
           </div>
 
-          <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
             ) : error ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
             ) : tree.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('no_depts')}</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_depts')}</div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#FAFAFA' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}>
                     {[t('dept.name_col'), t('dept.head_col'), t('dept.staff_col'), t('dept.actions_col')].map(h => (
-                      <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                      <th key={h} style={{ padding: '8px 12px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -688,7 +742,7 @@ export default function StaffPage() {
                       onAddChild={id => setModal({ type: 'add', parentId: id })}
                       onRename={n => setModal({ type: 'rename', node: n })}
                       onDelete={handleDelete}
-                      onAddStaff={id => { setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
+                      onAddStaff={id => { setEditingEmployee(null); setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
                       refreshSignal={refreshSignal}
                     />
                   ))}
@@ -700,7 +754,11 @@ export default function StaffPage() {
       )}
 
       {activeTab === 'staff' && (
-        <EmployeesTab onAdd={() => { setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }} depts={depts} refreshSignal={refreshSignal} />
+        <EmployeesTab
+          onAdd={(employee) => { setEditingEmployee(employee ?? null); setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }}
+          depts={depts}
+          refreshSignal={refreshSignal}
+        />
       )}
 
       {modal?.type === 'add' && (
@@ -712,8 +770,9 @@ export default function StaffPage() {
       {addEmployeeOpen && (
         <AddEmployeeModal
           defaultDepartmentId={addEmployeeDept}
-          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined) }}
-          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); load(); setRefreshSignal(s => s + 1) }}
+          editing={editingEmployee}
+          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null) }}
+          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null); load(); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>

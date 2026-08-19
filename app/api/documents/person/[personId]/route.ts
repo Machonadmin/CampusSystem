@@ -44,6 +44,14 @@ export async function POST(req: NextRequest, { params }: Params) {
     const session = await requirePrivilege('documents', 'create')
     const body = await parseBody(req, personDocumentSchema)
 
+    // Пометить документ проверенным (status='verified' → проставляется verified_by)
+    // — привилегированная операция: требуем 'manage', как documents/[id] и
+    // journeys/[id]. 'create' достаточно для остальных статусов. Раньше 'create'-
+    // пользователь мог сам выставить 'verified'.
+    if (body.status === 'verified') {
+      await requirePrivilege('documents', 'manage')
+    }
+
     const now = new Date().toISOString()
     const sb = createServerClient()
 

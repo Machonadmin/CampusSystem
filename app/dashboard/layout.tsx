@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth/session'
 import { LanguageProvider } from '@/lib/i18n/LanguageContext'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import DashboardShell from '@/components/dashboard/DashboardShell'
+import { Toaster } from '@/components/ui/toast'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -14,6 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardShell userName={session.full_name} roles={session.roles}>
         {children}
       </DashboardShell>
+      <Toaster />
     </LanguageProvider>
   )
 }

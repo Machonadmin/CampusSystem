@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope } from '@/lib/education/permissions'
@@ -14,10 +15,10 @@ export async function POST(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const scope = await getEducationPrivilegeScope(session, 'manage_leads')
-    if (scope !== 'all') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (scope !== 'all') return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
@@ -27,9 +28,9 @@ export async function POST(
       .eq('id', params.id)
       .maybeSingle()
 
-    if (!journey) return NextResponse.json({ error: 'Лид не найден' }, { status: 404 })
+    if (!journey) return apiError('lead_not_found', 404)
     if (!(journey as unknown as { is_deleted: boolean }).is_deleted) {
-      return NextResponse.json({ error: 'Лид не удалён' }, { status: 409 })
+      return apiError('lead_not_deleted', 409)
     }
 
     const { error } = await sb
@@ -43,6 +44,6 @@ export async function POST(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

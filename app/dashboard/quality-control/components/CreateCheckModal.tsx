@@ -62,7 +62,7 @@ function PersonAutocomplete({
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
         {label} <span style={{ color: '#EF4444' }}>*</span>
       </label>
       <input
@@ -71,9 +71,9 @@ function PersonAutocomplete({
         onFocus={() => { if (options.length > 0 && !value) setOpen(true) }}
         placeholder={t('create_modal.observer_placeholder')}
         style={{
-          width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
-          borderRadius: 6, outline: 'none', backgroundColor: value ? '#F0FDF4' : '#fff',
-          borderColor: value ? '#86EFAC' : '#D1D5DB',
+          width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
+          borderRadius: 6, outline: 'none', backgroundColor: value ? '#F0FDF4' : 'var(--surface)',
+          borderColor: value ? '#86EFAC' : 'var(--border-strong)',
           boxSizing: 'border-box',
         }}
       />
@@ -81,21 +81,21 @@ function PersonAutocomplete({
         <button
           type="button"
           onClick={() => { onChange(null); setQuery(''); setOptions([]); setOpen(false) }}
-          style={{ position: 'absolute', right: 8, top: 28, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 16, lineHeight: 1 }}
+          style={{ position: 'absolute', right: 8, top: 28, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16, lineHeight: 1 }}
         >×</button>
       )}
       {open && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: 2,
         }}>
           {options.map(p => (
             <div
               key={p.id}
               onClick={() => { onChange({ id: p.id, name: p.full_name }); setQuery(p.full_name); setOpen(false) }}
-              style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', color: '#374151' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+              style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--surface-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
             >
               {p.full_name}
@@ -211,11 +211,11 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   }
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
+    width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
     borderRadius: 6, outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4,
+    display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4,
   }
 
   const groupSelected = !freeInput && !!classGroupId
@@ -225,11 +225,11 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
       style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{t('create_modal.title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('create_modal.title')}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
         </div>
 
         {/* Form */}
@@ -242,7 +242,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               <select
                 value={templateId}
                 onChange={e => setTemplateId(e.target.value)}
-                style={{ ...inputStyle, backgroundColor: '#fff' }}
+                style={{ ...inputStyle, backgroundColor: 'var(--surface)' }}
               >
                 <option value="">{t('create_modal.no_template_option')}</option>
                 {templates.map(tpl => (
@@ -284,7 +284,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   type="button"
                   onClick={toggleFreeInput}
                   style={{
-                    fontSize: 11, color: '#6B7280', background: 'none', border: 'none',
+                    fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none',
                     cursor: 'pointer', textDecoration: 'underline', padding: 0,
                   }}
                 >
@@ -304,7 +304,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   value={classGroupId}
                   onChange={e => handleClassGroupChange(e.target.value)}
                   disabled={classGroupsLoading}
-                  style={{ ...inputStyle, backgroundColor: '#fff', opacity: classGroupsLoading ? 0.6 : 1 }}
+                  style={{ ...inputStyle, backgroundColor: 'var(--surface)', opacity: classGroupsLoading ? 0.6 : 1 }}
                 >
                   <option value="">{classGroupsLoading ? t('create_modal.loading_groups') : t('create_modal.select_group_placeholder')}</option>
                   {classGroups.map(g => (
@@ -326,12 +326,12 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                 readOnly={groupSelected}
                 style={{
                   ...inputStyle,
-                  backgroundColor: groupSelected ? '#F9FAFB' : '#fff',
-                  color: groupSelected ? '#6B7280' : '#111827',
+                  backgroundColor: groupSelected ? 'var(--surface-2)' : 'var(--surface)',
+                  color: groupSelected ? 'var(--text-muted)' : 'var(--text)',
                 }}
               />
               {groupSelected && (
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>
                   {t('create_modal.autofilled_hint')}
                 </div>
               )}
@@ -340,7 +340,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Teacher */}
             <PersonAutocomplete label={t('create_modal.teacher_label')} value={teacher} onChange={setTeacher} />
             {groupSelected && classGroups.find(g => g.id === classGroupId)?.teachers.length ? (
-              <div style={{ marginTop: -10, fontSize: 11, color: '#9CA3AF' }}>
+              <div style={{ marginTop: -10, fontSize: 11, color: 'var(--text-faint)' }}>
                 {t('create_modal.teacher_autofilled_hint')}
               </div>
             ) : null}
@@ -354,11 +354,11 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
           )}
 
           {/* Footer */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '1px solid #F3F4F6' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--surface-2)' }}>
             <button
               type="button"
               onClick={onClose}
-              style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151' }}
+              style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
             >
               {tCommon('cancel')}
             </button>
@@ -367,7 +367,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               disabled={saving}
               style={{
                 padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6,
-                background: saving ? '#93C5FD' : '#3B82F6', cursor: saving ? 'not-allowed' : 'pointer',
+                background: saving ? '#93C5FD' : 'var(--accent)', cursor: saving ? 'not-allowed' : 'pointer',
                 color: '#fff', fontWeight: 600,
               }}
             >

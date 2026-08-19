@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+
+/** Привилегия просмотра по education_status journey. */
+function pickViewPrivilege(status: string | null): EducationPrivilege {
+  if (status === 'lead') return 'view_leads'
+  if (status === 'applicant') return 'view_applicants'
+  return 'view_students'
+}
 
 export async function GET(
   _request: NextRequest,
@@ -8,9 +17,23 @@ export async function GET(
 ) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
+
+    // Право на просмотр процессов — по статусу journey (+ его подразделение),
+    // как в graph. Иначе любой авторизованный читал бы состояние приёма любой
+    // абитуриентки перебором journeyId.
+    const { data: journeyForAuth } = await sb
+      .from('education_journeys')
+      .select('education_status, primary_department_id')
+      .eq('id', params.journeyId)
+      .maybeSingle()
+    const authDept = journeyForAuth?.primary_department_id ?? null
+    await requireEducationPrivilege(
+      pickViewPrivilege(journeyForAuth?.education_status ?? null),
+      authDept ? { department_id: authDept } : undefined,
+    )
 
     const { data: instances, error } = await sb
       .from('process_instances')
@@ -30,6 +53,6 @@ export async function GET(
     return NextResponse.json({ processes: instances ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

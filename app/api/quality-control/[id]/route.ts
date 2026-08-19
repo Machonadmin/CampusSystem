@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFeaturePrivilege, type FeatureAction } from '@/lib/auth/feature-privileges'
 import { jsonError } from '@/lib/api/handler'
@@ -14,7 +15,7 @@ async function requireQcAccess(sb: ReturnType<typeof createServerClient>, id: st
     .select('status')
     .eq('id', id)
     .single()
-  if (error || !row) throw Object.assign(new Error('Не найдено'), { status: 404 })
+  if (error || !row) throw Object.assign(new Error(serverT('not_found')), { status: 404 })
 
   await requireFeaturePrivilege('quality_control', featureForStatus(row.status), action)
 }
@@ -31,7 +32,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       .single()
 
     if (error) throw error
-    if (!check) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
+    if (!check) return apiError('not_found', 404)
 
     const personIds = [check.observer_person_id, check.teacher_person_id].filter(Boolean)
     const { data: persons } = await sb
