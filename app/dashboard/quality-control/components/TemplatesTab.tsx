@@ -583,7 +583,7 @@ export default function TemplatesTab({ perms }: Props) {
         </div>
       )}
 
-      <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+      <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
         {loading ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
         ) : error ? (

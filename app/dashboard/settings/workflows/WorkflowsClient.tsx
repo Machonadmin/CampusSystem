@@ -730,10 +730,10 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
         {/* ── Left: process list ── */}
-        <div style={{ width: 280, flexShrink: 0, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+        <div className="md-rail" style={{ width: 280, flexShrink: 0, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
           <div style={{ padding: '11px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{t('process_list_title')}</span>
             {canEdit && (

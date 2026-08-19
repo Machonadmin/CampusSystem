@@ -148,6 +148,14 @@ body { transition: background-color .25s ease, color .25s ease; }
   .split-cols { grid-template-columns: 1fr !important; }
 }
 
+/* Мастер-детейл на flex (список-рейл фикс. ширины + детальная панель). На
+   телефоне рейл занимает всю ширину, детальная панель переносится под него,
+   иначе фикс. рейл (напр. 268/280px) не даёт странице ужаться. Родитель должен
+   иметь flexWrap:'wrap'. */
+@media (max-width: 767px) {
+  .md-rail { width: 100% !important; flex-basis: 100% !important; }
+}
+
 @media (max-width: 767px) {
   /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
      !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */
