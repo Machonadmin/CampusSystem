@@ -106,7 +106,7 @@ export default function AssignmentBoardClient() {
       {!loaded ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) 1fr', gap: 16, alignItems: 'start' }}>
+        <div className="split-cols" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
           {/* Пул для перетаскивания */}
           <div style={{ position: 'sticky', top: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, maxHeight: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: 4, padding: 2, background: 'var(--surface-2)', borderRadius: 8, marginBottom: 10 }}>

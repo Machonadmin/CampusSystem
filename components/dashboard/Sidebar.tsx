@@ -286,7 +286,8 @@ export default function Sidebar() {
   return (
     <aside
       ref={sidebarRef}
-      className="fixed top-16 bottom-0 z-40 flex flex-col overflow-hidden"
+      data-open={isOpen}
+      className="app-sidebar fixed top-16 bottom-0 z-40 flex flex-col overflow-hidden"
       style={{
         width: isOpen ? 240 : 56,
         transition: 'width 0.2s ease, transform 0.2s ease',
