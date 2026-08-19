@@ -7,12 +7,14 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { isModuleImplemented } from '@/lib/module-colors'
 
-// Три раздела «Образования» как отдельные пункты сайдбара (запрос владельца):
-// набор / приём / учёба → /dashboard/education?tab=…
+// Три раздела «Образования» как ОТДЕЛЬНЫЕ модули-маршруты (запрос владельца:
+// גיוс / קבלה / לимудим — раздельные, без «התנגשויות»). У каждого свой маршрут,
+// поэтому переход между ними МОНТИРУЕТ раздел заново — состояние/фильтры не
+// протекают между разделами.
 const EDU_SECTIONS = [
-  { key: 'recruitment', labelKey: 'tabs.leads' },
-  { key: 'committee',   labelKey: 'tabs.applicants' },
-  { key: 'study',       labelKey: 'tabs.students' },
+  { key: 'recruitment', labelKey: 'tabs.leads',      href: '/dashboard/education/recruitment' },
+  { key: 'committee',   labelKey: 'tabs.applicants', href: '/dashboard/education/admission' },
+  { key: 'study',       labelKey: 'tabs.students',   href: '/dashboard/education/studies' },
 ] as const
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
@@ -227,6 +229,8 @@ export default function Sidebar() {
   function activeEduSection(): string | null {
     if (pathname === '/dashboard/education') return searchParams.get('tab') || 'recruitment'
     if (pathname.startsWith('/dashboard/education/leads') || pathname.startsWith('/dashboard/education/recruitment')) return 'recruitment'
+    if (pathname.startsWith('/dashboard/education/admission')) return 'committee'
+    if (pathname.startsWith('/dashboard/education/studies')) return 'study'
     if (pathname.startsWith('/dashboard/education/')) return 'study'
     return null
   }
@@ -415,7 +419,7 @@ export default function Sidebar() {
                     .map(s => (
                       <SidebarNavLink
                         key={`education-${s.key}`}
-                        href={`/dashboard/education?tab=${s.key}`}
+                        href={s.href}
                         iconPath={secIcon[s.key] ?? item.icon}
                         label={tEdu(s.labelKey)}
                         active={activeSec === s.key}
