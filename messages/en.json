@@ -1190,6 +1190,18 @@
         "last_run": "Last rollover: {year}.",
         "never_run": "No rollover yet.",
         "not_ready": "Rollover settings unavailable (migration not applied)."
+      },
+      "teacher": {
+        "title": "My space",
+        "subtitle": "Your lessons and groups",
+        "lessons_today": "My lessons today",
+        "no_lessons": "No lessons today",
+        "my_groups": "My groups",
+        "no_groups": "You are not assigned to any groups yet",
+        "students_count": "{n} students",
+        "marked": "marked {done}/{total}",
+        "cancelled": "Cancelled",
+        "primary": "Lead teacher"
       }
     },
     "docs_error": "Error",
