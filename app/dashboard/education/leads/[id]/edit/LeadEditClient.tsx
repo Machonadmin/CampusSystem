@@ -67,9 +67,9 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
         </div>
       )}
 
-      <div style={{
+      <div className="split-cols" style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 350px',
+        gridTemplateColumns: 'minmax(0, 1fr) 350px',
         gap: 20,
         alignItems: 'start',
       }}>

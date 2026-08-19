@@ -140,6 +140,14 @@ body { transition: background-color .25s ease, color .25s ease; }
    обрезки. Новые таблицы должны использовать её, чтобы не ломаться на телефоне. */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* Двухколоночные раскладки «панель + основное» (форма+процесс, доска+фильтр,
+   ярлык+значение). Десктопные колонки задаются инлайном; на телефоне колонки
+   схлопываются в одну, иначе фиксированная боковая колонка (напр. 350px) делает
+   страницу шире экрана и всё «отдаляется». !important перебивает инлайн. */
+@media (max-width: 860px) {
+  .split-cols { grid-template-columns: 1fr !important; }
+}
+
 @media (max-width: 767px) {
   /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
      !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */
@@ -147,6 +155,18 @@ body { transition: background-color .25s ease, color .25s ease; }
 
   /* Комфортные тач-таргеты для навигации (инлайновый padding перебиваем). */
   .nav-link { padding-top: 12px !important; padding-bottom: 12px !important; }
+
+  /* Сайдбар как выдвижной ящик — CSS (по ширине экрана) единственный источник
+     правды, чтобы таймингов JS-детекта мобилы не хватало на «полу-открытый рейл».
+     По умолчанию dir=rtl → уезжает вправо; открытый — широкий ящик с подписями. */
+  aside.app-sidebar { transform: translateX(100%) !important; box-shadow: none; }
+  aside.app-sidebar[data-open="true"] {
+    transform: translateX(0) !important;
+    width: min(84vw, 300px) !important;
+    box-shadow: var(--shadow-lg);
+  }
+  html[dir="ltr"] aside.app-sidebar { transform: translateX(-100%) !important; }
+  html[dir="ltr"] aside.app-sidebar[data-open="true"] { transform: translateX(0) !important; }
 }
 
 /* Глобальный поиск в шапке. */
