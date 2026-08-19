@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
@@ -121,7 +122,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
   }
 
   async function save() {
-    if (!form.name.trim()) { setFormError(t('form.name_required')); return }
+    if (!form.name.trim()) { setFormError(requiredFieldMsg(tCommon, t('fields.name'))); return }
     if (form.email.trim() && !isValidEmail(form.email.trim())) {
       setFormError(t('form.email_invalid')); return
     }
@@ -280,7 +281,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           </h2>
           {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <Field label={t('fields.name')}>
+            <Field label={`${t('fields.name')} *`}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
             </Field>
             <Field label={t('fields.contact_type')}>

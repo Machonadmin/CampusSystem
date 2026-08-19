@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 
 interface Plan {
   id: string
@@ -70,7 +71,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
   useEffect(() => { load() }, [load])
 
   async function submit() {
-    if (!name.trim()) { setFormError(t('form.required')); return }
+    if (!name.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.name'))); return }
     setBusy(true); setFormError(null)
     try {
       const res = await fetch('/api/food/plans', {
@@ -131,7 +132,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
       {/* Add form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('form.name')} style={inp(200)} />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
           <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(110)} />
           <input value={price} onChange={e => setPrice(e.target.value)} placeholder={t('form.price')} type="number" min="0" step="0.01" style={inp(110)} />
           <input value={period} onChange={e => setPeriod(e.target.value)} placeholder={t('form.period')} style={inp(160)} />

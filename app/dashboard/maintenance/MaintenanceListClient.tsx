@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
@@ -126,7 +127,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
   const selectedBuilding = locations.find(b => b.id === buildingId) ?? null
 
   async function submit() {
-    if (!title.trim()) { setFormError(t('form.required')); return }
+    if (!title.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.title'))); return }
     setBusy(true); setFormError(null)
     try {
       const res = await fetch('/api/maintenance/requests', {
@@ -229,7 +230,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       {/* Create form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('form.title')} style={inp()} />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <select value={buildingId} onChange={e => { setBuildingId(e.target.value); setRoomId('') }} style={sel(190)}>

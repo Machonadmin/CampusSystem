@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 
 interface Props {
   /** Предзаполненный заголовок. */
@@ -39,6 +40,7 @@ export default function AddToCalendar({
   hideTrigger = false, openSignal = 0,
 }: Props) {
   const t = useTranslations('add_to_calendar')
+  const tCommon = useTranslations('common')
 
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(defaultTitle)
@@ -80,7 +82,8 @@ export default function AddToCalendar({
   }
 
   async function save() {
-    if (!title.trim() || !date) return
+    if (!title.trim()) { setError(requiredFieldMsg(tCommon, t('field_title'))); return }
+    if (!date) { setError(requiredFieldMsg(tCommon, t('field_date'))); return }
     setSaving(true); setError('')
     try {
       const res = await fetch('/api/calendar/events', {
@@ -133,12 +136,12 @@ export default function AddToCalendar({
             ) : (
               <>
                 <label style={{ display: 'grid', gap: 4 }}>
-                  <span style={fieldLabel}>{t('field_title')}</span>
+                  <span style={fieldLabel}>{t('field_title')} *</span>
                   <input value={title} onChange={e => setTitle(e.target.value)} style={inp} />
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <label style={{ display: 'grid', gap: 4 }}>
-                    <span style={fieldLabel}>{t('field_date')}</span>
+                    <span style={fieldLabel}>{t('field_date')} *</span>
                     <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inp} />
                   </label>
                   <label style={{ display: 'grid', gap: 4 }}>
@@ -161,7 +164,7 @@ export default function AddToCalendar({
 
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>
-                  <button onClick={save} disabled={saving || !title.trim() || !date} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving || !title.trim() || !date ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving || !title.trim() || !date ? 'default' : 'pointer' }}>
+                  <button onClick={save} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving ? 'default' : 'pointer' }}>
                     {saving ? t('saving') : t('save')}
                   </button>
                 </div>

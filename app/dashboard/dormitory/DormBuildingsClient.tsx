@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 
 interface Building {
   id: string
@@ -61,7 +62,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
   useEffect(() => { load() }, [load])
 
   async function submit() {
-    if (!name.trim()) { setFormError(t('form.required')); return }
+    if (!name.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.name'))); return }
     setBusy(true); setFormError(null)
     try {
       const res = await fetch('/api/dormitory/buildings', {
@@ -116,7 +117,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
       {/* Add form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('form.name')} style={inp(200)} />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
           <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(120)} />
           <select value={gender} onChange={e => setGender(e.target.value as 'male' | 'female' | 'mixed')} style={inp(140)}>
             <option value="mixed">{t('gender.mixed')}</option>
