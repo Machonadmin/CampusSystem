@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
@@ -71,6 +72,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   onSaved: () => void
 }) {
   const t = useTranslations('staff')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [name, setName] = useState('')
   const [nameHe, setNameHe] = useState('')
@@ -97,7 +99,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   roots2.sort((a, b) => localizedDeptName(a, lang).localeCompare(localizedDeptName(b, lang))).forEach(r => walkParents(r, 0))
 
   async function save() {
-    if (!name.trim()) { setErr(t('name_required')); return }
+    if (!name.trim()) { setErr(requiredFieldMsg(tCommon, t('name_ru_label'))); return }
     setSaving(true)
     const res = await fetch('/api/settings/departments', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -117,7 +119,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
         </div>
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={lbl}>{t('name_ru_label')}</label>
+            <label style={lbl}>{t('name_ru_label')} *</label>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
               placeholder={t('dept_name_placeholder')} style={inp} />
           </div>

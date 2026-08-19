@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
@@ -130,7 +131,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
   useEffect(() => { loadStats(); loadBuildings() }, [loadStats, loadBuildings])
 
   async function submit() {
-    if (!title.trim()) { setFormError(t('form.required')); return }
+    if (!title.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.title'))); return }
     setBusy(true); setFormError(null)
     try {
       let occurredIso: string | null = null
@@ -253,7 +254,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
       {/* Create form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('form.title')} style={inp()} />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>

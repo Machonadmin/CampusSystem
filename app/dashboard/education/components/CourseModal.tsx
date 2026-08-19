@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
 
 interface Subject { id: string; name: string; name_he?: string | null }
 interface RosterStudent { journey_id: string; full_name: string | null }
@@ -19,6 +20,7 @@ const accent = getModuleColor('education')
 
 export default function CourseModal({ semesterId, roster, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
 
   const [name, setName] = useState('')
   const [subjectId, setSubjectId] = useState('')
@@ -41,7 +43,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError(t('courses.name_label')); return }
+    if (!name.trim()) { setError(requiredFieldMsg(tCommon, t('courses.name_label'))); return }
     setSaving(true); setError(null)
     try {
       const resp = await fetch(`/api/education/semester-groups/${semesterId}/courses`, {

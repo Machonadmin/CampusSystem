@@ -47,6 +47,7 @@
     "actions": "Actions",
     "cancel": "Cancel",
     "close": "Close",
+    "required_field": "Please fill in: {field}",
     "delete": "Delete",
     "back": "Back",
     "edit": "Edit",

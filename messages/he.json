@@ -47,6 +47,7 @@
     "actions": "פעולות",
     "cancel": "ביטול",
     "close": "סגירה",
+    "required_field": "יש למלא: {field}",
     "delete": "מחיקה",
     "back": "חזרה",
     "edit": "עריכה",
