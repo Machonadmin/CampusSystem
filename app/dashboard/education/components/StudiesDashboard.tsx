@@ -75,10 +75,12 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
   // (fail-open): лучше показать лишнюю карточку, чем спрятать нужную.
   useEffect(() => {
     let alive = true
+    // null = ещё грузим (скелет, fail-closed); {} = ошибка (fail-open — не прячем
+    // всё навсегда); объект с ключами = реальный доступ.
     fetch('/api/education/launcher-access')
-      .then(r => r.ok ? r.json() : null)
-      .then(body => { if (alive && body && typeof body === 'object') setAccess(body) })
-      .catch(() => {})
+      .then(r => r.ok ? r.json() : {})
+      .then(body => { if (alive) setAccess((body && typeof body === 'object' ? body : {}) as Record<string, boolean>) })
+      .catch(() => { if (alive) setAccess({} as Record<string, boolean>) })
     return () => { alive = false }
   }, [])
 
@@ -358,9 +360,20 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
 ]
 
 function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void; access: Record<string, boolean> | null }) {
-  // Карточка видна, если у неё нет ключа доступа ИЛИ доступ ещё не загружен
-  // (null) ИЛИ доступ явно true. Скрываем только при явном false.
-  const visible = (it: LItem) => !it.acc || !access || access[it.acc] !== false
+  // Пока доступ не загружен — показываем скелет, НЕ все карточки. Иначе виден
+  // «вспышка всего» и последующее схлопывание до разрешённого — это выглядит как
+  // утечка прав (владелец: «יש לי גישה לרגע אחד להכל ואז זה מתכווץ»).
+  if (access == null) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: 10 }}>
+        {[0, 1, 2, 3, 4, 5].map(i => (
+          <div key={i} style={{ height: 58, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', opacity: 0.6 }} />
+        ))}
+      </div>
+    )
+  }
+  // Карточка видна только при явно НЕ‑false доступе (fail‑closed).
+  const visible = (it: LItem) => !it.acc || access[it.acc] !== false
   const groups = LGROUPS
     .map(g => ({ ...g, items: g.items.filter(visible) }))
     .filter(g => g.items.length > 0)
