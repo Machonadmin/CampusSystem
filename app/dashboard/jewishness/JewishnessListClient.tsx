@@ -8,7 +8,6 @@ import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@
 import { useMe } from '@/lib/hooks/useMe'
 
 type Status = 'pending' | 'verified' | 'rejected' | 'needs_review' | 'partial'
-const STATUSES: Status[] = ['pending', 'verified', 'partial', 'rejected', 'needs_review']
 
 interface ListStudent {
   journey_id: string
@@ -357,9 +356,6 @@ function DetailBody({
         </div>
       </Section>
 
-      {/* Установка статуса (модульный путь) */}
-      <SetStatusSection journeyId={detail.journey_id} current={detail.status} primary={primary} reload={reload} />
-
       {/* Документы + загрузка */}
       <DocumentsSection journeyId={detail.journey_id} documents={detail.documents} primary={primary} light={light} reload={reload} />
 
@@ -394,92 +390,19 @@ function DetailBody({
         )}
       </Section>
 
-      {/* Подписанное решение о приёме — только на активном этапе */}
+      {/* Подписанное решение — только на активном этапе. Упрощено (запрос
+          владельца): «אישור מסמכים וחתימה» — оставляем только אישור/דחייה
+          (без «אישור חלקי») + подпись; отдельный модуль статусов без подписи убран. */}
       {detail.active_stage_instance_id && (
         <AcceptanceDecisionSection
           stageInstanceId={detail.active_stage_instance_id}
-          finals={detail.finals}
+          finals={detail.finals.filter(f => f.code !== 'partial')}
           sigMethod={detail.signature_method ?? sigMethodFallback}
           primary={primary}
           reload={reload}
         />
       )}
     </div>
-  )
-}
-
-function SetStatusSection({
-  journeyId, current, primary, reload,
-}: {
-  journeyId: string
-  current: Status
-  primary: string
-  reload: () => Promise<void>
-}) {
-  const t = useTranslations('jewishness')
-  const [note, setNote] = useState('')
-  const [benefits, setBenefits] = useState<BenefitsState>(emptyBenefits)
-  const [saving, setSaving] = useState<Status | null>(null)
-  const [error, setError] = useState('')
-
-  async function apply(status: Status) {
-    setSaving(status); setError('')
-    try {
-      const res = await fetch(`/api/jewishness/journeys/${journeyId}/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, note: note.trim() || undefined, ...benefitsToBody(benefits) }),
-      })
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({})) as { error?: string }
-        setError(d.error ?? t('set_status_error')); return
-      }
-      setNote(''); setBenefits(emptyBenefits)
-      await reload()
-    } catch {
-      setError(t('set_status_error'))
-    } finally {
-      setSaving(null)
-    }
-  }
-
-  return (
-    <Section title={t('set_status')}>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{t('set_status_hint')}</div>
-      <textarea
-        value={note}
-        onChange={e => setNote(e.target.value)}
-        placeholder={t('status_note_placeholder')}
-        rows={2}
-        style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }}
-      />
-      <BenefitsFields value={benefits} onChange={setBenefits} />
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {STATUSES.map(s => {
-          const c = statusColors(s)
-          const isCurrent = s === current
-          const busy = saving !== null
-          return (
-            <button
-              key={s}
-              onClick={() => apply(s)}
-              disabled={busy}
-              style={{
-                fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
-                cursor: busy ? 'default' : 'pointer',
-                border: `1px solid ${isCurrent ? c.fg : 'var(--border-strong)'}`,
-                background: isCurrent ? c.bg : 'var(--surface)',
-                color: isCurrent ? c.fg : 'var(--text)',
-                opacity: busy && saving !== s ? 0.6 : 1,
-              }}
-            >
-              {saving === s ? '…' : t(`status_${s}`)}
-            </button>
-          )
-        })}
-      </div>
-      {error && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>{error}</div>}
-    </Section>
   )
 }
 
@@ -603,7 +526,6 @@ function AcceptanceDecisionSection({
   const [selectedFinal, setSelectedFinal] = useState<string | null>(null)
   const [sig, setSig] = useState<SignaturePayload | null>(null)
   const [note, setNote] = useState('')
-  const [benefits, setBenefits] = useState<BenefitsState>(emptyBenefits)
   const [signing, setSigning] = useState(false)
   const [error, setError] = useState('')
 
@@ -635,7 +557,7 @@ function AcceptanceDecisionSection({
         }
       }
 
-      const rd: Record<string, unknown> = { ...benefitsToBody(benefits) }
+      const rd: Record<string, unknown> = {}
       if (signatureBody) rd.signature = signatureBody
       if (note.trim()) rd.note = note.trim()
       const body: Record<string, unknown> = { final_code: selectedFinal }
@@ -688,7 +610,6 @@ function AcceptanceDecisionSection({
             rows={2}
             style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
           />
-          <BenefitsFields value={benefits} onChange={setBenefits} />
           <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
           {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <button
@@ -706,46 +627,6 @@ function AcceptanceDecisionSection({
         </div>
       )}
     </Section>
-  )
-}
-
-// ── Льготы приёма (скидка/поддержка/заметки) — общий блок для модульного и
-//    подписанного путей. Пустые поля не отправляются (льготы не трогаются).
-interface BenefitsState { discount: string; support: string; notes: string }
-const emptyBenefits: BenefitsState = { discount: '', support: '', notes: '' }
-
-function benefitsToBody(b: BenefitsState): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  if (b.discount.trim() !== '') out.discount_percent = Number(b.discount)
-  if (b.support.trim() !== '') out.support_amount = Number(b.support)
-  if (b.notes.trim() !== '') out.benefits_notes = b.notes.trim()
-  return out
-}
-
-const benefitsInputStyle: React.CSSProperties = {
-  fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%',
-}
-
-function BenefitsFields({ value, onChange }: { value: BenefitsState; onChange: (b: BenefitsState) => void }) {
-  const t = useTranslations('jewishness')
-  return (
-    <div style={{ display: 'grid', gap: 8, marginBottom: 8 }}>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('benefits_hint')}</div>
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-        <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'grid', gap: 4 }}>
-          {t('benefits_discount_label')}
-          <input type="number" min={0} max={100} value={value.discount}
-            onChange={e => onChange({ ...value, discount: e.target.value })} style={benefitsInputStyle} />
-        </label>
-        <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'grid', gap: 4 }}>
-          {t('benefits_support_label')}
-          <input type="number" min={0} value={value.support}
-            onChange={e => onChange({ ...value, support: e.target.value })} style={benefitsInputStyle} />
-        </label>
-      </div>
-      <input value={value.notes} onChange={e => onChange({ ...value, notes: e.target.value })}
-        placeholder={t('benefits_notes_label')} style={benefitsInputStyle} />
-    </div>
   )
 }
 

@@ -9,7 +9,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
 
-type Tab = 'staff' | 'students'
+type Tab = 'staff' | 'students' | 'leads'
 
 interface StaffItem {
   person_id: string
@@ -35,10 +35,27 @@ interface StudentItem {
   photo_url: string | null
 }
 
-type Row = StaffItem | StudentItem
+// Лид (в процессе набора). Держим те же поля-заглушки (hebrew_name/department),
+// что и у остальных, чтобы список рендерился единообразно.
+interface LeadItem {
+  lead_id: string
+  person_id: string
+  full_name: string
+  hebrew_name: string | null
+  department: string | null
+  referral_source: string | null
+  email: string | null
+  phones: string[]
+  photo_url: string | null
+}
+
+type Row = StaffItem | StudentItem | LeadItem
 
 function isStudent(row: Row): row is StudentItem {
   return 'journey_id' in row
+}
+function isLead(row: Row): row is LeadItem {
+  return 'lead_id' in row
 }
 
 export default function PersonsClient({ canViewStudentCards }: { canViewStudentCards: boolean }) {
@@ -71,6 +88,35 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
+      // Лиды приходят из отдельного эндпойнта набора (все, кто в процессе).
+      // У него нет серверного поиска — фильтруем на клиенте.
+      if (tab === 'leads') {
+        const res = await fetch('/api/education/leads?process_status=active')
+        if (res.status === 403) { setError(t('list.forbidden')); setRows([]); setTotal(0); return }
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}))
+          setError(b.error ?? t('list.load_error')); setRows([]); setTotal(0); return
+        }
+        const raw = await res.json() as Array<{
+          profile_id: string; person_id: string; full_name: string
+          referral_source: string | null; email: string | null; phones: string[]; photo_url: string | null
+        }>
+        let list: LeadItem[] = raw.map(l => ({
+          lead_id: l.profile_id, person_id: l.person_id, full_name: l.full_name,
+          hebrew_name: null, department: null, referral_source: l.referral_source ?? null,
+          email: l.email ?? null, phones: Array.isArray(l.phones) ? l.phones : [], photo_url: l.photo_url ?? null,
+        }))
+        if (debouncedSearch) {
+          const q = debouncedSearch.toLowerCase()
+          list = list.filter(l =>
+            l.full_name.toLowerCase().includes(q) ||
+            (l.email ?? '').toLowerCase().includes(q) ||
+            l.phones.join(' ').toLowerCase().includes(q))
+        }
+        setRows(list); setTotal(list.length)
+        return
+      }
+
       const qs = new URLSearchParams({ pageSize: '200' })
       if (debouncedSearch) qs.set('search', debouncedSearch)
       const res = await fetch(`/api/persons/${tab}?${qs.toString()}`)
@@ -102,7 +148,9 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
       r.full_name,
       r.phones.join(' '),
       r.email ?? '',
-      isStudent(r) ? t('education_status.student') : (r.position ?? ''),
+      isStudent(r) ? t('education_status.student')
+        : isLead(r) ? (r.referral_source ?? t('tabs.leads'))
+        : (r.position ?? ''),
     ])
     downloadCsv('persons', [headers, ...data])
   }
@@ -126,7 +174,7 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)' }}>
-        {(['staff', 'students'] as Tab[]).map(tb => {
+        {(['staff', 'students', 'leads'] as Tab[]).map(tb => {
           const active = tab === tb
           return (
             <button
@@ -181,12 +229,13 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
           <div style={{ display: 'grid', gap: 8 }}>
             {rows.map(row => (
               <PersonRow
-                key={isStudent(row) ? row.journey_id : row.person_id}
+                key={isStudent(row) ? row.journey_id : isLead(row) ? row.lead_id : row.person_id}
                 row={row}
                 light={light}
                 primary={primary}
                 deptLabel={t('fields.department')}
                 studentLabel={t('education_status.student')}
+                leadLabel={t('tabs.leads')}
                 onClick={() => openPerson(row.person_id)}
               />
             ))}
@@ -198,19 +247,22 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
 }
 
 function PersonRow({
-  row, light, primary, deptLabel, studentLabel, onClick,
+  row, light, primary, deptLabel, studentLabel, leadLabel, onClick,
 }: {
   row: Row
   light: string
   primary: string
   deptLabel: string
   studentLabel: string
+  leadLabel: string
   onClick: () => void
 }) {
   const phone = firstPhone(row.phones)
   const secondary = isStudent(row)
     ? studentLabel
-    : (row.position ?? null)
+    : isLead(row)
+      ? (row.referral_source || leadLabel)
+      : (row.position ?? null)
 
   return (
     <div

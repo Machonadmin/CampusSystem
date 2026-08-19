@@ -684,9 +684,26 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         {t('process.close_stage_section')}
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {/* Перевод в приёмную комиссию прямо из шага решения (не
+                            только верхней кнопкой HandoffButton) — по просьбе
+                            владельца. Та же метка и то же действие. */}
+                        {canConvert && stageDetail.finals.some(f => f.code === 'convert_to_applicant') && (
+                          <button
+                            onClick={() => onFinalClick('convert_to_applicant')}
+                            disabled={completing}
+                            style={{
+                              padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8,
+                              cursor: completing ? 'not-allowed' : 'pointer', opacity: completing ? 0.6 : 1,
+                              border: 'none', background: 'var(--violet)', color: '#fff',
+                              transition: 'opacity 0.15s',
+                            }}
+                          >
+                            → {t('handoff.button')}
+                          </button>
+                        )}
                         {stageDetail.finals
-                          // Конверсию лид→кандидат отдаём ЕДИНОЙ кнопке HandoffButton
-                          // (одна направляющая CTA), поэтому здесь её не дублируем.
+                          // Конверсию лид→кандидат показываем выделенной кнопкой выше
+                          // (когда canConvert), поэтому в общем списке её не дублируем.
                           .filter(final => final.code !== 'convert_to_applicant')
                           .map(final => {
                             const colors = finalButtonColors(final.code, final.is_positive)
