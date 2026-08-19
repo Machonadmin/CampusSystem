@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
+import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
 /**
  * GET /api/education/assignment-board
@@ -27,10 +27,22 @@ export async function GET() {
 
     const sb = createServerClient()
 
-    // 1. Активные группы.
+    // Ограничение по подразделению — как в разделе семестров, чтобы доска показывала
+    // те же группы, что и семестровый экран (раньше доска игнорировала scope и
+    // показывала группы всех подразделений — утечка). scope='all' → все.
+    const isSuper = session.roles.includes('superadmin')
+    const scope = isSuper
+      ? 'all'
+      : ((await getEducationPrivilegeScope(session, 'manage_enrollments'))
+        ?? (await getEducationPrivilegeScope(session, 'manage_class_teachers')))
+    const myDepts = scope === 'department' ? await getUserDepartmentIds(session.person_id) : null
+
+    // 1. Активные группы (+ является ли это семестром / к какому семестру относится
+    // курс — для метки на карточке).
     const { data: groupsRaw } = await sb.from('class_groups')
-      .select('id, name, subject_id, department_id').eq('is_active', true)
-    const groups = (groupsRaw ?? []) as Array<{ id: string; name: string; subject_id: string | null; department_id: string | null }>
+      .select('id, name, subject_id, department_id, is_semester, parent_semester_id').eq('is_active', true)
+    let groups = (groupsRaw ?? []) as Array<{ id: string; name: string; subject_id: string | null; department_id: string | null; is_semester: boolean; parent_semester_id: string | null }>
+    if (myDepts) groups = groups.filter(g => g.department_id != null && myDepts.includes(g.department_id))
     const groupIds = groups.map(g => g.id)
 
     // 2. Предметы / подразделения — имена.
@@ -46,6 +58,16 @@ export async function GET() {
       if (deptIds.length) {
         const { data } = await sb.from('departments').select('id, name').in('id', deptIds)
         for (const d of (data ?? []) as Array<{ id: string; name: string }>) deptName.set(d.id, d.name)
+      }
+    }
+
+    // Имена родительских семестров — для метки «קורס · <семестр>» на карточках курсов.
+    const parentSemesterName = new Map<string, string>()
+    {
+      const parentIds = [...new Set(groups.map(g => g.parent_semester_id).filter(Boolean))] as string[]
+      if (parentIds.length) {
+        const { data } = await sb.from('class_groups').select('id, name').in('id', parentIds)
+        for (const s of (data ?? []) as Array<{ id: string; name: string }>) parentSemesterName.set(s.id, s.name)
       }
     }
 
@@ -93,6 +115,8 @@ export async function GET() {
     const outGroups = groups.map(g => ({
       id: g.id,
       name: g.name,
+      is_semester: g.is_semester,
+      parent_name: g.parent_semester_id ? (parentSemesterName.get(g.parent_semester_id) ?? null) : null,
       subject: g.subject_id ? (subjectName.get(g.subject_id) ?? null) : null,
       unit: g.department_id ? (deptName.get(g.department_id) ?? null) : null,
       teachers: (teacherIdsByGroup.get(g.id) ?? []).map(pid => ({ person_id: pid, name: personName.get(pid) ?? '' })).filter(x => x.name),

@@ -1836,6 +1836,8 @@
       "source_student": "תלמידה"
     },
     "assignment_board": {
+      "badge_semester": "סמסטר",
+      "badge_course": "קורס",
       "title": "שיבוץ",
       "subtitle": "גרור תלמידות ומורים לתוך קבוצות השיעור",
       "tab_students": "תלמידות",

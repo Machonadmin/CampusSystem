@@ -1836,6 +1836,8 @@
       "source_student": "Ученица"
     },
     "assignment_board": {
+      "badge_semester": "Семестр",
+      "badge_course": "Курс",
       "title": "Распределение",
       "subtitle": "Перетаскивайте учениц и преподавателей в учебные группы",
       "tab_students": "Ученицы",
