@@ -9,6 +9,7 @@ import { toast } from '@/components/ui/toast'
 interface Member { person_id?: string; journey_id?: string; name: string }
 interface Group {
   id: string; name: string; subject: string | null; unit: string | null
+  is_semester: boolean; parent_name: string | null
   teachers: { person_id: string; name: string }[]
   students: { journey_id: string; name: string }[]
 }
@@ -158,9 +159,18 @@ export default function AssignmentBoardClient() {
                   }}
                   onClick={() => { if (selected && !alreadyIn(g, selected)) assign(g.id, selected) }}
                   style={{ background: 'var(--surface)', border: `1.5px solid ${highlight ? 'var(--accent)' : 'var(--border)'}`, boxShadow: over ? '0 0 0 3px var(--accent-tint)' : 'none', borderRadius: 10, padding: 12, opacity: busyGroup === g.id ? 0.7 : 1, cursor: selectable ? 'pointer' : 'default', transition: 'box-shadow .1s, border-color .1s' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{g.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, letterSpacing: 0.3, padding: '1px 7px', borderRadius: 999, flexShrink: 0,
+                      background: g.is_semester ? 'var(--accent-tint)' : 'var(--violet-tint)',
+                      color: g.is_semester ? 'var(--accent-strong)' : 'var(--violet)',
+                    }}>
+                      {g.is_semester ? t('badge_semester') : t('badge_course')}
+                    </span>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{g.name}</div>
+                  </div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginBottom: 8 }}>
-                    {[g.subject, g.unit].filter(Boolean).join(' · ') || '—'}
+                    {[g.parent_name ? `${t('badge_course')} · ${g.parent_name}` : null, g.subject, g.unit].filter(Boolean).join(' · ') || '—'}
                   </div>
 
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>{t('teachers_label')}</div>

@@ -1836,6 +1836,8 @@
       "source_student": "Student"
     },
     "assignment_board": {
+      "badge_semester": "Semester",
+      "badge_course": "Course",
       "title": "Assignment",
       "subtitle": "Drag students and teachers into class groups",
       "tab_students": "Students",
