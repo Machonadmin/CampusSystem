@@ -1,27 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import { landingRouteForRoles } from './landing'
 
-describe('landingRouteForRoles — умная посадка по роли', () => {
-  it('admin-роли → полная сетка модулей', () => {
+// Владелец: каждый пользователь после входа попадает на общий главный экран
+// /dashboard (посадка по роли на отдельный экран убрана).
+describe('landingRouteForRoles — всегда главный экран', () => {
+  it('любая роль → /dashboard', () => {
     expect(landingRouteForRoles(['superadmin'])).toBe('/dashboard')
     expect(landingRouteForRoles(['campus_admin'])).toBe('/dashboard')
-    // admin имеет приоритет даже при наличии другой роли
+    expect(landingRouteForRoles(['teacher'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['recruiter'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['studies_manager'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['campus_doctor'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['jewishness_officer'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['kitchen'])).toBe('/dashboard')
     expect(landingRouteForRoles(['teacher', 'superadmin'])).toBe('/dashboard')
-  })
-
-  it('учитель → календарь (мой день удалён, уроки и посещаемость в календаре)', () => {
-    expect(landingRouteForRoles(['teacher'])).toBe('/dashboard/calendar')
-  })
-
-  it('набор/учёба → модуль обучения', () => {
-    expect(landingRouteForRoles(['recruiter'])).toBe('/dashboard/education')
-    expect(landingRouteForRoles(['studies_manager'])).toBe('/dashboard/education')
-  })
-
-  it('доктор/еврейство/кухня → свои модули', () => {
-    expect(landingRouteForRoles(['campus_doctor'])).toBe('/dashboard/doctor')
-    expect(landingRouteForRoles(['jewishness_officer'])).toBe('/dashboard/jewishness')
-    expect(landingRouteForRoles(['kitchen'])).toBe('/dashboard/food')
   })
 
   it('неизвестная роль / пусто / null → /dashboard', () => {
