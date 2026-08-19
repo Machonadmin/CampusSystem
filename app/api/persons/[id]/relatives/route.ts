@@ -4,6 +4,9 @@ import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { parseBody } from '@/lib/api/handler'
+import { getSession } from '@/lib/auth/session'
+import { hasPersonsPrivilege } from '@/lib/persons/permissions'
+import { canReadPersonInEducationScope } from '@/lib/education/permissions'
 import type { PersonRelativeInsert, RelationType } from '@/types/database'
 
 const RELATION_TYPES = [
@@ -31,7 +34,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requirePrivilege('persons', 'view')
+    // Как и GET /api/persons/[id]: либо persons.view, либо образовательный
+    // доступ к этому человеку (менеджер юнита видит родственников своего человека).
+    const session = await getSession()
+    if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+    const allowed = await hasPersonsPrivilege(session, 'view')
+      || await canReadPersonInEducationScope(session, params.id)
+    if (!allowed) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
     const sb = createServerClient()
 
     let qb = sb
