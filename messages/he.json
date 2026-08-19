@@ -1190,6 +1190,18 @@
         "last_run": "מעבר אחרון: {year}.",
         "never_run": "טרם בוצע מעבר.",
         "not_ready": "הגדרות המעבר אינן זמינות (המיגרציה טרם הופעלה)."
+      },
+      "teacher": {
+        "title": "המרחב שלי",
+        "subtitle": "השיעורים והקבוצות שלך",
+        "lessons_today": "השיעורים שלי היום",
+        "no_lessons": "אין שיעורים היום",
+        "my_groups": "הקבוצות שלי",
+        "no_groups": "עדיין לא שובצת לקבוצות",
+        "students_count": "{n} תלמידות",
+        "marked": "סומן {done}/{total}",
+        "cancelled": "בוטל",
+        "primary": "מורה ראשי"
       }
     },
     "docs_error": "שגיאה",

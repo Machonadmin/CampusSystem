@@ -110,7 +110,19 @@ export async function GET(request: NextRequest) {
       myDepts = await getUserDepartmentIds(session.person_id)
       if (myDepts.length === 0) return NextResponse.json({ journeys: [] })
     }
-    // 'own' scope для journeys пока не реализуем (упрощение шага 2A)
+
+    // scope='own' (преподаватель): только студентки его собственных групп
+    // (class_teachers → class_enrollments.journey_id). Раньше 'own' не
+    // фильтровался вовсе — преподаватель получал ВЕСЬ список журналов института.
+    let ownJourneyIds: string[] | null = null
+    if (scope === 'own') {
+      const { data: ct } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', session.person_id)
+      const groupIds = [...new Set((ct ?? []).map((r: { class_group_id: string }) => r.class_group_id))]
+      if (groupIds.length === 0) return NextResponse.json({ journeys: [] })
+      const { data: enr } = await sb.from('class_enrollments').select('journey_id').in('class_group_id', groupIds)
+      ownJourneyIds = [...new Set((enr ?? []).map((r: { journey_id: string }) => r.journey_id))]
+      if (ownJourneyIds.length === 0) return NextResponse.json({ journeys: [] })
+    }
 
     // Многоструктурное членство (טורו ⊂ אוניברסיטה): journey_ids, чьё членство
     // (journey_structures) попадает в scope руководителя — он видит их наравне с
@@ -137,6 +149,7 @@ export async function GET(request: NextRequest) {
           : qb.eq('desired_department_id', deptFilter)
       }
       if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
+      if (ownJourneyIds) qb = qb.in('id', ownJourneyIds)
       if (myDepts) {
         if (scopedByPrimary) {
           // primary в scope ИЛИ есть членство в scope (общий доступ к студентке).

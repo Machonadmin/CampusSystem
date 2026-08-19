@@ -23,6 +23,10 @@ export async function GET(_request: NextRequest) {
     const isSuper = session.roles.includes('superadmin')
     const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_students')
     if (!scope) return apiError('forbidden', 403)
+    // Назначение маршрутов — управленческий экран. Преподаватель (scope='own')
+    // не назначает маршруты: раньше он проваливался мимо фильтра и получал всю
+    // очередь на שיבוץ по институту. Теперь — пусто.
+    if (scope === 'own') return NextResponse.json({ students: [] })
 
     const sb = createServerClient()
 

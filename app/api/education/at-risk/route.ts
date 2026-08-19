@@ -70,6 +70,10 @@ export async function GET(request: NextRequest) {
     if (!allowed) return apiError('forbidden', 403)
 
     const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_students')
+    // Управленческая сводка. Преподаватель (scope='own') раньше проваливался
+    // мимо департамент-фильтра и получал студенток «в зоне риска» по всему
+    // институту. Теперь — пусто.
+    if (scope === 'own') return NextResponse.json({ students: [] })
 
     const days = clampInt(request.nextUrl.searchParams.get('days'), 30, 1, 365)
     const min = clampInt(request.nextUrl.searchParams.get('min'), 3, 1, 100)

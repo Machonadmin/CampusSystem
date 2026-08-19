@@ -6,6 +6,7 @@ import StudentsTab from './StudentsTab'
 import StudiesWorkspace from './StudiesWorkspace'
 import StudiesSettings from './StudiesSettings'
 import StudiesDashboard from './StudiesDashboard'
+import TeacherDashboard from './TeacherDashboard'
 
 /**
  * Область «Учёба» как единое рабочее пространство. Лёгкий вид (запрос владельца
@@ -38,6 +39,17 @@ export default function StudyTab() {
   const t = useTranslations('education')
   const { isRTL } = useLang()
   const [active, setActive] = useState<Section>('dashboard')
+
+  // Преподаватель (scope='own') видит СВОЙ домашний экран, без управленческого
+  // рельса (семестры/студентки/настройки — управленческие). Признак приходит из
+  // launcher-access.teacher_home.
+  const [teacherHome, setTeacherHome] = useState<boolean | null>(null)
+  useEffect(() => {
+    fetch('/api/education/launcher-access')
+      .then(r => (r.ok ? r.json() : {}))
+      .then((b: { teacher_home?: boolean }) => setTeacherHome(b?.teacher_home === true))
+      .catch(() => setTeacherHome(false))
+  }, [])
 
   // Свёрнутый рельс (только иконки). Читаем сохранённое состояние после
   // монтирования — чтобы не ловить рассинхрон гидрации.
@@ -85,6 +97,19 @@ export default function StudyTab() {
           </svg>
           {!collapsed && <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
         </button>
+      </div>
+    )
+  }
+
+  // Пока не знаем роль — лёгкий плейсхолдер, чтобы не мелькал управленческий рельс.
+  if (teacherHome === null) {
+    return <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, minHeight: 200 }} />
+  }
+  // Преподаватель: только домашний экран учителя, без управленческого рельса.
+  if (teacherHome) {
+    return (
+      <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 18 }}>
+        <TeacherDashboard />
       </div>
     )
   }

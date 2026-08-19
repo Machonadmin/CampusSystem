@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
@@ -33,21 +33,28 @@ export async function GET() {
         assignment: true, tracks: true, kodesh: true, teachers_hours: true,
         teacher_attendance: true, absences: true, teaching_surveys: true,
         chavruta: true, semesters: true, structure: true, units: true, reports: true,
+        teacher_home: false,
       })
     }
 
     const sb = createServerClient()
+    // ВАЖНО: управленческие карточки гейтим на manage-уровень (scope
+    // 'department'/'all'), а НЕ canDoEducationInAny (который true и для 'own').
+    // Иначе преподаватель (view_students='own' — только свои группы) видел бы
+    // שיבוץ / מסלולים / דוחות / כל התלמידות. Преподаватель управленческих
+    // карточек не видит вовсе.
     const [
-      viewStudents, manageStudents, manageSubjects,
-      manageStudyGroups, kodesh, chavruta, classGroupsScope,
+      viewStudentsMgr, manageStudents, manageSubjects,
+      manageStudyGroups, kodesh, chavruta, classGroupsScope, viewStudentsAny,
     ] = await Promise.all([
-      canDoEducationInAny(session, 'view_students'),
-      canDoEducationInAny(session, 'manage_students'),
-      canDoEducationInAny(session, 'manage_subjects'),
-      canDoEducationInAny(session, 'manage_study_groups'),
+      canManageEducationInAny(session, 'view_students'),
+      canManageEducationInAny(session, 'manage_students'),
+      canManageEducationInAny(session, 'manage_subjects'),
+      canManageEducationInAny(session, 'manage_study_groups'),
       canManageUnit(session, KODESH_DEPT_ID),
       isChavrutaTeacher(sb, session.person_id).catch(() => false),
       getEducationPrivilegeScope(session, 'manage_class_groups'),
+      canDoEducationInAny(session, 'view_students'),
     ])
     // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
     // year/term), которыми управляют только на уровне всего института (scope='all',
@@ -55,11 +62,17 @@ export async function GET() {
     // со своими «קבוצות סמסטר» — поэтому эту карточку ему не показываем.
     const semesters = classGroupsScope === 'all'
 
+    const isManager = viewStudentsMgr || manageStudents || manageSubjects
+      || manageStudyGroups || semesters || kodesh
+    // Преподаватель: НЕ менеджер, но имеет преподавательский доступ (view_students
+    // со scope='own' или ведёт хеврусу) → показываем ему домашний экран учителя.
+    const teacher_home = !isManager && (viewStudentsAny || chavruta)
+
     return NextResponse.json({
-      assignment: viewStudents,
-      tracks: viewStudents,
+      assignment: viewStudentsMgr,
+      tracks: viewStudentsMgr,
       kodesh,
-      teachers_hours: viewStudents,
+      teachers_hours: viewStudentsMgr,
       teacher_attendance: manageStudents,
       absences: manageStudents,
       teaching_surveys: manageStudents,
@@ -67,7 +80,8 @@ export async function GET() {
       semesters,
       structure: manageSubjects,
       units: manageStudyGroups,
-      reports: viewStudents,
+      reports: viewStudentsMgr,
+      teacher_home,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

@@ -280,6 +280,22 @@ export async function canDoEducationInAny(
 }
 
 /**
+ * Есть ли у пользователя привилегия на «управляющем» уровне — scope
+ * 'department' или 'all' (НЕ 'own'). Нужно, чтобы отличать менеджера юнита от
+ * преподавателя: у преподавателя те же коды привилегий, но scope='own'
+ * (только свои группы), и он НЕ должен видеть управленческие экраны/данные.
+ */
+export async function canManageEducationInAny(
+  session: SessionPayload | null,
+  privilege: EducationPrivilege,
+): Promise<boolean> {
+  if (!session) return false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
+  const scope = await getEducationPrivilegeScope(session, privilege)
+  return scope === 'all' || scope === 'department'
+}
+
+/**
  * Получить scope, с которым у пользователя есть привилегия.
  * Возвращает null если привилегии нет.
  */
