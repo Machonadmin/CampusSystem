@@ -218,10 +218,12 @@ export default function Sidebar() {
   // Доступ к трём разделам «Образования» — грузим один раз (для гейтинга пунктов).
   useEffect(() => {
     let alive = true
+    // null = ещё грузим (fail-closed), {} = ошибка (fail-open, чтобы не запереть
+    // навигацию), объект с ключами = реальный доступ.
     fetch('/api/education/tab-access')
-      .then(r => r.ok ? r.json() : null)
-      .then(a => { if (alive && a) setEduTabAccess(a) })
-      .catch(() => {})
+      .then(r => r.ok ? r.json() : {})
+      .then(a => { if (alive) setEduTabAccess((a && typeof a === 'object' ? a : {}) as Record<string, boolean>) })
+      .catch(() => { if (alive) setEduTabAccess({} as Record<string, boolean>) })
     return () => { alive = false }
   }, [])
 
@@ -415,7 +417,9 @@ export default function Sidebar() {
                     recruitment: I.persons, committee: I.quality_control, study: I.education,
                   }
                   return EDU_SECTIONS
-                    .filter(s => (eduTabAccess ? eduTabAccess[s.key] !== false : true))
+                    // fail-closed: пока доступ к разделам не загружен, не
+                    // показываем их (иначе мелькают запрещённые и потом исчезают).
+                    .filter(s => (eduTabAccess ? eduTabAccess[s.key] !== false : false))
                     .map(s => (
                       <SidebarNavLink
                         key={`education-${s.key}`}
