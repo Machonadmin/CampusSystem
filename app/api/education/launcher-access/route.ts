@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
+import { canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
@@ -38,17 +38,22 @@ export async function GET() {
 
     const sb = createServerClient()
     const [
-      viewStudents, manageStudents, manageClassGroups, manageSubjects,
-      manageStudyGroups, kodesh, chavruta,
+      viewStudents, manageStudents, manageSubjects,
+      manageStudyGroups, kodesh, chavruta, classGroupsScope,
     ] = await Promise.all([
       canDoEducationInAny(session, 'view_students'),
       canDoEducationInAny(session, 'manage_students'),
-      canDoEducationInAny(session, 'manage_class_groups'),
       canDoEducationInAny(session, 'manage_subjects'),
       canDoEducationInAny(session, 'manage_study_groups'),
       canManageUnit(session, KODESH_DEPT_ID),
       isChavrutaTeacher(sb, session.person_id).catch(() => false),
+      getEducationPrivilegeScope(session, 'manage_class_groups'),
     ])
+    // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
+    // year/term), которыми управляют только на уровне всего института (scope='all',
+    // как в /api/education/semesters). Менеджер юнита (scope='department') работает
+    // со своими «קבוצות סמסטר» — поэтому эту карточку ему не показываем.
+    const semesters = classGroupsScope === 'all'
 
     return NextResponse.json({
       assignment: viewStudents,
@@ -59,7 +64,7 @@ export async function GET() {
       absences: manageStudents,
       teaching_surveys: manageStudents,
       chavruta,
-      semesters: manageClassGroups,
+      semesters,
       structure: manageSubjects,
       units: manageStudyGroups,
       reports: viewStudents,
