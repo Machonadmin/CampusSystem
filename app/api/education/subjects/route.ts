@@ -145,10 +145,12 @@ export async function POST(request: NextRequest) {
       ? body.tuition_amount
       : DEFAULT_SEMESTER_PRICE
 
+    // Имя семестра — на иврите (система ивритоцентрична): «עיצוב · 1».
+    const semBaseName = nameHe || name
     if (trackDeptId) {
       for (const term of [1, 2]) {
         const semInsert: Record<string, unknown> = {
-          name: `${name} · ${term}`,
+          name: `${semBaseName} · ${term}`,
           department_id: trackDeptId,
           subject_id: subjectId,
           study_track_id: body.study_track_id,
