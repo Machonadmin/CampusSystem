@@ -827,7 +827,9 @@
         "manage": "ניהול הסמסטר",
         "count_semesters": "{n} סמסטרים",
         "count_students": "{n} תלמידות",
-        "structures_hint": "בחר מבנה כדי לראות שנים ומחזורים"
+        "structures_hint": "בחר מבנה כדי לראות שנים ומחזורים",
+        "no_track": "ללא מסלול",
+        "empty_year": "אין סמסטרים בשנה זו עדיין — הוסף סמסטר."
       },
       "courses": {
         "title": "קורסים",

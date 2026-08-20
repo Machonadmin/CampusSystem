@@ -827,7 +827,9 @@
         "manage": "Manage semester",
         "count_semesters": "{n} semesters",
         "count_students": "{n} students",
-        "structures_hint": "Pick a structure to see years and cohorts"
+        "structures_hint": "Pick a structure to see years and cohorts",
+        "no_track": "No track",
+        "empty_year": "No semesters in this year yet — add one."
       },
       "courses": {
         "title": "Courses",
