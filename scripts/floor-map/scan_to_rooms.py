@@ -29,11 +29,15 @@
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
 from skimage.segmentation import watershed
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from split_merged import split_merged  # noqa: E402
 
 DPI = 300
 PLAN_SCALE = 200                       # чертёж 1:200
@@ -45,7 +49,7 @@ DOOR_GAP = 110          # px: проёмы такой ширины замыка�
 LINE_OPEN = 30          # px: минимальная длина отрезка стены
 SEED_MIN_AREA = 4.0     # м²: область без подписи меньше этой не получает сид
 SIMPLIFY_M = 0.16       # м: допуск упрощения полигона
-SMOOTH_PX = 11          # px: сглаживание маски помещения перед обводкой
+SMOOTH_PX = 5           # px: сглаживание маски; больше — срезает узкие перемычки
 
 
 def skew_angle(bw):
@@ -273,10 +277,12 @@ def merge_by_printed_area(ws, wall_lines, meta, printed, ppm):
 
 
 def polygon_of(mask):
-    # растровые края дают «пилу»; открытие+замыкание убирают её, не сдвигая грани
+    # растровые края дают «пилу»; замыкание+открытие убирают её, не сдвигая грани.
+    # Замыкание идёт первым: открытие с большим ядром рвёт узкие перемычки
+    # Г-образных помещений, и от комнаты остаётся только крупная часть.
     k = np.ones((SMOOTH_PX, SMOOTH_PX), np.uint8)
-    mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_OPEN, k)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, k)
+    mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE, k)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, k)
     cnts, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not cnts:
         return None
@@ -326,6 +332,8 @@ def main():
     ap.add_argument("--out", type=Path, default=Path("data/floor-map"))
     ap.add_argument("--labels", type=Path, help="JSON: {\"0\": {\"number\": \"11\", \"area\": 33.9}, ...}")
     ap.add_argument("--sheet", action="store_true", help="только контактный лист подписей")
+    ap.add_argument("--dump-labels", type=Path,
+                    help="выгрузить координаты найденных подписей для ручной вычитки")
     ap.add_argument("--wall-fill", type=int, default=WALL_FILL, help="px: заливка тела стены")
     args = ap.parse_args()
 
@@ -334,6 +342,20 @@ def main():
     foot = footprint(bw)
     labels = find_labels(bw, foot)
     print(f"подписей найдено: {len(labels)}")
+
+    if args.dump_labels:
+        # координаты возвращаются в систему исходного скана: файл вычитки не
+        # должен зависеть от того, каким получился угол выравнивания
+        h, w = bw.shape
+        back = cv2.getRotationMatrix2D((w / 2, h / 2), -skew, 1.0)
+        rows = []
+        for x, y, _ in labels:
+            v = back @ np.array([x, y, 1.0])
+            rows.append({"x": int(round(v[0])), "y": int(round(v[1])),
+                         "number": None, "area": None})
+        args.dump_labels.write_text(json.dumps(rows, ensure_ascii=False, indent=1) + "\n",
+                                    encoding="utf-8")
+        print(f"выгружено подписей: {len(rows)} -> {args.dump_labels}")
 
     if args.sheet:
         print("контактный лист:", contact_sheet(img, labels, args.out, args.floor))
@@ -350,11 +372,12 @@ def main():
         if li is not None and known.get(li, {}).get("area"):
             printed_by_sid[sid] = known[li]["area"]
     ws = merge_by_printed_area(ws, wall_lines, meta, printed_by_sid, PPM)
+    ws, meta, _ = split_merged(ws, wall_lines, meta, printed_by_sid, PPM)
 
     ys, xs = np.where(foot > 0)
     ox, oy = int(xs.min()), int(ys.min())
 
-    rooms, mismatch = [], []
+    rooms, mismatch, lost = [], [], []
     for sid in range(1, len(meta) + 1):
         # водораздел кладёт границу по осевой линии стены; площадь БТИ — по
         # внутренним граням, поэтому вычитаем тело стены
@@ -364,10 +387,13 @@ def main():
         nc, lc, sc, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), 8)
         if nc > 2:                       # после вычитания стен могли остаться огрызки
             m = lc == (1 + int(np.argmax(sc[1:, cv2.CC_STAT_AREA])))
+        mask_area = float(m.sum()) / PPM ** 2
         pts = polygon_of(m)
         if pts is None or len(pts) < 3:
             continue
         area = polygon_area_m2(pts)
+        if mask_area > 0 and area < mask_area * 0.9:
+            lost.append((sid, round(mask_area, 1), round(area, 1)))
         cx, cy = centroid(pts)
         info = meta[sid - 1] or {}
         li = info.get("label_index")
@@ -423,6 +449,9 @@ def main():
     print(f"помещений: {len(rooms)} (с номером {named}, без номера {len(rooms)-named})")
     print(f"сумма площадей: {round(sum(r['area_computed_m2'] for r in rooms))} м² "
           f"при контуре здания {payload['footprint_m2']} м²")
+    if lost:
+        print(f"контур потерял больше 10 % маски у {len(lost)} областей:",
+              ", ".join(f"{s_}: {a}->{b}" for s_, a, b in lost[:8]))
     if mismatch:
         print("расхождение вычисленной и напечатанной площади > 7 %:")
         for nm, calc, pr, d in mismatch:
