@@ -33,6 +33,7 @@ interface SemesterGroupInitial {
 
 /** Предзаполнение при создании из контекста drill-down (структура/год/набор). */
 interface SemesterDefaults {
+  study_track_id?: string | null
   department_id?: string | null
   year_level?: number | null
   year_label?: string | null
@@ -69,7 +70,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
     initial?.year_level != null ? String(initial.year_level)
       : defaults?.year_level != null ? String(defaults.year_level) : '',
   )
-  const [trackId, setTrackId] = useState(initial?.study_track_id ?? '')
+  const [trackId, setTrackId] = useState(initial?.study_track_id ?? defaults?.study_track_id ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.department_id ?? defaults?.department_id ?? '')
   const [tuition, setTuition] = useState(initial?.tuition_amount != null ? String(initial.tuition_amount) : '')
   const [periodStart, setPeriodStart] = useState(initial?.period_start ?? '')

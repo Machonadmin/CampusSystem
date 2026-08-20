@@ -6,7 +6,6 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import SemesterGroupModal from './SemesterGroupModal'
 import SemesterCourses from './SemesterCourses'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { localizedDeptName } from '@/lib/departments/localized-name'
 import { yearLevelTitle } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
 
@@ -40,8 +39,19 @@ interface SemesterGroupInitial {
   students: { journey_id: string; full_name: string | null }[]
 }
 
+interface TrackRef {
+  id: string; name_he: string | null; name_ru: string | null; name_en: string | null
+  years_count: number; sort_order: number; department_id: string | null
+}
+
 const accent = getModuleColor('education')
 const NO_STRUCT = '__none__'
+
+function trackLabel(tr: TrackRef, lang: string): string {
+  if (lang === 'he') return tr.name_he || tr.name_ru || tr.name_en || '—'
+  if (lang === 'en') return tr.name_en || tr.name_ru || tr.name_he || '—'
+  return tr.name_ru || tr.name_he || tr.name_en || '—'
+}
 
 export default function StudiesWorkspace() {
   const t = useTranslations('education.study')
@@ -49,6 +59,7 @@ export default function StudiesWorkspace() {
 
   const [groups, setGroups] = useState<SemesterGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
+  const [tracks, setTracks] = useState<TrackRef[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,15 +75,18 @@ export default function StudiesWorkspace() {
   const loadData = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const [gResp, dResp] = await Promise.all([
+      const [gResp, dResp, tResp] = await Promise.all([
         fetch('/api/education/semester-groups'),
         fetch('/api/settings/departments'),
+        fetch('/api/education/study-tracks'),
       ])
       if (!gResp.ok) throw new Error(t('common.error_generic'))
       const gJson = await gResp.json()
       const dJson = dResp.ok ? await dResp.json() : []
+      const tJson = tResp.ok ? await tResp.json() : { tracks: [] }
       setGroups(gJson.semester_groups ?? [])
       setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
+      setTracks(tJson.tracks ?? [])
     } catch (e) {
       setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
@@ -83,34 +97,51 @@ export default function StudiesWorkspace() {
   useEffect(() => { loadData() }, [loadData])
 
   // ── Группировки ──────────────────────────────────────────────────────────
+  // Верхний уровень — по МАРШРУТУ (מסלול), а не по подразделению: так два
+  // колледжа (על בסיס כתה ט' / י"א) — отдельные карточки, и видны все מסלולים,
+  // включая пустые (תיכון, אמונה).
   const structLabel = useCallback((id: string): string => {
-    if (id === NO_STRUCT) return t('workspace.structure_one')
-    const d = departments.find(x => x.id === id)
-    return d ? localizedDeptName(d, lang) : (groups.find(g => g.department?.id === id)?.department?.name ?? '—')
-  }, [departments, groups, lang, t])
+    if (id === NO_STRUCT) return t('workspace.no_track')
+    const tr = tracks.find(x => x.id === id)
+    if (tr) return trackLabel(tr, lang)
+    const g = groups.find(x => x.study_track?.id === id)
+    return g?.study_track?.name_he || g?.study_track?.name_ru || '—'
+  }, [tracks, groups, lang, t])
 
   const structures = useMemo(() => {
-    const m = new Map<string, number>()
+    const countByTrack = new Map<string, number>()
     for (const g of groups) {
-      const id = g.department?.id ?? NO_STRUCT
-      m.set(id, (m.get(id) ?? 0) + 1)
+      const id = g.study_track?.id ?? NO_STRUCT
+      countByTrack.set(id, (countByTrack.get(id) ?? 0) + 1)
     }
-    return [...m.entries()].map(([id, count]) => ({ id, count })).sort((a, b) => structLabel(a.id).localeCompare(structLabel(b.id)))
-  }, [groups, structLabel])
+    // Все активные маршруты (даже с 0 семестрами) + запасная карточка «без маршрута».
+    const list = tracks.map(tr => ({ id: tr.id, count: countByTrack.get(tr.id) ?? 0, order: tr.sort_order }))
+    if (countByTrack.has(NO_STRUCT)) list.push({ id: NO_STRUCT, count: countByTrack.get(NO_STRUCT)!, order: 9999 })
+    return list.sort((a, b) => a.order - b.order || structLabel(a.id).localeCompare(structLabel(b.id)))
+  }, [groups, tracks, structLabel])
 
   const inStruct = useMemo(() =>
-    structId == null ? [] : groups.filter(g => (g.department?.id ?? NO_STRUCT) === structId),
+    structId == null ? [] : groups.filter(g => (g.study_track?.id ?? NO_STRUCT) === structId),
   [groups, structId])
 
   const years = useMemo(() => {
-    const m = new Map<number | 'none', number>()
+    if (structId == null) return []
+    const countByYear = new Map<number | 'none', number>()
     for (const g of inStruct) {
       const k = g.year_level ?? 'none'
-      m.set(k, (m.get(k) ?? 0) + 1)
+      countByYear.set(k, (countByYear.get(k) ?? 0) + 1)
     }
-    return [...m.entries()].map(([k, count]) => ({ k, count }))
-      .sort((a, b) => (a.k === 'none' ? 99 : a.k) - (b.k === 'none' ? 99 : b.k))
-  }, [inStruct])
+    const yearsCount = tracks.find(x => x.id === structId)?.years_count ?? 0
+    const out: { k: number | 'none'; count: number }[] = []
+    // Все годы по числу лет маршрута — включая пустые (скелет структуры).
+    for (let y = 1; y <= yearsCount; y++) out.push({ k: y, count: countByYear.get(y) ?? 0 })
+    // Плюс годы вне диапазона / «без года», если там есть семестры (безопасность).
+    for (const [k, count] of countByYear) {
+      if (k === 'none') out.push({ k, count })
+      else if (typeof k === 'number' && k > yearsCount) out.push({ k, count })
+    }
+    return out.sort((a, b) => (a.k === 'none' ? 99 : a.k) - (b.k === 'none' ? 99 : b.k))
+  }, [inStruct, structId, tracks])
 
   const inYear = useMemo(() =>
     yearLevel == null ? [] : inStruct.filter(g => (g.year_level ?? 'none') === yearLevel),
@@ -150,8 +181,10 @@ export default function StudiesWorkspace() {
 
   const handleSaved = () => { setModalMode(null); setEditingInitial(null); loadData() }
 
+  const selectedTrack = tracks.find(x => x.id === structId)
   const createDefaults = {
-    department_id: structId && structId !== NO_STRUCT ? structId : null,
+    study_track_id: structId && structId !== NO_STRUCT ? structId : null,
+    department_id: selectedTrack?.department_id ?? null,
     year_level: typeof yearLevel === 'number' ? yearLevel : null,
     year_label: typeof cohort === 'string' && cohort !== 'none' ? cohort : null,
   }
@@ -231,13 +264,15 @@ export default function StudiesWorkspace() {
 
           {/* Уровень 3: наборы (еврейский год) */}
           {structId != null && yearLevel != null && cohort == null && (
-            <Grid>
-              {cohorts.map(c => (
-                <Card key={String(c.k)} title={c.k === 'none' ? t('workspace.no_cohort') : c.k}
-                  sub={t('workspace.count_semesters').replace('{n}', String(c.count))}
-                  icon={ICON_COHORT} onClick={() => setCohort(c.k)} />
-              ))}
-            </Grid>
+            cohorts.length === 0
+              ? <div style={pad}>{t('workspace.empty_year')}</div>
+              : <Grid>
+                  {cohorts.map(c => (
+                    <Card key={String(c.k)} title={c.k === 'none' ? t('workspace.no_cohort') : c.k}
+                      sub={t('workspace.count_semesters').replace('{n}', String(c.count))}
+                      icon={ICON_COHORT} onClick={() => setCohort(c.k)} />
+                  ))}
+                </Grid>
           )}
 
           {/* Уровень 4: семестры */}
