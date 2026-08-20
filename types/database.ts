@@ -812,6 +812,8 @@ export interface SubjectRow {
   year_level: number | null
   name: string
   name_he: string | null
+  name_ru: string | null
+  name_en: string | null
   sort_order: number
   is_active: boolean
   created_at: string
@@ -824,6 +826,8 @@ export interface SubjectInsert {
   year_level?: number | null
   name: string
   name_he?: string | null
+  name_ru?: string | null
+  name_en?: string | null
   sort_order?: number
   is_active?: boolean
 }

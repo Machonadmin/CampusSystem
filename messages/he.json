@@ -968,7 +968,9 @@
         "sem_open": "פתוח",
         "sem_closed": "סגור",
         "sem_saved": "נשמר",
-        "sem_none": "אין למקצוע סמסטרים"
+        "sem_none": "אין למקצוע סמסטרים",
+        "name_ru_label": "שם ברוסית",
+        "name_en_label": "שם באנגלית"
       },
       "specialties": {
         "add_button": "התמחות",

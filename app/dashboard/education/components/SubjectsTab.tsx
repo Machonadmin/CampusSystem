@@ -21,6 +21,8 @@ interface Subject {
   id: string
   name: string
   name_he: string | null
+  name_ru: string | null
+  name_en: string | null
   sort_order: number
   is_active: boolean
   study_track_id: string | null

@@ -82,13 +82,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as {
       name?: string
       name_he?: string
+      name_ru?: string
+      name_en?: string
       study_track_id?: string
       year_level?: number
       tuition_amount?: number
       sort_order?: number
     }
 
-    const name = body.name?.trim()
+    const nameHe = body.name_he?.trim() || null
+    const nameRu = body.name_ru?.trim() || null
+    const nameEn = body.name_en?.trim() || null
+    // `name` — каноническая (NOT NULL) колонка. Берём русское имя, иначе иврит,
+    // иначе присланное legacy `name`.
+    const name = nameRu || nameHe || body.name?.trim()
     if (!name) return apiError('title_required', 400)
     if (!body.study_track_id) return apiError('study_track_required', 400)
     if (!body.year_level || body.year_level < 1) return apiError('year_level_required', 400)
@@ -108,7 +115,9 @@ export async function POST(request: NextRequest) {
 
     const insert: SubjectInsert = {
       name,
-      name_he: body.name_he?.trim() || null,
+      name_he: nameHe,
+      name_ru: nameRu,
+      name_en: nameEn,
       department_id: trackDeptId ?? null,
       study_track_id: body.study_track_id,
       year_level: body.year_level,

@@ -968,7 +968,9 @@
         "sem_open": "Open",
         "sem_closed": "Closed",
         "sem_saved": "Saved",
-        "sem_none": "No semesters for this subject"
+        "sem_none": "No semesters for this subject",
+        "name_ru_label": "Name (Russian)",
+        "name_en_label": "Name (English)"
       },
       "specialties": {
         "add_button": "Specialty",
