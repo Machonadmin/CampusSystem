@@ -1176,7 +1176,8 @@
         "table_teachers": "Teachers",
         "table_students": "Students",
         "table_tuition": "Tuition",
-        "table_actions": "Actions"
+        "table_actions": "Actions",
+        "tuition_hint": "What the student pays for the semester (₽). Unrelated to teacher salary."
       },
       "rollover": {
         "tab": "Year rollover",

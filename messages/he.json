@@ -1176,7 +1176,8 @@
         "table_teachers": "מורים",
         "table_students": "סטודנטיות",
         "table_tuition": "שכר לימוד",
-        "table_actions": "פעולות"
+        "table_actions": "פעולות",
+        "tuition_hint": "מה שהתלמידה משלמת על הסמסטר (₽). לא קשור למשכורת המורה."
       },
       "rollover": {
         "tab": "מעבר שנה",

@@ -1176,7 +1176,8 @@
         "table_teachers": "Преподаватели",
         "table_students": "Студентки",
         "table_tuition": "Плата",
-        "table_actions": "Действия"
+        "table_actions": "Действия",
+        "tuition_hint": "Плата студентки за семестр (₽). Не связана с зарплатой преподавателя."
       },
       "rollover": {
         "tab": "Переход года",

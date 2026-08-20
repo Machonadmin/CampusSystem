@@ -198,7 +198,7 @@ export default function SemesterGroupsTab() {
                         <tr style={{ background: 'var(--surface-2)' }}>
                           <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
-                              <Detail label={t('semester_groups.table_tuition')} value={g.tuition_amount != null ? `₪ ${g.tuition_amount}` : '—'} />
+                              <Detail label={t('semester_groups.table_tuition')} value={g.tuition_amount != null ? `₽ ${g.tuition_amount}` : '—'} />
                             </div>
                             <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
                               <button
