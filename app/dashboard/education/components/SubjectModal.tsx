@@ -18,6 +18,8 @@ interface SubjectInitial {
   id: string
   name: string
   name_he: string | null
+  name_ru: string | null
+  name_en: string | null
   sort_order: number
   is_active: boolean
   study_track_id: string | null
@@ -45,7 +47,9 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
   const t = useTranslations('education.study')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
-  const [name, setName] = useState(initial?.name ?? '')
+  const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
+  const [nameRu, setNameRu] = useState(initial?.name_ru ?? initial?.name ?? '')
+  const [nameEn, setNameEn] = useState(initial?.name_en ?? '')
   // sort_order сохраняется в фоне (поле убрано из формы); при редактировании
   // сохраняем прежнее значение, у новых предметов — 0.
   const [sortOrder] = useState(String(initial?.sort_order ?? 0))
@@ -63,14 +67,16 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError(requiredFieldMsg(tCommon, t('subjects.name_field_label'))); return }
+    if (!nameHe.trim()) { setError(requiredFieldMsg(tCommon, t('subjects.name_field_label'))); return }
     if (!trackId) { setError(requiredFieldMsg(tCommon, t('subjects.track_label'))); return }
 
     setSaving(true)
     setError(null)
     try {
       const payload: Record<string, unknown> = {
-        name: name.trim(),
+        name_he: nameHe.trim(),
+        name_ru: nameRu.trim() || null,
+        name_en: nameEn.trim() || null,
         sort_order: Number(sortOrder) || 0,
         study_track_id: trackId,
         year_level: Number(yearLevel) || 1,
@@ -135,9 +141,26 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('subjects.name_field_label')} *</label>
             <input
-              type="text" value={name} onChange={e => setName(e.target.value)}
-              style={inp} autoFocus placeholder={t('subjects.name_placeholder')}
+              type="text" value={nameHe} onChange={e => setNameHe(e.target.value)}
+              style={inp} autoFocus placeholder={t('subjects.name_placeholder')} dir="rtl"
             />
+          </div>
+
+          <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <label style={lbl}>{t('subjects.name_ru_label')}</label>
+              <input
+                type="text" value={nameRu} onChange={e => setNameRu(e.target.value)}
+                style={inp} placeholder={t('subjects.name_ru_label')}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={lbl}>{t('subjects.name_en_label')}</label>
+              <input
+                type="text" value={nameEn} onChange={e => setNameEn(e.target.value)}
+                style={inp} placeholder={t('subjects.name_en_label')} dir="ltr"
+              />
+            </div>
           </div>
 
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>

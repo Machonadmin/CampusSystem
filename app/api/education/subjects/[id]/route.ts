@@ -17,6 +17,8 @@ export async function PATCH(
     const body = await request.json() as {
       name?: string
       name_he?: string | null
+      name_ru?: string | null
+      name_en?: string | null
       sort_order?: number
       is_active?: boolean
       study_track_id?: string
@@ -42,6 +44,13 @@ export async function PATCH(
       update.name = n
     }
     if (body.name_he !== undefined) update.name_he = body.name_he?.trim() || null
+    if (body.name_ru !== undefined) update.name_ru = body.name_ru?.trim() || null
+    if (body.name_en !== undefined) update.name_en = body.name_en?.trim() || null
+    // Каноническое `name` держим синхронным с ru→he, если имена присланы.
+    if (body.name_ru !== undefined || body.name_he !== undefined) {
+      const canonical = (body.name_ru?.trim() || body.name_he?.trim())
+      if (canonical) update.name = canonical
+    }
     if (body.sort_order !== undefined) update.sort_order = body.sort_order
     if (body.is_active !== undefined) update.is_active = body.is_active
     if (body.year_level !== undefined) update.year_level = body.year_level
