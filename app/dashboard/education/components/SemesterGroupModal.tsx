@@ -336,13 +336,15 @@ export default function SemesterGroupModal({ mode, initial, departments, default
             </div>
           </div>
 
-          {/* 7. Школьная плата за семестр */}
+          {/* 7. Плата за семестр (что платит СТУДЕНТКА, в рублях — не зарплата
+              преподавателя, та в ₪ выше). */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.tuition_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <div style={{ position: 'relative' }}>
               <input type="number" min={0} step="0.01" value={tuition} onChange={e => setTuition(e.target.value)} style={{ ...inp, paddingRight: 26 }} placeholder="0.00" />
-              <span style={{ position: 'absolute', right: 10, top: 8, fontSize: 13, color: 'var(--text-faint)', pointerEvents: 'none' }}>₪</span>
+              <span style={{ position: 'absolute', right: 10, top: 8, fontSize: 13, color: 'var(--text-faint)', pointerEvents: 'none' }}>₽</span>
             </div>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('semester_groups.tuition_hint')}</div>
           </div>
 
           {/* 8. Период */}
