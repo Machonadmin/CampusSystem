@@ -16,21 +16,27 @@ import argparse
 import json
 from pathlib import Path
 
+# Стены рисуются не обводкой каждой комнаты, а подложкой: контур здания
+# заливается цветом стены, помещения кладутся поверх. Промежутки между
+# помещениями — это и есть тела стен, поэтому план читается как чертёж.
 STYLE = """
-  .fm-room { fill: var(--fm-room, #e8eef6); stroke: var(--fm-stroke, #64748b);
-             stroke-width: 0.06; cursor: pointer; transition: fill .12s; }
+  .fm-walls { fill: var(--fm-wall, #9aa5b4); }
+  .fm-room { fill: var(--fm-room, #f4f7fb); stroke: var(--fm-stroke, #6b7787);
+             stroke-width: 0.04; stroke-linejoin: round;
+             cursor: pointer; transition: fill .12s; }
   .fm-room:hover { fill: var(--fm-room-hover, #cddcf0); }
   .fm-room.is-review { fill: var(--fm-room-review, #fdeaca); }
-  .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #f1f3f5); }
-  .fm-label { font: 0.42px sans-serif; fill: var(--fm-text, #1f2937);
+  .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #e6eaef); cursor: default; }
+  .fm-label { font: 0.5px sans-serif; font-weight: 600; fill: var(--fm-text, #1f2937);
               text-anchor: middle; pointer-events: none; }
-  .fm-area { font: 0.32px sans-serif; fill: var(--fm-text-dim, #6b7280);
+  .fm-area { font: 0.36px sans-serif; fill: var(--fm-text-dim, #6b7280);
              text-anchor: middle; pointer-events: none; }
   @media (prefers-color-scheme: dark) {
-    .fm-room { fill: var(--fm-room, #263243); stroke: var(--fm-stroke, #7c8ba1); }
+    .fm-walls { fill: var(--fm-wall, #48566b); }
+    .fm-room { fill: var(--fm-room, #212b39); stroke: var(--fm-stroke, #8493a8); }
     .fm-room:hover { fill: var(--fm-room-hover, #33445c); }
     .fm-room.is-review { fill: var(--fm-room-review, #4a3a22); }
-    .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #1f2733); }
+    .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #2b3444); }
     .fm-label { fill: var(--fm-text, #e5e7eb); }
     .fm-area { fill: var(--fm-text-dim, #9ca3af); }
   }
@@ -50,6 +56,11 @@ def main():
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" '
            f'role="img" aria-label="План {args.floor} этажа">',
            f"<style>{STYLE}</style>", f'<g data-floor="{args.floor}">']
+
+    fp = data.get("footprint_polygon_m")
+    if fp:
+        d = "M " + " L ".join(f"{x} {y}" for x, y in fp) + " Z"
+        out.append(f'<path class="fm-walls" d="{d}"/>')
 
     for r in data["rooms"]:
         cls = "fm-room"

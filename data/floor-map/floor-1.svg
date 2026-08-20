@@ -1,175 +1,174 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64.4 49.63" role="img" aria-label="План 1 этажа">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64.48 49.58" role="img" aria-label="План 1 этажа">
 <style>
-  .fm-room { fill: var(--fm-room, #e8eef6); stroke: var(--fm-stroke, #64748b);
-             stroke-width: 0.06; cursor: pointer; transition: fill .12s; }
+  .fm-walls { fill: var(--fm-wall, #9aa5b4); }
+  .fm-room { fill: var(--fm-room, #f4f7fb); stroke: var(--fm-stroke, #6b7787);
+             stroke-width: 0.04; stroke-linejoin: round;
+             cursor: pointer; transition: fill .12s; }
   .fm-room:hover { fill: var(--fm-room-hover, #cddcf0); }
   .fm-room.is-review { fill: var(--fm-room-review, #fdeaca); }
-  .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #f1f3f5); }
-  .fm-label { font: 0.42px sans-serif; fill: var(--fm-text, #1f2937);
+  .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #e6eaef); cursor: default; }
+  .fm-label { font: 0.5px sans-serif; font-weight: 600; fill: var(--fm-text, #1f2937);
               text-anchor: middle; pointer-events: none; }
-  .fm-area { font: 0.32px sans-serif; fill: var(--fm-text-dim, #6b7280);
+  .fm-area { font: 0.36px sans-serif; fill: var(--fm-text-dim, #6b7280);
              text-anchor: middle; pointer-events: none; }
   @media (prefers-color-scheme: dark) {
-    .fm-room { fill: var(--fm-room, #263243); stroke: var(--fm-stroke, #7c8ba1); }
+    .fm-walls { fill: var(--fm-wall, #48566b); }
+    .fm-room { fill: var(--fm-room, #212b39); stroke: var(--fm-stroke, #8493a8); }
     .fm-room:hover { fill: var(--fm-room-hover, #33445c); }
     .fm-room.is-review { fill: var(--fm-room-review, #4a3a22); }
-    .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #1f2733); }
+    .fm-room.is-unnamed { fill: var(--fm-room-unnamed, #2b3444); }
     .fm-label { fill: var(--fm-text, #e5e7eb); }
     .fm-area { fill: var(--fm-text-dim, #9ca3af); }
   }
 </style>
 <g data-floor="1">
-<path class="fm-room" d="M 2.184 5.453 L 2.184 8.873 L 4.538 8.89 L 4.572 5.453 Z" data-room-id="f1-1" data-bti-number="1" data-area="8.1"><title>№ 1 · 8.1 м²</title></path>
-<path class="fm-room is-review" d="M 6.706 5.859 L 6.706 11.921 L 12.209 11.938 L 12.192 5.859 Z" data-room-id="f1-1-2" data-bti-number="1" data-area="33.4"><title>№ 1 · 33.4 м²</title></path>
-<path class="fm-room is-review" d="M 19.169 2.134 L 19.152 9.313 L 22.843 9.33 L 22.86 8.416 L 23.741 8.399 L 23.741 9.347 L 24.35 9.33 L 24.384 1.998 L 21.387 1.981 L 21.37 2.794 L 20.828 2.76 L 20.828 2.134 Z" data-room-id="f1-11" data-bti-number="11" data-area="36.7"><title>№ 11 · 36.7 м²</title></path>
-<path class="fm-room is-review" d="M 24.604 1.998 L 24.57 8.822 L 25.061 8.839 L 25.061 9.347 L 27.805 9.5 L 27.669 2.015 Z" data-room-id="f1-12" data-bti-number="12" data-area="23.1"><title>№ 12 · 23.1 м²</title></path>
-<path class="fm-room" d="M 32.139 1.626 L 31.005 1.626 L 30.988 2.032 L 28.194 2.015 L 28.194 2.794 L 27.889 2.811 L 27.872 9.347 L 31.513 9.364 L 31.53 6.469 L 31.242 6.452 L 31.208 6.164 L 31.53 6.079 L 31.547 1.947 L 32.139 1.93 Z" data-room-id="f1-13" data-bti-number="13" data-area="26.8"><title>№ 13 · 26.8 м²</title></path>
-<path class="fm-room is-review" d="M 31.818 2.032 L 31.801 6.113 L 31.276 6.164 L 31.276 6.384 L 31.801 6.435 L 31.801 9.364 L 35.018 9.533 L 35.052 2.032 Z" data-room-id="f1-14" data-bti-number="14" data-area="24.1"><title>№ 14 · 24.1 м²</title></path>
-<path class="fm-room" d="M 35.323 2.032 L 35.306 9.364 L 41.199 9.533 L 42.266 9.127 L 42.299 2.845 L 41.893 2.811 L 41.893 2.049 Z" data-room-id="f1-16" data-bti-number="16" data-area="51.2"><title>№ 16 · 51.2 м²</title></path>
-<path class="fm-room is-review" d="M 42.57 2.049 L 42.553 7.112 L 45.551 7.146 L 45.551 6.672 L 45.788 6.655 L 45.788 5.419 L 45.551 5.402 L 45.568 4.386 L 45.805 4.369 L 45.805 2.134 Z" data-room-id="f1-19" data-bti-number="19" data-area="15.9"><title>№ 19 · 15.9 м²</title></path>
-<path class="fm-room is-review" d="M 14.021 1.321 L 14.021 1.93 L 18.762 1.981 L 18.762 7.044 L 18.457 7.078 L 18.457 7.383 L 18.762 7.451 L 18.728 12.04 L 17.306 11.989 L 17.12 12.48 L 18.711 12.497 L 18.728 12.971 L 19.135 13.123 L 25.468 13.123 L 27.026 14.613 L 27.635 14.613 L 27.517 13.513 L 27.246 13.462 L 27.313 12.124 L 27.72 12.158 L 27.805 12.666 L 42.638 12.7 L 42.655 12.395 L 44.365 12.395 L 44.416 11.43 L 46.008 11.278 L 45.991 9.821 L 39.929 9.787 L 39.878 9.974 L 38.896 9.974 L 38.862 9.804 L 32.495 9.601 L 32.495 10.871 L 31.885 10.905 L 31.885 12.209 L 31.513 12.226 L 31.242 9.601 L 27.72 9.584 L 27.686 10.177 L 27.144 10.194 L 27.026 9.584 L 21.844 9.55 L 21.81 12.175 L 21.505 12.192 L 21.234 11.701 L 21.59 11.684 L 21.607 9.567 L 19.101 9.533 L 19.118 2.1 L 21.353 1.897 L 21.353 1.592 Z" data-room-id="f1-15" data-bti-number="15" data-area="88.9"><title>№ 15 · 88.9 м²</title></path>
-<path class="fm-room is-review" d="M 12.666 15.85 L 12.666 19.372 L 17.763 19.389 L 17.78 15.867 Z" data-room-id="f1-61" data-bti-number="61" data-area="18.0"><title>№ 61 · 18.0 м²</title></path>
-<path class="fm-room" d="M 17.983 16.933 L 17.983 18.423 L 18.711 18.474 L 18.711 19.202 L 23.266 19.202 L 23.266 16.476 L 20.726 16.476 L 20.709 16.95 Z" data-room-id="f1-60б" data-bti-number="60б" data-area="12.6"><title>№ 60б · 12.6 м²</title></path>
-<path class="fm-room is-review" d="M 49.293 9.093 L 48.734 9.313 L 48.395 9.855 L 47.718 9.347 L 47.142 10.109 L 46.855 11.345 L 44.433 11.498 L 44.416 13.174 L 41.791 13.157 L 41.707 15.85 L 43.654 17.746 L 43.688 18.407 L 44.061 18.339 L 45.449 19.71 L 48.277 19.795 L 48.294 20.201 L 48.582 20.252 L 48.582 20.879 L 48.903 20.879 L 48.903 20.252 L 49.564 20.201 L 49.564 19.88 L 48.971 19.846 L 48.971 18.813 L 48.683 18.779 L 48.683 18.085 L 48.971 18.068 L 48.971 16.561 L 48.362 16.544 L 48.379 15.951 L 50.427 14.58 L 50.631 14.597 L 50.631 15.155 L 51.664 14.969 L 52.967 13.648 L 52.527 13.208 L 52.595 12.344 L 50.8 10.803 Z" data-room-id="f1-23" data-bti-number="23" data-area="67.3"><title>№ 23 · 67.3 м²</title></path>
-<path class="fm-room" d="M 49.039 16.561 L 49.022 19.795 L 49.615 19.795 L 49.632 20.066 L 51.545 20.1 L 51.714 19.66 L 52.307 19.643 L 52.307 18.999 L 51.799 18.948 L 51.833 17.137 L 52.324 17.103 L 52.324 16.239 L 50.631 16.239 L 50.563 16.578 Z" data-room-id="f1-25а" data-bti-number="25а" data-area="10.7"><title>№ 25а · 10.7 м²</title></path>
-<path class="fm-room is-review" d="M 18.847 19.778 L 18.847 23.3 L 20.405 23.3 L 20.455 22.962 L 23.249 22.962 L 23.266 19.795 L 20.947 19.947 Z" data-room-id="f1-60а" data-bti-number="60а" data-area="14.2"><title>№ 60а · 14.2 м²</title></path>
-<path class="fm-room is-review" d="M 19.135 13.14 L 18.982 16.713 L 20.489 16.713 L 20.557 15.257 L 21.438 15.291 L 21.438 16.239 L 23.47 16.273 L 23.47 19.202 L 24.79 19.219 L 24.807 19.778 L 23.47 19.795 L 23.419 23.199 L 20.472 23.046 L 20.455 23.537 L 18.576 23.537 L 18.576 24.028 L 18.22 24.045 L 18.136 19.677 L 14.851 19.66 L 14.851 24.79 L 17.966 27.974 L 18.186 27.974 L 18.22 26.501 L 18.457 26.518 L 18.457 26.873 L 19.236 26.484 L 24.79 26.518 L 24.757 37.592 L 27.161 37.338 L 27.161 34.442 L 27.551 34.392 L 27.635 14.63 L 27.026 14.63 L 25.468 13.14 Z" data-room-id="f1-60" data-bti-number="60" data-area="135.1"><title>№ 60 · 135.1 м²</title></path>
-<path class="fm-room is-review" d="M 52.781 16.493 L 52.764 22.623 L 52.476 22.725 L 52.476 23.639 L 52.747 23.656 L 52.934 27.534 L 52.73 27.551 L 52.73 30.361 L 52.172 30.412 L 52.155 30.632 L 52.172 31.479 L 52.713 31.496 L 52.713 34.205 L 57.98 34.222 L 57.997 33.917 L 59.317 33.901 L 59.402 34.527 L 59.741 34.544 L 59.91 33.579 L 59.741 33.054 L 59.334 33.02 L 59.368 27.364 L 58.708 27.313 L 58.725 26.907 L 59.182 26.873 L 59.216 23.52 L 58.86 23.503 L 58.843 23.3 L 59.216 23.249 L 59.216 19.88 L 58.759 19.88 L 58.725 19.439 L 59.233 19.406 L 59.233 16.51 Z" data-room-id="f1-25" data-bti-number="25" data-area="115.8"><title>№ 25 · 115.8 м²</title></path>
-<path class="fm-room is-review" d="M 3.234 19.812 L 3.234 20.303 L 2.946 20.32 L 2.913 25.044 L 3.2 25.061 L 3.2 26.043 L 3.437 26.094 L 3.437 26.484 L 3.2 26.518 L 3.183 32.681 L 3.725 32.868 L 18.169 32.868 L 18.186 27.991 L 14.834 24.79 L 14.834 19.66 L 12.09 19.829 L 12.057 19.66 L 9.652 19.643 L 9.618 19.829 L 9.161 19.829 L 9.144 19.643 L 3.708 19.626 Z" data-room-id="f1-59" data-bti-number="59" data-area="176.3"><title>№ 59 · 176.3 м²</title></path>
-<path class="fm-room is-review" d="M 21.556 31.598 L 21.539 33.85 L 22.013 33.85 L 22.03 33.409 L 22.471 33.359 L 22.589 33.85 L 23.266 33.867 L 23.266 33.663 L 22.758 33.63 L 22.826 33.376 L 24.028 33.376 L 24.062 33.663 L 23.571 33.663 L 23.571 33.867 L 24.553 33.867 L 24.553 31.598 Z" data-room-id="f1-49" data-bti-number="49" data-area="6.1"><title>№ 49 · 6.1 м²</title></path>
-<path class="fm-room is-review" d="M 27.584 33.833 L 27.618 34.425 L 27.364 34.493 L 27.364 37.338 L 30.751 37.355 L 30.768 33.85 Z" data-room-id="f1-44" data-bti-number="44" data-area="11.8"><title>№ 44 · 11.8 м²</title></path>
-<path class="fm-room is-review" d="M 30.988 33.85 L 30.971 39.556 L 34.29 39.556 L 34.307 33.85 Z" data-room-id="f1-38" data-bti-number="38" data-area="18.9"><title>№ 38 · 18.9 м²</title></path>
-<path class="fm-room" d="M 35.052 33.85 L 35.035 34.442 L 34.781 34.459 L 34.764 37.033 L 35.086 37.067 L 35.103 37.694 L 34.764 37.711 L 34.747 42.672 L 37.727 42.672 L 37.744 41.995 L 38.54 41.961 L 38.71 40.03 L 38.574 33.867 Z" data-room-id="f1-35" data-bti-number="35" data-area="33.2"><title>№ 35 · 33.2 м²</title></path>
-<path class="fm-room is-review" d="M 46.042 33.901 L 46.025 36.813 L 46.516 36.847 L 46.516 37.355 L 49.293 37.372 L 49.31 34.256 L 48.802 34.256 L 48.768 33.901 Z" data-room-id="f1-26" data-bti-number="26" data-area="10.9"><title>№ 26 · 10.9 м²</title></path>
-<path class="fm-room" d="M 46.025 37.541 L 46.025 39.099 L 49.276 39.116 L 49.293 37.558 Z" data-room-id="f1-26а" data-bti-number="26а" data-area="5.1"><title>№ 26а · 5.1 м²</title></path>
-<path class="fm-room" d="M 49.581 34.578 L 49.53 42.316 L 49.869 42.35 L 49.869 43.129 L 50.478 43.129 L 50.512 43.519 L 50.834 43.536 L 50.935 43.129 L 52.07 43.129 L 52.104 34.595 Z" data-room-id="f1-25б" data-bti-number="25б" data-area="21.5"><title>№ 25б · 21.5 м²</title></path>
-<path class="fm-room is-review" d="M 52.578 35.306 L 52.561 36.542 L 56.422 36.559 L 56.439 34.696 L 53.035 34.696 L 53.035 35.272 Z" data-room-id="f1-9" data-bti-number="9" data-area="6.9"><title>№ 9 · 6.9 м²</title></path>
-<path class="fm-room is-review" d="M 52.561 36.915 L 52.561 38.422 L 53.746 38.456 L 53.729 38.71 L 53.238 38.71 L 53.238 38.93 L 56.574 38.913 L 56.591 36.915 Z" data-room-id="f1-2" data-bti-number="2" data-area="7.6"><title>№ 2 · 7.6 м²</title></path>
-<path class="fm-room" d="M 58.132 37.152 L 58.115 40.149 L 59.961 40.132 L 60.012 39.726 L 60.638 39.726 L 60.655 40.149 L 63.703 40.149 L 63.703 37.169 Z" data-room-id="f1-5" data-bti-number="5" data-area="16.4"><title>№ 5 · 16.4 м²</title></path>
-<path class="fm-room is-review" d="M 58.149 33.985 L 58.132 36.711 L 63.703 36.728 L 63.72 34.476 L 63.348 34.442 L 63.348 34.002 L 60.723 33.985 L 60.706 33.596 L 60.384 33.579 L 60.367 33.985 L 59.809 33.985 L 59.809 34.578 L 59.351 34.612 L 59.334 33.985 L 59.063 33.985 L 59.03 34.476 L 58.522 34.459 L 58.505 33.985 Z" data-room-id="f1-7" data-bti-number="7" data-area="14.6"><title>№ 7 · 14.6 м²</title></path>
-<path class="fm-room is-review" d="M 29.125 37.592 L 26.314 37.423 L 26.297 37.829 L 22.284 37.812 L 22.217 38.32 L 21.116 38.303 L 21.099 37.829 L 20.743 37.812 L 20.794 40.318 L 22.504 40.335 L 22.504 39.116 L 22.115 39.116 L 22.03 38.879 L 22.521 38.777 L 22.521 38.185 L 22.725 38.185 L 22.708 43.163 L 22.487 43.163 L 22.504 40.572 L 18.898 40.589 L 18.898 42.52 L 19.169 42.553 L 19.169 42.994 L 21.692 43.011 L 21.675 43.214 L 18.898 43.299 L 18.898 46.363 L 23.825 46.38 L 23.825 39.167 L 27.093 39.15 L 27.11 40.843 L 27.432 40.843 L 27.466 39.556 L 29.125 39.556 Z" data-room-id="f1-45" data-bti-number="45" data-area="43.2"><title>№ 45 · 43.2 м²</title></path>
-<path class="fm-room is-review" d="M 27.11 41.842 L 27.076 46.584 L 26.789 46.617 L 26.789 47.244 L 28.279 47.244 L 28.397 46.838 L 30.869 46.855 L 30.886 42.469 L 27.449 42.469 L 27.432 41.842 Z" data-room-id="f1-41" data-bti-number="41" data-area="17.5"><title>№ 41 · 17.5 м²</title></path>
-<path class="fm-room is-review" d="M 27.11 40.928 L 27.11 41.741 L 27.483 41.775 L 27.584 42.232 L 34.273 42.232 L 34.29 39.793 L 31.784 39.793 L 31.75 40.132 L 30.954 40.149 L 30.886 39.827 L 27.94 39.776 L 27.923 40.708 Z" data-room-id="f1-39" data-bti-number="39" data-area="16.1"><title>№ 39 · 16.1 м²</title></path>
-<path class="fm-room is-review" d="M 31.107 42.469 L 31.09 46.855 L 34.256 46.838 L 34.273 42.469 Z" data-room-id="f1-40" data-bti-number="40" data-area="13.9"><title>№ 40 · 13.9 м²</title></path>
-<path class="fm-room is-review" d="M 38.54 42.147 L 37.897 42.147 L 37.846 42.909 L 34.747 42.909 L 34.73 46.397 L 38.523 46.414 Z" data-room-id="f1-34" data-bti-number="34" data-area="13.8"><title>№ 34 · 13.8 м²</title></path>
-<path class="fm-room is-review" d="M 38.76 40.759 L 38.76 46.414 L 41.436 46.431 L 41.453 40.759 Z" data-room-id="f1-33" data-bti-number="33" data-area="15.2"><title>№ 33 · 15.2 м²</title></path>
-<path class="fm-room is-review" d="M 41.554 33.189 L 41.351 33.477 L 41.554 35.374 L 42.147 35.408 L 42.113 46.702 L 45.314 46.736 L 45.364 33.901 L 42.384 33.884 L 42.096 33.206 Z" data-room-id="f1-1-41" data-bti-number="1" data-area="42.7"><title>№ 1 · 42.7 м²</title></path>
-<path class="fm-room is-review" d="M 46.008 41.402 L 46.008 43.112 L 49.259 43.129 L 49.276 41.419 Z" data-room-id="f1-27в" data-bti-number="27в" data-area="5.6"><title>№ 27в · 5.6 м²</title></path>
-<path class="fm-room" d="M 57.98 34.459 L 56.811 34.442 L 56.777 39.15 L 55.084 39.15 L 55.067 43.62 L 58.539 43.62 L 58.555 40.521 L 57.963 40.488 Z" data-room-id="f1-6" data-bti-number="6" data-area="20.3"><title>№ 6 · 20.3 м²</title></path>
-<path class="fm-room is-review" d="M 59.03 40.742 L 59.013 43.62 L 63.314 43.637 L 63.314 43.163 L 63.686 43.112 L 63.703 40.742 Z" data-room-id="f1-1-46" data-bti-number="1" data-area="13.3"><title>№ 1 · 13.3 м²</title></path>
-<path class="fm-room is-unnamed" d="M 12.988 1.321 L 11.989 1.304 L 11.989 0.22 L 10.99 0.22 L 10.685 1.304 L 5.91 1.321 L 4.826 2.218 L 4.657 4.758 L 0.051 4.775 L 0.034 6.452 L 2.117 6.435 L 2.201 5.368 L 4.589 5.385 L 4.623 6.418 L 5.266 6.418 L 5.283 2.726 L 5.859 1.964 L 12.988 1.913 Z" data-room-id="f1-auto47" data-bti-number="—" data-area="13.7"><title>№ — · 13.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 48.582 1.49 L 48.311 1.49 L 48.311 2.066 L 48.971 2.388 L 49.174 2.862 L 49.141 8.314 L 47.955 9.093 L 48.175 9.55 L 49.784 8.788 L 49.801 2.828 L 49.462 2.032 Z" data-room-id="f1-auto48" data-bti-number="—" data-area="5.6"><title>№ — · 5.6 м²</title></path>
-<path class="fm-room is-unnamed" d="M 5.351 5.588 L 9.009 5.588 L 9.025 2.811 L 12.209 2.896 L 12.209 1.998 L 5.842 2.049 L 5.351 2.692 Z" data-room-id="f1-auto49" data-bti-number="—" data-area="15.5"><title>№ — · 15.5 м²</title></path>
-<path class="fm-room is-unnamed" d="M 12.683 1.998 L 12.683 2.879 L 15.917 3.116 L 15.917 6.028 L 12.649 6.062 L 12.666 7.214 L 13.987 7.214 L 14.004 6.993 L 18.694 6.993 L 18.711 2.032 Z" data-room-id="f1-auto50" data-bti-number="—" data-area="20.4"><title>№ — · 20.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 46.262 2.117 L 46.262 3.861 L 49.09 3.861 L 49.09 2.692 L 48.683 2.235 Z" data-room-id="f1-auto51" data-bti-number="—" data-area="4.6"><title>№ — · 4.6 м²</title></path>
-<path class="fm-room is-unnamed" d="M 9.279 3.183 L 9.279 5.571 L 12.209 5.588 L 12.209 3.167 Z" data-room-id="f1-auto52" data-bti-number="—" data-area="7.0"><title>№ — · 7.0 м²</title></path>
-<path class="fm-room is-unnamed" d="M 12.683 3.167 L 12.666 5.842 L 14.038 5.842 L 13.953 5.351 L 14.173 5.114 L 15.646 5.097 L 15.663 3.37 Z" data-room-id="f1-auto53" data-bti-number="—" data-area="6.5"><title>№ — · 6.5 м²</title></path>
-<path class="fm-room is-unnamed" d="M 47.633 4.064 L 47.617 7.214 L 46.245 7.231 L 46.228 11.278 L 46.787 11.261 L 47.65 9.059 L 49.073 8.28 L 49.073 7.163 L 48.666 6.181 L 49.073 5.74 L 48.48 5.723 L 48.04 4.657 L 48.412 4.25 Z" data-room-id="f1-auto54" data-bti-number="—" data-area="9.7"><title>№ — · 9.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 49.835 6.892 L 49.835 8.534 L 50.631 8.551 L 50.648 8.822 L 49.801 8.839 L 49.716 9.059 L 52.493 11.904 L 57.963 11.836 L 57.963 11.108 L 54.779 11.057 L 54.762 9.669 L 52.155 6.909 Z" data-room-id="f1-auto55" data-bti-number="—" data-area="19.7"><title>№ — · 19.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 0.017 7.789 L 0.017 9.55 L 4.64 9.584 L 4.657 11.464 L 5.283 12.243 L 5.961 12.649 L 10.736 12.666 L 10.753 14.207 L 12.04 14.207 L 12.04 13.648 L 12.446 13.631 L 12.446 13.327 L 12.04 13.31 L 12.04 12.835 L 12.446 12.819 L 12.497 12.548 L 16.273 12.48 L 16.273 12.057 L 15.105 12.04 L 15.138 10.617 L 16.205 10.617 L 16.222 11.007 L 17.645 11.091 L 17.645 10.685 L 16.73 10.668 L 16.73 7.468 L 17.577 7.383 L 17.577 7.061 L 14.055 7.061 L 14.038 7.281 L 12.26 7.078 L 12.243 12.006 L 6.519 11.989 L 6.502 10.668 L 5.249 10.651 L 5.266 6.96 L 4.623 6.96 L 4.589 8.958 L 2.167 8.958 L 2.117 7.789 Z" data-room-id="f1-auto56" data-bti-number="—" data-area="39.3"><title>№ — · 39.3 м²</title></path>
-<path class="fm-room is-unnamed" d="M 42.553 7.366 L 42.537 9.381 L 43.383 9.55 L 45.534 9.398 L 45.551 7.383 Z" data-room-id="f1-auto57" data-bti-number="—" data-area="6.3"><title>№ — · 6.3 м²</title></path>
-<path class="fm-room is-unnamed" d="M 16.798 7.468 L 16.798 9.059 L 17.458 9.076 L 17.695 11.989 L 18.661 11.989 L 18.694 7.468 Z" data-room-id="f1-auto58" data-bti-number="—" data-area="6.2"><title>№ — · 6.2 м²</title></path>
-<path class="fm-room is-unnamed" d="M 50.631 16.002 L 57.624 16.019 L 57.641 13.987 L 54.424 13.97 L 54.407 12.514 L 55.643 12.531 L 55.66 13.14 L 56.473 13.106 L 56.507 12.531 L 58.183 12.548 L 58.894 13.14 L 59.063 13.851 L 59.673 13.851 L 59.673 13.445 L 59.233 12.581 L 58.268 11.921 L 52.747 11.904 L 52.629 13.106 L 53.137 13.377 L 52.883 14.156 L 51.613 15.071 L 50.631 15.24 Z" data-room-id="f1-auto59" data-bti-number="—" data-area="19.7"><title>№ — · 19.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 16.341 12.565 L 16.324 14.072 L 17.103 14.089 L 17.103 15.392 L 18.661 15.392 L 18.661 12.565 Z" data-room-id="f1-auto60" data-bti-number="—" data-area="5.6"><title>№ — · 5.6 м²</title></path>
-<path class="fm-room is-unnamed" d="M 55.186 13.581 L 55.186 13.75 L 57.793 13.75 L 57.827 16.036 L 58.979 16.036 L 58.979 13.428 L 58.403 12.717 Z" data-room-id="f1-auto61" data-bti-number="—" data-area="5.0"><title>№ — · 5.0 м²</title></path>
-<path class="fm-room is-unnamed" d="M 28.092 18.051 L 29.058 18.051 L 29.075 15.9 L 29.667 15.833 L 29.684 14.207 L 33.901 14.19 L 33.917 13.157 L 31.411 13.14 L 31.394 12.751 L 27.33 12.598 L 27.33 13.428 L 27.72 13.445 L 27.72 14.478 L 28.109 14.495 Z" data-room-id="f1-auto62" data-bti-number="—" data-area="13.4"><title>№ — · 13.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 30.412 14.41 L 30.412 15.9 L 29.142 15.917 L 29.278 18.254 L 27.703 18.186 L 27.703 19.964 L 28.092 19.981 L 28.042 29.684 L 27.635 29.701 L 27.618 33.748 L 31.936 33.765 L 31.953 33.359 L 41.487 33.376 L 41.554 33.122 L 42.13 33.122 L 42.164 33.376 L 45.364 33.409 L 45.449 33.139 L 46.025 33.139 L 46.042 33.409 L 48.446 33.426 L 48.497 20.286 L 46.787 20.269 L 46.77 20.015 L 45.517 19.863 L 44.111 18.457 L 43.688 18.61 L 43.146 18.254 L 42.824 17.746 L 42.875 17.306 L 41.944 16.442 L 41.639 16.747 L 41.233 16.137 L 41.165 13.157 L 35.441 13.157 L 35.408 16.002 L 33.934 16.002 L 32.901 14.41 Z" data-room-id="f1-auto63" data-bti-number="—" data-area="356.2"><title>№ — · 356.2 м²</title></path>
-<path class="fm-room is-unnamed" d="M 59.047 14.952 L 59.047 16.239 L 59.301 16.307 L 59.284 19.439 L 58.793 19.473 L 58.793 19.812 L 59.284 19.863 L 59.25 26.924 L 58.776 26.958 L 58.776 27.28 L 59.775 27.5 L 59.775 26.941 L 59.571 26.924 L 59.673 14.952 Z" data-room-id="f1-auto64" data-bti-number="—" data-area="5.1"><title>№ — · 5.1 м²</title></path>
-<path class="fm-room is-unnamed" d="M 52.222 22.64 L 52.697 22.657 L 52.713 16.442 L 58.979 16.442 L 58.979 16.104 L 52.392 16.087 L 52.375 19.693 L 51.748 19.727 L 51.748 20.286 L 51.951 20.32 L 51.968 20.76 L 52.222 20.794 Z" data-room-id="f1-auto65" data-bti-number="—" data-area="5.2"><title>№ — · 5.2 м²</title></path>
-<path class="fm-room is-unnamed" d="M 12.598 18.186 L 12.09 18.186 L 12.073 19.05 L 2.591 18.83 L 2.574 20.252 L 3.15 20.252 L 3.167 19.778 L 3.725 19.541 L 8.788 19.558 L 9.195 19.761 L 12.073 19.575 L 12.531 19.761 Z" data-room-id="f1-auto66" data-bti-number="—" data-area="7.4"><title>№ — · 7.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 48.988 20.354 L 48.971 22.233 L 48.565 22.25 L 48.565 23.588 L 48.954 23.605 L 48.954 24.943 L 48.565 24.96 L 48.548 28.025 L 48.937 28.042 L 48.92 33.426 L 49.564 33.443 L 49.581 34.188 L 52.104 34.188 L 52.138 27.551 L 51.884 27.517 L 51.884 26.518 L 52.138 26.433 L 52.155 23.707 L 52.459 23.639 L 52.459 22.725 L 52.155 22.691 L 52.172 20.845 L 51.901 20.794 L 51.901 20.371 L 50.732 20.371 L 50.529 20.709 L 50.495 20.371 Z" data-room-id="f1-auto67" data-bti-number="—" data-area="45.2"><title>№ — · 45.2 м²</title></path>
-<path class="fm-room is-unnamed" d="M 18.457 26.958 L 18.457 28.194 L 18.931 28.211 L 18.948 27.72 L 19.524 27.686 L 19.66 28.211 L 20.625 28.245 L 20.625 29.786 L 22.454 29.786 L 22.454 26.958 L 19.626 26.958 L 19.592 26.721 Z" data-room-id="f1-auto68" data-bti-number="—" data-area="7.7"><title>№ — · 7.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 20.422 28.448 L 18.457 28.448 L 18.44 29.599 L 18.254 29.616 L 18.203 44.179 L 18.83 44.162 L 18.83 43.248 L 19.101 43.214 L 19.101 42.604 L 18.83 42.553 L 18.881 37.744 L 24.689 37.744 L 24.706 35.509 L 24.35 35.509 L 24.316 37.423 L 18.576 37.372 L 18.627 34.256 L 24.316 34.29 L 24.367 34.612 L 24.706 34.612 L 24.706 33.951 L 21.488 33.917 L 21.488 29.87 L 20.422 29.853 Z" data-room-id="f1-auto69" data-bti-number="—" data-area="26.7"><title>№ — · 26.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 18.169 33.037 L 3.183 33.189 L 3.167 38.845 L 2.489 38.947 L 2.489 40.234 L 3.15 40.251 L 3.133 45.805 L 2.472 45.822 L 2.472 47.142 L 7.789 47.176 L 7.806 46.482 L 8.89 46.482 L 8.992 46.109 L 9.432 46.109 L 9.449 46.482 L 11.887 46.482 L 11.904 46.126 L 12.395 46.126 L 12.429 46.482 L 17.899 46.499 L 17.899 46.16 L 18.136 46.143 Z" data-room-id="f1-auto70" data-bti-number="—" data-area="205.0"><title>№ — · 205.0 м²</title></path>
-<path class="fm-room is-unnamed" d="M 38.794 33.867 L 38.794 36.542 L 41.47 36.559 L 41.487 33.884 Z" data-room-id="f1-auto71" data-bti-number="—" data-area="7.2"><title>№ — · 7.2 м²</title></path>
-<path class="fm-room is-unnamed" d="M 48.87 29.413 L 48.548 29.413 L 48.497 33.477 L 46.042 33.494 L 45.974 33.223 L 45.432 33.223 L 45.28 33.494 L 45.314 47.43 L 45.703 47.667 L 45.72 48.683 L 45.906 48.666 L 45.923 47.125 L 46.16 47.109 L 46.262 46.279 L 45.923 46.262 L 45.94 43.553 L 47.938 43.519 L 48.006 44.992 L 48.209 44.992 L 48.26 43.519 L 50.427 43.519 L 50.427 43.214 L 45.94 43.163 L 45.974 33.867 L 49.513 33.833 L 49.513 33.494 L 48.853 33.46 Z" data-room-id="f1-auto72" data-bti-number="—" data-area="14.4"><title>№ — · 14.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 18.627 37.321 L 19.575 37.321 L 19.66 35.712 L 24.282 35.746 L 24.282 34.358 L 18.644 34.341 Z" data-room-id="f1-auto73" data-bti-number="—" data-area="9.4"><title>№ — · 9.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 19.812 35.949 L 19.812 37.321 L 23.927 37.338 L 23.927 36.881 L 24.282 36.83 L 24.282 35.966 L 20.828 35.966 L 20.743 36.305 Z" data-room-id="f1-auto74" data-bti-number="—" data-area="5.8"><title>№ — · 5.8 м²</title></path>
-<path class="fm-room is-unnamed" d="M 41.554 36.288 L 41.504 46.905 L 41.165 46.939 L 41.165 47.261 L 41.944 47.6 L 42.113 47.413 L 42.079 36.288 Z" data-room-id="f1-auto75" data-bti-number="—" data-area="6.5"><title>№ — · 6.5 м²</title></path>
-<path class="fm-room is-unnamed" d="M 38.777 36.779 L 38.777 38.896 L 41.453 38.896 L 41.47 36.779 Z" data-room-id="f1-auto76" data-bti-number="—" data-area="5.7"><title>№ — · 5.7 м²</title></path>
-<path class="fm-room is-unnamed" d="M 24.045 39.387 L 24.045 43.146 L 26.907 43.146 L 27.026 39.387 Z" data-room-id="f1-auto77" data-bti-number="—" data-area="11.0"><title>№ — · 11.0 м²</title></path>
-<path class="fm-room is-unnamed" d="M 64.397 39.929 L 63.771 39.793 L 63.754 43.163 L 63.381 43.197 L 63.348 43.705 L 60.215 43.705 L 60.198 44.044 L 63.669 44.044 L 63.788 44.416 L 64.381 44.416 Z" data-room-id="f1-auto78" data-bti-number="—" data-area="4.3"><title>№ — · 4.3 м²</title></path>
-<path class="fm-room is-unnamed" d="M 24.045 43.383 L 24.028 46.38 L 26.907 46.38 L 26.907 43.383 Z" data-room-id="f1-auto79" data-bti-number="—" data-area="8.6"><title>№ — · 8.6 м²</title></path>
-<path class="fm-room is-unnamed" d="M 46.008 43.586 L 45.991 46.194 L 47.904 46.194 L 47.921 43.586 Z" data-room-id="f1-auto80" data-bti-number="—" data-area="5.0"><title>№ — · 5.0 м²</title></path>
-<path class="fm-room is-unnamed" d="M 48.294 43.586 L 48.294 44.823 L 50.58 44.839 L 50.749 46.414 L 51.935 46.211 L 51.951 43.807 L 51.596 43.603 Z" data-room-id="f1-auto81" data-bti-number="—" data-area="6.4"><title>№ — · 6.4 м²</title></path>
-<path class="fm-room is-unnamed" d="M 18.83 45.297 L 18.186 45.28 L 18.186 46.177 L 17.966 46.211 L 17.915 46.601 L 12.378 46.567 L 12.361 46.194 L 11.955 46.194 L 11.921 46.567 L 9.449 46.567 L 9.381 46.194 L 8.958 46.194 L 8.924 46.567 L 8.247 46.567 L 8.247 47.176 L 18.847 47.21 Z" data-room-id="f1-auto82" data-bti-number="—" data-area="7.8"><title>№ — · 7.8 м²</title></path>
-<path class="fm-room is-unnamed" d="M 26.704 46.617 L 18.915 46.601 L 18.948 48.243 L 26.687 48.26 Z" data-room-id="f1-auto83" data-bti-number="—" data-area="12.8"><title>№ — · 12.8 м²</title></path>
-<path class="fm-room is-unnamed" d="M 26.755 47.312 L 26.755 48.074 L 30.853 48.074 L 30.869 49.632 L 31.581 49.632 L 31.581 47.329 Z" data-room-id="f1-auto84" data-bti-number="—" data-area="4.8"><title>№ — · 4.8 м²</title></path>
-<text class="fm-label" x="3.371" y="7.163">1</text>
-<text class="fm-area" x="3.371" y="7.613">8.1</text>
-<text class="fm-label" x="9.454" y="8.896">1</text>
-<text class="fm-area" x="9.454" y="9.346">33.4</text>
-<text class="fm-label" x="21.75" y="5.646">11</text>
-<text class="fm-area" x="21.75" y="6.096">36.7</text>
-<text class="fm-label" x="26.182" y="5.706">12</text>
-<text class="fm-area" x="26.182" y="6.156000000000001">23.1</text>
-<text class="fm-label" x="29.742" y="5.655">13</text>
-<text class="fm-area" x="29.742" y="6.105">26.8</text>
-<text class="fm-label" x="33.415" y="5.741">14</text>
-<text class="fm-area" x="33.415" y="6.191">24.1</text>
-<text class="fm-label" x="38.779" y="5.755">16</text>
-<text class="fm-area" x="38.779" y="6.205">51.2</text>
-<text class="fm-label" x="44.143" y="4.589">19</text>
-<text class="fm-area" x="44.143" y="5.039000000000001">15.9</text>
-<text class="fm-label" x="30.21" y="10.732">15</text>
-<text class="fm-area" x="30.21" y="11.181999999999999">88.9</text>
-<text class="fm-label" x="15.219" y="17.618">61</text>
-<text class="fm-area" x="15.219" y="18.067999999999998">18.0</text>
-<text class="fm-label" x="20.852" y="17.911">60б</text>
-<text class="fm-area" x="20.852" y="18.361">12.6</text>
-<text class="fm-label" x="47.089" y="14.622">23</text>
-<text class="fm-area" x="47.089" y="15.072">67.3</text>
-<text class="fm-label" x="50.581" y="18.179">25а</text>
-<text class="fm-area" x="50.581" y="18.628999999999998">10.7</text>
-<text class="fm-label" x="20.998" y="21.478">60а</text>
-<text class="fm-area" x="20.998" y="21.928">14.2</text>
-<text class="fm-label" x="23.148" y="23.21">60</text>
-<text class="fm-area" x="23.148" y="23.66">135.1</text>
-<text class="fm-label" x="55.989" y="25.465">25</text>
-<text class="fm-area" x="55.989" y="25.915">115.8</text>
-<text class="fm-label" x="9.875" y="26.65">59</text>
-<text class="fm-area" x="9.875" y="27.099999999999998">176.3</text>
-<text class="fm-label" x="23.058" y="32.639">49</text>
-<text class="fm-area" x="23.058" y="33.089000000000006">6.1</text>
-<text class="fm-label" x="29.082" y="35.61">44</text>
-<text class="fm-area" x="29.082" y="36.06">11.8</text>
-<text class="fm-label" x="32.639" y="36.703">38</text>
-<text class="fm-area" x="32.639" y="37.153000000000006">18.9</text>
-<text class="fm-label" x="36.692" y="38.228">35</text>
-<text class="fm-area" x="36.692" y="38.678000000000004">33.2</text>
-<text class="fm-label" x="47.678" y="35.623">26</text>
-<text class="fm-area" x="47.678" y="36.073">10.9</text>
-<text class="fm-label" x="47.655" y="38.328">26а</text>
-<text class="fm-area" x="47.655" y="38.778000000000006">5.1</text>
-<text class="fm-label" x="50.833" y="38.847">25б</text>
-<text class="fm-area" x="50.833" y="39.297000000000004">21.5</text>
-<text class="fm-label" x="54.571" y="35.648">9</text>
-<text class="fm-area" x="54.571" y="36.098000000000006">6.9</text>
-<text class="fm-label" x="54.661" y="37.873">2</text>
-<text class="fm-area" x="54.661" y="38.323">7.6</text>
-<text class="fm-label" x="60.922" y="38.632">5</text>
-<text class="fm-area" x="60.922" y="39.082">16.4</text>
-<text class="fm-label" x="60.957" y="35.394">7</text>
-<text class="fm-area" x="60.957" y="35.844">14.6</text>
-<text class="fm-label" x="22.684" y="41.782">45</text>
-<text class="fm-area" x="22.684" y="42.232">43.2</text>
-<text class="fm-label" x="28.906" y="44.721">41</text>
-<text class="fm-area" x="28.906" y="45.171">17.5</text>
-<text class="fm-label" x="30.892" y="41.058">39</text>
-<text class="fm-area" x="30.892" y="41.508">16.1</text>
-<text class="fm-label" x="32.68" y="44.657">40</text>
-<text class="fm-area" x="32.68" y="45.107">13.9</text>
-<text class="fm-label" x="36.694" y="44.579">34</text>
-<text class="fm-area" x="36.694" y="45.029">13.8</text>
-<text class="fm-label" x="40.103" y="43.588">33</text>
-<text class="fm-area" x="40.103" y="44.038000000000004">15.2</text>
-<text class="fm-label" x="43.665" y="40.076">1</text>
-<text class="fm-area" x="43.665" y="40.526">42.7</text>
-<text class="fm-label" x="47.638" y="42.265">27в</text>
-<text class="fm-area" x="47.638" y="42.715">5.6</text>
-<text class="fm-label" x="56.911" y="40.195">6</text>
-<text class="fm-area" x="56.911" y="40.645">20.3</text>
-<text class="fm-label" x="61.33" y="42.169">1</text>
-<text class="fm-area" x="61.33" y="42.619">13.3</text>
+<path class="fm-room" d="M 2.162 5.525 L 2.162 8.916 L 4.621 8.916 L 4.621 5.525 Z" data-room-id="f1-1" data-bti-number="1" data-area="8.3"><title>№ 1 · 8.3 м²</title></path>
+<path class="fm-room is-review" d="M 6.697 5.863 L 6.697 11.989 L 12.174 11.989 L 12.174 5.863 Z" data-room-id="f1-1-2" data-bti-number="1" data-area="33.6"><title>№ 1 · 33.6 м²</title></path>
+<path class="fm-room is-review" d="M 24.365 1.989 L 21.351 1.989 L 21.351 2.828 L 20.776 2.828 L 20.776 2.117 L 19.034 2.117 L 19.034 9.351 L 22.807 9.351 L 22.807 8.393 L 23.713 8.393 L 23.713 9.351 L 24.365 9.351 Z" data-room-id="f1-11" data-bti-number="11" data-area="37.7"><title>№ 11 · 37.7 м²</title></path>
+<path class="fm-room is-review" d="M 24.585 1.989 L 24.585 8.916 L 25.061 8.916 L 25.061 9.351 L 27.675 9.351 L 27.675 1.989 Z" data-room-id="f1-12" data-bti-number="12" data-area="22.5"><title>№ 12 · 22.5 м²</title></path>
+<path class="fm-room" d="M 32.123 1.575 L 30.999 1.575 L 30.999 1.989 L 28.102 1.989 L 28.102 2.828 L 27.872 2.828 L 27.872 9.351 L 31.518 9.351 L 31.518 6.449 L 31.189 6.449 L 31.189 6.113 L 31.518 6.028 L 31.518 1.989 L 32.123 1.989 Z" data-room-id="f1-13" data-bti-number="13" data-area="27.0"><title>№ 13 · 27.0 м²</title></path>
+<path class="fm-room is-review" d="M 31.786 1.989 L 31.786 6.088 L 31.189 6.088 L 31.189 6.449 L 31.786 6.449 L 31.786 9.351 L 35.026 9.351 L 35.026 1.989 Z" data-room-id="f1-14" data-bti-number="14" data-area="24.1"><title>№ 14 · 24.1 м²</title></path>
+<path class="fm-room" d="M 35.306 1.989 L 35.306 9.351 L 41.199 9.351 L 42.208 9.059 L 42.208 2.828 L 41.784 2.828 L 41.784 1.989 Z" data-room-id="f1-16" data-bti-number="16" data-area="50.3"><title>№ 16 · 50.3 м²</title></path>
+<path class="fm-room is-review" d="M 42.555 1.989 L 42.555 7.12 L 45.442 7.12 L 45.442 6.579 L 45.789 6.579 L 45.789 5.385 L 45.442 5.385 L 45.442 4.293 L 45.789 4.293 L 45.789 1.989 Z" data-room-id="f1-19" data-bti-number="19" data-area="16.0"><title>№ 19 · 16.0 м²</title></path>
+<path class="fm-room is-review" d="M 13.991 1.392 L 13.991 1.989 L 18.681 1.989 L 18.681 7.12 L 18.494 7.12 L 18.494 7.366 L 18.681 7.434 L 18.681 11.989 L 17.306 11.989 L 17.12 12.579 L 18.681 12.579 L 18.681 12.954 L 19.135 13.112 L 25.519 13.112 L 27.026 14.589 L 27.504 14.589 L 27.504 13.386 L 27.279 13.386 L 27.279 11.989 L 27.675 11.989 L 27.675 12.579 L 42.555 12.579 L 42.555 12.383 L 44.412 12.383 L 44.412 11.158 L 46.046 11.158 L 46.046 9.613 L 39.904 9.613 L 39.904 9.906 L 38.843 9.906 L 38.843 9.613 L 32.495 9.613 L 32.495 10.837 L 31.786 10.837 L 31.786 12.166 L 31.382 12.166 L 31.382 9.613 L 27.675 9.613 L 27.675 10.152 L 27.122 10.152 L 27.122 9.613 L 21.822 9.613 L 21.822 12.166 L 21.505 12.166 L 21.234 11.779 L 21.533 11.779 L 21.533 9.613 L 19.034 9.613 L 19.034 1.989 L 21.351 1.989 L 21.351 1.392 Z" data-room-id="f1-15" data-bti-number="15" data-area="89.2"><title>№ 15 · 89.2 м²</title></path>
+<path class="fm-room is-review" d="M 17.788 15.914 L 12.625 15.914 L 12.625 19.364 L 17.788 19.364 Z" data-room-id="f1-61" data-bti-number="61" data-area="17.8"><title>№ 61 · 17.8 м²</title></path>
+<path class="fm-room" d="M 23.284 16.345 L 20.776 16.345 L 20.776 16.939 L 18.002 16.939 L 18.002 18.432 L 18.681 18.432 L 18.681 19.177 L 23.284 19.177 Z" data-room-id="f1-60б" data-bti-number="60б" data-area="12.8"><title>№ 60б · 12.8 м²</title></path>
+<path class="fm-room is-review" d="M 49.293 9.009 L 48.734 9.229 L 48.395 9.771 L 47.718 9.263 L 47.142 10.025 L 46.855 11.337 L 44.412 11.337 L 44.412 13.112 L 41.784 13.112 L 41.784 15.782 L 43.688 17.661 L 43.688 18.203 L 44.077 18.203 L 45.466 19.773 L 48.339 19.773 L 48.339 20.234 L 48.51 20.234 L 48.51 20.715 L 49.019 20.715 L 49.019 20.234 L 49.627 20.234 L 49.627 19.773 L 49.019 19.773 L 49.019 18.711 L 48.7 18.711 L 48.7 18.011 L 49.019 18.011 L 49.019 16.468 L 48.339 16.468 L 48.339 15.867 L 50.444 14.437 L 50.646 14.437 L 50.646 15.006 L 51.681 15.006 L 52.967 13.547 L 52.681 13.106 L 52.681 12.243 Z" data-room-id="f1-23" data-bti-number="23" data-area="68.3"><title>№ 23 · 68.3 м²</title></path>
+<path class="fm-room is-review" d="M 48.51 15.9 L 48.51 16.345 L 49.019 16.345 L 49.019 19.773 L 49.627 19.773 L 49.627 19.981 L 51.714 19.981 L 51.714 19.55 L 52.383 19.55 L 52.383 18.945 L 51.908 18.945 L 51.908 16.939 L 52.383 16.939 L 52.383 16.137 L 50.646 16.137 L 50.646 14.58 Z" data-room-id="f1-25а" data-bti-number="25а" data-area="13.6"><title>№ 25а · 13.6 м²</title></path>
+<path class="fm-room is-review" d="M 18.873 19.773 L 18.873 23.283 L 20.501 23.283 L 20.501 22.936 L 23.284 22.936 L 23.284 19.773 Z" data-room-id="f1-60а" data-bti-number="60а" data-area="14.5"><title>№ 60а · 14.5 м²</title></path>
+<path class="fm-room is-review" d="M 19.034 13.112 L 19.034 16.696 L 20.501 16.696 L 20.501 15.331 L 21.533 15.331 L 21.533 16.345 L 23.478 16.345 L 23.478 19.177 L 24.812 19.177 L 24.812 19.773 L 23.478 19.773 L 23.478 23.103 L 20.501 23.103 L 20.501 23.419 L 18.681 23.419 L 18.681 24.02 L 18.252 24.02 L 18.252 19.773 L 14.884 19.773 L 14.884 24.824 L 18.017 27.952 L 18.252 27.952 L 18.252 26.478 L 18.494 26.478 L 18.494 26.856 L 19.27 26.478 L 24.812 26.478 L 24.812 37.368 L 27.122 37.368 L 27.122 34.4 L 27.675 34.4 L 27.675 14.589 L 27.026 14.589 L 25.519 13.112 Z" data-room-id="f1-60" data-bti-number="60" data-area="136.1"><title>№ 60 · 136.1 м²</title></path>
+<path class="fm-room" d="M 52.681 16.345 L 52.681 22.575 L 52.159 22.575 L 52.159 20.715 L 51.908 20.715 L 51.908 20.234 L 50.646 20.234 L 50.646 20.715 L 50.326 20.715 L 50.326 20.234 L 49.019 20.234 L 49.019 22.157 L 48.51 22.157 L 48.51 23.419 L 49.019 23.419 L 49.019 24.867 L 48.51 24.867 L 48.51 27.952 L 49.019 27.952 L 49.019 33.346 L 49.627 33.346 L 49.627 34.043 L 52.159 34.043 L 52.159 35.192 L 53.045 35.192 L 53.045 34.527 L 56.563 34.527 L 56.563 35.192 L 56.847 35.192 L 56.847 34.043 L 58.095 34.043 L 58.095 33.8 L 59.444 33.8 L 59.444 34.4 L 59.851 34.4 L 59.841 33.46 L 59.841 32.918 L 59.303 32.918 L 59.303 27.254 L 58.783 27.254 L 58.783 26.883 L 59.303 26.883 L 59.303 23.419 L 58.993 23.419 L 58.993 23.103 L 59.303 23.103 L 59.303 19.773 L 58.783 19.773 L 58.783 19.364 L 59.303 19.364 L 59.303 16.345 Z" data-room-id="f1-25" data-bti-number="25" data-area="171.0"><title>№ 25 · 171.0 м²</title></path>
+<path class="fm-room" d="M 3.228 19.829 L 3.228 20.234 L 2.955 20.234 L 2.955 25.069 L 3.228 25.069 L 3.228 26.085 L 3.471 26.085 L 3.471 26.478 L 3.228 26.478 L 3.228 32.233 L 2.572 32.233 L 2.572 34.043 L 3.228 34.043 L 3.228 38.952 L 2.572 38.952 L 2.572 40.303 L 3.228 40.303 L 3.228 45.831 L 2.572 45.831 L 2.572 47.209 L 7.883 47.209 L 7.883 46.546 L 8.975 46.546 L 9.076 46.154 L 9.512 46.154 L 9.512 46.546 L 11.996 46.546 L 11.996 46.154 L 12.469 46.154 L 12.469 46.546 L 18.002 46.546 L 18.002 46.154 L 18.252 46.154 L 18.252 27.974 L 14.884 24.824 L 14.884 19.706 L 12.174 19.737 L 9.652 19.768 L 9.256 19.773 L 3.725 19.773 Z" data-room-id="f1-59" data-bti-number="59" data-area="386.9"><title>№ 59 · 386.9 м²</title></path>
+<path class="fm-room is-review" d="M 21.533 31.572 L 21.533 33.8 L 22.064 33.8 L 22.2 33.346 L 22.55 33.346 L 22.55 33.8 L 23.284 33.8 L 23.284 33.613 L 22.809 33.613 L 22.877 33.346 L 24.009 33.346 L 24.009 33.63 L 23.713 33.63 L 23.713 33.8 L 24.585 33.8 L 24.585 31.572 Z" data-room-id="f1-49" data-bti-number="49" data-area="6.2"><title>№ 49 · 6.2 м²</title></path>
+<path class="fm-room is-review" d="M 27.615 33.8 L 27.541 34.434 L 27.541 37.368 L 30.819 37.368 L 30.819 33.8 Z" data-room-id="f1-44" data-bti-number="44" data-area="11.7"><title>№ 44 · 11.7 м²</title></path>
+<path class="fm-room is-review" d="M 30.999 33.8 L 30.999 39.522 L 34.376 39.522 L 34.376 33.8 Z" data-room-id="f1-38" data-bti-number="38" data-area="19.3"><title>№ 38 · 19.3 м²</title></path>
+<path class="fm-room is-review" d="M 38.622 33.8 L 34.376 33.8 L 34.376 40.303 L 34.823 40.303 L 34.823 42.612 L 37.82 42.612 L 37.82 41.841 L 38.622 41.841 Z" data-room-id="f1-35" data-bti-number="35" data-area="35.8"><title>№ 35 · 35.8 м²</title></path>
+<path class="fm-room" d="M 46.046 33.8 L 46.046 36.763 L 46.584 36.763 L 46.584 37.368 L 49.357 37.368 L 49.357 34.171 L 48.836 34.171 L 48.836 33.8 Z" data-room-id="f1-26" data-bti-number="26" data-area="11.3"><title>№ 26 · 11.3 м²</title></path>
+<path class="fm-room" d="M 46.046 37.368 L 46.046 38.952 L 49.357 38.952 L 49.357 37.368 Z" data-room-id="f1-26а" data-bti-number="26а" data-area="5.2"><title>№ 26а · 5.2 м²</title></path>
+<path class="fm-room is-review" d="M 49.627 34.4 L 49.627 42.182 L 49.953 42.182 L 49.953 43.062 L 50.646 43.062 L 50.646 43.307 L 50.919 43.307 L 51.02 43.062 L 51.562 43.062 L 51.562 43.417 L 52.159 43.637 L 52.159 44.027 L 53.045 44.298 L 53.045 43.968 L 53.376 43.968 L 53.376 43.062 L 52.544 43.062 L 52.544 39.329 L 55.148 39.329 L 55.148 38.952 L 52.681 38.952 L 52.681 36.763 L 56.847 36.763 L 56.847 36.236 L 56.563 36.236 L 56.563 36.486 L 52.595 36.486 L 52.159 36.356 L 52.159 34.4 Z" data-room-id="f1-25б" data-bti-number="25б" data-area="28.4"><title>№ 25б · 28.4 м²</title></path>
+<path class="fm-room is-review" d="M 52.681 35.192 L 52.681 36.486 L 56.563 36.486 L 56.563 34.595 L 53.045 34.595 L 53.045 35.192 Z" data-room-id="f1-9" data-bti-number="9" data-area="7.1"><title>№ 9 · 7.1 м²</title></path>
+<path class="fm-room is-review" d="M 52.681 36.763 L 52.681 38.316 L 53.805 38.316 L 53.805 38.608 L 53.376 38.608 L 53.376 38.823 L 56.563 38.823 L 56.563 36.763 Z" data-room-id="f1-2" data-bti-number="2" data-area="7.5"><title>№ 2 · 7.5 м²</title></path>
+<path class="fm-room" d="M 58.095 37.01 L 58.095 40.037 L 60.054 40.037 L 60.054 39.522 L 60.715 39.522 L 60.715 40.037 L 63.799 40.037 L 63.799 37.01 Z" data-room-id="f1-5" data-bti-number="5" data-area="16.9"><title>№ 5 · 16.9 м²</title></path>
+<path class="fm-room is-review" d="M 64.461 33.367 L 63.799 33.346 L 60.427 33.346 L 60.427 33.8 L 59.841 33.8 L 59.841 34.4 L 59.303 34.4 L 59.303 33.8 L 58.095 33.8 L 58.095 37.01 L 64.461 37.01 Z" data-room-id="f1-7" data-bti-number="7" data-area="21.9"><title>№ 7 · 21.9 м²</title></path>
+<path class="fm-room is-review" d="M 29.168 37.368 L 26.374 37.368 L 26.374 37.752 L 22.318 37.752 L 22.318 38.316 L 21.175 38.316 L 21.175 37.752 L 20.776 37.752 L 20.776 40.303 L 22.55 40.303 L 22.55 39.121 L 22.183 39.121 L 22.098 38.823 L 22.55 38.823 L 22.55 38.151 L 22.807 38.151 L 22.807 43.062 L 22.55 43.062 L 22.55 40.626 L 19.034 40.626 L 19.034 42.485 L 19.211 42.485 L 19.211 43.062 L 21.822 43.062 L 21.822 43.307 L 19.034 43.307 L 19.034 46.349 L 24.009 46.349 L 24.009 39.121 L 27.122 39.121 L 27.122 40.809 L 27.504 40.809 L 27.504 39.522 L 29.168 39.522 Z" data-room-id="f1-45" data-bti-number="45" data-area="43.8"><title>№ 45 · 43.8 м²</title></path>
+<path class="fm-room is-review" d="M 27.122 41.841 L 27.122 46.546 L 26.873 46.546 L 26.873 47.209 L 28.363 47.209 L 28.482 46.803 L 30.999 46.803 L 30.999 42.485 L 27.504 42.485 L 27.504 41.841 Z" data-room-id="f1-41" data-bti-number="41" data-area="17.7"><title>№ 41 · 17.7 м²</title></path>
+<path class="fm-room is-review" d="M 27.122 40.894 L 27.122 41.841 L 27.567 41.841 L 27.669 42.182 L 34.376 42.182 L 34.376 39.75 L 31.852 39.75 L 31.767 40.037 L 30.999 40.037 L 30.999 39.75 L 28.102 39.75 L 28.102 40.674 Z" data-room-id="f1-39" data-bti-number="39" data-area="16.2"><title>№ 39 · 16.2 м²</title></path>
+<path class="fm-room is-review" d="M 31.189 42.485 L 31.189 46.803 L 34.376 46.803 L 34.376 42.485 Z" data-room-id="f1-40" data-bti-number="40" data-area="13.8"><title>№ 40 · 13.8 м²</title></path>
+<path class="fm-room is-review" d="M 38.622 42.182 L 37.956 42.182 L 37.956 42.849 L 34.823 42.849 L 34.823 46.349 L 38.622 46.349 Z" data-room-id="f1-34" data-bti-number="34" data-area="13.7"><title>№ 34 · 13.7 м²</title></path>
+<path class="fm-room" d="M 38.843 40.626 L 38.843 46.349 L 41.569 46.349 L 41.569 40.626 Z" data-room-id="f1-33" data-bti-number="33" data-area="15.6"><title>№ 33 · 15.6 м²</title></path>
+<path class="fm-room is-review" d="M 41.605 33.093 L 41.402 33.731 L 41.569 33.816 L 41.569 35.323 L 42.208 35.323 L 42.208 46.546 L 45.442 46.546 L 45.442 33.8 L 42.435 33.8 L 42.147 33.093 Z" data-room-id="f1-1-41" data-bti-number="1" data-area="42.8"><title>№ 1 · 42.8 м²</title></path>
+<path class="fm-room" d="M 46.046 41.326 L 46.046 43.062 L 49.357 43.062 L 49.357 41.326 Z" data-room-id="f1-27в" data-bti-number="27в" data-area="5.7"><title>№ 27в · 5.7 м²</title></path>
+<path class="fm-room" d="M 58.095 34.4 L 56.847 34.4 L 56.847 38.952 L 55.148 38.952 L 55.148 43.515 L 58.623 43.515 L 58.623 40.303 L 58.095 40.303 Z" data-room-id="f1-6" data-bti-number="6" data-area="20.8"><title>№ 6 · 20.8 м²</title></path>
+<path class="fm-room is-review" d="M 58.993 40.626 L 58.993 43.515 L 63.424 43.515 L 63.424 43.062 L 63.799 43.062 L 63.799 40.626 Z" data-room-id="f1-1-46" data-bti-number="1" data-area="13.7"><title>№ 1 · 13.7 м²</title></path>
+<path class="fm-room is-unnamed" d="M 12.971 1.392 L 11.996 1.392 L 11.996 0.22 L 10.973 0.22 L 10.668 1.392 L 5.893 1.392 L 4.621 2.235 L 4.621 4.792 L 0.021 4.792 L 0.021 6.449 L 2.162 6.449 L 2.162 5.385 L 4.621 5.385 L 4.621 6.449 L 5.279 6.449 L 5.279 2.743 L 5.842 1.989 L 12.971 1.989 Z" data-room-id="f1-auto47" data-bti-number="—" data-area="14.0"><title>№ — · 14.0 м²</title></path>
+<path class="fm-room is-unnamed" d="M 48.565 1.392 L 48.339 1.392 L 48.339 1.981 L 48.954 2.303 L 49.149 2.777 L 49.149 8.23 L 47.955 9.009 L 48.175 9.466 L 49.803 8.704 L 49.803 2.642 L 49.445 1.947 Z" data-room-id="f1-auto48" data-bti-number="—" data-area="5.7"><title>№ — · 5.7 м²</title></path>
+<path class="fm-room is-unnamed" d="M 12.174 1.989 L 5.825 1.989 L 5.279 2.709 L 5.279 5.525 L 9.004 5.525 L 9.004 2.828 L 12.174 2.828 Z" data-room-id="f1-auto49" data-bti-number="—" data-area="15.6"><title>№ — · 15.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 46.246 1.989 L 46.246 3.776 L 49.019 3.776 L 49.019 2.608 L 48.666 1.989 Z" data-room-id="f1-auto51" data-bti-number="—" data-area="4.8"><title>№ — · 4.8 м²</title></path>
+<path class="fm-room is-unnamed" d="M 9.256 3.222 L 9.256 5.525 L 12.174 5.525 L 12.174 3.222 Z" data-room-id="f1-auto52" data-bti-number="—" data-area="6.7"><title>№ — · 6.7 м²</title></path>
+<path class="fm-room is-unnamed" d="M 12.625 3.222 L 12.625 5.863 L 13.991 5.863 L 13.991 5.351 L 14.156 5.106 L 15.637 5.106 L 15.637 3.222 Z" data-room-id="f1-auto53" data-bti-number="—" data-area="6.7"><title>№ — · 6.7 м²</title></path>
+<path class="fm-room is-unnamed" d="M 47.617 3.979 L 47.617 7.12 L 46.246 7.12 L 46.246 11.158 L 46.787 11.158 L 47.65 8.975 L 49.019 8.196 L 49.019 7.078 L 48.649 6.096 L 49.056 5.647 L 48.463 5.647 L 48.023 4.572 L 48.395 4.166 Z" data-room-id="f1-auto54" data-bti-number="—" data-area="9.5"><title>№ — · 9.5 м²</title></path>
+<path class="fm-room is-unnamed" d="M 49.803 6.807 L 49.803 8.393 L 50.646 8.393 L 50.646 8.738 L 49.801 8.738 L 49.716 8.975 L 52.493 11.779 L 57.963 11.779 L 57.963 10.973 L 54.77 10.973 L 54.77 9.567 L 52.155 6.807 Z" data-room-id="f1-auto55" data-bti-number="—" data-area="19.7"><title>№ — · 19.7 м²</title></path>
+<path class="fm-room is-unnamed" d="M 0.021 7.823 L 0.021 9.613 L 4.621 9.613 L 4.621 11.481 L 5.283 12.26 L 5.961 12.579 L 10.609 12.579 L 10.609 14.151 L 12.174 14.151 L 12.174 13.655 L 12.469 13.655 L 12.469 13.386 L 11.996 13.386 L 11.996 12.827 L 12.469 12.827 L 12.469 12.579 L 16.323 12.579 L 16.323 11.989 L 17.13 11.989 L 17.13 11.158 L 17.584 11.158 L 17.584 10.669 L 16.752 10.669 L 16.752 7.438 L 17.584 7.438 L 17.584 7.085 L 13.991 7.12 L 12.174 7.12 L 12.174 11.989 L 6.51 11.989 L 6.51 10.669 L 5.279 10.669 L 5.279 6.977 L 4.621 6.977 L 4.621 8.916 L 2.162 8.916 L 2.162 7.823 Z" data-room-id="f1-auto56" data-bti-number="—" data-area="42.6"><title>№ — · 42.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 42.555 7.12 L 42.555 9.351 L 45.442 9.351 L 45.442 7.12 Z" data-room-id="f1-auto57" data-bti-number="—" data-area="6.4"><title>№ — · 6.4 м²</title></path>
+<path class="fm-room is-unnamed" d="M 16.752 7.438 L 16.752 9.05 L 17.584 9.05 L 17.584 11.989 L 18.681 11.989 L 18.681 7.438 Z" data-room-id="f1-auto58" data-bti-number="—" data-area="6.3"><title>№ — · 6.3 м²</title></path>
+<path class="fm-room is-unnamed" d="M 59.649 13.327 L 59.233 12.463 L 58.268 11.779 L 52.681 11.779 L 52.681 13.005 L 53.137 13.276 L 52.9 14.055 L 51.63 15.006 L 50.646 15.006 L 50.646 15.914 L 57.65 15.914 L 57.65 13.868 L 54.424 13.868 L 54.424 12.383 L 55.651 12.383 L 55.651 13.112 L 56.563 13.112 L 56.563 12.383 L 58.183 12.383 L 58.894 13.022 L 59.08 13.655 L 59.649 13.655 Z" data-room-id="f1-auto59" data-bti-number="—" data-area="19.9"><title>№ — · 19.9 м²</title></path>
+<path class="fm-room is-unnamed" d="M 55.148 13.479 L 55.148 13.655 L 57.819 13.655 L 57.819 15.914 L 58.993 15.914 L 58.993 13.31 L 58.403 12.598 Z" data-room-id="f1-auto60" data-bti-number="—" data-area="5.1"><title>№ — · 5.1 м²</title></path>
+<path class="fm-room is-unnamed" d="M 16.323 12.579 L 16.323 14.151 L 17.13 14.151 L 17.13 15.331 L 18.681 15.331 L 18.681 12.579 Z" data-room-id="f1-auto61" data-bti-number="—" data-area="5.5"><title>№ — · 5.5 м²</title></path>
+<path class="fm-room is-unnamed" d="M 28.102 18.011 L 29.168 18.011 L 29.168 15.914 L 29.693 15.914 L 29.693 14.151 L 33.917 14.151 L 33.917 13.112 L 31.382 13.112 L 31.382 12.579 L 27.33 12.579 L 27.33 13.386 L 27.675 13.386 L 27.675 14.437 L 28.102 14.437 Z" data-room-id="f1-auto62" data-bti-number="—" data-area="13.9"><title>№ — · 13.9 м²</title></path>
+<path class="fm-room is-unnamed" d="M 30.429 14.437 L 30.429 15.914 L 29.168 15.914 L 29.168 18.203 L 27.675 18.203 L 27.675 19.939 L 28.102 19.939 L 28.102 29.768 L 27.675 29.768 L 27.675 33.8 L 31.995 33.8 L 31.995 33.346 L 41.537 33.346 L 41.605 33.093 L 42.208 33.093 L 42.208 33.346 L 45.415 33.346 L 45.5 33.093 L 46.046 33.093 L 46.046 33.346 L 48.51 33.346 L 48.51 20.234 L 46.796 20.234 L 46.796 19.773 L 45.534 19.773 L 44.128 18.373 L 43.705 18.525 L 43.163 18.186 L 42.867 17.678 L 42.867 17.238 L 41.961 16.375 L 41.656 16.679 L 41.212 16.07 L 41.212 13.112 L 35.433 13.112 L 35.433 15.914 L 33.951 15.914 L 32.918 14.437 Z" data-room-id="f1-auto63" data-bti-number="—" data-area="357.0"><title>№ — · 357.0 м²</title></path>
+<path class="fm-room is-unnamed" d="M 58.993 14.834 L 58.993 16.121 L 59.303 16.188 L 59.303 19.364 L 58.783 19.364 L 58.783 19.773 L 59.303 19.773 L 59.303 26.883 L 58.783 26.883 L 58.783 27.254 L 59.841 27.254 L 59.841 26.883 L 59.649 26.883 L 59.649 14.834 Z" data-room-id="f1-auto64" data-bti-number="—" data-area="5.2"><title>№ — · 5.2 м²</title></path>
+<path class="fm-room is-unnamed" d="M 52.159 22.575 L 52.681 22.575 L 52.681 16.345 L 58.993 16.345 L 58.993 15.914 L 52.383 15.914 L 52.383 19.773 L 51.765 19.773 L 51.765 20.185 L 52.159 20.693 Z" data-room-id="f1-auto65" data-bti-number="—" data-area="5.6"><title>№ — · 5.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 12.625 18.203 L 12.174 18.203 L 12.174 18.945 L 2.572 18.945 L 2.572 20.234 L 3.228 20.234 L 3.228 19.795 L 3.742 19.601 L 9.256 19.671 L 12.09 19.773 L 12.625 19.773 Z" data-room-id="f1-auto66" data-bti-number="—" data-area="8.0"><title>№ — · 8.0 м²</title></path>
+<path class="fm-room is-unnamed" d="M 18.494 26.883 L 18.494 28.202 L 19.034 28.202 L 19.034 27.686 L 19.575 27.686 L 19.71 28.202 L 20.776 28.202 L 20.776 29.768 L 22.55 29.768 L 22.55 26.883 Z" data-room-id="f1-auto68" data-bti-number="—" data-area="7.8"><title>№ — · 7.8 м²</title></path>
+<path class="fm-room is-unnamed" d="M 20.501 28.431 L 18.494 28.431 L 18.494 29.591 L 18.252 29.591 L 18.252 44.154 L 19.034 44.154 L 19.034 43.307 L 19.211 43.307 L 19.211 42.485 L 19.034 42.485 L 19.034 37.752 L 24.812 37.752 L 24.812 35.475 L 24.365 35.475 L 24.365 37.368 L 18.681 37.368 L 18.681 34.248 L 24.365 34.248 L 24.365 34.578 L 24.812 34.578 L 24.812 33.8 L 21.533 33.8 L 21.533 29.768 L 20.501 29.768 Z" data-room-id="f1-auto69" data-bti-number="—" data-area="28.9"><title>№ — · 28.9 м²</title></path>
+<path class="fm-room is-unnamed" d="M 49.019 29.329 L 48.51 29.329 L 48.51 33.346 L 46.093 33.346 L 46.025 33.093 L 45.483 33.093 L 45.429 33.409 L 45.442 34.307 L 45.442 47.346 L 45.789 47.583 L 45.789 48.59 L 46.046 48.59 L 46.046 47.032 L 46.246 47.032 L 46.246 46.154 L 46.046 46.154 L 46.046 43.515 L 48.019 43.515 L 48.019 44.907 L 48.339 44.907 L 48.339 43.307 L 50.512 43.307 L 50.512 43.062 L 46.046 43.062 L 46.046 33.8 L 49.627 33.8 L 49.627 33.346 L 49.019 33.346 Z" data-room-id="f1-auto71" data-bti-number="—" data-area="14.8"><title>№ — · 14.8 м²</title></path>
+<path class="fm-room is-unnamed" d="M 38.843 33.8 L 38.843 36.486 L 41.569 36.486 L 41.569 33.8 Z" data-room-id="f1-auto72" data-bti-number="—" data-area="7.3"><title>№ — · 7.3 м²</title></path>
+<path class="fm-room is-unnamed" d="M 18.681 37.368 L 19.685 37.368 L 19.685 35.704 L 24.365 35.704 L 24.365 34.4 L 18.681 34.4 Z" data-room-id="f1-auto73" data-bti-number="—" data-area="9.1"><title>№ — · 9.1 м²</title></path>
+<path class="fm-room is-unnamed" d="M 19.88 35.941 L 19.88 37.368 L 24.009 37.368 L 24.009 36.763 L 24.365 36.763 L 24.365 35.941 L 20.896 35.941 L 20.811 36.236 L 20.218 36.236 L 20.134 35.941 Z" data-room-id="f1-auto74" data-bti-number="—" data-area="6.0"><title>№ — · 6.0 м²</title></path>
+<path class="fm-room is-unnamed" d="M 41.569 36.236 L 41.569 46.803 L 41.212 46.803 L 41.212 47.193 L 42.029 47.532 L 42.208 47.346 L 42.208 36.236 Z" data-room-id="f1-auto75" data-bti-number="—" data-area="7.3"><title>№ — · 7.3 м²</title></path>
+<path class="fm-room is-unnamed" d="M 38.843 36.763 L 38.843 38.823 L 41.569 38.823 L 41.569 36.763 Z" data-room-id="f1-auto76" data-bti-number="—" data-area="5.6"><title>№ — · 5.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 24.009 39.329 L 24.009 43.062 L 27.122 43.062 L 27.122 39.329 Z" data-room-id="f1-auto77" data-bti-number="—" data-area="11.6"><title>№ — · 11.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 64.461 39.75 L 63.799 39.75 L 63.799 43.062 L 63.424 43.062 L 63.424 43.515 L 60.291 43.515 L 60.291 43.968 L 63.754 43.968 L 63.873 44.281 L 64.461 44.281 Z" data-room-id="f1-auto78" data-bti-number="—" data-area="4.8"><title>№ — · 4.8 м²</title></path>
+<path class="fm-room is-unnamed" d="M 24.009 43.307 L 24.009 46.349 L 26.992 46.349 L 26.992 43.307 Z" data-room-id="f1-auto79" data-bti-number="—" data-area="9.1"><title>№ — · 9.1 м²</title></path>
+<path class="fm-room is-unnamed" d="M 46.046 43.515 L 46.046 46.154 L 48.019 46.154 L 48.019 43.515 Z" data-room-id="f1-auto80" data-bti-number="—" data-area="5.2"><title>№ — · 5.2 м²</title></path>
+<path class="fm-room is-unnamed" d="M 48.339 43.515 L 48.339 44.738 L 50.646 44.738 L 50.646 46.154 L 51.908 46.154 L 51.908 43.705 L 51.681 43.515 Z" data-room-id="f1-auto81" data-bti-number="—" data-area="6.1"><title>№ — · 6.1 м²</title></path>
+<path class="fm-room is-unnamed" d="M 19.034 45.272 L 18.252 45.272 L 18.252 46.154 L 18.002 46.154 L 18.002 46.546 L 12.469 46.546 L 12.469 46.154 L 11.996 46.154 L 11.996 46.546 L 9.512 46.546 L 9.512 46.154 L 9.004 46.154 L 9.004 46.546 L 8.331 46.546 L 8.331 47.209 L 19.034 47.209 Z" data-room-id="f1-auto82" data-bti-number="—" data-area="8.6"><title>№ — · 8.6 м²</title></path>
+<path class="fm-room is-unnamed" d="M 26.839 47.209 L 26.839 48.032 L 30.999 48.032 L 30.999 49.581 L 31.786 49.581 L 31.786 47.209 Z" data-room-id="f1-auto84" data-bti-number="—" data-area="5.3"><title>№ — · 5.3 м²</title></path>
+<text class="fm-label" x="3.362" y="7.18">1</text>
+<text class="fm-area" x="3.362" y="7.63">8.3</text>
+<text class="fm-label" x="9.446" y="8.904">1</text>
+<text class="fm-area" x="9.446" y="9.354">33.6</text>
+<text class="fm-label" x="21.741" y="5.622">11</text>
+<text class="fm-area" x="21.741" y="6.072">37.7</text>
+<text class="fm-label" x="26.174" y="5.672">12</text>
+<text class="fm-area" x="26.174" y="6.122">22.5</text>
+<text class="fm-label" x="29.731" y="5.612">13</text>
+<text class="fm-area" x="29.731" y="6.062">27.0</text>
+<text class="fm-label" x="33.404" y="5.69">14</text>
+<text class="fm-area" x="33.404" y="6.140000000000001">24.1</text>
+<text class="fm-label" x="38.77" y="5.695">16</text>
+<text class="fm-area" x="38.77" y="6.1450000000000005">50.3</text>
+<text class="fm-label" x="44.131" y="4.511">19</text>
+<text class="fm-area" x="44.131" y="4.961">16.0</text>
+<text class="fm-label" x="30.204" y="10.695">15</text>
+<text class="fm-area" x="30.204" y="11.145">89.2</text>
+<text class="fm-label" x="15.236" y="17.61">61</text>
+<text class="fm-area" x="15.236" y="18.06">17.8</text>
+<text class="fm-label" x="20.869" y="17.887">60б</text>
+<text class="fm-area" x="20.869" y="18.337">12.8</text>
+<text class="fm-label" x="47.117" y="14.515">23</text>
+<text class="fm-area" x="47.117" y="14.965">68.3</text>
+<text class="fm-label" x="50.427" y="17.637">25а</text>
+<text class="fm-area" x="50.427" y="18.087">13.6</text>
+<text class="fm-label" x="21.021" y="21.456">60а</text>
+<text class="fm-area" x="21.021" y="21.906">14.5</text>
+<text class="fm-label" x="23.183" y="23.194">60</text>
+<text class="fm-area" x="23.183" y="23.644">136.1</text>
+<text class="fm-label" x="54.402" y="26.061">25</text>
+<text class="fm-area" x="54.402" y="26.511">171.0</text>
+<text class="fm-label" x="10.251" y="33.777">59</text>
+<text class="fm-area" x="10.251" y="34.227000000000004">386.9</text>
+<text class="fm-label" x="23.107" y="32.612">49</text>
+<text class="fm-area" x="23.107" y="33.062000000000005">6.2</text>
+<text class="fm-label" x="29.144" y="35.569">44</text>
+<text class="fm-area" x="29.144" y="36.019000000000005">11.7</text>
+<text class="fm-label" x="32.698" y="36.652">38</text>
+<text class="fm-area" x="32.698" y="37.102000000000004">19.3</text>
+<text class="fm-label" x="36.545" y="38.055">35</text>
+<text class="fm-area" x="36.545" y="38.505">35.8</text>
+<text class="fm-label" x="47.738" y="35.539">26</text>
+<text class="fm-area" x="47.738" y="35.989000000000004">11.3</text>
+<text class="fm-label" x="47.722" y="38.243">26а</text>
+<text class="fm-area" x="47.722" y="38.693000000000005">5.2</text>
+<text class="fm-label" x="51.394" y="39.058">25б</text>
+<text class="fm-area" x="51.394" y="39.508">28.4</text>
+<text class="fm-label" x="54.639" y="35.547">9</text>
+<text class="fm-area" x="54.639" y="35.997">7.1</text>
+<text class="fm-label" x="54.729" y="37.771">2</text>
+<text class="fm-area" x="54.729" y="38.221000000000004">7.5</text>
+<text class="fm-label" x="60.99" y="38.513">5</text>
+<text class="fm-area" x="60.99" y="38.963">16.9</text>
+<text class="fm-label" x="61.433" y="35.302">7</text>
+<text class="fm-area" x="61.433" y="35.752">21.9</text>
+<text class="fm-label" x="22.76" y="41.758">45</text>
+<text class="fm-area" x="22.76" y="42.208000000000006">43.8</text>
+<text class="fm-label" x="28.99" y="44.681">41</text>
+<text class="fm-area" x="28.99" y="45.131">17.7</text>
+<text class="fm-label" x="30.968" y="41.013">39</text>
+<text class="fm-area" x="30.968" y="41.463">16.2</text>
+<text class="fm-label" x="32.765" y="44.607">40</text>
+<text class="fm-area" x="32.765" y="45.057">13.8</text>
+<text class="fm-label" x="36.779" y="44.519">34</text>
+<text class="fm-area" x="36.779" y="44.969">13.7</text>
+<text class="fm-label" x="40.179" y="43.52">33</text>
+<text class="fm-area" x="40.179" y="43.970000000000006">15.6</text>
+<text class="fm-label" x="43.743" y="40.024">1</text>
+<text class="fm-area" x="43.743" y="40.474000000000004">42.8</text>
+<text class="fm-label" x="47.722" y="42.18">27в</text>
+<text class="fm-area" x="47.722" y="42.63">5.7</text>
+<text class="fm-label" x="56.985" y="40.086">6</text>
+<text class="fm-area" x="56.985" y="40.536">20.8</text>
+<text class="fm-label" x="61.406" y="42.05">1</text>
+<text class="fm-area" x="61.406" y="42.5">13.7</text>
 </g>
 </svg>

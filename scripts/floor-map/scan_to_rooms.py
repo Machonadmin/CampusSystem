@@ -48,12 +48,45 @@ SIMPLIFY_M = 0.16       # м: допуск упрощения полигона
 SMOOTH_PX = 11          # px: сглаживание маски помещения перед обводкой
 
 
+def skew_angle(bw):
+    """Перекос скана по длинным отрезкам стен. Доли градуса на ширине здания
+    дают сдвиг больше допуска стыковки, поэтому скан выравнивается."""
+    n, lab, st, _ = cv2.connectedComponentsWithStats(bw, 8)
+    keep = np.zeros(n, bool)
+    for i in range(1, n):
+        if max(st[i][2], st[i][3]) >= MIN_WALL_LEN:
+            keep[i] = True
+    raw = keep[lab].astype(np.uint8) * 255
+    lines = cv2.HoughLinesP(raw, 1, np.pi / 1440, threshold=200,
+                            minLineLength=300, maxLineGap=6)
+    if lines is None:
+        return 0.0
+    devs = []
+    for x1, y1, x2, y2 in lines.reshape(-1, 4):
+        a = (math.degrees(math.atan2(float(y2 - y1), float(x2 - x1))) + 180) % 180
+        d = a if a < 45 else (a - 90 if a < 135 else a - 180)
+        if abs(d) < 5:
+            devs.append(d)
+    return float(np.median(devs)) if devs else 0.0
+
+
 def binarize(path: Path):
     img = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise SystemExit(f"не читается {path}")
     _, bw = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    return img, bw
+    angle = skew_angle(bw)
+    if abs(angle) > 0.02:
+        h, w = img.shape
+        m = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
+        img = cv2.warpAffine(img, m, (w, h), flags=cv2.INTER_CUBIC,
+                             borderMode=cv2.BORDER_CONSTANT, borderValue=255)
+        # бинарную маску вращаем ближайшим соседом: интерполяция размывает
+        # чёрточки подписей толщиной 2 px, и детектор их теряет
+        bw = cv2.warpAffine(bw, m, (w, h), flags=cv2.INTER_NEAREST,
+                            borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    print(f"перекос скана {angle:+.3f}°" + (" — выровнен" if abs(angle) > 0.02 else " — правка не нужна"))
+    return img, bw, angle
 
 
 def footprint(bw):
@@ -134,6 +167,30 @@ def find_labels(bw, foot):
     return deduped
 
 
+def match_manual_labels(path, labels, shape, skew):
+    """Ручная вычитка привязана к координатам подписи, а не к её порядковому
+    номеру: порядок зависит от параметров детектора, и при их правке привязка
+    молча съехала бы на соседнее помещение."""
+    if not path or not path.exists():
+        return {}
+    entries = json.loads(path.read_text(encoding="utf-8"))
+    h, w = shape
+    rot = cv2.getRotationMatrix2D((w / 2, h / 2), skew, 1.0)
+    placed = [(rot @ np.array([e["x"], e["y"], 1.0]), e) for e in entries]
+
+    known = {}
+    for idx, (lx, ly, _) in enumerate(labels):
+        best, bd = None, 30 ** 2
+        for v, e in placed:
+            d = (v[0] - lx) ** 2 + (v[1] - ly) ** 2
+            if d < bd:
+                best, bd = e, d
+        if best is not None:
+            known[idx] = best
+    print(f"вычитано вручную {len(entries)}, сопоставлено с найденными {len(known)}")
+    return known
+
+
 def segment(bw, foot, walls, labels):
     """Водораздел: один сид на подпись плюс сиды для крупных областей без подписи."""
     free = ((walls == 0) & (foot > 0)).astype(np.uint8)
@@ -164,6 +221,55 @@ def segment(bw, foot, walls, labels):
 
     elevation = cv2.GaussianBlur((walls > 0).astype(np.float32), (0, 0), 3)
     return watershed(elevation, seeds, mask=foot > 0), meta
+
+
+def adjacency(ws):
+    """Пары соседних областей водораздела."""
+    pairs = set()
+    for a, b in ((ws[:, :-1], ws[:, 1:]), (ws[:-1, :], ws[1:, :])):
+        m = (a != b) & (a > 0) & (b > 0)
+        for u, v in np.unique(np.stack([a[m], b[m]], 1), axis=0):
+            pairs.add((int(min(u, v)), int(max(u, v))))
+    return pairs
+
+
+def merge_by_printed_area(ws, wall_lines, meta, printed, ppm):
+    """Помещение, разрезанное водоразделом, добирает соседние безымянные области.
+
+    Критерий внешний — площадь, напечатанная на плане БТИ; присоединяем только
+    если модуль расхождения уменьшается. Так восстанавливаются комнаты вроде
+    № 59, у которой отрезало половину, и при этом ничего не подгоняется на глаз.
+    """
+    def area_of(sid_mask):
+        return float((sid_mask & (wall_lines == 0)).sum()) / ppm ** 2
+
+    areas = {sid: area_of(ws == sid) for sid in range(1, len(meta) + 1)}
+    labelled = {sid for sid in areas if printed.get(sid)}
+    merged = 0
+    changed = True
+    while changed:
+        changed = False
+        adj = adjacency(ws)
+        for sid in sorted(labelled):
+            target = printed.get(sid)
+            if not target or areas.get(sid, 0) >= target * 0.85:
+                continue
+            best, best_err = None, abs(areas[sid] - target)
+            for u, v in adj:
+                other = v if u == sid else (u if v == sid else None)
+                if other is None or other in labelled or areas.get(other, 0) <= 0:
+                    continue
+                err = abs(areas[sid] + areas[other] - target)
+                if err < best_err:
+                    best, best_err = other, err
+            if best is not None:
+                ws[ws == best] = sid
+                areas[sid] += areas.pop(best)
+                merged += 1
+                changed = True
+    if merged:
+        print(f"присоединено безымянных областей к разрезанным помещениям: {merged}")
+    return ws
 
 
 def polygon_of(mask):
@@ -224,7 +330,7 @@ def main():
     args = ap.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    img, bw = binarize(args.scan)
+    img, bw, skew = binarize(args.scan)
     foot = footprint(bw)
     labels = find_labels(bw, foot)
     print(f"подписей найдено: {len(labels)}")
@@ -233,12 +339,17 @@ def main():
         print("контактный лист:", contact_sheet(img, labels, args.out, args.floor))
         return
 
-    known = {}
-    if args.labels and args.labels.exists():
-        known = {int(k): v for k, v in json.loads(args.labels.read_text(encoding="utf-8")).items()}
+    known = match_manual_labels(args.labels, labels, bw.shape, skew)
 
     walls, wall_lines = wall_mask(bw, args.wall_fill)
     ws, meta = segment(bw, foot, walls, labels)
+
+    printed_by_sid = {}
+    for sid, info in enumerate(meta, start=1):
+        li = (info or {}).get("label_index")
+        if li is not None and known.get(li, {}).get("area"):
+            printed_by_sid[sid] = known[li]["area"]
+    ws = merge_by_printed_area(ws, wall_lines, meta, printed_by_sid, PPM)
 
     ys, xs = np.where(foot > 0)
     ox, oy = int(xs.min()), int(ys.min())
@@ -291,6 +402,9 @@ def main():
             "issues": issues,
         })
 
+    fcnts, _ = cv2.findContours(foot, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    fpoly = cv2.approxPolyDP(max(fcnts, key=cv2.contourArea), 0.05 * PPM, True).reshape(-1, 2)
+
     payload = {
         "floor": args.floor,
         "source": args.scan.name,
@@ -298,6 +412,8 @@ def main():
         "px_per_meter": round(PPM, 3),
         "extent_m": [round((int(xs.max()) - ox) / PPM, 2), round((int(ys.max()) - oy) / PPM, 2)],
         "footprint_m2": round(int(foot.sum()) / PPM ** 2, 1),
+        "footprint_polygon_m": [[round((px - ox) / PPM, 3), round((py - oy) / PPM, 3)]
+                                for px, py in fpoly],
         "rooms": rooms,
     }
     out = args.out / f"rooms-floor-{args.floor}.json"
