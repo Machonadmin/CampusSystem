@@ -12,6 +12,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface CheckRow {
   id: string
@@ -107,7 +108,7 @@ export default function QualityControlPage() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(id: string, date: string) {
-    if (!confirm(t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date))) return
+    if (!(await confirmDialog({ message: t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date), tone: 'danger' }))) return
     setDeletingId(id)
     try {
       await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })

@@ -9,6 +9,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Subject { id: string; name: string; department_id: string }
@@ -100,7 +101,7 @@ export default function ClassGroupsTab() {
   useEffect(() => { setFilterSubject('') }, [filterDept])
 
   const handleDelete = async (group: ClassGroup) => {
-    if (!confirm(t('class_groups.confirm_delete').replace('{name}', group.name))) return
+    if (!(await confirmDialog({ message: t('class_groups.confirm_delete').replace('{name}', group.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {

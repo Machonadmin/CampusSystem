@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Settings {
   rollover_month: number
@@ -63,7 +64,7 @@ export default function YearRolloverTab() {
   }
 
   async function runNow() {
-    if (!confirm(t('rollover.run_confirm'))) return
+    if (!(await confirmDialog({ message: t('rollover.run_confirm') }))) return
     setRunning(true)
     try {
       const resp = await fetch('/api/education/year-rollover', {

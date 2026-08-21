@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface StudentMini {
   id: string
@@ -50,7 +51,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
   }
 
   const handleRemove = async (studentId: string) => {
-    if (!confirm(t('class_groups.remove_student_confirm'))) return
+    if (!(await confirmDialog({ message: t('class_groups.remove_student_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${groupId}/enrollments/${studentId}`, {
         method: 'DELETE',

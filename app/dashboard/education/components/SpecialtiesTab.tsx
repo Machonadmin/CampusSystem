@@ -7,6 +7,7 @@ import SpecialtyModal from './SpecialtyModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Department {
   id: string
@@ -68,7 +69,7 @@ export default function SpecialtiesTab() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (spec: Specialty) => {
-    if (!confirm(t('specialties.confirm_delete').replace('{name}', spec.name))) return
+    if (!(await confirmDialog({ message: t('specialties.confirm_delete').replace('{name}', spec.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/specialties/${spec.id}`, { method: 'DELETE' })
       if (!resp.ok) {

@@ -5,6 +5,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
   }
 
   const handleDelete = async (lesson: LessonItem) => {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/lessons/${lesson.id}`, { method: 'DELETE' })
       if (!resp.ok) {

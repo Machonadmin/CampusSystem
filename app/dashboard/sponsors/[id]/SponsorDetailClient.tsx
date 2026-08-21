@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
@@ -236,7 +237,7 @@ export default function SponsorDetailClient({
   }
 
   async function removeSponsor() {
-    if (!confirm(t('detail.delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('detail.delete_confirm'), tone: 'danger' }))) return
     setBusy(true); setSFormError(null)
     try {
       const res = await fetch(`/api/sponsors/${sponsor.id}`, { method: 'DELETE' })

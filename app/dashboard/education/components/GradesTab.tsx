@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import GradeEntryPanel from './GradeEntryPanel'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
   useEffect(() => { load() }, [load])
 
   const handleDelete = async (a: AssessmentItem) => {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/assessments/${a.id}`, { method: 'DELETE' })
       if (!resp.ok) {

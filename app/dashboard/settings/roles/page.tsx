@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 type T = (key: string, fallback?: string) => string
 
@@ -253,7 +254,7 @@ export default function RolesPage() {
   }
 
   async function deleteRole(role: Role) {
-    if (!confirm(t('confirm_delete'))) return
+    if (!(await confirmDialog({ message: t('confirm_delete'), tone: 'danger' }))) return
     const res = await fetch(`/api/settings/roles/${role.id}`, { method: 'DELETE' })
     if (res.ok) {
       if (selectedRole?.id === role.id) { setSelectedRole(null); setRolePrivs(new Set()); setModulePrivs([]) }

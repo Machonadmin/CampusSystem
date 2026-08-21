@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface RowResult { index: number; name: string; action: 'create' | 'duplicate' | 'error'; message?: string }
 interface ImportResult { dry_run: boolean; summary: { total: number; created: number; duplicates: number; errors: number }; results: RowResult[] }
@@ -60,7 +61,7 @@ export default function ImportStudentsPage() {
 
   async function run(dryRun: boolean) {
     if (!hasName) { setError(t('need_name')); return }
-    if (!dryRun && !confirm(t('confirm_import'))) return
+    if (!dryRun && !(await confirmDialog({ message: t('confirm_import') }))) return
     setError(''); setLoading(dryRun ? 'check' : 'import')
     try {
       const res = await fetch('/api/education/students/import', {

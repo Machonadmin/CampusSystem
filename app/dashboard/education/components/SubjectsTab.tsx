@@ -7,6 +7,7 @@ import SubjectModal from './SubjectModal'
 import SubjectSemestersModal from './SubjectSemestersModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Track {
   id: string
@@ -79,7 +80,7 @@ export default function SubjectsTab() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (subj: Subject) => {
-    if (!confirm(t('subjects.confirm_delete').replace('{name}', subj.name))) return
+    if (!(await confirmDialog({ message: t('subjects.confirm_delete').replace('{name}', subj.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/subjects/${subj.id}`, { method: 'DELETE' })
       if (!resp.ok) {

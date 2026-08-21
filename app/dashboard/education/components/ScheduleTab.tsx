@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
   useEffect(() => { load() }, [load])
 
   const handleDelete = async (slot: SlotItem) => {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/schedule/slots/${slot.id}`, { method: 'DELETE' })
       if (!resp.ok) {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 
 interface Enrollment {
@@ -119,7 +120,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
   }
 
   async function endEnrollment(e: Enrollment) {
-    if (!confirm(t('plan.end_confirm'))) return
+    if (!(await confirmDialog({ message: t('plan.end_confirm'), tone: 'danger' }))) return
     setBusy(true); setPanelError(null)
     try {
       const today = new Date().toISOString().slice(0, 10)

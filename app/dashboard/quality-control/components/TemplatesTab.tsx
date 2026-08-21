@@ -5,6 +5,7 @@ import type { FeaturePerms } from '@/lib/permissions'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -559,7 +560,7 @@ export default function TemplatesTab({ perms }: Props) {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(t('templates.confirm_delete', 'Delete template «{name}»?').replace('{name}', name))) return
+    if (!(await confirmDialog({ message: t('templates.confirm_delete', 'Delete template «{name}»?').replace('{name}', name), tone: 'danger' }))) return
     const res = await fetch(`/api/settings/quality-templates/${id}`, { method: 'DELETE' })
     if (res.ok) { load() }
     else { const d = await res.json(); toast(d.error ?? t('templates.delete_failed'), 'error') }

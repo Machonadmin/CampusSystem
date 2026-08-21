@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/validation'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -130,7 +131,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   }
 
   async function remove(d: Doc) {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     setBusy(true); setError(null)
     try {
       const res = await fetch(`/api/documents/${d.id}`, { method: 'DELETE' })

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Teacher {
   person_id: string
@@ -52,7 +53,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
   }
 
   const handleRemove = async (personId: string) => {
-    if (!confirm(t('class_groups.remove_teacher_confirm'))) return
+    if (!(await confirmDialog({ message: t('class_groups.remove_teacher_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${groupId}/teachers/${personId}`, {
         method: 'DELETE',

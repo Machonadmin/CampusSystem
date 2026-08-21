@@ -15,6 +15,7 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Department {
   id: string
@@ -313,7 +314,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   }, [staffOpen, node.id, refreshSignal])
 
   async function deactivateMember(member: StaffMember) {
-    if (!confirm(`${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`)) return
+    if (!(await confirmDialog({ message: `${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`, tone: 'danger' }))) return
     const today = new Date().toISOString().split('T')[0]
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -529,7 +530,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
   }, [search, deptFilter, refreshSignal, localRefresh])
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
-    if (!confirm(`${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`)) return
+    if (!(await confirmDialog({ message: `${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`, tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -688,7 +689,7 @@ export default function StaffPage() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(node: TreeNode) {
-    if (!confirm(t('delete_dept_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_dept_confirm'), tone: 'danger' }))) return
     await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
     load()
   }

@@ -7,6 +7,7 @@ import StudyGroupModal from './StudyGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
@@ -76,7 +77,7 @@ export default function StudyGroupsTab() {
   }, [filterDept])
 
   const handleDelete = async (group: StudyGroup) => {
-    if (!confirm(t('groups.confirm_delete').replace('{name}', group.name))) return
+    if (!(await confirmDialog({ message: t('groups.confirm_delete').replace('{name}', group.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/study-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {

@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { CountrySelect } from '@/components/ui/country-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface CityRow { id: string; country: string; city: string }
 
@@ -92,7 +93,7 @@ export default function ReferenceCitiesPage() {
   }
 
   async function deleteCity(id: string, cityName: string) {
-    if (!confirm(t('confirm_delete').replace('{name}', cityName))) return
+    if (!(await confirmDialog({ message: t('confirm_delete').replace('{name}', cityName), tone: 'danger' }))) return
     setBusy(true)
     setErrMsg('')
     try {

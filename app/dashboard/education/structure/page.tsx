@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -209,7 +210,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
                   { key: 'rename', label: t('rename'), onClick: () => { setEditing(true); setEditName(node.name) } },
                   { key: 'up', label: t('move_up'), onClick: () => onMove(node.id, 'up'), disabled: busy, hidden: index === 0 },
                   { key: 'down', label: t('move_down'), onClick: () => onMove(node.id, 'down'), disabled: busy, hidden: index >= siblingCount - 1 },
-                  { key: 'delete', label: t('delete'), onClick: () => { if (confirm(t('confirm_delete'))) onRemove(node.id) }, disabled: busy, danger: true },
+                  { key: 'delete', label: t('delete'), onClick: async () => { if (await confirmDialog({ message: t('confirm_delete'), tone: 'danger' })) onRemove(node.id) }, disabled: busy, danger: true },
                 ]}
               />
             )}
