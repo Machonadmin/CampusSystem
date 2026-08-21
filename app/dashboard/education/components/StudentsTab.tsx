@@ -483,8 +483,8 @@ export default function StudentsTab() {
                             <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={tdStyle}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
