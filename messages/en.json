@@ -46,6 +46,7 @@
   "common": {
     "actions": "Actions",
     "cancel": "Cancel",
+    "confirm_ok": "Confirm",
     "close": "Close",
     "required_field": "Please fill in: {field}",
     "delete": "Delete",

@@ -1,70 +1,77 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
-// Стилизованное подтверждение вместо нативного confirm(): в теме приложения,
-// RTL-безопасное (наследует dir документа), с клавиатурой (Esc = отмена,
-// Enter = подтвердить) и кликом по фону для отмены. Опасное действие (tone
-// 'danger') красит кнопку подтверждения в var(--danger).
-//
-// Использование:
-//   const { confirm, dialog } = useConfirm()
-//   ...
-//   if (!(await confirm({ message, confirmLabel, cancelLabel }))) return
-//   ...
-//   return (<>{/* ... */}{dialog}</>)
+/**
+ * Стилизованное подтверждение вместо нативного confirm(): в теме приложения,
+ * RTL-безопасное, с клавиатурой (Esc = отмена, Enter = подтвердить) и кликом по
+ * фону для отмены. Опасное действие (tone 'danger') красит кнопку в var(--danger).
+ *
+ * Провайдер НЕ нужен: `confirmDialog(...)` шлёт запрос в глобальный emitter, а
+ * один <ConfirmRoot/> (смонтирован в dashboard layout) его рисует. Вызывать
+ * можно из любого клиентского компонента:
+ *   import { confirmDialog } from '@/components/ui/ConfirmDialog'
+ *   if (!(await confirmDialog({ message, tone: 'danger' }))) return
+ *
+ * confirmLabel / cancelLabel — необязательны (по умолчанию «אישור» / «ביטול»).
+ */
 
 export interface ConfirmOptions {
   title?: string
   message: string
-  confirmLabel: string
-  cancelLabel: string
+  confirmLabel?: string
+  cancelLabel?: string
   tone?: 'default' | 'danger'
 }
 
-export function useConfirm() {
-  const [opts, setOpts] = useState<ConfirmOptions | null>(null)
-  const resolver = useRef<((v: boolean) => void) | null>(null)
+interface Req { opts: ConfirmOptions; resolve: (v: boolean) => void }
 
-  const confirm = useCallback((o: ConfirmOptions) => new Promise<boolean>(resolve => {
-    resolver.current = resolve
-    setOpts(o)
-  }), [])
+let listener: ((r: Req) => void) | null = null
 
-  const settle = useCallback((v: boolean) => {
-    resolver.current?.(v)
-    resolver.current = null
-    setOpts(null)
-  }, [])
-
-  const dialog = opts ? (
-    <ConfirmDialogView opts={opts} onConfirm={() => settle(true)} onCancel={() => settle(false)} />
-  ) : null
-
-  return { confirm, dialog }
+export function confirmDialog(opts: ConfirmOptions): Promise<boolean> {
+  return new Promise(resolve => {
+    // Корень ещё не смонтирован (крайне редко) — деградируем к нативному confirm.
+    if (!listener) { resolve(window.confirm(opts.message)); return }
+    listener({ opts, resolve })
+  })
 }
 
-function ConfirmDialogView({ opts, onConfirm, onCancel }: { opts: ConfirmOptions; onConfirm: () => void; onCancel: () => void }) {
+export function ConfirmRoot() {
+  const t = useTranslations('common')
+  const [req, setReq] = useState<Req | null>(null)
   const confirmRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
+    listener = (r: Req) => setReq(r)
+    return () => { listener = null }
+  }, [])
+
+  useEffect(() => {
+    if (!req) return
     confirmRef.current?.focus()
+    const done = (v: boolean) => { req.resolve(v); setReq(null) }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); onCancel() }
-      else if (e.key === 'Enter') { e.preventDefault(); onConfirm() }
+      if (e.key === 'Escape') { e.preventDefault(); done(false) }
+      else if (e.key === 'Enter') { e.preventDefault(); done(true) }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [onCancel, onConfirm])
+  }, [req])
 
+  if (!req) return null
+  const { opts } = req
+  const done = (v: boolean) => { req.resolve(v); setReq(null) }
   const danger = opts.tone === 'danger'
+  const confirmLabel = opts.confirmLabel ?? t('confirm_ok')
+  const cancelLabel = opts.cancelLabel ?? t('cancel')
 
   return (
     <div
       role="presentation"
-      onClick={onCancel}
+      onClick={() => done(false)}
       style={{
-        position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.5)',
+        position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
       }}
     >
@@ -86,25 +93,25 @@ function ConfirmDialogView({ opts, onConfirm, onCancel }: { opts: ConfirmOptions
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button
             type="button"
-            onClick={onCancel}
+            onClick={() => done(false)}
             style={{
               padding: '8px 16px', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
               color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8,
             }}
           >
-            {opts.cancelLabel}
+            {cancelLabel}
           </button>
           <button
             ref={confirmRef}
             type="button"
-            onClick={onConfirm}
+            onClick={() => done(true)}
             style={{
               padding: '8px 16px', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
               color: '#fff', border: 'none', borderRadius: 8,
               background: danger ? 'var(--danger)' : 'var(--accent)',
             }}
           >
-            {opts.confirmLabel}
+            {confirmLabel}
           </button>
         </div>
       </div>

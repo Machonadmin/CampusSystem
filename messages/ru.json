@@ -46,6 +46,7 @@
   "common": {
     "actions": "Действия",
     "cancel": "Отмена",
+    "confirm_ok": "Подтвердить",
     "close": "Закрыть",
     "required_field": "Заполните: {field}",
     "delete": "Удалить",

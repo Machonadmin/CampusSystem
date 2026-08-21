@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { useConfirm } from '@/components/ui/ConfirmDialog'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
@@ -53,7 +53,6 @@ const accent = getModuleColor('education')
 export default function StudentsTab() {
   const t = useTranslations('education.study')
   const { lang } = useLang()
-  const { confirm, dialog } = useConfirm()
   const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -234,7 +233,7 @@ export default function StudentsTab() {
   // ручное действие (решение владельца).
   async function advanceYear() {
     if (selected.size === 0) return
-    const ok0 = await confirm({
+    const ok0 = await confirmDialog({
       message: t('students.bulk.advance_confirm').replace('{n}', String(selected.size)),
       confirmLabel: t('students.bulk.advance_year'),
       cancelLabel: t('common.cancel'),
@@ -259,7 +258,7 @@ export default function StudentsTab() {
 
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
-    const ok0 = await confirm({
+    const ok0 = await confirmDialog({
       message: t('students.expel_confirm').replace('{name}', name),
       confirmLabel: t('students.expel_button'),
       cancelLabel: t('common.cancel'),
@@ -528,8 +527,6 @@ export default function StudentsTab() {
           </div>
         )
       )}
-
-      {dialog}
     </div>
   )
 }

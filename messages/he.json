@@ -46,6 +46,7 @@
   "common": {
     "actions": "פעולות",
     "cancel": "ביטול",
+    "confirm_ok": "אישור",
     "close": "סגירה",
     "required_field": "יש למלא: {field}",
     "delete": "מחיקה",

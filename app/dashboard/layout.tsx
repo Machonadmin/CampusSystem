@@ -4,6 +4,7 @@ import { LanguageProvider } from '@/lib/i18n/LanguageContext'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import DashboardShell from '@/components/dashboard/DashboardShell'
 import { Toaster } from '@/components/ui/toast'
+import { ConfirmRoot } from '@/components/ui/ConfirmDialog'
 import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </DashboardShell>
       <ForcePasswordChangeGate />
       <Toaster />
+      <ConfirmRoot />
     </LanguageProvider>
   )
 }
