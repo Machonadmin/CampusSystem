@@ -33,7 +33,7 @@ export async function GET() {
         assignment: true, tracks: true, kodesh: true, teachers_hours: true,
         teacher_attendance: true, absences: true, teaching_surveys: true,
         chavruta: true, semesters: true, structure: true, units: true, reports: true,
-        teacher_home: false,
+        teacher_home: false, students_view_all: true, students_manage_all: true,
       })
     }
 
@@ -46,6 +46,7 @@ export async function GET() {
     const [
       viewStudentsMgr, manageStudents, manageSubjects,
       manageStudyGroups, kodesh, chavruta, classGroupsScope, viewStudentsAny,
+      viewStudentsScope, manageStudentsScope,
     ] = await Promise.all([
       canManageEducationInAny(session, 'view_students'),
       canManageEducationInAny(session, 'manage_students'),
@@ -55,7 +56,15 @@ export async function GET() {
       isChavrutaTeacher(sb, session.person_id).catch(() => false),
       getEducationPrivilegeScope(session, 'manage_class_groups'),
       canDoEducationInAny(session, 'view_students'),
+      getEducationPrivilegeScope(session, 'view_students'),
+      getEducationPrivilegeScope(session, 'manage_students'),
     ])
+    // Видит ли всех студенток института (view='all') и может ли всеми управлять
+    // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
+    // клиент по этой паре прячет действия, которые он не сможет применить к
+    // студенткам вне кодеша (класс/маршрут/переход года/закрытие), оставляя кодеш.
+    const students_view_all = viewStudentsScope === 'all'
+    const students_manage_all = manageStudentsScope === 'all'
     // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
     // year/term), которыми управляют только на уровне всего института (scope='all',
     // как в /api/education/semesters). Менеджер юнита (scope='department') работает
@@ -82,6 +91,8 @@ export async function GET() {
       units: manageStudyGroups,
       reports: viewStudentsMgr,
       teacher_home,
+      students_view_all,
+      students_manage_all,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

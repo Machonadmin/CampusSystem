@@ -83,6 +83,11 @@ export default function StudentsTab() {
   const [classGroups, setClassGroups] = useState<{ id: string; name: string }[]>([])
   const [tracks, setTracks] = useState<{ id: string; name: string }[]>([])
   const [kodeshGroups, setKodeshGroups] = useState<{ id: string; name: string }[]>([])
+  // «Видит всех, но управляет только своим юнитом» (глава кафедры кодеша:
+  // view_students='all', manage_students='department'). Тогда прячем действия,
+  // которые не сработают на студентках вне его юнита (класс/маршрут/переход
+  // года/закрытие), оставляя только назначение в кодеш.
+  const [manageRestricted, setManageRestricted] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -157,6 +162,18 @@ export default function StudentsTab() {
     fetch('/api/education/kodesh/assignment')
       .then(r => r.ok ? r.json() : { groups: [] })
       .then(j => setKodeshGroups(((j.groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+  }, [])
+
+  // Ограничен ли пользователь «только кодеш» в массовых действиях (см. выше).
+  useEffect(() => {
+    fetch('/api/education/launcher-access')
+      .then(r => (r.ok ? r.json() : {}))
+      .then((b: { students_view_all?: boolean; students_manage_all?: boolean }) => {
+        const restricted = b?.students_view_all === true && b?.students_manage_all !== true
+        setManageRestricted(restricted)
+        if (restricted) setBulkType('kodesh')
+      })
       .catch(() => {})
   }, [])
 
@@ -393,8 +410,8 @@ export default function StudentsTab() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', padding: '10px 14px', background: 'var(--surface)', border: '1px solid var(--accent-strong)', borderRadius: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{t('students.bulk.selected').replace('{n}', String(selected.size))}</span>
           <select value={bulkType} onChange={e => { setBulkType(e.target.value as 'class' | 'track' | 'kodesh'); setBulkTarget('') }} style={inp}>
-            <option value="class">{t('students.bulk.type_class')}</option>
-            <option value="track">{t('students.bulk.type_track')}</option>
+            {!manageRestricted && <option value="class">{t('students.bulk.type_class')}</option>}
+            {!manageRestricted && <option value="track">{t('students.bulk.type_track')}</option>}
             <option value="kodesh">{t('students.bulk.type_kodesh')}</option>
           </select>
           <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} style={{ ...inp, minWidth: 160 }}>
@@ -408,14 +425,18 @@ export default function StudentsTab() {
           >
             {t('students.bulk.apply')}
           </button>
-          <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
-          <button
-            onClick={advanceYear}
-            disabled={bulkBusy || selected.size === 0}
-            style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
-          >
-            {t('students.bulk.advance_year')}
-          </button>
+          {!manageRestricted && (
+            <>
+              <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
+              <button
+                onClick={advanceYear}
+                disabled={bulkBusy || selected.size === 0}
+                style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
+              >
+                {t('students.bulk.advance_year')}
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -499,7 +520,7 @@ export default function StudentsTab() {
                             <button onClick={() => router.push(cardHref)} style={btnSecondary}>
                               {t('students.open_card')}
                             </button>
-                            {!expelled && (
+                            {!expelled && !manageRestricted && (
                               <button
                                 onClick={() => handleExpel(s)}
                                 style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
