@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import SemesterGroupModal from './SemesterGroupModal'
@@ -46,6 +47,10 @@ interface TrackRef {
 
 const accent = getModuleColor('education')
 const NO_STRUCT = '__none__'
+// Кафедра иудаики — источник уровней кодеша (независимый «маршрут»).
+const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
+
+interface KodeshLevel { id: string; name: string; name_he: string | null; name_en: string | null; count: number }
 
 function trackLabel(tr: TrackRef, lang: string): string {
   if (lang === 'he') return tr.name_he || tr.name_ru || tr.name_en || '—'
@@ -53,13 +58,22 @@ function trackLabel(tr: TrackRef, lang: string): string {
   return tr.name_ru || tr.name_he || tr.name_en || '—'
 }
 
+function levelLabel(l: KodeshLevel, lang: string): string {
+  if (lang === 'he') return l.name_he || l.name || '—'
+  if (lang === 'en') return l.name_en || l.name || '—'
+  return l.name || l.name_he || '—'
+}
+
 export default function StudiesWorkspace() {
   const t = useTranslations('education.study')
   const { lang } = useLang()
+  const router = useRouter()
 
   const [groups, setGroups] = useState<SemesterGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [tracks, setTracks] = useState<TrackRef[]>([])
+  const [kodeshLevels, setKodeshLevels] = useState<KodeshLevel[]>([])
+  const [kodeshAvailable, setKodeshAvailable] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,10 +89,13 @@ export default function StudiesWorkspace() {
   const loadData = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const [gResp, dResp, tResp] = await Promise.all([
+      const [gResp, dResp, tResp, kResp] = await Promise.all([
         fetch('/api/education/semester-groups'),
         fetch('/api/settings/departments'),
         fetch('/api/education/study-tracks'),
+        // Кодеш: уровни + распределение. 403 (нет доступа к кафедре иудаики) →
+        // раздел «קודש» просто не показываем (разделение прав кодеш/חול).
+        fetch('/api/education/kodesh/assignment'),
       ])
       if (!gResp.ok) throw new Error(t('common.error_generic'))
       const gJson = await gResp.json()
@@ -87,6 +104,24 @@ export default function StudiesWorkspace() {
       setGroups(gJson.semester_groups ?? [])
       setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
       setTracks(tJson.tracks ?? [])
+
+      if (kResp.ok) {
+        const kJson = await kResp.json() as {
+          groups?: { id: string; name: string; name_he: string | null; name_en: string | null }[]
+          students?: { kodesh_group_id: string | null }[]
+        }
+        const countByLevel = new Map<string, number>()
+        for (const s of kJson.students ?? []) {
+          if (s.kodesh_group_id) countByLevel.set(s.kodesh_group_id, (countByLevel.get(s.kodesh_group_id) ?? 0) + 1)
+        }
+        setKodeshLevels((kJson.groups ?? []).map(g => ({
+          id: g.id, name: g.name, name_he: g.name_he, name_en: g.name_en, count: countByLevel.get(g.id) ?? 0,
+        })))
+        setKodeshAvailable(true)
+      } else {
+        setKodeshLevels([])
+        setKodeshAvailable(false)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
@@ -114,8 +149,10 @@ export default function StudiesWorkspace() {
       const id = g.study_track?.id ?? NO_STRUCT
       countByTrack.set(id, (countByTrack.get(id) ?? 0) + 1)
     }
+    // Только маршруты חול: кодеш идёт отдельным разделом (department иудаики).
+    const cholTracks = tracks.filter(tr => tr.department_id !== KODESH_DEPT_ID)
     // Все активные маршруты (даже с 0 семестрами) + запасная карточка «без маршрута».
-    const list = tracks.map(tr => ({ id: tr.id, count: countByTrack.get(tr.id) ?? 0, order: tr.sort_order }))
+    const list = cholTracks.map(tr => ({ id: tr.id, count: countByTrack.get(tr.id) ?? 0, order: tr.sort_order }))
     if (countByTrack.has(NO_STRUCT)) list.push({ id: NO_STRUCT, count: countByTrack.get(NO_STRUCT)!, order: 9999 })
     return list.sort((a, b) => a.order - b.order || structLabel(a.id).localeCompare(structLabel(b.id)))
   }, [groups, tracks, structLabel])
@@ -236,19 +273,43 @@ export default function StudiesWorkspace() {
 
       {!loading && !error && (
         <>
-          {/* Уровень 1: структуры */}
+          {/* Уровень 1: два раздела — לימודי חול (маршруты) и לימודי קודש (уровни) */}
           {structId == null && (
-            structures.length === 0
-              ? <div style={pad}>{t('semester_groups.empty_none')}</div>
-              : <>
-                  <p style={hint}>{t('workspace.structures_hint')}</p>
-                  <Grid>
-                    {structures.map(s => (
-                      <Card key={s.id} title={structLabel(s.id)} sub={t('workspace.count_semesters').replace('{n}', String(s.count))}
-                        icon={ICON_STRUCT} onClick={() => { setStructId(s.id); setYearLevel(null); setCohort(null) }} />
-                    ))}
-                  </Grid>
-                </>
+            <>
+              {/* ─── לימודי חול ─── */}
+              <SectionHeader label={t('workspace.section_chol')} />
+              {structures.length === 0
+                ? <div style={pad}>{t('semester_groups.empty_none')}</div>
+                : <>
+                    <p style={hint}>{t('workspace.structures_hint')}</p>
+                    <Grid>
+                      {structures.map(s => (
+                        <Card key={s.id} title={structLabel(s.id)} sub={t('workspace.count_semesters').replace('{n}', String(s.count))}
+                          icon={ICON_STRUCT} onClick={() => { setStructId(s.id); setYearLevel(null); setCohort(null) }} />
+                      ))}
+                    </Grid>
+                  </>}
+
+              {/* ─── לימודי קודש ─── (только при наличии доступа к кафедре иудаики) */}
+              {kodeshAvailable && (
+                <div style={{ marginTop: 26 }}>
+                  <SectionHeader
+                    label={t('workspace.section_kodesh')}
+                    action={{ label: t('workspace.kodesh_manage'), onClick: () => router.push('/dashboard/education/kodesh') }}
+                  />
+                  <p style={hint}>{t('workspace.kodesh_hint')}</p>
+                  {kodeshLevels.length === 0
+                    ? <div style={pad}>{t('workspace.kodesh_empty')}</div>
+                    : <Grid>
+                        {kodeshLevels.map(l => (
+                          <Card key={l.id} title={levelLabel(l, lang)}
+                            sub={t('workspace.count_students').replace('{n}', String(l.count))}
+                            icon={ICON_KODESH} onClick={() => router.push('/dashboard/education/kodesh')} />
+                        ))}
+                      </Grid>}
+                </div>
+              )}
+            </>
           )}
 
           {/* Уровень 2: годы */}
@@ -314,6 +375,25 @@ function Grid({ children }: { children: React.ReactNode }) {
   return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 12 }}>{children}</div>
 }
 
+// Заголовок раздела верхнего уровня (חול / קודש) с опциональным действием справа.
+function SectionHeader({ label, action }: { label: string; action?: { label: string; onClick: () => void } }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 12px' }}>
+      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{label}</h3>
+      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      {action && (
+        <button
+          type="button"
+          onClick={action.onClick}
+          style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: accent, background: 'var(--accent-tint)', border: '1px solid var(--accent-strong)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Card({ title, sub, icon, onClick }: { title: string; sub: string; icon: string; onClick: () => void }) {
   return (
     <button
@@ -377,3 +457,5 @@ const ICON_STRUCT = 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m
 const ICON_YEAR = 'M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z'
 const ICON_COHORT = 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5'
 const ICON_SEM = 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25'
+// Кодеш — «искра/звезда» (тот же значок, что и в лаунчере שיבוץ קודש).
+const ICON_KODESH = 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z'

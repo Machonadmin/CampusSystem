@@ -829,6 +829,11 @@
         "count_students": "{n} students",
         "structures_hint": "Pick a structure to see years and cohorts",
         "no_track": "No track",
+        "section_chol": "Secular studies",
+        "section_kodesh": "Kodesh studies",
+        "kodesh_hint": "Kodesh levels — assigned independently, unrelated to the secular study track.",
+        "kodesh_manage": "Kodesh assignment",
+        "kodesh_empty": "No kodesh levels yet.",
         "empty_year": "No semesters in this year yet — add one."
       },
       "courses": {
