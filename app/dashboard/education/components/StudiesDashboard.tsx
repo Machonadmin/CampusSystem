@@ -49,7 +49,7 @@ function todayIsoDow(): number {
 
 type NavSection = 'semester_groups' | 'students' | 'settings'
 
-export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavSection) => void } = {}) {
+export default function StudiesDashboard() {
   const t = useTranslations('education.study.dashboard')
   const [loading, setLoading] = useState(true)
   const [studentsCount, setStudentsCount] = useState<number | null>(null)
@@ -58,9 +58,6 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
   const [atRisk, setAtRisk] = useState<AtRiskStudent[]>([])
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
-  // Доступ к карточкам пусковой панели (какие вправе видеть). null = ещё не
-  // загружено → показываем всё (fail-open), чтобы не мигало пустотой.
-  const [access, setAccess] = useState<Record<string, boolean> | null>(null)
 
   // Авто-переход учебного года: тихая идемпотентная проверка при заходе.
   // Выполняется максимум раз в год после заданной даты; иначе — мгновенный no-op.
@@ -69,19 +66,6 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'auto' }),
     }).catch(() => {})
-  }, [])
-
-  // Права на карточки пусковой панели. Ошибка/недоступность → оставляем null
-  // (fail-open): лучше показать лишнюю карточку, чем спрятать нужную.
-  useEffect(() => {
-    let alive = true
-    // null = ещё грузим (скелет, fail-closed); {} = ошибка (fail-open — не прячем
-    // всё навсегда); объект с ключами = реальный доступ.
-    fetch('/api/education/launcher-access')
-      .then(r => r.ok ? r.json() : {})
-      .then(body => { if (alive) setAccess((body && typeof body === 'object' ? body : {}) as Record<string, boolean>) })
-      .catch(() => { if (alive) setAccess({} as Record<string, boolean>) })
-    return () => { alive = false }
   }, [])
 
   useEffect(() => {
@@ -158,9 +142,8 @@ export default function StudiesDashboard({ onNavigate }: { onNavigate?: (s: NavS
         <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone={pending.length ? 'warn' : 'muted'} />
       </div>
 
-      {/* Пусковая панель — всё, что можно сделать под «Учёбой», сгруппировано
-          (сгруппировано = «порядок», а не россыпь кнопок). */}
-      <Launcher t={t} onNavigate={onNavigate} access={access} />
+      {/* Пусковая панель вынесена в отдельный раздел «פעולות» (owner: дашборд =
+          только данные, чтобы не перегружать глаз). */}
 
       {/* Требует внимания: студентки в зоне риска + зависшие абитуриентки.
           Каждая карточка независима и скрывается, если данных нет. */}
@@ -359,7 +342,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   ] },
 ]
 
-function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void; access: Record<string, boolean> | null }) {
+export function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void; access: Record<string, boolean> | null }) {
   // Пока доступ не загружен — показываем скелет, НЕ все карточки. Иначе виден
   // «вспышка всего» и последующее схлопывание до разрешённого — это выглядит как
   // утечка прав (владелец: «יש לי גישה לרגע אחד להכל ואז זה מתכווץ»).

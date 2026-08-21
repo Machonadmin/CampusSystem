@@ -6,6 +6,7 @@ import StudentsTab from './StudentsTab'
 import StudiesWorkspace from './StudiesWorkspace'
 import StudiesSettings from './StudiesSettings'
 import StudiesDashboard from './StudiesDashboard'
+import StudiesActions from './StudiesActions'
 import TeacherDashboard from './TeacherDashboard'
 
 /**
@@ -17,9 +18,10 @@ import TeacherDashboard from './TeacherDashboard'
  * сворачивается в иконки; состояние запоминается.
  */
 
-type Section = 'dashboard' | 'semester_groups' | 'students' | 'settings'
+type Section = 'dashboard' | 'actions' | 'semester_groups' | 'students' | 'settings'
 
 const RAIL: { key: Section; labelKey: string }[] = [
+  { key: 'actions', labelKey: 'study.tabs.actions' },
   { key: 'semester_groups', labelKey: 'study.tabs.semester_groups' },
   { key: 'students', labelKey: 'study.tabs.students' },
   { key: 'settings', labelKey: 'study.tabs.settings' },
@@ -27,6 +29,7 @@ const RAIL: { key: Section; labelKey: string }[] = [
 
 // Линейные иконки (Heroicons outline) — единый стиль со всей системой.
 const ICON: Record<Section, string> = {
+  actions: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z',
   dashboard: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 8.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
   semester_groups: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
   students: 'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
@@ -144,7 +147,8 @@ export default function StudyTab() {
 
         {/* Контент */}
         <div style={{ padding: 18, overflowX: 'auto', minWidth: 0 }}>
-          {active === 'dashboard' && <StudiesDashboard onNavigate={setActive} />}
+          {active === 'dashboard' && <StudiesDashboard />}
+          {active === 'actions' && <StudiesActions />}
           {active === 'semester_groups' && <StudiesWorkspace />}
           {active === 'students' && <StudentsTab />}
           {active === 'settings' && <StudiesSettings />}

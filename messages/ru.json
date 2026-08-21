@@ -908,7 +908,8 @@
         "class_groups": "Учебные группы",
         "semester_groups": "Семестры",
         "buildings": "Здания",
-        "settings": "Настройки учёбы"
+        "settings": "Настройки учёбы",
+        "actions": "Действия"
       },
       "common": {
         "all_departments": "Все подразделения",

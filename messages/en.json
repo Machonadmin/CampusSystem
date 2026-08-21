@@ -908,7 +908,8 @@
         "class_groups": "Class groups",
         "semester_groups": "Semesters",
         "buildings": "Buildings",
-        "settings": "Studies settings"
+        "settings": "Studies settings",
+        "actions": "Actions"
       },
       "common": {
         "all_departments": "All Departments",
