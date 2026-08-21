@@ -449,6 +449,10 @@ export default function StudentsTab() {
                     <Fragment key={s.id}>
                       <tr
                         onClick={() => setExpandedId(open ? null : s.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={open}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(open ? null : s.id) } }}
                         style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}

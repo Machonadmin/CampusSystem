@@ -164,6 +164,10 @@ export default function SemesterGroupsTab() {
                     <Fragment key={g.id}>
                       <tr
                         onClick={() => setExpandedId(open ? null : g.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={open}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(open ? null : g.id) } }}
                         style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}

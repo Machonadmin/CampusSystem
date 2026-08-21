@@ -139,8 +139,12 @@ export default function StudiesWorkspace() {
     if (id === NO_STRUCT) return t('workspace.no_track')
     const tr = tracks.find(x => x.id === id)
     if (tr) return trackLabel(tr, lang)
-    const g = groups.find(x => x.study_track?.id === id)
-    return g?.study_track?.name_he || g?.study_track?.name_ru || '—'
+    const st = groups.find(x => x.study_track?.id === id)?.study_track
+    if (!st) return '—'
+    // Язык интерфейса, как в trackLabel — чтобы запасной путь не давал ивр., когда UI EN/RU.
+    if (lang === 'he') return st.name_he || st.name_ru || st.name_en || '—'
+    if (lang === 'en') return st.name_en || st.name_ru || st.name_he || '—'
+    return st.name_ru || st.name_he || st.name_en || '—'
   }, [tracks, groups, lang, t])
 
   const structures = useMemo(() => {
@@ -392,7 +396,7 @@ function SectionHeader({ label, action, actionNode }: { label: string; action?: 
         <button
           type="button"
           onClick={action.onClick}
-          style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: accent, background: 'var(--accent-tint)', border: '1px solid var(--accent-strong)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+          style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent-strong)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
         >
           {action.label}
         </button>

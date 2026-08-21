@@ -75,7 +75,7 @@ export default function StudyTab() {
         {isActive && (
           <span style={{
             position: 'absolute', top: 6, bottom: 6, width: 3, borderRadius: 3,
-            background: 'var(--accent)', [isRTL ? 'right' : 'left']: 0,
+            background: 'var(--accent)', insetInlineStart: 0,
           }} />
         )}
         <button
