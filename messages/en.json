@@ -1195,7 +1195,8 @@
         "run_skipped": "Rollover already ran this year.",
         "last_run": "Last rollover: {year}.",
         "never_run": "No rollover yet.",
-        "not_ready": "Rollover settings unavailable (migration not applied)."
+        "not_ready": "Rollover settings unavailable (migration not applied).",
+        "frozen": "Year rollover is currently frozen — automatic and manual rollover are temporarily disabled. We'll re-enable this later."
       },
       "teacher": {
         "title": "My space",

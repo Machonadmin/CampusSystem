@@ -6,6 +6,10 @@ import { createServerClient } from '@/lib/supabase/server'
 // Все обращения к новым таблицам/колонкам деплой-безопасны: если миграция ещё
 // не применена (42P01/42703) — движок молча становится no-op, а не роняет 500.
 
+// ЗАМОРОЖЕНО по просьбе владельца (пока не используем переход года). Ни авто-, ни
+// ручной запуск НЕ выполняет продвижение/выпуск. Чтобы разморозить — снять флаг.
+const ROLLOVER_FROZEN = true
+
 function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
   return sb as unknown as SupabaseClient
 }
@@ -21,7 +25,7 @@ export interface RolloverResult {
   ran: boolean
   promoted: number
   graduated: number
-  reason?: 'no_settings' | 'auto_disabled' | 'not_eligible' | 'already_done'
+  reason?: 'no_settings' | 'auto_disabled' | 'not_eligible' | 'already_done' | 'frozen'
 }
 
 export async function getRolloverSettings(
@@ -55,6 +59,9 @@ export async function runYearRollover(
   sb: ReturnType<typeof createServerClient>,
   opts: { manual?: boolean } = {},
 ): Promise<RolloverResult> {
+  // Заморожено: единая точка отсечения — ни авто, ни ручной запуск не двигают год.
+  if (ROLLOVER_FROZEN) return { ran: false, promoted: 0, graduated: 0, reason: 'frozen' }
+
   const settings = await getRolloverSettings(sb)
   if (!settings) return { ran: false, promoted: 0, graduated: 0, reason: 'no_settings' }
 
