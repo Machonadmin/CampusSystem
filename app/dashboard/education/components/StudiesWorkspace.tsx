@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
+import EmptyState from '@/components/ui/EmptyState'
 import SemesterGroupModal from './SemesterGroupModal'
 import SemesterCourses from './SemesterCourses'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -274,7 +275,7 @@ export default function StudiesWorkspace() {
         <SemesterCourses semesterId={openSem.id} semesterName={openSem.name} />
       ) : (
       <>
-      {loading && <div style={pad}>{t('common.loading')}</div>}
+      {loading && <EmptyState text={t('common.loading')} />}
       {error && <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>{error}</div>}
 
       {!loading && !error && (
@@ -288,7 +289,7 @@ export default function StudiesWorkspace() {
                 actionNode={<PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} style={{ padding: '7px 14px' }} />}
               />
               {structures.length === 0
-                ? <div style={pad}>{t('semester_groups.empty_none')}</div>
+                ? <EmptyState text={t('semester_groups.empty_none')} />
                 : <>
                     <p style={hint}>{t('workspace.structures_hint')}</p>
                     <Grid>
@@ -308,7 +309,7 @@ export default function StudiesWorkspace() {
                   />
                   <p style={hint}>{t('workspace.kodesh_hint')}</p>
                   {kodeshLevels.length === 0
-                    ? <div style={pad}>{t('workspace.kodesh_empty')}</div>
+                    ? <EmptyState text={t('workspace.kodesh_empty')} />
                     : <Grid>
                         {kodeshLevels.map(l => (
                           <Card key={l.id} title={levelLabel(l, lang)}
@@ -335,7 +336,7 @@ export default function StudiesWorkspace() {
           {/* Уровень 3: наборы (еврейский год) */}
           {structId != null && yearLevel != null && cohort == null && (
             cohorts.length === 0
-              ? <div style={pad}>{t('workspace.empty_year')}</div>
+              ? <EmptyState text={t('workspace.empty_year')} />
               : <Grid>
                   {cohorts.map(c => (
                     <Card key={String(c.k)} title={c.k === 'none' ? t('workspace.no_cohort') : c.k}
@@ -348,7 +349,7 @@ export default function StudiesWorkspace() {
           {/* Уровень 4: семестры */}
           {structId != null && yearLevel != null && cohort != null && (
             semesters.length === 0
-              ? <div style={pad}>{t('workspace.empty')}</div>
+              ? <EmptyState text={t('workspace.empty')} />
               : <Grid>
                   {semesters.map(g => (
                     <SemesterCard key={g.id} g={g} students={t('workspace.count_students').replace('{n}', String(g.counts.students))}
@@ -377,7 +378,6 @@ export default function StudiesWorkspace() {
 }
 
 // ── Presentational ───────────────────────────────────────────────────────────
-const pad: React.CSSProperties = { padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }
 const hint: React.CSSProperties = { margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-faint)' }
 
 function Grid({ children }: { children: React.ReactNode }) {

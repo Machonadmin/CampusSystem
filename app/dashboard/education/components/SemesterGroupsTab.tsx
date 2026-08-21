@@ -8,6 +8,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrackRef { id: string; name_he: string | null; name_ru: string | null; name_en: string | null }
@@ -132,7 +133,7 @@ export default function SemesterGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <EmptyState text={t('common.loading')} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -142,9 +143,7 @@ export default function SemesterGroupsTab() {
 
       {!loading && !error && (
         groups.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
-            {t('semester_groups.empty_none')}
-          </div>
+          <EmptyState text={t('semester_groups.empty_none')} />
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>

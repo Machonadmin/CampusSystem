@@ -4,6 +4,8 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
+import EmptyState from '@/components/ui/EmptyState'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
@@ -51,6 +53,7 @@ const accent = getModuleColor('education')
 export default function StudentsTab() {
   const t = useTranslations('education.study')
   const { lang } = useLang()
+  const { confirm, dialog } = useConfirm()
   const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -231,7 +234,12 @@ export default function StudentsTab() {
   // ручное действие (решение владельца).
   async function advanceYear() {
     if (selected.size === 0) return
-    if (!confirm(t('students.bulk.advance_confirm').replace('{n}', String(selected.size)))) return
+    const ok0 = await confirm({
+      message: t('students.bulk.advance_confirm').replace('{n}', String(selected.size)),
+      confirmLabel: t('students.bulk.advance_year'),
+      cancelLabel: t('common.cancel'),
+    })
+    if (!ok0) return
     setBulkBusy(true); setBulkMsg(null)
     let ok = 0, fail = 0
     for (const id of selected) {
@@ -251,7 +259,13 @@ export default function StudentsTab() {
 
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
-    if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
+    const ok0 = await confirm({
+      message: t('students.expel_confirm').replace('{name}', name),
+      confirmLabel: t('students.expel_button'),
+      cancelLabel: t('common.cancel'),
+      tone: 'danger',
+    })
+    if (!ok0) return
     try {
       const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -408,7 +422,7 @@ export default function StudentsTab() {
         <div style={{ padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 12, fontSize: 13, color: 'var(--text)' }}>{bulkMsg}</div>
       )}
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <EmptyState text={t('common.loading')} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -418,9 +432,7 @@ export default function StudentsTab() {
 
       {!loading && !error && (
         students.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
-            {search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')}
-          </div>
+          <EmptyState text={search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')} />
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -517,6 +529,7 @@ export default function StudentsTab() {
         )
       )}
 
+      {dialog}
     </div>
   )
 }

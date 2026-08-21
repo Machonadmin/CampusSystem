@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import EmptyState from '@/components/ui/EmptyState'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -288,7 +289,7 @@ function Kpi({ value, label, tone }: { value: string; label: string; tone: 'acce
 }
 
 function Empty({ text }: { text: string }) {
-  return <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 12.5, color: 'var(--text-faint)' }}>{text}</div>
+  return <EmptyState text={text} size="compact" />
 }
 
 // ─── Пусковая панель: всё, что можно сделать под «Учёбой», сгруппировано ───────
