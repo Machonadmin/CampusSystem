@@ -261,7 +261,9 @@ export default function StudiesWorkspace() {
             )
           })}
         </nav>
-        {openSem == null && <PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} />}
+        {/* На верхнем уровне «добавить семестр» живёт в заголовке раздела חול;
+            глубже (внутри маршрута/года) — здесь, в контексте текущего drill. */}
+        {openSem == null && structId != null && <PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} />}
       </div>
 
       {openSem != null ? (
@@ -277,7 +279,10 @@ export default function StudiesWorkspace() {
           {structId == null && (
             <>
               {/* ─── לימודי חול ─── */}
-              <SectionHeader label={t('workspace.section_chol')} />
+              <SectionHeader
+                label={t('workspace.section_chol')}
+                actionNode={<PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} style={{ padding: '7px 14px' }} />}
+              />
               {structures.length === 0
                 ? <div style={pad}>{t('semester_groups.empty_none')}</div>
                 : <>
@@ -376,12 +381,14 @@ function Grid({ children }: { children: React.ReactNode }) {
 }
 
 // Заголовок раздела верхнего уровня (חול / קודש) с опциональным действием справа.
-function SectionHeader({ label, action }: { label: string; action?: { label: string; onClick: () => void } }) {
+// action — пилюля (навигация), actionNode — произвольный элемент (напр. «+ добавить»).
+function SectionHeader({ label, action, actionNode }: { label: string; action?: { label: string; onClick: () => void }; actionNode?: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 12px' }}>
       <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{label}</h3>
       <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-      {action && (
+      {actionNode}
+      {!actionNode && action && (
         <button
           type="button"
           onClick={action.onClick}
