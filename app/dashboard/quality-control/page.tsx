@@ -13,6 +13,7 @@ import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface CheckRow {
   id: string
@@ -191,7 +192,7 @@ export default function QualityControlPage() {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+                <SkeletonRows avatar={false} rows={6} />
               ) : checks.length === 0 ? (
                 <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
                   {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}

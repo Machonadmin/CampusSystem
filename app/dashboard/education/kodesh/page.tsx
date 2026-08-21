@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
 // расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
@@ -131,7 +132,7 @@ export default function KodeshAssignmentPage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows rows={6} />
       ) : (
         <>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

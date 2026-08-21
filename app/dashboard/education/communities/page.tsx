@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -229,7 +230,7 @@ export default function CommunitiesPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={6} />
       ) : (
         <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>

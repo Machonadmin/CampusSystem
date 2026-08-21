@@ -7,6 +7,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { downloadCsv } from '@/lib/csv'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import GradebookModal from './GradebookModal'
 
 interface Unit { id: string; name: string }
@@ -133,7 +134,7 @@ export default function ReportsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : !report ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>
       ) : (

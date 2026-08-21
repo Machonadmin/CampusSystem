@@ -11,6 +11,7 @@ import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
@@ -251,7 +252,7 @@ export default function RecruitmentTab() {
       {/* Table card */}
       <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {leads.length === 0 ? t('leads.no_data') : t('leads.no_results')}

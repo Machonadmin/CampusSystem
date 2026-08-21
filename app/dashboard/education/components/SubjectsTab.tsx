@@ -8,6 +8,7 @@ import SubjectSemestersModal from './SubjectSemestersModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Track {
   id: string
@@ -144,7 +145,7 @@ export default function SubjectsTab() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       )}
 
       {error && (

@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import StageSignatures from '@/components/workflow/StageSignatures'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Final { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }
 interface StageCell {
@@ -168,7 +169,7 @@ export default function AcceptanceOverviewTab() {
         {error ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : applicants.length === 0 ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.no_data')}</div>
         ) : (

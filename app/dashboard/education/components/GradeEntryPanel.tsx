@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { AssessmentItem } from './GradesTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -184,7 +185,7 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
         {/* Список студентов */}
         <div style={{ flex: 1, overflowY: 'auto', marginTop: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('entry_loading')}</div>
+            <SkeletonRows />
           ) : error ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
           ) : students.length === 0 ? (

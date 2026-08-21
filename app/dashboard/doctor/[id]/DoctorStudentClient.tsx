@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Profile {
   blood_type: string | null
@@ -194,7 +195,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows />
       ) : (
         <>
           {/* Medical profile */}

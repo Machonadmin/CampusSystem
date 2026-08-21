@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ─── Типы сводок (совпадают с ответами app/api/reports/**) ───────────────────
 
@@ -75,7 +76,6 @@ function ReportCard<T>({
   href?: string
   periodBadge?: string
 }) {
-  const tCommon = useTranslations('common')
   const t = useTranslations('reports')
 
   const primary = getModuleColor(colorKey, 'primary')
@@ -144,7 +144,7 @@ function ReportCard<T>({
             {error}
           </div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} />
         ) : data ? (
           render(data)
         ) : (

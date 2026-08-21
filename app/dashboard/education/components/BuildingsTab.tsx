@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Room { id: string; name: string; capacity: number | null }
 interface Building { id: string; name: string; code: string | null; rooms: Room[] }
@@ -75,7 +76,7 @@ export default function BuildingsTab() {
       )}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('common.loading')}</div>
+        <SkeletonRows rows={6} />
       ) : buildings.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('buildings.empty')}</div>
       ) : (

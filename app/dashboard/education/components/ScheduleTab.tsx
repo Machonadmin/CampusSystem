@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -137,7 +138,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} />
       ) : error ? (
         <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : slots.length === 0 ? (

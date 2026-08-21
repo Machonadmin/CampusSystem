@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 const GRANTABLE = [
   'view_students', 'manage_students', 'manage_enrollments', 'manage_class_groups',
@@ -81,7 +82,7 @@ export default function UnitTeamPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows rows={6} />
       ) : units.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('units.no_units')}</div>
       ) : (

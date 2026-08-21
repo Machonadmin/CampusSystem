@@ -8,6 +8,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Doc {
   id: string
@@ -198,7 +199,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows />
       ) : (
         <>
           {/* Add document — collapsed by default */}

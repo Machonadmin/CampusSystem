@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Slot {
   id: string
@@ -121,7 +122,7 @@ export default function TimetablePage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : slots.length === 0 ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_slots')}</div>
       ) : (

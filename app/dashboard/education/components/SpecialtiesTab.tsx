@@ -9,6 +9,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department {
   id: string
@@ -134,7 +135,7 @@ export default function SpecialtiesTab() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       )}
 
       {error && (

@@ -6,6 +6,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import CourseModal from './CourseModal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // Курсы внутри семестра. Курс = class_group (parent_semester_id = семестр);
 // его уроки/расписание/оценки живут на существующей карточке класс-группы.
@@ -60,7 +61,7 @@ export default function SemesterCourses({ semesterId, semesterName }: { semester
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('common.loading')}</div>
+        <SkeletonRows rows={6} />
       ) : courses.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('courses.empty')}</div>
       ) : (

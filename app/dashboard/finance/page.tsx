@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -217,7 +218,7 @@ export default function FinancePage() {
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
       ) : (

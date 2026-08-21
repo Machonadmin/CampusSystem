@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,6 @@ export default function StaffCompIndexClient() {
   const router = useRouter()
   const t = useTranslations('finance.staff')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
   const tCh = useTranslations('chavruta')
 
   const [items, setItems] = useState<StaffItem[]>([])
@@ -129,7 +129,7 @@ export default function StaffCompIndexClient() {
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (

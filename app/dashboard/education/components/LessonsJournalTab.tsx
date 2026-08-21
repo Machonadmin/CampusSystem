@@ -7,6 +7,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -151,7 +152,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} />
       ) : error ? (
         <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : lessons.length === 0 ? (

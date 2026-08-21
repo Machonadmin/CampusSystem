@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient, getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Semester {
   id: string
@@ -115,7 +116,7 @@ export default function EducationSemestersPage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger, #DC2626)' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={6} />
       ) : semesters.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('empty')}</div>
       ) : (

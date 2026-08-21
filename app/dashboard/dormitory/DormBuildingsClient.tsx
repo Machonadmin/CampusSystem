@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Building {
   id: string
@@ -134,7 +135,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={6} />
       ) : items.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
       ) : (

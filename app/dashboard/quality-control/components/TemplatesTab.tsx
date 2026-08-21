@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -586,7 +587,7 @@ export default function TemplatesTab({ perms }: Props) {
 
       <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : error ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : templates.length === 0 ? (

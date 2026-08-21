@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import SemesterStudentsModal from './SemesterStudentsModal'
 
 interface Semester {
@@ -29,7 +30,6 @@ function fmtMoney(n: number) {
 export default function SemestersPage() {
   const t = useTranslations('finance.semesters')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
 
   const [semesters, setSemesters] = useState<Semester[]>([])
   const [canManage, setCanManage] = useState(false)
@@ -80,7 +80,7 @@ export default function SemestersPage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={6} />
       ) : semesters.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('empty_finance')}</div>
       ) : (

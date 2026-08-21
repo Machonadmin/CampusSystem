@@ -6,6 +6,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface CityRow { id: string; country: string; city: string }
 
@@ -223,9 +224,7 @@ export default function ReferenceCitiesPage() {
         )}
 
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
-            {t('loading')}
-          </div>
+          <SkeletonRows avatar={false} />
         ) : cities.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
             {t('empty_none')}

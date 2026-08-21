@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import LessonNotes from '@/components/education/LessonNotes'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { LessonItem } from './LessonsJournalTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -282,7 +283,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
         {/* Список студентов */}
         <div style={{ flex: 1, overflowY: 'auto', marginTop: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('att_loading')}</div>
+            <SkeletonRows />
           ) : error ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
           ) : students.length === 0 ? (

@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Enrollment {
   id: string
@@ -249,7 +250,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} />
         ) : enrollments.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('plan.no_enrollments')}</div>
         ) : (

@@ -9,6 +9,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
@@ -153,7 +154,7 @@ export default function StudyGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <SkeletonRows avatar={false} rows={6} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>

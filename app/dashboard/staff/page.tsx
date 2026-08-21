@@ -16,6 +16,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department {
   id: string
@@ -569,7 +570,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
 
       <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : employees.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {search || deptFilter ? t('no_results') : t('no_employees')}
@@ -662,7 +663,6 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState<string>('structure')
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -733,7 +733,7 @@ export default function StaffPage() {
 
           <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+              <SkeletonRows avatar={false} rows={6} />
             ) : error ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
             ) : tree.length === 0 ? (
