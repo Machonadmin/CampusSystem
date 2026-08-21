@@ -26,17 +26,18 @@ export async function GET(_request: NextRequest) {
 
     const sb = createServerClient()
 
-    // Группы кодеша: активные class_groups кафедры иудаики.
-    let groups: Array<{ id: string; name: string }> = []
+    // Группы кодеша: активные class_groups кафедры иудаики (6 уровней).
+    let groups: Array<{ id: string; name: string; name_he: string | null; name_en: string | null }> = []
     try {
       const { data, error } = await sb
         .from('class_groups')
-        .select('id, name')
+        .select('id, name, name_he, name_en')
         .eq('department_id', KODESH_DEPT_ID)
         .eq('is_active', true)
+        .order('name_he', { nullsFirst: false })
         .order('name')
       if (error) throw error
-      groups = (data ?? []) as Array<{ id: string; name: string }>
+      groups = (data ?? []) as Array<{ id: string; name: string; name_he: string | null; name_en: string | null }>
     } catch (e) {
       if ((e as { code?: string }).code !== '42P01') throw e
     }

@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 
-interface Group { id: string; name: string }
+interface Group { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Student {
   journey_id: string
   name: string
@@ -15,6 +15,9 @@ interface Student {
 
 export default function KodeshAssignmentPage() {
   const t = useTranslations('education.kodesh')
+  const { lang } = useLang()
+  // Имя уровня кодеша на языке интерфейса (name=RU / name_he=HE / name_en=EN).
+  const gname = (g: Group) => (lang === 'he' ? (g.name_he || g.name) : lang === 'en' ? (g.name_en || g.name) : g.name)
   const tNav = useTranslations('navigation')
 
   const [groups, setGroups] = useState<Group[]>([])
@@ -188,7 +191,7 @@ export default function KodeshAssignmentPage() {
                     }}
                   >
                     <option value="">{t('unassigned_option')}</option>
-                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                    {groups.map(g => <option key={g.id} value={g.id}>{gname(g)}</option>)}
                   </select>
                 </div>
               )
