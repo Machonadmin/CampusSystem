@@ -9,6 +9,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 import EmptyState from '@/components/ui/EmptyState'
+import { Caret } from '@/components/ui/Caret'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrackRef { id: string; name_he: string | null; name_ru: string | null; name_en: string | null }
@@ -173,7 +174,7 @@ export default function SemesterGroupsTab() {
                       >
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
                             {(g.year_label || g.term_number != null) && (
                               <span style={{ color: 'var(--text-faint)', fontSize: 12, fontWeight: 400 }}>

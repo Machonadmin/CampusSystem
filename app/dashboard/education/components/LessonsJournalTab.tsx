@@ -6,6 +6,7 @@ import AttendancePanel from './AttendancePanel'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Caret } from '@/components/ui/Caret'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -177,7 +178,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                     >
                       <td style={{ ...td, whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                          <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                          <Caret open={open} />
                           {formatDate(lang, lesson.scheduled_date)}
                         </span>
                       </td>

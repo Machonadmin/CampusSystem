@@ -10,6 +10,7 @@ import RecruitmentSummary from './RecruitmentSummary'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { Caret } from '@/components/ui/Caret'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
@@ -184,7 +185,7 @@ export default function RecruitmentTab() {
           {activeFilters > 0 && (
             <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
           )}
-          <span style={{ fontSize: 9, opacity: 0.75 }}>{filtersOpen ? '▲' : '▼'}</span>
+          <Caret open={filtersOpen} variant="toggle" color="currentColor" />
         </button>
         <PageActionButton
           label={t('leads.create_button')}
@@ -306,7 +307,7 @@ export default function RecruitmentTab() {
                   {/* Фото + Имя */}
                   <td style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)`, flexShrink: 0 }}>▶</span>
+                      <Caret open={open} />
                       {lead.photo_url ? (
                         <img src={lead.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
