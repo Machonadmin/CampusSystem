@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import SemesterGroupModal from './SemesterGroupModal'
 import SemesterCourses from './SemesterCourses'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -275,7 +276,7 @@ export default function StudiesWorkspace() {
         <SemesterCourses semesterId={openSem.id} semesterName={openSem.name} />
       ) : (
       <>
-      {loading && <EmptyState text={t('common.loading')} />}
+      {loading && <SkeletonRows rows={5} />}
       {error && <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>{error}</div>}
 
       {!loading && !error && (

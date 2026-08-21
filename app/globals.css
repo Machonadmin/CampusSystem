@@ -258,3 +258,12 @@ p { text-wrap: pretty; }
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
 }
+
+/* Скелетон-загрузка (мягкое мерцание) + верхний прогресс-бар навигации. */
+@keyframes campus-shimmer {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .campus-sk { animation: none !important; }
+}

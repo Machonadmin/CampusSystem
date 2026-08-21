@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -216,7 +217,7 @@ export default function StudiesDashboard() {
             <a href="/dashboard/education/timetable" style={moreLink}>{t('view_all')}</a>
           </h5>
           {loading ? (
-            <Empty text={t('loading')} />
+            <SkeletonRows rows={4} />
           ) : todaySlots.length === 0 ? (
             <Empty text={t('today_none')} />
           ) : (
@@ -247,7 +248,7 @@ export default function StudiesDashboard() {
             <a href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</a>
           </h5>
           {loading ? (
-            <Empty text={t('loading')} />
+            <SkeletonRows rows={4} />
           ) : pending.length === 0 ? (
             <Empty text={t('pending_none')} />
           ) : (
