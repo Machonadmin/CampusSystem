@@ -68,12 +68,15 @@ export async function GET(request: NextRequest) {
     const staffPersonIds = [...new Set((spRows ?? []).map((r: { person_id: string }) => r.person_id))]
     if (staffPersonIds.length === 0) return NextResponse.json({ people: [] })
 
+    // Показываем ВЕСЬ штат по клику на стрелку (owner: «שמות כל המורים»).
+    // Прежний лимит 50 при сортировке по full_name отрезал ивритоязычные имена
+    // (сортируются последними) — поэтому преподаватель находился только поиском.
     let qb = sb
       .from('persons')
       .select('id, full_name, hebrew_name, email, phones')
       .in('id', staffPersonIds)
       .order('full_name')
-      .limit(50)
+      .limit(300)
     if (q.length >= 2) qb = qb.or(`full_name.ilike.%${q}%,hebrew_name.ilike.%${q}%,email.ilike.%${q}%`)
 
     const { data } = await qb
