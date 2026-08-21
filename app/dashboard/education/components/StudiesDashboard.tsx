@@ -329,9 +329,9 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_teacher_attendance', fb: 'נוכחות מורים', icon: LIC.check, href: '/dashboard/education/teacher-attendance', acc: 'teacher_attendance' },
     { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
-  ] },
-  { key: 'launch_chavruta', fb: 'חברותא', badge: 'חדש בלימודים', items: [
-    { key: 'launch_chavruta_hub', fb: 'מרכז חברותא', icon: LIC.users, href: '/dashboard/education/chavruta', acc: 'chavruta' },
+    // Единое имя «חברותא» (тот же адрес, что и пункт «חברותא» в боковом меню) —
+    // раньше здесь было «מרכז חברותא», что путало (owner: «תאחד את זה לחברותא»).
+    { key: 'launch_chavruta_hub', fb: 'חברותא', icon: LIC.users, href: '/dashboard/education/chavruta', acc: 'chavruta' },
   ] },
   { key: 'launch_admin', fb: 'ניהול ותצורה', items: [
     { key: 'launch_subjects', fb: 'מקצועות', icon: LIC.cap, href: '/dashboard/education/subjects', acc: 'structure' },
