@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 import ShabbatPanel from './ShabbatPanel'
 
@@ -464,7 +465,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       {error ? (
         <div style={{ ...card, color: 'var(--danger)', fontSize: 13 }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} />
       ) : (
         <>
           {/* Chavruta Plus (mentorship) assignments */}

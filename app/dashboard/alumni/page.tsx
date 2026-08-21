@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { phoneList } from '@/lib/persons/phone'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -38,7 +39,6 @@ export default function AlumniPage() {
   const router = useRouter()
   const t = useTranslations('alumni')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [items, setItems] = useState<AlumniItem[]>([])
@@ -131,7 +131,7 @@ export default function AlumniPage() {
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (

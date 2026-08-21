@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { Caret } from '@/components/ui/Caret'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type ApplicantJourney,
@@ -103,7 +104,7 @@ export default function AdmissionTab() {
                   >
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)`, flexShrink: 0 }}>▶</span>
+                        <Caret open={open} />
                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--violet-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: 'var(--violet)', flexShrink: 0 }}>
                           {initials(fullName)}
                         </div>

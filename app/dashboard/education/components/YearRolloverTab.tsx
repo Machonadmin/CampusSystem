@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Settings {
   rollover_month: number
@@ -13,6 +14,10 @@ interface Settings {
 }
 
 const accent = getModuleColor('education')
+
+// Заморожено по просьбе владельца: авто/ручной переход отключены (см. lib/education/year-rollover).
+// Тут только отражаем это в UI — снять флаг вместе с ROLLOVER_FROZEN в движке.
+const FROZEN = true
 
 export default function YearRolloverTab() {
   const t = useTranslations('education.study')
@@ -59,7 +64,7 @@ export default function YearRolloverTab() {
   }
 
   async function runNow() {
-    if (!confirm(t('rollover.run_confirm'))) return
+    if (!(await confirmDialog({ message: t('rollover.run_confirm') }))) return
     setRunning(true)
     try {
       const resp = await fetch('/api/education/year-rollover', {
@@ -88,9 +93,15 @@ export default function YearRolloverTab() {
     <div style={{ maxWidth: 560 }}>
       <p style={{ margin: '0 0 16px', fontSize: 12.5, color: 'var(--text-faint)' }}>{t('rollover.hint')}</p>
 
+      {FROZEN && (
+        <div style={{ margin: '0 0 16px', padding: '10px 14px', background: 'var(--warn-tint)', color: 'var(--warn)', border: '1px solid var(--warn)', borderRadius: 8, fontSize: 12.5, fontWeight: 500 }}>
+          {t('rollover.frozen')}
+        </div>
+      )}
+
       <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 16, marginBottom: 14 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', marginBottom: 14 }}>
-          <input type="checkbox" checked={settings.auto_enabled} onChange={e => setSettings({ ...settings, auto_enabled: e.target.checked })} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: FROZEN ? 'not-allowed' : 'pointer', marginBottom: 14, opacity: FROZEN ? 0.6 : 1 }}>
+          <input type="checkbox" disabled={FROZEN} checked={settings.auto_enabled} onChange={e => setSettings({ ...settings, auto_enabled: e.target.checked })} />
           {t('rollover.auto_enabled')}
         </label>
 
@@ -109,8 +120,8 @@ export default function YearRolloverTab() {
           </div>
           <button
             onClick={save}
-            disabled={saving}
-            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}
+            disabled={saving || FROZEN}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
           >
             {saving ? t('common.saving') : t('common.save')}
           </button>
@@ -126,8 +137,8 @@ export default function YearRolloverTab() {
         <div style={{ flex: 1 }} />
         <button
           onClick={runNow}
-          disabled={running}
-          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: running ? 'wait' : 'pointer', opacity: running ? 0.6 : 1 }}
+          disabled={running || FROZEN}
+          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: running ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: running || FROZEN ? 0.6 : 1 }}
         >
           {running ? t('common.saving') : t('rollover.run_now')}
         </button>

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface StudentMini {
   id: string
@@ -50,7 +52,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
   }
 
   const handleRemove = async (studentId: string) => {
-    if (!confirm(t('class_groups.remove_student_confirm'))) return
+    if (!(await confirmDialog({ message: t('class_groups.remove_student_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${groupId}/enrollments/${studentId}`, {
         method: 'DELETE',
@@ -273,7 +275,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
 
         <div style={{ flex: 1, overflowY: 'auto', borderRadius: 8, border: '1px solid var(--border)' }}>
           {loading && (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+            <SkeletonRows />
           )}
           {!loading && candidates.length === 0 && (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.nothing_found')}</div>

@@ -7,6 +7,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Role {
   id: string
@@ -703,7 +704,7 @@ function UsersPageContent() {
 
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : error ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
         ) : filtered.length === 0 ? (

@@ -75,7 +75,7 @@ export default function StudyTab() {
         {isActive && (
           <span style={{
             position: 'absolute', top: 6, bottom: 6, width: 3, borderRadius: 3,
-            background: 'var(--accent)', [isRTL ? 'right' : 'left']: 0,
+            background: 'var(--accent)', insetInlineStart: 0,
           }} />
         )}
         <button
@@ -104,9 +104,16 @@ export default function StudyTab() {
     )
   }
 
-  // Пока не знаем роль — лёгкий плейсхолдер, чтобы не мелькал управленческий рельс.
+  // Пока не знаем роль — лёгкий скелет, чтобы не мелькал управленческий рельс и
+  // не было пустого прямоугольника (мягкое ожидание вместо белого «мигания»).
   if (teacherHome === null) {
-    return <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, minHeight: 200 }} />
+    return (
+      <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 18, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ height: 22, width: '38%', borderRadius: 7, background: 'var(--surface-2)' }} />
+        <div style={{ height: 60, borderRadius: 10, background: 'var(--surface-2)' }} />
+        <div style={{ height: 60, borderRadius: 10, background: 'var(--surface-2)' }} />
+      </div>
+    )
   }
   // Преподаватель: только домашний экран учителя, без управленческого рельса.
   if (teacherHome) {

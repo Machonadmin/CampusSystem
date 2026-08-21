@@ -4,9 +4,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Doc {
   id: string
@@ -134,7 +136,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   async function setStatus(d: Doc, status: 'active' | 'archived') {
     const confirmMsg = status === 'archived' ? t('archive_confirm') : t('unarchive_confirm')
-    if (!confirm(confirmMsg)) return
+    if (!(await confirmDialog({ message: confirmMsg, tone: 'danger' }))) return
     setBusy(true); setError(null)
     try {
       const res = await fetch(`/api/documents/${d.id}`, {
@@ -155,7 +157,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
   }
 
   async function remove(d: Doc) {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     setBusy(true); setError(null)
     try {
       const res = await fetch(`/api/documents/${d.id}`, { method: 'DELETE' })
@@ -197,7 +199,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows />
       ) : (
         <>
           {/* Add document — collapsed by default */}

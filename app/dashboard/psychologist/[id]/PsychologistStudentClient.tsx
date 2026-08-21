@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Profile {
   presenting_concerns: string | null
@@ -140,7 +142,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
 
   async function setStatus(s: Session, status: 'open' | 'closed') {
     const confirmMsg = status === 'closed' ? t('session.close_confirm') : t('session.reopen_confirm')
-    if (!confirm(confirmMsg)) return
+    if (!(await confirmDialog({ message: confirmMsg, tone: 'danger' }))) return
     setBusy(true); setSessionError(null)
     try {
       const res = await fetch(`/api/psychologist/sessions/${s.id}`, {
@@ -188,7 +190,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows />
       ) : (
         <>
           {/* Counseling profile */}

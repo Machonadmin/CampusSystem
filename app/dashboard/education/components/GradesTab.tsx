@@ -6,6 +6,8 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import GradeEntryPanel from './GradeEntryPanel'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -120,7 +122,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
   useEffect(() => { load() }, [load])
 
   const handleDelete = async (a: AssessmentItem) => {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/assessments/${a.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -170,7 +172,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} />
       ) : error ? (
         <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : assessments.length === 0 ? (

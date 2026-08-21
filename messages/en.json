@@ -46,6 +46,7 @@
   "common": {
     "actions": "Actions",
     "cancel": "Cancel",
+    "confirm_ok": "Confirm",
     "close": "Close",
     "required_field": "Please fill in: {field}",
     "delete": "Delete",
@@ -829,6 +830,11 @@
         "count_students": "{n} students",
         "structures_hint": "Pick a structure to see years and cohorts",
         "no_track": "No track",
+        "section_chol": "Secular studies",
+        "section_kodesh": "Kodesh studies",
+        "kodesh_hint": "Kodesh levels — assigned independently, unrelated to the secular study track.",
+        "kodesh_manage": "Kodesh assignment",
+        "kodesh_empty": "No kodesh levels yet.",
         "empty_year": "No semesters in this year yet — add one."
       },
       "courses": {
@@ -1195,7 +1201,8 @@
         "run_skipped": "Rollover already ran this year.",
         "last_run": "Last rollover: {year}.",
         "never_run": "No rollover yet.",
-        "not_ready": "Rollover settings unavailable (migration not applied)."
+        "not_ready": "Rollover settings unavailable (migration not applied).",
+        "frozen": "Year rollover is currently frozen — automatic and manual rollover are temporarily disabled. We'll re-enable this later."
       },
       "teacher": {
         "title": "My space",

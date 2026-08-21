@@ -4,6 +4,8 @@ import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
 import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
+import { getHeadedUnitIds } from '@/lib/education/unit-access'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -204,14 +206,24 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [rolePrivileges, departmentIds, personGrants] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants, headedUnitIds] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
     loadPersonPrivileges(session.person_id),
+    getHeadedUnitIds(session.person_id),
   ])
 
   // Персональные выдачи/запреты поверх ролевых (см. applyPersonGrants).
   const privileges = applyPersonGrants<EducationPrivilege>(rolePrivileges, personGrants)
+
+  // Кодеш — сквозная кафедра: КАЖДАЯ студентка приписана к её группе кодеша (утром
+  // все учат кодеш; «основное» подразделение — её дневной מסלול, никогда не кодеш).
+  // Поэтому глава кафедры кодеша ВИДИТ всех студенток института: view_students → 'all'.
+  // РЕДАКТИРОВАНИЕ не расширяем — manage_* остаются 'department' (правит только кодеш).
+  // Обычные главы юнитов (колледжей) не затрагиваются: правило только для кодеша.
+  if (headedUnitIds.includes(KODESH_DEPT_ID) && privileges['view_students'] !== 'all') {
+    privileges['view_students'] = 'all'
+  }
 
   setCached(session.person_id, privileges, departmentIds)
   return { privileges, departmentIds, expiresAt: Date.now() + CACHE_TTL_MS }

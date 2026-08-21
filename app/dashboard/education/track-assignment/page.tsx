@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string }
 interface Student { journey_id: string; name: string; department: { id: string; name: string } | null }
@@ -64,7 +65,7 @@ export default function TrackAssignmentPage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows rows={6} />
       ) : students.length === 0 ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--success)', fontSize: 14, fontWeight: 600 }}>✓ {t('all_assigned')}</div>
       ) : (

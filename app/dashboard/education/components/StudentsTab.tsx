@@ -4,6 +4,10 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Caret } from '@/components/ui/Caret'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
@@ -79,6 +83,11 @@ export default function StudentsTab() {
   const [classGroups, setClassGroups] = useState<{ id: string; name: string }[]>([])
   const [tracks, setTracks] = useState<{ id: string; name: string }[]>([])
   const [kodeshGroups, setKodeshGroups] = useState<{ id: string; name: string }[]>([])
+  // «Видит всех, но управляет только своим юнитом» (глава кафедры кодеша:
+  // view_students='all', manage_students='department'). Тогда прячем действия,
+  // которые не сработают на студентках вне его юнита (класс/маршрут/переход
+  // года/закрытие), оставляя только назначение в кодеш.
+  const [manageRestricted, setManageRestricted] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -153,6 +162,18 @@ export default function StudentsTab() {
     fetch('/api/education/kodesh/assignment')
       .then(r => r.ok ? r.json() : { groups: [] })
       .then(j => setKodeshGroups(((j.groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+  }, [])
+
+  // Ограничен ли пользователь «только кодеш» в массовых действиях (см. выше).
+  useEffect(() => {
+    fetch('/api/education/launcher-access')
+      .then(r => (r.ok ? r.json() : {}))
+      .then((b: { students_view_all?: boolean; students_manage_all?: boolean }) => {
+        const restricted = b?.students_view_all === true && b?.students_manage_all !== true
+        setManageRestricted(restricted)
+        if (restricted) setBulkType('kodesh')
+      })
       .catch(() => {})
   }, [])
 
@@ -231,7 +252,12 @@ export default function StudentsTab() {
   // ручное действие (решение владельца).
   async function advanceYear() {
     if (selected.size === 0) return
-    if (!confirm(t('students.bulk.advance_confirm').replace('{n}', String(selected.size)))) return
+    const ok0 = await confirmDialog({
+      message: t('students.bulk.advance_confirm').replace('{n}', String(selected.size)),
+      confirmLabel: t('students.bulk.advance_year'),
+      cancelLabel: t('common.cancel'),
+    })
+    if (!ok0) return
     setBulkBusy(true); setBulkMsg(null)
     let ok = 0, fail = 0
     for (const id of selected) {
@@ -251,7 +277,13 @@ export default function StudentsTab() {
 
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
-    if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
+    const ok0 = await confirmDialog({
+      message: t('students.expel_confirm').replace('{name}', name),
+      confirmLabel: t('students.expel_button'),
+      cancelLabel: t('common.cancel'),
+      tone: 'danger',
+    })
+    if (!ok0) return
     try {
       const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -306,7 +338,7 @@ export default function StudentsTab() {
           {activeFilters > 0 && (
             <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
           )}
-          <span style={{ fontSize: 9, opacity: 0.75 }}>{filtersOpen ? '▲' : '▼'}</span>
+          <Caret open={filtersOpen} variant="toggle" color="currentColor" />
         </button>
         <button
           type="button"
@@ -378,8 +410,8 @@ export default function StudentsTab() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', padding: '10px 14px', background: 'var(--surface)', border: '1px solid var(--accent-strong)', borderRadius: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{t('students.bulk.selected').replace('{n}', String(selected.size))}</span>
           <select value={bulkType} onChange={e => { setBulkType(e.target.value as 'class' | 'track' | 'kodesh'); setBulkTarget('') }} style={inp}>
-            <option value="class">{t('students.bulk.type_class')}</option>
-            <option value="track">{t('students.bulk.type_track')}</option>
+            {!manageRestricted && <option value="class">{t('students.bulk.type_class')}</option>}
+            {!manageRestricted && <option value="track">{t('students.bulk.type_track')}</option>}
             <option value="kodesh">{t('students.bulk.type_kodesh')}</option>
           </select>
           <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} style={{ ...inp, minWidth: 160 }}>
@@ -393,14 +425,18 @@ export default function StudentsTab() {
           >
             {t('students.bulk.apply')}
           </button>
-          <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
-          <button
-            onClick={advanceYear}
-            disabled={bulkBusy || selected.size === 0}
-            style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
-          >
-            {t('students.bulk.advance_year')}
-          </button>
+          {!manageRestricted && (
+            <>
+              <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
+              <button
+                onClick={advanceYear}
+                disabled={bulkBusy || selected.size === 0}
+                style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
+              >
+                {t('students.bulk.advance_year')}
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -408,7 +444,7 @@ export default function StudentsTab() {
         <div style={{ padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 12, fontSize: 13, color: 'var(--text)' }}>{bulkMsg}</div>
       )}
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <SkeletonRows rows={6} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -418,9 +454,7 @@ export default function StudentsTab() {
 
       {!loading && !error && (
         students.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
-            {search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')}
-          </div>
+          <EmptyState text={search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')} />
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -449,6 +483,10 @@ export default function StudentsTab() {
                     <Fragment key={s.id}>
                       <tr
                         onClick={() => setExpandedId(open ? null : s.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={open}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(open ? null : s.id) } }}
                         style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
@@ -460,15 +498,15 @@ export default function StudentsTab() {
                         )}
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{s.person?.full_name ?? '—'}</span>
                           </span>
                           {s.person?.hebrew_name && (
                             <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={tdStyle}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
@@ -482,7 +520,7 @@ export default function StudentsTab() {
                             <button onClick={() => router.push(cardHref)} style={btnSecondary}>
                               {t('students.open_card')}
                             </button>
-                            {!expelled && (
+                            {!expelled && !manageRestricted && (
                               <button
                                 onClick={() => handleExpel(s)}
                                 style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
@@ -512,7 +550,6 @@ export default function StudentsTab() {
           </div>
         )
       )}
-
     </div>
   )
 }

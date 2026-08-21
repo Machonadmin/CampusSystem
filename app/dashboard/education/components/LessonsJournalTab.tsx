@@ -5,6 +5,9 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -97,7 +100,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
   }
 
   const handleDelete = async (lesson: LessonItem) => {
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/lessons/${lesson.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -149,7 +152,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
 
       {/* Тело */}
       {loading ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} />
       ) : error ? (
         <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
       ) : lessons.length === 0 ? (
@@ -176,7 +179,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                     >
                       <td style={{ ...td, whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                          <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                          <Caret open={open} />
                           {formatDate(lang, lesson.scheduled_date)}
                         </span>
                       </td>

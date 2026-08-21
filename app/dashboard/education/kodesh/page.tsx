@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+
+// Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
+// расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
+const GEN_ALL_FROZEN = true
 
 interface Group { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Student {
@@ -127,7 +132,7 @@ export default function KodeshAssignmentPage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows rows={6} />
       ) : (
         <>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -145,22 +150,24 @@ export default function KodeshAssignmentPage() {
               {onlyUnassigned ? t('only_unassigned') : t('all')}
             </label>
             <div style={{ flex: 1 }} />
-            <button
-              onClick={generateAll}
-              disabled={genBusy || groups.length === 0}
-              title={t('gen_all_hint', '')}
-              style={{
-                fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 8,
-                border: '1px solid var(--accent-strong)', background: 'var(--accent-tint)',
-                color: 'var(--accent-strong)', cursor: genBusy || groups.length === 0 ? 'default' : 'pointer',
-                opacity: genBusy || groups.length === 0 ? 0.55 : 1,
-              }}
-            >
-              {genBusy ? t('gen_all_busy', '…') : t('gen_all', 'Generate all lessons')}
-            </button>
+            {!GEN_ALL_FROZEN && (
+              <button
+                onClick={generateAll}
+                disabled={genBusy || groups.length === 0}
+                title={t('gen_all_hint', '')}
+                style={{
+                  fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 8,
+                  border: '1px solid var(--accent-strong)', background: 'var(--accent-tint)',
+                  color: 'var(--accent-strong)', cursor: genBusy || groups.length === 0 ? 'default' : 'pointer',
+                  opacity: genBusy || groups.length === 0 ? 0.55 : 1,
+                }}
+              >
+                {genBusy ? t('gen_all_busy', '…') : t('gen_all', 'Generate all lessons')}
+              </button>
+            )}
           </div>
 
-          {genMsg && (
+          {!GEN_ALL_FROZEN && genMsg && (
             <div style={{ padding: '9px 13px', background: 'var(--surface-2)', borderRadius: 8, fontSize: 13, color: 'var(--text)' }}>{genMsg}</div>
           )}
 

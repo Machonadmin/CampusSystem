@@ -9,6 +9,7 @@ import TaskCreateModal from './components/TaskCreateModal'
 import TaskDetailModal from './components/TaskDetailModal'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { TaskRow } from '@/types/database'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
@@ -388,9 +389,7 @@ export default function TasksPage() {
 
       {/* Content */}
       {loading && (
-        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-          {tCommon('loading')}
-        </div>
+        <SkeletonRows avatar={false} rows={6} />
       )}
 
       {error && (

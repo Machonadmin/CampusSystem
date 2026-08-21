@@ -5,7 +5,9 @@ import type { FeaturePerms } from '@/lib/permissions'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -559,7 +561,7 @@ export default function TemplatesTab({ perms }: Props) {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(t('templates.confirm_delete', 'Delete template «{name}»?').replace('{name}', name))) return
+    if (!(await confirmDialog({ message: t('templates.confirm_delete', 'Delete template «{name}»?').replace('{name}', name), tone: 'danger' }))) return
     const res = await fetch(`/api/settings/quality-templates/${id}`, { method: 'DELETE' })
     if (res.ok) { load() }
     else { const d = await res.json(); toast(d.error ?? t('templates.delete_failed'), 'error') }
@@ -585,7 +587,7 @@ export default function TemplatesTab({ perms }: Props) {
 
       <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : error ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : templates.length === 0 ? (

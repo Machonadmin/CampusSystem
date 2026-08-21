@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Contact {
   id: string
@@ -166,7 +168,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
 
   async function remove() {
     if (!editingId) return
-    if (!confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     setBusy(true); setFormError(null)
     try {
       const res = await fetch(`/api/contacts/${editingId}`, { method: 'DELETE' })
@@ -342,7 +344,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (

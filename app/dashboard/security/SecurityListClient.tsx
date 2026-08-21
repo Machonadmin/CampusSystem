@@ -9,6 +9,7 @@ import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Incident {
   id: string
@@ -310,7 +311,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : items.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (

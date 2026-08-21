@@ -11,6 +11,7 @@ import { downloadCsv } from '@/lib/csv'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import { isValidEmail } from '@/lib/contacts/directory'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Sponsor {
   id: string
@@ -275,7 +276,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (

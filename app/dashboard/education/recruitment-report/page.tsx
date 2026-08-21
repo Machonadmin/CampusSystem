@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ─── Типы ответа API ────────────────────────────────────────────────────────
 interface Report {
@@ -61,7 +62,7 @@ export default function RecruitmentReportPage() {
       {forbidden ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('forbidden')}</div>
       ) : loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : !report ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('empty')}</div>
       ) : (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DateInput } from '@/components/ui/date-input'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
     }
   }
 
-  function onActionClick(to: TargetStatus) {
+  async function onActionClick(to: TargetStatus) {
     setError(null)
     if (NEEDS_DETAILS.includes(to)) {
       setReason('')
@@ -113,7 +114,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
       setModalTarget(to)
     } else {
       // Возврат из отпуска — без причины/даты
-      if (confirm(t('return_confirm'))) void runTransition(to, {})
+      if (await confirmDialog({ message: t('return_confirm') })) void runTransition(to, {})
     }
   }
 

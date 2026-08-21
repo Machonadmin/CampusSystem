@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
@@ -336,8 +337,8 @@ export default function FinanceLedgerClient({
                           accentColor={primary}
                           actions={[
                             { key: 'discount', label: t('ledger.give_discount'), onClick: () => openDiscount(c.id), disabled: busy, hidden: c.status !== 'active' },
-                            { key: 'cancel', label: t('action.cancel'), onClick: () => { if (confirm(t('confirm.cancel_charge'))) mutate(`/api/finance/charges/${c.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, hidden: c.status !== 'active' },
-                            { key: 'delete', label: tCommon('delete'), onClick: () => { if (confirm(t('confirm.delete_charge'))) mutate(`/api/finance/charges/${c.id}`, 'DELETE') }, disabled: busy, danger: true },
+                            { key: 'cancel', label: t('action.cancel'), onClick: async () => { if (await confirmDialog({ message: t('confirm.cancel_charge'), tone: 'danger' })) mutate(`/api/finance/charges/${c.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, hidden: c.status !== 'active' },
+                            { key: 'delete', label: tCommon('delete'), onClick: async () => { if (await confirmDialog({ message: t('confirm.delete_charge'), tone: 'danger' })) mutate(`/api/finance/charges/${c.id}`, 'DELETE') }, disabled: busy, danger: true },
                           ]}
                         />
                       )}
@@ -462,8 +463,8 @@ export default function FinanceLedgerClient({
                       <RowActionsMenu
                         accentColor={primary}
                         actions={[
-                          { key: 'approve', label: t('action.approve'), onClick: () => { if (confirm(t('confirm.approve_payment'))) mutate(`/api/finance/payments/${p.id}/approve`, 'POST') }, disabled: busy, hidden: !(canApprove && p.status === 'pending') },
-                          { key: 'cancel', label: t('action.cancel'), onClick: () => { if (confirm(t('confirm.cancel_payment'))) mutate(`/api/finance/payments/${p.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, danger: true, hidden: !(canCreateInvoice && p.status !== 'cancelled') },
+                          { key: 'approve', label: t('action.approve'), onClick: async () => { if (await confirmDialog({ message: t('confirm.approve_payment') })) mutate(`/api/finance/payments/${p.id}/approve`, 'POST') }, disabled: busy, hidden: !(canApprove && p.status === 'pending') },
+                          { key: 'cancel', label: t('action.cancel'), onClick: async () => { if (await confirmDialog({ message: t('confirm.cancel_payment'), tone: 'danger' })) mutate(`/api/finance/payments/${p.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, danger: true, hidden: !(canCreateInvoice && p.status !== 'cancelled') },
                         ]}
                       />
                     </td>

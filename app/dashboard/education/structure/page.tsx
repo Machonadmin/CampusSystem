@@ -5,6 +5,8 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -128,7 +130,7 @@ export default function StructurePage() {
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : !root ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>
       ) : (
@@ -209,7 +211,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
                   { key: 'rename', label: t('rename'), onClick: () => { setEditing(true); setEditName(node.name) } },
                   { key: 'up', label: t('move_up'), onClick: () => onMove(node.id, 'up'), disabled: busy, hidden: index === 0 },
                   { key: 'down', label: t('move_down'), onClick: () => onMove(node.id, 'down'), disabled: busy, hidden: index >= siblingCount - 1 },
-                  { key: 'delete', label: t('delete'), onClick: () => { if (confirm(t('confirm_delete'))) onRemove(node.id) }, disabled: busy, danger: true },
+                  { key: 'delete', label: t('delete'), onClick: async () => { if (await confirmDialog({ message: t('confirm_delete'), tone: 'danger' })) onRemove(node.id) }, disabled: busy, danger: true },
                 ]}
               />
             )}

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { OccupancyBar } from '../DormBuildingsClient'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Room {
   id: string
@@ -180,7 +182,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
   async function endAssignment(a: RoomAssignment) {
     if (!selected) return
-    if (!confirm(t('room.end_confirm'))) return
+    if (!(await confirmDialog({ message: t('room.end_confirm'), tone: 'danger' }))) return
     setBusy(true); setPanelError(null)
     try {
       const today = new Date().toISOString().slice(0, 10)
@@ -249,7 +251,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows />
       ) : rooms.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('building.no_rooms')}</div>
       ) : (
@@ -336,7 +338,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
           {/* Assignments list */}
           {panelLoading ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+            <SkeletonRows avatar={false} />
           ) : assignments.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('room.no_assignments')}</div>
           ) : (

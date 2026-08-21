@@ -6,6 +6,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,6 @@ function formatDate(d: string | null): string {
 export default function FinanceAccessPage() {
   const t = useTranslations('finance.access')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
 
   const [grants, setGrants] = useState<Grant[]>([])
   const [loading, setLoading] = useState(true)
@@ -168,7 +168,7 @@ export default function FinanceAccessPage() {
           {error ? (
             <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
           ) : loading ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+            <SkeletonRows avatar={false} />
           ) : grants.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
           ) : (

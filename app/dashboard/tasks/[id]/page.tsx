@@ -8,6 +8,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 interface Comment {
@@ -375,9 +376,7 @@ export default function TaskPage() {
       </div>
 
       {loading && (
-        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-          {tCommon('loading')}
-        </div>
+        <SkeletonRows />
       )}
 
       {error && !task && (

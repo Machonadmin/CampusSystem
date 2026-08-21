@@ -8,6 +8,9 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
+import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Caret } from '@/components/ui/Caret'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrackRef { id: string; name_he: string | null; name_ru: string | null; name_en: string | null }
@@ -132,7 +135,7 @@ export default function SemesterGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <SkeletonRows rows={6} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -142,9 +145,7 @@ export default function SemesterGroupsTab() {
 
       {!loading && !error && (
         groups.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
-            {t('semester_groups.empty_none')}
-          </div>
+          <EmptyState text={t('semester_groups.empty_none')} />
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -164,13 +165,17 @@ export default function SemesterGroupsTab() {
                     <Fragment key={g.id}>
                       <tr
                         onClick={() => setExpandedId(open ? null : g.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={open}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(open ? null : g.id) } }}
                         style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                       >
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
                             {(g.year_label || g.term_number != null) && (
                               <span style={{ color: 'var(--text-faint)', fontSize: 12, fontWeight: 400 }}>

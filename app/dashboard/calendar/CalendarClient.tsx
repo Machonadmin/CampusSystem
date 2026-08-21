@@ -21,6 +21,7 @@ import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthda
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 import { formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
 import type { LessonItem } from '@/app/dashboard/education/components/LessonsJournalTab'
 import type {
@@ -551,7 +552,7 @@ export default function CalendarClient() {
       )}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       ) : view === 'month' ? (
         <MonthView
           weeks={weeks}

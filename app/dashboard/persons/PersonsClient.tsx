@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 type Tab = 'staff' | 'students' | 'leads'
 
@@ -222,7 +223,7 @@ export default function PersonsClient({ canViewStudentCards }: { canViewStudentC
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)', padding: 8 }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{tCommon('loading')}</div>
+          <SkeletonRows rows={6} />
         ) : rows.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{t('list.empty')}</div>
         ) : (

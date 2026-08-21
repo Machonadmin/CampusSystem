@@ -7,6 +7,9 @@ import SpecialtyModal from './SpecialtyModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department {
   id: string
@@ -68,7 +71,7 @@ export default function SpecialtiesTab() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (spec: Specialty) => {
-    if (!confirm(t('specialties.confirm_delete').replace('{name}', spec.name))) return
+    if (!(await confirmDialog({ message: t('specialties.confirm_delete').replace('{name}', spec.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/specialties/${spec.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -132,7 +135,7 @@ export default function SpecialtiesTab() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       )}
 
       {error && (
@@ -170,7 +173,7 @@ export default function SpecialtiesTab() {
                       >
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{s.name}</span>
                           </span>
                         </td>

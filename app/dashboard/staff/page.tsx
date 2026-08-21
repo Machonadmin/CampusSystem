@@ -15,6 +15,8 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department {
   id: string
@@ -313,7 +315,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   }, [staffOpen, node.id, refreshSignal])
 
   async function deactivateMember(member: StaffMember) {
-    if (!confirm(`${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`)) return
+    if (!(await confirmDialog({ message: `${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`, tone: 'danger' }))) return
     const today = new Date().toISOString().split('T')[0]
     const res = await fetch(`/api/staff/positions/${member.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -529,7 +531,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
   }, [search, deptFilter, refreshSignal, localRefresh])
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
-    if (!confirm(`${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`)) return
+    if (!(await confirmDialog({ message: `${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`, tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -568,7 +570,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
 
       <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : employees.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {search || deptFilter ? t('no_results') : t('no_employees')}
@@ -661,7 +663,6 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState<string>('structure')
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -688,7 +689,7 @@ export default function StaffPage() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(node: TreeNode) {
-    if (!confirm(t('delete_dept_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_dept_confirm'), tone: 'danger' }))) return
     await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
     load()
   }
@@ -732,7 +733,7 @@ export default function StaffPage() {
 
           <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+              <SkeletonRows avatar={false} rows={6} />
             ) : error ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
             ) : tree.length === 0 ? (

@@ -6,6 +6,8 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 
 const accent = getModuleColor('settings')
@@ -61,7 +63,7 @@ export default function PositionsPage() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDeactivate = async (pos: ReferencePositionRow) => {
-    if (!confirm(t('deactivate_confirm').replace('{name}', pos.name_ru))) return
+    if (!(await confirmDialog({ message: t('deactivate_confirm').replace('{name}', pos.name_ru), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/settings/positions/${pos.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -147,7 +149,7 @@ export default function PositionsPage() {
       </div>
 
       {loading && (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('loading')}</div>
+        <SkeletonRows avatar={false} rows={6} />
       )}
 
       {error && (

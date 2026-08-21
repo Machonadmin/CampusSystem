@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface SurveyRow { id: string; title: string; is_open: boolean; created_at: string; responses: number }
 
@@ -43,7 +44,7 @@ export default function TeachingSurveysClient() {
   }
 
   async function remove(s: SurveyRow) {
-    if (!confirm(t('confirm_delete'))) return
+    if (!(await confirmDialog({ message: t('confirm_delete'), tone: 'danger' }))) return
     setBusy(true)
     try {
       await fetch(`/api/education/teaching-surveys/${s.id}`, { method: 'DELETE' })

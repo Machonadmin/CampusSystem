@@ -7,6 +7,9 @@ import StudyGroupModal from './StudyGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Caret } from '@/components/ui/Caret'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Specialty { id: string; name: string; code: string | null; department_id: string }
@@ -76,7 +79,7 @@ export default function StudyGroupsTab() {
   }, [filterDept])
 
   const handleDelete = async (group: StudyGroup) => {
-    if (!confirm(t('groups.confirm_delete').replace('{name}', group.name))) return
+    if (!(await confirmDialog({ message: t('groups.confirm_delete').replace('{name}', group.name), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/study-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -151,7 +154,7 @@ export default function StudyGroupsTab() {
         />
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+      {loading && <SkeletonRows avatar={false} rows={6} />}
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
@@ -189,7 +192,7 @@ export default function StudyGroupsTab() {
                       >
                         <td style={{ ...tdStyle, fontWeight: 500 }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
+                            <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
                           </span>
                         </td>

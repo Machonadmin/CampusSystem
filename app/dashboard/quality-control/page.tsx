@@ -12,6 +12,8 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface CheckRow {
   id: string
@@ -107,7 +109,7 @@ export default function QualityControlPage() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(id: string, date: string) {
-    if (!confirm(t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date))) return
+    if (!(await confirmDialog({ message: t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date), tone: 'danger' }))) return
     setDeletingId(id)
     try {
       await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })
@@ -190,7 +192,7 @@ export default function QualityControlPage() {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+                <SkeletonRows avatar={false} rows={6} />
               ) : checks.length === 0 ? (
                 <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
                   {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}

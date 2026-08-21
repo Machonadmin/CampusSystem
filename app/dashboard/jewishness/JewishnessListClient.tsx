@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 type Status = 'pending' | 'verified' | 'rejected' | 'needs_review' | 'partial'
 
@@ -178,7 +179,7 @@ export default function JewishnessListClient() {
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+        <SkeletonRows rows={6} />
       ) : students.length === 0 ? (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
@@ -311,7 +312,7 @@ function DetailModal({
           {error ? (
             <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
           ) : loading || !detail ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+            <SkeletonRows />
           ) : (
             <DetailBody detail={detail} sigMethodFallback={sigMethodFallback} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
           )}

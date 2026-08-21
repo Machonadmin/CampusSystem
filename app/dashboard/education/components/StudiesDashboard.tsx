@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -46,8 +48,6 @@ function todayIsoDow(): number {
   const d = new Date().getDay()
   return d === 0 ? 7 : d
 }
-
-type NavSection = 'semester_groups' | 'students' | 'settings'
 
 export default function StudiesDashboard() {
   const t = useTranslations('education.study.dashboard')
@@ -217,7 +217,7 @@ export default function StudiesDashboard() {
             <a href="/dashboard/education/timetable" style={moreLink}>{t('view_all')}</a>
           </h5>
           {loading ? (
-            <Empty text={t('loading')} />
+            <SkeletonRows rows={4} />
           ) : todaySlots.length === 0 ? (
             <Empty text={t('today_none')} />
           ) : (
@@ -248,7 +248,7 @@ export default function StudiesDashboard() {
             <a href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</a>
           </h5>
           {loading ? (
-            <Empty text={t('loading')} />
+            <SkeletonRows rows={4} />
           ) : pending.length === 0 ? (
             <Empty text={t('pending_none')} />
           ) : (
@@ -290,17 +290,16 @@ function Kpi({ value, label, tone }: { value: string; label: string; tone: 'acce
 }
 
 function Empty({ text }: { text: string }) {
-  return <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 12.5, color: 'var(--text-faint)' }}>{text}</div>
+  return <EmptyState text={text} size="compact" />
 }
 
 // ─── Пусковая панель: всё, что можно сделать под «Учёбой», сгруппировано ───────
-// Ссылки ведут либо на отдельные маршруты (href), либо переключают секцию рельса
-// StudyTab (nav). Подписи через t(key, fallback) — падают на иврит, если ключа
-// ещё нет (EN/RU-ключи добавим на шаге полировки; парити-тест не затрагивается).
+// Каждая карточка ведёт на отдельный маршрут (href). Подписи через t(key,
+// fallback) — падают на иврит, если ключа ещё нет (парити-тест не затрагивается).
 // `acc` — ключ в ответе /api/education/launcher-access: карточка скрывается,
 // если доступ явно false (клик всё равно упёрся бы в 403). Нет ключа → всегда
 // видна (структурные пункты рельса).
-type LItem = { key: string; fb: string; icon: string; href?: string; nav?: NavSection; acc?: string }
+type LItem = { key: string; fb: string; icon: string; href: string; acc?: string }
 
 const LIC = {
   cal: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
@@ -342,7 +341,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   ] },
 ]
 
-export function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTranslations>; onNavigate?: (s: NavSection) => void; access: Record<string, boolean> | null }) {
+export function Launcher({ t, access }: { t: ReturnType<typeof useTranslations>; access: Record<string, boolean> | null }) {
   // Пока доступ не загружен — показываем скелет, НЕ все карточки. Иначе виден
   // «вспышка всего» и последующее схлопывание до разрешённого — это выглядит как
   // утечка прав (владелец: «יש לי גישה לרגע אחד להכל ואז זה מתכווץ»).
@@ -371,7 +370,7 @@ export function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTr
             )}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: 10 }}>
-            {g.items.map(it => <LaunchCard key={it.key} it={it} label={t(it.key, it.fb)} onNavigate={onNavigate} />)}
+            {g.items.map(it => <LaunchCard key={it.key} it={it} label={t(it.key, it.fb)} />)}
           </div>
         </div>
       ))}
@@ -379,21 +378,19 @@ export function Launcher({ t, onNavigate, access }: { t: ReturnType<typeof useTr
   )
 }
 
-function LaunchCard({ it, label, onNavigate }: { it: LItem; label: string; onNavigate?: (s: NavSection) => void }) {
+function LaunchCard({ it, label }: { it: LItem; label: string }) {
   const style: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 11, padding: '12px 13px', width: '100%',
     background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
-    textAlign: 'start', cursor: 'pointer', fontFamily: 'inherit',
+    textAlign: 'start', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none',
   }
-  const inner = (
-    <>
+  return (
+    <a className="home-card" href={it.href} style={style}>
       <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-strong)', display: 'grid', placeItems: 'center' }}>
         <svg style={{ width: 19, height: 19 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={it.icon} /></svg>
       </span>
       <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
-    </>
+    </a>
   )
-  if (it.href) return <a className="home-card" href={it.href} style={{ ...style, textDecoration: 'none' }}>{inner}</a>
-  return <button className="home-card" type="button" onClick={() => it.nav && onNavigate?.(it.nav)} style={style}>{inner}</button>
 }
 

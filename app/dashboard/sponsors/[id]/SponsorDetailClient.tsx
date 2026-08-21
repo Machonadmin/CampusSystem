@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
 import type { SponsorRow } from '@/types/database'
@@ -236,7 +238,7 @@ export default function SponsorDetailClient({
   }
 
   async function removeSponsor() {
-    if (!confirm(t('detail.delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('detail.delete_confirm'), tone: 'danger' }))) return
     setBusy(true); setSFormError(null)
     try {
       const res = await fetch(`/api/sponsors/${sponsor.id}`, { method: 'DELETE' })
@@ -421,7 +423,7 @@ export default function SponsorDetailClient({
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} />
         ) : donations.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('detail.no_donations')}</div>
         ) : (

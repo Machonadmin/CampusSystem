@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import PsychReferrals from '@/components/psychologist/PsychReferrals'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Student {
   journey_id: string
@@ -178,7 +179,7 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+          <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
