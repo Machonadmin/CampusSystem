@@ -4,11 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import type { Lang } from '@/lib/i18n/translations'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   parent_id: string | null
 }
 
@@ -63,7 +67,8 @@ export interface EditingEmployee {
   employment_type?: string | null
 }
 
-function flattenTree(depts: Department[]): DeptOption[] {
+function flattenTree(depts: Department[], lang: Lang): DeptOption[] {
+  const nm = (d: Department) => localizedDeptName(d, lang)
   const map = new Map<string, Department & { children: Department[] }>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: (Department & { children: Department[] })[] = []
@@ -73,11 +78,11 @@ function flattenTree(depts: Department[]): DeptOption[] {
   }
   const out: DeptOption[] = []
   function walk(node: Department & { children: Department[] }, depth: number) {
-    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
-    const children = (node.children as (Department & { children: Department[] })[]).sort((a, b) => a.name.localeCompare(b.name))
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + nm(node) })
+    const children = (node.children as (Department & { children: Department[] })[]).sort((a, b) => nm(a).localeCompare(nm(b)))
     children.forEach(c => walk(c, depth + 1))
   }
-  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  roots.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(r => walk(r, 0))
   return out
 }
 
@@ -91,6 +96,7 @@ export default function AddEmployeeModal({
 }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const isEditing = !!editing
 
   const MODAL_TABS = [
@@ -177,7 +183,7 @@ export default function AddEmployeeModal({
   useEffect(() => {
     fetch('/api/settings/departments')
       .then(r => r.ok ? r.json() : [])
-      .then((d: Department[]) => setDepartments(flattenTree(d)))
+      .then((d: Department[]) => setDepartments(flattenTree(d, lang)))
     fetch('/api/settings/positions?active_only=true')
       .then(r => r.ok ? r.json() : { positions: [] })
       .then((d: { positions?: PositionOption[] }) => setPositions(d.positions ?? []))
