@@ -207,6 +207,18 @@ export default function TasksPage() {
     </div>
   )
 
+  // Первая загрузка в «первозданном» виде: ещё не знаем, будет ли это спокойный
+  // пустой герой или полный список. Показываем нейтральный ЦЕНТРИРОВАННЫЙ лоадер
+  // БЕЗ обвязки, чтобы не мигало «полная шапка → схлопывание в герой» на каждом
+  // заходе (owner: «רואים רגע את העיצוב הישן ואז עובר לחדש»).
+  if (loading && pristine) {
+    return (
+      <div className="p-6" style={{ minHeight: '72vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 420 }}><SkeletonRows rows={4} /></div>
+      </div>
+    )
+  }
+
   // ── Спокойный пустой экран: только контент, без обвязки ──
   if (heroOnly) {
     return (
