@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
-interface Dept { id: string; name: string }
+interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Case {
   id: string; journey_id: string; absence_date: string | null; note: string | null
   status: 'open' | 'in_handling' | 'resolved'; assigned_department_id: string | null
@@ -137,7 +138,7 @@ export default function AbsencesClient() {
             <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inp} />
             <select value={formDept} onChange={e => setFormDept(e.target.value)} style={{ ...inp, minWidth: 200 }}>
               <option value="">{t('no_transfer')}</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{t('transfer_to')}: {d.name}</option>)}
+              {departments.map(d => <option key={d.id} value={d.id}>{t('transfer_to')}: {localizedDeptName(d, lang)}</option>)}
             </select>
           </div>
           <textarea value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, resize: 'vertical' }} />
@@ -180,7 +181,7 @@ export default function AbsencesClient() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                   <select id={`t-${c.id}`} defaultValue="" style={{ ...inp, minWidth: 200 }}>
                     <option value="" disabled>{t('choose_dept')}</option>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
                   </select>
                   <button onClick={() => { const el = document.getElementById(`t-${c.id}`) as HTMLSelectElement | null; if (el?.value) patch(c.id, { department_id: el.value }, t('transferred')) }} style={smallBtn(true)}>{t('do_transfer')}</button>
                 </div>
