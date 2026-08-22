@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -12,7 +13,7 @@ type TaskKind     = 'once' | 'recurring'
 type DueTimeType  = 'allday' | 'exact'
 type SeriesEnd    = 'never' | 'until_date' | 'after_count'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Watcher   { id: string; full_name: string }
 
 // ── Locale-aware calendar helpers (Intl instead of hand-rolled name tables) ──
@@ -373,7 +374,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             {assigneeMode === 'department' && (
               <select value={assigneeDepartmentId} onChange={e => setAssigneeDepartmentId(e.target.value)} style={inp}>
                 <option value="">{t('create_modal.department_select_placeholder')}</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
               </select>
             )}
           </div>
