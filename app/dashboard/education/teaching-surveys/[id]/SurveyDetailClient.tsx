@@ -79,9 +79,9 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
       const res = await fetch(`/api/education/teaching-surveys/${surveyId}/responses`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teacher_person_id: fillTeacher, answers }),
       })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); alert(b.error || 'error') }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error || t('save_failed')) }
       else { setFillTeacher(''); setFillAnswers({}); await load() }
-    } finally { setBusy(false) }
+    } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
   const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16 }

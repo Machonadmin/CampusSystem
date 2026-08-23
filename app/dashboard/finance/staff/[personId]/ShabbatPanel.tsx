@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 type ShabbatType = 'shabbat_host' | 'shabbat_family'
 
@@ -72,7 +73,7 @@ export default function ShabbatPanel({ personId, canManage, year, month, onChang
   }
 
   async function deleteEvent(id: string) {
-    if (!window.confirm(t('sh_confirm_delete'))) return
+    if (!(await confirmDialog({ message: t('sh_confirm_delete'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff-comp/${personId}/shabbat/${id}`, { method: 'DELETE' })
       if (!res.ok) { toast(t('entry_save_error'), 'error'); return }

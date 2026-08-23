@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Enrollment {
   journey_id: string
@@ -89,7 +90,7 @@ export default function SemesterStudentsModal({ semesterId, title, onClose }: {
   }
 
   async function remove(journeyId: string) {
-    if (!window.confirm(t('unenroll_confirm'))) return
+    if (!(await confirmDialog({ message: t('unenroll_confirm'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/finance/semesters/${semesterId}/enrollments/${journeyId}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); toast(b.error ?? t('save_failed'), 'error'); return }

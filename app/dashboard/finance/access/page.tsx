@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -93,7 +94,7 @@ export default function FinanceAccessPage() {
   }
 
   async function revoke(id: string) {
-    if (!window.confirm(t('revoke_confirm'))) return
+    if (!(await confirmDialog({ message: t('revoke_confirm'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/finance/access/${id}`, { method: 'DELETE' })
       if (!res.ok) {
