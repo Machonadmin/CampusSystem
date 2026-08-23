@@ -130,6 +130,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
+    // Задачи — инструмент сотрудников. Студенческий портальный токен (roles:[])
+    // не должен создавать задачи и слать уведомления сотрудникам.
+    if (session.principal === 'student') return apiError('forbidden', 403)
     const personId = session.person_id
 
     const body = await request.json() as {

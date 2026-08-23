@@ -7,6 +7,7 @@ import type { PositionCategory, ReferencePositionUpdate } from '@/types/database
 async function requireAuth() {
   const session = await getSession()
   if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+  if (session.principal === 'student') throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   return session
 }
 

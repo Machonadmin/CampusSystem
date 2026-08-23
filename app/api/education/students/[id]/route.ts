@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  GET as journeyGET,
+  PATCH as journeyPATCH,
+  DELETE as journeyDELETE,
+} from '@/app/api/education/journeys/[id]/route'
 
 /**
  * /api/education/students/[id] — DEPRECATED.
@@ -7,20 +12,25 @@ import { NextRequest, NextResponse } from 'next/server'
  *
  * NB: [id] здесь — теперь это journey_id, не student_id. UI, который хранил
  * student_id из старой таблицы students, в Part 2 необходимо перевести на journey_id.
+ *
+ * ВАЖНО: раньше прокси делал fetch() на URL из request.url (Host-заголовок, под
+ * контролем клиента) с пробросом cookie сессии — SSRF/утечка куки. Теперь
+ * вызываем обработчик /journeys/[id] напрямую в процессе; сессия берётся из
+ * next/headers, исходящего запроса нет, Host не используется. Базовый origin —
+ * только заглушка для конструктора URL (обработчик host не читает).
  */
 
-function buildTarget(request: NextRequest, id: string): string {
-  const url = new URL(`/api/education/journeys/${id}`, request.url)
-  return url.toString()
+const INTERNAL_BASE = 'http://internal.invalid'
+
+function proxied(id: string, init?: ConstructorParameters<typeof NextRequest>[1]): NextRequest {
+  return new NextRequest(new URL(`/api/education/journeys/${id}`, INTERNAL_BASE), init)
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const resp = await fetch(buildTarget(request, params.id), {
-    headers: { cookie: request.headers.get('cookie') ?? '' },
-  })
+  const resp = await journeyGET(proxied(params.id), { params })
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }
@@ -30,26 +40,19 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const body = await request.text()
-  const resp = await fetch(buildTarget(request, params.id), {
-    method: 'PATCH',
-    headers: {
-      'content-type': 'application/json',
-      cookie: request.headers.get('cookie') ?? '',
-    },
-    body,
-  })
+  const resp = await journeyPATCH(
+    proxied(params.id, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body }),
+    { params },
+  )
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const resp = await fetch(buildTarget(request, params.id), {
-    method: 'DELETE',
-    headers: { cookie: request.headers.get('cookie') ?? '' },
-  })
+  const resp = await journeyDELETE(proxied(params.id, { method: 'DELETE' }), { params })
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }
