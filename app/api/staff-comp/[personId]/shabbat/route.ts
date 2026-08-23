@@ -24,7 +24,7 @@ async function namesByJourney(sb: ReturnType<typeof createServerClient>, ids: st
     .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
     .in('id', uniq)
   for (const j of (data ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
-    out.set(j.id, (j.person?.full_name || j.person?.hebrew_name || '').trim())
+    out.set(j.id, (j.person?.hebrew_name || j.person?.full_name || '').trim())
   }
   return out
 }

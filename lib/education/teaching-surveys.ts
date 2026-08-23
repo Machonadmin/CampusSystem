@@ -90,7 +90,7 @@ export async function namesFor(
   return (data ?? [])
     .map(p => {
       const r = p as { id: string; full_name: string | null; hebrew_name: string | null }
-      return { person_id: r.id, name: (r.full_name || r.hebrew_name || '').trim() }
+      return { person_id: r.id, name: (r.hebrew_name || r.full_name || '').trim() }
     })
     .filter(x => x.name)
     .sort((a, b) => a.name.localeCompare(b.name, 'he'))

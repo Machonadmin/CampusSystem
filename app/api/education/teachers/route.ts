@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const people = (data ?? []).map((p: any) => ({
         id: p.id,
-        full_name: (p.full_name || p.hebrew_name || '').trim(),
+        full_name: (p.hebrew_name || p.full_name || '').trim(),
         email: p.email ?? null,
         phone: Array.isArray(p.phones) && p.phones.length > 0 ? (p.phones[0]?.number ?? null) : null,
       }))
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const people = (data ?? []).map((p: any) => ({
       id: p.id,
-      full_name: (p.full_name || p.hebrew_name || '').trim(),
+      full_name: (p.hebrew_name || p.full_name || '').trim(),
       email: p.email ?? null,
       phone: Array.isArray(p.phones) && p.phones.length > 0 ? (p.phones[0]?.number ?? null) : null,
     }))

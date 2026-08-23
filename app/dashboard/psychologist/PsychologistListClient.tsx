@@ -106,7 +106,7 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
       const parts: string[] = []
       if (s.open_sessions > 0) parts.push(`${s.open_sessions} · ${t('list.open_sessions')}`)
       if (RISK_STYLE[s.risk_level]) parts.push(`${t('risk.label')}: ${t(`risk.${s.risk_level}`)}`)
-      return [s.full_name || s.hebrew_name || '', s.email ?? '', parts.join('; ') || '—']
+      return [s.hebrew_name || s.full_name || '', s.email ?? '', parts.join('; ') || '—']
     })
     downloadCsv('psychologist', [headers, ...data])
   }
@@ -204,7 +204,7 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                     >
                       <td style={td}>
-                        <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.full_name || s.hebrew_name || '—'}</div>
+                        <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
                         {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                       </td>
                       <td style={td}>

@@ -39,7 +39,7 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
     if (verifiedBy) {
       const { data: p } = await sb.from('persons').select('full_name, hebrew_name').eq('id', verifiedBy).maybeSingle()
       const pp = p as { full_name: string | null; hebrew_name: string | null } | null
-      verifiedByName = (pp?.full_name || pp?.hebrew_name || '').trim() || null
+      verifiedByName = (pp?.hebrew_name || pp?.full_name || '').trim() || null
     }
 
     // История (append-only). Деплой-безопасно к отсутствию таблицы.
@@ -58,7 +58,7 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
       if (ids.length) {
         const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', ids)
         for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-          nameById.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+          nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
         }
       }
       history = list.map(r => ({

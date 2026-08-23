@@ -99,7 +99,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
       if (s.doc_count > 0) parts.push(`${s.doc_count} ${t('list.count')}`)
       if (s.has_expired) parts.push(t('list.expired_flag'))
       if (s.has_expiring_soon) parts.push(t('list.expiring_flag'))
-      return [s.full_name || s.hebrew_name || '', parts.join('; ') || '—']
+      return [s.hebrew_name || s.full_name || '', parts.join('; ') || '—']
     })
     downloadCsv('documents', [headers, ...data])
   }
@@ -194,7 +194,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
                     <td style={td}>
-                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.full_name || s.hebrew_name || '—'}</div>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
                       {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                     </td>
                     <td style={td}>

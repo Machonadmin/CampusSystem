@@ -52,7 +52,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
       .in('id', journeyIds)
     for (const j of (js ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
-      nameById.set(j.id, (j.person?.full_name || j.person?.hebrew_name || '').trim())
+      nameById.set(j.id, (j.person?.hebrew_name || j.person?.full_name || '').trim())
     }
 
     // Статус/сумма счёта.

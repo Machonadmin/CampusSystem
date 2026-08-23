@@ -99,7 +99,7 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
       const parts: string[] = []
       if (s.open_visits > 0) parts.push(`${s.open_visits} · ${t('list.open_visits')}`)
       if (s.has_allergies) parts.push(t('list.allergies'))
-      return [s.full_name || s.hebrew_name || '', s.email ?? '', parts.join('; ') || '—']
+      return [s.hebrew_name || s.full_name || '', s.email ?? '', parts.join('; ') || '—']
     })
     downloadCsv('doctor', [headers, ...data])
   }
@@ -195,7 +195,7 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
                     <td style={td}>
-                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.full_name || s.hebrew_name || '—'}</div>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
                       {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                     </td>
                     <td style={td}>

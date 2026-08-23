@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
         const tids = [...new Set(rows.map(r => r.teacher_person_id))]
         if (tids.length) {
           const { data: ps } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', tids)
-          for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) names.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+          for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) names.set(p.id, (p.hebrew_name || p.full_name || '').trim())
         }
         return NextResponse.json({ items: rows.map(r => ({ ...r, teacher_name: names.get(r.teacher_person_id) ?? '', lesson: info.get(r.lesson_id) ?? null })) })
       } catch (e) {

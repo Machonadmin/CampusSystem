@@ -46,7 +46,7 @@ export async function GET() {
         .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
         .in('id', journeyIds)
       const students = ((js ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>)
-        .map(j => ({ journey_id: j.id, name: (j.person?.full_name || j.person?.hebrew_name || '').trim() }))
+        .map(j => ({ journey_id: j.id, name: (j.person?.hebrew_name || j.person?.full_name || '').trim() }))
         .sort((a, b) => a.name.localeCompare(b.name, 'he'))
 
       return NextResponse.json({ students })

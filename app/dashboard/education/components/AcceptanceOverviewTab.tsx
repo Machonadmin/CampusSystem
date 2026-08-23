@@ -185,7 +185,7 @@ export default function AcceptanceOverviewTab() {
             <tbody>
               {applicants.map(app => {
                 const byCode = new Map(app.stages.map(s => [s.stage_code, s]))
-                const name = app.applicant.full_name || app.applicant.hebrew_name || '—'
+                const name = app.applicant.hebrew_name || app.applicant.full_name || '—'
                 return (
                   <tr key={app.process_instance_id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
                     <td style={{ ...td, minWidth: 160 }}>

@@ -31,7 +31,7 @@ export default async function DoctorStudentPage({ params }: { params: { id: stri
   if (!journey) notFound()
 
   const person = journey.person as { full_name?: string | null; hebrew_name?: string | null } | null
-  const studentName = person?.full_name || person?.hebrew_name || '—'
+  const studentName = person?.hebrew_name || person?.full_name || '—'
 
   return (
     <DoctorStudentClient

@@ -32,7 +32,7 @@ async function resolveNames(sb: ReturnType<typeof createServerClient>, rows: Cas
     const nameById = new Map<string, string>()
     if (pids.length) {
       const { data: ps } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', pids)
-      for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) nameById.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+      for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
     }
     for (const [jid, pid] of personByJourney) studentByJourney.set(jid, nameById.get(pid) ?? '')
     // also resolve opener/handler names via nameById

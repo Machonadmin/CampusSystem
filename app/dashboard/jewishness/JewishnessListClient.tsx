@@ -215,7 +215,7 @@ function StatusBadge({ status, label }: { status: string; label: string }) {
 
 function StudentRow({ student, primary, onOpen }: { student: ListStudent; primary: string; onOpen: () => void }) {
   const t = useTranslations('jewishness')
-  const name = student.full_name || student.hebrew_name || '—'
+  const name = student.hebrew_name || student.full_name || '—'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '1px solid var(--border)', borderRadius: 10, background: 'var(--surface)' }}>
@@ -277,7 +277,7 @@ function DetailModal({
 
   useEffect(() => { loadDetail() }, [loadDetail])
 
-  const name = detail ? (detail.applicant.full_name || detail.applicant.hebrew_name || '—') : '—'
+  const name = detail ? (detail.applicant.hebrew_name || detail.applicant.full_name || '—') : '—'
 
   return (
     <div
