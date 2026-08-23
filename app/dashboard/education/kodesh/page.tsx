@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
@@ -31,7 +32,11 @@ export default function KodeshAssignmentPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [noAccess, setNoAccess] = useState(false)
-  const [onlyUnassigned, setOnlyUnassigned] = useState(false)
+  // Фильтр по уровню: '' = все, 'unassigned' = ещё не распределённые, иначе id
+  // уровня. Инициализируется из ?level= (клик по карточке уровня из מרחב הלימודים
+  // ведёт сюда с конкретным уровнем — «נכנס לרמה א' → רואה רק רמה א'»).
+  const searchParams = useSearchParams()
+  const [levelFilter, setLevelFilter] = useState<string>(() => searchParams.get('level') ?? '')
   const [genBusy, setGenBusy] = useState(false)
   const [genMsg, setGenMsg] = useState<string | null>(null)
 
@@ -53,10 +58,11 @@ export default function KodeshAssignmentPage() {
     () => students.filter(s => s.kodesh_group_id === null).length,
     [students],
   )
-  const visible = useMemo(
-    () => onlyUnassigned ? students.filter(s => s.kodesh_group_id === null) : students,
-    [students, onlyUnassigned],
-  )
+  const visible = useMemo(() => {
+    if (levelFilter === '') return students
+    if (levelFilter === 'unassigned') return students.filter(s => s.kodesh_group_id === null)
+    return students.filter(s => s.kodesh_group_id === levelFilter)
+  }, [students, levelFilter])
 
   const assign = async (journeyId: string, rawValue: string) => {
     const groupId = rawValue === '' ? null : rawValue
@@ -145,10 +151,29 @@ export default function KodeshAssignmentPage() {
             }}>
               {t('unassigned_count', '{n}').replace('{n}', String(unassignedCount))}
             </div>
-            <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={onlyUnassigned} onChange={e => setOnlyUnassigned(e.target.checked)} />
-              {onlyUnassigned ? t('only_unassigned') : t('all')}
-            </label>
+            {/* Фильтр по уровню: הכל · רמה א'..ו' · לא משובצות. Показываем только
+                выбранный уровень (владелец: «נכנס לרמה א' רואה רק את רמה א'»). */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              {[{ id: '', label: t('all') }, ...groups.map(g => ({ id: g.id, label: gname(g) })), { id: 'unassigned', label: t('only_unassigned') }].map(chip => {
+                const active = levelFilter === chip.id
+                return (
+                  <button
+                    key={chip.id || 'all'}
+                    type="button"
+                    onClick={() => setLevelFilter(chip.id)}
+                    style={{
+                      fontSize: 12.5, fontWeight: active ? 700 : 500, padding: '5px 11px', borderRadius: 999,
+                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                      border: `1px solid ${active ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+                      background: active ? 'var(--accent-tint)' : 'var(--surface)',
+                      color: active ? 'var(--accent-strong)' : 'var(--text-muted)',
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                )
+              })}
+            </div>
             <div style={{ flex: 1 }} />
             {!GEN_ALL_FROZEN && (
               <button
