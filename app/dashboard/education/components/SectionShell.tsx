@@ -30,14 +30,16 @@ export default function SectionShell({
   const tNav = useTranslations('navigation')
   const label = t(titleKey)
 
-  // null = ещё грузим (показываем контент, чтобы не мигать), false = нет доступа.
+  // null = ещё грузим, true = есть доступ, false = нет. Пока не подтверждён
+  // доступ — контент НЕ рендерим (иначе секретарь кодеша на миг видит גיוס).
+  // Fail-closed: любая ошибка/невалидный ответ → доступа нет.
   const [allowed, setAllowed] = useState<boolean | null>(null)
   useEffect(() => {
     let alive = true
     fetch('/api/education/tab-access')
       .then(r => (r.ok ? r.json() : null))
-      .then(a => { if (alive && a) setAllowed(a[sectionKey] !== false) })
-      .catch(() => { if (alive) setAllowed(true) })
+      .then(a => { if (alive) setAllowed(!!a && a[sectionKey] === true) })
+      .catch(() => { if (alive) setAllowed(false) })
     return () => { alive = false }
   }, [sectionKey])
 
@@ -63,11 +65,11 @@ export default function SectionShell({
         <EducationHeaderNav />
       </div>
 
-      {allowed === false ? (
+      {allowed === true ? children : (
         <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 14, color: 'var(--text-faint)' }}>
-          {t('no_access')}
+          {allowed === false ? t('no_access') : '…'}
         </div>
-      ) : children}
+      )}
     </div>
   )
 }

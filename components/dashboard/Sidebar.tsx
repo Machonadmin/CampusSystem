@@ -417,9 +417,10 @@ export default function Sidebar() {
                     recruitment: I.persons, committee: I.quality_control, study: I.education,
                   }
                   return EDU_SECTIONS
-                    // fail-closed: пока доступ к разделам не загружен, не
-                    // показываем их (иначе мелькают запрещённые и потом исчезают).
-                    .filter(s => (eduTabAccess ? eduTabAccess[s.key] !== false : false))
+                    // fail-closed: показываем раздел ТОЛЬКО при явном доступе
+                    // (=== true). Пока грузится (null) или при ошибке ({}) — не
+                    // показываем; иначе секретарь кодеша на миг видит גיוס.
+                    .filter(s => eduTabAccess?.[s.key] === true)
                     .map(s => (
                       <SidebarNavLink
                         key={`education-${s.key}`}

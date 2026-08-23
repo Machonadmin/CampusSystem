@@ -93,12 +93,21 @@ export default function EducationPage() {
       </div>
 
       {/* Внутренние вкладки убраны (п. ב): переключение набор/приём/учёба теперь
-          через три пункта сайдбара — дублировать их здесь незачем. Раздел задаёт
-          ?tab= (см. выше), visibleTabs оставлен для гейта доступа. */}
-      {tab === 'recruitment' && <RecruitmentTab />}
-      {tab === 'admission' && <AdmissionTab />}
-      {tab === 'committee' && <AcceptanceOverviewTab />}
-      {tab === 'study' && <StudyTab />}
+          через три пункта сайдбара. Содержимое вкладки рендерим ТОЛЬКО когда
+          доступ подтверждён (tabAccess[tab] === true) — иначе секретарь кодеша
+          на миг видел бы גיוס по умолчанию, пока грузятся права. Fail-closed:
+          пока null или доступа нет — нейтральный лоадер (эффект выше переключит
+          на первую разрешённую вкладку). */}
+      {tabAccess?.[tab] === true ? (
+        <>
+          {tab === 'recruitment' && <RecruitmentTab />}
+          {tab === 'admission' && <AdmissionTab />}
+          {tab === 'committee' && <AcceptanceOverviewTab />}
+          {tab === 'study' && <StudyTab />}
+        </>
+      ) : (
+        <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 14, color: 'var(--text-faint)' }}>…</div>
+      )}
     </div>
   )
 }
