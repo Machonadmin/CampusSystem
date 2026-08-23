@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -80,6 +81,9 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
 
   const grouped: Record<string, Role[]> = {}
   for (const r of allRoles) {
+    // Модель рензе: legacy-роль показываем, только если она уже назначена этому
+    // пользователю (чтобы можно было снять), новые — не предлагаем.
+    if (isDeprecatedRole(r.code) && !selected.has(r.id)) continue
     if (!grouped[r.category]) grouped[r.category] = []
     grouped[r.category].push(r)
   }
@@ -223,6 +227,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
 
   const grouped: Record<string, Role[]> = {}
   for (const r of allRoles) {
+    if (isDeprecatedRole(r.code)) continue // модель рензе: legacy не предлагаем новым
     if (!grouped[r.category]) grouped[r.category] = []
     grouped[r.category].push(r)
   }

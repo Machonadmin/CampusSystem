@@ -2552,6 +2552,7 @@
       "priv_name_label": "שם",
       "priv_code_label": "קוד",
       "roles_panel_title": "תפקידים",
+      "legacy_hidden": "{n} תפקידים ישנים (מודל קודם) מוסתרים",
       "available_modules_title": "מודולים זמינים",
       "err_required_fields": "יש למלא את שדות החובה",
       "err_both_fields": "יש למלא את שני השדות",
