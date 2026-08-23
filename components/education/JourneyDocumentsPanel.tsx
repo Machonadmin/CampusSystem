@@ -36,8 +36,8 @@ interface Doc {
 
 const REVIEW_COLORS: Record<string, { bg: string; fg: string }> = {
   received: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
-  checked: { bg: '#D1FAE5', fg: '#047857' },
-  rejected: { bg: '#FEE2E2', fg: '#B91C1C' },
+  checked: { bg: 'var(--success-tint)', fg: 'var(--success)' },
+  rejected: { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
 interface Props {
@@ -168,8 +168,8 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   }
 
   function expiryColor(d: Doc): string {
-    if (isExpired(d, today)) return '#B91C1C'
-    if (isExpiringSoon(d, today)) return '#B45309'
+    if (isExpired(d, today)) return 'var(--danger)'
+    if (isExpiringSoon(d, today)) return 'var(--warn)'
     return 'var(--text)'
   }
 
@@ -282,7 +282,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
                               <div style={{ display: 'flex', gap: 6 }}>
                                 {REVIEW_STATUSES.filter(rs => rs !== 'received' && rs !== d.review_status).map(rs => (
                                   <button key={rs} onClick={() => setReview(d, rs)} disabled={busy}
-                                    style={linkBtn(rs === 'checked' ? '#047857' : '#B91C1C')}>{t(`review.mark_${rs}`)}</button>
+                                    style={linkBtn(rs === 'checked' ? 'var(--success)' : 'var(--danger)')}>{t(`review.mark_${rs}`)}</button>
                                 ))}
                               </div>
                               <button onClick={() => remove(d)} disabled={busy} style={linkBtn('#DC2626')}>{tCommon('delete')}</button>

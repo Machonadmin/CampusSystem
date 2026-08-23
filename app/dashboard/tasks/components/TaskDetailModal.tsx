@@ -50,12 +50,12 @@ interface Props {
 
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
   unassigned:  { bg: 'var(--surface-2)', fg: 'var(--text)' },
-  pending:     { bg: '#DBEAFE', fg: '#1E40AF' },
-  in_progress: { bg: '#FEF3C7', fg: '#92400E' },
-  review:      { bg: '#FCE7F3', fg: '#9D174D' },
-  completed:   { bg: '#D1FAE5', fg: '#065F46' },
+  pending:     { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  in_progress: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  review:      { bg: 'var(--violet-tint)', fg: 'var(--violet)' },
+  completed:   { bg: 'var(--success-tint)', fg: 'var(--success)' },
   cancelled:   { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
-  declined:    { bg: '#FEE2E2', fg: '#991B1B' },
+  declined:    { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
 const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
@@ -349,7 +349,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   if (error && !task) {
     return (
       <ModalShell onClose={onClose}>
-        <div style={{ padding: 24, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8 }}>
+        <div style={{ padding: 24, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8 }}>
           {error}
         </div>
       </ModalShell>
@@ -393,7 +393,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
             )}
             {task.recurrence_series_id && (
               <span style={{
-                padding: '2px 8px', fontSize: 11, background: '#FEF3C7', color: '#92400E',
+                padding: '2px 8px', fontSize: 11, background: 'var(--warn-tint)', color: 'var(--warn)',
                 borderRadius: 8, fontWeight: 500,
               }}>
                 {t('card.from_series')}
@@ -457,7 +457,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
             {watchers.map(w => (
               <div key={w.person_id} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '4px 10px', background: 'var(--accent-tint)', color: '#1E40AF',
+                padding: '4px 10px', background: 'var(--accent-tint)', color: 'var(--info)',
                 borderRadius: 12, fontSize: 12,
               }}>
                 <span>{(w.person?.hebrew_name || w.person?.full_name) ?? '…'}</span>
@@ -465,7 +465,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                   onClick={() => handleRemoveWatcher(w.person_id)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 14, color: '#1E40AF', lineHeight: 1, padding: 0,
+                    fontSize: 14, color: 'var(--info)', lineHeight: 1, padding: 0,
                   }}
                   title={t('card.remove_watcher')}
                 >×</button>
@@ -541,7 +541,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
 
           {showDeclineInput && (
             <div style={{ background: 'var(--danger-tint)', padding: 12, borderRadius: 8 }}>
-              <label style={{ fontSize: 12, color: '#991B1B', marginBottom: 6, display: 'block' }}>
+              <label style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 6, display: 'block' }}>
                 {t('card.decline_reason')}:
               </label>
               <textarea
@@ -584,7 +584,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
           marginTop: 12, padding: 14, background: 'var(--danger-tint)',
           border: '1px solid var(--danger)', borderRadius: 8,
         }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#991B1B', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', marginBottom: 12 }}>
             {t('cancel_series.title')}
           </div>
 
@@ -652,7 +652,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
                   {willDelete > 0 && (
-                    <div style={{ color: '#991B1B' }}>
+                    <div style={{ color: 'var(--danger)' }}>
                       ✓ {t('cancel_series.will_delete')} <strong>{willDelete}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>
                         {' '}({[
@@ -664,7 +664,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                     </div>
                   )}
                   {willPreserve > 0 && (
-                    <div style={{ color: '#92400E', fontWeight: 500 }}>
+                    <div style={{ color: 'var(--warn)', fontWeight: 500 }}>
                       ⚠ {t('cancel_series.will_preserve')} <strong>{willPreserve}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 400 }}>
                         {' '}({[
@@ -720,7 +720,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
       {/* Ошибка */}
       {error && task && (
         <div style={{
-          marginTop: 12, padding: 10, background: 'var(--danger-tint)', color: '#991B1B',
+          marginTop: 12, padding: 10, background: 'var(--danger-tint)', color: 'var(--danger)',
           borderRadius: 6, fontSize: 13,
         }}>
           {error}
@@ -828,11 +828,11 @@ function Field({ label, value }: { label: string; value: string }) {
 function CommentItem({ comment }: { comment: Comment }) {
   const t = useTranslations('tasks')
   const { lang } = useLang()
-  const typeBg     = comment.comment_type === 'decline_reason' ? '#FEE2E2'
+  const typeBg     = comment.comment_type === 'decline_reason' ? 'var(--danger-tint)'
                    : comment.comment_type === 'status_note'    ? 'var(--accent-tint)'
                    : 'var(--surface)'
-  const typeBorder = comment.comment_type === 'decline_reason' ? '#FCA5A5'
-                   : comment.comment_type === 'status_note'    ? '#BFDBFE'
+  const typeBorder = comment.comment_type === 'decline_reason' ? 'var(--danger)'
+                   : comment.comment_type === 'status_note'    ? 'var(--info)'
                    : 'var(--border)'
   const typeLabel  = comment.comment_type === 'decline_reason' ? t('card.decline_reason')
                    : comment.comment_type === 'status_note'    ? t('card.system_note')

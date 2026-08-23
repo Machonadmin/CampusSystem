@@ -305,7 +305,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                       {s.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.contact_person}</div>}
                     </td>
                     <td style={td}>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: '#92400E' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--warn)' }}>
                         {t(`types.${s.sponsor_type}`)}
                       </span>
                     </td>
@@ -315,7 +315,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: s.is_active ? light : 'var(--surface-2)',
-                        color: s.is_active ? '#92400E' : 'var(--text-faint)',
+                        color: s.is_active ? 'var(--warn)' : 'var(--text-faint)',
                       }}>
                         {s.is_active ? t('status.active') : t('status.inactive')}
                       </span>

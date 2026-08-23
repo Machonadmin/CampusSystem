@@ -32,9 +32,9 @@ interface FollowUp {
 
 // Цвета бейджа уровня риска (none — бейдж не показывается).
 const RISK_STYLE: Record<string, { bg: string; color: string }> = {
-  low:    { bg: '#E0E7FF', color: '#3730A3' },
-  medium: { bg: '#FEF3C7', color: '#B45309' },
-  high:   { bg: '#FEE2E2', color: 'var(--danger)' },
+  low:    { bg: 'var(--violet-tint)', color: 'var(--violet)' },
+  medium: { bg: 'var(--warn-tint)', color: 'var(--warn)' },
+  high:   { bg: 'var(--danger-tint)', color: 'var(--danger)' },
 }
 
 export default function PsychologistListClient({ canManage }: { canManage: boolean }) {

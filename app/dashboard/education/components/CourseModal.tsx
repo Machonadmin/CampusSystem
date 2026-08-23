@@ -128,7 +128,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
             </div>
           </div>
 
-          {error && <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>{error}</div>}
+          {error && <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 6, fontSize: 13 }}>{error}</div>}
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button type="button" onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>{t('common.cancel')}</button>

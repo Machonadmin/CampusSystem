@@ -398,7 +398,7 @@ export default function RecruitmentTab() {
                           <button
                             onClick={() => { setOpenMenuId(null); handleRestore(lead) }}
                             style={{ display: 'block', width: '100%', textAlign: 'start', padding: '9px 14px', fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--success)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F0FDF4' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--success-tint)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           >
                             ♻ {t('leads.actions.restore')}

@@ -43,10 +43,10 @@ interface Detail {
 /** Цвета статус-бейджа: verified=зелёный, rejected=красный, needs_review=янтарный, pending=серый. */
 function statusColors(s: string): { bg: string; fg: string } {
   switch (s) {
-    case 'verified': return { bg: '#D1FAE5', fg: '#047857' }
-    case 'partial': return { bg: '#CCFBF1', fg: '#0F766E' }
-    case 'rejected': return { bg: '#FEE2E2', fg: '#B91C1C' }
-    case 'needs_review': return { bg: '#FEF3C7', fg: '#92400E' }
+    case 'verified': return { bg: 'var(--success-tint)', fg: 'var(--success)' }
+    case 'partial': return { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' }
+    case 'rejected': return { bg: 'var(--danger-tint)', fg: 'var(--danger)' }
+    case 'needs_review': return { bg: 'var(--warn-tint)', fg: 'var(--warn)' }
     default: return { bg: 'var(--surface-2)', fg: 'var(--text-muted)' }
   }
 }
@@ -478,7 +478,7 @@ function DocumentsSection({
       )}
 
       <div style={{ background: light, borderRadius: 8, padding: 12, display: 'grid', gap: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#92400E' }}>{t('upload_title')}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--warn)' }}>{t('upload_title')}</div>
         <input
           value={docTitle}
           onChange={e => setDocTitle(e.target.value)}
@@ -592,8 +592,8 @@ function AcceptanceDecisionSection({
             style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
               border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
-              background: selectedFinal === f.code ? (f.is_positive ? '#ECFDF5' : '#FEF2F2') : 'var(--surface)',
-              color: selectedFinal === f.code ? (f.is_positive ? '#047857' : '#B91C1C') : 'var(--text)',
+              background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
+              color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
             }}
           >
             {finalLabel(f)}

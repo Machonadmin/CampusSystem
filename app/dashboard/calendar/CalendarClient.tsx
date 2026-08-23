@@ -67,8 +67,8 @@ function subjectLabel(l: Lesson, lang: string): string {
 // Палитра урока — education-зелёный. Намеренно светлее «завершённой» встречи
 // (#D1FAE5) плюс сплошная левая полоса, чтобы урок не путался ни с одним
 // статусом встречи.
-const LESSON_BG = '#ECFDF5'
-const LESSON_FG = '#047857'
+const LESSON_BG = 'var(--success-tint)'
+const LESSON_FG = 'var(--success)'
 const LESSON_ACCENT = '#10B981'
 
 // Палитра повторяющегося слота расписания («плановое занятие») — тот же зелёный,
@@ -80,12 +80,12 @@ const SCHEDULE_ACCENT = '#6EE7B7'
 // Палитра задачи — амбер модуля Tasks (getModuleColor('tasks')).
 const TASK_BG = getModuleColor('tasks', 'light')      // #FEF3C7
 const TASK_ACCENT = getModuleColor('tasks', 'primary') // #F59E0B
-const TASK_FG = '#B45309'
+const TASK_FG = 'var(--warn)'
 
 // Палитра дня рождения — праздничный розовый с эмодзи-тортом. Намеренно вне
 // синей/зелёной/амбер гаммы остальных четырёх видов, чтобы читалось как «личный
 // праздник», а не рабочее событие. День рождения read-only (нередактируемый чип).
-const BIRTHDAY_BG = '#FCE7F3'
+const BIRTHDAY_BG = 'var(--violet-tint)'
 const BIRTHDAY_FG = '#BE185D'
 const BIRTHDAY_ACCENT = '#EC4899'
 
@@ -820,7 +820,7 @@ function DayDetail({
               <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)', marginTop: 2 }}>{formatHebrewDate(dateISO)}</div>
             )}
             {blocked && (
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#B45309', marginTop: 4 }}>{t('day_off')}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--warn)', marginTop: 4 }}>{t('day_off')}</div>
             )}
           </div>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ fontSize: 18, lineHeight: 1, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>×</button>
@@ -864,7 +864,7 @@ function DayDetail({
               if (ev.kind === 'event' && ev.event) {
                 const ce = ev.event as CalEvent
                 return (
-                  <button key={`e-${ce.id}`} onClick={() => onOpenEvent(ce)} style={dayRowBtn(isRTL, 'var(--accent-tint)', '#4338CA', '#6366F1')}>
+                  <button key={`e-${ce.id}`} onClick={() => onOpenEvent(ce)} style={dayRowBtn(isRTL, 'var(--accent-tint)', 'var(--violet)', '#6366F1')}>
                     <span style={dayRowTime}>{ev.time || t('all_day')}</span>
                     <span style={dayRowTitle}>📅 {ce.title}</span>
                     <span style={dayRowKind}>{t('event')}</span>
@@ -898,7 +898,7 @@ function DayDetail({
           <button onClick={onNew} style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, border: `1px solid ${primary}`, borderRadius: 8, padding: '9px 14px', cursor: 'pointer' }}>
             + {t('new_appointment')}
           </button>
-          <button onClick={() => onToggleDayOff(dateISO)} style={{ fontSize: 13, fontWeight: 500, color: blocked ? '#B45309' : 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '9px 14px', cursor: 'pointer' }}>
+          <button onClick={() => onToggleDayOff(dateISO)} style={{ fontSize: 13, fontWeight: 500, color: blocked ? 'var(--warn)' : 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '9px 14px', cursor: 'pointer' }}>
             {blocked ? t('remove_day_off') : t('mark_day_off')}
           </button>
         </div>
@@ -1089,7 +1089,7 @@ function MonthView({
                           title={ce.title}
                           style={{
                             textAlign: isRTL ? 'right' : 'left', border: 'none', cursor: 'pointer',
-                            background: 'var(--accent-tint)', color: '#4338CA', borderInlineStart: '3px solid #6366F1',
+                            background: 'var(--accent-tint)', color: 'var(--violet)', borderInlineStart: '3px solid #6366F1',
                             borderRadius: 5, padding: '2px 6px',
                             fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           }}
@@ -1322,10 +1322,10 @@ function WeekView({
                           borderRadius: 8, padding: '8px 12px',
                         }}
                       >
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#4338CA', minWidth: 92 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--violet)', minWidth: 92 }}>
                           {ev.time || t('all_day')}
                         </span>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#4338CA', flex: 1 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--violet)', flex: 1 }}>
                           📅 {ce.title}
                         </span>
                       </button>

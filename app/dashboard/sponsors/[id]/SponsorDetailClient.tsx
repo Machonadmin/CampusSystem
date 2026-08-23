@@ -366,7 +366,7 @@ export default function SponsorDetailClient({
             {t('detail.campaigns')}
           </span>
           {campaignEntries.map(([name, total]) => (
-            <span key={name} style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: light, color: '#92400E' }}>
+            <span key={name} style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: light, color: 'var(--warn)' }}>
               {name} · {fmtMoney(total)}
             </span>
           ))}

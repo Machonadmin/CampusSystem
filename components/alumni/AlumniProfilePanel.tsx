@@ -128,7 +128,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
             onClick={() => setEditing(true)}
             style={{
               padding: '5px 12px', fontSize: 12, fontWeight: 500,
-              background: '#FCE7F3', color: '#9D174D', border: 'none', borderRadius: 8, cursor: 'pointer',
+              background: 'var(--violet-tint)', color: 'var(--violet)', border: 'none', borderRadius: 8, cursor: 'pointer',
             }}
           >
             {t('card.edit')}

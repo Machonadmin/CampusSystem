@@ -287,7 +287,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                             background: v.status === 'open' ? light : 'var(--surface-2)',
-                            color: v.status === 'open' ? '#047857' : 'var(--text-muted)',
+                            color: v.status === 'open' ? 'var(--success)' : 'var(--text-muted)',
                           }}>
                             {t(`status.${v.status}`)}
                           </span>

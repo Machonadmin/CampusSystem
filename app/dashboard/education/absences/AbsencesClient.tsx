@@ -93,7 +93,7 @@ export default function AbsencesClient() {
     return new Date(iso + (iso.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString(loc, { day: '2-digit', month: 'short' })
   }
   const statusChip = (s: Case['status']) => {
-    const map = { open: { bg: 'rgba(234,179,8,0.14)', fg: '#a16207' }, in_handling: { bg: 'rgba(13,148,136,0.14)', fg: 'var(--accent-strong)' }, resolved: { bg: 'rgba(16,185,129,0.14)', fg: '#047857' } }[s]
+    const map = { open: { bg: 'rgba(234,179,8,0.14)', fg: 'var(--warn)' }, in_handling: { bg: 'rgba(13,148,136,0.14)', fg: 'var(--accent-strong)' }, resolved: { bg: 'rgba(16,185,129,0.14)', fg: 'var(--success)' } }[s]
     return <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: map.bg, color: map.fg }}>{t(`status_${s}`)}</span>
   }
 

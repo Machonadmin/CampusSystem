@@ -283,15 +283,15 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: active ? 600 : 400,
     border: '1px solid ' + (active ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: active ? '#FEF3C7' : 'var(--surface)',
-    color: active ? '#92400E' : 'var(--text)',
+    background: active ? 'var(--warn-tint)' : 'var(--surface)',
+    color: active ? 'var(--warn)' : 'var(--text)',
   })
   const assigneeBtn = (mode: AssigneeMode): React.CSSProperties => ({
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: assigneeMode === mode ? 600 : 400,
     border: '1px solid ' + (assigneeMode === mode ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: assigneeMode === mode ? '#FEF3C7' : 'var(--surface)',
-    color: assigneeMode === mode ? '#92400E' : 'var(--text)',
+    background: assigneeMode === mode ? 'var(--warn-tint)' : 'var(--surface)',
+    color: assigneeMode === mode ? 'var(--warn)' : 'var(--text)',
   })
 
   return (
@@ -568,7 +568,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                   <span key={w.id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '3px 8px', background: 'var(--accent-tint)', borderRadius: 99,
-                    fontSize: 12, color: '#1E40AF',
+                    fontSize: 12, color: 'var(--info)',
                   }}>
                     {w.full_name}
                     <button
@@ -590,7 +590,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Error */}
           {error && (
-            <div style={{ padding: '10px 14px', background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+            <div style={{ padding: '10px 14px', background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
               {error}
             </div>
           )}
