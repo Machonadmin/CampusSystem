@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
+import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
 /**
  * Нокхут морим (נוכחות מורים).
@@ -15,6 +15,19 @@ import { canDoEducationInAny } from '@/lib/education/permissions'
 function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 type LessonLite = { id: string; scheduled_date: string | null; scheduled_time: string | null; class_group_id: string }
+
+/** lesson_id → department_id (через class_group). Для скоупинга очереди по подразделению. */
+async function lessonDepartments(sb: ReturnType<typeof createServerClient>, lessonIds: string[]) {
+  const byLesson = new Map<string, string | null>()
+  const ids = [...new Set(lessonIds.filter(Boolean))]
+  if (ids.length === 0) return byLesson
+  const { data: lessons } = await sb.from('lessons')
+    .select('id, class_group:class_groups(department_id)').in('id', ids)
+  for (const l of (lessons ?? []) as unknown as Array<{ id: string; class_group: { department_id: string | null } | null }>) {
+    byLesson.set(l.id, l.class_group?.department_id ?? null)
+  }
+  return byLesson
+}
 
 async function lessonInfo(sb: ReturnType<typeof createServerClient>, lessonIds: string[]) {
   const byId = new Map<string, { date: string | null; time: string | null; group_name: string; subject: string | null }>()
@@ -50,7 +63,22 @@ export async function GET(request: NextRequest) {
           .eq('status', 'reported')
           .order('reported_at', { ascending: true })
         if (error) throw error
-        const rows = (data ?? []) as Array<{ id: string; lesson_id: string; teacher_person_id: string; status: string; note: string | null; reported_at: string }>
+        let rows = (data ?? []) as Array<{ id: string; lesson_id: string; teacher_person_id: string; status: string; note: string | null; reported_at: string }>
+
+        // Скоуп очереди по подразделению (решение владельца: «רק המחלקה שלו»).
+        // scope='all'/superadmin — вся очередь; иначе только уроки подразделений
+        // менеджера. Урок без подразделения виден лишь при scope='all'.
+        const scopeAll = session.roles.includes('superadmin')
+          || (await getEducationPrivilegeScope(session, 'manage_students')) === 'all'
+        if (!scopeAll) {
+          const myDepts = new Set(await getUserDepartmentIds(session.person_id))
+          const deptByLesson = await lessonDepartments(sb, rows.map(r => r.lesson_id))
+          rows = rows.filter(r => {
+            const d = deptByLesson.get(r.lesson_id) ?? null
+            return d !== null && myDepts.has(d)
+          })
+        }
+
         const info = await lessonInfo(sb, rows.map(r => r.lesson_id))
         const names = new Map<string, string>()
         const tids = [...new Set(rows.map(r => r.teacher_person_id))]
