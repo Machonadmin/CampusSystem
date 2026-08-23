@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import { Modal } from '@/components/ui/Modal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 
@@ -115,23 +116,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 520,
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={520} closeOnBackdrop panelStyle={{ padding: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('groups.modal_create_title') : t('groups.modal_edit_title')}
@@ -238,7 +223,6 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

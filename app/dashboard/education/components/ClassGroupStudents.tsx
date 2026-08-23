@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 interface StudentMini {
   id: string
@@ -238,23 +239,12 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
   const enrolledSet = new Set(enrolledIds)
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
+    <Modal
+      onClose={onClose}
+      maxWidth={520}
+      closeOnBackdrop
+      panelStyle={{ padding: 24, maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}
     >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 520,
-          maxHeight: '80vh', display: 'flex', flexDirection: 'column',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('class_groups.enroll_modal_title')}
@@ -338,7 +328,6 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
             {saving ? t('class_groups.enrolling_button') : t('class_groups.enroll_button').replace('{count}', String(selected.size))}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

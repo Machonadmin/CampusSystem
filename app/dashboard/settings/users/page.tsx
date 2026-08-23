@@ -10,6 +10,7 @@ import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Role {
@@ -90,8 +91,7 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={520} panelStyle={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {personDisplayName(user)}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -124,8 +124,7 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -243,8 +242,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
   // После создания с авто-паролем — показываем пароль (один раз).
   if (generatedPassword) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', display: 'grid', gap: 14 }}>
+      <Modal onClose={onClose} maxWidth={420} panelStyle={{ padding: 24, display: 'grid', gap: 14 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
@@ -254,14 +252,12 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
           <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
-        </div>
-      </div>
+      </Modal>
     )
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={480} panelStyle={{ maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
 
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
@@ -410,8 +406,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
             {tCommon('save', 'Save')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -459,8 +454,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
 
   if (generatedPassword) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
+      <Modal onClose={onClose} maxWidth={420} zIndex={1100} panelStyle={{ padding: 24, display: 'grid', gap: 14 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('password_reset_done')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
@@ -470,14 +464,12 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
           <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
-        </div>
-      </div>
+      </Modal>
     )
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+    <Modal onClose={onClose} maxWidth={400} zIndex={1100}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {personDisplayName(user)}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -519,8 +511,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -556,8 +547,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
 
   return (
     <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <Modal onClose={onClose} maxWidth={440}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('edit_modal_title')}</p>
             <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -594,8 +584,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
               <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
             </div>
           </div>
-        </div>
-      </div>
+      </Modal>
 
       {pwdOpen && <ResetPasswordModal user={user} t={t} tCommon={tCommon} onClose={() => setPwdOpen(false)} />}
     </>

@@ -8,6 +8,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -138,12 +139,14 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
   const allExpanded = blocks.length > 0 && expanded.size === blocks.length
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    <Modal
+      onClose={onClose}
+      maxWidth={700}
+      zIndex={100}
+      padding={24}
+      closeOnBackdrop
+      panelStyle={{ borderRadius: 14, maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
-      <div style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 700, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden' }}>
-
         {/* Header (fixed) */}
         <div style={{ padding: '18px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -246,8 +249,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
             {t('templates.close_button')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -346,9 +348,12 @@ function TemplateBuilder({
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 860, maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-
+    <Modal
+      onClose={onClose}
+      maxWidth={860}
+      zIndex={100}
+      panelStyle={{ borderRadius: 14, maxHeight: '94vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
+    >
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>
             {isEdit ? t('templates.builder_edit_title') : t('templates.builder_create_title')}
@@ -506,8 +511,7 @@ function TemplateBuilder({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

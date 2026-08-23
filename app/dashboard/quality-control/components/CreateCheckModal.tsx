@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
+import { Modal } from '@/components/ui/Modal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface PersonOption { id: string; full_name: string }
@@ -221,11 +222,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   const groupSelected = !freeInput && !!classGroupId
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={520} closeOnBackdrop>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--surface-2)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('create_modal.title')}</h2>
@@ -375,7 +372,6 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

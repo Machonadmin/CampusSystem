@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 import type { PositionCategory, ReferencePositionRow } from '@/types/database'
 
 const accent = getModuleColor('settings')
@@ -332,21 +333,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
   const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)', position: 'relative',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={440} closeOnBackdrop panelStyle={{ padding: 24, maxHeight: 'none', overflowY: 'visible', position: 'relative' }}>
         <button onClick={onClose} style={{
           position: 'absolute', top: 14, right: 16,
           background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1,
@@ -432,8 +419,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             {saving ? t('saving') : mode === 'create' ? t('add_confirm_button') : t('save_button')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

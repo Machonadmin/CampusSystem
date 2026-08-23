@@ -7,6 +7,7 @@ import { roleLabel } from '@/lib/roles/role-label'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 
 type T = (key: string, fallback?: string) => string
 
@@ -97,8 +98,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
   const FIELDS: [string, string][] = [['name', t('name')], ['code', t('code')], ['category', t('category')], ['description', t('desc')]]
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={440}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('new_role_title')}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
@@ -120,8 +120,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save')}</button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -146,8 +145,7 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={380}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', margin: 0 }}>{t('add_privilege_title')}: <span style={{ color: 'var(--accent)' }}>{module}</span></p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -177,8 +175,7 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
           <button onClick={onClose} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={submit} style={{ padding: '6px 14px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer' }}>{t('add_privilege_button')}</button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

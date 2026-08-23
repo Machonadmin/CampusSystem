@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Modal } from '@/components/ui/Modal'
 
 interface Enrollment {
   journey_id: string
@@ -105,8 +106,13 @@ export default function SemesterStudentsModal({ semesterId, title, onClose }: {
   }
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '6vh 16px', zIndex: 100, overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 520, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+    <Modal
+      onClose={onClose}
+      maxWidth={520}
+      zIndex={100}
+      closeOnBackdrop
+      panelStyle={{ border: '1px solid var(--border)', borderRadius: 14, padding: 20, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}
+    >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('students_title')}</h2>
           <button onClick={onClose} style={{ fontSize: 18, lineHeight: 1, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
@@ -172,7 +178,6 @@ export default function SemesterStudentsModal({ semesterId, title, onClose }: {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

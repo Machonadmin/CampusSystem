@@ -10,6 +10,7 @@ import TaskDetailModal from './components/TaskDetailModal'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 import type { TaskRow } from '@/types/database'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
@@ -433,11 +434,12 @@ export default function TasksPage() {
 
       {/* Модалка массового назначения */}
       {assignOpen && (
-        <div
-          onClick={() => { if (!bulkBusy) { setAssignOpen(false); setAssignPerson(null) } }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}
+        <Modal
+          onClose={() => { if (!bulkBusy) { setAssignOpen(false); setAssignPerson(null) } }}
+          maxWidth={420}
+          closeOnBackdrop
+          panelStyle={{ borderRadius: 14, padding: 22, maxHeight: 'none', overflowY: 'visible' }}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 420, padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{t('bulk.assign_title')}</h2>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{t('bulk.selected').replace('{n}', String(selectedIds.size))}</p>
             <PersonSelect value={assignPerson} onChange={id => setAssignPerson(id)} label={t('bulk.assign_to')} accentColor={accent} />
@@ -445,8 +447,7 @@ export default function TasksPage() {
               <button onClick={() => { setAssignOpen(false); setAssignPerson(null) }} disabled={bulkBusy} style={{ ...inp, cursor: 'pointer', fontWeight: 600 }}>{tCommon('cancel')}</button>
               <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {createOpen && currentUserId && (

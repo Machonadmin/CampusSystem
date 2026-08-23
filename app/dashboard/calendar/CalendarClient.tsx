@@ -22,6 +22,7 @@ import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 import { formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
@@ -1976,25 +1977,13 @@ function ScheduleDetail({
 // Мелкие переиспользуемые куски
 // ─────────────────────────────────────────────
 
+// Тонкая обёртка над общим <Modal>: сохраняет прежнее API Overlay (клик по фону
+// закрывает) и «прозрачную» панель — детали календаря сами задают свою карточку.
 function Overlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
   return (
-    <div
-      role="presentation"
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.45)', zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-      }}
-    >
-      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ display: 'contents' }}>
-        {children}
-      </div>
-    </div>
+    <Modal onClose={onClose} closeOnBackdrop maxWidth="none" panelStyle={{ background: 'transparent', boxShadow: 'none', borderRadius: 0, overflowY: 'visible', width: 'auto', maxHeight: 'none' }}>
+      {children}
+    </Modal>
   )
 }
 

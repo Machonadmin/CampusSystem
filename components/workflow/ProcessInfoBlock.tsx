@@ -10,6 +10,7 @@ import StageEventsFeed from './StageEventsFeed'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { toast } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -560,12 +561,13 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
       {/* StageCard modal */}
       {selectedStageId && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => { if (e.target === e.currentTarget) closeModal() }}
+        <Modal
+          onClose={closeModal}
+          maxWidth={520}
+          zIndex={60}
+          closeOnBackdrop
+          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}
         >
-          <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
-
             {/* Header */}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -762,17 +764,18 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 {t('process.close')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Signature modal — shown when completing a stage that requires a signature */}
       {pendingSig && (
-        <div
-          onClick={() => !completing && setPendingSig(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}
+        <Modal
+          onClose={() => !completing && setPendingSig(null)}
+          maxWidth={520}
+          zIndex={60}
+          closeOnBackdrop
+          panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{t('process.signature.title')}</div>
             <textarea
               value={sigNote}
@@ -799,18 +802,18 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 {t('process.signature.confirm')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Close-process-early modal */}
       {closingProc && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => { if (e.target === e.currentTarget) closeCloseEarly() }}
+        <Modal
+          onClose={closeCloseEarly}
+          maxWidth={480}
+          zIndex={60}
+          closeOnBackdrop
+          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}
         >
-          <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
-
             {/* Header */}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
@@ -874,17 +877,18 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 {t('process.cancel')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Reactivate stage confirm modal */}
       {reactivatingStage && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={e => { if (e.target === e.currentTarget) setReactivatingStage(null) }}
+        <Modal
+          onClose={() => setReactivatingStage(null)}
+          maxWidth={440}
+          zIndex={60}
+          closeOnBackdrop
+          panelStyle={{ boxShadow: '0 16px 48px rgba(0,0,0,0.2)', overflow: 'hidden' }}
         >
-          <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, boxShadow: '0 16px 48px rgba(0,0,0,0.2)', overflow: 'hidden' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                 {t('process.modals.activate_title')}
@@ -920,8 +924,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 {reactivating ? t('process.modals.activating') : t('process.modals.activate_button')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Process graph modal */}

@@ -7,6 +7,7 @@ import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import StageSignatures from '@/components/workflow/StageSignatures'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 interface Final { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }
 interface StageCell {
@@ -221,8 +222,7 @@ export default function AcceptanceOverviewTab() {
 
       {/* Sign modal */}
       {modal && (
-        <div onClick={() => !signing && setModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(520px, 100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12, maxHeight: '90vh', overflowY: 'auto' }}>
+        <Modal onClose={() => !signing && setModal(null)} maxWidth={520} closeOnBackdrop panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
               {t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)} — {modal.applicant}
             </div>
@@ -293,8 +293,7 @@ export default function AcceptanceOverviewTab() {
                 {tCommon('confirm')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

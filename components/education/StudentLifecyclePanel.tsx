@@ -6,6 +6,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatDate } from '@/lib/i18n/format-date'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -199,20 +200,16 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
 
       {/* Модалка перехода (причина + дата) */}
       {modalTarget && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-          }}
-          onClick={() => { if (!submitting) setModalTarget(null) }}
+        <Modal
+          onClose={() => { if (!submitting) setModalTarget(null) }}
+          maxWidth={420}
+          zIndex={50}
+          closeOnBackdrop
+          panelStyle={{ padding: 24, boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}
         >
           <div
             dir={isRTL ? 'rtl' : 'ltr'}
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420,
-              boxShadow: '0 10px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', gap: 14,
-            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
           >
             <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
               {t('modal_title')}: {tStatus(modalTarget, modalTarget)}
@@ -271,7 +268,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

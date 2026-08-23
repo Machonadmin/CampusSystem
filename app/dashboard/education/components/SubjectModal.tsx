@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
+import { Modal } from '@/components/ui/Modal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 
@@ -114,22 +115,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 480,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={480} closeOnBackdrop panelStyle={{ padding: 24, maxHeight: 'none', overflowY: 'visible' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('subjects.modal_create_title') : t('subjects.modal_edit_title')}
@@ -256,7 +242,6 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

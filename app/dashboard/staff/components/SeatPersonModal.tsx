@@ -7,6 +7,7 @@ import { roleLabel } from '@/lib/roles/role-label'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Position { id: string; name_ru: string; name_he: string | null; category: string; is_teaching: boolean }
@@ -94,8 +95,7 @@ export default function SeatPersonModal({ onClose, onSaved }: { onClose: () => v
   const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, boxSizing: 'border-box', outline: 'none' }
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, padding: 24, width: '100%', maxWidth: 500, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+    <Modal onClose={onClose} maxWidth={500} closeOnBackdrop panelStyle={{ borderRadius: 14, padding: 24, maxHeight: '88vh' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('seat_title')}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
@@ -176,7 +176,6 @@ export default function SeatPersonModal({ onClose, onSaved }: { onClose: () => v
             {saving ? t('seat_saving') : t('seat_submit')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

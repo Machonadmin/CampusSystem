@@ -5,6 +5,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -463,17 +464,9 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
 
 function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div
-      onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
-      >
-        {children}
-      </div>
-    </div>
+    <Modal onClose={onClose} maxWidth={440} closeOnBackdrop panelStyle={{ padding: 24 }}>
+      {children}
+    </Modal>
   )
 }
 
