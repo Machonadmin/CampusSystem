@@ -12,7 +12,8 @@ import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds }
  * Доступ: superadmin ИЛИ manage_enrollments / manage_class_teachers где-либо.
  */
 function nameOf(p: { full_name: string | null; hebrew_name: string | null }): string {
-  return (p.full_name || p.hebrew_name || '').trim()
+  // Ивритское имя в приоритете (интерфейс на иврите); רусское full_name — запас.
+  return (p.hebrew_name || p.full_name || '').trim()
 }
 
 export async function GET() {

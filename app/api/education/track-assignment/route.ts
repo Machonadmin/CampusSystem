@@ -13,15 +13,19 @@ import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/educatio
  * «אישור לימודים» видит, кому назначить маршрут חול, и делает это на месте
  * (PUT /api/education/journeys/[id]/track).
  *
- * Право: view_students; scope='department' — только свои подразделения,
- * scope='all'/superadmin — все. Деплой-безопасно к отсутствию journey_study_tracks.
+ * Право: manage_students (это УПРАВЛЕНЧЕСКИЙ экран — назначение маршрута, тот
+ * же гейт, что и на PUT). scope='department' — только свои подразделения,
+ * scope='all'/superadmin — все. Важно: гейтим по manage_students, а НЕ по
+ * view_students — иначе глава кафедры кодеша (view_students='all', но управляет
+ * только кодешем) получил бы всю очередь שיבוץ по институту, хотя назначить
+ * маршрут не может никому. Деплой-безопасно к отсутствию journey_study_tracks.
  */
 export async function GET(_request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const isSuper = session.roles.includes('superadmin')
-    const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'view_students')
+    const scope = isSuper ? 'all' : await getEducationPrivilegeScope(session, 'manage_students')
     if (!scope) return apiError('forbidden', 403)
     // Назначение маршрутов — управленческий экран. Преподаватель (scope='own')
     // не назначает маршруты: раньше он проваливался мимо фильтра и получал всю
