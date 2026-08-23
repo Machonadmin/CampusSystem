@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
-import { u, getSurveyWithQuestions, namesFor } from '@/lib/education/teaching-surveys'
+import { getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
+import { u, getSurveyWithQuestions, namesFor, surveyDepartment } from '@/lib/education/teaching-surveys'
 
 /**
  * GET /api/education/teaching-surveys/[id]/results
@@ -17,10 +17,18 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (session.principal === 'student') return apiError('forbidden', 403)
-    const ok = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
-    if (!ok) return apiError('forbidden', 403)
 
     const sb = createServerClient()
+    // Право — manage_students в подразделении сбора (или superadmin; legacy без
+    // подразделения — только scope='all').
+    const { found, department_id } = await surveyDepartment(sb, params.id)
+    if (!found) return apiError('substage_not_found', 404)
+    const ok = session.roles.includes('superadmin')
+      || (department_id
+        ? await hasEducationPrivilege(session, 'manage_students', { department_id })
+        : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all')
+    if (!ok) return apiError('forbidden', 403)
+
     try {
       const detail = await getSurveyWithQuestions(sb, params.id)
       if (!detail) return apiError('substage_not_found', 404)

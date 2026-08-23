@@ -2,40 +2,42 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
-import { u, getSurveyWithQuestions, namesFor } from '@/lib/education/teaching-surveys'
+import { getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
+import { u, getSurveyWithQuestions, surveyDepartment, teachersForSurvey } from '@/lib/education/teaching-surveys'
 
 /**
  * Один сбор «הערכת הוראה».
- *   GET    → { survey, questions, teachers } (список преподавателей для оценки).
+ *   GET    → { survey, questions, teachers } (преподаватели ПОДРАЗДЕЛЕНИЯ сбора).
  *   PATCH  → { title?, is_open?, questions? } — правка. Вопросы можно менять
  *            только пока нет ни одного отклика (иначе теряются ответы).
  *   DELETE → удалить сбор (каскадом вопросы/отклики/ответы).
- * Доступ: manage_students / superadmin.
+ * Доступ: manage_students В ПОДРАЗДЕЛЕНИИ сбора / superadmin. Legacy-сбор без
+ * department_id — только scope='all'/superadmin.
  */
-async function requireManager() {
+async function gateSurvey(id: string): Promise<{ error: NextResponse } | { departmentId: string | null }> {
   const session = await getSession()
   if (!session) return { error: apiError('unauthorized', 401) }
   if (session.principal === 'student') return { error: apiError('forbidden', 403) }
-  const ok = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
-  if (!ok) return { error: apiError('forbidden', 403) }
-  return { session }
-}
-
-async function teacherList(sb: ReturnType<typeof createServerClient>) {
-  const { data: ct } = await sb.from('class_teachers').select('teacher_id')
-  return namesFor(sb, (ct ?? []).map(r => (r as { teacher_id: string }).teacher_id))
+  const sb = createServerClient()
+  const { found, department_id } = await surveyDepartment(sb, id)
+  if (!found) return { error: apiError('substage_not_found', 404) }
+  const allowed = session.roles.includes('superadmin')
+    || (department_id
+      ? await hasEducationPrivilege(session, 'manage_students', { department_id })
+      : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all')
+  if (!allowed) return { error: apiError('forbidden', 403) }
+  return { departmentId: department_id }
 }
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const gate = await requireManager()
-    if (gate.error) return gate.error
+    const gate = await gateSurvey(params.id)
+    if ('error' in gate) return gate.error
     const sb = createServerClient()
     try {
       const detail = await getSurveyWithQuestions(sb, params.id)
       if (!detail) return apiError('substage_not_found', 404)
-      const teachers = await teacherList(sb)
+      const teachers = await teachersForSurvey(sb, gate.departmentId)
       return NextResponse.json({ ...detail, teachers })
     } catch (e) {
       if ((e as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
@@ -49,8 +51,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const gate = await requireManager()
-    if (gate.error) return gate.error
+    const gate = await gateSurvey(params.id)
+    if ('error' in gate) return gate.error
     const body = await request.json().catch(() => ({})) as {
       title?: string; is_open?: boolean
       questions?: Array<{ text: string; kind?: string; position?: number }>
@@ -96,8 +98,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const gate = await requireManager()
-    if (gate.error) return gate.error
+    const gate = await gateSurvey(params.id)
+    if ('error' in gate) return gate.error
     const sb = createServerClient()
     try {
       const { error } = await u(sb).from('teaching_surveys').delete().eq('id', params.id)

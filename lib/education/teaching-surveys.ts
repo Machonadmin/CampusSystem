@@ -5,17 +5,63 @@ import { createServerClient } from '@/lib/supabase/server'
 export function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export interface SurveyQuestion { id: string; text: string; kind: 'rating' | 'text'; position: number }
-export interface Survey { id: string; title: string; is_open: boolean; created_at: string }
+export interface Survey { id: string; title: string; is_open: boolean; created_at: string; department_id?: string | null }
 
 /** Сбор + его вопросы (по порядку). null — если сбора нет. deploy-safe снаружи. */
 export async function getSurveyWithQuestions(
   sb: ReturnType<typeof createServerClient>, id: string,
 ): Promise<{ survey: Survey; questions: SurveyQuestion[] } | null> {
-  const { data: s } = await u(sb).from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
+  // department_id — новая колонка (миграция teaching_surveys_department). Deploy-safe:
+  // при 42703 (колонки ещё нет) откатываемся к select без неё.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let s: any = null
+  const primary = await (u(sb).from('teaching_surveys')
+    .select('id, title, is_open, created_at, department_id').eq('id', id).maybeSingle() as any)
+  if (primary.error && primary.error.code === '42703') {
+    const base = await u(sb).from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
+    s = base.data
+  } else {
+    s = primary.data
+  }
   if (!s) return null
   const { data: q } = await u(sb).from('teaching_survey_questions')
     .select('id, text, kind, position').eq('survey_id', id).order('position', { ascending: true })
   return { survey: s as Survey, questions: (q ?? []) as SurveyQuestion[] }
+}
+
+/**
+ * Подразделение сбора (deploy-safe). found — существует ли сбор; department_id —
+ * его подразделение (null для институтского/legacy или если колонки ещё нет).
+ */
+export async function surveyDepartment(
+  sb: ReturnType<typeof createServerClient>, id: string,
+): Promise<{ found: boolean; department_id: string | null }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const res = await (u(sb).from('teaching_surveys').select('id, department_id').eq('id', id).maybeSingle() as any)
+  if (res.error && res.error.code === '42703') {
+    const base = await u(sb).from('teaching_surveys').select('id').eq('id', id).maybeSingle()
+    return { found: !!base.data, department_id: null }
+  }
+  return { found: !!res.data, department_id: (res.data as { department_id?: string | null } | null)?.department_id ?? null }
+}
+
+/**
+ * Преподаватели для сбора. Если задано подразделение — только преподаватели его
+ * учебных групп (class_groups.department_id = departmentId); иначе (институтский
+ * сбор) — все преподаватели. С именами.
+ */
+export async function teachersForSurvey(
+  sb: ReturnType<typeof createServerClient>, departmentId: string | null,
+): Promise<Array<{ person_id: string; name: string }>> {
+  if (!departmentId) {
+    const { data: ct } = await sb.from('class_teachers').select('teacher_id')
+    return namesFor(sb, (ct ?? []).map(r => (r as { teacher_id: string }).teacher_id))
+  }
+  const { data: groups } = await sb.from('class_groups').select('id').eq('department_id', departmentId)
+  const groupIds = (groups ?? []).map(g => (g as { id: string }).id)
+  if (groupIds.length === 0) return []
+  const { data: ct } = await sb.from('class_teachers').select('teacher_id').in('class_group_id', groupIds)
+  return namesFor(sb, (ct ?? []).map(r => (r as { teacher_id: string }).teacher_id))
 }
 
 /** Преподаватели учебных групп ученицы (по её journey). С именами. */
