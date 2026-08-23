@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "gen:types": "npx --yes supabase@latest gen types typescript --db-url \"$SUPABASE_DB_URL\" --schema public > types/database.ts",
     "seed:workflow-recruitment": "tsx scripts/seed-workflow-recruitment.ts"
   },
   "repository": {
