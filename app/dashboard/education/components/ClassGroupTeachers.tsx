@@ -9,6 +9,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 interface Teacher {
   person_id: string
   full_name: string | null
+  hebrew_name?: string | null
   is_primary: boolean
 }
 
@@ -170,7 +171,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
-                  {tc.full_name ?? '—'}
+                  {tc.hebrew_name || tc.full_name || '—'}
                 </span>
                 {tc.is_primary && (
                   <span style={{

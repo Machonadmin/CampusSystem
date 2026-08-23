@@ -135,7 +135,7 @@ function ReferralCard({
   const [error, setError] = useState('')
 
   const a = referral.applicant
-  const name = a.full_name || a.hebrew_name || '—'
+  const name = a.hebrew_name || a.full_name || '—'
 
   function finalLabel(f: Final): string {
     if (f.code === 'approved') return t('referrals.final_approved')

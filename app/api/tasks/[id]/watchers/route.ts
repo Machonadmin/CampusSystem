@@ -39,7 +39,7 @@ export async function GET(
 
     const { data, error } = await sb
       .from('task_watchers')
-      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
       .eq('task_id', params.id)
       .order('added_at', { ascending: true })
 
@@ -100,7 +100,7 @@ export async function POST(
     const { data, error } = await sb
       .from('task_watchers')
       .upsert(rows, { onConflict: 'task_id,person_id', ignoreDuplicates: true })
-      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
 
     if (error) {
       const m = mapDbError(error)

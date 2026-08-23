@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
         .from('tasks')
         .select(`
           *,
-          assignee:persons!tasks_assignee_id_fkey(id, full_name),
-          creator:persons!tasks_creator_id_fkey(id, full_name),
+          assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
+          creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name),
           department:departments(id, name)
         `)
         .order('created_at', { ascending: false })

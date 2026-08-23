@@ -8,6 +8,7 @@ export interface Lead {
   profile_id: string
   person_id: string
   full_name: string
+  hebrew_name?: string | null
   email: string | null
   phones: string[]
   photo_url: string | null
@@ -30,6 +31,7 @@ export interface ApplicantJourney {
   opened_at: string | null
   person: {
     full_name: string | null
+    hebrew_name?: string | null
     email: string | null
     phones: unknown
   } | null

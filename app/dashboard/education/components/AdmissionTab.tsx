@@ -87,7 +87,7 @@ export default function AdmissionTab() {
           </thead>
           <tbody>
             {applicants.map(app => {
-              const fullName = app.person?.full_name ?? '—'
+              const fullName = app.person?.hebrew_name || app.person?.full_name || '—'
               const phones = flattenPhones(app.person?.phones)
               const interestTexts = (app.interests ?? []).map(interestLabel).filter(Boolean)
               const direction = interestTexts.length > 0
