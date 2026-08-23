@@ -5,7 +5,7 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isIsoDate, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
-import { isAboveInHierarchy } from '@/lib/org/hierarchy'
+import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
 
 /**
@@ -275,15 +275,18 @@ export async function POST(request: NextRequest) {
       .map(x => (x ?? '').trim()).filter(Boolean).filter(id => id !== session.person_id)))
     let pendingApprovalCount = 0
     if (attendeeIds.length > 0) {
+      // Кто из приглашённых ВЫШЕ создателя — одним пакетом (было ~4 запроса и
+      // полный скан departments на каждого участника).
+      const above = await subjectsBelow(session.person_id, attendeeIds)
       const rows: Array<Record<string, unknown>> = []
       for (const pid of attendeeIds) {
-        const above = await isAboveInHierarchy(pid, session.person_id)
-        if (above) pendingApprovalCount++
+        const needsApproval = above.has(pid)
+        if (needsApproval) pendingApprovalCount++
         rows.push({
           appointment_id: appointmentId,
           person_id: pid,
-          requires_approval: above,
-          status: above ? 'pending_approval' : 'invited',
+          requires_approval: needsApproval,
+          status: needsApproval ? 'pending_approval' : 'invited',
         })
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
