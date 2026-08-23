@@ -6,6 +6,8 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface SurveyRow { id: string; title: string; is_open: boolean; created_at: string; responses: number }
 
@@ -78,9 +80,9 @@ export default function TeachingSurveysClient() {
       </div>
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       ) : items.length === 0 ? (
-        <div style={{ ...card, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('empty')}</div>
+        <EmptyState text={t('empty')} />
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(s => (

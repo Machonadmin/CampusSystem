@@ -1625,6 +1625,7 @@
       "subtitle": "כל תלמידה חייבת להיות משובצת לקבוצת קודש (הכיתה שלה)",
       "unassigned_count": "{n} ממתינות לשיבוץ קודש",
       "group_col": "קבוצת קודש",
+      "no_students": "אין תלמידות להצגה",
       "student_col": "תלמידה",
       "unassigned_option": "— לא משובצת —",
       "only_unassigned": "רק לא משובצות",
@@ -1665,6 +1666,7 @@
       "meeting_no_show": "לא הגיעה",
       "personal_title": "אירועים אישיים",
       "personal_hint": "אירועים אישיים — פרטיים לחלוטין, הצוות לא רואה אותם.",
+      "save_failed": "השמירה נכשלה, נסו שוב",
       "personal_add": "הוספת אירוע אישי",
       "personal_name_placeholder": "מה יש לך?",
       "personal_time_optional": "שעה (לא חובה)",
@@ -2985,6 +2987,7 @@
       "search_placeholder": "חיפוש לפי שם…",
       "count": "סך הכול",
       "empty": "לא נמצאו עובדים",
+      "no_results": "לא נמצאו תוצאות",
       "load_error": "שגיאה בטעינת הרשימה",
       "forbidden": "אין הרשאה לצפייה בשכר",
       "col_name": "עובד",
@@ -4511,7 +4514,8 @@
       "rate": "מלאי משוב",
       "cancel": "ביטול",
       "answered": "מולא",
-      "submit": "שליחה"
+      "submit": "שליחה",
+      "save_failed": "השליחה נכשלה, נסו שוב"
     }
   },
   "force_password": {

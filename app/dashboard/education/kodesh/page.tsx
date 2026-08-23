@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 // Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
 // расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
@@ -202,7 +203,7 @@ export default function KodeshAssignmentPage() {
               <div style={{ minWidth: 180 }}>{t('group_col')}</div>
             </div>
             {visible.length === 0 ? (
-              <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>—</div>
+              <EmptyState text={t('no_students')} />
             ) : visible.map((s, i) => {
               const unassigned = s.kodesh_group_id === null
               return (

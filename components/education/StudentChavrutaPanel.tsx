@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 
 interface ChavrutaSession {
   id: string
@@ -31,16 +32,6 @@ export default function StudentChavrutaPanel({ journeyId }: { journeyId: string 
     return () => { alive = false }
   }, [journeyId])
 
-  const fmtDate = (d: string | null): string => {
-    if (!d) return ''
-    try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-      const dt = new Date(`${d}T00:00:00Z`)
-      if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
-    } catch { return d }
-  }
-
   if (!loaded) return null
 
   return (
@@ -55,7 +46,7 @@ export default function StudentChavrutaPanel({ journeyId }: { journeyId: string 
             <div key={s.id} style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{s.teacher_name}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>{fmtDate(s.entry_date)}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>{formatDate(s.entry_date, lang)}</div>
               </div>
               {s.summary && (
                 <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4, whiteSpace: 'pre-wrap' }}>{s.summary}</div>

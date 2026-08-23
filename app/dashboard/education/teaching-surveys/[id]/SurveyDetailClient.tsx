@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Question { id: string; text: string; kind: 'rating' | 'text'; position: number }
 interface Teacher { person_id: string; name: string }
@@ -121,8 +123,8 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
         <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>
       )}
 
-      {!loaded ? <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div> : !detail ? (
-        <div style={{ ...card, color: 'var(--text-faint)' }}>{t('not_available')}</div>
+      {!loaded ? <SkeletonRows /> : !detail ? (
+        <EmptyState text={t('not_available')} />
       ) : (
         <>
           {/* Редактор вопросов */}

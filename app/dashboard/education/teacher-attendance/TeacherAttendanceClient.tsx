@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface LessonRow {
   lesson_id: string
@@ -104,7 +105,7 @@ export default function TeacherAttendanceClient({ canApprove }: { canApprove: bo
       </div>
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       ) : (
         <>
           {/* Секретариат: очередь на подтверждение */}

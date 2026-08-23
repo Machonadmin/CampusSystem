@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 
 interface KodeshException {
   id: string
@@ -96,16 +97,6 @@ export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string
     }
   }
 
-  const fmtDate = (d: string | null): string => {
-    if (!d) return ''
-    try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-      const dt = new Date(d)
-      if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric' })
-    } catch { return d }
-  }
-
   // Не-менеджеру (403) и до загрузки ничего не показываем.
   if (!loaded || !ok) return null
 
@@ -161,7 +152,7 @@ export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string
               <div style={{ flex: 1, minWidth: 0 }}>
                 {x.reason && <div style={{ fontSize: 12.5, color: 'var(--text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: 4 }}>{x.reason}</div>}
                 <div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
-                  {fmtDate(x.effective_from)}{' — '}{x.effective_to ? fmtDate(x.effective_to) : t('ongoing')}
+                  {formatDate(x.effective_from, lang)}{' — '}{x.effective_to ? formatDate(x.effective_to, lang) : t('ongoing')}
                 </div>
                 {x.approved_by_name && (
                   <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>

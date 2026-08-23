@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Assessment { id: string; title: string; max_score: number; assessment_date: string | null; graded_count: number; average: number | null }
 interface Student { journey_id: string; name: string; scores: Record<string, number | null>; average: number | null }
@@ -76,9 +78,9 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
         {/* Тело */}
         <div style={{ maxHeight: '72vh', overflow: 'auto' }}>
           {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+            <SkeletonRows />
           ) : !data || data.assessments.length === 0 ? (
-            <div style={{ padding: 44, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('gb_empty')}</div>
+            <EmptyState text={t('gb_empty')} />
           ) : (
             <table style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
               <thead>

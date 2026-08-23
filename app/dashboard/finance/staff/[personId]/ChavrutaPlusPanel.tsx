@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Assignment {
   id: string
@@ -151,7 +152,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
             style={{ width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box', outline: 'none' }} />
           <div style={{ marginTop: 8, maxHeight: 220, overflowY: 'auto', display: 'grid', gap: 4 }}>
             {filtered.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '6px 4px' }}>—</div>
+              <EmptyState size="compact" text={t('no_results')} />
             ) : filtered.map(s => (
               <button key={s.journey_id} onClick={() => addAssignment(s.journey_id)} disabled={busy}
                 style={{ textAlign: 'start', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: busy ? 'default' : 'pointer' }}>

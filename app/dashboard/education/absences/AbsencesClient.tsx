@@ -6,6 +6,8 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Case {
@@ -156,9 +158,9 @@ export default function AbsencesClient() {
       </div>
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       ) : items.length === 0 ? (
-        <div style={{ ...card, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('empty')}</div>
+        <EmptyState text={t('empty')} />
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(c => (

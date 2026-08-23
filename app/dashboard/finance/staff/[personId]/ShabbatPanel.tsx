@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import EmptyState from '@/components/ui/EmptyState'
 
 type ShabbatType = 'shabbat_host' | 'shabbat_family'
 
@@ -269,7 +270,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
         {search.trim() !== '' && (
           <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', display: 'grid', gap: 4 }}>
             {filtered.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '6px 4px' }}>—</div>
+              <EmptyState size="compact" text={t('no_results')} />
             ) : filtered.map(s => (
               <button key={s.journey_id} type="button" onClick={() => addAttendee(s)}
                 style={{ textAlign: 'start', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>

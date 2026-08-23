@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface MyLesson {
   id: string
@@ -71,7 +72,7 @@ export default function TeacherDashboard() {
       <div style={card}>
         <h3 style={sectionTitle}>{t('teacher.lessons_today')}</h3>
         {lessons === null ? (
-          <div style={empty}>…</div>
+          <SkeletonRows rows={3} />
         ) : lessons.length === 0 ? (
           <div style={empty}>{t('teacher.no_lessons')}</div>
         ) : (
@@ -114,7 +115,7 @@ export default function TeacherDashboard() {
       <div style={card}>
         <h3 style={sectionTitle}>{t('teacher.my_groups')}</h3>
         {groups === null ? (
-          <div style={empty}>…</div>
+          <SkeletonRows rows={3} />
         ) : groups.length === 0 ? (
           <div style={empty}>{t('teacher.no_groups')}</div>
         ) : (

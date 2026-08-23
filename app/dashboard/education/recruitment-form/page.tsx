@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Program { id: string; name: string; institution_name: string | null }
 
@@ -182,7 +183,7 @@ export default function RecruitmentFormSettingsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>…</div>
+        <SkeletonRows />
       ) : error ? (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
       ) : cfg ? (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateTime } from '@/lib/i18n/format-date'
 
 interface Message {
   id: string
@@ -62,15 +63,6 @@ export default function StaffStudentMessagesPanel({ journeyId, canManage }: { jo
     }
   }
 
-  const fmtDate = (d: string): string => {
-    try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-      const dt = new Date(d)
-      if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    } catch { return d }
-  }
-
   if (!loaded) return null
 
   return (
@@ -113,7 +105,7 @@ export default function StaffStudentMessagesPanel({ journeyId, canManage }: { jo
               {m.subject && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{m.subject}</div>}
               <div style={{ fontSize: 12.5, color: 'var(--text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
-                <span>{fmtDate(m.created_at)}</span>
+                <span>{formatDateTime(m.created_at, lang)}</span>
                 <span style={{ color: m.read_at ? 'var(--success)' : 'var(--text-faint)' }}>
                   · {m.read_at ? t('read') : t('sent')}
                 </span>
