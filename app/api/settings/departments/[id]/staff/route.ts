@@ -8,6 +8,8 @@ import type { EmploymentType } from '@/types/database'
 async function requireAuth() {
   const session = await getSession()
   if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+  // Портальный студенческий токен не должен читать штат подразделения.
+  if (session.principal === 'student') throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
 async function requireSuperadmin() {

@@ -43,6 +43,7 @@ async function requireAuth() {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
+    if (session.principal === 'student') return apiError('forbidden', 403)
     const personId = session.person_id
 
     const body = await request.json() as {
