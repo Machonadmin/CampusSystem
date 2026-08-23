@@ -6,6 +6,7 @@ import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { Modal } from '@/components/ui/Modal'
 import type { Lang } from '@/lib/i18n/translations'
 
 interface Department {
@@ -791,8 +792,7 @@ export default function AddEmployeeModal({
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={700} panelStyle={{ display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
@@ -873,7 +873,6 @@ export default function AddEmployeeModal({
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

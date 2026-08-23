@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
+import { Modal } from '@/components/ui/Modal'
 
 interface Props {
   /** Предзаполненный заголовок. */
@@ -125,8 +126,13 @@ export default function AddToCalendar({
       )}
 
       {open && (
-        <div onClick={() => !saving && setOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(440px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+        <Modal
+          onClose={() => !saving && setOpen(false)}
+          maxWidth={440}
+          zIndex={70}
+          closeOnBackdrop
+          panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}
+        >
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
 
             {done ? (
@@ -170,8 +176,7 @@ export default function AddToCalendar({
                 </div>
               </>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   )

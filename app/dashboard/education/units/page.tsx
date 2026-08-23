@@ -8,6 +8,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 
 const GRANTABLE = [
   'view_students', 'manage_students', 'manage_enrollments', 'manage_class_groups',
@@ -224,8 +225,7 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
   const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none' }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: 'var(--shadow-lg)', padding: 20, display: 'grid', gap: 12 }}>
+    <Modal onClose={onClose} maxWidth={420} closeOnBackdrop panelStyle={{ padding: 20, display: 'grid', gap: 12 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('units.add_member')}</div>
 
         {/* role */}
@@ -272,7 +272,6 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
             {t('units.create_btn')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

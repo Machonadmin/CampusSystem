@@ -9,6 +9,7 @@ import PersonRelationField, { type PersonRelationValue, type RelationType } from
 import CascadeDirectionSelector, { type CascadeValue } from '@/components/education/CascadeDirectionSelector'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1078,7 +1079,9 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const saveLabel = journeyId ? t('form.save') : t(`form.${cfg.saveKey}`)
 
   const formInner = (
-    <div style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid var(--border)' : 'none' }}>
+    <div style={inline
+      ? { background: 'var(--surface)', borderRadius: 12, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid var(--border)' }
+      : { display: 'flex', flexDirection: 'column', width: '100%' }}>
 
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
@@ -1167,8 +1170,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   if (inline) return formInner
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <Modal
+      onClose={onClose}
+      maxWidth={700}
+      zIndex={50}
+      panelStyle={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}
+    >
       {formInner}
-    </div>
+    </Modal>
   )
 }

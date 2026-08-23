@@ -18,6 +18,7 @@ import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 interface Department {
   id: string
@@ -115,8 +116,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={480}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('new_dept')}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
@@ -164,8 +164,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
             {saving ? t('saving') : t('save')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -190,8 +189,7 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={420}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('rename_dept')}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
@@ -217,8 +215,7 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
             {saving ? t('saving') : t('save')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -250,8 +247,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={420}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('edit_position')}</p>
@@ -287,8 +283,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
             {saving ? t('saving') : t('save')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

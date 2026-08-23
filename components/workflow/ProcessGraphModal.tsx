@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -201,9 +202,13 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
   const showGraph = !loading && !error && !renderError && !!data && data.nodes.length > 0
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    <Modal
+      onClose={onClose}
+      maxWidth={1100}
+      zIndex={70}
+      padding={24}
+      closeOnBackdrop
+      panelStyle={{ width: '80vw', height: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}
     >
       {/* Анимация пульсации активного узла + кликабельность */}
       <style>{`
@@ -222,7 +227,6 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         .proc-graph-svg svg { max-width: 100%; height: auto; }
       `}</style>
 
-      <div style={{ background: 'var(--surface)', borderRadius: 12, width: '80vw', height: '80vh', maxWidth: 1100, display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -277,7 +281,6 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
             {t('process.close')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

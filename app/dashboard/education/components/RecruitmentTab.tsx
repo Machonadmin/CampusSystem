@@ -14,6 +14,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
@@ -482,8 +483,7 @@ export default function RecruitmentTab() {
       </div>
 
       {deleteTarget && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '28px 28px 24px', maxWidth: 400, width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
+        <Modal onClose={() => setDeleteTarget(null)} maxWidth={400} panelStyle={{ padding: '28px 28px 24px', width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
               {t('leads.delete_confirm.title')}
             </h2>
@@ -506,8 +506,7 @@ export default function RecruitmentTab() {
                 {t('leads.delete_confirm.confirm')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {addOpen && (

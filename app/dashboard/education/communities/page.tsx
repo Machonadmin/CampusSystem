@@ -7,6 +7,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Modal } from '@/components/ui/Modal'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -277,14 +278,7 @@ export default function CommunitiesPage() {
 
       {/* Форма создания/правки */}
       {editing && (
-        <div
-          onClick={closeForm}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}
-          >
+        <Modal onClose={closeForm} maxWidth={560} closeOnBackdrop panelStyle={{ borderRadius: 14, padding: 22 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>
               {editing.id ? t('edit_title') : t('new')}
             </h2>
@@ -310,8 +304,7 @@ export default function CommunitiesPage() {
               <button onClick={closeForm} disabled={busy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
               <button onClick={save} disabled={busy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--accent-strong)', color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

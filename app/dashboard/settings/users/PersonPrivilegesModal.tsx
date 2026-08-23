@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { toastSuccess, toastError } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
 
 type T = (key: string, fallback?: string) => string
 
@@ -106,8 +107,7 @@ export default function PersonPrivilegesModal({ user, t, tCommon, onClose }: Per
   ]
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 560, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={560} panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('title')}: {user.full_name}</p>
@@ -194,7 +194,6 @@ export default function PersonPrivilegesModal({ user, t, tCommon, onClose }: Per
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
           <button onClick={save} disabled={saving || loading} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || loading) ? 'not-allowed' : 'pointer', opacity: (saving || loading) ? 0.6 : 1 }}>{t('save')}</button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

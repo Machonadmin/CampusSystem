@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -280,11 +281,13 @@ export default function FinancePage() {
 
       {/* Модалка массового начисления */}
       {chargeOpen && (
-        <div
-          onClick={() => { if (!bulkBusy) setChargeOpen(false) }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 50 }}
+        <Modal
+          onClose={() => { if (!bulkBusy) setChargeOpen(false) }}
+          maxWidth={460}
+          zIndex={50}
+          closeOnBackdrop
+          panelStyle={{ borderRadius: 14, padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('bulk.charge_title')}</h2>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</p>
             <div style={{ display: 'grid', gap: 12 }}>
@@ -309,8 +312,7 @@ export default function FinancePage() {
               <button onClick={() => setChargeOpen(false)} disabled={bulkBusy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
               <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

@@ -7,6 +7,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
+import { Modal } from '@/components/ui/Modal'
 
 interface Comment {
   id: string
@@ -864,31 +865,13 @@ function CommentItem({ comment }: { comment: Comment }) {
 function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const tCommon = useTranslations('common')
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16, overflowY: 'auto',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 560,
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          position: 'relative',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={560} closeOnBackdrop panelStyle={{ padding: 24, position: 'relative' }}>
         <button onClick={onClose} aria-label={tCommon('close')} style={{
           position: 'absolute', top: 16, right: 16,
           background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer',
           lineHeight: 1,
         }}>×</button>
         {children}
-      </div>
-    </div>
+    </Modal>
   )
 }

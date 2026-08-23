@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 
 interface Props {
   onClose: () => void
@@ -99,15 +100,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 60,
-      backgroundColor: 'rgba(0,0,0,0.4)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-    }}>
-      <div style={{
-        backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-      }}>
+    <Modal onClose={onClose} maxWidth={420} zIndex={60}>
         <div style={{
           padding: '16px 20px', borderBottom: '1px solid var(--border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -182,7 +175,6 @@ export default function ChangePasswordModal({ onClose }: Props) {
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

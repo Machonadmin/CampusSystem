@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { AssessmentItem } from './GradesTab'
 
@@ -146,23 +147,7 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 680,
-          maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={680} closeOnBackdrop panelStyle={{ padding: 24, maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
         {/* Заголовок */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <div>
@@ -273,7 +258,6 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

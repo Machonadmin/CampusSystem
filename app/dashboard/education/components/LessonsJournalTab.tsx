@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -360,23 +361,7 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 440,
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
+    <Modal onClose={onClose} maxWidth={440} closeOnBackdrop panelStyle={{ padding: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {lesson ? t('modal_edit_title') : t('modal_create_title')}
@@ -442,7 +427,6 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
             {saving ? t('btn_saving') : t('btn_save')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

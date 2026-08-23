@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import LessonNotes from '@/components/education/LessonNotes'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 import type { LessonItem } from './LessonsJournalTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -190,23 +191,12 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
+    <Modal
+      onClose={onClose}
+      maxWidth={640}
+      closeOnBackdrop
+      panelStyle={{ padding: 24, maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}
     >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--surface)', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 640,
-          maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
         {/* Заголовок */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <div>
@@ -388,7 +378,6 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

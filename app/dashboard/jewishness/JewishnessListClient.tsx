@@ -7,6 +7,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
 
 type Status = 'pending' | 'verified' | 'rejected' | 'needs_review' | 'partial'
 
@@ -280,17 +281,14 @@ function DetailModal({
   const name = detail ? (detail.applicant.hebrew_name || detail.applicant.full_name || '—') : '—'
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50,
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 20, overflowY: 'auto',
-      }}
+    <Modal
+      onClose={onClose}
+      maxWidth={720}
+      zIndex={50}
+      padding={20}
+      closeOnBackdrop
+      panelStyle={{ boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
     >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 720, marginTop: 24, marginBottom: 24, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
-      >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -317,8 +315,7 @@ function DetailModal({
             <DetailBody detail={detail} sigMethodFallback={sigMethodFallback} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

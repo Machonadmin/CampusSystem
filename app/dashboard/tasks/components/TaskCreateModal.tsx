@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { Modal } from '@/components/ui/Modal'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -295,19 +296,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   })
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 16,
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--surface)', borderRadius: 16, width: '100%', maxWidth: 560,
-        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-      }}>
+    <Modal onClose={onClose} maxWidth={560} closeOnBackdrop panelStyle={{ borderRadius: 16, display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
         {/* Header */}
         <div style={{
           padding: '16px 20px', borderBottom: '1px solid var(--border)',
@@ -620,7 +609,6 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             {saving ? t('create_modal.creating_button') : (kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button'))}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
