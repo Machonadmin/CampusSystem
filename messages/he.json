@@ -1840,6 +1840,8 @@
       "title": "הערכת הוראה",
       "subtitle": "סקר סוף-סמסטר על ההוראה — תלמידות ומנהלים",
       "survey_title_placeholder": "שם הסקר, למשל: סמסטר א׳ תשפ״ו",
+      "department_label": "מחלקה",
+      "pick_department": "בחר מחלקה",
       "create": "צור סקר",
       "empty": "אין סקרים עדיין",
       "responses_short": "תשובות",

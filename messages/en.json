@@ -1840,6 +1840,8 @@
       "title": "Teaching evaluation",
       "subtitle": "End-of-semester teaching survey — students and managers",
       "survey_title_placeholder": "Survey name, e.g. Semester A 2026",
+      "department_label": "Department",
+      "pick_department": "Select department",
       "create": "Create survey",
       "empty": "No surveys yet",
       "responses_short": "responses",
