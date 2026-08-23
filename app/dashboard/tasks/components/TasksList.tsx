@@ -15,12 +15,12 @@ interface Props {
 
 const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
   unassigned:  { bg: 'var(--surface-2)', fg: 'var(--text)' },
-  pending:     { bg: '#DBEAFE', fg: '#1E40AF' },
-  in_progress: { bg: '#FEF3C7', fg: '#92400E' },
-  review:      { bg: '#FCE7F3', fg: '#9D174D' },
-  completed:   { bg: '#D1FAE5', fg: '#065F46' },
+  pending:     { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  in_progress: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  review:      { bg: 'var(--violet-tint)', fg: 'var(--violet)' },
+  completed:   { bg: 'var(--success-tint)', fg: 'var(--success)' },
   cancelled:   { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
-  declined:    { bg: '#FEE2E2', fg: '#991B1B' },
+  declined:    { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
 const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
@@ -132,7 +132,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
           <span>{t(`module.${task.module}`, task.module)}</span>
           {task.recurrence_series_id && (
             <span style={{
-              padding: '1px 8px', background: '#FEF3C7', color: '#92400E',
+              padding: '1px 8px', background: 'var(--warn-tint)', color: 'var(--warn)',
               borderRadius: 8, fontWeight: 500,
             }}>
               {t('card.series')}
