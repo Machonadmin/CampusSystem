@@ -7,6 +7,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 const GRANTABLE = [
   'view_students', 'manage_students', 'manage_enrollments', 'manage_class_groups',
@@ -192,6 +193,7 @@ function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; p
 
 function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; accent: string; onClose: () => void; onDone: () => void }) {
   const t = useTranslations('education')
+  const tCommon = useTranslations('common')
   const [role, setRole] = useState<'secretary' | 'deputy' | 'teacher'>('secretary')
   const [mode, setMode] = useState<'existing' | 'create'>('existing')
   const [firstName, setFirstName] = useState('')
@@ -209,7 +211,13 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
       const res = await fetch(`/api/education/units/${unitId}/members`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       })
-      if (res.ok) onDone()
+      if (res.ok) {
+        toastSuccess(tCommon('saved'))
+        onDone()
+      } else {
+        const b = await res.json().catch(() => ({}))
+        toastError(b.error ?? tCommon('action_failed'))
+      }
     } finally { setSaving(false) }
   }
 

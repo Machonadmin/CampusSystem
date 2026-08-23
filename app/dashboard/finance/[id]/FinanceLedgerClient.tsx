@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
@@ -166,13 +167,13 @@ export default function FinanceLedgerClient({
       })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
-        setActionError(b.error ?? t('ledger.action_failed'))
+        toastError(b.error ?? t('ledger.action_failed'))
         return
       }
       after?.()
       await load()
     } catch {
-      setActionError(t('ledger.action_failed'))
+      toastError(t('ledger.action_failed'))
     } finally {
       setBusy(false)
     }
@@ -207,6 +208,7 @@ export default function FinanceLedgerClient({
         setPAmount(''); setPDate(''); setPMethod('cash'); setPRef('')
         setPDepositedTo(''); setPFromAccount(''); setPToAccount(''); setPSignature('')
         setShowPayment(false)
+        toastSuccess(tCommon('saved'))
       },
     )
   }
@@ -226,7 +228,7 @@ export default function FinanceLedgerClient({
     mutate(
       `/api/finance/charges/${chargeId}/discount`, 'POST',
       { percent: dPercentNum, reason: dReason.trim() || null, typed_name: dSignature.trim() },
-      () => { setDPercent(''); setDReason(''); setDSignature(''); setDiscountChargeId(null) },
+      () => { setDPercent(''); setDReason(''); setDSignature(''); setDiscountChargeId(null); toastSuccess(tCommon('saved')) },
     )
   }
 

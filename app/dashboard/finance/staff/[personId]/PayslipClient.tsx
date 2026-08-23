@@ -312,6 +312,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
     try {
       const res = await fetch(`/api/staff-comp/${personId}/payslip?year=${year}&month=${month}`, { method: 'POST' })
       if (!res.ok) { toast(await readError(res), 'error'); return }
+      toast(t('approved'), 'success')
       await loadMonth()
     } catch {
       toast(t('approve_error'), 'error')

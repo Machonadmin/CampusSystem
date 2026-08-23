@@ -323,6 +323,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         return
       }
       setPendingSig(null)
+      toast(tCommon('saved'), 'success')
       closeModal()
       reload()
     } finally {
@@ -367,6 +368,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         setCloseError(data.error ?? tCommon('error'))
         return
       }
+      toast(tCommon('saved'), 'success')
       closeCloseEarly()
       reload()
       router.refresh()

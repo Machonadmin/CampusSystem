@@ -12,6 +12,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
@@ -74,14 +75,24 @@ export default function RecruitmentTab() {
     const res = await fetch(`/api/education/leads/${deleteTarget.profile_id}`, { method: 'DELETE' })
     setDeleteLoading(false)
     if (res.ok) {
+      toastSuccess(tCommon('deleted'))
       setDeleteTarget(null)
       loadLeads()
+    } else {
+      const b = await res.json().catch(() => ({}))
+      toastError(b.error ?? tCommon('action_failed'))
     }
   }
 
   async function handleRestore(lead: Lead) {
     const res = await fetch(`/api/education/leads/${lead.profile_id}/restore`, { method: 'POST' })
-    if (res.ok) loadLeads()
+    if (res.ok) {
+      toastSuccess(tCommon('saved'))
+      loadLeads()
+    } else {
+      const b = await res.json().catch(() => ({}))
+      toastError(b.error ?? tCommon('action_failed'))
+    }
   }
 
   function handleLeadSort(key: LeadSortKey) {

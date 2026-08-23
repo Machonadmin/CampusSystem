@@ -23,6 +23,7 @@ import { formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
 import type { LessonItem } from '@/app/dashboard/education/components/LessonsJournalTab'
 import type {
@@ -388,11 +389,11 @@ export default function CalendarClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       })
-      if (res.status === 409) { setError(t('overlap_error')); return }
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setError(b.error ?? t('load_error')); return }
+      if (res.status === 409) { toastError(t('overlap_error')); return }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')); return }
       setDetail(null)
       await load()
-    } catch { setError(t('load_error')) }
+    } catch { toastError(tCommon('action_failed')) }
   }
 
   async function respondAttendance(a: Appointment, action: 'accept' | 'decline') {
@@ -400,20 +401,22 @@ export default function CalendarClient() {
       const res = await fetch(`/api/calendar/appointments/${a.id}/respond`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
       })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setError(b.error ?? t('load_error')); return }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')); return }
+      toastSuccess(tCommon('saved'))
       setDetail(null)
       await load()
-    } catch { setError(t('load_error')) }
+    } catch { toastError(tCommon('action_failed')) }
   }
 
   async function deleteAppointment(a: Appointment) {
     if (!(await confirmDialog({ message: t('confirm_delete'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/calendar/appointments/${a.id}`, { method: 'DELETE' })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setError(b.error ?? t('load_error')); return }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')); return }
+      toastSuccess(tCommon('deleted'))
       setDetail(null)
       await load()
-    } catch { setError(t('load_error')) }
+    } catch { toastError(tCommon('action_failed')) }
   }
 
   // ─── Рендер ─────────────────────────────────────────────────────────────────
