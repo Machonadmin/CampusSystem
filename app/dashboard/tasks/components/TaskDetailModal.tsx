@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
 
@@ -231,7 +232,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
         resp = await fetch(`/api/tasks/${taskId}/claim`, { method: 'POST' })
       } else if (action === 'delete') {
         // Полное удаление — с подтверждением.
-        if (!window.confirm(t('detail.delete_confirm'))) { setActionInProgress(false); return }
+        if (!(await confirmDialog({ message: t('detail.delete_confirm'), tone: 'danger' }))) { setActionInProgress(false); return }
         resp = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
       } else if (action === 'cancel') {
         // Мягкая отмена: статус → cancelled (раньше здесь было жёсткое DELETE).

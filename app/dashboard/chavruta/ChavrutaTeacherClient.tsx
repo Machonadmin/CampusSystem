@@ -6,6 +6,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -156,7 +157,7 @@ export default function ChavrutaTeacherClient() {
   }
 
   async function removeSession(id: string) {
-    if (!window.confirm(t('confirm_delete'))) return
+    if (!(await confirmDialog({ message: t('confirm_delete'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/chavruta/sessions/${id}`, { method: 'DELETE' })
       if (!res.ok) { toastError(t('error')); return }

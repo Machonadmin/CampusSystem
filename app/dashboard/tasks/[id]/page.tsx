@@ -9,6 +9,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 interface Comment {
@@ -237,7 +238,7 @@ export default function TaskPage() {
       if (action === 'claim') {
         resp = await fetch(`/api/tasks/${taskId}/claim`, { method: 'POST' })
       } else if (action === 'delete') {
-        if (!window.confirm(t('detail.delete_confirm'))) { setActionInProgress(false); return }
+        if (!(await confirmDialog({ message: t('detail.delete_confirm'), tone: 'danger' }))) { setActionInProgress(false); return }
         resp = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
       } else if (action === 'cancel') {
         resp = await fetch(`/api/tasks/${taskId}`, {

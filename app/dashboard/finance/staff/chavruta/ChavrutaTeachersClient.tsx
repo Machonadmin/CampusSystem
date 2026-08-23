@@ -6,6 +6,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ export default function ChavrutaTeachersClient() {
   }
 
   async function removeTeacher(personId: string) {
-    if (!window.confirm(t('confirm_remove_teacher'))) return
+    if (!(await confirmDialog({ message: t('confirm_remove_teacher'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/chavruta/teachers/${personId}`, { method: 'DELETE' })
       if (!res.ok) { toastError(t('error')); return }

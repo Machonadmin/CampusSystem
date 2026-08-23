@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 /**
  * Заметная кнопка «Передать в приёмную комиссию» на карточке лида. Показывается
@@ -36,7 +37,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
 
   async function handoff() {
     if (!stageId || missing.length > 0) return
-    if (!window.confirm(t('handoff.confirm'))) return
+    if (!(await confirmDialog({ message: t('handoff.confirm'), tone: 'default' }))) return
     setBusy(true); setError('')
     try {
       const res = await fetch(`/api/workflow/stages/${stageId}/complete`, {

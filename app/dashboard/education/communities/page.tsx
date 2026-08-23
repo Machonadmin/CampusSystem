@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -167,7 +168,7 @@ export default function CommunitiesPage() {
   }
 
   async function remove(c: Community) {
-    if (!window.confirm(t('delete_confirm').replace('{name}', c.name))) return
+    if (!(await confirmDialog({ message: t('delete_confirm').replace('{name}', c.name), tone: 'danger' }))) return
     setErr(null)
     try {
       const res = await fetch(`/api/education/communities/${c.id}`, { method: 'DELETE' })

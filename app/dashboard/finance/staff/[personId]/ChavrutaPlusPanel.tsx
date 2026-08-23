@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Assignment {
   id: string
@@ -91,7 +92,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
   }
 
   async function removeAssignment(id: string) {
-    if (!window.confirm(t('cp_confirm_remove'))) return
+    if (!(await confirmDialog({ message: t('cp_confirm_remove'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff-comp/${personId}/chavruta-plus/${id}`, { method: 'DELETE' })
       if (!res.ok) { toast(t('entry_save_error'), 'error'); return }

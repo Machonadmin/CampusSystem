@@ -22,6 +22,7 @@ import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
 import { formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
 import type { LessonItem } from '@/app/dashboard/education/components/LessonsJournalTab'
 import type {
@@ -406,7 +407,7 @@ export default function CalendarClient() {
   }
 
   async function deleteAppointment(a: Appointment) {
-    if (!window.confirm(t('confirm_delete'))) return
+    if (!(await confirmDialog({ message: t('confirm_delete'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/calendar/appointments/${a.id}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); setError(b.error ?? t('load_error')); return }

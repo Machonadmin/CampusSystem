@@ -6,6 +6,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 /**
  * Визуальный редактор ШАБЛОНОВ ПРОЦЕССОВ (process templates) — основа
@@ -663,32 +664,32 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
 
   async function deactivateProcess() {
     if (!detail) return
-    if (!window.confirm(t('deactivate_confirm'))) return
+    if (!(await confirmDialog({ message: t('deactivate_confirm'), tone: 'danger' }))) return
     const e = await mutate(`/api/workflow/process-templates/${detail.template.id}`, 'DELETE')
     if (e) { setErr(e); return }
     await refetch()
   }
 
   async function deleteStage(s: StageTemplate) {
-    if (!window.confirm(t('delete_stage_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_stage_confirm'), tone: 'danger' }))) return
     const e = await mutate(`/api/workflow/stage-templates/${s.id}`, 'DELETE')
     if (e) { setErr(t(e, e)); return }
     await refetch()
   }
   async function deleteFinal(f: Final) {
-    if (!window.confirm(t('delete_final_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_final_confirm'), tone: 'danger' }))) return
     const e = await mutate(`/api/workflow/stage-finals/${f.id}`, 'DELETE')
     if (e) { setErr(t(e, e)); return }
     await refetch()
   }
   async function deleteTask(task: TaskTemplate) {
-    if (!window.confirm(t('delete_task_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_task_confirm'), tone: 'danger' }))) return
     const e = await mutate(`/api/workflow/stage-task-templates/${task.id}`, 'DELETE')
     if (e) { setErr(e); return }
     await refetch()
   }
   async function deleteTransition(tr: Transition) {
-    if (!window.confirm(t('delete_transition_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_transition_confirm'), tone: 'danger' }))) return
     const e = await mutate(`/api/workflow/stage-transitions/${tr.id}`, 'DELETE')
     if (e) { setErr(e); return }
     await refetch()

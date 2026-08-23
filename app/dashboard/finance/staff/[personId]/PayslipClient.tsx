@@ -7,6 +7,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 import ShabbatPanel from './ShabbatPanel'
 
@@ -306,7 +307,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
 
   async function approve() {
     if (approving) return
-    if (!window.confirm(t('approve_confirm'))) return
+    if (!(await confirmDialog({ message: t('approve_confirm'), tone: 'default' }))) return
     setApproving(true)
     try {
       const res = await fetch(`/api/staff-comp/${personId}/payslip?year=${year}&month=${month}`, { method: 'POST' })
@@ -356,7 +357,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
   }
 
   async function deleteEntry(id: string) {
-    if (!window.confirm(t('delete_confirm'))) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff-comp/entries/${id}`, { method: 'DELETE' })
       if (!res.ok) { toast(await readError(res), 'error'); return }
