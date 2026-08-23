@@ -50,6 +50,7 @@ function formatDate(lang: string, iso: string): string {
 
 export default function AttendancePanel({ lesson, canMarkAttendance, accentColor, onClose, onSaved }: Props) {
   const t = useTranslations('education.journal')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [students, setStudents] = useState<StudentEntry[]>([])
@@ -217,7 +218,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{lesson.topic}</div>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {!canMarkAttendance && (

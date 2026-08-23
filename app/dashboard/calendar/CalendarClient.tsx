@@ -1528,6 +1528,7 @@ function AppointmentForm({
               <button
                 type="button"
                 onClick={() => { setJourneyId(null); setStudentLabel('') }}
+                aria-label={tCommon('close')}
                 style={{ position: 'absolute', top: 8, insetInlineEnd: 10, fontSize: 12, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}
               >✕</button>
             )}
@@ -1576,7 +1577,7 @@ function AppointmentForm({
               {invitees.map(iv => (
                 <span key={iv.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 99, padding: '4px 6px 4px 11px' }}>
                   {iv.name || '—'}
-                  <button type="button" onClick={() => setInvitees(prev => prev.filter(x => x.id !== iv.id))} style={{ border: 'none', background: 'rgba(0,0,0,0.06)', color: 'inherit', width: 18, height: 18, borderRadius: '50%', cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>✕</button>
+                  <button type="button" onClick={() => setInvitees(prev => prev.filter(x => x.id !== iv.id))} aria-label={tCommon('delete')} style={{ border: 'none', background: 'rgba(0,0,0,0.06)', color: 'inherit', width: 18, height: 18, borderRadius: '50%', cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>✕</button>
                 </span>
               ))}
             </div>

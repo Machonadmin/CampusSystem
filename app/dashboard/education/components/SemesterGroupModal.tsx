@@ -214,7 +214,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {mode === 'create' ? t('semester_groups.modal_create_title') : t('semester_groups.modal_edit_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -301,7 +301,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
                   <input type="radio" name="sg-primary" checked={row.is_primary} onChange={() => setPrimary(idx)} />
                   {t('semester_groups.primary_short')}
                 </label>
-                <button type="button" onClick={() => removeTeacherRow(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, paddingTop: 6 }}>×</button>
+                <button type="button" onClick={() => removeTeacherRow(idx)} aria-label={tCommon('delete')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, paddingTop: 6 }}>×</button>
               </div>
             ))}
             <button type="button" onClick={addTeacherRow} style={{ marginTop: 2, padding: '5px 10px', fontSize: 12, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 6, cursor: 'pointer' }}>

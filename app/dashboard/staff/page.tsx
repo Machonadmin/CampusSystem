@@ -118,7 +118,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('new_dept')}</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
@@ -172,6 +172,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
 
 function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: () => void; onSaved: () => void }) {
   const t = useTranslations('staff')
+  const tCommon = useTranslations('common')
   const [name, setName] = useState(node.name)
   const [nameHe, setNameHe] = useState(node.name_he ?? '')
   const [nameEn, setNameEn] = useState(node.name_en ?? '')
@@ -192,7 +193,7 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('rename_dept')}</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
@@ -228,6 +229,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
   onSaved: () => void
 }) {
   const t = useTranslations('staff')
+  const tCommon = useTranslations('common')
   const [position, setPosition] = useState(member.position_ru)
   const [empType, setEmpType] = useState(member.employment_type ?? 'staff')
   const [isHead, setIsHead] = useState(member.is_head)
@@ -254,7 +256,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
             <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('edit_position')}</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{member.hebrew_name || member.full_name}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>

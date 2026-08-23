@@ -862,6 +862,7 @@ function CommentItem({ comment }: { comment: Comment }) {
 }
 
 function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const tCommon = useTranslations('common')
   return (
     <div
       onClick={onClose}
@@ -881,7 +882,7 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
           position: 'relative',
         }}
       >
-        <button onClick={onClose} style={{
+        <button onClick={onClose} aria-label={tCommon('close')} style={{
           position: 'absolute', top: 16, right: 16,
           background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer',
           lineHeight: 1,

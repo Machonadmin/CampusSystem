@@ -461,6 +461,7 @@ export default function AddEmployeeModal({
                       <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
                         placeholder={t('add_modal.search_placeholder')} style={{ ...inp, width: 220 }} />
                       <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
+                        aria-label={tCommon('close')}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                         ×
                       </button>
@@ -558,6 +559,7 @@ export default function AddEmployeeModal({
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
+                      aria-label={tCommon('delete')}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
                   )}
                 </div>
@@ -608,6 +610,7 @@ export default function AddEmployeeModal({
                   <input value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
                     placeholder={t('add_modal.contact_value_placeholder')} disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
                   {!ro && <button onClick={() => setExtraContacts(prev => prev.filter((_, xi) => xi !== i))}
+                    aria-label={tCommon('delete')}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
                 </div>
               ))}
@@ -794,7 +797,7 @@ export default function AddEmployeeModal({
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{isEditing ? t('add_modal.edit_title') : t('add_modal.title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}

@@ -296,6 +296,7 @@ interface AssessmentFormModalProps {
 
 function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone }: AssessmentFormModalProps) {
   const t = useTranslations('education.grades')
+  const tCommon = useTranslations('common')
 
   const [title, setTitle] = useState(assessment?.title ?? '')
   const [maxScore, setMaxScore] = useState(assessment ? String(Number(assessment.max_score)) : '100')
@@ -378,7 +379,7 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {assessment ? t('modal_edit_title') : t('modal_create_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

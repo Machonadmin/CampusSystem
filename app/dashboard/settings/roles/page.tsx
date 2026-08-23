@@ -101,7 +101,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('new_role_title')}</p>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
@@ -150,7 +150,7 @@ function AddPrivilegeModal({ module, t, tCommon, onClose, onAdd }: AddPrivilegeM
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', margin: 0 }}>{t('add_privilege_title')}: <span style={{ color: 'var(--accent)' }}>{module}</span></p>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
@@ -398,6 +398,7 @@ export default function RolesPage() {
                           {!role.is_system && (
                             <button
                               onClick={e => { e.stopPropagation(); deleteRole(role) }}
+                              aria-label={tCommon('delete')}
                               style={{ padding: '2px 7px', borderRadius: 6, border: 'none', backgroundColor: 'var(--danger-tint)', color: 'var(--danger)', fontSize: 12, cursor: 'pointer', lineHeight: 1 }}
                             >
                               ×

@@ -172,6 +172,7 @@ interface EnrollModalProps {
 
 function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: EnrollModalProps) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
   const [candidates, setCandidates] = useState<CandidateStudent[]>([])
   const [loading, setLoading] = useState(false)
@@ -258,7 +259,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('class_groups.enroll_modal_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <input
