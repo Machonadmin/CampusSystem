@@ -10,6 +10,7 @@ import AcceptanceOverviewTab from './components/AcceptanceOverviewTab'
 import RecruitmentTab from './components/RecruitmentTab'
 import AdmissionTab from './components/AdmissionTab'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Страница модуля «Обучение» ──────────────────────────────────────────────
 //
@@ -106,7 +107,7 @@ export default function EducationPage() {
           {tab === 'study' && <StudyTab />}
         </>
       ) : (
-        <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 14, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       )}
     </div>
   )

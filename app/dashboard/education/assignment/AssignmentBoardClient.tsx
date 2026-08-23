@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Member { person_id?: string; journey_id?: string; name: string }
 interface Group {
@@ -105,7 +106,7 @@ export default function AssignmentBoardClient() {
       </div>
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       ) : (
         <div className="split-cols" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
           {/* Пул для перетаскивания */}

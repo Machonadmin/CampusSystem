@@ -4,6 +4,8 @@ import { Fragment, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Slot { group_name: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
 interface Teacher { person_id: string; name: string; groups_count: number; weekly_hours: number; slots: Slot[] }
@@ -51,9 +53,9 @@ export default function TeachersHoursClient() {
       </div>
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div>
+        <SkeletonRows />
       ) : teachers.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_data')}</div>
+        <EmptyState text={t('no_data')} />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>

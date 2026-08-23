@@ -5,6 +5,8 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
 import { translateSystemEvent } from '@/lib/i18n/workflow-text'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface ProcessEvent {
   id: string
@@ -85,9 +87,9 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
 
       {/* Events list */}
       {loading ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 12, padding: '8px 0' }}>…</div>
+        <SkeletonRows rows={3} avatar={false} />
       ) : events.length === 0 ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 12, padding: '8px 0', fontStyle: 'italic' }}>{t('empty')}</div>
+        <EmptyState text={t('empty')} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
           {events.map(ev => {

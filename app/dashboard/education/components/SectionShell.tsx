@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EducationHeaderNav from './EducationHeaderNav'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Оболочка отдельного раздела «Учёбы» как САМОСТОЯТЕЛЬНОГО модуля (запрос
@@ -67,7 +68,7 @@ export default function SectionShell({
 
       {allowed === true ? children : (
         <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 14, color: 'var(--text-faint)' }}>
-          {allowed === false ? t('no_access') : '…'}
+          {allowed === false ? t('no_access') : <SkeletonRows />}
         </div>
       )}
     </div>
