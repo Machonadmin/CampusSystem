@@ -23,6 +23,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
   const [results, setResults] = useState<Results | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
 
   // Редактор вопросов
   const [drafts, setDrafts] = useState<QDraft[]>([])
@@ -38,36 +39,38 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
     setDetail(d)
     setResults(r)
     if (d?.questions) setDrafts(d.questions.map((q: Question) => ({ text: q.text, kind: q.kind })))
+    if (!d) setErr(t('load_failed'))
     setLoaded(true)
-  }, [surveyId])
+  }, [surveyId, t])
   useEffect(() => { load() }, [load])
 
   const hasResponses = useMemo(() => (results?.teachers ?? []).some(t => t.responses.length > 0), [results])
 
   async function saveQuestions() {
-    setBusy(true)
+    setBusy(true); setErr(null)
     try {
       const res = await fetch(`/api/education/teaching-surveys/${surveyId}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: drafts.filter(d => d.text.trim()).map((d, i) => ({ text: d.text.trim(), kind: d.kind, position: i })) }),
       })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); alert(b.error || 'error') }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error || t('save_failed')); return }
       await load()
-    } finally { setBusy(false) }
+    } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
   async function toggleOpen() {
     if (!detail) return
-    setBusy(true)
+    setBusy(true); setErr(null)
     try {
-      await fetch(`/api/education/teaching-surveys/${surveyId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_open: !detail.survey.is_open }) })
+      const res = await fetch(`/api/education/teaching-surveys/${surveyId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_open: !detail.survey.is_open }) })
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error || t('save_failed')); return }
       await load()
-    } finally { setBusy(false) }
+    } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
   async function submitFill() {
     if (!fillTeacher || !detail) return
-    setBusy(true)
+    setBusy(true); setErr(null)
     try {
       const answers = detail.questions.map(q => {
         const a = fillAnswers[q.id] ?? { rating: null, text: '' }
@@ -114,6 +117,10 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
         )}
       </div>
 
+      {err && (
+        <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>
+      )}
+
       {!loaded ? <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>…</div> : !detail ? (
         <div style={{ ...card, color: 'var(--text-faint)' }}>{t('not_available')}</div>
       ) : (
@@ -121,7 +128,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
           {/* Редактор вопросов */}
           <div style={card}>
             <div style={label}>{t('edit_questions')}</div>
-            {hasResponses && <div style={{ fontSize: 12, color: 'var(--warning, #a16207)', marginBottom: 10 }}>{t('questions_locked')}</div>}
+            {hasResponses && <div style={{ fontSize: 12, color: 'var(--warn)', marginBottom: 10 }}>{t('questions_locked')}</div>}
             <div style={{ display: 'grid', gap: 8 }}>
               {drafts.map((d, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

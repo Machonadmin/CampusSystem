@@ -201,7 +201,7 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
                     <td style={td}>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                         {s.open_visits > 0 && (
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: '#047857' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--success)' }}>
                             {s.open_visits} · {t('list.open_visits')}
                           </span>
                         )}

@@ -565,7 +565,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
               />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Email</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('email')}</span>
               <input
                 type="email"
                 value={email}

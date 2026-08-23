@@ -198,7 +198,7 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
                               border: '1px solid var(--danger)', background: 'var(--danger-tint)',
-                              color: '#991B1B', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              color: 'var(--danger)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
                             {isSaving ? '…' : t('docs_action_reject', 'Отклонить')}
@@ -211,8 +211,8 @@ export default function DocumentsTab({ personId, canManage }: Props) {
                             title={t('docs_action_mark_expired', 'Отметить как просроченный')}
                             style={{
                               fontSize: 11, padding: '3px 8px', borderRadius: 4,
-                              border: '1px solid #FCD34D', background: '#FFFBEB',
-                              color: '#92400E', cursor: isSaving ? 'not-allowed' : 'pointer',
+                              border: '1px solid #FCD34D', background: 'var(--warn-tint)',
+                              color: 'var(--warn)', cursor: isSaving ? 'not-allowed' : 'pointer',
                             }}
                           >
                             {isSaving ? '…' : t('docs_status_expired', 'Просрочен')}

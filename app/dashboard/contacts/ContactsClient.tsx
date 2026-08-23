@@ -244,7 +244,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           {CONTACT_CATEGORIES.filter(cat => (stats.by_category[cat] ?? 0) > 0).map(cat => (
             <span key={cat} style={{
               fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
-              background: light, color: '#9D174D',
+              background: light, color: 'var(--violet)',
             }}>
               {t(`categories.${cat}`)} · {stats.by_category[cat]}
             </span>
@@ -372,7 +372,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                     </td>
                     <td style={td}>{t(`types.${c.contact_type}`)}</td>
                     <td style={td}>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: '#9D174D' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--violet)' }}>
                         {t(`categories.${c.category}`)}
                       </span>
                     </td>
@@ -382,7 +382,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: c.is_active ? light : 'var(--surface-2)',
-                        color: c.is_active ? '#9D174D' : 'var(--text-faint)',
+                        color: c.is_active ? 'var(--violet)' : 'var(--text-faint)',
                       }}>
                         {c.is_active ? t('status.active') : t('status.inactive')}
                       </span>

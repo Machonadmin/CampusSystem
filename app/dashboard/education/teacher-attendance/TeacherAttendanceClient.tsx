@@ -78,9 +78,9 @@ export default function TeacherAttendanceClient({ canApprove }: { canApprove: bo
   const statusChip = (status: string | null) => {
     if (!status) return null
     const map: Record<string, { bg: string; fg: string; key: string }> = {
-      reported: { bg: 'rgba(234,179,8,0.14)', fg: '#a16207', key: 'status_reported' },
-      approved: { bg: 'rgba(16,185,129,0.14)', fg: '#047857', key: 'status_approved' },
-      rejected: { bg: 'rgba(239,68,68,0.14)', fg: '#b91c1c', key: 'status_rejected' },
+      reported: { bg: 'rgba(234,179,8,0.14)', fg: 'var(--warn)', key: 'status_reported' },
+      approved: { bg: 'rgba(16,185,129,0.14)', fg: 'var(--success)', key: 'status_approved' },
+      rejected: { bg: 'rgba(239,68,68,0.14)', fg: 'var(--danger)', key: 'status_rejected' },
     }
     const s = map[status]
     if (!s) return null

@@ -145,7 +145,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
               </select>
             </div>
             <div>
-              <label style={lbl}>Sort order</label>
+              <label style={lbl}>{t('sort_order')}</label>
               <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} />
             </div>
           </div>
@@ -312,7 +312,9 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
     setStaffLoading(true)
     fetch(`/api/settings/departments/${node.id}/staff`)
       .then(r => r.ok ? r.json() : [])
-      .then((d: StaffMember[]) => { setStaff(d); setStaffLoading(false) })
+      .then((d: StaffMember[]) => setStaff(d))
+      .catch(() => setStaff([]))
+      .finally(() => setStaffLoading(false))
   }, [staffOpen, node.id, refreshSignal])
 
   async function deactivateMember(member: StaffMember) {
@@ -439,7 +441,9 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
             setStaffLoading(true)
             fetch(`/api/settings/departments/${node.id}/staff`)
               .then(r => r.ok ? r.json() : [])
-              .then((d: StaffMember[]) => { setStaff(d); setStaffLoading(false) })
+              .then((d: StaffMember[]) => setStaff(d))
+              .catch(() => setStaff([]))
+              .finally(() => setStaffLoading(false))
           }}
         />
       )}

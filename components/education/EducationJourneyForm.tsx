@@ -628,7 +628,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)', marginBottom: 4 }}>
                 {loadingPerson ? t('form.loading_data') : t('form.profile_readonly')}
               </div>
             )}
@@ -739,7 +739,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)', marginBottom: 4 }}>
                 {t('form.profile_readonly')}
               </div>
             )}
@@ -806,7 +806,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {ro && (
-              <div style={{ background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
+              <div style={{ background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)' }}>
                 {t('form.profile_readonly')}
               </div>
             )}

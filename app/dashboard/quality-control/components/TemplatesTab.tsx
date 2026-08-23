@@ -483,7 +483,7 @@ function TemplateBuilder({
                       ))}
 
                       <button onClick={() => addQuestion(block._key)}
-                        style={{ alignSelf: 'flex-start', padding: '5px 12px', fontSize: 12, borderRadius: 6, border: '1px solid #BFDBFE', background: 'var(--accent-tint)', color: '#1D4ED8', cursor: 'pointer', marginTop: 2 }}>
+                        style={{ alignSelf: 'flex-start', padding: '5px 12px', fontSize: 12, borderRadius: 6, border: '1px solid var(--info)', background: 'var(--accent-tint)', color: 'var(--info)', cursor: 'pointer', marginTop: 2 }}>
                         {t('templates.add_question_button')}
                       </button>
                     </div>

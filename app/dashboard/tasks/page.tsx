@@ -356,8 +356,8 @@ export default function TasksPage() {
             onClick={() => { if (selectMode) exitSelectMode(); else { setSelectMode(true); setBulkMsg(null) } }}
             style={{
               ...inp, cursor: 'pointer', fontWeight: 600,
-              background: selectMode ? '#FEF3C7' : 'var(--surface)',
-              color: selectMode ? '#92400E' : 'var(--text)',
+              background: selectMode ? 'var(--warn-tint)' : 'var(--surface)',
+              color: selectMode ? 'var(--warn)' : 'var(--text)',
               borderColor: selectMode ? '#F59E0B' : 'var(--border-strong)',
             }}
           >
@@ -379,7 +379,7 @@ export default function TasksPage() {
           <button
             onClick={bulkComplete}
             disabled={bulkBusy || selectedIds.size === 0}
-            style={{ ...inp, cursor: bulkBusy || selectedIds.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: '#D1FAE5', color: '#065F46', borderColor: '#065F46', opacity: bulkBusy || selectedIds.size === 0 ? 0.5 : 1 }}
+            style={{ ...inp, cursor: bulkBusy || selectedIds.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--success-tint)', color: 'var(--success)', borderColor: 'var(--success)', opacity: bulkBusy || selectedIds.size === 0 ? 0.5 : 1 }}
           >
             {t('bulk.mark_done')}
           </button>
@@ -405,7 +405,7 @@ export default function TasksPage() {
       )}
 
       {error && (
-        <div style={{ padding: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
           {error}
         </div>
       )}

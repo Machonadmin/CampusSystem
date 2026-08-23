@@ -294,7 +294,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
                 key={r.id}
                 onClick={() => router.push(`/dashboard/maintenance/${r.id}`)}
                 style={{
-                  background: r.is_overdue ? '#FEF2F2' : 'var(--surface)',
+                  background: r.is_overdue ? 'var(--danger-tint)' : 'var(--surface)',
                   border: '1px solid var(--border)',
                   borderInlineStart: `4px solid ${r.is_overdue ? '#DC2626' : pc.fg}`,
                   borderRadius: 10, padding: '12px 16px', cursor: 'pointer',

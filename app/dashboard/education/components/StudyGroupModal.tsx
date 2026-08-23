@@ -217,7 +217,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
           )}
 
           {error && (
-            <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: '#991B1B', borderRadius: 6, fontSize: 13 }}>
+            <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 6, fontSize: 13 }}>
               {error}
             </div>
           )}

@@ -150,7 +150,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
         <a
           href="/dashboard/chavruta"
           style={{
-            fontSize: 13, fontWeight: 600, color: '#065F46', background: 'var(--surface)',
+            fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)',
             border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
           }}
         >{t('open_teacher_journal')}</a>

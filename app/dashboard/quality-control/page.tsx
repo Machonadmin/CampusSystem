@@ -33,8 +33,8 @@ interface CheckRow {
 
 const STATUS_COLOR: Record<string, [string, string]> = {
   planned:     ['var(--accent-tint)', 'var(--accent)'],
-  in_progress: ['#FFFBEB', '#D97706'],
-  completed:   ['#F0FDF4', '#16A34A'],
+  in_progress: ['var(--warn-tint)', 'var(--warn)'],
+  completed:   ['var(--success-tint)', 'var(--success)'],
 }
 
 const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
@@ -240,7 +240,7 @@ export default function QualityControlPage() {
                                 padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
                                 border: c.status === 'completed' ? '1px solid var(--border-strong)' : '1px solid #BFDBFE',
                                 background: c.status === 'completed' ? 'var(--surface-2)' : 'var(--accent-tint)',
-                                color: c.status === 'completed' ? 'var(--text)' : '#1D4ED8',
+                                color: c.status === 'completed' ? 'var(--text)' : 'var(--info)',
                               }}
                             >
                               {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}

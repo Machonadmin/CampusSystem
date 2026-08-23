@@ -275,7 +275,7 @@ export default function ReportsClient() {
               {d.stages.length > 0 && (
                 <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
                   {d.stages.map(s => (
-                    <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? '#B45309' : undefined} />
+                    <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? 'var(--warn)' : undefined} />
                   ))}
                 </div>
               )}
@@ -311,7 +311,7 @@ export default function ReportsClient() {
             <>
               <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
               <Metric label={t('metrics.collected')} value={fmt(d.collected)} accent={getModuleColor('finance', 'primary')} />
-              <Metric label={t('metrics.outstanding')} value={fmt(d.outstanding)} accent="#B91C1C" />
+              <Metric label={t('metrics.outstanding')} value={fmt(d.outstanding)} accent="var(--danger)" />
               <Metric label={t('metrics.collection_rate')} value={`${d.collection_rate}%`} strong accent={getModuleColor('finance', 'primary')} />
               <Metric label={t('metrics.debtor_count')} value={fmt(d.debtor_count)} />
             </>
@@ -359,7 +359,7 @@ export default function ReportsClient() {
             <>
               <Metric label={t('metrics.open')} value={fmt(d.open)} />
               <Metric label={t('metrics.in_progress')} value={fmt(d.in_progress)} />
-              <Metric label={t('metrics.overdue')} value={fmt(d.overdue)} strong accent={d.overdue > 0 ? '#B91C1C' : undefined} />
+              <Metric label={t('metrics.overdue')} value={fmt(d.overdue)} strong accent={d.overdue > 0 ? 'var(--danger)' : undefined} />
               <Breakdown
                 entries={orderedEntries(d.by_priority, PRIORITY_ORDER)}
                 labelFor={(k) => label(`metrics.priority.${k}`, k)}
@@ -378,7 +378,7 @@ export default function ReportsClient() {
             <>
               <Metric label={t('metrics.open_visits')} value={fmt(d.open_visits)} strong accent={getModuleColor('doctor', 'primary')} />
               <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
-              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? '#B91C1C' : undefined} />
+              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
             </>
           )}
         />
@@ -393,7 +393,7 @@ export default function ReportsClient() {
             <>
               <Metric label={t('metrics.open_sessions')} value={fmt(d.open_sessions)} strong accent={getModuleColor('psychologist', 'primary')} />
               <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
-              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? '#B91C1C' : undefined} />
+              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
               <Breakdown
                 entries={orderedEntries(d.by_risk, RISK_ORDER)}
                 labelFor={(k) => label(`metrics.risk.${k}`, k)}
@@ -411,8 +411,8 @@ export default function ReportsClient() {
           render={(d) => (
             <>
               <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('documents', 'primary')} />
-              <Metric label={t('metrics.expiring_soon')} value={fmt(d.expiring_soon)} accent={d.expiring_soon > 0 ? '#B45309' : undefined} />
-              <Metric label={t('metrics.expired')} value={fmt(d.expired)} accent={d.expired > 0 ? '#B91C1C' : undefined} />
+              <Metric label={t('metrics.expiring_soon')} value={fmt(d.expiring_soon)} accent={d.expiring_soon > 0 ? 'var(--warn)' : undefined} />
+              <Metric label={t('metrics.expired')} value={fmt(d.expired)} accent={d.expired > 0 ? 'var(--danger)' : undefined} />
             </>
           )}
         />
@@ -441,7 +441,7 @@ export default function ReportsClient() {
           href="/dashboard/security"
           render={(d) => (
             <>
-              <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? '#B91C1C' : getModuleColor('security', 'primary')} />
+              <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? 'var(--danger)' : getModuleColor('security', 'primary')} />
               <Metric label={t('metrics.open')} value={fmt(d.open)} />
               <Metric label={t('metrics.investigating')} value={fmt(d.investigating)} />
               <Breakdown

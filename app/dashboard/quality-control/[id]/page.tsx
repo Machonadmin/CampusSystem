@@ -59,9 +59,9 @@ function YNPInput({ value, onChange, disabled, err }: {
 }) {
   const t = useTranslations('quality')
   const opts = [
-    { v: 'yes',     l: t('fill.option_yes'),     c: '#16A34A', bg: '#F0FDF4' },
-    { v: 'no',      l: t('fill.option_no'),      c: '#DC2626', bg: '#FEF2F2' },
-    { v: 'partial', l: t('fill.option_partial'), c: '#D97706', bg: '#FFFBEB' },
+    { v: 'yes',     l: t('fill.option_yes'),     c: 'var(--success)', bg: 'var(--success-tint)' },
+    { v: 'no',      l: t('fill.option_no'),      c: 'var(--danger)', bg: 'var(--danger-tint)' },
+    { v: 'partial', l: t('fill.option_partial'), c: 'var(--warn)', bg: 'var(--warn-tint)' },
   ] as const
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -170,8 +170,8 @@ function BlockCard({ title, children }: { title: string; children: React.ReactNo
 
 const STATUS_COLOR: Record<string, [string, string]> = {
   planned:     ['var(--accent-tint)', 'var(--accent)'],
-  in_progress: ['#FFFBEB', '#D97706'],
-  completed:   ['#F0FDF4', '#16A34A'],
+  in_progress: ['var(--warn-tint)', 'var(--warn)'],
+  completed:   ['var(--success-tint)', 'var(--success)'],
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────

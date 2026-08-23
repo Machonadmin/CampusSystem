@@ -285,8 +285,8 @@ export default function FinanceLedgerClient({
           </div>
 
           {ledger.contract && (
-            <div style={{ border: '1px solid #0F766E', background: '#F0FDFA', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0F766E' }}>{t('ledger.contract_title')}</span>
+            <div style={{ border: '1px solid var(--accent-strong)', background: 'var(--success-tint)', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-strong)' }}>{t('ledger.contract_title')}</span>
               {ledger.contract.tuition_discount_percent != null && (
                 <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_discount')}: <b>{ledger.contract.tuition_discount_percent}%</b></span>
               )}
@@ -381,8 +381,8 @@ export default function FinanceLedgerClient({
                           {suggestedDiscount != null && (
                             <button type="button" onClick={() => setDPercent(String(suggestedDiscount))} style={{
                               fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                              border: '1px solid #0F766E', background: dPercent === String(suggestedDiscount) ? '#0F766E' : '#CCFBF1',
-                              color: dPercent === String(suggestedDiscount) ? '#fff' : '#0F766E',
+                              border: '1px solid var(--accent-strong)', background: dPercent === String(suggestedDiscount) ? 'var(--accent-strong)' : 'var(--accent-tint)',
+                              color: dPercent === String(suggestedDiscount) ? '#fff' : 'var(--accent-strong)',
                             }} title={t('ledger.suggested_discount_hint')}>{t('ledger.suggested_discount')}: {suggestedDiscount}%</button>
                           )}
                           <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />

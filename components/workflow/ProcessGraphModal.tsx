@@ -107,8 +107,8 @@ function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): s
   }
 
   // Классы статусов
-  lines.push('  classDef completed fill:#D1FAE5,stroke:#065F46,color:#065F46;')
-  lines.push(`  classDef active fill:#DBEAFE,stroke:${c.accentStrong},color:#1E40AF,stroke-width:2px;`)
+  lines.push('  classDef completed fill:var(--success-tint),stroke:var(--success),color:var(--success);')
+  lines.push(`  classDef active fill:var(--info-tint),stroke:${c.accentStrong},color:var(--info),stroke-width:2px;`)
   lines.push(`  classDef waiting fill:${c.surface2},stroke:${c.borderStrong},color:${c.textFaint};`)
   lines.push(`  classDef skipped fill:${c.surface2},stroke:${c.border},color:${c.textFaint};`)
   lines.push(`  classDef pending fill:#FFFFFF,stroke:${c.borderStrong},color:${c.textMuted};`)
