@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateLong } from '@/lib/i18n/format-date'
 import { monthGrid, toISODate } from '@/lib/calendar/calendar'
 
 interface Lesson {
@@ -35,6 +36,7 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
   const [peTitle, setPeTitle] = useState('')
   const [peTime, setPeTime] = useState('')
   const [peSaving, setPeSaving] = useState(false)
+  const [peErr, setPeErr] = useState('')
 
   const weeks = useMemo(() => monthGrid(year, month, 0), [year, month])
   const from = weeks[0][0].dateISO
@@ -65,19 +67,24 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
   async function addPersonal() {
     const title = peTitle.trim()
     if (!title || !selected || peSaving) return
-    setPeSaving(true)
+    setPeSaving(true); setPeErr('')
     try {
       const res = await fetch('/api/portal/personal-events', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, event_date: selected, event_time: peTime || null }),
       })
       if (res.ok) { setPeTitle(''); setPeTime(''); await loadPersonal() }
-    } finally { setPeSaving(false) }
+      else setPeErr(t('save_failed'))
+    } catch { setPeErr(t('save_failed')) } finally { setPeSaving(false) }
   }
 
   async function deletePersonal(id: string) {
-    const res = await fetch(`/api/portal/personal-events/${id}`, { method: 'DELETE' })
-    if (res.ok) await loadPersonal()
+    setPeErr('')
+    try {
+      const res = await fetch(`/api/portal/personal-events/${id}`, { method: 'DELETE' })
+      if (res.ok) await loadPersonal()
+      else setPeErr(t('save_failed'))
+    } catch { setPeErr(t('save_failed')) }
   }
 
   const byDay = useMemo(() => {
@@ -193,7 +200,7 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
       {/* Детализация дня */}
       {selected && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{selected}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{formatDateLong(selected, lang)}</div>
 
           {/* Личные события — только в портале (personal). Приватность на уровне API. */}
           {personal && (
@@ -221,6 +228,7 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
                   {t('personal_save')}
                 </button>
               </div>
+              {peErr && <div style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5 }}>{peErr}</div>}
               <div style={{ fontSize: 10.5, color: 'var(--text-faint)', marginTop: 5 }}>🔒 {t('personal_hint')}</div>
             </div>
           )}

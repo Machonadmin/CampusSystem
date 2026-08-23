@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 
 interface Grade {
   assessment_id: string
@@ -56,16 +57,6 @@ export default function StudentGradesPanel({ journeyId }: { journeyId: string; c
     return order.map(key => ({ subject: key, items: map.get(key)! }))
   }, [grades])
 
-  const fmtDate = (d: string | null): string => {
-    if (!d) return ''
-    try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-      const dt = new Date(`${d}T00:00:00Z`)
-      if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
-    } catch { return d }
-  }
-
   if (!loaded) return null
 
   return (
@@ -84,7 +75,7 @@ export default function StudentGradesPanel({ journeyId }: { journeyId: string; c
                   <div key={g.assessment_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</div>
-                      {g.date && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{fmtDate(g.date)}</div>}
+                      {g.date && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{formatDate(g.date, lang)}</div>}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', color: scoreColor(g.score, g.max_score) }}>
                       {g.score === null ? '—' : g.score}

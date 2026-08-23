@@ -1666,6 +1666,7 @@
       "meeting_no_show": "לא הגיעה",
       "personal_title": "אירועים אישיים",
       "personal_hint": "אירועים אישיים — פרטיים לחלוטין, הצוות לא רואה אותם.",
+      "save_failed": "השמירה נכשלה, נסו שוב",
       "personal_add": "הוספת אירוע אישי",
       "personal_name_placeholder": "מה יש לך?",
       "personal_time_optional": "שעה (לא חובה)",
@@ -4513,7 +4514,8 @@
       "rate": "מלאי משוב",
       "cancel": "ביטול",
       "answered": "מולא",
-      "submit": "שליחה"
+      "submit": "שליחה",
+      "save_failed": "השליחה נכשלה, נסו שוב"
     }
   },
   "force_password": {

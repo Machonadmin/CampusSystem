@@ -1666,6 +1666,7 @@
       "meeting_no_show": "no-show",
       "personal_title": "Personal events",
       "personal_hint": "Personal events — fully private, staff cannot see them.",
+      "save_failed": "Save failed, please try again",
       "personal_add": "Add personal event",
       "personal_name_placeholder": "What's up?",
       "personal_time_optional": "Time (optional)",
@@ -4513,7 +4514,8 @@
       "rate": "Give feedback",
       "cancel": "Cancel",
       "answered": "Done",
-      "submit": "Submit"
+      "submit": "Submit",
+      "save_failed": "Submit failed, please try again"
     }
   },
   "force_password": {

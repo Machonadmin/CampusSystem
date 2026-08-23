@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateTime } from '@/lib/i18n/format-date'
 
 interface Message {
   id: string
@@ -53,15 +54,6 @@ export default function StudentMessagesPanel({ journeyId }: { journeyId: string 
     })
   }, [loaded, messages, journeyId])
 
-  const fmtDate = (d: string): string => {
-    try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-      const dt = new Date(d)
-      if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    } catch { return d }
-  }
-
   if (!loaded) return null
 
   return (
@@ -82,7 +74,7 @@ export default function StudentMessagesPanel({ journeyId }: { journeyId: string 
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
-                  {m.from_name ? `${t('from')} ${m.from_name} · ` : ''}{fmtDate(m.created_at)}
+                  {m.from_name ? `${t('from')} ${m.from_name} · ` : ''}{formatDateTime(m.created_at, lang)}
                 </div>
               </div>
             )

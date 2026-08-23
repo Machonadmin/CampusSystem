@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateTime } from '@/lib/i18n/format-date'
 
 interface Meeting {
   id: string; title: string; reason: string | null; starts_at: string; ends_at: string
@@ -56,18 +57,17 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
   }
 
   async function setStatus(id: string, status: Meeting['status']) {
-    setBusy(true)
+    setBusy(true); setErr('')
     try {
       const res = await fetch(`/api/education/journeys/${journeyId}/meetings`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appt_id: id, status }),
       })
-      if (res.ok) await load()
-    } finally { setBusy(false) }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
+      await load()
+    } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
   if (!loaded) return null
-  const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
-  const fmt = (iso: string) => { try { return new Date(iso).toLocaleString(loc, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) } catch { return iso } }
 
   const inp: React.CSSProperties = { padding: '7px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }
 
@@ -95,6 +95,8 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
         </div>
       )}
 
+      {err && !adding && <div style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{err}</div>}
+
       {meetings.length === 0 ? (
         <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
@@ -105,7 +107,7 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
               <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{m.title}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{fmt(m.starts_at)}{m.provider?.full_name ? ` · ${m.provider.full_name}` : ''}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{formatDateTime(m.starts_at, lang)}{(m.provider?.hebrew_name || m.provider?.full_name) ? ` · ${m.provider?.hebrew_name || m.provider?.full_name}` : ''}</div>
                   {m.reason && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{m.reason}</div>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>

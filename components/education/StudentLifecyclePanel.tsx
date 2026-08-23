@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { DateInput } from '@/components/ui/date-input'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { formatDate } from '@/lib/i18n/format-date'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,11 +35,6 @@ const TRANSITIONS: Record<string, TargetStatus[]> = {
 const NEEDS_DETAILS: TargetStatus[] = ['on_leave', 'graduated', 'expelled']
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatDate(d: string | null): string {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
   student:   { background: 'var(--success-tint)', color: 'var(--success)' },
@@ -192,7 +188,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
                     </>
                   )}
                   <span style={{ fontWeight: 500 }}>{tStatus(h.to_status, h.to_status)}</span>
-                  <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>· {formatDate(h.changed_at)}</span>
+                  <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>· {formatDate(h.changed_at, lang)}</span>
                 </div>
                 {h.comment && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{h.comment}</div>}
               </div>

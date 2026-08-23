@@ -19,6 +19,7 @@ export default function StudentTeachingSurveyPanel() {
   const [active, setActive] = useState<{ surveyId: string; teacherId: string } | null>(null)
   const [answers, setAnswers] = useState<Record<string, { rating: number | null; text: string }>>({})
   const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
 
   const load = useCallback(async () => {
     const d = await fetch('/api/portal/teaching-surveys').then(r => r.ok ? r.json() : { surveys: [] }).catch(() => ({ surveys: [] }))
@@ -28,7 +29,7 @@ export default function StudentTeachingSurveyPanel() {
   useEffect(() => { load() }, [load])
 
   async function submit(survey: Survey, teacherId: string) {
-    setBusy(true)
+    setBusy(true); setErr('')
     try {
       const payload = survey.questions.map(q => {
         const a = answers[q.id] ?? { rating: null, text: '' }
@@ -38,7 +39,8 @@ export default function StudentTeachingSurveyPanel() {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teacher_person_id: teacherId, answers: payload }),
       })
       if (res.ok) { setActive(null); setAnswers({}); await load() }
-    } finally { setBusy(false) }
+      else setErr(t('save_failed'))
+    } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
   if (!loaded || surveys.length === 0) return null
@@ -65,7 +67,7 @@ export default function StudentTeachingSurveyPanel() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{tc.name}</div>
                       {tc.answered ? (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#047857' }}>✓ {t('answered')}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--success)' }}>✓ {t('answered')}</span>
                       ) : (
                         <button onClick={() => { setActive(isActive ? null : { surveyId: s.id, teacherId: tc.person_id }); setAnswers({}) }}
                           style={{ fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', background: isActive ? 'var(--surface)' : 'var(--accent)', color: isActive ? 'var(--text-muted)' : '#fff', ...(isActive ? { border: '1px solid var(--border)' } : {}) }}>
@@ -92,6 +94,7 @@ export default function StudentTeachingSurveyPanel() {
                             )}
                           </div>
                         ))}
+                        {err && <div style={{ fontSize: 11.5, color: 'var(--danger)' }}>{err}</div>}
                         <button onClick={() => submit(s, tc.person_id)} disabled={busy}
                           style={{ justifySelf: 'start', fontSize: 12.5, fontWeight: 600, padding: '8px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', opacity: busy ? 0.6 : 1 }}>
                           {t('submit')}
