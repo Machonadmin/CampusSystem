@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 
@@ -62,7 +63,8 @@ export default function SeatPersonModal({ onClose, onSaved }: { onClose: () => v
   }
 
   const positionLabel = (p: Position) => (lang === 'he' ? (p.name_he || p.name_ru) : p.name_ru)
-  const sortedRoles = [...roles].sort((a, b) => {
+  // Модель рензе: legacy-роли не предлагаем к новому назначению (см. lib/roles/deprecated).
+  const sortedRoles = [...roles].filter(r => !isDeprecatedRole(r.code)).sort((a, b) => {
     const ia = PRIMARY_ROLE_CODES.indexOf(a.code); const ib = PRIMARY_ROLE_CODES.indexOf(b.code)
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
     return 0

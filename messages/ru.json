@@ -2552,6 +2552,7 @@
       "priv_name_label": "Название",
       "priv_code_label": "Код",
       "roles_panel_title": "Роли",
+      "legacy_hidden": "Скрыто устаревших ролей: {n}",
       "available_modules_title": "Доступные модули",
       "err_required_fields": "Заполните обязательные поля",
       "err_both_fields": "Заполните оба поля",

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
@@ -288,8 +289,13 @@ export default function RolesPage() {
     grouped[mp.module].push(mp)
   }
 
+  // Модель рензе (владелец): legacy-роли (רקטור/דיקן/ראש מחלקה/…) заменены на
+  // unit_manager/unit_secretary + должности-ярлыки. Прячем их из списка, оставляя
+  // в БД (существующие назначения работают). Список кодов — lib/roles/deprecated.
+  const visibleRoles = roles.filter(r => !isDeprecatedRole(r.code))
+  const hiddenLegacyCount = roles.length - visibleRoles.length
   const groupedRoles: Record<string, Role[]> = {}
-  for (const r of roles) {
+  for (const r of visibleRoles) {
     if (!groupedRoles[r.category]) groupedRoles[r.category] = []
     groupedRoles[r.category].push(r)
   }
@@ -404,6 +410,11 @@ export default function RolesPage() {
                 </div>
               )
             })}
+            {hiddenLegacyCount > 0 && (
+              <div style={{ padding: '10px 12px', fontSize: 11, color: 'var(--text-faint)', borderTop: '1px solid var(--border)' }}>
+                {t('legacy_hidden').replace('{n}', String(hiddenLegacyCount))}
+              </div>
+            )}
           </div>
         </div>
 

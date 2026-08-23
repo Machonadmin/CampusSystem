@@ -2552,6 +2552,7 @@
       "priv_name_label": "Name",
       "priv_code_label": "Code",
       "roles_panel_title": "Roles",
+      "legacy_hidden": "{n} legacy roles hidden",
       "available_modules_title": "Available Modules",
       "err_required_fields": "Fill in the required fields",
       "err_both_fields": "Fill in both fields",
