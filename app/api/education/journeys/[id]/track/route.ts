@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import type { JourneyStudyTrackInsert } from '@/types/database'
 
@@ -56,8 +56,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
+    // Назначение маршрута — управляющее действие над конкретной journey.
+    // Дыра: journeyDeptTarget возвращает undefined для journey без
+    // primary_department, и department-scope тогда трактуется как «общий пул» →
+    // department-ограниченный менеджер мог бы назначить маршрут «бездепартаментной»
+    // студентке. Закрываем: без подразделения действовать может ТОЛЬКО менеджер
+    // со scope='all' (или superadmin). Со scope='department' нужна конкретная
+    // journey в его подразделении.
+    const target = await journeyDeptTarget(sb, params.id)
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id))
+      || (target
+        ? await hasEducationPrivilege(session, 'manage_students', target)
+        : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all')
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as {
