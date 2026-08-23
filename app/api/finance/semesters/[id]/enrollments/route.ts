@@ -113,25 +113,31 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const todo = wanted.filter(id => !already.has(id))
     let created = 0
-    for (const journeyId of todo) {
-      const { data: charge, error: cErr } = await u(sb).from('finance_charges')
-        .insert({
+    if (todo.length > 0) {
+      // Пакетно: один insert всех начислений, затем один insert всех зачислений
+      // (было 2 последовательных запроса НА КАЖДУЮ студентку).
+      const { data: charges, error: cErr } = await u(sb).from('finance_charges')
+        .insert(todo.map(journeyId => ({
           journey_id: journeyId, amount: price, description: label, period_label: label,
           category: 'tuition', semester_id: params.id, created_by: session.person_id,
-        })
-        .select('id').single()
+        })))
+        .select('id, journey_id')
       if (cErr) {
         if (['42P01', '42703'].includes((cErr as { code?: string }).code ?? '')) return apiError('feature_not_migrated', 503)
         if ((cErr as { code?: string }).code === '23503') return apiError('invalid_reference', 400)
         throw cErr
       }
-      const { error: eErr } = await u(sb).from('semester_enrollments')
-        .insert({ semester_id: params.id, journey_id: journeyId, charge_id: (charge as { id: string }).id, created_by: session.person_id })
-      if (eErr && (eErr as { code?: string }).code !== '23505') {
-        if ((eErr as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
-        throw eErr
+      const enrollRows = ((charges ?? []) as Array<{ id: string; journey_id: string }>).map(c => ({
+        semester_id: params.id, journey_id: c.journey_id, charge_id: c.id, created_by: session.person_id,
+      }))
+      if (enrollRows.length > 0) {
+        const { error: eErr } = await u(sb).from('semester_enrollments').insert(enrollRows)
+        if (eErr && (eErr as { code?: string }).code !== '23505') {
+          if ((eErr as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+          throw eErr
+        }
       }
-      created++
+      created = enrollRows.length
     }
 
     return NextResponse.json({ created, skipped: already.size })

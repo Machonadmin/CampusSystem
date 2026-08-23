@@ -5,7 +5,7 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isAppointmentStatus, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
-import { isAboveInHierarchy } from '@/lib/org/hierarchy'
+import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentUpdate } from '@/types/database'
 
 /**
@@ -114,10 +114,16 @@ export async function PATCH(
         const existingIds = new Set<string>(((exRes.data ?? []) as Array<{ person_id: string }>).map(r => r.person_id))
         const toAdd = [...wanted].filter(id => !existingIds.has(id))
         const toRemove = [...existingIds].filter(id => !wanted.has(id))
-        for (const pid of toAdd) {
-          const above = await isAboveInHierarchy(pid, session.person_id)
+        if (toAdd.length > 0) {
+          // Иерархия — одним пакетом, и один batched insert (было ~4 запроса и
+          // отдельный insert на каждого добавляемого участника).
+          const above = await subjectsBelow(session.person_id, toAdd)
+          const rows = toAdd.map(pid => ({
+            appointment_id: params.id, person_id: pid,
+            requires_approval: above.has(pid), status: above.has(pid) ? 'pending_approval' : 'invited',
+          }))
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (sb as any).from('appointment_attendees').insert({ appointment_id: params.id, person_id: pid, requires_approval: above, status: above ? 'pending_approval' : 'invited' })
+          await (sb as any).from('appointment_attendees').insert(rows)
         }
         if (toRemove.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -94,7 +94,7 @@ export default function MedicalReferrals({ moduleKey = 'doctor' }: { moduleKey?:
     <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('referrals.title')}</h2>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: '#047857' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: 'var(--success)' }}>
           {referrals.length} · {t('referrals.count_badge')}
         </span>
       </div>

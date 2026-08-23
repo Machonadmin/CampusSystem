@@ -430,7 +430,7 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--accent-strong)', marginBottom: 4 }}>
                 {loadingPerson ? t('add_modal.readonly_hint_loading') : t('add_modal.readonly_hint')}
               </div>
             )}
@@ -540,7 +540,7 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--accent-strong)', marginBottom: 4 }}>
                 {t('add_modal.readonly_hint')}
               </div>
             )}

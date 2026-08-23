@@ -137,7 +137,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
             />
             <WorklistColumn
               heading={t('expiring.expiring_soon')}
-              accent="#B45309"
+              accent="var(--warn)"
               items={expiringSoon}
               emptyLabel={t('expiring.none')}
               dueLabel={t('fields.expiry_date')}
