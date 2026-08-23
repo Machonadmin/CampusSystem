@@ -65,6 +65,12 @@ export async function GET() {
     // студенткам вне кодеша (класс/маршрут/переход года/закрытие), оставляя кодеш.
     const students_view_all = viewStudentsScope === 'all'
     const students_manage_all = manageStudentsScope === 'all'
+    // «Видит всех, но управляет только своим юнитом» (глава кафедры кодеша).
+    // Ему НЕ показываем карточки светского УПРАВЛЕНИЯ — «שיבוץ» (расстановка по
+    // классам) и «שיבוץ מסלולים» (маршруты): это управление чужими юнитами,
+    // которое он всё равно не сможет применить. Оставляем кодеш + управление
+    // преподаванием кодеша + отчёты (владелец: «קודש + ניהול הוראת הקודש»).
+    const restrictToKodesh = students_view_all && !students_manage_all
     // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
     // year/term), которыми управляют только на уровне всего института (scope='all',
     // как в /api/education/semesters). Менеджер юнита (scope='department') работает
@@ -78,8 +84,8 @@ export async function GET() {
     const teacher_home = !isManager && (viewStudentsAny || chavruta)
 
     return NextResponse.json({
-      assignment: viewStudentsMgr,
-      tracks: viewStudentsMgr,
+      assignment: viewStudentsMgr && !restrictToKodesh,
+      tracks: viewStudentsMgr && !restrictToKodesh,
       kodesh,
       teachers_hours: viewStudentsMgr,
       teacher_attendance: manageStudents,
