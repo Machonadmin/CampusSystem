@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 
 /**
@@ -27,8 +28,7 @@ export async function GET() {
         .select('must_change_password').eq('login_email', session.login_email).maybeSingle()
       return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
     } catch (e) {
-      const code = (e as { code?: string }).code
-      if (code === '42703' || code === '42P01') return NextResponse.json({ must_change: false })
+      if (isMissingRelation(e)) return NextResponse.json({ must_change: false })
       throw e
     }
   } catch (err: unknown) {

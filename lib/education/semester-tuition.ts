@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * Школьная плата за семестр-группу (фаза 3).
@@ -20,7 +21,6 @@ function u(sb: ServerClient): SupabaseClient {
   return sb as unknown as SupabaseClient
 }
 
-const SOFT = new Set(['42P01', '42703'])
 function code(e: unknown): string {
   return (e as { code?: string })?.code ?? ''
 }
@@ -62,7 +62,7 @@ export async function ensureSemesterTuitionCharges(
       .eq('class_group_id', group.id)
       .in('journey_id', journeyIds)
     if (error) {
-      if (!SOFT.has(code(error))) throw error
+      if (!isMissingRelation(error)) throw error
       linkColumnMissing = true
     } else {
       for (const r of (data ?? []) as Array<{ journey_id: string; tuition_charge_id: string | null }>) {
@@ -92,7 +92,7 @@ export async function ensureSemesterTuitionCharges(
       .single()
     if (cErr) {
       // Финансы не мигрированы (нет таблицы/колонки class_group_id) — деградируем.
-      if (SOFT.has(code(cErr))) {
+      if (isMissingRelation(cErr)) {
         return { created, warning: 'שכר הלימוד לא נפתח כחוב: מודול הכספים עדיין לא מוגדר בבסיס הנתונים.' }
       }
       if (code(cErr) === '23503') { warning = 'חלק מהחיובים לא נוצרו (הפניה לא תקינה).'; continue }
@@ -108,7 +108,7 @@ export async function ensureSemesterTuitionCharges(
         .eq('class_group_id', group.id)
         .eq('journey_id', journeyId)
       if (linkErr) {
-        if (SOFT.has(code(linkErr))) linkColumnMissing = true
+        if (isMissingRelation(linkErr)) linkColumnMissing = true
         else throw linkErr
       }
     }

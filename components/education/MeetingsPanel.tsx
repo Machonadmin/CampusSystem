@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { personDisplayName } from '@/lib/persons/name'
 
 interface Meeting {
   id: string; title: string; reason: string | null; starts_at: string; ends_at: string
@@ -107,7 +108,7 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
               <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{m.title}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{formatDateTime(m.starts_at, lang)}{(m.provider?.hebrew_name || m.provider?.full_name) ? ` · ${m.provider?.hebrew_name || m.provider?.full_name}` : ''}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{formatDateTime(m.starts_at, lang)}{personDisplayName(m.provider) ? ` · ${personDisplayName(m.provider)}` : ''}</div>
                   {m.reason && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{m.reason}</div>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>

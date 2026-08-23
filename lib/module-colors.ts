@@ -1,4 +1,4 @@
-export const IMPLEMENTED_MODULES = new Set([
+const IMPLEMENTED_MODULES = new Set([
   'persons', 'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance', 'security', 'doctor', 'psychologist', 'reports', 'documents', 'contacts', 'sponsors', 'jewishness', 'chavruta',
 ])
 
@@ -6,7 +6,7 @@ export function isModuleImplemented(moduleCode: string): boolean {
   return IMPLEMENTED_MODULES.has(moduleCode)
 }
 
-export const MODULE_COLORS = {
+const MODULE_COLORS = {
   dashboard:       { primary: '#3B82F6', light: '#DBEAFE', medium: '#60A5FA' },
   persons:         { primary: '#2563EB', light: '#DBEAFE', medium: '#60A5FA' },
   education:       { primary: '#10B981', light: '#D1FAE5', medium: '#34D399' },

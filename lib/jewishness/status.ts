@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * Статус проверки еврейства (בירור יהדות) на студентку. Единый источник правды,
@@ -31,7 +32,6 @@ export function finalCodeToStatus(finalCode: string | null | undefined): Jewishn
 }
 
 type SB = ReturnType<typeof createServerClient>
-const MISSING = new Set(['42703', '42P01']) // undefined_column / undefined_table
 
 /**
  * Устанавливает статус верификации на journey + пишет строку истории.
@@ -66,11 +66,11 @@ export async function setJewishnessStatus(
       })
       .eq('id', journeyId)
     if (error) {
-      if (MISSING.has((error as { code?: string }).code ?? '')) return false
+      if (isMissingRelation(error)) return false
       throw error
     }
   } catch (e) {
-    if (MISSING.has((e as { code?: string }).code ?? '')) return false
+    if (isMissingRelation(e)) return false
     throw e
   }
 
@@ -84,7 +84,7 @@ export async function setJewishnessStatus(
       source,
     })
   } catch (e) {
-    if (!MISSING.has((e as { code?: string }).code ?? '')) throw e
+    if (!isMissingRelation(e)) throw e
   }
   return true
 }

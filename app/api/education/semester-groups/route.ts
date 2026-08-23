@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import {
   requireEducationPrivilege,
@@ -122,7 +123,7 @@ export async function GET(request: NextRequest) {
     const { data: groups, error } = await (qb.order('term_number').order('name') as any)
 
     if (error) {
-      if (error.code === '42703' || error.code === '42P01') {
+      if (isMissingRelation(error)) {
         return NextResponse.json({ semester_groups: [] })
       }
       throw error
@@ -159,7 +160,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ semester_groups: result })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42703' || e.code === '42P01') {
+    if (isMissingRelation(e)) {
       return NextResponse.json({ semester_groups: [] })
     }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

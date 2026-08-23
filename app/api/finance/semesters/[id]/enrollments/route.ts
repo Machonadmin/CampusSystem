@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 
 /**
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         })))
         .select('id, journey_id')
       if (cErr) {
-        if (['42P01', '42703'].includes((cErr as { code?: string }).code ?? '')) return apiError('feature_not_migrated', 503)
+        if (isMissingRelation(cErr)) return apiError('feature_not_migrated', 503)
         if ((cErr as { code?: string }).code === '23503') return apiError('invalid_reference', 400)
         throw cErr
       }

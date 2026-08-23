@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
 
@@ -80,8 +81,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
           created_by: session.person_id,
         })
       if (error) {
-        const code = (error as { code?: string }).code
-        if (code === '42P01' || code === '42703') return apiError('feature_not_migrated', 503)
+        if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
         throw error
       }
       created++
