@@ -76,7 +76,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('courses.modal_title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <form onSubmit={submit}>
@@ -101,7 +101,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
                   <PersonSelect value={tid} onChange={id => setTeacherIds(prev => prev.map((v, i) => i === idx ? id : v))} placeholder={t('semester_groups.teacher_placeholder')} accentColor={accent} source="/api/education/teachers" allowShowAll allowAdd={false} />
                 </div>
                 {teacherIds.length > 1 && (
-                  <button type="button" onClick={() => setTeacherIds(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
+                  <button type="button" onClick={() => setTeacherIds(prev => prev.filter((_, i) => i !== idx))} aria-label={tCommon('delete')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
                 )}
               </div>
             ))}

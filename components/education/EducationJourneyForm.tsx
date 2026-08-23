@@ -660,6 +660,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                         <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
                           placeholder={t('form.ph.search')} style={{ ...inp, width: 220 }} />
                         <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
+                          aria-label={tCommon('close')}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
@@ -757,6 +758,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
+                      aria-label={tCommon('delete')}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
                       ×
                     </button>
@@ -870,6 +872,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 <div key={i} style={wrap}>
                   {isCard && (
                     <button onClick={() => setCommunities(prev => prev.filter((_, ci) => ci !== i))}
+                      aria-label={tCommon('delete')}
                       style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0 }}>
                       ×
                     </button>
@@ -935,6 +938,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                           placeholder={t('form.ph.contact_value')} style={{ ...inp, flex: 1 }} />
                         <button
                           onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.filter((_, xi) => xi !== ci) } : c))}
+                          aria-label={tCommon('delete')}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
@@ -979,6 +983,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 </div>
                 {interests.length > 1 && (
                   <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
+                    aria-label={tCommon('delete')}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
                     ×
                   </button>
@@ -1078,7 +1083,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{formTitle}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}

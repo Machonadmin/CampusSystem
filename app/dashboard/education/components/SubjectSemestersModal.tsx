@@ -24,6 +24,7 @@ const accent = getModuleColor('education')
 /** מסך הסמסטרים של מקצוע — צפייה ועריכה של מחיר וסטטוס במקום אחד. */
 export default function SubjectSemestersModal({ subjectId, subjectName, onClose }: Props) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const [rows, setRows] = useState<Semester[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,7 +93,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('subjects.semesters_title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{subjectName}</div>
 

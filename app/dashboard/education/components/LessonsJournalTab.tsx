@@ -301,6 +301,7 @@ interface LessonFormModalProps {
 
 function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: LessonFormModalProps) {
   const t = useTranslations('education.journal')
+  const tCommon = useTranslations('common')
 
   const [date, setDate] = useState(lesson?.scheduled_date ?? '')
   const [time, setTime] = useState(lesson?.scheduled_time ? lesson.scheduled_time.slice(0, 5) : '')
@@ -380,7 +381,7 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {lesson ? t('modal_edit_title') : t('modal_create_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

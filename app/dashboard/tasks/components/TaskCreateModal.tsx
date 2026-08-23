@@ -316,7 +316,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('create_modal.title')}
           </h2>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
         </div>
 
         {/* Body */}
@@ -574,6 +574,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                     <button
                       type="button"
                       onClick={() => setWatchers(prev => prev.filter(x => x.id !== w.id))}
+                      aria-label={tCommon('delete')}
                       style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#60A5FA', fontSize: 14, lineHeight: 1, padding: 0 }}
                     >×</button>
                   </span>

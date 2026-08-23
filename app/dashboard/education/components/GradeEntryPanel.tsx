@@ -43,6 +43,7 @@ function formatDate(lang: string, iso: string | null): string {
 
 export default function GradeEntryPanel({ assessment, canSetGrades, accentColor, onClose, onSaved }: Props) {
   const t = useTranslations('education.grades')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [students, setStudents] = useState<StudentEntry[]>([])
@@ -173,7 +174,7 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
               {assessment.assessment_date && <span> · {formatDate(lang, assessment.assessment_date)}</span>}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {!canSetGrades && (

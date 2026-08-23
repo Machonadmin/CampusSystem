@@ -65,6 +65,7 @@ function Field({
 
 export default function ChangePasswordModal({ onClose }: Props) {
   const t = useTranslations('change_password')
+  const tCommon = useTranslations('common')
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -112,7 +113,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('title')}</p>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
 
         {success ? (
