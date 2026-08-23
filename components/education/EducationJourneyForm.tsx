@@ -844,7 +844,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         const communityContactTypes = (
           <>
             <option value="phone">{t('form.ct_phone')}</option>
-            <option value="email">Email</option>
+            <option value="email">{t('form.ct_email')}</option>
             <option value="whatsapp">WhatsApp</option>
             <option value="telegram">Telegram</option>
             <option value="address">{t('form.ct_address')}</option>
@@ -919,7 +919,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                       <FlagPhone value={comm.phone} onChange={v => updateComm(i, 'phone', v)} inputStyle={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Email</label>
+                      <label style={lbl}>{t('form.ct_email')}</label>
                       <input type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
                         placeholder={t('form.ph.community_email')} style={inp} />
                     </div>

@@ -86,6 +86,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => { setOpen(o => !o); if (!open) load() }}
+        aria-label={t('title')}
         className="icon-ghost relative p-2 rounded-lg transition"
         style={{ color: 'var(--text-muted)' }}
       >

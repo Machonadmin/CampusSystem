@@ -521,6 +521,7 @@
       "academic_enrollment_year": "Год набора",
       "academic_enrollment_date": "Дата зачисления",
       "ct_phone": "Телефон",
+      "ct_email": "Эл. почта",
       "ct_address": "Адрес",
       "ct_other": "Другое",
       "back": "Назад",

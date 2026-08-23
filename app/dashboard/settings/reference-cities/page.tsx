@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { CountrySelect } from '@/components/ui/country-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { countryLabel } from '@/lib/geo'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -15,6 +16,7 @@ const accentLight = getModuleColor('settings', 'light')
 
 export default function ReferenceCitiesPage() {
   const t = useTranslations('settings.reference_cities')
+  const { lang } = useLang()
   const tNav = useTranslations('navigation')
   const [country, setCountry] = useState('Израиль')
   const [cities, setCities] = useState<CityRow[]>([])
@@ -179,7 +181,7 @@ export default function ReferenceCitiesPage() {
             borderRadius: 8, padding: 14, marginBottom: 16,
           }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
-              {t('city_name_in_country_label').replace('{country}', country)}
+              {t('city_name_in_country_label').replace('{country}', countryLabel(country, lang))}
             </label>
             <input
               autoFocus
