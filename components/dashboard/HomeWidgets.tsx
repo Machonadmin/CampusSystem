@@ -121,7 +121,7 @@ function StalledApplicantsWidget({ onData }: { onData: () => void }) {
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.journey_id}
-            main={s.applicant.full_name || s.applicant.hebrew_name || '—'}
+            main={s.applicant.hebrew_name || s.applicant.full_name || '—'}
             sub={t('days_waiting', '{n} d').replace('{n}', String(s.max_days))} />
         ))}
         {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--danger)' }}>+{items.length - 4} {t('more')}</span>}
@@ -153,7 +153,7 @@ function PendingSignaturesWidget({ onData }: { onData: () => void }) {
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.stage_instance_id}
-            main={s.applicant.full_name || s.applicant.hebrew_name || '—'}
+            main={s.applicant.hebrew_name || s.applicant.full_name || '—'}
             sub={tEdu(`acceptance_stages.${s.stage_code}`, s.stage_code)} />
         ))}
         {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--accent-strong)' }}>+{items.length - 4} {t('more')}</span>}

@@ -123,7 +123,7 @@ function PendingCard({
   const [error, setError] = useState('')
 
   const a = stage.applicant
-  const name = a.full_name || a.hebrew_name || '—'
+  const name = a.hebrew_name || a.full_name || '—'
   const stageLabel = t(`acceptance_stages.${stage.stage_code}`, stage.stage_name)
 
   function finalLabel(f: Final): string {
