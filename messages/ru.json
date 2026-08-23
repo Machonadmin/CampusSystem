@@ -1858,7 +1858,9 @@
       "results": "Результаты",
       "no_results": "Ответов пока нет",
       "source_manager": "Менеджер",
-      "source_student": "Ученица"
+      "source_student": "Ученица",
+      "save_failed": "Не удалось сохранить, попробуйте ещё раз",
+      "load_failed": "Не удалось загрузить данные"
     },
     "assignment_board": {
       "badge_semester": "Семестр",
@@ -2267,6 +2269,7 @@
     "optional": "необяз.",
     "dept_name_placeholder": "Бухгалтерия",
     "parent_dept": "Родительский отдел",
+    "sort_order": "Порядок сортировки",
     "no_parent_root": "Нет (корневой отдел)",
     "dept_description": "Описание отдела",
     "short_description_placeholder": "Краткое описание...",

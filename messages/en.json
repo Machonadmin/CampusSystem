@@ -1858,7 +1858,9 @@
       "results": "Results",
       "no_results": "No responses yet",
       "source_manager": "Manager",
-      "source_student": "Student"
+      "source_student": "Student",
+      "save_failed": "Save failed, please try again",
+      "load_failed": "Failed to load data"
     },
     "assignment_board": {
       "badge_semester": "Semester",
@@ -2267,6 +2269,7 @@
     "optional": "optional",
     "dept_name_placeholder": "Accounting",
     "parent_dept": "Parent department",
+    "sort_order": "Sort order",
     "no_parent_root": "None (root department)",
     "dept_description": "Department description",
     "short_description_placeholder": "Short description...",

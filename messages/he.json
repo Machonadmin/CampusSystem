@@ -1858,7 +1858,9 @@
       "results": "תוצאות",
       "no_results": "אין תשובות עדיין",
       "source_manager": "מנהל",
-      "source_student": "תלמידה"
+      "source_student": "תלמידה",
+      "save_failed": "השמירה נכשלה, נסו שוב",
+      "load_failed": "טעינת הנתונים נכשלה"
     },
     "assignment_board": {
       "badge_semester": "סמסטר",
@@ -2267,6 +2269,7 @@
     "optional": "לא חובה",
     "dept_name_placeholder": "הנהלת חשבונות",
     "parent_dept": "מחלקת אב",
+    "sort_order": "סדר מיון",
     "no_parent_root": "ללא (מחלקת שורש)",
     "dept_description": "תיאור המחלקה",
     "short_description_placeholder": "תיאור קצר...",

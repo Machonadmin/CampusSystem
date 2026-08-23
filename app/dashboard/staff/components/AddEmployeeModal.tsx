@@ -500,7 +500,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="Avraham" dir="ltr" disabled={ro} style={{ ...inp, ...dis }} />
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="אברהם" dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.gender')}</label>
