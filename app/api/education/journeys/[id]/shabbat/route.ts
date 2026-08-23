@@ -70,7 +70,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     if (hostIds.length) {
       const { data: ps } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', hostIds)
       for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-        hostName.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+        hostName.set(p.id, (p.hebrew_name || p.full_name || '').trim())
       }
     }
 

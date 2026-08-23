@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       }
       return {
         person_id: p.id,
-        name: p.full_name || p.hebrew_name || '—',
+        name: p.hebrew_name || p.full_name || '—',
         hebrew_name: p.hebrew_name,
         email: p.email,
         status,

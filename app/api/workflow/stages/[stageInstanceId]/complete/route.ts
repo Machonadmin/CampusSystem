@@ -264,7 +264,7 @@ export async function POST(
             .eq('id', ctx.journeyId)
             .maybeSingle()
           const p = (j?.person as unknown as { full_name?: string | null; hebrew_name?: string | null } | null) ?? null
-          const name = p?.full_name || p?.hebrew_name || ''
+          const name = p?.hebrew_name || p?.full_name || ''
           const title = finish === 'rejected'
             ? (name ? `לא התקבלה: ${name}` : 'מועמדת לא התקבלה')
             : (name ? `התקבלה 🎉 ${name}` : 'מועמדת התקבלה 🎉')

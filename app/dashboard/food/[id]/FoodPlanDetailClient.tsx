@@ -211,7 +211,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
           {picked ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: primary, background: light, padding: '6px 10px', borderRadius: 8 }}>
-                {picked.full_name || picked.hebrew_name || picked.journey_id}
+                {picked.hebrew_name || picked.full_name || picked.journey_id}
                 <button onClick={() => setPicked(null)} style={{ background: 'none', border: 'none', color: primary, cursor: 'pointer', marginInlineStart: 6 }}>✕</button>
               </span>
               <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
@@ -231,7 +231,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
                     >
-                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.full_name || h.hebrew_name || '—'}</div>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.hebrew_name || h.full_name || '—'}</div>
                       <div style={{ fontSize: 11, color: h.plan ? '#D97706' : 'var(--text-faint)' }}>
                         {h.plan ? h.plan.plan_name ?? '' : t('plan.no_plan')}
                       </div>

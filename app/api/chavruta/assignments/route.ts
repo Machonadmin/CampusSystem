@@ -30,7 +30,7 @@ async function personNames(sb: ReturnType<typeof createServerClient>, ids: strin
   if (uniq.length === 0) return out
   const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', uniq)
   for (const p of (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-    out.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+    out.set(p.id, (p.hebrew_name || p.full_name || '').trim())
   }
   return out
 }
@@ -53,7 +53,7 @@ export async function GET() {
         .select('id, education_status, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
         .in('education_status', STUDENT_LIFECYCLE)
       for (const j of (data ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
-        students.push({ journey_id: j.id, name: (j.person?.full_name || j.person?.hebrew_name || '').trim() })
+        students.push({ journey_id: j.id, name: (j.person?.hebrew_name || j.person?.full_name || '').trim() })
       }
       students.sort((a, b) => a.name.localeCompare(b.name, 'he'))
     }
@@ -81,7 +81,7 @@ export async function GET() {
         .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
         .in('id', [...new Set(missingJourneys)])
       for (const j of (data ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
-        studentNameByJourney.set(j.id, (j.person?.full_name || j.person?.hebrew_name || '').trim())
+        studentNameByJourney.set(j.id, (j.person?.hebrew_name || j.person?.full_name || '').trim())
       }
     }
 

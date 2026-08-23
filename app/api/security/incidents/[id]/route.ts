@@ -47,7 +47,7 @@ async function personName(sb: SB, id: string | null): Promise<string | null> {
   try {
     const { data } = await sb.from('persons').select('full_name, hebrew_name').eq('id', id).maybeSingle()
     const p = data as { full_name?: string | null; hebrew_name?: string | null } | null
-    return p ? (p.full_name || p.hebrew_name || null) : null
+    return p ? (p.hebrew_name || p.full_name || null) : null
   } catch {
     return null
   }

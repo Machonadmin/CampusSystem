@@ -55,7 +55,7 @@ export default function SemesterStudentsModal({ semesterId, title, onClose }: {
       .then(r => r.ok ? r.json() : null)
       .then(b => {
         const list = (b?.students ?? []) as Array<{ journey_id: string; full_name?: string; hebrew_name?: string | null }>
-        setStudents(list.map(s => ({ journey_id: s.journey_id, name: (s.full_name || s.hebrew_name || '').trim() })))
+        setStudents(list.map(s => ({ journey_id: s.journey_id, name: (s.hebrew_name || s.full_name || '').trim() })))
       })
       .catch(() => {/* ignore */})
   }, [students.length])

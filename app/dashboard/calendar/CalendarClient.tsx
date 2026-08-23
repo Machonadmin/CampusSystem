@@ -1544,7 +1544,7 @@ function AppointmentForm({
                     type="button"
                     onClick={() => {
                       setJourneyId(s.journey_id)
-                      setStudentLabel(s.full_name || s.hebrew_name || '')
+                      setStudentLabel(s.hebrew_name || s.full_name || '')
                       setPickerOpen(false)
                     }}
                     style={{
@@ -1554,7 +1554,7 @@ function AppointmentForm({
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                   >
-                    {s.full_name || s.hebrew_name || '—'}
+                    {s.hebrew_name || s.full_name || '—'}
                   </button>
                 ))}
               </div>

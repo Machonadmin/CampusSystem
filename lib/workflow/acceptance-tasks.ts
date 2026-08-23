@@ -140,7 +140,7 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
     .eq('id', journeyId)
     .maybeSingle()
   const person = (j?.person as unknown as { full_name?: string | null; hebrew_name?: string | null } | null) ?? null
-  const applicantName = person?.full_name || person?.hebrew_name || ''
+  const applicantName = person?.hebrew_name || person?.full_name || ''
 
   const due = tomorrowISO()
   const notifRows: NotificationInsert[] = []

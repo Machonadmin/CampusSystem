@@ -31,7 +31,7 @@ async function studentNames(sb: ReturnType<typeof createServerClient>, journeyId
       .in('id', ids)
     for (const j of (data ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
       const p = j.person
-      out.set(j.id, (p?.full_name || p?.hebrew_name || '').trim())
+      out.set(j.id, (p?.hebrew_name || p?.full_name || '').trim())
     }
   } catch { /* ignore */ }
   return out

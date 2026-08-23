@@ -41,7 +41,7 @@ export async function GET() {
     if (personIds.length) {
       const { data: ps } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', personIds)
       for (const p of (ps ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-        personName.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+        personName.set(p.id, (p.hebrew_name || p.full_name || '').trim())
       }
     }
     // Имена студенток (для scope='journey').
@@ -53,7 +53,7 @@ export async function GET() {
         .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
         .in('id', journeyIds)
       for (const j of (js ?? []) as unknown as Array<{ id: string; person: { full_name: string | null; hebrew_name: string | null } | null }>) {
-        journeyName.set(j.id, (j.person?.full_name || j.person?.hebrew_name || '').trim())
+        journeyName.set(j.id, (j.person?.hebrew_name || j.person?.full_name || '').trim())
       }
     }
 

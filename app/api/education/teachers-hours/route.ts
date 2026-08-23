@@ -43,7 +43,7 @@ export async function GET() {
     {
       const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', teacherIds)
       for (const p of (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-        nameById.set(p.id, (p.full_name || p.hebrew_name || '').trim())
+        nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
       }
     }
 

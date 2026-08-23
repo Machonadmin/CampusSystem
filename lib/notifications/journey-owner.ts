@@ -26,7 +26,7 @@ export async function notifyOwnerOfDocument(sb: SB, journeyId: string, uploaderI
       .eq('id', journeyId)
       .maybeSingle()
     const p = (j?.person as unknown as { full_name?: string | null; hebrew_name?: string | null } | null) ?? null
-    const name = p?.full_name || p?.hebrew_name || ''
+    const name = p?.hebrew_name || p?.full_name || ''
 
     await createNotifications(sb, [{
       person_id: ownerId,

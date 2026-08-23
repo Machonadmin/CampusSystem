@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         || (s.hebrew_name ?? '').toLowerCase().includes(search)
         || (s.email ?? '').toLowerCase().includes(search))
     }
-    students.sort((a, b) => (a.full_name || a.hebrew_name || '').localeCompare(b.full_name || b.hebrew_name || '', 'he'))
+    students.sort((a, b) => (a.hebrew_name || a.full_name || '').localeCompare(b.hebrew_name || b.full_name || '', 'he'))
 
     return NextResponse.json({ students, counts, signature_method })
   } catch (err: unknown) {

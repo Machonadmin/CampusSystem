@@ -109,7 +109,7 @@ export default function UnitTeamPage() {
               {members.map(m => (
                 <div key={m.position_id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{m.full_name || m.hebrew_name || '—'}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{m.hebrew_name || m.full_name || '—'}</span>
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
                       {m.is_head ? t('units.head_badge') : (m.title || t(`units.role_${m.role === 'teacher' ? 'teacher' : 'secretary'}`))}
                     </span>
