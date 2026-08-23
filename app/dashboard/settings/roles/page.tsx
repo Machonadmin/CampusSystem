@@ -563,7 +563,7 @@ export default function RolesPage() {
                                     disabled={selectedRole.is_system}
                                   />
                                   <div style={{ minWidth: 0 }}>
-                                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{p.name}</p>
+                                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{(tModules.privileges as Record<string, string>)[p.privilege_code] ?? p.name}</p>
                                     <p style={{ fontSize: 10, color: 'var(--text-faint)', margin: 0, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.privilege_code}</p>
                                   </div>
                                 </label>
