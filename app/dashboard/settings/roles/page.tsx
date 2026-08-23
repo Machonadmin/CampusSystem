@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 type T = (key: string, fallback?: string) => string
 
@@ -243,12 +244,17 @@ export default function RolesPage() {
       const [module, privilege_code] = key.split('::')
       return { module, privilege_code }
     })
-    await fetch('/api/settings/role-privileges', {
+    const res = await fetch('/api/settings/role-privileges', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role_id: selectedRole.id, privileges }),
     })
     setSaving(false)
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}))
+      toastError(b.error ?? tCommon('action_failed'))
+      return
+    }
     setSavedMsg(true)
     setTimeout(() => setSavedMsg(false), 2000)
   }
@@ -259,6 +265,10 @@ export default function RolesPage() {
     if (res.ok) {
       if (selectedRole?.id === role.id) { setSelectedRole(null); setRolePrivs(new Set()); setModulePrivs([]) }
       loadRoles()
+      toastSuccess(tCommon('deleted'))
+    } else {
+      const b = await res.json().catch(() => ({}))
+      toastError(b.error ?? tCommon('action_failed'))
     }
   }
 

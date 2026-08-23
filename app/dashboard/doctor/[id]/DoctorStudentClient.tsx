@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError } from '@/components/ui/toast'
 
 interface Profile {
   blood_type: string | null
@@ -157,11 +158,11 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
       })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
-        setVisitError(b.error ?? t('visit.action_error')); return
+        toastError(b.error ?? t('visit.action_error')); return
       }
       await load()
     } catch {
-      setVisitError(t('visit.action_error'))
+      toastError(t('visit.action_error'))
     } finally {
       setBusy(false)
     }

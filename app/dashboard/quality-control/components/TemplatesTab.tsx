@@ -341,7 +341,7 @@ function TemplateBuilder({
     const method = isEdit ? 'PUT' : 'POST'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     setSaving(false)
-    if (res.ok) { onSaved() }
+    if (res.ok) { toast(tCommon('saved'), 'success'); onSaved() }
     else { const d = await res.json(); setErr(d.error ?? t('templates.save_error')) }
   }
 

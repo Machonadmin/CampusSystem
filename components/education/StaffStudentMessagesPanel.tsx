@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Message {
   id: string
@@ -20,6 +21,7 @@ interface Message {
  */
 export default function StaffStudentMessagesPanel({ journeyId, canManage }: { journeyId: string; canManage: boolean }) {
   const t = useTranslations('education.staff_messages')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [messages, setMessages] = useState<Message[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -54,9 +56,13 @@ export default function StaffStudentMessagesPanel({ journeyId, canManage }: { jo
         body: JSON.stringify({ subject: subject.trim() || undefined, body: text }),
       })
       if (r.ok) {
+        toastSuccess(tCommon('sent'))
         setSubject('')
         setBody('')
         load()
+      } else {
+        const b = await r.json().catch(() => ({}))
+        toastError(b.error ?? tCommon('action_failed'))
       }
     } finally {
       setBusy(false)

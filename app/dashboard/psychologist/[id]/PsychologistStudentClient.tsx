@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError } from '@/components/ui/toast'
 
 interface Profile {
   presenting_concerns: string | null
@@ -152,11 +153,11 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
       })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
-        setSessionError(b.error ?? t('session.action_error')); return
+        toastError(b.error ?? t('session.action_error')); return
       }
       await load()
     } catch {
-      setSessionError(t('session.action_error'))
+      toastError(t('session.action_error'))
     } finally {
       setBusy(false)
     }

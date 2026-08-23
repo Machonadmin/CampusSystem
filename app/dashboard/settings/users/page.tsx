@@ -8,6 +8,7 @@ import { roleLabel } from '@/lib/roles/role-label'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Role {
   id: string
@@ -73,7 +74,8 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
       body: JSON.stringify({ person_id: user.person_id, role_ids: [...selected] }),
     })
     setSaving(false)
-    if (res.ok) { onSaved(); onClose() }
+    if (res.ok) { toastSuccess(tCommon('saved')); onSaved(); onClose() }
+    else { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')) }
   }
 
   const grouped: Record<string, Role[]> = {}
@@ -440,7 +442,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
     if (res.ok) {
       const d = await res.json().catch(() => ({}))
       if (d.generated_password) setGeneratedPassword(d.generated_password)
-      else onClose()
+      else { toastSuccess(tCommon('saved')); onClose() }
     } else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
   }
 
@@ -542,7 +544,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
       body: JSON.stringify({ full_name: fullName.trim(), login_email: email.trim() }),
     })
     setSaving(false)
-    if (res.ok) { onSaved(); onClose() }
+    if (res.ok) { toastSuccess(tCommon('saved')); onSaved(); onClose() }
     else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
   }
 
@@ -651,11 +653,13 @@ function UsersPageContent() {
   useEffect(() => { load() }, [load])
 
   async function toggleActive(user: UserRow) {
-    await fetch(`/api/settings/users/${user.account_id}`, {
+    const res = await fetch(`/api/settings/users/${user.account_id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !user.is_active }),
     })
+    if (res.ok) toastSuccess(tCommon('saved'))
+    else { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')) }
     load()
   }
 

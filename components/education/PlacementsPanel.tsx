@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { getModuleColor } from '@/lib/module-colors'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface ClassRow { id: string; name: string; subject: string | null; enrolled_at: string | null }
 interface UnitGroup { unit_id: string | null; unit_name: string; classes: ClassRow[] }
@@ -94,6 +95,7 @@ export default function PlacementsPanel({ journeyId }: { journeyId: string }) {
 
 function AddPlacement({ journeyId, accent, onDone }: { journeyId: string; accent: string; onDone: () => void }) {
   const t = useTranslations('education.placements')
+  const tCommon = useTranslations('common')
   const [units, setUnits] = useState<Unit[]>([])
   const [unitId, setUnitId] = useState('')
   const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([])
@@ -119,7 +121,13 @@ function AddPlacement({ journeyId, accent, onDone }: { journeyId: string; accent
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ journey_ids: [journeyId] }),
       })
-      if (res.ok) onDone()
+      if (res.ok) {
+        toastSuccess(tCommon('saved'))
+        onDone()
+      } else {
+        const b = await res.json().catch(() => ({}))
+        toastError(b.error ?? tCommon('action_failed'))
+      }
     } finally { setBusy(false) }
   }
 
