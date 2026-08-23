@@ -987,10 +987,14 @@ function MonthView({
             return (
               <div
                 key={cell.dateISO}
+                role="button"
+                tabIndex={0}
+                aria-label={cell.dateISO}
                 onClick={() => onOpenDay(cell.dateISO)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDay(cell.dateISO) } }}
                 style={{
                   minHeight: 104, borderInlineEnd: '1px solid var(--surface-2)', borderBottom: '1px solid var(--surface-2)',
-                  padding: 6, position: 'relative', background: blocked ? '#FAFAF9' : 'var(--surface)',
+                  padding: 6, position: 'relative', background: blocked ? 'var(--surface-2)' : 'var(--surface)',
                   opacity: cell.inMonth ? 1 : 0.45, cursor: 'pointer',
                   backgroundImage: blocked
                     ? 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(107,114,128,0.06) 6px, rgba(107,114,128,0.06) 12px)'
@@ -1972,15 +1976,23 @@ function ScheduleDetail({
 // ─────────────────────────────────────────────
 
 function Overlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
   return (
     <div
+      role="presentation"
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.45)', zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
       }}
     >
-      {children}
+      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </div>
   )
 }

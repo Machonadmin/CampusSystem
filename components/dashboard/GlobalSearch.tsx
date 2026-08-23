@@ -77,6 +77,7 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
         <input
           id="global-search"
           type="text"
+          aria-label={t('placeholder')}
           value={q}
           onChange={e => onChange(e.target.value)}
           onFocus={() => { if (results.length) setOpen(true) }}

@@ -521,6 +521,7 @@
       "academic_enrollment_year": "Enrollment year",
       "academic_enrollment_date": "Enrollment date",
       "ct_phone": "Phone",
+      "ct_email": "Email",
       "ct_address": "Address",
       "ct_other": "Other",
       "back": "Back",

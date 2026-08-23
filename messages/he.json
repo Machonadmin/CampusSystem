@@ -521,6 +521,7 @@
       "academic_enrollment_year": "שנת רישום",
       "academic_enrollment_date": "תאריך רישום",
       "ct_phone": "טלפון",
+      "ct_email": "אימייל",
       "ct_address": "כתובת",
       "ct_other": "אחר",
       "back": "חזרה",
