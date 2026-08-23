@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { personDisplayName } from '@/lib/persons/name'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -92,7 +93,7 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {user.hebrew_name || user.full_name}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {personDisplayName(user)}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
@@ -279,7 +280,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
           {selectedPerson && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--info)', backgroundColor: 'var(--info-tint)' }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{selectedPerson.hebrew_name || selectedPerson.full_name}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{personDisplayName(selectedPerson)}</p>
                 {selectedPerson.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{selectedPerson.email}</p>}
               </div>
               <button onClick={clearSelection} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
@@ -315,7 +316,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
                       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
                     >
-                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{p.hebrew_name || p.full_name}</p>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{personDisplayName(p)}</p>
                       {p.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{p.email}</p>}
                     </div>
                   ))}
@@ -478,7 +479,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, width: '100%', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {user.hebrew_name || user.full_name}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {personDisplayName(user)}</p>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -737,8 +738,8 @@ function UsersPageContent() {
                 >
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar name={user.hebrew_name || user.full_name} photo={user.photo_url} />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{user.hebrew_name || user.full_name}</span>
+                      <Avatar name={personDisplayName(user)} photo={user.photo_url} />
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
                     </div>
                   </td>
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>

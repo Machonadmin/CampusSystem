@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
@@ -49,7 +50,7 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle() as any)
     if (error) {
-      if (error.code === '42703' || error.code === '42P01') return apiError('group_not_found', 404)
+      if (isMissingRelation(error)) return apiError('group_not_found', 404)
       throw error
     }
     if (!group) return apiError('group_not_found', 404)

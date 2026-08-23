@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { personDisplayName } from '@/lib/persons/name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
@@ -254,7 +255,7 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('edit_position')}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{member.hebrew_name || member.full_name}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{personDisplayName(member)}</p>
           </div>
           <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
@@ -399,10 +400,10 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
                   {staff.map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'var(--surface)', borderRadius: 7, border: '1px solid var(--border)' }}>
                       <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)' }}>
-                        {(s.hebrew_name || s.full_name).charAt(0).toUpperCase()}
+                        {personDisplayName(s).charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.hebrew_name || s.full_name}</p>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{personDisplayName(s)}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: 0 }}>
                           {s.position_ru}
                           {s.employment_type && s.employment_type !== 'staff' && ` · ${tStaff(`employment.${s.employment_type}`, s.employment_type)}`}
@@ -609,7 +610,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
                         }
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{emp.hebrew_name || emp.full_name}</span>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(emp)}</span>
                             {genderLabel(emp.gender) && (
                               <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
                                 {genderLabel(emp.gender)}

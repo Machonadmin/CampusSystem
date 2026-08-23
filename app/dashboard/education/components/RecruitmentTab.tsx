@@ -1,5 +1,6 @@
 'use client'
 import { flattenPhones } from '@/lib/persons/phone'
+import { personDisplayName } from '@/lib/persons/name'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -333,7 +334,7 @@ export default function RecruitmentTab() {
                         onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'underline' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.textDecoration = 'none' }}
                       >
-                        {lead.hebrew_name || lead.full_name}
+                        {personDisplayName(lead)}
                       </span>
                       <span style={{
                         fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 99, whiteSpace: 'nowrap',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStudentFinance } from '@/lib/finance/access'
 import { toCents, centsToNumber } from '@/lib/finance/money'
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .select('id, percent, amount, reason, signer_name, typed_name, signed_at, created_at')
       .single()
     if (error) {
-      if (['42P01', '42703'].includes((error as { code?: string }).code ?? '')) return apiError('feature_not_migrated', 503)
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { personDisplayName } from '@/lib/persons/name'
 
 interface Person {
   id: string
@@ -203,7 +204,7 @@ export function PersonSelect({
     }
   }
 
-  const displayValue = selected ? (selected.hebrew_name || selected.full_name) : search
+  const displayValue = selected ? personDisplayName(selected) : search
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', ...style }}>
@@ -374,7 +375,7 @@ export function PersonSelect({
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
-                        {p.hebrew_name || p.full_name}
+                        {personDisplayName(p)}
                       </div>
                       {(p.phone || p.email) && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>

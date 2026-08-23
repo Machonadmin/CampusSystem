@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 
@@ -45,7 +46,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .eq('parent_semester_id', params.id)
       .order('name') as any)
     if (error) {
-      if (error.code === '42703' || error.code === '42P01') return NextResponse.json({ courses: [] })
+      if (isMissingRelation(error)) return NextResponse.json({ courses: [] })
       throw error
     }
 
@@ -73,7 +74,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ courses })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42703' || e.code === '42P01') return NextResponse.json({ courses: [] })
+    if (isMissingRelation(e)) return NextResponse.json({ courses: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
