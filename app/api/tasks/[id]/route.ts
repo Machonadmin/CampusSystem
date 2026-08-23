@@ -37,8 +37,8 @@ export async function GET(
       .from('tasks')
       .select(`
         *,
-        assignee:persons!tasks_assignee_id_fkey(id, full_name),
-        creator:persons!tasks_creator_id_fkey(id, full_name),
+        assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
+        creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name),
         department:departments(id, name)
       `)
       .eq('id', params.id)
@@ -56,15 +56,15 @@ export async function GET(
       { data: history, error: hErr },
     ] = await Promise.all([
       sb.from('task_comments')
-        .select('*, author:persons!task_comments_author_id_fkey(id, full_name)')
+        .select('*, author:persons!task_comments_author_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('created_at', { ascending: true }),
       sb.from('task_watchers')
-        .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+        .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('added_at', { ascending: true }),
       sb.from('task_status_history')
-        .select('*, actor:persons!task_status_history_actor_id_fkey(id, full_name)')
+        .select('*, actor:persons!task_status_history_actor_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('created_at', { ascending: false }),
     ])

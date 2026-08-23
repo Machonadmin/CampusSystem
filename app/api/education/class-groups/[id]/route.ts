@@ -49,7 +49,7 @@ export async function GET(
 
     const [teachersRes, enrollsRes] = await Promise.all([
       sb.from('class_teachers')
-        .select('teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
+        .select('teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name, hebrew_name)')
         .eq('class_group_id', params.id),
       sb.from('class_enrollments')
         .select('journey_id')
@@ -60,9 +60,9 @@ export async function GET(
 
     const teachers = (teachersRes.data ?? [])
       .map(row => {
-        const person = (row.person as unknown) as { id: string; full_name: string | null } | null
+        const person = (row.person as unknown) as { id: string; full_name: string | null; hebrew_name: string | null } | null
         return person
-          ? { person_id: person.id, full_name: person.full_name, is_primary: row.is_primary ?? false }
+          ? { person_id: person.id, full_name: person.full_name, hebrew_name: person.hebrew_name, is_primary: row.is_primary ?? false }
           : null
       })
       .filter((t): t is NonNullable<typeof t> => t !== null)

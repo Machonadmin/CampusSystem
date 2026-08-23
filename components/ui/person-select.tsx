@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 interface Person {
   id: string
   full_name: string
+  hebrew_name?: string | null
   phone?: string | null
   email?: string | null
 }
@@ -202,7 +203,7 @@ export function PersonSelect({
     }
   }
 
-  const displayValue = selected ? selected.full_name : search
+  const displayValue = selected ? (selected.hebrew_name || selected.full_name) : search
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', ...style }}>
@@ -373,7 +374,7 @@ export function PersonSelect({
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
-                        {p.full_name}
+                        {p.hebrew_name || p.full_name}
                       </div>
                       {(p.phone || p.email) && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>

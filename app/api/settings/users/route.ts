@@ -26,7 +26,7 @@ export async function GET() {
     if (personIds.length === 0) return NextResponse.json([])
 
     const [{ data: persons }, { data: prRows }] = await Promise.all([
-      sb.from('persons').select('id, full_name, photo_url').in('id', personIds),
+      sb.from('persons').select('id, full_name, hebrew_name, photo_url').in('id', personIds),
       sb.from('person_roles').select('person_id, role_id').in('person_id', personIds),
     ])
 
@@ -47,6 +47,7 @@ export async function GET() {
         last_login: acc.last_login,
         created_at: acc.created_at,
         full_name: person?.full_name ?? '',
+        hebrew_name: person?.hebrew_name ?? null,
         photo_url: person?.photo_url ?? null,
         roles: userRoles,
       }

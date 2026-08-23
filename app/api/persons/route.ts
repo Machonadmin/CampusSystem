@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ people })
     }
 
-    let qb = sb.from('persons').select('id, full_name, email, phones').order('full_name').limit(15)
+    let qb = sb.from('persons').select('id, full_name, hebrew_name, email, phones').order('full_name').limit(15)
     if (q.length >= 2) qb = qb.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
 
     const { data } = await qb
@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
     const people = (data ?? []).map((p: any) => ({
       id: p.id,
       full_name: p.full_name,
+      hebrew_name: p.hebrew_name ?? null,
       email: p.email ?? null,
       phone: Array.isArray(p.phones) && p.phones.length > 0 ? (p.phones[0]?.number ?? null) : null,
     }))

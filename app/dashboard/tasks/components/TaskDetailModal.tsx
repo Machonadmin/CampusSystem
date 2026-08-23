@@ -11,7 +11,7 @@ interface Comment {
   id: string
   task_id: string
   author_id: string
-  author?: { id: string; full_name: string } | null
+  author?: { id: string; full_name: string; hebrew_name?: string | null } | null
   content: string
   comment_type: TaskCommentType
   created_at: string
@@ -21,7 +21,7 @@ interface Watcher {
   task_id: string
   person_id: string
   added_at: string
-  person?: { id: string; full_name: string } | null
+  person?: { id: string; full_name: string; hebrew_name?: string | null } | null
 }
 
 interface HistoryEntry {
@@ -32,13 +32,13 @@ interface HistoryEntry {
   to_status: TaskStatus
   note: string | null
   created_at: string
-  actor?: { id: string; full_name: string } | null
+  actor?: { id: string; full_name: string; hebrew_name?: string | null } | null
 }
 
 interface TaskDetail extends TaskRow {
-  assignee?: { id: string; full_name: string } | null
+  assignee?: { id: string; full_name: string; hebrew_name?: string | null } | null
   department?: { id: string; name: string } | null
-  creator?: { id: string; full_name: string } | null
+  creator?: { id: string; full_name: string; hebrew_name?: string | null } | null
 }
 
 interface Props {
@@ -419,10 +419,10 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
         borderRadius: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px',
       }}>
         <Field label={t('card.assigned_to')} value={
-          task.assignee?.full_name
+          (task.assignee?.hebrew_name || task.assignee?.full_name)
             ?? (task.department ? `${t('card.dept_prefix')} ${task.department.name}` : '—')
         } />
-        <Field label={t('card.created_by')} value={task.creator?.full_name ?? '—'} />
+        <Field label={t('card.created_by')} value={(task.creator?.hebrew_name || task.creator?.full_name) ?? '—'} />
         <Field label={t('card.created_at')} value={formatDate(task.created_at, lang)} />
         {task.completed_at && (
           <Field label={t('card.completed_at')} value={formatDate(task.completed_at, lang)} />
@@ -460,7 +460,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                 padding: '4px 10px', background: 'var(--accent-tint)', color: '#1E40AF',
                 borderRadius: 12, fontSize: 12,
               }}>
-                <span>{w.person?.full_name ?? '…'}</span>
+                <span>{(w.person?.hebrew_name || w.person?.full_name) ?? '…'}</span>
                 <button
                   onClick={() => handleRemoveWatcher(w.person_id)}
                   style={{
@@ -791,7 +791,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
                 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: 'var(--text)' }}>
-                    <strong>{h.actor?.full_name ?? t('card.system_fallback')}</strong>
+                    <strong>{(h.actor?.hebrew_name || h.actor?.full_name) ?? t('card.system_fallback')}</strong>
                     {h.from_status ? (
                       <>: {t(`status.${h.from_status}`, h.from_status)} → {t(`status.${h.to_status}`, h.to_status)}</>
                     ) : (
@@ -842,7 +842,7 @@ function CommentItem({ comment }: { comment: Comment }) {
     <div style={{ padding: 10, background: typeBg, border: `1px solid ${typeBorder}`, borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-          {comment.author?.full_name ?? t('card.user_fallback')}
+          {(comment.author?.hebrew_name || comment.author?.full_name) ?? t('card.user_fallback')}
         </span>
         <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
           {formatDateTime(comment.created_at, lang)}

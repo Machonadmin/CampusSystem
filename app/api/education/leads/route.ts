@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
 
     const [{ data: persons }, { data: interests }] = await Promise.all([
       sb.from('persons')
-        .select('id, full_name, email, phones, photo_url')
+        .select('id, full_name, hebrew_name, email, phones, photo_url')
         .in('id', filteredPersonIds),
       sb.from('lead_interests')
         .select('person_id, free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
@@ -150,6 +150,7 @@ export async function GET(request: NextRequest) {
         profile_id: j.id,
         person_id: j.person_id,
         full_name: person?.full_name ?? '',
+        hebrew_name: (person as unknown as { hebrew_name?: string | null })?.hebrew_name ?? null,
         email: person?.email ?? null,
         phones: phoneList(person?.phones),
         photo_url: person?.photo_url ?? null,

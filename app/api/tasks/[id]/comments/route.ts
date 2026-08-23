@@ -41,7 +41,7 @@ export async function GET(
 
     const { data, error } = await sb
       .from('task_comments')
-      .select('*, author:persons!task_comments_author_id_fkey(id, full_name)')
+      .select('*, author:persons!task_comments_author_id_fkey(id, full_name, hebrew_name)')
       .eq('task_id', params.id)
       .order('created_at', { ascending: true })
 
@@ -103,7 +103,7 @@ export async function POST(
         content,
         comment_type: body.comment_type ?? 'comment',
       })
-      .select('*, author:persons!task_comments_author_id_fkey(id, full_name)')
+      .select('*, author:persons!task_comments_author_id_fkey(id, full_name, hebrew_name)')
       .single()
 
     if (error) {

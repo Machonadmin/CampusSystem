@@ -33,7 +33,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     const personIds = positions.map(p => p.person_id)
     const [{ data: persons }, { data: profiles }] = await Promise.all([
-      sb.from('persons').select('id, full_name, photo_url').in('id', personIds),
+      sb.from('persons').select('id, full_name, hebrew_name, photo_url').in('id', personIds),
       sb.from('staff_profiles').select('person_id, employment_type').in('person_id', personIds),
     ])
 
@@ -48,6 +48,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
         ...pos,
         position_ru: label,
         full_name: persons?.find(p => p.id === pos.person_id)?.full_name ?? '',
+        hebrew_name: persons?.find(p => p.id === pos.person_id)?.hebrew_name ?? null,
         photo_url: persons?.find(p => p.id === pos.person_id)?.photo_url ?? null,
         employment_type: profiles?.find(p => p.person_id === pos.person_id)?.employment_type ?? null,
       }
