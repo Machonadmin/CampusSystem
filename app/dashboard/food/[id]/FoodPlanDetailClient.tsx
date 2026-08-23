@@ -273,7 +273,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: e.status === 'active' ? light : 'var(--surface-2)',
-                        color: e.status === 'active' ? '#B45309' : 'var(--text-muted)',
+                        color: e.status === 'active' ? 'var(--warn)' : 'var(--text-muted)',
                       }}>
                         {t(`status.${e.status}`)}
                       </span>

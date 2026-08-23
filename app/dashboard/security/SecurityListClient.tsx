@@ -325,7 +325,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
                 key={r.id}
                 onClick={() => router.push(`/dashboard/security/${r.id}`)}
                 style={{
-                  background: prominent ? '#FEF2F2' : 'var(--surface)',
+                  background: prominent ? 'var(--danger-tint)' : 'var(--surface)',
                   border: '1px solid var(--border)',
                   borderInlineStart: `4px solid ${vc.fg}`,
                   borderRadius: 10, padding: '12px 16px', cursor: 'pointer',

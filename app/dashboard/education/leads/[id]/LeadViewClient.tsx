@@ -373,7 +373,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                 onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
                 style={{
                   padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                  background: 'var(--surface)', color: '#065F46',
+                  background: 'var(--surface)', color: 'var(--success)',
                   border: 'none', borderRadius: 8, cursor: 'pointer',
                 }}
               >

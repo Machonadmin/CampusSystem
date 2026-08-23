@@ -174,8 +174,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
   }
 
   function expiryColor(d: Doc): string {
-    if (isExpired(d, today)) return '#B91C1C'
-    if (isExpiringSoon(d, today)) return '#B45309'
+    if (isExpired(d, today)) return 'var(--danger)'
+    if (isExpiringSoon(d, today)) return 'var(--warn)'
     return 'var(--text)'
   }
 

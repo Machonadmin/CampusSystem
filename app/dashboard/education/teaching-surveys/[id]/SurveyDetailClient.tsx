@@ -228,7 +228,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
                         return (
                           <div key={ri} style={{ fontSize: 12, borderInlineStart: '2px solid var(--surface-2)', paddingInlineStart: 8 }}>
                             <span style={{ fontWeight: 600, color: 'var(--text)' }}>{r.respondent_name}</span>
-                            <span style={{ fontSize: 10.5, fontWeight: 700, marginInlineStart: 6, padding: '1px 6px', borderRadius: 999, background: r.respondent_role === 'manager' ? 'rgba(13,148,136,0.14)' : 'rgba(16,185,129,0.14)', color: r.respondent_role === 'manager' ? 'var(--accent-strong)' : '#047857' }}>
+                            <span style={{ fontSize: 10.5, fontWeight: 700, marginInlineStart: 6, padding: '1px 6px', borderRadius: 999, background: r.respondent_role === 'manager' ? 'rgba(13,148,136,0.14)' : 'rgba(16,185,129,0.14)', color: r.respondent_role === 'manager' ? 'var(--accent-strong)' : 'var(--success)' }}>
                               {r.respondent_role === 'manager' ? t('source_manager') : t('source_student')}
                             </span>
                             {texts.length > 0 && <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>{texts.join(' · ')}</div>}
