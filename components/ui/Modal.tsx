@@ -82,6 +82,15 @@ export function Modal({
     }
   }, [])
 
+  // Блокировка прокрутки фона, пока диалог открыт (чтобы колесо/тач не
+  // скроллили страницу за оверлеем). Вложенные модалки корректны: каждая
+  // сохраняет своё значение overflow и восстанавливает его при закрытии.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prevOverflow }
+  }, [])
+
   return (
     <div
       role="presentation"
