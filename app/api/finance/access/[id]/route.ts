@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -16,7 +15,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     if (!(await canManageFinanceAccess(session))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
-    const { error } = await (sb as unknown as SupabaseClient)
+    const { error } = await (sb)
       .from('finance_access_grants').delete().eq('id', params.id)
     if (error) {
       if ((error as { code?: string }).code === '42P01') return NextResponse.json({ ok: true })

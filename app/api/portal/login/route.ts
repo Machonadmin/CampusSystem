@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { verifyPassword } from '@/lib/auth/password'
@@ -8,7 +7,7 @@ import { createSession } from '@/lib/auth/session'
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — читаем/пишем её через нетипизированный клиент.
 function creds(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('student_credentials')
+  return sb.from('student_credentials')
 }
 
 /**

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -19,9 +18,6 @@ import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/educatio
  * studies_drilldown не применена) — GET отдаёт пустой список, POST — 503.
  */
 
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 async function semesterDept(sb: ReturnType<typeof createServerClient>, semesterId: string): Promise<string | null> {
   const { data } = await sb.from('class_groups').select('department_id').eq('id', semesterId).maybeSingle()
@@ -40,7 +36,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     if (!allowed) return apiError('forbidden', 403)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (u(sb)
+    const { data, error } = await (sb
       .from('class_groups')
       .select('id, name, subject_id, is_active, subject:subjects(id, name, name_he)')
       .eq('parent_semester_id', params.id)
@@ -107,7 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       is_active: true,
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ins = await (u(sb).from('class_groups').insert(insert as any).select('id').single() as any)
+    const ins = await (sb.from('class_groups').insert(insert as any).select('id').single() as any)
     if (ins.error) {
       if (ins.error.code === '42703') return apiError('feature_not_migrated', 503)
       if (ins.error.code === '23505') return apiError('study_group_name_exists', 409)
@@ -123,7 +119,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         class_group_id: courseId, teacher_id, is_primary: idx === 0, added_by: session.person_id,
       }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await u(sb).from('class_teachers').insert(rows as any)
+      await sb.from('class_teachers').insert(rows as any)
     }
 
     // Студентки курса — только те, кто уже в ростере СЕМЕСТРА.

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -12,7 +11,6 @@ import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds }
  *   POST { lesson_id } → учитель отмечает «пришёл» на СВОЙ урок (class_teacher).
  * Деплой-безопасно (42P01 → пусто/503).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 type LessonLite = { id: string; scheduled_date: string | null; scheduled_time: string | null; class_group_id: string }
 
@@ -58,7 +56,7 @@ export async function GET(request: NextRequest) {
       const canApprove = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
       if (!canApprove) return apiError('forbidden', 403)
       try {
-        const { data, error } = await u(sb).from('teacher_attendance')
+        const { data, error } = await sb.from('teacher_attendance')
           .select('id, lesson_id, teacher_person_id, status, note, reported_at')
           .eq('status', 'reported')
           .order('reported_at', { ascending: true })
@@ -110,7 +108,7 @@ export async function GET(request: NextRequest) {
       const lrows = (lessons ?? []) as unknown as Array<{ id: string; scheduled_date: string | null; scheduled_time: string | null; is_cancelled: boolean; class_group: { name: string; subject: { name: string; name_he: string | null } | null } | null }>
       const statusByLesson = new Map<string, { id: string; status: string }>()
       try {
-        const { data: att } = await u(sb).from('teacher_attendance')
+        const { data: att } = await sb.from('teacher_attendance')
           .select('id, lesson_id, status').eq('teacher_person_id', session.person_id).in('lesson_id', lrows.map(l => l.id))
         for (const a of (att ?? []) as Array<{ id: string; lesson_id: string; status: string }>) statusByLesson.set(a.lesson_id, { id: a.id, status: a.status })
       } catch (e) {
@@ -128,7 +126,7 @@ export async function GET(request: NextRequest) {
 
     // mine
     try {
-      const { data, error } = await u(sb).from('teacher_attendance')
+      const { data, error } = await sb.from('teacher_attendance')
         .select('id, lesson_id, status, note, reported_at, decided_at')
         .eq('teacher_person_id', session.person_id)
         .order('reported_at', { ascending: false })
@@ -167,15 +165,15 @@ export async function POST(request: NextRequest) {
 
     try {
       // upsert: одна отметка на (lesson, teacher); повторная отметка → снова reported.
-      const { data: existing } = await u(sb).from('teacher_attendance')
+      const { data: existing } = await sb.from('teacher_attendance')
         .select('id').eq('lesson_id', lessonId).eq('teacher_person_id', session.person_id).maybeSingle()
       if (existing) {
-        const { error } = await u(sb).from('teacher_attendance')
+        const { error } = await sb.from('teacher_attendance')
           .update({ status: 'reported', reported_at: new Date().toISOString(), decided_by: null, decided_at: null, note: (body.note ?? '').trim() || null })
           .eq('id', (existing as { id: string }).id)
         if (error) throw error
       } else {
-        const { error } = await u(sb).from('teacher_attendance')
+        const { error } = await sb.from('teacher_attendance')
           .insert({ lesson_id: lessonId, teacher_person_id: session.person_id, status: 'reported', note: (body.note ?? '').trim() || null })
         if (error) throw error
       }

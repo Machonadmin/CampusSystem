@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
@@ -9,7 +8,6 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
  * Деплой-безопасно: нет chavruta_teachers (42P01) → только кодеш-учителя.
  */
 type SB = ReturnType<typeof createServerClient>
-function u(sb: SB) { return sb as unknown as SupabaseClient }
 
 /** person_id всех кодеш-преподавателей (по активным группам кафедры кодеша). */
 async function kodeshTeacherIds(sb: SB): Promise<string[]> {
@@ -32,7 +30,7 @@ async function kodeshTeacherIds(sb: SB): Promise<string[]> {
 /** Ручные добавления менеджера. */
 async function manualChavrutaTeacherIds(sb: SB): Promise<string[]> {
   try {
-    const { data, error } = await u(sb).from('chavruta_teachers').select('person_id')
+    const { data, error } = await sb.from('chavruta_teachers').select('person_id')
     if (error) throw error
     return (data ?? []).map((r: { person_id: string }) => r.person_id)
   } catch (e) {

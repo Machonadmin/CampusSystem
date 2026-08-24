@@ -1,8 +1,6 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 // ─── Доступ к сущностям «הערכת הוראה» (таблиц нет в сгенерированных типах) ─────
-export function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export interface SurveyQuestion { id: string; text: string; kind: 'rating' | 'text'; position: number }
 export interface Survey { id: string; title: string; is_open: boolean; created_at: string; department_id?: string | null }
@@ -15,16 +13,16 @@ export async function getSurveyWithQuestions(
   // при 42703 (колонки ещё нет) откатываемся к select без неё.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let s: any = null
-  const primary = await (u(sb).from('teaching_surveys')
+  const primary = await (sb.from('teaching_surveys')
     .select('id, title, is_open, created_at, department_id').eq('id', id).maybeSingle() as any)
   if (primary.error && primary.error.code === '42703') {
-    const base = await u(sb).from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
+    const base = await sb.from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
     s = base.data
   } else {
     s = primary.data
   }
   if (!s) return null
-  const { data: q } = await u(sb).from('teaching_survey_questions')
+  const { data: q } = await sb.from('teaching_survey_questions')
     .select('id, text, kind, position').eq('survey_id', id).order('position', { ascending: true })
   return { survey: s as Survey, questions: (q ?? []) as SurveyQuestion[] }
 }
@@ -37,9 +35,9 @@ export async function surveyDepartment(
   sb: ReturnType<typeof createServerClient>, id: string,
 ): Promise<{ found: boolean; department_id: string | null }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const res = await (u(sb).from('teaching_surveys').select('id, department_id').eq('id', id).maybeSingle() as any)
+  const res = await (sb.from('teaching_surveys').select('id, department_id').eq('id', id).maybeSingle() as any)
   if (res.error && res.error.code === '42703') {
-    const base = await u(sb).from('teaching_surveys').select('id').eq('id', id).maybeSingle()
+    const base = await sb.from('teaching_surveys').select('id').eq('id', id).maybeSingle()
     return { found: !!base.data, department_id: null }
   }
   return { found: !!res.data, department_id: (res.data as { department_id?: string | null } | null)?.department_id ?? null }
@@ -88,24 +86,24 @@ export async function submitResponse(
   sb: ReturnType<typeof createServerClient>,
   args: { surveyId: string; teacherPersonId: string; respondentPersonId: string; role: 'student' | 'manager'; answers: SubmitAnswer[] },
 ): Promise<{ ok: true } | { code: string }> {
-  const { data: survey } = await u(sb).from('teaching_surveys').select('id, is_open').eq('id', args.surveyId).maybeSingle()
+  const { data: survey } = await sb.from('teaching_surveys').select('id, is_open').eq('id', args.surveyId).maybeSingle()
   if (!survey) return { code: 'not_found' }
   if (!(survey as { is_open: boolean }).is_open) return { code: 'survey_closed' }
   if (!args.teacherPersonId) return { code: 'invalid_reference' }
 
-  const { data: qs } = await u(sb).from('teaching_survey_questions').select('id, kind').eq('survey_id', args.surveyId)
+  const { data: qs } = await sb.from('teaching_survey_questions').select('id, kind').eq('survey_id', args.surveyId)
   const qById = new Map((qs ?? []).map(q => [(q as { id: string }).id, (q as { kind: string }).kind]))
 
   // upsert отклика
-  const { data: existing } = await u(sb).from('teaching_survey_responses')
+  const { data: existing } = await sb.from('teaching_survey_responses')
     .select('id').eq('survey_id', args.surveyId).eq('teacher_person_id', args.teacherPersonId).eq('respondent_person_id', args.respondentPersonId).maybeSingle()
   let responseId: string
   if (existing) {
     responseId = (existing as { id: string }).id
-    await u(sb).from('teaching_survey_answers').delete().eq('response_id', responseId)
-    await u(sb).from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
+    await sb.from('teaching_survey_answers').delete().eq('response_id', responseId)
+    await sb.from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
   } else {
-    const { data: created, error } = await u(sb).from('teaching_survey_responses')
+    const { data: created, error } = await sb.from('teaching_survey_responses')
       .insert({ survey_id: args.surveyId, teacher_person_id: args.teacherPersonId, respondent_person_id: args.respondentPersonId, respondent_role: args.role })
       .select('id').single()
     if (error || !created) return { code: 'invalid_reference' }
@@ -122,7 +120,7 @@ export async function submitResponse(
       }
       return { response_id: responseId, question_id: a.question_id, rating: null, text_value: (a.text_value ?? '').trim() || null }
     })
-  if (rows.length) await u(sb).from('teaching_survey_answers').insert(rows)
+  if (rows.length) await sb.from('teaching_survey_answers').insert(rows)
   return { ok: true }
 }
 

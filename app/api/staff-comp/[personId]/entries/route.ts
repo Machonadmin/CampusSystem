@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -14,7 +13,6 @@ import { canViewStaffComp, canManageStaffComp, monthRange } from '@/lib/finance/
  */
 const TYPES = ['teaching', 'meeting', 'chavruta', 'chavruta_plus', 'shabbat_host', 'shabbat_family', 'other']
 
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function GET(request: NextRequest, { params }: { params: { personId: string } }) {
   try {
@@ -29,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
 
     const sb = createServerClient()
     try {
-      const { data, error } = await u(sb).from('staff_work_entries')
+      const { data, error } = await sb.from('staff_work_entries')
         .select('id, entry_type, entry_date, hours, amount, student_journey_id, title, summary, private_notes, source_lesson_id, created_at')
         .eq('person_id', params.personId).gte('entry_date', from).lte('entry_date', to)
         .order('entry_date', { ascending: true })
@@ -66,13 +64,13 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     let amount = Number.isFinite(Number(body.amount)) && Number(body.amount) >= 0 ? Number(body.amount) : null
     if (amount == null && hours != null) {
       try {
-        const { data: rate } = await u(sb).from('staff_compensation').select('hourly_rate').eq('person_id', params.personId).maybeSingle()
+        const { data: rate } = await sb.from('staff_compensation').select('hourly_rate').eq('person_id', params.personId).maybeSingle()
         const hourly = Number((rate as { hourly_rate?: number } | null)?.hourly_rate ?? 0)
         amount = Math.round(hours * hourly * 100) / 100
       } catch { /* нет тарифа — оставим null */ }
     }
 
-    const { data, error } = await u(sb).from('staff_work_entries')
+    const { data, error } = await sb.from('staff_work_entries')
       .insert({
         person_id: params.personId,
         entry_type: body.entry_type,

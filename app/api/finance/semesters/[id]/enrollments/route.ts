@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -13,13 +12,12 @@ import { requireFinancePrivilege } from '@/lib/finance/permissions'
  *          семестра) + привязка. Идемпотентно: уже привязанные пропускаются. (create_invoice)
  * Деплой-безопасно (42P01/42703 → 503).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 type Sem = { id: string; year_label: string; term_number: number; name: string | null; price: number }
 
 async function loadSemester(sb: ReturnType<typeof createServerClient>, id: string): Promise<Sem | null | 'missing'> {
   try {
-    const { data, error } = await u(sb).from('semesters')
+    const { data, error } = await sb.from('semesters')
       .select('id, year_label, term_number, name, price').eq('id', id).maybeSingle()
     if (error) throw error
     return (data ?? null) as Sem | null
@@ -36,7 +34,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
     let rows: Array<{ journey_id: string; charge_id: string | null }>
     try {
-      const { data, error } = await u(sb).from('semester_enrollments')
+      const { data, error } = await sb.from('semester_enrollments')
         .select('journey_id, charge_id').eq('semester_id', params.id)
       if (error) throw error
       rows = (data ?? []) as typeof rows
@@ -60,7 +58,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     const chargeIds = rows.map(r => r.charge_id).filter(Boolean) as string[]
     const chargeById = new Map<string, { amount: number; status: string }>()
     if (chargeIds.length) {
-      const { data: ch } = await u(sb).from('finance_charges').select('id, amount, status').in('id', chargeIds)
+      const { data: ch } = await sb.from('finance_charges').select('id, amount, status').in('id', chargeIds)
       for (const c of (ch ?? []) as Array<{ id: string; amount: number; status: string }>) {
         chargeById.set(c.id, { amount: Number(c.amount), status: c.status })
       }
@@ -103,7 +101,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Уже привязанные — пропускаем.
     const already = new Set<string>()
     try {
-      const { data: enr, error } = await u(sb).from('semester_enrollments')
+      const { data: enr, error } = await sb.from('semester_enrollments')
         .select('journey_id').eq('semester_id', params.id).in('journey_id', wanted)
       if (error) throw error
       for (const r of (enr ?? []) as Array<{ journey_id: string }>) already.add(r.journey_id)
@@ -117,7 +115,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (todo.length > 0) {
       // Пакетно: один insert всех начислений, затем один insert всех зачислений
       // (было 2 последовательных запроса НА КАЖДУЮ студентку).
-      const { data: charges, error: cErr } = await u(sb).from('finance_charges')
+      const { data: charges, error: cErr } = await sb.from('finance_charges')
         .insert(todo.map(journeyId => ({
           journey_id: journeyId, amount: price, description: label, period_label: label,
           category: 'tuition', semester_id: params.id, created_by: session.person_id,
@@ -132,7 +130,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         semester_id: params.id, journey_id: c.journey_id, charge_id: c.id, created_by: session.person_id,
       }))
       if (enrollRows.length > 0) {
-        const { error: eErr } = await u(sb).from('semester_enrollments').insert(enrollRows)
+        const { error: eErr } = await sb.from('semester_enrollments').insert(enrollRows)
         if (eErr && (eErr as { code?: string }).code !== '23505') {
           if ((eErr as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
           throw eErr

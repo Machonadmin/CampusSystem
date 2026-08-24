@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -21,7 +20,6 @@ import { shapeChavrutaSessionForViewer } from '@/lib/chavruta/view'
  * САМА автор записи (своя заметка); прочим сотрудникам с одним view_students —
  * нет. Решается по каждой строке отдельно. Деплой-безопасно.
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -45,7 +43,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     // Записи хавруты этой ученицы.
     let rows: Array<{ id: string; entry_date: string | null; amount: number | null; summary: string | null; private_notes: string | null; person_id: string; created_at: string | null }>
     try {
-      const { data, error } = await u(sb).from('staff_work_entries')
+      const { data, error } = await sb.from('staff_work_entries')
         .select('id, entry_date, amount, summary, private_notes, person_id, created_at')
         .eq('student_journey_id', params.id).eq('entry_type', 'chavruta')
         .order('entry_date', { ascending: false })

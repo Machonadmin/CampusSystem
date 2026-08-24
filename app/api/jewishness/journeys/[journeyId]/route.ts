@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT } from '@/lib/i18n/api-errors'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -19,7 +18,6 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
   try {
     await requireJewishnessAccess()
     const sb = createServerClient()
-    const u = sb as unknown as SupabaseClient
 
     const { data: journey, error: jErr } = await sb
       .from('education_journeys')
@@ -45,7 +43,7 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
     // История (append-only). Деплой-безопасно к отсутствию таблицы.
     let history: Array<{ status: string; note: string | null; source: string | null; created_at: string; changed_by_name: string | null }> = []
     try {
-      const { data: rows, error } = await u
+      const { data: rows, error } = await sb
         .from('jewishness_status_history')
         .select('status, note, source, changed_by, created_at')
         .eq('journey_id', params.journeyId)

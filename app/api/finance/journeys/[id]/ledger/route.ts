@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -123,7 +122,7 @@ export async function GET(
     const chargeIds = chargeRows.map(c => c.id)
     if (chargeIds.length > 0) {
       try {
-        const { data, error } = await (sb as unknown as SupabaseClient)
+        const { data, error } = await (sb)
           .from('finance_discounts')
           .select('id, charge_id, percent, amount, reason, signer_name, typed_name, signed_at, created_at')
           .in('charge_id', chargeIds)
@@ -151,7 +150,7 @@ export async function GET(
     // выставлении скидки на счёт. Деплой-безопасно: колонки может не быть (42703).
     let suggestedDiscount: number | null = null
     try {
-      const { data: b, error: bErr } = await (sb as unknown as SupabaseClient)
+      const { data: b, error: bErr } = await (sb)
         .from('education_journeys')
         .select('tuition_discount_percent')
         .eq('id', params.id)

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -14,7 +13,6 @@ import { canViewStaffComp, canManageStaffComp, monthRange } from '@/lib/finance/
  * Сумму за событие задаёт менеджер. Деплой-безопасно (42P01).
  */
 const SHABBAT_TYPES = ['shabbat_host', 'shabbat_family']
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 async function namesByJourney(sb: ReturnType<typeof createServerClient>, ids: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>()
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
     const sb = createServerClient()
     let events: Array<{ id: string; entry_type: string; entry_date: string; amount: number | null; summary: string | null; private_notes: string | null }>
     try {
-      const { data, error } = await u(sb).from('staff_work_entries')
+      const { data, error } = await sb.from('staff_work_entries')
         .select('id, entry_type, entry_date, amount, summary, private_notes')
         .eq('person_id', params.personId).in('entry_type', SHABBAT_TYPES)
         .gte('entry_date', from).lte('entry_date', to)
@@ -60,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
     const eventIds = events.map(e => e.id)
     const attByEvent = new Map<string, string[]>()
     try {
-      const { data: att } = await u(sb).from('staff_event_attendees')
+      const { data: att } = await sb.from('staff_event_attendees')
         .select('work_entry_id, student_journey_id').in('work_entry_id', eventIds)
       for (const r of (att ?? []) as Array<{ work_entry_id: string; student_journey_id: string }>) {
         const arr = attByEvent.get(r.work_entry_id) ?? []
@@ -98,7 +96,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
 
     const sb = createServerClient()
     // Событие (оплата).
-    const { data: entry, error } = await u(sb).from('staff_work_entries')
+    const { data: entry, error } = await sb.from('staff_work_entries')
       .insert({
         person_id: params.personId, entry_type: body.entry_type, entry_date: entryDate,
         hours: null, amount, student_journey_id: null,
@@ -117,7 +115,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     // Отмеченные ученицы.
     if (attendees.length) {
       const rows = attendees.map(jid => ({ work_entry_id: eventId, student_journey_id: jid }))
-      const { error: aErr } = await u(sb).from('staff_event_attendees').insert(rows)
+      const { error: aErr } = await sb.from('staff_event_attendees').insert(rows)
       if (aErr) {
         const code = (aErr as { code?: string }).code
         // Таблица участниц ещё не мигрирована — событие/оплата уже созданы; сообщим 503.

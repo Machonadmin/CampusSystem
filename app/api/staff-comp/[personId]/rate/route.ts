@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -15,7 +14,7 @@ import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
 const DEFAULT_RATE = { hourly_rate: 0, chavruta_rate: 0, chavruta_plus_rate: 0, chavruta_plus_basis: 'per_student_month' as const }
 
 function comp(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('staff_compensation')
+  return sb.from('staff_compensation')
 }
 
 export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {

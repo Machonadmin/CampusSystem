@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -10,9 +9,6 @@ import { canDoEducationInAny } from '@/lib/education/permissions'
  * свободного текста). Деплой-безопасно: если таблиц ещё нет (миграция
  * studies_drilldown не применена) — GET отдаёт пустой список, POST — 503.
  */
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 export async function GET() {
   try {
@@ -21,7 +17,7 @@ export async function GET() {
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: buildings, error } = await (u(sb)
+    const { data: buildings, error } = await (sb
       .from('buildings').select('id, name, code, is_active').order('sort_order').order('name') as any)
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ buildings: [] })
@@ -32,7 +28,7 @@ export async function GET() {
     if (bRows.length === 0) return NextResponse.json({ buildings: [] })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: rooms } = await (u(sb)
+    const { data: rooms } = await (sb
       .from('rooms').select('id, building_id, name, capacity, is_active').order('sort_order').order('name') as any)
     const byBuilding = new Map<string, unknown[]>()
     for (const r of (rooms ?? []) as Array<{ building_id: string }>) {
@@ -61,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (u(sb).from('buildings').insert({ name, code: body.code?.trim() || null } as any).select('id').single() as any)
+    const { data, error } = await (sb.from('buildings').insert({ name, code: body.code?.trim() || null } as any).select('id').single() as any)
     if (error) {
       if (error.code === '42P01') return apiError('feature_not_migrated', 503)
       throw error

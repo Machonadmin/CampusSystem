@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 /**
@@ -22,7 +21,7 @@ export const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 type SB = ReturnType<typeof createServerClient>
 
 function untyped(sb: SB) {
-  return sb as unknown as SupabaseClient
+  return sb
 }
 
 /** Нормализует дату/таймстамп к 'YYYY-MM-DD' для сравнения диапазонов. */

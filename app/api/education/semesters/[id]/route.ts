@@ -1,5 +1,5 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,7 +11,7 @@ import { getEducationPrivilegeScope } from '@/lib/education/permissions'
  * или superadmin. Деплой-безопасно (42P01).
  */
 function sem(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('semesters')
+  return sb.from('semesters')
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { name?: string; status?: string }
-    const patch: Record<string, unknown> = {}
+    const patch: Database['public']['Tables']['semesters']['Update'] = {}
     if (body.name !== undefined) patch.name = (body.name ?? '').trim() || null
     if (body.status !== undefined) {
       if (!['open', 'closed'].includes(body.status)) return apiError('invalid_reference', 400)

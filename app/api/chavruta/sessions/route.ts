@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -17,7 +16,6 @@ import { canViewStaffComp } from '@/lib/finance/staff-comp'
  *          Только мора хавруты (гейт isChavrutaTeacher), person_id = она сама.
  * Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 /** Карта journeyId → имя ученицы (для UI). Деплой-безопасно. */
 async function studentNames(sb: ReturnType<typeof createServerClient>, journeyIds: string[]): Promise<Map<string, string>> {
@@ -63,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const { data, error } = await u(sb).from('staff_work_entries')
+      const { data, error } = await sb.from('staff_work_entries')
         .select('id, entry_date, hours, amount, student_journey_id, summary, private_notes, created_at')
         .eq('person_id', personId).eq('entry_type', 'chavruta').eq('entry_date', date)
         .order('created_at', { ascending: true })
@@ -102,12 +100,12 @@ export async function POST(request: NextRequest) {
     // Ставка хавруты моры (за сессию/час) — из staff_compensation.chavruta_rate.
     let amount: number | null = null
     try {
-      const { data: rate } = await u(sb).from('staff_compensation').select('chavruta_rate').eq('person_id', session.person_id).maybeSingle()
+      const { data: rate } = await sb.from('staff_compensation').select('chavruta_rate').eq('person_id', session.person_id).maybeSingle()
       const r = Number((rate as { chavruta_rate?: number } | null)?.chavruta_rate ?? 0)
       amount = r > 0 ? r : null
     } catch { /* нет тарифа — null */ }
 
-    const { data, error } = await u(sb).from('staff_work_entries')
+    const { data, error } = await sb.from('staff_work_entries')
       .insert({
         person_id: session.person_id,
         entry_type: 'chavruta',

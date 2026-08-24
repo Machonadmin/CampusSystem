@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -11,7 +10,6 @@ import { getSession } from '@/lib/auth/session'
  * person_accounts, студентка — student_credentials. Deploy-safe: нет колонки
  * (42703) / нет таблицы (42P01) → { must_change: false } (никого не блокируем).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function GET() {
   try {
@@ -20,11 +18,11 @@ export async function GET() {
     const sb = createServerClient()
     try {
       if (session.principal === 'student' && session.student_journey_id) {
-        const { data } = await u(sb).from('student_credentials')
+        const { data } = await sb.from('student_credentials')
           .select('must_change_password').eq('journey_id', session.student_journey_id).maybeSingle()
         return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
       }
-      const { data } = await u(sb).from('person_accounts')
+      const { data } = await sb.from('person_accounts')
         .select('must_change_password').eq('login_email', session.login_email).maybeSingle()
       return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
     } catch (e) {

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -13,7 +12,6 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
  * Гейт: isChavrutaTeacher. Деплой-безопасно (пустой список при 42P01).
  * Ответ: { students: [{ journey_id, name }] }.
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function GET() {
   try {
@@ -38,7 +36,7 @@ export async function GET() {
       // Свои группы, иначе — все кодеш-группы (для ручной моры).
       const scopeGroupIds = ownGroupIds.length ? ownGroupIds : kodeshGroupIds
 
-      const { data: enr } = await u(sb).from('class_enrollments').select('journey_id').in('class_group_id', scopeGroupIds)
+      const { data: enr } = await sb.from('class_enrollments').select('journey_id').in('class_group_id', scopeGroupIds)
       const journeyIds = [...new Set((enr ?? []).map((r: { journey_id: string }) => r.journey_id))]
       if (journeyIds.length === 0) return NextResponse.json({ students: [] })
 

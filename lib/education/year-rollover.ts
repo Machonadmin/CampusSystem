@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 // ── Автоматический переход учебного года ─────────────────────────────────────
@@ -10,9 +9,6 @@ import { createServerClient } from '@/lib/supabase/server'
 // ручной запуск НЕ выполняет продвижение/выпуск. Чтобы разморозить — снять флаг.
 const ROLLOVER_FROZEN = true
 
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 export interface RolloverSettings {
   rollover_month: number
@@ -32,7 +28,7 @@ export async function getRolloverSettings(
   sb: ReturnType<typeof createServerClient>,
 ): Promise<RolloverSettings | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (u(sb)
+  const { data, error } = await (sb
     .from('academic_year_settings')
     .select('rollover_month, rollover_day, auto_enabled, last_rolled_year')
     .eq('id', true)
@@ -77,15 +73,14 @@ export async function runYearRollover(
     if (!isEligible(settings, now)) return { ran: false, promoted: 0, graduated: 0, reason: 'not_eligible' }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (u(sb).rpc('advance_academic_year') as any)
+  const { data, error } = await sb.rpc('advance_academic_year', {})
   if (error) throw error
   const row = Array.isArray(data) ? data[0] : data
   const promoted = Number(row?.promoted ?? 0)
   const graduated = Number(row?.graduated ?? 0)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (u(sb)
+  await (sb
     .from('academic_year_settings')
     .update({ last_rolled_year: year, updated_at: now.toISOString() })
     .eq('id', true) as any)

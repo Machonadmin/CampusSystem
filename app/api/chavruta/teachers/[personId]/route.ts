@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -23,7 +22,7 @@ export async function DELETE(
     if (!personId) return apiError('invalid_reference', 400)
 
     const sb = createServerClient()
-    const { error } = await (sb as unknown as SupabaseClient)
+    const { error } = await (sb)
       .from('chavruta_teachers').delete().eq('person_id', personId)
     if (error) {
       const code = (error as { code?: string }).code

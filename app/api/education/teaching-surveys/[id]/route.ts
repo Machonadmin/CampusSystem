@@ -1,9 +1,10 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
-import { u, getSurveyWithQuestions, surveyDepartment, teachersForSurvey } from '@/lib/education/teaching-surveys'
+import { getSurveyWithQuestions, surveyDepartment, teachersForSurvey } from '@/lib/education/teaching-surveys'
 
 /**
  * Один сбор «הערכת הוראה».
@@ -59,28 +60,28 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
     const sb = createServerClient()
     try {
-      const { data: survey } = await u(sb).from('teaching_surveys').select('id').eq('id', params.id).maybeSingle()
+      const { data: survey } = await sb.from('teaching_surveys').select('id').eq('id', params.id).maybeSingle()
       if (!survey) return apiError('substage_not_found', 404)
 
-      const patch: Record<string, unknown> = {}
+      const patch: Database['public']['Tables']['teaching_surveys']['Update'] = {}
       if (typeof body.title === 'string') { const t = body.title.trim(); if (t) patch.title = t }
       if (typeof body.is_open === 'boolean') patch.is_open = body.is_open
       if (Object.keys(patch).length) {
-        const { error } = await u(sb).from('teaching_surveys').update(patch).eq('id', params.id)
+        const { error } = await sb.from('teaching_surveys').update(patch).eq('id', params.id)
         if (error) throw error
       }
 
       if (Array.isArray(body.questions)) {
         // Менять вопросы можно только пока нет откликов.
-        const { data: resp } = await u(sb).from('teaching_survey_responses').select('id').eq('survey_id', params.id).limit(1)
+        const { data: resp } = await sb.from('teaching_survey_responses').select('id').eq('survey_id', params.id).limit(1)
         if ((resp ?? []).length > 0) return apiError('survey_has_responses', 409)
         // Полная замена набора вопросов.
-        await u(sb).from('teaching_survey_questions').delete().eq('survey_id', params.id)
+        await sb.from('teaching_survey_questions').delete().eq('survey_id', params.id)
         const clean = body.questions
           .map((q, i) => ({ text: (q.text ?? '').trim(), kind: q.kind === 'text' ? 'text' : 'rating', position: Number.isFinite(q.position) ? Number(q.position) : i }))
           .filter(q => q.text)
         if (clean.length) {
-          const { error } = await u(sb).from('teaching_survey_questions')
+          const { error } = await sb.from('teaching_survey_questions')
             .insert(clean.map(q => ({ survey_id: params.id, text: q.text, kind: q.kind, position: q.position })))
           if (error) throw error
         }
@@ -102,7 +103,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     if ('error' in gate) return gate.error
     const sb = createServerClient()
     try {
-      const { error } = await u(sb).from('teaching_surveys').delete().eq('id', params.id)
+      const { error } = await sb.from('teaching_surveys').delete().eq('id', params.id)
       if (error) throw error
       return NextResponse.json({ ok: true })
     } catch (e) {

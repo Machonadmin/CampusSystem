@@ -3,7 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
-import { u, getSurveyWithQuestions, namesFor, surveyDepartment } from '@/lib/education/teaching-surveys'
+import { getSurveyWithQuestions, namesFor, surveyDepartment } from '@/lib/education/teaching-surveys'
 
 /**
  * GET /api/education/teaching-surveys/[id]/results
@@ -33,13 +33,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       const detail = await getSurveyWithQuestions(sb, params.id)
       if (!detail) return apiError('substage_not_found', 404)
 
-      const { data: respRaw } = await u(sb).from('teaching_survey_responses')
+      const { data: respRaw } = await sb.from('teaching_survey_responses')
         .select('id, teacher_person_id, respondent_person_id, respondent_role, submitted_at').eq('survey_id', params.id)
       const responses = (respRaw ?? []) as Array<{ id: string; teacher_person_id: string; respondent_person_id: string; respondent_role: string; submitted_at: string }>
 
       const answersByResponse = new Map<string, Array<{ question_id: string; rating: number | null; text_value: string | null }>>()
       if (responses.length) {
-        const { data: ansRaw } = await u(sb).from('teaching_survey_answers')
+        const { data: ansRaw } = await sb.from('teaching_survey_answers')
           .select('response_id, question_id, rating, text_value').in('response_id', responses.map(r => r.id))
         for (const a of (ansRaw ?? []) as Array<{ response_id: string; question_id: string; rating: number | null; text_value: string | null }>) {
           const arr = answersByResponse.get(a.response_id) ?? []

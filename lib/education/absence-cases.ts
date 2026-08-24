@@ -1,10 +1,8 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { createNotifications } from '@/lib/notifications/create'
 
 // absence_cases ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — обращаемся к таблице через нетипизированный клиент.
-export function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 /**
  * Уведомляет сотрудников подразделения о переданном на них случае отсутствия.

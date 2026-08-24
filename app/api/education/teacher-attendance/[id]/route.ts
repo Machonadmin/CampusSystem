@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,7 +10,6 @@ import { hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/educati
  *   отметку присутствия преподавателя. Доступ: manage_students / superadmin.
  * Деплой-безопасно (42P01 → 503).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -28,7 +26,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     const sb = createServerClient()
     try {
-      const { data: row } = await u(sb).from('teacher_attendance').select('id, status, lesson_id').eq('id', id).maybeSingle()
+      const { data: row } = await sb.from('teacher_attendance').select('id, status, lesson_id').eq('id', id).maybeSingle()
       if (!row) return apiError('substage_not_found', 404)
 
       // Подтверждать нокхут может ТОЛЬКО менеджер подразделения этого урока
@@ -49,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
           : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all')
       if (!allowed) return apiError('forbidden', 403)
 
-      const { error } = await u(sb).from('teacher_attendance')
+      const { error } = await sb.from('teacher_attendance')
         .update({ status: decision, decided_by: session.person_id, decided_at: new Date().toISOString() })
         .eq('id', id)
       if (error) throw error

@@ -1,5 +1,5 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
@@ -11,7 +11,7 @@ import { requireFinancePrivilege } from '@/lib/finance/permissions'
  * будущих начислений этого семестра.
  */
 function sem(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('semesters')
+  return sb.from('semesters')
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -20,7 +20,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const body = await request.json().catch(() => ({})) as {
       name?: string; price?: number; status?: string
     }
-    const patch: Record<string, unknown> = {}
+    const patch: Database['public']['Tables']['semesters']['Update'] = {}
     if (body.name !== undefined) patch.name = (body.name ?? '').trim() || null
     if (body.price !== undefined) {
       const p = Number(body.price)

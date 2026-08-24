@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -13,7 +12,6 @@ import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
  * Тариф/базис (за ученицу-месяц или за час) — из staff_compensation. Начисление
  * делает generate-chavruta-plus. Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {
   try {
@@ -26,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
     // Тариф/базис.
     let rate = 0, basis = 'per_student_month'
     try {
-      const { data } = await u(sb).from('staff_compensation')
+      const { data } = await sb.from('staff_compensation')
         .select('chavruta_plus_rate, chavruta_plus_basis').eq('person_id', params.personId).maybeSingle()
       const c = data as { chavruta_plus_rate?: number; chavruta_plus_basis?: string } | null
       rate = Number(c?.chavruta_plus_rate ?? 0)
@@ -36,7 +34,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
     // Пары.
     let rows: Array<{ id: string; student_journey_id: string; is_active: boolean }> = []
     try {
-      const { data, error } = await u(sb).from('chavruta_plus_assignments')
+      const { data, error } = await sb.from('chavruta_plus_assignments')
         .select('id, student_journey_id, is_active').eq('teacher_person_id', params.personId)
         .order('created_at', { ascending: true })
       if (error) throw error
@@ -82,7 +80,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     if (!journeyId) return apiError('invalid_reference', 400)
 
     const sb = createServerClient()
-    const { data, error } = await u(sb).from('chavruta_plus_assignments')
+    const { data, error } = await sb.from('chavruta_plus_assignments')
       .insert({ teacher_person_id: params.personId, student_journey_id: journeyId, is_active: true, created_by: session.person_id })
       .select('id, student_journey_id, is_active')
       .single()
@@ -90,7 +88,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       const code = (error as { code?: string }).code
       if (code === '42P01') return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
-        const { data: re } = await u(sb).from('chavruta_plus_assignments')
+        const { data: re } = await sb.from('chavruta_plus_assignments')
           .update({ is_active: true }).eq('teacher_person_id', params.personId).eq('student_journey_id', journeyId)
           .select('id, student_journey_id, is_active').single()
         return NextResponse.json({ assignment: re }, { status: 200 })

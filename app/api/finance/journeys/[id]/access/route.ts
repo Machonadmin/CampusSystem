@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -26,7 +25,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     let portalVisible = false
     try {
       const sb = createServerClient()
-      const { data, error } = await (sb as unknown as SupabaseClient)
+      const { data, error } = await (sb)
         .from('education_journeys').select('student_finance_visible').eq('id', params.id).maybeSingle()
       if (error) throw error
       portalVisible = !!(data as { student_finance_visible?: boolean } | null)?.student_finance_visible
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const visible = !!body.portal_visible
 
     const sb = createServerClient()
-    const { error } = await (sb as unknown as SupabaseClient)
+    const { error } = await (sb)
       .from('education_journeys').update({ student_finance_visible: visible }).eq('id', params.id)
     if (error) {
       if ((error as { code?: string }).code === '42703') return apiError('feature_not_migrated', 503)

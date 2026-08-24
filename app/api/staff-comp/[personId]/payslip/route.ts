@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,10 +10,9 @@ import { canViewStaffComp, canApprovePayslip, monthRange, sumEntries } from '@/l
  *   POST ?year&month → УТВЕРДИТЬ (снимок суммы), право approve (менеджер).
  * Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 async function loadEntries(sb: ReturnType<typeof createServerClient>, personId: string, from: string, to: string) {
-  const { data, error } = await u(sb).from('staff_work_entries')
+  const { data, error } = await sb.from('staff_work_entries')
     .select('entry_type, hours, amount').eq('person_id', personId).gte('entry_date', from).lte('entry_date', to)
   if (error) throw error
   return (data ?? []) as Array<{ entry_type: string; hours: number | string | null; amount: number | string | null }>
@@ -50,7 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
     // Статус утверждения.
     let payslip: { status: string; total_amount: number | string; approved_at: string | null } | null = null
     try {
-      const { data } = await u(sb).from('staff_payslips')
+      const { data } = await sb.from('staff_payslips')
         .select('status, total_amount, approved_at').eq('person_id', params.personId).eq('year', year).eq('month', month).maybeSingle()
       payslip = data as typeof payslip
     } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
@@ -78,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     try { total = sumEntries(await loadEntries(sb, params.personId, from, to)) }
     catch (e) { if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503); throw e }
 
-    const { data, error } = await u(sb).from('staff_payslips')
+    const { data, error } = await sb.from('staff_payslips')
       .upsert({
         person_id: params.personId, year, month, total_amount: total,
         status: 'approved', approved_by: session.person_id, approved_at: new Date().toISOString(),
