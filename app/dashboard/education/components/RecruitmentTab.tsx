@@ -143,7 +143,7 @@ export default function RecruitmentTab() {
     const rows = filtered.map(l => {
       const depts = [...new Set(l.interests.map(i => i.department_name).filter(Boolean))].join('; ')
       const dirs = l.interests.map(interestLabel).filter(Boolean).join('; ')
-      return [l.full_name, depts, dirs, l.phones.join(' '), l.email ?? '', formatDate(l.application_date)]
+      return [l.full_name, depts, dirs, l.phones.join(' '), l.email ?? '', formatDate(l.application_date, lang)]
     })
     downloadCsv('leads', [headers, ...rows])
   }
@@ -469,7 +469,7 @@ export default function RecruitmentTab() {
                         <ApplicantDetail label={t('leads.table.institution')} value={institution} />
                         <ApplicantDetail label={t('leads.table.direction')} value={direction} />
                         <ApplicantDetail label={t('leads.table.email')} value={lead.email ?? '—'} />
-                        <ApplicantDetail label={t('leads.table.application_date')} value={formatDate(lead.application_date)} />
+                        <ApplicantDetail label={t('leads.table.application_date')} value={formatDate(lead.application_date, lang)} />
                       </div>
                     </td>
                   </tr>

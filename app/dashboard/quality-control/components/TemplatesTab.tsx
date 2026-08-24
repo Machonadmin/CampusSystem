@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { FeaturePerms } from '@/lib/permissions'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate as sharedFormatDate } from '@/lib/i18n/format-date'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -103,8 +104,8 @@ function normalizeStructure(blocks: BBlock[]): TStructure {
   }
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+function fmtDate(iso: string, lang: string) {
+  return sharedFormatDate(iso, lang)
 }
 
 type Tr = (key: string, fallback?: string) => string
@@ -529,6 +530,7 @@ interface Props {
 export default function TemplatesTab({ perms }: Props) {
   const t = useTranslations('quality')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const [templates, setTemplates] = useState<TemplateListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -622,7 +624,7 @@ export default function TemplatesTab({ perms }: Props) {
                   </td>
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.block_count}</td>
                   <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.question_count}</td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(tpl.created_at)}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(tpl.created_at, lang)}</td>
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <RowActionsMenu

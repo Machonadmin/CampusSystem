@@ -11,7 +11,8 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate as fmtDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -64,6 +65,7 @@ export default function QualityControlPage() {
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
   const [tab, setTab] = useState<Tab>('planned')
   const [checks, setChecks] = useState<CheckRow[]>([])
@@ -120,9 +122,7 @@ export default function QualityControlPage() {
   }
 
   function formatDate(d: string) {
-    try {
-      return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    } catch { return d }
+    return fmtDate(d, lang)
   }
 
   const tabs: { key: Tab; label: string; visible: boolean }[] = [

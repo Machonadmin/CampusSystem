@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateLong } from '@/lib/i18n/format-date'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -182,6 +183,7 @@ export default function FillCheckPage() {
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const { isOpen, isMobile } = useSidebar()
   const footerLeft = isMobile ? 0 : isOpen ? 240 : 56
 
@@ -344,9 +346,7 @@ export default function FillCheckPage() {
   const [sBg, sColor] = STATUS_COLOR[check.status] ?? ['var(--surface-2)', 'var(--text-muted)']
 
   function fmtDate(d: string) {
-    try {
-      return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
-    } catch { return d }
+    return formatDateLong(d, lang)
   }
 
   return (

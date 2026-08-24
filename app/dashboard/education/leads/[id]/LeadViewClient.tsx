@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate as sharedFormatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
 import StageSignatures from '@/components/workflow/StageSignatures'
@@ -114,9 +115,9 @@ interface Props {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(d: string | null): string {
+function formatDate(d: string | null, lang: string): string {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return sharedFormatDate(d, lang)
 }
 
 /** Инициалы: first[0] + last[0]; fallback — первые буквы full_name. */
@@ -161,6 +162,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
+  const { lang } = useLang()
   const { person } = data
   const [tab, setTab] = useState<TabKey>(showOverview ? 'overview' : 'personal')
 
@@ -209,7 +211,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.first_name')} value={person.first_name} />
             <Field label={t('card.labels.middle_name')} value={person.middle_name} />
             <Field label={t('card.labels.hebrew_name')} value={person.hebrew_name} />
-            <Field label={t('card.labels.birth_date')} value={formatDate(person.birth_date)} />
+            <Field label={t('card.labels.birth_date')} value={formatDate(person.birth_date, lang)} />
             <Field label={t('card.labels.gender')} value={person.gender ? t(`card.gender.${person.gender}`, person.gender) : '—'} />
             <Field label={t('card.labels.marital_status')} value={person.marital_status ? t(`card.marital.${person.marital_status}`, person.marital_status) : '—'} />
             <Field label={t('card.labels.citizenship')} value={person.nationality} />
@@ -302,7 +304,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               <Field label={t('card.labels.group')} value={data.academic?.groupName} />
               <Field label={t('card.labels.year_level')} value={data.academic?.yearLevel ?? '—'} />
               <Field label={t('card.labels.year_start')} value={data.academic?.yearStart ?? '—'} />
-              <Field label={t('card.labels.enrolled_at')} value={formatDate(data.academic?.enrolledAt ?? null)} />
+              <Field label={t('card.labels.enrolled_at')} value={formatDate(data.academic?.enrolledAt ?? null, lang)} />
             </div>
             {/* Учебный цикл */}
             {studyLifecycle && (
@@ -363,7 +365,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
                 </span>
               </div>
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
-                {cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt)}
+                {cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt, lang)}
               </div>
             </div>
           </div>
