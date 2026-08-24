@@ -8,6 +8,8 @@ import { useEffect, useRef } from 'react'
  *   • фон (canonical z-index) + центрированную панель (surface/радиус/тень);
  *   • закрытие по Escape (везде) и — опционально — по клику по фону;
  *   • role="dialog" + aria-modal + перевод фокуса внутрь при открытии;
+ *   • ловушку фокуса (Tab/Shift+Tab не уходят на фон) + возврат фокуса на
+ *     элемент-триггер при закрытии — доступность для клавиатуры;
  *   • встроенную панель НЕ навязывает разметку — заголовок/тело/подвал остаются
  *     на совести вызывающего (миграция минимальна и сохраняет вид).
  *
@@ -39,16 +41,45 @@ export function Modal({
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return }
+      // Ловушка фокуса: Tab по кругу внутри панели, не выпускает на фон.
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusable = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(el => el.offsetParent !== null || el === document.activeElement)
+      if (focusable.length === 0) { e.preventDefault(); panel.focus(); return }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey) {
+        if (active === first || active === panel || !panel.contains(active)) {
+          e.preventDefault(); last.focus()
+        }
+      } else {
+        if (active === last) { e.preventDefault(); first.focus() }
+      }
+    }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  // Перевод фокуса внутрь диалога, если внутри ничего не сфокусировано
-  // (autoFocus-инпуты уже забирают фокус синхронно — их не трогаем).
+  // Перевод фокуса внутрь диалога при открытии (если внутри ничего не
+  // сфокусировано — autoFocus-инпуты забирают фокус синхронно, их не трогаем)
+  // и возврат фокуса на элемент-триггер при закрытии.
   useEffect(() => {
+    const prevActive = document.activeElement as HTMLElement | null
     const panel = panelRef.current
     if (panel && !panel.contains(document.activeElement)) panel.focus()
+    return () => {
+      if (prevActive && typeof prevActive.focus === 'function' && document.contains(prevActive)) {
+        prevActive.focus()
+      }
+    }
   }, [])
 
   return (
