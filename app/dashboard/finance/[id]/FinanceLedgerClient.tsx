@@ -7,6 +7,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { formatMoney } from '@/lib/finance/money'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
@@ -78,9 +79,6 @@ interface Props {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function fmtMoney(n: number) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 function initials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '—'
 }
@@ -279,11 +277,11 @@ export default function FinanceLedgerClient({
         <>
           {/* Totals */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            <TotalCard label={t('ledger.balance')} value={fmtMoney(ledger.totals.balance)} color={owes ? '#DC2626' : '#059669'} strong />
-            <TotalCard label={t('ledger.charges_total')} value={fmtMoney(ledger.totals.charges_active)} color="var(--text)" />
-            <TotalCard label={t('ledger.payments_approved')} value={fmtMoney(ledger.totals.payments_approved)} color="var(--text)" />
-            <TotalCard label={t('ledger.payments_pending')} value={fmtMoney(ledger.totals.payments_pending)} color="#D97706" />
-            <TotalCard label={t('ledger.discounts_total')} value={fmtMoney(ledger.totals.discounts_total)} color="#7C3AED" />
+            <TotalCard label={t('ledger.balance')} value={formatMoney(ledger.totals.balance)} color={owes ? '#DC2626' : '#059669'} strong />
+            <TotalCard label={t('ledger.charges_total')} value={formatMoney(ledger.totals.charges_active)} color="var(--text)" />
+            <TotalCard label={t('ledger.payments_approved')} value={formatMoney(ledger.totals.payments_approved)} color="var(--text)" />
+            <TotalCard label={t('ledger.payments_pending')} value={formatMoney(ledger.totals.payments_pending)} color="#D97706" />
+            <TotalCard label={t('ledger.discounts_total')} value={formatMoney(ledger.totals.discounts_total)} color="#7C3AED" />
           </div>
 
           {ledger.contract && (
@@ -293,7 +291,7 @@ export default function FinanceLedgerClient({
                 <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_discount')}: <b>{ledger.contract.tuition_discount_percent}%</b></span>
               )}
               {ledger.contract.support_amount != null && (
-                <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_support')}: <b>{fmtMoney(ledger.contract.support_amount)}</b></span>
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('ledger.contract_support')}: <b>{formatMoney(ledger.contract.support_amount)}</b></span>
               )}
               {ledger.contract.benefits_notes && (
                 <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{ledger.contract.benefits_notes}</span>
@@ -331,7 +329,7 @@ export default function FinanceLedgerClient({
                     <td style={td}>{c.description}</td>
                     <td style={td}>{c.period_label || '—'}</td>
                     <td style={td}>{c.due_date || '—'}</td>
-                    <td style={tdNum}>{fmtMoney(c.amount)}</td>
+                    <td style={tdNum}>{formatMoney(c.amount)}</td>
                     <td style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {canCreateInvoice && (
@@ -351,7 +349,7 @@ export default function FinanceLedgerClient({
                       <td colSpan={6} style={{ ...td, background: 'var(--surface-2)', paddingTop: 6, paddingBottom: 8 }}>
                         {c.discounts.map(d => (
                           <div key={d.id} style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-                            <span style={{ fontWeight: 600, color: '#7C3AED', fontVariantNumeric: 'tabular-nums' }}>−{fmtMoney(d.amount)} ({d.percent}%)</span>
+                            <span style={{ fontWeight: 600, color: '#7C3AED', fontVariantNumeric: 'tabular-nums' }}>−{formatMoney(d.amount)} ({d.percent}%)</span>
                             {d.reason && <span>{d.reason}</span>}
                             <span style={{ color: 'var(--text-faint)' }}>
                               {t('ledger.signed_by')
@@ -361,7 +359,7 @@ export default function FinanceLedgerClient({
                           </div>
                         ))}
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>
-                          {t('ledger.remaining')}: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(remaining)}</span>
+                          {t('ledger.remaining')}: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatMoney(remaining)}</span>
                         </div>
                       </td>
                     </tr>
@@ -459,7 +457,7 @@ export default function FinanceLedgerClient({
                       )}
                     </td>
                     <td style={td}>{p.reference || '—'}</td>
-                    <td style={tdNum}>{fmtMoney(p.amount)}</td>
+                    <td style={tdNum}>{formatMoney(p.amount)}</td>
                     <td style={td}><StatusBadge kind={p.status} label={t(`status.${p.status}`)} /></td>
                     <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <RowActionsMenu

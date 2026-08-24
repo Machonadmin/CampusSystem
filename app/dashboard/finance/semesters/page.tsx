@@ -7,6 +7,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import SemesterStudentsModal from './SemesterStudentsModal'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Semester {
   id: string
@@ -18,9 +19,6 @@ interface Semester {
   created_at: string
 }
 
-function fmtMoney(n: number) {
-  return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })
-}
 
 /**
  * Финансовый вид семестров: цена, привязка студенток и долг. Семестры
@@ -104,7 +102,7 @@ export default function SemestersPage() {
                     style={{ ...inp, width: '100%' }}
                   />
                 ) : (
-                  <div style={{ fontSize: 15, fontWeight: 700, color: primary }}>{fmtMoney(s.price)}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: primary }}>{formatMoney(s.price)}</div>
                 )}
               </div>
 

@@ -10,6 +10,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 import ShabbatPanel from './ShabbatPanel'
+import { formatMoney } from '@/lib/finance/money'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,7 +57,7 @@ function num(v: number | string | null | undefined): number {
 }
 
 function fmtMoney(v: number | string | null | undefined): string {
-  return num(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return formatMoney(num(v))
 }
 
 function fmtHours(v: number | string | null | undefined): string {

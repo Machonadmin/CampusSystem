@@ -12,6 +12,7 @@ import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donatio
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import { isValidEmail } from '@/lib/contacts/directory'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Sponsor {
   id: string
@@ -40,10 +41,6 @@ interface FormState {
 const EMPTY_FORM: FormState = {
   name: '', sponsor_type: 'individual', email: '', phone: '',
   address: '', contact_person: '', notes: '', is_active: true,
-}
-
-function fmtMoney(n: number) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export default function SponsorsClient({ canManage }: { canManage: boolean }) {
@@ -193,8 +190,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12,
         }}>
-          <StatCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="var(--success)" />
-          <StatCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="var(--warn)" />
+          <StatCard label={t('stats.total_received')} value={formatMoney(stats.total_received)} color="var(--success)" />
+          <StatCard label={t('stats.total_pledged')} value={formatMoney(stats.total_pledged)} color="var(--warn)" />
           <StatCard label={t('stats.donors')} value={String(sponsors.length)} color="var(--text)" />
         </div>
       )}
@@ -310,7 +307,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                       </span>
                     </td>
                     <td style={td}>{s.phone || '—'}</td>
-                    <td style={tdNum}>{fmtMoney(s.total_received)}</td>
+                    <td style={tdNum}>{formatMoney(s.total_received)}</td>
                     <td style={td}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,

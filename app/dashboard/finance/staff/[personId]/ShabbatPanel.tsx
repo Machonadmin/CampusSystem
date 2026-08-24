@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
+import { formatMoney } from '@/lib/finance/money'
 
 type ShabbatType = 'shabbat_host' | 'shabbat_family'
 
@@ -97,7 +98,7 @@ export default function ShabbatPanel({ personId, canManage, year, month, onChang
   const fmtAmount = (v: number | string | null): string => {
     if (v == null) return '—'
     const n = typeof v === 'number' ? v : Number(v)
-    return Number.isFinite(n) ? n.toLocaleString() : '—'
+    return Number.isFinite(n) ? formatMoney(n) : '—'
   }
   const typeLabel = (ty: ShabbatType): string => t(`sh_type_${ty === 'shabbat_host' ? 'host' : 'family'}`)
 
