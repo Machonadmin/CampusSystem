@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
 import { formatMoney } from '@/lib/finance/money'
+import { intlLocale } from '@/lib/i18n/format-date'
 
 type ShabbatType = 'shabbat_host' | 'shabbat_family'
 
@@ -37,6 +38,7 @@ export default function ShabbatPanel({ personId, canManage, year, month, onChang
   onChanged: () => void
 }) {
   const t = useTranslations('finance.staff')
+  const { lang } = useLang()
   const primary = getModuleColor('finance', 'primary')
 
   const [events, setEvents] = useState<ShabbatEvent[]>([])
@@ -92,7 +94,7 @@ export default function ShabbatPanel({ personId, canManage, year, month, onChang
     try {
       const dt = new Date(`${d}T00:00:00Z`)
       if (isNaN(dt.getTime())) return d
-      return dt.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
+      return dt.toLocaleDateString(intlLocale(lang), { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
     } catch { return d }
   }
   const fmtAmount = (v: number | string | null): string => {
