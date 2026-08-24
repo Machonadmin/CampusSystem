@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -28,15 +29,12 @@ interface Props {
 
 // ── Хелперы ───────────────────────────────────────────────────────────────────
 
-function localeFor(lang: string): string {
-  return lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
-}
 
 // 2024-01-01 — понедельник; стабильный якорь для локализованных имён дней.
 // wd — ISO 1=Пн..7=Вс, Date.UTC(2024,0,wd) даёт нужный день.
 function weekdayLabel(lang: string, wd: number, format: 'short' | 'long'): string {
   const d = new Date(Date.UTC(2024, 0, wd))
-  return d.toLocaleDateString(localeFor(lang), { weekday: format, timeZone: 'UTC' })
+  return d.toLocaleDateString(intlLocale(lang), { weekday: format, timeZone: 'UTC' })
 }
 
 /** 'HH:MM:SS' | 'HH:MM' → 'HH:MM'. */

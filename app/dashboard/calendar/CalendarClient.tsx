@@ -19,7 +19,7 @@ import {
 } from '@/lib/calendar/schedule'
 import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthday'
 import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
-import { formatDate } from '@/lib/i18n/format-date'
+import { intlLocale, formatDate } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -33,8 +33,6 @@ import type {
 
 // ─── Чистые date-хелперы клиента (UTC-арифметика, стабильна к DST) ───────────
 
-const LOCALE_MAP: Record<string, string> = { ru: 'ru-RU', he: 'he-IL', en: 'en-US' }
-function localeOf(lang: string): string { return LOCALE_MAP[lang] ?? 'ru-RU' }
 
 function pad2(n: number): string { return n < 10 ? `0${n}` : `${n}` }
 
@@ -103,7 +101,7 @@ export default function CalendarClient() {
   const t = useTranslations('calendar')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
-  const locale = localeOf(lang)
+  const locale = intlLocale(lang)
 
   const primary = getModuleColor('dashboard', 'primary')
   const light = getModuleColor('dashboard', 'light')

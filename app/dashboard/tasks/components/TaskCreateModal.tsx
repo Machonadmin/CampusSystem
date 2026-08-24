@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
@@ -19,23 +20,20 @@ interface Watcher   { id: string; full_name: string }
 
 // ── Locale-aware calendar helpers (Intl instead of hand-rolled name tables) ──
 
-function localeFor(lang: string): string {
-  return lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
-}
 
 // 2024-01-01 is a Monday — used as a stable anchor week to derive localized weekday names.
 function weekdayLabel(lang: string, wd: number, format: 'short' | 'long'): string {
   const d = new Date(Date.UTC(2024, 0, wd))
-  return d.toLocaleDateString(localeFor(lang), { weekday: format, timeZone: 'UTC' })
+  return d.toLocaleDateString(intlLocale(lang), { weekday: format, timeZone: 'UTC' })
 }
 
 function monthLabel(lang: string, month1to12: number): string {
   const d = new Date(Date.UTC(2024, month1to12 - 1, 1))
-  return d.toLocaleDateString(localeFor(lang), { month: 'long', timeZone: 'UTC' })
+  return d.toLocaleDateString(intlLocale(lang), { month: 'long', timeZone: 'UTC' })
 }
 
 function formatFullDate(lang: string, iso: string): string {
-  return new Date(iso + 'T00:00:00Z').toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString(intlLocale(lang), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
 const PRIORITY_VALUES = ['urgent', 'high', 'normal', 'low'] as const

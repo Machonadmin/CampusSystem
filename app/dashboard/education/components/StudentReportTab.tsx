@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 
 // ── Типы (форма ответа GET /api/education/journeys/[id]/report) ────────────────
@@ -76,7 +77,7 @@ function subjectName(subject: GroupReport['subject'], lang: string): string {
 
 function formatDate(lang: string, iso: string | null): string {
   if (!iso) return ''
-  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const locale = intlLocale(lang)
   return new Date(iso + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 

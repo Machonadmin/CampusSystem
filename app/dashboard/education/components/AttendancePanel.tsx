@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import LessonNotes from '@/components/education/LessonNotes'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -43,7 +44,7 @@ const STATUS_COLORS: Record<AttendanceStatus, { color: string; bg: string; borde
 }
 
 function formatDate(lang: string, iso: string): string {
-  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const locale = intlLocale(lang)
   return new Date(iso + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 

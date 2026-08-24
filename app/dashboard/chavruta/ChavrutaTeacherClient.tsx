@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -170,7 +171,7 @@ export default function ChavrutaTeacherClient() {
 
   const fmtAmount = (n: number | null): string => {
     if (n === null || n === undefined) return ''
-    try { return new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US').format(n) }
+    try { return new Intl.NumberFormat(intlLocale(lang)).format(n) }
     catch { return String(n) }
   }
 
