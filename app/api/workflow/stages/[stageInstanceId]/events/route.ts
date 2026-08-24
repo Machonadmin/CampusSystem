@@ -67,7 +67,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       author: { full_name: string } | null;
     }
 
-    const result = (data ?? []).map((ev: RawEvent) => ({
+    const result = ((data ?? []) as unknown as RawEvent[]).map(ev => ({
       id: ev.id,
       event_type: ev.event_type,
       content: ev.content,
