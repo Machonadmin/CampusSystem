@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Enrollment {
   journey_id: string
@@ -99,7 +100,7 @@ export default function SemesterStudentsModal({ semesterId, title, onClose }: {
     } catch { toast(t('save_failed'), 'error') }
   }
 
-  const fmtMoney = (n: number | null) => n == null ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })
+  const fmtMoney = (n: number | null) => n == null ? '' : formatMoney(n)
   const inp: React.CSSProperties = {
     width: '100%', fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)',
     borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box', outline: 'none',

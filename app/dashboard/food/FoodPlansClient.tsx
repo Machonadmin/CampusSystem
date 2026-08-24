@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Plan {
   id: string
@@ -22,9 +23,6 @@ interface Plan {
   active_count: number
 }
 
-function fmtPrice(n: number) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
   const router = useRouter()
@@ -178,7 +176,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
                 <span style={{ fontSize: 13, fontWeight: 700, color: primary }}>
                   {t('list.enrolled')}: {p.active_count}
                 </span>
-                {p.price !== null && <span style={{ fontSize: 13, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{fmtPrice(p.price)}</span>}
+                {p.price !== null && <span style={{ fontSize: 13, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{formatMoney(p.price)}</span>}
               </div>
             </div>
           ))}

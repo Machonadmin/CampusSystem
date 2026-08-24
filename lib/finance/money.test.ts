@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toCents, sumCents, centsToNumber, computeLedgerTotals } from './money'
+import { toCents, sumCents, centsToNumber, computeLedgerTotals, formatMoney } from './money'
 
 describe('toCents', () => {
   it('переводит число в целые копейки', () => {
@@ -43,6 +43,30 @@ describe('centsToNumber', () => {
     expect(centsToNumber(123456)).toBe(1234.56)
     expect(centsToNumber(0)).toBe(0)
     expect(centsToNumber(-1050)).toBe(-10.5)
+  })
+})
+
+describe('formatMoney', () => {
+  it('всегда два знака после запятой', () => {
+    expect(formatMoney(0)).toBe('0.00')
+    expect(formatMoney(5)).toBe('5.00')
+    expect(formatMoney(5.1)).toBe('5.10')
+    expect(formatMoney(5.125)).toBe('5.13') // округление до копейки
+  })
+
+  it('принимает строку от PostgREST', () => {
+    expect(formatMoney('7.1')).toBe('7.10')
+    expect(formatMoney('0')).toBe('0.00')
+  })
+
+  it('отрицательные суммы', () => {
+    expect(formatMoney(-3.2)).toBe('-3.20')
+  })
+
+  it('нечисловой/пустой ввод → 0.00 (плейсхолдер — на стороне вызывающего)', () => {
+    expect(formatMoney('' as unknown as number)).toBe('0.00')
+    expect(formatMoney('abc' as unknown as number)).toBe('0.00')
+    expect(formatMoney(NaN)).toBe('0.00')
   })
 })
 

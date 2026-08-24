@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { formatMoney } from '@/lib/finance/money'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -27,10 +28,6 @@ interface FinanceStudent {
 
 function initials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '—'
-}
-
-function fmtMoney(n: number) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -266,10 +263,10 @@ export default function FinancePage() {
                         <span style={{ fontWeight: 500 }}>{s.full_name || '—'}</span>
                       </div>
                     </td>
-                    <td style={tdNum}>{fmtMoney(s.charges_total)}</td>
-                    <td style={tdNum}>{fmtMoney(s.payments_total)}</td>
+                    <td style={tdNum}>{formatMoney(s.charges_total)}</td>
+                    <td style={tdNum}>{formatMoney(s.payments_total)}</td>
                     <td style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
-                      {fmtMoney(s.balance)}
+                      {formatMoney(s.balance)}
                     </td>
                   </tr>
                 )

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { getModuleColor } from '@/lib/module-colors'
 import type { StudentOverview } from '@/lib/students/overview'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Props {
   journeyId: string
@@ -16,11 +17,6 @@ function formatDate(lang: string, iso: string | null): string {
   if (!iso) return '—'
   const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
   return new Date(iso + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-/** Денежная сумма — тот же формат, что модуль «Финансы» (2 знака, без символа). */
-function formatMoney(n: number): string {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /** Цвет для уровня риска психолог-карты. */

@@ -11,6 +11,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
 import type { SponsorRow } from '@/types/database'
+import { formatMoney } from '@/lib/finance/money'
 
 interface Donation {
   id: string
@@ -48,9 +49,6 @@ interface SponsorForm {
   is_active: boolean
 }
 
-function fmtMoney(n: number) {
-  return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 export default function SponsorDetailClient({
   sponsor: initialSponsor, canManage,
@@ -350,9 +348,9 @@ export default function SponsorDetailClient({
       {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <TotalCard label={t('stats.total_received')} value={fmtMoney(stats.total_received)} color="var(--success)" />
-          <TotalCard label={t('stats.total_pledged')} value={fmtMoney(stats.total_pledged)} color="var(--warn)" />
-          <TotalCard label={t('stats.total_cancelled')} value={fmtMoney(stats.total_cancelled)} color="var(--text-faint)" />
+          <TotalCard label={t('stats.total_received')} value={formatMoney(stats.total_received)} color="var(--success)" />
+          <TotalCard label={t('stats.total_pledged')} value={formatMoney(stats.total_pledged)} color="var(--warn)" />
+          <TotalCard label={t('stats.total_cancelled')} value={formatMoney(stats.total_cancelled)} color="var(--text-faint)" />
         </div>
       )}
 
@@ -367,7 +365,7 @@ export default function SponsorDetailClient({
           </span>
           {campaignEntries.map(([name, total]) => (
             <span key={name} style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: light, color: 'var(--warn)' }}>
-              {name} · {fmtMoney(total)}
+              {name} · {formatMoney(total)}
             </span>
           ))}
         </div>
@@ -457,7 +455,7 @@ export default function SponsorDetailClient({
                             {d.donation_date}
                           </span>
                         </td>
-                        <td style={tdNum}>{fmtMoney(d.amount)}</td>
+                        <td style={tdNum}>{formatMoney(d.amount)}</td>
                         <td style={td}>{d.purpose || '—'}</td>
                         <td style={td}><StatusBadge status={d.status} label={t(`statuses.${d.status}`)} /></td>
                         {canManage && (

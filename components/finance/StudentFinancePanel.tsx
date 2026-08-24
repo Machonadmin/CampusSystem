@@ -5,6 +5,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { formatMoney } from '@/lib/finance/money'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -13,10 +14,6 @@ interface Access {
   can_manage: boolean
   can_manage_access: boolean
   portal_visible: boolean
-}
-
-function fmtMoney(n: number) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /**
@@ -119,7 +116,7 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
           <div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('balance')}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: balance === null ? 'var(--text-faint)' : (owes ? '#DC2626' : '#059669'), fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-              {balance === null ? '—' : fmtMoney(balance)}
+              {balance === null ? '—' : formatMoney(balance)}
             </div>
           </div>
           <a

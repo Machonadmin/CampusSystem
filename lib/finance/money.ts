@@ -19,6 +19,20 @@ export function centsToNumber(cents: number): number {
   return Math.round(cents) / 100
 }
 
+/**
+ * Денежная сумма → строка для показа, ВСЕГДА с двумя знаками после запятой
+ * (валютный формат: ₪1,200.00, а не ₪1,200). Единый формат вместо ~9 локальных
+ * копий, которые расходились (часть показывала 0–2 знака, часть — «сырой»
+ * toLocaleString). Группировка разрядов берётся из локали среды (undefined).
+ * Нечисловой/пустой ввод → '0.00'; вызывающий, которому нужен свой плейсхолдер
+ * для null (например '—' или ''), проверяет это ДО вызова.
+ */
+export function formatMoney(amount: number | string): string {
+  const n = Number(amount)
+  if (!Number.isFinite(n)) return '0.00'
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 interface ChargeRow { amount: number | string; status: string }
 interface PaymentRow { amount: number | string; status: string }
 
