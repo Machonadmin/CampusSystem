@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -65,9 +66,9 @@ function fmtHours(v: number | string | null | undefined): string {
   return n === 0 ? '—' : String(n)
 }
 
-function fmtDate(d: string | null): string {
+function fmtDate(d: string | null, lang: string): string {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return new Date(d).toLocaleDateString(intlLocale(lang), { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -178,6 +179,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
   const t = useTranslations('finance.staff')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const primary = getModuleColor('finance', 'primary')
 
   const now = new Date()
@@ -482,7 +484,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 {approved ? (
                   <span style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99, background: 'var(--success-tint)', color: 'var(--success)' }}>
-                    {t('approved')} · {fmtDate(payslip?.approved_at ?? null)}
+                    {t('approved')} · {fmtDate(payslip?.approved_at ?? null, lang)}
                   </span>
                 ) : canApprove && (
                   <button onClick={approve} disabled={approving}
@@ -574,7 +576,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                       ) : (
                         <tr key={en.id}>
                           <td style={td}>{t(`types.${en.entry_type}`, en.entry_type)}</td>
-                          <td style={td}>{fmtDate(en.entry_date)}</td>
+                          <td style={td}>{fmtDate(en.entry_date, lang)}</td>
                           <td style={tdNum}>{fmtHours(en.hours)}</td>
                           <td style={tdNum}>{fmtMoney(en.amount)}</td>
                           <td style={td}>

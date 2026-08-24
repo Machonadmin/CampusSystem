@@ -6,7 +6,8 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -23,9 +24,9 @@ interface Grant {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(d: string | null): string {
+function formatDate(d: string | null, lang: string): string {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return new Date(d).toLocaleDateString(intlLocale(lang), { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -33,6 +34,7 @@ function formatDate(d: string | null): string {
 export default function FinanceAccessPage() {
   const t = useTranslations('finance.access')
   const tNav = useTranslations('navigation')
+  const { lang } = useLang()
 
   const [grants, setGrants] = useState<Grant[]>([])
   const [loading, setLoading] = useState(true)
@@ -192,7 +194,7 @@ export default function FinanceAccessPage() {
                           ? <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 99, background: 'var(--surface-2)', color: primary, fontWeight: 600 }}>{t('scope_all')}</span>
                           : (g.journey_name || '—')}
                       </td>
-                      <td style={td}>{formatDate(g.created_at)}</td>
+                      <td style={td}>{formatDate(g.created_at, lang)}</td>
                       <td style={{ ...td, textAlign: 'end' }}>
                         <button
                           onClick={() => revoke(g.id)}
