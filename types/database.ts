@@ -1,3 +1,7 @@
+// Tables the curated Database interface below does not hand-maintain are pulled
+// from the auto-generated schema so their Row/Insert/Update stay authoritative.
+import type { Database as GeneratedDatabase } from './database.generated'
+
 export type Json =
   | string
   | number
@@ -1949,6 +1953,11 @@ type T<Row, Insert, Update> = {
   Relationships: never[]
 }
 
+// Pulls a table's {Row, Insert, Update, Relationships} straight from the
+// auto-generated schema — used for tables not hand-maintained above.
+type Gen<K extends keyof GeneratedDatabase['public']['Tables']> =
+  GeneratedDatabase['public']['Tables'][K]
+
 export interface Database {
   public: {
     Tables: {
@@ -2035,6 +2044,41 @@ export interface Database {
       donations:                 T<DonationRow,                  DonationInsert,                  DonationUpdate>
       appointments:              T<AppointmentRow,               AppointmentInsert,               AppointmentUpdate>
       calendar_blocks:           T<CalendarBlockRow,             CalendarBlockInsert,             CalendarBlockUpdate>
+      // ─── Tables pulled from the auto-generated schema (not hand-maintained) ───
+      absence_cases: Gen<'absence_cases'>
+      academic_year_settings: Gen<'academic_year_settings'>
+      admission_contracts: Gen<'admission_contracts'>
+      appointment_attendees: Gen<'appointment_attendees'>
+      buildings: Gen<'buildings'>
+      chavruta_pairs: Gen<'chavruta_pairs'>
+      chavruta_plus_assignments: Gen<'chavruta_plus_assignments'>
+      chavruta_teachers: Gen<'chavruta_teachers'>
+      finance_access_grants: Gen<'finance_access_grants'>
+      finance_discounts: Gen<'finance_discounts'>
+      jewishness_status_history: Gen<'jewishness_status_history'>
+      journey_structures: Gen<'journey_structures'>
+      journey_study_plans: Gen<'journey_study_plans'>
+      kodesh_exceptions: Gen<'kodesh_exceptions'>
+      lesson_notes: Gen<'lesson_notes'>
+      lesson_roster_overrides: Gen<'lesson_roster_overrides'>
+      process_events: Gen<'process_events'>
+      rooms: Gen<'rooms'>
+      semester_enrollments: Gen<'semester_enrollments'>
+      semesters: Gen<'semesters'>
+      staff_compensation: Gen<'staff_compensation'>
+      staff_event_attendees: Gen<'staff_event_attendees'>
+      staff_payslips: Gen<'staff_payslips'>
+      staff_work_entries: Gen<'staff_work_entries'>
+      student_credentials: Gen<'student_credentials'>
+      student_evaluations: Gen<'student_evaluations'>
+      student_messages: Gen<'student_messages'>
+      student_personal_events: Gen<'student_personal_events'>
+      teacher_attendance: Gen<'teacher_attendance'>
+      teacher_attendance_grants: Gen<'teacher_attendance_grants'>
+      teaching_survey_answers: Gen<'teaching_survey_answers'>
+      teaching_survey_questions: Gen<'teaching_survey_questions'>
+      teaching_survey_responses: Gen<'teaching_survey_responses'>
+      teaching_surveys: Gen<'teaching_surveys'>
     }
     Views: Record<string, never>
     Functions: {
