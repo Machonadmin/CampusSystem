@@ -44,7 +44,7 @@ export default function AdmissionTab() {
       const phones = flattenPhones(a.person?.phones)
       const interestTexts = (a.interests ?? []).map(interestLabel).filter(Boolean)
       const direction = interestTexts.length > 0 ? interestTexts.join('; ') : (a.desired_specialty?.name ?? a.desired_department?.name ?? '')
-      return [a.person?.full_name ?? '', phones.join(' '), a.person?.email ?? '', a.primary_department?.name ?? '', direction, formatDate(a.application_date)]
+      return [a.person?.full_name ?? '', phones.join(' '), a.person?.email ?? '', a.primary_department?.name ?? '', direction, formatDate(a.application_date, lang)]
     })
     downloadCsv('applicants', [headers, ...rows])
   }
@@ -151,7 +151,7 @@ export default function AdmissionTab() {
                     <tr style={{ background: 'var(--surface-2)' }}>
                       <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
-                          <ApplicantDetail label={t('applicants.table.application_date')} value={formatDate(app.application_date)} />
+                          <ApplicantDetail label={t('applicants.table.application_date')} value={formatDate(app.application_date, lang)} />
                           <ApplicantDetail label={t('applicants.table.email')} value={app.person?.email ?? '—'} />
                           <ApplicantDetail label={t('applicants.table.institution')} value={app.primary_department?.name ?? '—'} />
                           <ApplicantDetail label={t('applicants.table.direction')} value={direction} />
