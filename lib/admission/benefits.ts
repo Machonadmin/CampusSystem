@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 /**
@@ -75,9 +74,8 @@ export async function setAdmissionBenefits(
   if ('supportAmount' in benefits) patch.support_amount = benefits.supportAmount
   if ('benefitsNotes' in benefits) patch.benefits_notes = benefits.benefitsNotes
 
-  const u = sb as unknown as SupabaseClient
   try {
-    const { error } = await u.from('education_journeys').update(patch).eq('id', journeyId)
+    const { error } = await sb.from('education_journeys').update(patch).eq('id', journeyId)
     if (error) {
       if (MISSING.has((error as { code?: string }).code ?? '')) return false
       throw error
@@ -113,9 +111,8 @@ export async function getActiveContract(
   sb: SB,
   journeyId: string,
 ): Promise<AdmissionContract | null> {
-  const u = sb as unknown as SupabaseClient
   try {
-    const { data, error } = await u
+    const { data, error } = await sb
       .from('admission_contracts')
       .select('id, journey_id, tuition_discount_percent, support_amount, benefits_notes, status, created_at')
       .eq('journey_id', journeyId)
@@ -137,11 +134,10 @@ export async function createAdmissionContract(
   opts: { journeyId: string; createdBy: string | null },
 ): Promise<'created' | 'exists' | 'skipped'> {
   const { journeyId, createdBy } = opts
-  const u = sb as unknown as SupabaseClient
 
   try {
     // Уже есть действующий договор? (uq по journey_id WHERE status='active')
-    const { data: existing, error: exErr } = await u
+    const { data: existing, error: exErr } = await sb
       .from('admission_contracts')
       .select('id')
       .eq('journey_id', journeyId)
@@ -154,7 +150,7 @@ export async function createAdmissionContract(
     if (existing) return 'exists'
 
     // Копируем льготы из профиля (select '*' — деплой-безопасно).
-    const { data: journey, error: jErr } = await u
+    const { data: journey, error: jErr } = await sb
       .from('education_journeys')
       .select('*')
       .eq('id', journeyId)
@@ -165,7 +161,7 @@ export async function createAdmissionContract(
     }
     const j = (journey ?? {}) as Record<string, unknown>
 
-    const { error: insErr } = await u.from('admission_contracts').insert({
+    const { error: insErr } = await sb.from('admission_contracts').insert({
       journey_id: journeyId,
       tuition_discount_percent: (j.tuition_discount_percent as number | null) ?? null,
       support_amount: (j.support_amount as number | null) ?? null,

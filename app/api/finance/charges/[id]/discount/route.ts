@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -16,9 +15,6 @@ import { toCents, centsToNumber } from '@/lib/finance/money'
  *
  * POST body: { percent: number, reason?: string, typed_name?: string }
  */
-function u(sb: ReturnType<typeof createServerClient>) {
-  return sb as unknown as SupabaseClient
-}
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -57,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Уже выданные скидки по этому счёту — чтобы не превысить сумму счёта.
     let existingCents = 0
     try {
-      const { data: existing, error } = await u(sb).from('finance_discounts')
+      const { data: existing, error } = await sb.from('finance_discounts')
         .select('amount').eq('charge_id', params.id)
       if (error) throw error
       for (const d of (existing ?? []) as Array<{ amount: number | string }>) existingCents += toCents(d.amount)
@@ -71,7 +67,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (remaining <= 0) return apiError('discount_exceeds_charge', 400)
     if (discountCents > remaining) discountCents = remaining // не превышаем сумму счёта
 
-    const { data, error } = await u(sb).from('finance_discounts')
+    const { data, error } = await sb.from('finance_discounts')
       .insert({
         charge_id: params.id,
         percent,

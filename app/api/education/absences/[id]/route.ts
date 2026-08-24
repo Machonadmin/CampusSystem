@@ -1,9 +1,10 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
-import { u, notifyDepartmentAbsence } from '@/lib/education/absence-cases'
+import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 
 /**
  * PATCH /api/education/absences/[id]
@@ -20,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     const sb = createServerClient()
     try {
-      const { data: row } = await u(sb).from('absence_cases').select('id, journey_id, assigned_department_id, note, status').eq('id', params.id).maybeSingle()
+      const { data: row } = await sb.from('absence_cases').select('id, journey_id, assigned_department_id, note, status').eq('id', params.id).maybeSingle()
       if (!row) return apiError('substage_not_found', 404)
       const caseRow = row as { id: string; journey_id: string; assigned_department_id: string | null; note: string | null; status: string }
 
@@ -30,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (!canAct) return apiError('forbidden', 403)
 
       const body = await request.json().catch(() => ({})) as { department_id?: string; status?: string; resolution?: string }
-      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+      const patch: Database['public']['Tables']['absence_cases']['Update'] = { updated_at: new Date().toISOString() }
       let transferTo: string | null = null
 
       if (typeof body.department_id === 'string') {
@@ -49,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         }
       }
 
-      const { error } = await u(sb).from('absence_cases').update(patch).eq('id', params.id)
+      const { error } = await sb.from('absence_cases').update(patch).eq('id', params.id)
       if (error) throw error
 
       // Уведомление принимающему подразделению при передаче.

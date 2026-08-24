@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,7 +10,6 @@ import { canManageChavruta } from '@/lib/chavruta/access'
  * удаление: пара сохраняется для истории. Таблица chavruta_pairs — учебная,
  * БЕЗ влияния на зарплату. Право: manage staff-comp. Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -21,7 +19,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 
     const sb = createServerClient()
     try {
-      const { error } = await u(sb).from('chavruta_pairs')
+      const { error } = await sb.from('chavruta_pairs')
         .update({ is_active: false }).eq('id', params.id)
       if (error) throw error
     } catch (e) {

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -21,7 +20,6 @@ import type { JourneyStatus } from '@/types/database'
  *          Право: manage chavruta (staff-comp ЛИБО manage_students).
  * Деплой-безопасно (42P01 → пустая сводка).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 /** Карта personId/journeyId → имя (full_name ∥ hebrew_name). */
 async function personNames(sb: ReturnType<typeof createServerClient>, ids: string[]): Promise<Map<string, string>> {
@@ -61,7 +59,7 @@ export async function GET() {
     // Активные пары.
     let rows: Array<{ id: string; teacher_person_id: string; student_journey_id: string }> = []
     try {
-      const { data, error } = await u(sb).from('chavruta_pairs')
+      const { data, error } = await sb.from('chavruta_pairs')
         .select('id, teacher_person_id, student_journey_id')
         .eq('is_active', true)
         .order('created_at', { ascending: true })
@@ -112,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (!teacherId || !journeyId) return apiError('invalid_reference', 400)
 
     const sb = createServerClient()
-    const { data, error } = await u(sb).from('chavruta_pairs')
+    const { data, error } = await sb.from('chavruta_pairs')
       .insert({ teacher_person_id: teacherId, student_journey_id: journeyId, is_active: true, created_by: session.person_id })
       .select('id, teacher_person_id, student_journey_id, is_active')
       .single()
@@ -120,7 +118,7 @@ export async function POST(request: NextRequest) {
       const code = (error as { code?: string }).code
       if (code === '42P01') return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
-        const { data: re } = await u(sb).from('chavruta_pairs')
+        const { data: re } = await sb.from('chavruta_pairs')
           .update({ is_active: true }).eq('teacher_person_id', teacherId).eq('student_journey_id', journeyId)
           .select('id, teacher_person_id, student_journey_id, is_active').single()
         return NextResponse.json({ assignment: re }, { status: 200 })

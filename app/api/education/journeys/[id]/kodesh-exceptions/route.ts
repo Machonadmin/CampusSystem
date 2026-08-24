@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -25,7 +24,7 @@ const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 // kodesh_exceptions ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — обращаемся к ней через нетипизированный клиент.
 function exc(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('kodesh_exceptions')
+  return sb.from('kodesh_exceptions')
 }
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {

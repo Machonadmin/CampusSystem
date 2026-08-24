@@ -3,7 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
-import { u, notifyDepartmentAbsence } from '@/lib/education/absence-cases'
+import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 
 /**
  * טיפול בהעדרויות — случаи отсутствия.
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
     const status = request.nextUrl.searchParams.get('status')?.trim()
     try {
-      let q = u(sb).from('absence_cases').select('*').order('opened_at', { ascending: false })
+      let q = sb.from('absence_cases').select('*').order('opened_at', { ascending: false })
       if (!isManager) q = q.in('assigned_department_id', myDepts)
       if (status && ['open', 'in_handling', 'resolved'].includes(status)) q = q.eq('status', status)
       const { data, error } = await q
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
     try {
-      const { data, error } = await u(sb).from('absence_cases').insert({
+      const { data, error } = await sb.from('absence_cases').insert({
         journey_id: journeyId,
         lesson_id: (body.lesson_id ?? '').trim() || null,
         absence_date: (body.absence_date ?? '').trim() || null,

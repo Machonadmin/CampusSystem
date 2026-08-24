@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -10,7 +9,6 @@ import { getSession } from '@/lib/auth/session'
  * принадлежит journey из сессии (eq journey_id) — ученица не может удалить
  * чужое. Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -22,7 +20,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 
     const sb = createServerClient()
     try {
-      const { error } = await u(sb).from('student_personal_events')
+      const { error } = await sb.from('student_personal_events')
         .delete()
         .eq('id', params.id)
         .eq('journey_id', session.student_journey_id)

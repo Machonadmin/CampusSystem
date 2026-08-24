@@ -3,7 +3,6 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds, hasEducationPrivilege } from '@/lib/education/permissions'
-import { u } from '@/lib/education/teaching-surveys'
 
 /**
  * הערכת הוראה — сборы обратной связи о преподавании.
@@ -34,12 +33,12 @@ export async function GET() {
     try {
       // department_id — новая колонка (deploy-safe: при 42703 читаем без неё).
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let raw = await (u(sb).from('teaching_surveys')
+      let raw = await (sb.from('teaching_surveys')
         .select('id, title, is_open, created_at, department_id').order('created_at', { ascending: false }) as any)
       let hasDept = true
       if (raw.error && raw.error.code === '42703') {
         hasDept = false
-        raw = await u(sb).from('teaching_surveys').select('id, title, is_open, created_at').order('created_at', { ascending: false })
+        raw = await sb.from('teaching_surveys').select('id, title, is_open, created_at').order('created_at', { ascending: false })
       }
       if (raw.error) throw raw.error
       let rows = (raw.data ?? []) as Array<{ id: string; title: string; is_open: boolean; created_at: string; department_id?: string | null }>
@@ -58,7 +57,7 @@ export async function GET() {
       // Кол-во откликов на сбор — для списка.
       const counts = new Map<string, number>()
       if (rows.length) {
-        const { data: resp } = await u(sb).from('teaching_survey_responses').select('survey_id').in('survey_id', rows.map(r => r.id))
+        const { data: resp } = await sb.from('teaching_survey_responses').select('survey_id').in('survey_id', rows.map(r => r.id))
         for (const r of (resp ?? []) as Array<{ survey_id: string }>) counts.set(r.survey_id, (counts.get(r.survey_id) ?? 0) + 1)
       }
       // Названия подразделений — для отображения в списке.
@@ -117,12 +116,12 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let ins = await (u(sb).from('teaching_surveys')
+      let ins = await (sb.from('teaching_surveys')
         .insert({ title, is_open: false, created_by: session.person_id, department_id: deptId } as any)
         .select('id, title, is_open, created_at, department_id').single() as any)
       if (ins.error && ins.error.code === '42703') {
         // Колонки ещё нет (деплой до миграции) — создаём legacy-сбор без неё.
-        ins = await u(sb).from('teaching_surveys')
+        ins = await sb.from('teaching_surveys')
           .insert({ title, is_open: false, created_by: session.person_id })
           .select('id, title, is_open, created_at').single()
       }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -13,9 +12,6 @@ import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
  * деплой-безопасны (untyped-клиент + мягкая деградация при 42703/42P01).
  */
 
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 async function requireAuth() {
   const session = await getSession()
@@ -44,7 +40,7 @@ export async function GET(
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: group, error } = await (u(sb)
+    const { data: group, error } = await (sb
       .from('class_groups')
       .select(DETAIL_SELECT)
       .eq('id', params.id)
@@ -65,7 +61,7 @@ export async function GET(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let teacherRows: any[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tRes = await (u(sb)
+    const tRes = await (sb
       .from('class_teachers')
       .select('teacher_id, is_primary, monthly_rate, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
       .eq('class_group_id', params.id) as any)
@@ -127,7 +123,7 @@ export async function GET(
     // year_level (новая колонка) — деплой-безопасно отдельным запросом.
     let year_level: number | null = null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ylRes = await (u(sb).from('class_groups').select('year_level').eq('id', params.id).maybeSingle() as any)
+    const ylRes = await (sb.from('class_groups').select('year_level').eq('id', params.id).maybeSingle() as any)
     if (!ylRes.error && ylRes.data) year_level = (ylRes.data as { year_level: number | null }).year_level ?? null
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -220,7 +216,7 @@ export async function PATCH(
 
     if (Object.keys(fullUpdate).length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: upErr } = await u(sb).from('class_groups').update(fullUpdate as any).eq('id', params.id)
+      const { error: upErr } = await sb.from('class_groups').update(fullUpdate as any).eq('id', params.id)
       if (upErr) {
         if (upErr.code === '42703') {
           // Оставляем только базовые колонки (name, department_id, period_*).
@@ -231,7 +227,7 @@ export async function PATCH(
           if (fullUpdate.period_end !== undefined) baseUpdate.period_end = fullUpdate.period_end
           if (Object.keys(baseUpdate).length > 0) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: baseErr } = await u(sb).from('class_groups').update(baseUpdate as any).eq('id', params.id)
+            const { error: baseErr } = await sb.from('class_groups').update(baseUpdate as any).eq('id', params.id)
             if (baseErr) {
               if (baseErr.code === '23505') return apiError('group_name_exists', 409)
               throw baseErr
@@ -252,7 +248,7 @@ export async function PATCH(
     // year_level — отдельным деплой-безопасным UPDATE (новая колонка).
     if (body.year_level !== undefined) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level ?? null } as any).eq('id', params.id) as any)
+      const { error: ylErr } = await (sb.from('class_groups').update({ year_level: body.year_level ?? null } as any).eq('id', params.id) as any)
       if (ylErr && ylErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Год (year_level) не обновлён: миграция studies_drilldown не применена.'
     }
 
@@ -262,7 +258,7 @@ export async function PATCH(
       if (body.name_he !== undefined) tr.name_he = body.name_he?.trim() || null
       if (body.name_en !== undefined) tr.name_en = body.name_en?.trim() || null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: trErr } = await (u(sb).from('class_groups').update(tr as any).eq('id', params.id) as any)
+      const { error: trErr } = await (sb.from('class_groups').update(tr as any).eq('id', params.id) as any)
       if (trErr && trErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
     }
 
@@ -305,7 +301,7 @@ export async function PATCH(
           }
         })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: addErr } = await u(sb).from('class_teachers').insert(addRows as any)
+        const { error: addErr } = await sb.from('class_teachers').insert(addRows as any)
         if (addErr) {
           if (addErr.code === '42703') {
             const baseRows = addRows.map(({ monthly_rate: _mr, ...rest }) => rest)
@@ -326,7 +322,7 @@ export async function PATCH(
           monthly_rate: t.monthly_rate ?? null,
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: uErr } = await u(sb)
+        const { error: uErr } = await sb
           .from('class_teachers')
           .update(upd as any)
           .eq('class_group_id', params.id)
@@ -334,7 +330,7 @@ export async function PATCH(
         if (uErr) {
           if (uErr.code === '42703') {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: uBaseErr } = await u(sb)
+            const { error: uBaseErr } = await sb
               .from('class_teachers')
               .update({ is_primary: t.is_primary ?? false } as any)
               .eq('class_group_id', params.id)
@@ -388,7 +384,7 @@ export async function PATCH(
           // Фаза 3: привязка = обязательство → открываем счёт tuition только для
           // ВНОВЬ добавленных студенток (идемпотентно). Отчисление денег не трогает.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const gInfo = await (u(sb).from('class_groups')
+          const gInfo = await (sb.from('class_groups')
             .select('tuition_amount, name, year_label, term_number')
             .eq('id', params.id).maybeSingle() as any)
           if (!gInfo.error && gInfo.data) {

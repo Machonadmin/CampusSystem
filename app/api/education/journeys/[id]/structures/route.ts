@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -18,9 +17,6 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
  * Деплой-безопасно: если таблицы ещё нет (миграция journey_structures не
  * применена) — GET отдаёт пустой список, POST/DELETE → 503.
  */
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -39,7 +35,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (u(sb)
+    const { data, error } = await (sb
       .from('journey_structures')
       .select('department_id, added_at, department:departments(id, name, name_he, name_en)')
       .eq('journey_id', params.id) as any)
@@ -66,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const sb = createServerClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await u(sb).from('journey_structures').insert({
+    const { error } = await sb.from('journey_structures').insert({
       journey_id: params.id, department_id: deptId, added_by: session.person_id,
     } as any)
     if (error) {
@@ -95,7 +91,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     const sb = createServerClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (u(sb).from('journey_structures').delete().eq('journey_id', params.id).eq('department_id', deptId) as any)
+    const { error } = await (sb.from('journey_structures').delete().eq('journey_id', params.id).eq('department_id', deptId) as any)
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ ok: true })
       throw error

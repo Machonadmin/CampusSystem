@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -13,7 +12,6 @@ import { canManageStaffComp, monthRange, lessonHours } from '@/lib/finance/staff
  * Идемпотентно (уникальный индекс person_id+source_lesson_id → повтор пропускает).
  * Право: manage. Деплой-безопасно.
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
   try {
@@ -31,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     // Персональная ставка.
     let hourly = 0
     try {
-      const { data: rate } = await u(sb).from('staff_compensation').select('hourly_rate').eq('person_id', params.personId).maybeSingle()
+      const { data: rate } = await sb.from('staff_compensation').select('hourly_rate').eq('person_id', params.personId).maybeSingle()
       hourly = Number((rate as { hourly_rate?: number } | null)?.hourly_rate ?? 0)
     } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
 
@@ -54,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       const hours = lessonHours(l.scheduled_time, l.scheduled_end_time)
       if (hours == null) { skipped++; continue } // без времён — не считаем
       const amount = Math.round(hours * hourly * 100) / 100
-      const { error } = await u(sb).from('staff_work_entries')
+      const { error } = await sb.from('staff_work_entries')
         .insert({
           person_id: params.personId, entry_type: 'teaching', entry_date: l.scheduled_date,
           hours, amount, source_lesson_id: l.id, created_by: session.person_id,

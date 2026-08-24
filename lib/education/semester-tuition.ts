@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 
@@ -17,9 +16,6 @@ import { isMissingRelation } from '@/lib/supabase/errors'
  */
 
 type ServerClient = ReturnType<typeof createServerClient>
-function u(sb: ServerClient): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 function code(e: unknown): string {
   return (e as { code?: string })?.code ?? ''
@@ -56,7 +52,7 @@ export async function ensureSemesterTuitionCharges(
   const already = new Set<string>()
   let linkColumnMissing = false
   {
-    const { data, error } = await u(sb)
+    const { data, error } = await sb
       .from('class_enrollments')
       .select('journey_id, tuition_charge_id')
       .eq('class_group_id', group.id)
@@ -77,7 +73,7 @@ export async function ensureSemesterTuitionCharges(
   let created = 0
   let warning: string | undefined
   for (const journeyId of todo) {
-    const { data: charge, error: cErr } = await u(sb)
+    const { data: charge, error: cErr } = await sb
       .from('finance_charges')
       .insert({
         journey_id: journeyId,
@@ -102,7 +98,7 @@ export async function ensureSemesterTuitionCharges(
 
     if (!linkColumnMissing) {
       const chargeId = (charge as { id: string }).id
-      const { error: linkErr } = await u(sb)
+      const { error: linkErr } = await sb
         .from('class_enrollments')
         .update({ tuition_charge_id: chargeId })
         .eq('class_group_id', group.id)

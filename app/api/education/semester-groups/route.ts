@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -26,9 +25,6 @@ import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
  */
 
 /** Untyped-клиент для новых колонок, которых пока нет в сгенерированных типах. */
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 // `*` вместо явного списка колонок — deploy-safe: возвращает name_he/name_en
 // сразу после применения миграции class_groups_multilang и просто опускает их
@@ -51,7 +47,7 @@ async function fetchYearLevels(
   const map = new Map<string, number | null>()
   if (groupIds.length === 0) return map
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (u(sb).from('class_groups').select('id, year_level').in('id', groupIds) as any)
+  const { data, error } = await (sb.from('class_groups').select('id, year_level').in('id', groupIds) as any)
   if (error) return map
   for (const r of (data ?? []) as Array<{ id: string; year_level: number | null }>) {
     map.set(r.id, r.year_level ?? null)
@@ -113,7 +109,7 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let qb = u(sb)
+    let qb = sb
       .from('class_groups')
       .select(SEMESTER_GROUP_SELECT)
       .eq('is_semester', true)
@@ -228,7 +224,7 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let group: any = null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ins = await (u(sb).from('class_groups').insert(fullInsert as any).select('id, department_id').single() as any)
+    const ins = await (sb.from('class_groups').insert(fullInsert as any).select('id, department_id').single() as any)
     if (ins.error) {
       if (ins.error.code === '42703') {
         const baseInsert: Record<string, unknown> = {
@@ -238,7 +234,7 @@ export async function POST(request: NextRequest) {
           period_end: body.period_end ?? null,
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const insBase = await (u(sb).from('class_groups').insert(baseInsert as any).select('id, department_id').single() as any)
+        const insBase = await (sb.from('class_groups').insert(baseInsert as any).select('id, department_id').single() as any)
         if (insBase.error) {
           if (insBase.error.code === '23505') return apiError('study_group_name_exists', 409)
           if (insBase.error.code === '23503') return apiError('invalid_reference', 400)
@@ -263,7 +259,7 @@ export async function POST(request: NextRequest) {
     // отсутствие этой новой колонки не роняло основную вставку с остальными полями.
     if (body.year_level != null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: ylErr } = await (u(sb).from('class_groups').update({ year_level: body.year_level } as any).eq('id', groupId) as any)
+      const { error: ylErr } = await (sb.from('class_groups').update({ year_level: body.year_level } as any).eq('id', groupId) as any)
       if (ylErr && ylErr.code === '42703') {
         warning = (warning ? warning + ' ' : '') + 'Год (year_level) не сохранён: миграция studies_drilldown ещё не применена.'
       }
@@ -272,7 +268,7 @@ export async function POST(request: NextRequest) {
     // (2c) Переводы имени — отдельным деплой-безопасным UPDATE.
     if ((body.name_he && body.name_he.trim()) || (body.name_en && body.name_en.trim())) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: trErr } = await (u(sb).from('class_groups').update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null } as any).eq('id', groupId) as any)
+      const { error: trErr } = await (sb.from('class_groups').update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null } as any).eq('id', groupId) as any)
       if (trErr && trErr.code === '42703') {
         warning = (warning ? warning + ' ' : '') + 'Переводы имени не сохранены: миграция class_groups_multilang ещё не применена.'
       }
@@ -292,13 +288,13 @@ export async function POST(request: NextRequest) {
           added_by: session.person_id,
         }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: ctErr } = await u(sb).from('class_teachers').insert(teacherRows as any)
+      const { error: ctErr } = await sb.from('class_teachers').insert(teacherRows as any)
       if (ctErr) {
         // monthly_rate может отсутствовать (миграция не применена) — пробуем без него.
         if (ctErr.code === '42703') {
           const baseRows = teacherRows.map(({ monthly_rate: _mr, ...rest }) => rest)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error: ctBaseErr } = await u(sb).from('class_teachers').insert(baseRows as any)
+          const { error: ctBaseErr } = await sb.from('class_teachers').insert(baseRows as any)
           if (ctBaseErr) {
             warning = (warning ? warning + ' ' : '') + 'Преподаватели добавлены без месячной ставки (колонка monthly_rate отсутствует).'
           } else {

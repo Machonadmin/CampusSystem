@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
@@ -14,7 +13,7 @@ import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/perm
 const DEFAULT_PRICE = 210000
 
 function sem(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('semesters')
+  return sb.from('semesters')
 }
 
 export async function GET() {

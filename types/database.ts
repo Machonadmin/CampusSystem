@@ -2082,6 +2082,10 @@ export interface Database {
     }
     Views: Record<string, never>
     Functions: {
+      advance_academic_year: {
+        Args: Record<string, never>
+        Returns: Array<{ graduated: number; promoted: number }>
+      }
       verify_login: {
         Args: { p_email: string }
         Returns: Array<{

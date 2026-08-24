@@ -1,5 +1,5 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -9,7 +9,7 @@ import { canManageStaffComp } from '@/lib/finance/staff-comp'
  * PATCH / DELETE рабочей записи. Право: manage staff-comp. Деплой-безопасно.
  */
 function ent(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('staff_work_entries')
+  return sb.from('staff_work_entries')
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const body = await request.json().catch(() => ({})) as {
       hours?: number; amount?: number; title?: string; summary?: string; private_notes?: string; entry_date?: string
     }
-    const patch: Record<string, unknown> = {}
+    const patch: Database['public']['Tables']['staff_work_entries']['Update'] = {}
     if (body.hours !== undefined) patch.hours = Number.isFinite(Number(body.hours)) && Number(body.hours) >= 0 ? Number(body.hours) : null
     if (body.amount !== undefined) patch.amount = Number.isFinite(Number(body.amount)) && Number(body.amount) >= 0 ? Number(body.amount) : null
     if (body.title !== undefined) patch.title = (body.title ?? '').trim() || null

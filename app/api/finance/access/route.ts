@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -13,7 +12,7 @@ import { canManageFinanceAccess } from '@/lib/finance/access'
  * Деплой-безопасно к отсутствию таблицы (42P01).
  */
 function grants(sb: ReturnType<typeof createServerClient>) {
-  return (sb as unknown as SupabaseClient).from('finance_access_grants')
+  return sb.from('finance_access_grants')
 }
 
 export async function GET() {

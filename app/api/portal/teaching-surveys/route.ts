@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { u, resolveStudentTeachers, getSurveyWithQuestions } from '@/lib/education/teaching-surveys'
+import { resolveStudentTeachers, getSurveyWithQuestions } from '@/lib/education/teaching-surveys'
 
 /**
  * GET /api/portal/teaching-surveys
@@ -18,7 +18,7 @@ export async function GET() {
     }
     const sb = createServerClient()
     try {
-      const { data: openRaw } = await u(sb).from('teaching_surveys').select('id, title').eq('is_open', true).order('created_at', { ascending: false })
+      const { data: openRaw } = await sb.from('teaching_surveys').select('id, title').eq('is_open', true).order('created_at', { ascending: false })
       const open = (openRaw ?? []) as Array<{ id: string; title: string }>
       if (open.length === 0) return NextResponse.json({ surveys: [] })
 
@@ -27,7 +27,7 @@ export async function GET() {
       const teacherIds = teachers.map(t => t.person_id)
 
       // Что уже отвечено этой ученицей.
-      const { data: mine } = await u(sb).from('teaching_survey_responses')
+      const { data: mine } = await sb.from('teaching_survey_responses')
         .select('survey_id, teacher_person_id').eq('respondent_person_id', session.person_id).in('survey_id', open.map(s => s.id))
       const answered = new Set((mine ?? []).map(r => `${(r as { survey_id: string }).survey_id}:${(r as { teacher_person_id: string }).teacher_person_id}`))
 

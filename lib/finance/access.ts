@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { createServerClient } from '@/lib/supabase/server'
 import { hasFinancePrivilege } from './permissions'
@@ -24,7 +23,7 @@ import { hasFinancePrivilege } from './permissions'
  */
 
 function untyped(sb: ReturnType<typeof createServerClient>) {
-  return sb as unknown as SupabaseClient
+  return sb
 }
 
 /** Есть ли у person персональный грант (scope='all' или на эту journey). */

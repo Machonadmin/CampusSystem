@@ -1,5 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
+import type { PrivilegeModule } from '@/types/database'
 
 /**
  * Персональные привилегии (`person_privileges`) для конкретного модуля и
@@ -17,12 +17,12 @@ export async function loadPersonModuleGrants(
   try {
     // Untyped-клиент: module — произвольная строка модуля, а типизированная
     // колонка ждёт union; деплой-безопасно (нет таблицы → catch → []).
-    const sb = createServerClient() as unknown as SupabaseClient
+    const sb = createServerClient()
     const { data, error } = await sb
       .from('person_privileges')
       .select('privilege_code, is_granted, expires_at')
       .eq('person_id', personId)
-      .eq('module', module)
+      .eq('module', module as PrivilegeModule)
     if (error || !data) return []
     const now = Date.now()
     return data

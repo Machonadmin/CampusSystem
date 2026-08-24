@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
@@ -13,9 +12,6 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
  * POST body: { action: 'accept' | 'decline' }
  * Деплой-безопасно: нет таблицы → 503.
  */
-function u(sb: ReturnType<typeof createServerClient>): SupabaseClient {
-  return sb as unknown as SupabaseClient
-}
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const newStatus = action === 'accept' ? 'accepted' : 'declined'
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (u(sb).from('appointment_attendees')
+    const { data, error } = await (sb.from('appointment_attendees')
       .update({ status: newStatus, responded_at: new Date().toISOString() })
       .eq('appointment_id', params.id)
       .eq('person_id', session.person_id)

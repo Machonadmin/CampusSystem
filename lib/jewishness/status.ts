@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 
@@ -53,10 +52,9 @@ export async function setJewishnessStatus(
   const note = opts.note?.trim() ? opts.note.trim().slice(0, 2000) : null
   // 'partial' (אישור חלקי) — тоже решение офицера: фиксируем кто/когда.
   const decided = status === 'verified' || status === 'rejected' || status === 'partial'
-  const u = sb as unknown as SupabaseClient
 
   try {
-    const { error } = await u
+    const { error } = await sb
       .from('education_journeys')
       .update({
         jewishness_status: status,
@@ -76,7 +74,7 @@ export async function setJewishnessStatus(
 
   // История — best-effort (её отсутствие не отменяет обновление статуса).
   try {
-    await u.from('jewishness_status_history').insert({
+    await sb.from('jewishness_status_history').insert({
       journey_id: journeyId,
       status,
       changed_by: changedBy,

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -17,7 +16,6 @@ import { canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
  *     записи типа chavruta_plus), возвращает basis:'per_hour'.
  * Право: manage. Деплой-безопасно (42P01).
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
   try {
@@ -35,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     // Тариф + базис.
     let rate = 0, basis = 'per_student_month'
     try {
-      const { data } = await u(sb).from('staff_compensation')
+      const { data } = await sb.from('staff_compensation')
         .select('chavruta_plus_rate, chavruta_plus_basis').eq('person_id', params.personId).maybeSingle()
       const c = data as { chavruta_plus_rate?: number; chavruta_plus_basis?: string } | null
       rate = Number(c?.chavruta_plus_rate ?? 0)
@@ -49,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     // Активные пары.
     let assignments: Array<{ student_journey_id: string }> = []
     try {
-      const { data, error } = await u(sb).from('chavruta_plus_assignments')
+      const { data, error } = await sb.from('chavruta_plus_assignments')
         .select('student_journey_id').eq('teacher_person_id', params.personId).eq('is_active', true)
       if (error) throw error
       assignments = (data ?? []) as typeof assignments
@@ -62,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     // Что уже начислено в этом месяце (дедуп по ученице).
     const already = new Set<string>()
     try {
-      const { data } = await u(sb).from('staff_work_entries')
+      const { data } = await sb.from('staff_work_entries')
         .select('student_journey_id')
         .eq('person_id', params.personId).eq('entry_type', 'chavruta_plus')
         .gte('entry_date', from).lte('entry_date', to)
@@ -74,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     let created = 0, skipped = 0
     for (const a of assignments) {
       if (already.has(a.student_journey_id)) { skipped++; continue }
-      const { error } = await u(sb).from('staff_work_entries')
+      const { error } = await sb.from('staff_work_entries')
         .insert({
           person_id: params.personId, entry_type: 'chavruta_plus', entry_date: from,
           hours: null, amount: rate, student_journey_id: a.student_journey_id,

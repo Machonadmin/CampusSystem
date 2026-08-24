@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -13,7 +12,6 @@ import { canDoEducationInAny } from '@/lib/education/permissions'
  * список, отсортированный по имени, с разбивкой по слотам (для «расписания»).
  * Право: view_students где-либо ИЛИ superadmin. Деплой-безопасно.
  */
-function u(sb: ReturnType<typeof createServerClient>) { return sb as unknown as SupabaseClient }
 
 function toMin(t: string): number {
   const m = t?.match(/^(\d{1,2}):(\d{2})/)
@@ -58,7 +56,7 @@ export async function GET() {
     type Slot = { class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
     const slotsByGroup = new Map<string, Slot[]>()
     {
-      const { data } = await u(sb).from('class_schedule_slots')
+      const { data } = await sb.from('class_schedule_slots')
         .select('class_group_id, day_of_week, start_time, end_time, room')
         .in('class_group_id', groupIds)
       for (const s of (data ?? []) as Slot[]) {

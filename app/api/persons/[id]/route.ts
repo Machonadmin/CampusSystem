@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -123,7 +122,7 @@ export async function PATCH(
     if (Object.keys(update).length === 0) return NextResponse.json({ ok: true })
 
     const sb = createServerClient()
-    const { error } = await (sb as unknown as SupabaseClient)
+    const { error } = await (sb)
       .from('persons').update(update).eq('id', params.id)
     if (error) throw error
 
