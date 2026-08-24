@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -27,7 +28,7 @@ interface PendingRow {
 
 function fmtDate(lang: string, iso: string | null): string {
   if (!iso) return '—'
-  const loc = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const loc = intlLocale(lang)
   const d = new Date(iso + 'T00:00:00')
   return d.toLocaleDateString(loc, { day: '2-digit', month: 'short', weekday: 'short' })
 }

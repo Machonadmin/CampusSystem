@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -57,7 +58,7 @@ interface Props {
 
 function formatPeriod(lang: string, start: string | null, end: string | null): string | null {
   if (!start && !end) return null
-  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const locale = intlLocale(lang)
   const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
   if (start && end) return `${fmt(start)} — ${fmt(end)}`
   if (start) return `${fmt(start)} →`

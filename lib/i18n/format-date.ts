@@ -1,6 +1,6 @@
 const LOCALE_MAP: Record<string, string> = { ru: 'ru-RU', he: 'he-IL', en: 'en-US' }
 
-function toIntlLocale(lang: string): string {
+export function intlLocale(lang: string): string {
   return LOCALE_MAP[lang] ?? 'ru-RU'
 }
 
@@ -24,7 +24,7 @@ function parseDateInput(dateStr: string | null | undefined): Date | null {
 export function formatDate(dateStr: string, lang: string): string {
   const d = parseDateInput(dateStr)
   if (!d) return dateStr ?? ''
-  return new Intl.DateTimeFormat(toIntlLocale(lang), {
+  return new Intl.DateTimeFormat(intlLocale(lang), {
     day: '2-digit', month: '2-digit', year: 'numeric',
   }).format(d)
 }
@@ -33,7 +33,7 @@ export function formatDate(dateStr: string, lang: string): string {
 export function formatDateShort(dateStr: string, lang: string): string {
   const d = parseDateInput(dateStr)
   if (!d) return dateStr ?? ''
-  return new Intl.DateTimeFormat(toIntlLocale(lang), {
+  return new Intl.DateTimeFormat(intlLocale(lang), {
     day: '2-digit', month: 'short',
   }).format(d)
 }
@@ -42,7 +42,7 @@ export function formatDateShort(dateStr: string, lang: string): string {
 export function formatDateLong(dateStr: string, lang: string): string {
   const d = parseDateInput(dateStr)
   if (!d) return dateStr ?? ''
-  return new Intl.DateTimeFormat(toIntlLocale(lang), {
+  return new Intl.DateTimeFormat(intlLocale(lang), {
     day: '2-digit', month: 'long', year: 'numeric',
   }).format(d)
 }
@@ -51,7 +51,7 @@ export function formatDateLong(dateStr: string, lang: string): string {
 export function formatDateTime(dateStr: string, lang: string): string {
   const d = parseDateInput(dateStr)
   if (!d) return dateStr ?? ''
-  return new Intl.DateTimeFormat(toIntlLocale(lang), {
+  return new Intl.DateTimeFormat(intlLocale(lang), {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(d)

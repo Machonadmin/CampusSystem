@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { formatDateLong } from '@/lib/i18n/format-date'
+import { intlLocale, formatDateLong } from '@/lib/i18n/format-date'
 import { monthGrid, toISODate } from '@/lib/calendar/calendar'
 
 interface Lesson {
@@ -112,7 +112,7 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
 
   const monthLabel = (() => {
     try {
-      const loc = lang === 'ru' ? 'ru-RU' : lang === 'he' ? 'he-IL' : 'en-US'
+      const loc = intlLocale(lang)
       return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(loc, { month: 'long', year: 'numeric', timeZone: 'UTC' })
     } catch { return `${month}/${year}` }
   })()

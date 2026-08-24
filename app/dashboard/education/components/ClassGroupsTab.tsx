@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -44,7 +45,7 @@ const accent = getModuleColor('education')
 
 function formatPeriod(lang: string, start: string | null, end: string | null): string {
   if (!start && !end) return '—'
-  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const locale = intlLocale(lang)
   const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale, { month: 'short', year: 'numeric' })
   if (start && end) return `${fmt(start)} — ${fmt(end)}`
   if (start) return `${fmt(start)} →`

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -91,7 +92,7 @@ export default function AbsencesClient() {
 
   const fmtDate = (iso: string | null) => {
     if (!iso) return '—'
-    const loc = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+    const loc = intlLocale(lang)
     return new Date(iso + (iso.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString(loc, { day: '2-digit', month: 'short' })
   }
   const statusChip = (s: Case['status']) => {

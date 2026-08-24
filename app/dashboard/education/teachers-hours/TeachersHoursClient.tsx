@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useState } from 'react'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -12,7 +13,7 @@ interface Teacher { person_id: string; name: string; groups_count: number; weekl
 
 // ISO day_of_week (1=Пн..7=Вс) → локализованное имя дня (через Intl, без таблиц).
 function dayName(lang: string, iso: number): string {
-  const loc = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const loc = intlLocale(lang)
   // 2024-01-01 — понедельник (ISO 1). iso 1..7 → +(iso-1) дней.
   const d = new Date(Date.UTC(2024, 0, 1 + (iso - 1)))
   return d.toLocaleDateString(loc, { weekday: 'short', timeZone: 'UTC' })

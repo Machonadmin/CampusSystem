@@ -1,3 +1,4 @@
+import { intlLocale } from '@/lib/i18n/format-date'
 // ─── Общие типы и хелперы вкладок модуля «Обучение» ──────────────────────────
 //
 // Вынесено из education/page.tsx при разбиении тяжёлой страницы на вкладки
@@ -50,7 +51,7 @@ export function initials(name: string) {
 
 export function formatDate(d: string | null, lang: string) {
   if (!d) return '—'
-  const locale = lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
+  const locale = intlLocale(lang)
   return new Date(d).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
