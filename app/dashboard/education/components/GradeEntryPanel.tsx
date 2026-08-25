@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { AssessmentItem } from './GradesTab'
 
@@ -244,18 +245,19 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
               {t('close')}
             </button>
             {canSetGrades && (
-              <button
+              <SubmitButton
                 onClick={handleSave}
+                loading={saving}
+                loadingLabel={t('saving')}
                 disabled={saving || gradedCount === 0}
                 style={{
                   padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
                   background: accentColor, border: 'none', borderRadius: 8,
-                  cursor: (saving || gradedCount === 0) ? 'not-allowed' : 'pointer',
                   opacity: (saving || gradedCount === 0) ? 0.55 : 1,
                 }}
               >
-                {saving ? t('saving') : t('save')}
-              </button>
+                {t('save')}
+              </SubmitButton>
             )}
           </div>
         </div>
