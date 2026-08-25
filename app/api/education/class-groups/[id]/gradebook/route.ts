@@ -55,7 +55,6 @@ export async function GET(
       max_score: Number(a.max_score),
       assessment_date: (a.assessment_date as string | null) ?? null,
     }))
-    const maxById = new Map(assessments.map(a => [a.id, a.max_score]))
     const assessmentIds = assessments.map(a => a.id)
 
     // Ростер группы.

@@ -186,7 +186,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
 
-  const [rate, setRate] = useState<Rate | null>(null)
+  const [, setRate] = useState<Rate | null>(null)
   const [rateDraft, setRateDraft] = useState<Rate | null>(null)
   const [savingRate, setSavingRate] = useState(false)
 

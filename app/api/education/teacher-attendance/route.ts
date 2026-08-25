@@ -12,7 +12,6 @@ import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds }
  * Деплой-безопасно (42P01 → пусто/503).
  */
 
-type LessonLite = { id: string; scheduled_date: string | null; scheduled_time: string | null; class_group_id: string }
 
 /** lesson_id → department_id (через class_group). Для скоупинга очереди по подразделению. */
 async function lessonDepartments(sb: ReturnType<typeof createServerClient>, lessonIds: string[]) {

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { phoneList } from '@/lib/persons/phone'
 import type { StartProcessResult } from '@/lib/workflow/start-process'
@@ -74,7 +73,6 @@ export async function GET(request: NextRequest) {
     const journeys = (jRes.data ?? []) as unknown as JourneyRow[]
     if (!journeys || journeys.length === 0) return NextResponse.json([])
 
-    const personIds = journeys.map(j => j.person_id)
     const journeyIds = journeys.map(j => j.id)
 
     // Все process_instances для фильтрации по статусу

@@ -24,7 +24,6 @@ export async function GET() {
 
       const teachers = await resolveStudentTeachers(sb, session.student_journey_id)
       if (teachers.length === 0) return NextResponse.json({ surveys: [] })
-      const teacherIds = teachers.map(t => t.person_id)
 
       // Что уже отвечено этой ученицей.
       const { data: mine } = await sb.from('teaching_survey_responses')

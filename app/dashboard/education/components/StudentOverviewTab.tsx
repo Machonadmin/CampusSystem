@@ -95,8 +95,8 @@ export default function StudentOverviewTab({ journeyId }: Props) {
 
         {SECTION_ORDER.map(section => {
           const permitted = visible_sections.includes(section)
-          const module = section === 'medical' ? 'doctor' : section === 'counseling' ? 'psychologist' : section
-          const accent = getModuleColor(module)
+          const moduleKey = section === 'medical' ? 'doctor' : section === 'counseling' ? 'psychologist' : section
+          const accent = getModuleColor(moduleKey)
           const href = MODULE_HREF[section]
 
           // Секция для модуля с правом, но без данных — приглушённая плитка.

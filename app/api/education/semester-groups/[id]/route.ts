@@ -3,7 +3,6 @@ import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
-import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
@@ -286,7 +285,7 @@ export async function PATCH(
       }
 
       if (toAdd.length > 0) {
-        const addRows = toAdd.map((id, idx) => {
+        const addRows = toAdd.map((id) => {
           const t = desired.get(id)!
           return {
             class_group_id: params.id,

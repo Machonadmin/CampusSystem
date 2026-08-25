@@ -1,5 +1,4 @@
 'use client'
-import { flattenPhones } from '@/lib/persons/phone'
 import { personDisplayName } from '@/lib/persons/name'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
