@@ -7,7 +7,6 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
-interface Member { person_id?: string; journey_id?: string; name: string }
 interface Group {
   id: string; name: string; subject: string | null; unit: string | null
   is_semester: boolean; parent_name: string | null

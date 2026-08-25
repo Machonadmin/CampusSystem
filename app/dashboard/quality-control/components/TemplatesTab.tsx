@@ -574,7 +574,6 @@ export default function TemplatesTab({ perms }: Props) {
     else { const d = await res.json(); toast(d.error ?? t('templates.delete_failed'), 'error') }
   }
 
-  const btnSm: React.CSSProperties = { padding: '4px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap' }
 
   return (
     <div style={{ padding: '16px' }}>

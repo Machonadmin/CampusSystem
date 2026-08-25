@@ -27,7 +27,6 @@ const hhmm = (t: string) => t.slice(0, 5)
 export default function TimetablePage() {
   const t = useTranslations('education.timetable')
   const tNav = useTranslations('navigation')
-  const accent = getModuleColor('education')
 
   const [slots, setSlots] = useState<Slot[]>([])
   const [conflicts, setConflicts] = useState<ScheduleConflict[]>([])

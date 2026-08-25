@@ -74,16 +74,6 @@ function addDays(isoDate: string, days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-function addMonths(isoDate: string, months: number, targetDay?: number): string {
-  const d = new Date(isoDate + 'T00:00:00Z')
-  const day = targetDay ?? d.getUTCDate()
-  d.setUTCDate(1)
-  d.setUTCMonth(d.getUTCMonth() + months)
-  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate()
-  d.setUTCDate(Math.min(day, lastDay))
-  return d.toISOString().slice(0, 10)
-}
-
 function getIsoWeekday(isoDate: string): number {
   const d = new Date(isoDate + 'T00:00:00Z')
   const js = d.getUTCDay()  // 0=Вс..6=Сб

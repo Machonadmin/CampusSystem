@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
-import { Modal as UIModal } from '@/components/ui/Modal'
 import { roleLabel } from '@/lib/roles/role-label'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'

@@ -4,21 +4,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
-import {
-  monthGrid,
-  isBlocked,
-  minutesBetween,
-  mergeDayEvents,
-} from '@/lib/calendar/calendar'
+import { monthGrid } from '@/lib/calendar/calendar'
 import {
   expandScheduleSlots,
   suppressCoveredInstances,
   type ScheduleSlot,
   type ScheduleInstance,
 } from '@/lib/calendar/schedule'
-import { birthdayInstances, type BirthdayInstance } from '@/lib/calendar/birthday'
-import { formatHebrewDate, hebrewDayNumber } from '@/lib/calendar/hebrew'
-import { intlLocale, formatDate } from '@/lib/i18n/format-date'
+import { birthdayInstances } from '@/lib/calendar/birthday'
+import { formatHebrewDate } from '@/lib/calendar/hebrew'
+import { intlLocale } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -26,19 +21,14 @@ import { toastError, toastSuccess } from '@/components/ui/toast'
 import AttendancePanel from '@/app/dashboard/education/components/AttendancePanel'
 import type { LessonItem } from '@/app/dashboard/education/components/LessonsJournalTab'
 import type {
-  Appointment, Block, Lesson, Task, CalEvent, StudentOption, View, Status,
+  Appointment, Block, Lesson, Task, CalEvent, View, Status,
 } from './calendar-types'
 import {
-  pad2, todayISO, isoTime, addDaysISO, startOfWeekISO, subjectLabel, scheduleSubjectLabel,
-  LESSON_BG, LESSON_FG, LESSON_ACCENT, SCHEDULE_BG, SCHEDULE_FG, SCHEDULE_ACCENT,
-  TASK_BG, TASK_ACCENT, TASK_FG, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT,
+  pad2, todayISO, addDaysISO, startOfWeekISO, LESSON_ACCENT, navBtn, addMenuItem,
 } from './calendar-utils'
 import { Legend, LessonDetail, TaskDetail, ScheduleDetail } from './calendar-details'
 import { CalEventDetail, DayDetail, AppointmentForm, AppointmentDetail } from './calendar-dialogs'
 import { MonthView, WeekView } from './calendar-grid'
-import {
-  dayRowTime, dayRowTitle, dayRowKind, dayRowBtn, statusStyle, navBtn, addMenuItem, smallLink, lessonTag, scheduleTag, taskTag, birthdayTag, dialog, dialogTitle, input, btnGhost, btnPrimary, statusBtn,
-} from './calendar-utils'
 
 export default function CalendarClient() {
   const { lang, isRTL } = useLang()

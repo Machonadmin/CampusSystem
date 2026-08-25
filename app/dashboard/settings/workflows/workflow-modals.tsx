@@ -9,7 +9,7 @@ import { Modal as UIModal } from '@/components/ui/Modal'
 import { roleLabel } from '@/lib/roles/role-label'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, Role, T } from './workflow-shared'
-import { ASSIGNEE_TYPES, PRIORITIES, inputStyle, labelStyle, btnPrimary, btnGhost, btnDanger } from './workflow-shared'
+import { ASSIGNEE_TYPES, PRIORITIES, inputStyle, labelStyle, btnPrimary, btnGhost } from './workflow-shared'
 
 // ── Small building blocks ────────────────────────────────────────────────────
 export function Field({ label, children }: { label: string; children: ReactNode }) {
