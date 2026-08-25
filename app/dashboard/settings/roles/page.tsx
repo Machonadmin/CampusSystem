@@ -7,6 +7,7 @@ import { roleLabel } from '@/lib/roles/role-label'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { Modal } from '@/components/ui/Modal'
 
 type T = (key: string, fallback?: string) => string
@@ -118,7 +119,7 @@ function AddRoleModal({ t, tCommon, onClose, onSaved }: AddRoleModalProps) {
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save')}</button>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, opacity: saving ? 0.7 : 1 }}>{tCommon('save')}</SubmitButton>
         </div>
     </Modal>
   )

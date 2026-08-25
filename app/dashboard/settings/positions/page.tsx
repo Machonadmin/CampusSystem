@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -407,17 +408,18 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
           }}>
             {t('cancel')}
           </button>
-          <button
+          <SubmitButton
             onClick={handleSubmit}
-            disabled={saving}
+            loading={saving}
+            loadingLabel={t('saving')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
               background: accent, border: 'none', borderRadius: 8,
-              cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
+              opacity: saving ? 0.7 : 1,
             }}
           >
-            {saving ? t('saving') : mode === 'create' ? t('add_confirm_button') : t('save_button')}
-          </button>
+            {mode === 'create' ? t('add_confirm_button') : t('save_button')}
+          </SubmitButton>
         </div>
     </Modal>
   )

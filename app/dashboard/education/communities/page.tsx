@@ -8,6 +8,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -302,7 +303,7 @@ export default function CommunitiesPage() {
             </label>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
               <button onClick={closeForm} disabled={busy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
-              <button onClick={save} disabled={busy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--accent-strong)', color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+              <SubmitButton onClick={save} loading={busy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--accent-strong)', color: '#fff', opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
             </div>
         </Modal>
       )}

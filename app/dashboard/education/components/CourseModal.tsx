@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 
@@ -132,7 +133,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button type="button" onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>{t('common.cancel')}</button>
-            <button type="submit" disabled={saving} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? t('common.saving') : t('common.create')}</button>
+            <SubmitButton type="submit" loading={saving} loadingLabel={t('common.saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
           </div>
         </form>
     </Modal>

@@ -10,6 +10,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -506,10 +507,10 @@ function TemplateBuilder({
             <button onClick={onClose} style={{ padding: '8px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>
               {tCommon('cancel')}
             </button>
-            <button onClick={handleSave} disabled={saving}
-              style={{ padding: '8px 22px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-              {saving ? t('templates.saving', 'Saving...') : (isEdit ? t('templates.save_changes') : t('templates.create_template'))}
-            </button>
+            <SubmitButton onClick={handleSave} loading={saving} loadingLabel={t('templates.saving', 'Saving...')}
+              style={{ padding: '8px 22px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, opacity: saving ? 0.7 : 1 }}>
+              {isEdit ? t('templates.save_changes') : t('templates.create_template')}
+            </SubmitButton>
           </div>
         </div>
     </Modal>
