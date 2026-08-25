@@ -79,31 +79,76 @@ function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boo
   )
 }
 
+interface CardDef {
+  id: string       // unique React key
+  iconKey: string  // module code → icon + color
+  label: string
+  desc: string
+  href: string
+  ready: boolean
+}
+
+// «Образование» показываем НЕ одной картой (она вела на одну вкладку, а
+// остальное — только через сайдбар), а отдельными картами по его разделам.
+// Каждая ведёт прямо в свой раздел и гейтится тем же tab-access, что и сайдбар.
+const EDUCATION_SUBCARDS = [
+  { id: 'recruitment', href: '/dashboard/education/recruitment', accessKey: 'recruitment' },
+  { id: 'admission',   href: '/dashboard/education/admission',   accessKey: 'admission' },
+  { id: 'studies',     href: '/dashboard/education/studies',     accessKey: 'study' },
+] as const
+
 export default function DashboardPage() {
   const { t } = useLang()
   const [user, setUser] = useState<MeResponse | null>(null)
+  const [eduAccess, setEduAccess] = useState<Record<string, boolean> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setUser(data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    let alive = true
+    Promise.all([
+      fetch('/api/auth/me').then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/education/tab-access').then(r => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([me, tabs]) => {
+      if (!alive) return
+      if (me) setUser(me)
+      if (tabs) setEduAccess(tabs)
+    }).finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
   }, [])
 
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  // Show ONLY the modules the user actually has access to — same source as the
-  // sidebar (accessible_modules from /api/auth/me). A user must not see, or even
-  // know about, modules they cannot open. superadmin gets all module codes.
+  // Only modules the user can actually open (accessible_modules from
+  // /api/auth/me) — a user must not even see modules they can't reach.
   const accessible = user?.accessible_modules ?? []
-  const accessibleCards = ALL_MODULE_CARDS.filter(k => accessible.includes(k))
-  const visibleModules = [
-    ...accessibleCards.filter(k => isModuleImplemented(k)),
-    ...accessibleCards.filter(k => !isModuleImplemented(k)),
+  const orderedKeys = [
+    ...ALL_MODULE_CARDS.filter(k => accessible.includes(k) && isModuleImplemented(k)),
+    ...ALL_MODULE_CARDS.filter(k => accessible.includes(k) && !isModuleImplemented(k)),
   ]
+
+  const cards: CardDef[] = []
+  for (const key of orderedKeys) {
+    if (key === 'education') {
+      for (const sub of EDUCATION_SUBCARDS) {
+        if (eduAccess && eduAccess[sub.accessKey] === false) continue
+        cards.push({
+          id: sub.id, iconKey: 'education',
+          label: t.nav[sub.id as keyof typeof t.nav] ?? sub.id,
+          desc: t.moduleDesc[sub.id as keyof typeof t.moduleDesc] ?? '',
+          href: sub.href, ready: true,
+        })
+      }
+    } else {
+      cards.push({
+        id: key, iconKey: key,
+        label: t.nav[key as keyof typeof t.nav] ?? key,
+        desc: t.moduleDesc[key as keyof typeof t.moduleDesc] ?? '',
+        href: HREF_OVERRIDES[key] ?? `/dashboard/${key}`,
+        ready: isModuleImplemented(key),
+      })
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -165,7 +210,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        ) : visibleModules.length === 0 ? (
+        ) : cards.length === 0 ? (
           <div style={{
             border: '1px dashed var(--border-strong)', borderRadius: 12, padding: '28px 20px',
             textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
@@ -174,11 +219,11 @@ export default function DashboardPage() {
           </div>
         ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {visibleModules.map(key => {
-            const ready = isModuleImplemented(key)
-            const primary = getModuleColor(key, 'primary')
-            const name = t.nav[key as keyof typeof t.nav] ?? key
-            const desc = t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
+          {cards.map(card => {
+            const ready = card.ready
+            const primary = getModuleColor(card.iconKey, 'primary')
+            const name = card.label
+            const desc = card.desc
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               padding: 20,
@@ -204,7 +249,7 @@ export default function DashboardPage() {
             const inner = (
               <>
                 {badge}
-                <ModuleIcon moduleKey={key} disabled={!ready} />
+                <ModuleIcon moduleKey={card.iconKey} disabled={!ready} />
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : 'var(--text-faint)', lineHeight: 1.3, margin: 0 }}>{name}</p>
                   <p style={{ fontSize: 12, color: ready ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
@@ -213,8 +258,8 @@ export default function DashboardPage() {
             )
             return ready ? (
               <Link
-                key={key}
-                href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
+                key={card.id}
+                href={card.href}
                 prefetch={false}
                 className="flex flex-col gap-3"
                 style={cardStyle}
@@ -233,7 +278,7 @@ export default function DashboardPage() {
               </Link>
             ) : (
               <div
-                key={key}
+                key={card.id}
                 className="flex flex-col gap-3"
                 style={{ ...cardStyle, cursor: 'not-allowed' }}
               >
