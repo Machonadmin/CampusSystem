@@ -14,6 +14,17 @@ export async function requireAuth() {
   return session
 }
 
+/**
+ * Как requireAuth, но дополнительно отклоняет портальный студенческий токен
+ * (principal==='student' → 403). Для оргструктуры/штата и прочих staff-only
+ * ручек. Заменяет локальные копии в settings-роутах.
+ */
+export async function requireStaff() {
+  const session = await requireAuth()
+  if (session.principal === 'student') throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
+  return session
+}
+
 type ApiError = { status?: number; message?: string; code?: string; apiCode?: string }
 
 /**
