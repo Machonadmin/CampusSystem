@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
+import { useApiResource } from '@/lib/hooks/useApiResource'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { getModuleColor } from '@/lib/module-colors'
@@ -50,28 +50,10 @@ export default function StudentOverviewTab({ journeyId }: Props) {
   const { lang } = useLang()
   const router = useRouter()
 
-  const [data, setData] = useState<StudentOverview | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const resp = await fetch(`/api/students/${journeyId}/overview`)
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        throw new Error(err.error ?? t('load_error'))
-      }
-      setData(await resp.json())
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('load_error'))
-    } finally {
-      setLoading(false)
-    }
-  }, [journeyId, t])
-
-  useEffect(() => { load() }, [load])
+  const { data, loading, error } = useApiResource<StudentOverview>(
+    `/api/students/${journeyId}/overview`,
+    t('load_error'),
+  )
 
   if (loading) {
     return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>

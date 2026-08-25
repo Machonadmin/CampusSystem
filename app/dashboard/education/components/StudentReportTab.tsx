@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useApiResource } from '@/lib/hooks/useApiResource'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 
@@ -97,29 +98,11 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
   const t = useTranslations('education.report')
   const { lang } = useLang()
 
-  const [data, setData] = useState<ReportData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, loading, error } = useApiResource<ReportData>(
+    `/api/education/journeys/${journeyId}/report`,
+    t('load_error'),
+  )
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const resp = await fetch(`/api/education/journeys/${journeyId}/report`)
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        throw new Error(err.error ?? t('load_error'))
-      }
-      setData(await resp.json())
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('load_error'))
-    } finally {
-      setLoading(false)
-    }
-  }, [journeyId, t])
-
-  useEffect(() => { load() }, [load])
 
   const toggle = (id: string) => {
     setExpanded(prev => {
