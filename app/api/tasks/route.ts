@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
+import { requireAuth, fetchAllPages } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -94,16 +94,7 @@ export async function GET(request: NextRequest) {
     }
 
     type TaskListRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
-    const tasks: TaskListRow[] = []
-    let from = 0
-    for (;;) {
-      const { data, error } = await buildQuery().range(from, from + PAGE - 1)
-      if (error) throw error
-      const rows = (data ?? []) as TaskListRow[]
-      tasks.push(...rows)
-      if (rows.length < PAGE) break
-      from += PAGE
-    }
+    const tasks = await fetchAllPages<TaskListRow>((from, to) => buildQuery().range(from, to), PAGE)
 
     return NextResponse.json({ tasks })
   } catch (err: unknown) {
