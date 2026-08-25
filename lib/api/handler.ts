@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { ZodType } from 'zod'
 import { serverT } from '@/lib/i18n/api-errors'
+import { getSession } from '@/lib/auth/session'
+
+/**
+ * Требует аутентифицированную сессию. Бросает Error со status=401 —
+ * перехватывается тем же catch → jsonError, что и прочие ошибки хендлера.
+ * Заменяет 39 идентичных локальных копий requireAuth() в route-файлах.
+ */
+export async function requireAuth() {
+  const session = await getSession()
+  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+  return session
+}
 
 type ApiError = { status?: number; message?: string; code?: string; apiCode?: string }
 
