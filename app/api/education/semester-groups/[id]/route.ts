@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -13,11 +14,6 @@ import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
  */
 
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-  return session
-}
 
 // `*` — deploy-safe: подтягивает name_he/name_en после миграции и опускает до неё.
 const DETAIL_SELECT = `
