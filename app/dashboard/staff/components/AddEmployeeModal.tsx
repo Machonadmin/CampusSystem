@@ -7,6 +7,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { Lang } from '@/lib/i18n/translations'
 
 interface Department {
@@ -866,10 +867,10 @@ export default function AddEmployeeModal({
             )}
             {/* В режиме редактирования «Сохранить» доступна на любой вкладке. */}
             {(tabIdx === 5 || isEditing) && (
-              <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.5 : 1 }}>
-                {saving ? t('add_modal.saving') : t('add_modal.save_button')}
-              </button>
+              <SubmitButton onClick={handleSave} loading={saving} loadingLabel={t('add_modal.saving')}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', fontSize: 13, opacity: saving ? 0.5 : 1 }}>
+                {t('add_modal.save_button')}
+              </SubmitButton>
             )}
           </div>
         </div>

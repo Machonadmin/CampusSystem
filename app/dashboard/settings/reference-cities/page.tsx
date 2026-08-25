@@ -8,6 +8,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { countryLabel } from '@/lib/geo'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface CityRow { id: string; country: string; city: string }
 
@@ -199,19 +200,20 @@ export default function ReferenceCitiesPage() {
               }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
-              <button
+              <SubmitButton
                 onClick={addCity}
+                loading={busy}
+                loadingLabel={t('saving')}
                 disabled={!newCity.trim() || busy}
                 style={{
                   padding: '7px 14px', fontSize: 12, fontWeight: 600,
                   background: newCity.trim() && !busy ? accent : 'var(--border)',
                   color: newCity.trim() && !busy ? 'var(--surface)' : 'var(--text-faint)',
                   border: 'none', borderRadius: 6,
-                  cursor: newCity.trim() && !busy ? 'pointer' : 'not-allowed',
                 }}
               >
-                {busy ? t('saving') : t('save_button')}
-              </button>
+                {t('save_button')}
+              </SubmitButton>
               <button
                 onClick={() => { setShowAdd(false); setNewCity(''); setErrMsg('') }}
                 style={{

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface PersonOption { id: string; full_name: string }
@@ -359,17 +360,18 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             >
               {tCommon('cancel')}
             </button>
-            <button
+            <SubmitButton
               type="submit"
-              disabled={saving}
+              loading={saving}
+              loadingLabel={t('fill.saving', 'Saving...')}
               style={{
                 padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6,
-                background: saving ? '#93C5FD' : 'var(--accent)', cursor: saving ? 'not-allowed' : 'pointer',
+                background: saving ? '#93C5FD' : 'var(--accent)',
                 color: '#fff', fontWeight: 600,
               }}
             >
-              {saving ? t('fill.saving', 'Saving...') : t('create_modal.submit_button')}
-            </button>
+              {t('create_modal.submit_button')}
+            </SubmitButton>
           </div>
         </form>
     </Modal>

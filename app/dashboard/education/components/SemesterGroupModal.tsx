@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { localizedDeptName } from '@/lib/departments/localized-name'
@@ -356,12 +357,12 @@ export default function SemesterGroupModal({ mode, initial, departments, default
             >
               {t('common.cancel')}
             </button>
-            <button
-              type="submit" disabled={saving}
-              style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}
+            <SubmitButton
+              type="submit" loading={saving} loadingLabel={t('common.saving')}
+              style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}
             >
-              {saving ? t('common.saving') : (mode === 'create' ? t('common.create') : t('common.save'))}
-            </button>
+              {mode === 'create' ? t('common.create') : t('common.save')}
+            </SubmitButton>
           </div>
         </form>
     </Modal>

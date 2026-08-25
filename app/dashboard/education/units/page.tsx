@@ -8,6 +8,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { Modal } from '@/components/ui/Modal'
 
 const GRANTABLE = [
@@ -183,10 +184,10 @@ function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; p
       <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)' }}>{t('units.extra_minutes')}</span>
       <input type="number" min={0} value={val} onChange={e => setVal(e.target.value)}
         style={{ width: 80, padding: '6px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)' }} />
-      <button onClick={save} disabled={saving}
-        style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+      <SubmitButton onClick={save} loading={saving}
+        style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', opacity: saving ? 0.6 : 1 }}>
         {t('units.save')}
-      </button>
+      </SubmitButton>
       {saved && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>✓</span>}
     </div>
   )
@@ -267,10 +268,10 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
           <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('units.cancel')}</button>
-          <button onClick={submit} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
-            style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
+            style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
             {t('units.create_btn')}
-          </button>
+          </SubmitButton>
         </div>
     </Modal>
   )
