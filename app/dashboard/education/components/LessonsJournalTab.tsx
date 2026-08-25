@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import AttendancePanel from './AttendancePanel'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { toast } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -416,17 +417,16 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           >
             {t('btn_cancel')}
           </button>
-          <button
-            onClick={handleSubmit} disabled={saving}
+          <SubmitButton
+            onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
               background: accentColor, border: 'none', borderRadius: 8,
-              cursor: saving ? 'not-allowed' : 'pointer',
               opacity: saving ? 0.55 : 1,
             }}
           >
-            {saving ? t('btn_saving') : t('btn_save')}
-          </button>
+            {t('btn_save')}
+          </SubmitButton>
         </div>
     </Modal>
   )

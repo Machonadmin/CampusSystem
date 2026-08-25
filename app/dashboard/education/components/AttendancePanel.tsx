@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import LessonNotes from '@/components/education/LessonNotes'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { LessonItem } from './LessonsJournalTab'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -364,18 +365,19 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
               {t('att_close')}
             </button>
             {canMarkAttendance && (
-              <button
+              <SubmitButton
                 onClick={handleSave}
+                loading={saving}
+                loadingLabel={t('att_saving')}
                 disabled={saving || markedCount === 0}
                 style={{
                   padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
                   background: accentColor, border: 'none', borderRadius: 8,
-                  cursor: (saving || markedCount === 0) ? 'not-allowed' : 'pointer',
                   opacity: (saving || markedCount === 0) ? 0.55 : 1,
                 }}
               >
-                {saving ? t('att_saving') : t('att_save')}
-              </button>
+                {t('att_save')}
+              </SubmitButton>
             )}
           </div>
         </div>
