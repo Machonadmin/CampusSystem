@@ -12,6 +12,7 @@ import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donatio
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import { isValidEmail } from '@/lib/contacts/directory'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { formatMoney } from '@/lib/finance/money'
 
 interface Sponsor {
@@ -262,7 +263,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
             {t('fields.is_active')}
           </label>
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button onClick={save} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+            <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
             <button onClick={closeForm} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
           </div>
         </div>

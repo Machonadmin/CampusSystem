@@ -8,6 +8,7 @@ import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Position { id: string; name_ru: string; name_he: string | null; category: string; is_teaching: boolean }
@@ -172,9 +173,9 @@ export default function SeatPersonModal({ onClose, onSaved }: { onClose: () => v
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
           <button onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>{t('cancel')}</button>
-          <button onClick={submit} disabled={saving} style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? t('seat_saving') : t('seat_submit')}
-          </button>
+          <SubmitButton loading={saving} loadingLabel={t('seat_saving')} onClick={submit} style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
+            {t('seat_submit')}
+          </SubmitButton>
         </div>
     </Modal>
   )
