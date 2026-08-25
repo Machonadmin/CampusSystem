@@ -6,6 +6,7 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
 import HomeWidgets from '@/components/dashboard/HomeWidgets'
 import HomeAgenda from '@/components/dashboard/HomeAgenda'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
   full_name: string | null
@@ -138,7 +139,33 @@ export default function DashboardPage() {
           {t.availableModules}
         </h2>
 
-        {visibleModules.length === 0 ? (
+        {loading ? (
+          // Пока /api/auth/me не ответил — скелет, а НЕ пустое состояние
+          // «модулей нет» (иначе на долю секунды мигает ложное сообщение).
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+            aria-busy="true"
+            aria-label={t.loadingData}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-3"
+                style={{
+                  padding: 20, borderRadius: 12, background: 'var(--surface)',
+                  border: '1px solid var(--border)', borderInlineStart: '4px solid var(--border-strong)',
+                }}
+              >
+                <Skeleton width={44} height={44} radius={12} />
+                <div>
+                  <Skeleton width="55%" height={13} />
+                  <div style={{ height: 8 }} />
+                  <Skeleton width="80%" height={11} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : visibleModules.length === 0 ? (
           <div style={{
             border: '1px dashed var(--border-strong)', borderRadius: 12, padding: '28px 20px',
             textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',

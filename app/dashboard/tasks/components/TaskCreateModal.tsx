@@ -6,6 +6,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
+import { Spinner } from '@/components/ui/Spinner'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -600,10 +601,12 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             disabled={saving}
             style={{
               padding: '8px 20px', fontSize: 13, fontWeight: 600,
-              border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer',
-              background: '#F59E0B', color: '#fff', opacity: saving ? 0.7 : 1,
+              border: 'none', borderRadius: 8, cursor: saving ? 'progress' : 'pointer',
+              background: '#F59E0B', color: '#fff', opacity: saving ? 0.85 : 1,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
             }}
           >
+            {saving && <Spinner />}
             {saving ? t('create_modal.creating_button') : (kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button'))}
           </button>
         </div>

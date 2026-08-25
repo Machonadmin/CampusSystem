@@ -267,3 +267,11 @@ p { text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
   .campus-sk { animation: none !important; }
 }
+
+/* Крутящийся индикатор для кнопок в состоянии загрузки (см. ui/Spinner). */
+@keyframes campus-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .campus-spinner { animation-duration: 1.4s !important; }
+}
