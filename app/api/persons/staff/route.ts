@@ -1,4 +1,5 @@
 import { flattenPhones } from '@/lib/persons/phone'
+import { fetchAllPages } from '@/lib/api/handler'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
@@ -58,22 +59,13 @@ export async function GET(request: NextRequest) {
 
     // 1) Действующие должности — постранично (is_head first → основная должность
     //    и подразделение человека оказываются первыми в его группе).
-    const positions: PositionRow[] = []
-    let from = 0
-    for (;;) {
-      const { data, error } = await sb
-        .from('staff_positions')
-        .select('person_id, department_id, position_ru, position_he, is_head, position:reference_positions(name_ru, name_he)')
-        .is('end_date', null)
-        .order('is_head', { ascending: false })
-        .order('person_id', { ascending: true })
-        .range(from, from + PAGE - 1)
-      if (error) throw error
-      const rows = (data ?? []) as unknown as PositionRow[]
-      positions.push(...rows)
-      if (rows.length < PAGE) break
-      from += PAGE
-    }
+    const positions = await fetchAllPages<PositionRow>((lo, hi) => sb
+      .from('staff_positions')
+      .select('person_id, department_id, position_ru, position_he, is_head, position:reference_positions(name_ru, name_he)')
+      .is('end_date', null)
+      .order('is_head', { ascending: false })
+      .order('person_id', { ascending: true })
+      .range(lo, hi), PAGE)
 
     if (positions.length === 0) {
       return NextResponse.json({ staff: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE })

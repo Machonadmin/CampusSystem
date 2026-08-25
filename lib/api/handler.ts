@@ -79,6 +79,29 @@ export function jsonError(err: unknown): NextResponse {
  * Пример:
  *   const body = await parseBody(request, applicationSchema)
  */
+/**
+ * PostgREST молча обрезает выдачу на db-max-rows (~1000). Этот хелпер читает
+ * все страницы через .range() и склеивает их — заменяет вручную скопированный
+ * `for(;;){ …range(from, from+PAGE-1); if(rows.length<PAGE) break }` в ~35
+ * роутах. makeQuery строит запрос с уже применёнными фильтрами/сортировкой;
+ * помощник добавляет .range(from, to). Порядок должен быть стабильным (order по
+ * уникальному полю), иначе страницы могут перекрываться/терять строки.
+ */
+export async function fetchAllPages<T>(
+  makeQuery: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>,
+  page = 1000,
+): Promise<T[]> {
+  const rows: T[] = []
+  for (let from = 0; ; from += page) {
+    const { data, error } = await makeQuery(from, from + page - 1)
+    if (error) throw error
+    const chunk = (data ?? []) as T[]
+    rows.push(...chunk)
+    if (chunk.length < page) break
+  }
+  return rows
+}
+
 export async function parseBody<T>(request: NextRequest, schema: ZodType<T>): Promise<T> {
   const json = await request.json().catch(() => null)
   const parsed = schema.safeParse(json)
