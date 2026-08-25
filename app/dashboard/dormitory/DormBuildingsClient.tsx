@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Building {
   id: string
@@ -126,7 +127,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
             <option value="female">{t('gender.female')}</option>
           </select>
           <input value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
-          <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+          <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
           {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}

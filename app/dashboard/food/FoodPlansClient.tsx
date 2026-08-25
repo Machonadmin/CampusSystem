@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { formatMoney } from '@/lib/finance/money'
 
 interface Plan {
@@ -138,7 +139,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
           <label style={chk}><input type="checkbox" checked={breakfast} onChange={e => setBreakfast(e.target.checked)} /> {t('meal.breakfast')}</label>
           <label style={chk}><input type="checkbox" checked={lunch} onChange={e => setLunch(e.target.checked)} /> {t('meal.lunch')}</label>
           <label style={chk}><input type="checkbox" checked={dinner} onChange={e => setDinner(e.target.checked)} /> {t('meal.dinner')}</label>
-          <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+          <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
           {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}

@@ -11,6 +11,7 @@ import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Contact {
   id: string
@@ -328,7 +329,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             {t('fields.is_active')}
           </label>
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button onClick={save} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+            <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
             <button onClick={closeForm} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
             {editingId !== '' && (
               <button onClick={remove} disabled={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
