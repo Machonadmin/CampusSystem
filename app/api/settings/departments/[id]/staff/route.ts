@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStaff } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { EmploymentType } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-  // Портальный студенческий токен не должен читать штат подразделения.
-  if (session.principal === 'student') throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
-}
 
 async function requireSuperadmin() {
   const session = await getSession()
@@ -20,7 +15,7 @@ async function requireSuperadmin() {
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
 
     const lang = getCookieLocale()

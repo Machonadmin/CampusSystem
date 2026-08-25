@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStaff } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { PositionCategory, ReferencePositionUpdate } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-  if (session.principal === 'student') throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
-  return session
-}
 
-function isAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
+function isAdmin(session: Awaited<ReturnType<typeof requireStaff>>) {
   const roles = session.roles ?? []
   return roles.includes('superadmin') || roles.includes('admin') || roles.includes('hr_director')
 }
@@ -23,7 +18,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
     const { data, error } = await sb
       .from('reference_positions')
@@ -48,7 +43,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     if (!isAdmin(session)) {
       return apiError('forbidden', 403)
     }
@@ -123,7 +118,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     if (!isAdmin(session)) {
       return apiError('forbidden', 403)
     }
