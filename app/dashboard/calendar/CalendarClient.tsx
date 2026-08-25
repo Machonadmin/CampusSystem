@@ -35,6 +35,9 @@ import {
   LESSON_BG, LESSON_FG, LESSON_ACCENT, SCHEDULE_BG, SCHEDULE_FG, SCHEDULE_ACCENT,
   TASK_BG, TASK_ACCENT, TASK_FG, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT,
 } from './calendar-utils'
+import {
+  dayRowTime, dayRowTitle, dayRowKind, dayRowBtn, statusStyle, navBtn, addMenuItem, smallLink, lessonTag, scheduleTag, taskTag, birthdayTag, dialog, dialogTitle, input, btnGhost, btnPrimary, statusBtn,
+} from './calendar-utils'
 
 export default function CalendarClient() {
   const { lang, isRTL } = useLang()
@@ -850,29 +853,6 @@ function DayDetail({
   )
 }
 
-const dayRowTime: React.CSSProperties = { fontSize: 12, fontWeight: 700, minWidth: 62 }
-const dayRowTitle: React.CSSProperties = { fontSize: 13, fontWeight: 600, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
-const dayRowKind: React.CSSProperties = { fontSize: 10, fontWeight: 600, opacity: 0.75, textTransform: 'uppercase', letterSpacing: 0.3 }
-function dayRowBtn(isRTL: boolean, bg: string, color: string, accent: string): React.CSSProperties {
-  return {
-    display: 'flex', alignItems: 'center', gap: 10, textAlign: isRTL ? 'right' : 'left', cursor: 'pointer',
-    background: bg, color, borderInlineStart: `3px solid ${accent}`, border: 'none',
-    borderRadius: 8, padding: '8px 12px', width: '100%',
-  }
-}
-
-// ─────────────────────────────────────────────
-// Статус-стили чипа
-// ─────────────────────────────────────────────
-
-function statusStyle(status: Status, primary: string, light: string): { bg: string; color: string; strike: boolean } {
-  switch (status) {
-    case 'completed': return { bg: 'var(--success-tint)', color: 'var(--success)', strike: false }
-    case 'cancelled': return { bg: 'var(--surface-2)', color: 'var(--text-faint)', strike: true }
-    case 'no_show':   return { bg: 'var(--warn-tint)', color: 'var(--warn)', strike: false }
-    default:          return { bg: light, color: primary, strike: false }
-  }
-}
 
 // ─────────────────────────────────────────────
 // Месячная сетка
@@ -1936,52 +1916,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // ─── Инлайн-стили ─────────────────────────────────────────────────────────────
 
-const navBtn: React.CSSProperties = {
-  width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)',
-  color: 'var(--text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-}
-const addMenuItem: React.CSSProperties = {
-  display: 'grid', gap: 2, textAlign: 'start', background: 'none', border: 'none',
-  borderRadius: 7, cursor: 'pointer', padding: '9px 12px', width: '100%',
-}
-const smallLink: React.CSSProperties = {
-  fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer',
-}
-// Метка «שיעור» на строке урока в недельном виде.
-const lessonTag: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: '#fff', background: LESSON_ACCENT,
-  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
-}
-// Метка повторяющегося слота на строке недельного вида.
-const scheduleTag: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: SCHEDULE_FG, background: 'var(--surface)',
-  border: `1px dashed ${SCHEDULE_ACCENT}`, borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
-}
-// Метка задачи на строке недельного вида.
-const taskTag: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: '#fff', background: TASK_ACCENT,
-  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
-}
-// Метка дня рождения на строке недельного вида.
-const birthdayTag: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: '#fff', background: BIRTHDAY_ACCENT,
-  borderRadius: 4, padding: '1px 6px', marginInlineEnd: 2,
-}
-const dialog: React.CSSProperties = {
-  background: 'var(--surface)', borderRadius: 14, padding: 20, width: '100%', maxWidth: 460,
-  maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
-}
-const dialogTitle: React.CSSProperties = { fontSize: 17, fontWeight: 600, color: 'var(--text)', margin: 0 }
-const input: React.CSSProperties = {
-  width: '100%', fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
-}
-const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border)',
-  borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
-}
-function btnPrimary(primary: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, color: '#fff', background: primary, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }
-}
-function statusBtn(color: string, bg: string): React.CSSProperties {
-  return { fontSize: 12, fontWeight: 600, color, background: bg, border: 'none', borderRadius: 8, padding: '7px 12px', cursor: 'pointer' }
-}
