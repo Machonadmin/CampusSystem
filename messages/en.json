@@ -333,6 +333,8 @@
       "tab_schedule": "Schedule",
       "section_title": "Weekly schedule",
       "add_slot": "Add slot",
+      "add_slot_day": "Add",
+      "kodesh_tag": "Kodesh",
       "generate": "Generate lessons",
       "loading": "Loading…",
       "load_error": "Failed to load schedule",
