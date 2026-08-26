@@ -68,6 +68,19 @@ export default function StudyTab() {
     })
   }
 
+  // На телефоне боковой рельс превращается в горизонтальную полосу вкладок
+  // (см. .study-rail в globals.css). Тогда «свёрнутый» режим не применяем —
+  // показываем подписи, а кнопку сворачивания прячем.
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  const railCollapsed = collapsed && !isMobile
+
   const railItem = (key: Section, label: string): React.ReactNode => {
     const isActive = active === key
     return (
@@ -81,11 +94,11 @@ export default function StudyTab() {
         <button
           type="button"
           onClick={() => setActive(key)}
-          title={collapsed ? label : undefined}
+          title={railCollapsed ? label : undefined}
           style={{
             display: 'flex', alignItems: 'center', gap: 11, width: '100%',
-            justifyContent: collapsed ? 'center' : 'flex-start', textAlign: 'start',
-            padding: collapsed ? '10px 0' : '9px 11px', borderRadius: 9, fontSize: 13.5,
+            justifyContent: railCollapsed ? 'center' : 'flex-start', textAlign: 'start',
+            padding: railCollapsed ? '10px 0' : '9px 11px', borderRadius: 9, fontSize: 13.5,
             fontWeight: isActive ? 600 : 500, cursor: 'pointer', border: 'none',
             fontFamily: 'inherit', whiteSpace: 'nowrap',
             background: isActive ? 'var(--accent-tint)' : 'transparent',
@@ -98,7 +111,7 @@ export default function StudyTab() {
           <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={ICON[key]} />
           </svg>
-          {!collapsed && <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+          {!railCollapsed && <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
         </button>
       </div>
     )
@@ -126,27 +139,29 @@ export default function StudyTab() {
 
   return (
     <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `${collapsed ? 60 : 190}px 1fr` }} className="study-ws">
-        {/* Боковой рельс — 4 пункта */}
-        <nav style={{ background: 'var(--surface-2)', borderInlineEnd: '1px solid var(--border)', padding: collapsed ? '10px 8px' : '12px 9px', display: 'flex', flexDirection: 'column', gap: 3 }} className="study-rail">
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            title={collapsed ? t('study.rail.expand') : t('study.rail.collapse')}
-            aria-label={collapsed ? t('study.rail.expand') : t('study.rail.collapse')}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-end',
-              width: '100%', padding: '4px 6px', marginBottom: 4, background: 'none', border: 'none',
-              cursor: 'pointer', color: 'var(--text-faint)',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-faint)' }}
-          >
-            <svg style={{ width: 17, height: 17, transform: `scaleX(${isRTL ? -1 : 1})` }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.9}
-                d={collapsed ? 'M8.25 4.5l7.5 7.5-7.5 7.5' : 'M15.75 19.5L8.25 12l7.5-7.5'} />
-            </svg>
-          </button>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : `${collapsed ? 60 : 190}px 1fr` }} className="study-ws">
+        {/* Боковой рельс — 4 пункта (на телефоне — горизонтальная полоса) */}
+        <nav style={{ background: 'var(--surface-2)', borderInlineEnd: '1px solid var(--border)', padding: railCollapsed ? '10px 8px' : '12px 9px', display: 'flex', flexDirection: 'column', gap: 3 }} className="study-rail">
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              title={collapsed ? t('study.rail.expand') : t('study.rail.collapse')}
+              aria-label={collapsed ? t('study.rail.expand') : t('study.rail.collapse')}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-end',
+                width: '100%', padding: '4px 6px', marginBottom: 4, background: 'none', border: 'none',
+                cursor: 'pointer', color: 'var(--text-faint)',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-faint)' }}
+            >
+              <svg style={{ width: 17, height: 17, transform: `scaleX(${isRTL ? -1 : 1})` }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.9}
+                  d={collapsed ? 'M8.25 4.5l7.5 7.5-7.5 7.5' : 'M15.75 19.5L8.25 12l7.5-7.5'} />
+              </svg>
+            </button>
+          )}
 
           {railItem('dashboard', t('study.dashboard.title'))}
           {RAIL.map(s => railItem(s.key, t(s.labelKey)))}

@@ -154,6 +154,22 @@ body { transition: background-color .25s ease, color .25s ease; }
    иметь flexWrap:'wrap'. */
 @media (max-width: 767px) {
   .md-rail { width: 100% !important; flex-basis: 100% !important; }
+
+  /* На телефоне боковой рельс раздела «Учёба» → горизонтальная полоса вкладок
+     со скроллом (перебиваем инлайновый flex-direction:column). */
+  .study-rail {
+    flex-direction: row !important;
+    overflow-x: auto;
+    border-inline-end: none !important;
+    border-bottom: 1px solid var(--border);
+    gap: 4px !important;
+    padding: 8px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .study-rail::-webkit-scrollbar { display: none; }
+  .study-rail > div { flex: 0 0 auto; }
+  .study-rail > div > button { width: auto !important; padding: 8px 12px !important; }
 }
 
 @media (max-width: 767px) {
