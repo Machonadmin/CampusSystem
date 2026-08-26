@@ -11,7 +11,7 @@ import type { TaskRow } from '@/types/database'
  * GET /api/tasks/[id]/watchers — список наблюдателей.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

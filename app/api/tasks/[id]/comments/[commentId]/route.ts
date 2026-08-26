@@ -9,7 +9,7 @@ import { createServerClient } from '@/lib/supabase/server'
  * Доступ — автор комментария или суперадмин.
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string; commentId: string } }
 ) {
   try {

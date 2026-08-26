@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/settings/users/[id]/roles — replace all roles
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await guard()
     const sb = createServerClient()
