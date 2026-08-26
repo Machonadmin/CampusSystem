@@ -7,6 +7,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Program { id: string; name: string; institution_name: string | null }
 
@@ -319,9 +320,9 @@ export default function RecruitmentFormSettingsPage() {
           </section>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={save} disabled={saving} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: accent, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-              {saving ? t('saving') : t('save')}
-            </button>
+            <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: accent, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+              {t('save')}
+            </SubmitButton>
           </div>
         </>
       ) : null}

@@ -6,7 +6,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
-import { Spinner } from '@/components/ui/Spinner'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -594,21 +594,21 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}>
             {tCommon('cancel')}
           </button>
-          <button
+          <SubmitButton
             type="submit"
             form=""
             onClick={handleSubmit}
-            disabled={saving}
+            loading={saving}
+            loadingLabel={t('create_modal.creating_button')}
             style={{
               padding: '8px 20px', fontSize: 13, fontWeight: 600,
-              border: 'none', borderRadius: 8, cursor: saving ? 'progress' : 'pointer',
+              border: 'none', borderRadius: 8,
               background: '#F59E0B', color: '#fff', opacity: saving ? 0.85 : 1,
               display: 'inline-flex', alignItems: 'center', gap: 8,
             }}
           >
-            {saving && <Spinner />}
-            {saving ? t('create_modal.creating_button') : (kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button'))}
-          </button>
+            {kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button')}
+          </SubmitButton>
         </div>
     </Modal>
   )

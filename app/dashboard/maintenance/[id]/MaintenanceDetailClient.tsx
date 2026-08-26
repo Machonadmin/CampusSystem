@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { allowedTransitions } from '@/lib/maintenance/tickets'
@@ -193,9 +194,9 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                   {transitions.length === 0 ? (
                     <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('detail.no_actions')}</span>
                   ) : transitions.map(to => (
-                    <button key={to} onClick={() => patch({ status: to })} disabled={busy} style={outlineBtn(primary)}>
+                    <SubmitButton key={to} onClick={() => patch({ status: to })} loading={busy} style={outlineBtn(primary)}>
                       {t(`status.${to}`)}
-                    </button>
+                    </SubmitButton>
                   ))}
                 </div>
               </div>
@@ -218,13 +219,13 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                 <div style={fieldLabelStyle}>{t('detail.assign')}</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
                   {assignedToMe ? (
-                    <button onClick={() => patch({ assigned_to: null })} disabled={busy} style={outlineBtn('var(--text-muted)')}>
+                    <SubmitButton onClick={() => patch({ assigned_to: null })} loading={busy} style={outlineBtn('var(--text-muted)')}>
                       {t('detail.unassign')}
-                    </button>
+                    </SubmitButton>
                   ) : (
-                    <button onClick={() => patch({ assigned_to: currentPersonId })} disabled={busy} style={outlineBtn(primary)}>
+                    <SubmitButton onClick={() => patch({ assigned_to: currentPersonId })} loading={busy} style={outlineBtn(primary)}>
                       {t('detail.assign_to_me')}
-                    </button>
+                    </SubmitButton>
                   )}
                 </div>
               </div>
@@ -239,13 +240,14 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
                   style={{ marginTop: 6, width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 <div style={{ marginTop: 6 }}>
-                  <button
+                  <SubmitButton
                     onClick={() => patch({ description: descDraft })}
+                    loading={busy}
                     disabled={busy || descDraft === (ticket.description ?? '')}
                     style={btn(primary)}
                   >
                     {tCommon('save')}
-                  </button>
+                  </SubmitButton>
                 </div>
               </div>
             </div>

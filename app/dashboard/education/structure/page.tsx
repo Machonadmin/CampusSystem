@@ -7,6 +7,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -175,7 +176,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
               style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
             <input value={editTier} onChange={e => setEditTier(e.target.value)} placeholder={t('tier_ph')}
               style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
-            <button disabled={busy || !editName.trim()} onClick={async () => { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) }} style={miniBtn('accent')}>{t('save')}</button>
+            <SubmitButton loading={busy} disabled={busy || !editName.trim()} onClick={async () => { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) }} style={miniBtn('accent')}>{t('save')}</SubmitButton>
             <button onClick={() => { setEditing(false); setEditName(node.name); setEditTier(node.tier ?? '') }} style={miniBtn()}>{t('cancel')}</button>
           </>
         ) : (
@@ -244,7 +245,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
             style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)', minWidth: 180 }} />
           <input value={addTier} onChange={e => setAddTier(e.target.value)} placeholder={t('tier_ph')}
             style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
-          <button disabled={busy || !addName.trim()} onClick={async () => { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } }} style={miniBtn('accent')}>{t('add')}</button>
+          <SubmitButton loading={busy} disabled={busy || !addName.trim()} onClick={async () => { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } }} style={miniBtn('accent')}>{t('add')}</SubmitButton>
           <button onClick={() => setAdding(false)} style={miniBtn()}>{t('cancel')}</button>
         </div>
       )}

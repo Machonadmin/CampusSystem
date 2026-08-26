@@ -19,6 +19,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Department {
   id: string
@@ -159,10 +160,10 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
-          <button onClick={save} disabled={saving || !name.trim()}
+          <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} disabled={saving || !name.trim()}
             style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? t('saving') : t('save')}
-          </button>
+            {t('save')}
+          </SubmitButton>
         </div>
     </Modal>
   )
@@ -210,10 +211,10 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
-          <button onClick={save} disabled={saving || !name.trim()}
+          <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} disabled={saving || !name.trim()}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? t('saving') : t('save')}
-          </button>
+            {t('save')}
+          </SubmitButton>
         </div>
     </Modal>
   )
@@ -278,10 +279,10 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{t('cancel')}</button>
-          <button onClick={save} disabled={saving}
+          <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? t('saving') : t('save')}
-          </button>
+            {t('save')}
+          </SubmitButton>
         </div>
     </Modal>
   )

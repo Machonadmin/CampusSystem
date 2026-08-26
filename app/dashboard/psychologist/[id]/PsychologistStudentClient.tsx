@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Profile {
   presenting_concerns: string | null
@@ -221,7 +222,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
             </div>
             {canManage && (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button onClick={saveProfile} disabled={savingProfile} style={btn(primary)}>{tCommon('save')}</button>
+                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn(primary)}>{tCommon('save')}</SubmitButton>
                 {profileSaved && <span style={{ fontSize: 12, color: primary }}>{t('profile.saved')}</span>}
               </div>
             )}
@@ -251,7 +252,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
                 </Field>
               </div>
               <div style={{ marginTop: 12 }}>
-                <button onClick={recordSession} disabled={busy} style={btn(primary)}>{t('session.record')}</button>
+                <SubmitButton onClick={recordSession} loading={busy} style={btn(primary)}>{t('session.record')}</SubmitButton>
               </div>
             </div>
           )}
@@ -289,10 +290,10 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
                         </td>
                         <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                           {canManage && s.status === 'open' && (
-                            <button onClick={() => setStatus(s, 'closed')} disabled={busy} style={linkBtn(primary)}>{t('session.close')}</button>
+                            <SubmitButton onClick={() => setStatus(s, 'closed')} loading={busy} style={linkBtn(primary)}>{t('session.close')}</SubmitButton>
                           )}
                           {canManage && s.status === 'closed' && (
-                            <button onClick={() => setStatus(s, 'open')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('session.reopen')}</button>
+                            <SubmitButton onClick={() => setStatus(s, 'open')} loading={busy} style={linkBtn('var(--text-muted)')}>{t('session.reopen')}</SubmitButton>
                           )}
                         </td>
                       </tr>

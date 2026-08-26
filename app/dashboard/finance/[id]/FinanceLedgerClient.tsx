@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatMoney } from '@/lib/finance/money'
@@ -312,7 +313,7 @@ export default function FinanceLedgerClient({
                 <input value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
                 <input value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
                 <input type="date" value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
-                <button onClick={submitCharge} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+                <SubmitButton onClick={submitCharge} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}
             {ledger.charges.length === 0 ? (
@@ -388,7 +389,7 @@ export default function FinanceLedgerClient({
                           <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
                           <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
                           <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
-                          <button onClick={() => submitDiscount(c.id)} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('#7C3AED'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</button>
+                          <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('#7C3AED'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
                           <button onClick={() => setDiscountChargeId(null)} disabled={busy} style={{ ...btn('var(--surface-2)'), color: 'var(--text)' }}>{tCommon('cancel')}</button>
                         </FormRow>
                       </td>
@@ -425,7 +426,7 @@ export default function FinanceLedgerClient({
                 )}
                 <input value={pRef} onChange={e => setPRef(e.target.value)} placeholder={t('form.reference')} style={inp(150)} />
                 <input value={pSignature} onChange={e => setPSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
-                <button onClick={submitPayment} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</button>
+                <SubmitButton onClick={submitPayment} loading={busy} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}
             {ledger.payments.length === 0 ? (

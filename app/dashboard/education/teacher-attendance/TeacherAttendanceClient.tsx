@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface LessonRow {
   lesson_id: string
@@ -125,14 +126,14 @@ export default function TeacherAttendanceClient({ canApprove }: { canApprove: bo
                       {p.lesson?.subject ? ` · ${p.lesson.subject}` : ''}{p.lesson?.group_name ? ` · ${p.lesson.group_name}` : ''}
                     </div>
                   </div>
-                  <button onClick={() => decide(p.id, 'approved')} disabled={busy === p.id}
+                  <SubmitButton onClick={() => decide(p.id, 'approved')} loading={busy === p.id}
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#10B981', color: '#fff', opacity: busy === p.id ? 0.6 : 1 }}>
                     {t('approve')}
-                  </button>
-                  <button onClick={() => decide(p.id, 'rejected')} disabled={busy === p.id}
+                  </SubmitButton>
+                  <SubmitButton onClick={() => decide(p.id, 'rejected')} loading={busy === p.id}
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', opacity: busy === p.id ? 0.6 : 1 }}>
                     {t('reject')}
-                  </button>
+                  </SubmitButton>
                 </div>
               ))}
             </div>
@@ -156,10 +157,10 @@ export default function TeacherAttendanceClient({ canApprove }: { canApprove: bo
                 </div>
                 {statusChip(l.status)}
                 {l.status !== 'approved' && (
-                  <button onClick={() => report(l.lesson_id)} disabled={busy === l.lesson_id}
+                  <SubmitButton onClick={() => report(l.lesson_id)} loading={busy === l.lesson_id}
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', opacity: busy === l.lesson_id ? 0.6 : 1 }}>
                     {l.status === 'reported' ? t('re_report') : l.status === 'rejected' ? t('re_report') : t('report')}
-                  </button>
+                  </SubmitButton>
                 )}
               </div>
             ))}

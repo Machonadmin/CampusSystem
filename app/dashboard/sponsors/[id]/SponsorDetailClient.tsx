@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
 import type { SponsorRow } from '@/types/database'
@@ -327,11 +328,11 @@ export default function SponsorDetailClient({
               {t('fields.is_active')}
             </label>
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button onClick={saveSponsor} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+              <SubmitButton onClick={saveSponsor} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
               <button onClick={() => setEditingSponsor(false)} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-              <button onClick={removeSponsor} disabled={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
+              <SubmitButton onClick={removeSponsor} loading={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
                 {tCommon('delete')}
-              </button>
+              </SubmitButton>
             </div>
           </>
         ) : (
@@ -412,7 +413,7 @@ export default function SponsorDetailClient({
               </Field>
             </div>
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button onClick={saveDonation} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+              <SubmitButton onClick={saveDonation} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
               <button onClick={closeDonation} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
             </div>
           </div>

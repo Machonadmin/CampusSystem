@@ -7,6 +7,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import ChavrutaPlusPanel from './ChavrutaPlusPanel'
@@ -164,10 +165,10 @@ function EntryForm({ initial, editing, onSubmit, onCancel, busy }: {
           style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
           {tCommon('cancel')}
         </button>
-        <button onClick={submit} disabled={busy}
+        <SubmitButton onClick={submit} loading={busy}
           style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           {tCommon('save')}
-        </button>
+        </SubmitButton>
       </div>
     </div>
   )
@@ -450,18 +451,18 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
           </div>
           {canManage && (
             <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
-              <button onClick={saveRate} disabled={savingRate}
+              <SubmitButton onClick={saveRate} loading={savingRate}
                 style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: savingRate ? 'default' : 'pointer', opacity: savingRate ? 0.6 : 1 }}>
                 {t('save_rates')}
-              </button>
-              <button onClick={generateTeaching} disabled={generating}
+              </SubmitButton>
+              <SubmitButton onClick={generateTeaching} loading={generating}
                 style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: `1px solid ${getModuleColor('finance', 'medium')}`, borderRadius: 8, background: getModuleColor('finance', 'light'), color: primary, cursor: generating ? 'default' : 'pointer', opacity: generating ? 0.6 : 1 }}>
                 {t('generate_teaching')}
-              </button>
-              <button onClick={generateMonthly} disabled={generatingMonthly}
+              </SubmitButton>
+              <SubmitButton onClick={generateMonthly} loading={generatingMonthly}
                 style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: `1px solid ${getModuleColor('finance', 'medium')}`, borderRadius: 8, background: getModuleColor('finance', 'light'), color: primary, cursor: generatingMonthly ? 'default' : 'pointer', opacity: generatingMonthly ? 0.6 : 1 }}>
                 {t('generate_monthly')}
-              </button>
+              </SubmitButton>
             </div>
           )}
         </div>
@@ -487,10 +488,10 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                     {t('approved')} · {fmtDate(payslip?.approved_at ?? null, lang)}
                   </span>
                 ) : canApprove && (
-                  <button onClick={approve} disabled={approving}
+                  <SubmitButton onClick={approve} loading={approving}
                     style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: approving ? 'default' : 'pointer', opacity: approving ? 0.6 : 1 }}>
                     {t('approve')}
-                  </button>
+                  </SubmitButton>
                 )}
               </div>
             </div>

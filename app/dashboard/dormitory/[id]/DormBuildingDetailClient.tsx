@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { OccupancyBar } from '../DormBuildingsClient'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -243,7 +244,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
           <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={t('form.room_number')} style={inp(120)} />
           <input value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
           <input value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
-          <button onClick={addRoom} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+          <SubmitButton onClick={addRoom} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
           {roomError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{roomError}</span>}
         </div>
       )}
@@ -303,7 +304,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                   </span>
                   <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
                   <input type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
-                  <button onClick={assign} disabled={busy} style={btn(primary)}>{t('room.assign')}</button>
+                  <SubmitButton onClick={assign} loading={busy} style={btn(primary)}>{t('room.assign')}</SubmitButton>
                 </div>
               ) : (
                 <div style={{ position: 'relative' }}>
@@ -368,9 +369,9 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                       </td>
                       <td style={{ ...td, textAlign: 'right' }}>
                         {canManage && a.status === 'active' && (
-                          <button onClick={() => endAssignment(a)} disabled={busy} style={{ background: 'none', border: 'none', color: '#D97706', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                          <SubmitButton onClick={() => endAssignment(a)} loading={busy} style={{ background: 'none', border: 'none', color: '#D97706', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                             {t('room.end_assignment')}
-                          </button>
+                          </SubmitButton>
                         )}
                       </td>
                     </tr>

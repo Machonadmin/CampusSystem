@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { toastSuccess, toastError } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 type T = (key: string, fallback?: string) => string
 
@@ -192,7 +193,7 @@ export default function PersonPrivilegesModal({ user, t, tCommon, onClose }: Per
         {/* Footer */}
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving || loading} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || loading) ? 'not-allowed' : 'pointer', opacity: (saving || loading) ? 0.6 : 1 }}>{t('save')}</button>
+          <SubmitButton onClick={save} loading={saving} disabled={saving || loading} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || loading) ? 'not-allowed' : 'pointer', opacity: (saving || loading) ? 0.6 : 1 }}>{t('save')}</SubmitButton>
         </div>
     </Modal>
   )

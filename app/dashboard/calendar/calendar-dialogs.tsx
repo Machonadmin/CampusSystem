@@ -4,6 +4,7 @@
 // редактирования встречи и просмотр встречи. Вынесено из CalendarClient.tsx
 // для разгрузки монолита; поведение не менялось.
 import { useState, useEffect } from 'react'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { formatHebrewDate } from '@/lib/calendar/hebrew'
@@ -48,9 +49,9 @@ export function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClo
         {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}>🔔 {tAdd('has_reminder')}</div>}
         {ev.notes && <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
-          <button onClick={remove} disabled={deleting} style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
-            {deleting ? tAdd('deleting') : tAdd('delete')}
-          </button>
+          <SubmitButton onClick={remove} loading={deleting} loadingLabel={tAdd('deleting')} style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
+            {tAdd('delete')}
+          </SubmitButton>
           <div style={{ display: 'flex', gap: 8 }}>
             {ev.link && <a href={ev.link} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', textDecoration: 'none', padding: '8px 14px' }}>{tAdd('open_link')}</a>}
             <button onClick={onClose} style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>{tAdd('cancel')}</button>
@@ -427,9 +428,9 @@ export function AppointmentForm({
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
           <button onClick={onClose} style={btnGhost}>{tCommon('cancel')}</button>
-          <button onClick={submit} disabled={saving} style={{ ...btnPrimary(primary), opacity: saving ? 0.6 : 1 }}>
-            {saving ? tCommon('loading') : tCommon('save')}
-          </button>
+          <SubmitButton onClick={submit} loading={saving} loadingLabel={tCommon('loading')} style={{ ...btnPrimary(primary), opacity: saving ? 0.6 : 1 }}>
+            {tCommon('save')}
+          </SubmitButton>
         </div>
       </div>
     </Overlay>

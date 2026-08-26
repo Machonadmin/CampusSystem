@@ -9,6 +9,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Doc {
   id: string
@@ -256,7 +257,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                 </Field>
               </div>
               <div style={{ marginTop: 12 }}>
-                <button onClick={addDocument} disabled={busy} style={btn(primary)}>{t('add.submit')}</button>
+                <SubmitButton onClick={addDocument} loading={busy} style={btn(primary)}>{t('add.submit')}</SubmitButton>
               </div>
             </div>
           )}
