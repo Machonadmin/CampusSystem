@@ -257,6 +257,12 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
+  // Живое предупреждение: выбранное время попадает в зарезервированное окно
+  // кодеш (Вс–Чт, утро). Пока — мягкое правило (как на бэкенде): сообщаем,
+  // не блокируем.
+  const kodeshClash = !!startTime && !!endTime && endTime > startTime
+    && collidesWithKodesh(Number(dayOfWeek), startTime, endTime)
+
   // Здания/аудитории — если заданы, можно выбрать; иначе — свободный текст.
   const [buildings, setBuildings] = useState<{ id: string; name: string; rooms: { id: string; name: string }[] }[]>([])
   const [buildingId, setBuildingId] = useState('')
@@ -387,6 +393,12 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
           <input value={room} onChange={e => setRoom(e.target.value)} placeholder={t('room_placeholder')} style={inputStyle} />
         </div>
       </div>
+
+      {kodeshClash && (
+        <div style={{ marginTop: 12, padding: '8px 12px', background: KODESH_TINT, color: KODESH_GOLD, borderRadius: 8, fontSize: 12.5, fontWeight: 500, border: `1px solid ${KODESH_TINT}` }}>
+          {t('kodesh_time_notice')}
+        </div>
+      )}
 
       {formError && <ModalError text={formError} />}
 
