@@ -19,6 +19,7 @@ interface SlotItem {
   start_time: string         // 'HH:MM:SS'
   end_time: string           // 'HH:MM:SS'
   room: string | null
+  approval_status?: 'active' | 'pending' | 'rejected'
 }
 
 interface Props {
@@ -162,17 +163,27 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 40 }}>
                     {daySlots.map(s => {
                       const inK = collidesWithKodesh(s.day_of_week, hhmm(s.start_time), hhmm(s.end_time))
+                      const pending = s.approval_status === 'pending'
+                      const rejected = s.approval_status === 'rejected'
+                      const edge = pending ? KODESH_GOLD : rejected ? 'var(--border-strong)' : (inK ? KODESH_GOLD : accentColor)
                       return (
                         <div key={s.id} style={{
                           background: 'var(--surface)', borderRadius: 10, padding: '9px 11px',
-                          border: '1px solid var(--border)', borderInlineStart: `3px solid ${inK ? KODESH_GOLD : accentColor}`,
-                          boxShadow: 'var(--shadow)',
+                          border: pending ? `1px dashed ${KODESH_GOLD}` : '1px solid var(--border)',
+                          borderInlineStart: `3px solid ${edge}`,
+                          boxShadow: 'var(--shadow)', opacity: rejected ? 0.6 : 1,
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, fontWeight: 700, color: inK ? KODESH_GOLD : 'var(--accent-strong)', fontVariantNumeric: 'tabular-nums' }}>
                               {hhmm(s.start_time)}–{hhmm(s.end_time)}
                             </span>
-                            {inK && <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.03em', color: KODESH_GOLD, background: KODESH_TINT, padding: '1px 6px', borderRadius: 5 }}>{t('kodesh_tag')}</span>}
+                            {pending ? (
+                              <span style={{ fontSize: 9.5, fontWeight: 700, color: KODESH_GOLD, background: KODESH_TINT, padding: '1px 6px', borderRadius: 5 }}>{t('pending_tag')}</span>
+                            ) : rejected ? (
+                              <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-faint)', background: 'var(--surface-2)', padding: '1px 6px', borderRadius: 5 }}>{t('rejected_tag')}</span>
+                            ) : inK ? (
+                              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.03em', color: KODESH_GOLD, background: KODESH_TINT, padding: '1px 6px', borderRadius: 5 }}>{t('kodesh_tag')}</span>
+                            ) : null}
                           </div>
                           {s.room && <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3 }}>{s.room}</div>}
                           {canManageLessons && (
@@ -307,8 +318,10 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
         setFormError(respBody.error ?? t('action_failed'))
         return
       }
-      // Мягкое правило иудаики: слот сохранён, но время зарезервировано — предупреждаем.
-      if (respBody.warning) toast(respBody.warning, 'info')
+      // Кодеш-время: слот ушёл на утверждение מנהל כללי — сообщаем.
+      // Иначе — мягкое правило иудаики (время зарезервировано) как раньше.
+      if (respBody.pending) toast(t('kodesh_pending_toast'), 'info')
+      else if (respBody.warning) toast(respBody.warning, 'info')
       // Перенос кабинета → уведомлены преподаватели/ученицы группы.
       if (respBody.room_move_notified) toast(t('room_moved_notified').replace('{n}', String(respBody.room_move_notified)), 'info')
       // Конфликты кабинет/преподаватель/ученицы — не блокируют, но предупреждаем.

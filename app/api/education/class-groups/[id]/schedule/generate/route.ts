@@ -71,15 +71,23 @@ export async function POST(
       return NextResponse.json({ error: `Слишком большой период: ${days} дн. (максимум ${MAX_RANGE_DAYS})` }, { status: 400 })
     }
 
-    // Слоты группы, сгруппированные по дню недели.
+    // Слоты группы, сгруппированные по дню недели. select('*') — деплой-
+    // безопасно: колонка approval_status может отсутствовать до применения
+    // миграции (тогда undefined → считаем 'active').
     const { data: slots, error: sErr } = await sb
       .from('class_schedule_slots')
-      .select('day_of_week, start_time, room')
+      .select('*')
       .eq('class_group_id', params.id)
     if (sErr) throw sErr
 
+    // Уроки порождаем ТОЛЬКО из утверждённых слотов: 'pending' (ждёт אישור
+    // מנהל) и 'rejected' пропускаем.
+    const activeSlots = (slots ?? []).filter(
+      (s: { approval_status?: string }) => (s.approval_status ?? 'active') === 'active',
+    )
+
     const byDay = new Map<number, { start_time: string; room: string | null }[]>()
-    for (const s of slots ?? []) {
+    for (const s of activeSlots) {
       const arr = byDay.get(s.day_of_week) ?? []
       arr.push({ start_time: s.start_time, room: s.room })
       byDay.set(s.day_of_week, arr)

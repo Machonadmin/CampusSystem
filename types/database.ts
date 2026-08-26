@@ -1055,6 +1055,12 @@ export interface ScheduleSlotRow {
   created_at: string
   updated_at: string
   created_by: string | null
+  // Утверждение кодеш-времени (миграция 20260826140000; опционально —
+  // деплой-безопасно до применения миграции).
+  approval_status?: 'active' | 'pending' | 'rejected'
+  requested_by?: string | null
+  approved_by?: string | null
+  decided_at?: string | null
 }
 export interface ScheduleSlotInsert {
   id?: string
@@ -1064,6 +1070,8 @@ export interface ScheduleSlotInsert {
   end_time: string
   room?: string | null
   created_by?: string | null
+  approval_status?: 'active' | 'pending' | 'rejected'
+  requested_by?: string | null
 }
 export type ScheduleSlotUpdate = Partial<Omit<ScheduleSlotInsert, 'class_group_id' | 'created_by'>>
 

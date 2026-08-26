@@ -157,17 +157,32 @@ export async function POST(
       void locErr // деградируем молча, если колонок ещё нет
     }
 
-    // Мягкое правило: первые два урока дня — под יהדות. Если обычный курс (не
-    // кодеш-группа) ставит занятие на зарезервированное время — предупреждаем.
-    const warning = target.department_id !== KODESH_DEPT_ID && collidesWithKodesh(dow, start, end)
-      ? serverT('kodesh_slot_warning')
-      : undefined
+    // Утверждение кодеш-времени: слот в зарезервированном утреннем окне,
+    // созданный НЕ מנהל כללי (superadmin), уходит на утверждение
+    // (approval_status='pending') и НЕ порождает уроки, пока его не утвердят.
+    // Деплой-безопасно: если колонок ещё нет (42703) — молча оставляем 'active'
+    // (поведение как раньше — мягкое предупреждение).
+    const inKodesh = target.department_id !== KODESH_DEPT_ID && collidesWithKodesh(dow, start, end)
+    const isGeneralManager = session.roles.includes('superadmin')
+    let pending = false
+    if (inKodesh && !isGeneralManager && data?.id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: apErr } = await (sb as any).from('class_schedule_slots')
+        .update({ approval_status: 'pending', requested_by: session.person_id })
+        .eq('id', data.id)
+      if (!apErr) pending = true
+    }
+
+    // Мягкое правило (когда утверждение НЕ применилось — слот מנהל כללי, либо
+    // колонок ещё нет): просто предупреждаем, не блокируем.
+    const warning = inKodesh && !pending ? serverT('kodesh_slot_warning') : undefined
 
     // Мягкие конфликты (преподаватель / ученицы) — предупреждаем, НЕ блокируем.
     const softConflicts = conflicts.filter(c => c.kind !== 'room')
 
     return NextResponse.json({
       ...(data as object),
+      ...(pending ? { pending: true } : {}),
       ...(warning ? { warning } : {}),
       ...(softConflicts.length ? { conflicts: softConflicts } : {}),
     }, { status: 201 })
