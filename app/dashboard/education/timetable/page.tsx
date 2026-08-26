@@ -18,11 +18,15 @@ interface Slot {
   subject: string | null
   unit: string | null
   teachers: string[]
+  approval_status?: 'active' | 'pending'
 }
 interface Unit { id: string; name: string }
 
 const DAY_ORDER = [7, 1, 2, 3, 4, 5, 6] // Sun..Sat (Israel week)
 const hhmm = (t: string) => t.slice(0, 5)
+// Кодеш-время, ожидающее אישור מנהל — золото модуля «еврейство».
+const PENDING_GOLD = '#ca8a04'
+const PENDING_TINT = 'rgba(202,138,4,0.13)'
 
 export default function TimetablePage() {
   const t = useTranslations('education.timetable')
@@ -139,6 +143,7 @@ export default function TimetablePage() {
                 <div style={{ display: 'grid', gap: 8, minHeight: 40 }}>
                   {(byDay.get(day) ?? []).map(s => {
                     const bad = conflicted.has(s.id)
+                    const pending = s.approval_status === 'pending'
                     return (
                       <div key={s.id}
                         draggable={canEdit}
@@ -146,13 +151,20 @@ export default function TimetablePage() {
                         onDragEnd={canEdit ? (() => { setDragId(null); setOverDay(null) }) : undefined}
                         style={{
                         background: 'var(--surface)', borderRadius: 10, padding: '9px 11px',
-                        border: `1px solid ${bad ? 'var(--danger)' : 'var(--border)'}`,
+                        border: bad ? '1px solid var(--danger)' : pending ? `1px dashed ${PENDING_GOLD}` : '1px solid var(--border)',
                         boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
                         cursor: canEdit ? 'grab' : 'default',
                         opacity: savingId === s.id ? 0.5 : dragId === s.id ? 0.4 : 1,
                       }}>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--accent-strong)' }}>
-                          {hhmm(s.start_time)}–{hhmm(s.end_time)}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--accent-strong)' }}>
+                            {hhmm(s.start_time)}–{hhmm(s.end_time)}
+                          </span>
+                          {pending && (
+                            <span style={{ fontSize: 9.5, fontWeight: 700, color: PENDING_GOLD, background: PENDING_TINT, padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap' }}>
+                              {t('pending', 'ממתין לאישור')}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>{s.class_group_name}{s.subject ? ` · ${s.subject}` : ''}</div>
                         <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>

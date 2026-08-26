@@ -51,12 +51,15 @@ export async function GET(request: NextRequest) {
     const groupIds = groups.map(g => g.id)
     if (groupIds.length === 0) return NextResponse.json({ slots: [], conflicts: [] })
 
-    // Слоты + преподаватели этих групп.
+    // Слоты + преподаватели этих групп. select('*') — деплой-безопасно
+    // (approval_status может отсутствовать до миграции 20260826140000).
     const [{ data: slotsRaw }, { data: teachersRaw }] = await Promise.all([
-      sb.from('class_schedule_slots').select('id, class_group_id, day_of_week, start_time, end_time, room').in('class_group_id', groupIds),
+      sb.from('class_schedule_slots').select('*').in('class_group_id', groupIds),
       sb.from('class_teachers').select('class_group_id, teacher_id, person:persons!class_teachers_teacher_id_fkey(full_name)').in('class_group_id', groupIds),
     ])
-    const slots = (slotsRaw ?? []) as Array<{ id: string; class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null }>
+    // Отклонённые слоты в расписание не показываем; 'active' и 'pending' — да.
+    const slots = ((slotsRaw ?? []) as Array<{ id: string; class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null; approval_status?: string }>)
+      .filter(s => (s.approval_status ?? 'active') !== 'rejected')
 
     const teacherIdsByGroup = new Map<string, string[]>()
     const teacherNameById = new Map<string, string>()
@@ -109,6 +112,7 @@ export async function GET(request: NextRequest) {
         subject: g?.subject?.name ?? null,
         unit: g?.department?.name ?? null,
         teachers: tids.map(id => teacherNameById.get(id) ?? '').filter(Boolean),
+        approval_status: (s.approval_status ?? 'active') as 'active' | 'pending',
       }
     })
 
