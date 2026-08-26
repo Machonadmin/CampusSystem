@@ -12,7 +12,7 @@ import type { TaskRow, TaskCommentType } from '@/types/database'
  * Доступ — у всех кто может видеть задачу (canView).
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

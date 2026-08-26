@@ -11,7 +11,7 @@ import type { TaskRow } from '@/types/database'
  * Может: сам наблюдатель (отписаться), автор задачи, суперадмин.
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string; personId: string } }
 ) {
   try {
