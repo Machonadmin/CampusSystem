@@ -333,6 +333,8 @@
       "tab_schedule": "מערכת שעות",
       "section_title": "מערכת שעות שבועית",
       "add_slot": "הוסף משבצת",
+      "add_slot_day": "שיבוץ",
+      "kodesh_tag": "קודש",
       "generate": "יצירת שיעורים",
       "loading": "טוען…",
       "load_error": "שגיאה בטעינת מערכת השעות",

@@ -8,6 +8,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -48,6 +49,16 @@ function fill(tpl: string, vars: Record<string, string | number>): string {
   return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, String(v)), tpl)
 }
 
+// Кодеш-акцент (золото модуля «еврейство») — для слотов, попадающих в
+// зарезервированное утреннее окно. Тинт через rgba работает в обеих темах.
+const KODESH_GOLD = '#ca8a04'
+const KODESH_TINT = 'rgba(202,138,4,0.13)'
+
+const cardBtn: React.CSSProperties = {
+  padding: '3px 8px', fontSize: 11, color: 'var(--text)',
+  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
+}
+
 // ── Компонент ─────────────────────────────────────────────────────────────────
 
 export default function ScheduleTab({ groupId, canManageLessons, accentColor, periodStart, periodEnd }: Props) {
@@ -58,8 +69,17 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [formSlot, setFormSlot] = useState<SlotItem | 'create' | null>(null)
+  const [formSlot, setFormSlot] = useState<SlotItem | { create: true; day: number } | null>(null)
   const [generating, setGenerating] = useState(false)
+
+  // Израильская учебная неделя: Вс–Чт всегда показываем; Пт/Сб — только если
+  // в них есть слоты. Порядок колонок — Вс..Сб.
+  const WEEK_ORDER = [7, 1, 2, 3, 4, 5, 6]
+  const BASE_DAYS = [7, 1, 2, 3, 4]
+  const cols = WEEK_ORDER.filter(d => BASE_DAYS.includes(d) || slots.some(s => s.day_of_week === d))
+  const byDay = new Map<number, SlotItem[]>()
+  for (const s of slots) { const a = byDay.get(s.day_of_week) ?? []; a.push(s); byDay.set(s.day_of_week, a) }
+  for (const a of byDay.values()) a.sort((x, y) => x.start_time.localeCompare(y.start_time))
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -96,18 +116,6 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
     }
   }
 
-  const th: React.CSSProperties = {
-    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
-    padding: '8px 12px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
-  }
-  const td: React.CSSProperties = {
-    fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)',
-  }
-  const btnSmall: React.CSSProperties = {
-    padding: '3px 8px', fontSize: 11, color: 'var(--text)',
-    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
-  }
-
   return (
     <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       {/* Заголовок + действия */}
@@ -121,7 +129,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
         {canManageLessons && (
           <div style={{ display: 'flex', gap: 8 }}>
             <button
-              onClick={() => setFormSlot('create')}
+              onClick={() => setFormSlot({ create: true, day: cols[0] ?? 7 })}
               style={{ padding: '4px 10px', fontSize: 12, color: accentColor, background: 'var(--surface)', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
             >
               {t('add_slot')}
@@ -136,42 +144,67 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
         )}
       </div>
 
-      {/* Тело */}
+      {/* Тело — недельная сетка по дням (Вс..Чт + дни со слотами) */}
       {loading ? (
         <SkeletonRows avatar={false} />
       ) : error ? (
         <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
-      ) : slots.length === 0 ? (
-        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr>
-                <th style={th}>{t('col_day')}</th>
-                <th style={th}>{t('col_time')}</th>
-                <th style={th}>{t('col_room')}</th>
-                {canManageLessons && <th style={{ ...th, textAlign: 'end' }} aria-hidden />}
-              </tr>
-            </thead>
-            <tbody>
-              {slots.map(s => (
-                <tr key={s.id}>
-                  <td style={{ ...td, fontWeight: 500, whiteSpace: 'nowrap' }}>{weekdayLabel(lang, s.day_of_week, 'long')}</td>
-                  <td style={{ ...td, whiteSpace: 'nowrap' }}>{hhmm(s.start_time)}–{hhmm(s.end_time)}</td>
-                  <td style={{ ...td, color: s.room ? 'var(--text)' : 'var(--border-strong)' }}>{s.room ?? '—'}</td>
-                  {canManageLessons && (
-                    <td style={{ ...td, whiteSpace: 'nowrap', textAlign: 'end' }}>
-                      <div style={{ display: 'inline-flex', gap: 4 }}>
-                        <button onClick={() => setFormSlot(s)} style={btnSmall}>{t('action_edit')}</button>
-                        <button onClick={() => handleDelete(s)} style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}>{t('action_delete')}</button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(148px, 1fr))`, gap: 10, minWidth: cols.length * 158 }}>
+            {cols.map(day => {
+              const daySlots = byDay.get(day) ?? []
+              return (
+                <div key={day}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)', textAlign: 'center', padding: '6px 0', marginBottom: 8, borderBottom: '2px solid var(--border)' }}>
+                    {weekdayLabel(lang, day, 'long')}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 40 }}>
+                    {daySlots.map(s => {
+                      const inK = collidesWithKodesh(s.day_of_week, hhmm(s.start_time), hhmm(s.end_time))
+                      return (
+                        <div key={s.id} style={{
+                          background: 'var(--surface)', borderRadius: 10, padding: '9px 11px',
+                          border: '1px solid var(--border)', borderInlineStart: `3px solid ${inK ? KODESH_GOLD : accentColor}`,
+                          boxShadow: 'var(--shadow)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, fontWeight: 700, color: inK ? KODESH_GOLD : 'var(--accent-strong)', fontVariantNumeric: 'tabular-nums' }}>
+                              {hhmm(s.start_time)}–{hhmm(s.end_time)}
+                            </span>
+                            {inK && <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.03em', color: KODESH_GOLD, background: KODESH_TINT, padding: '1px 6px', borderRadius: 5 }}>{t('kodesh_tag')}</span>}
+                          </div>
+                          {s.room && <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3 }}>{s.room}</div>}
+                          {canManageLessons && (
+                            <div style={{ display: 'flex', gap: 4, marginTop: 7 }}>
+                              <button onClick={() => setFormSlot(s)} style={cardBtn}>{t('action_edit')}</button>
+                              <button onClick={() => handleDelete(s)} style={{ ...cardBtn, color: 'var(--danger)', borderColor: 'var(--danger)' }}>{t('action_delete')}</button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                    {canManageLessons ? (
+                      <button
+                        onClick={() => setFormSlot({ create: true, day })}
+                        style={{
+                          border: '1px dashed var(--border-strong)', borderRadius: 10, padding: '9px 8px',
+                          background: 'transparent', color: 'var(--text-faint)', fontSize: 12, fontWeight: 600,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                        }}
+                        onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = accentColor; el.style.color = accentColor }}
+                        onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border-strong)'; el.style.color = 'var(--text-faint)' }}
+                      >
+                        <span style={{ fontSize: 15, lineHeight: 1 }}>+</span> {t('add_slot_day')}
+                      </button>
+                    ) : daySlots.length === 0 ? (
+                      <div style={{ textAlign: 'center', color: 'var(--text-faint)', fontSize: 12, padding: '10px 0' }}>—</div>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -179,7 +212,8 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
       {formSlot !== null && (
         <SlotFormModal
           groupId={groupId}
-          slot={formSlot === 'create' ? null : formSlot}
+          slot={'create' in formSlot ? null : formSlot}
+          presetDay={'create' in formSlot ? formSlot.day : undefined}
           accentColor={accentColor}
           lang={lang}
           onClose={() => setFormSlot(null)}
@@ -206,16 +240,17 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
 interface SlotFormModalProps {
   groupId: string
   slot: SlotItem | null   // null = создание
+  presetDay?: number      // предвыбранный день недели при создании (клик по колонке)
   accentColor: string
   lang: string
   onClose: () => void
   onDone: () => void
 }
 
-function SlotFormModal({ groupId, slot, accentColor, lang, onClose, onDone }: SlotFormModalProps) {
+function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, onDone }: SlotFormModalProps) {
   const t = useTranslations('education.schedule')
 
-  const [dayOfWeek, setDayOfWeek] = useState(slot ? String(slot.day_of_week) : '1')
+  const [dayOfWeek, setDayOfWeek] = useState(slot ? String(slot.day_of_week) : String(presetDay ?? 1))
   const [startTime, setStartTime] = useState(slot ? hhmm(slot.start_time) : '')
   const [endTime, setEndTime] = useState(slot ? hhmm(slot.end_time) : '')
   const [room, setRoom] = useState(slot?.room ?? '')
