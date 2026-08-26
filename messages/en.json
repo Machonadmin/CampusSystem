@@ -1525,6 +1525,7 @@
       "conflict": "Conflict",
       "room": "Room",
       "teacher_dbl": "Teacher double-booked",
+      "pending": "Pending approval",
       "room_dbl": "Room double-booked",
       "students_dbl": "Overlapping students",
       "drag_hint": "Drag a lesson to another day",
