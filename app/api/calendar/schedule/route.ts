@@ -67,14 +67,18 @@ export async function GET(request: NextRequest) {
       start_time: string
       end_time: string
       room: string | null
+      approval_status?: string   // миграция 20260826140000; может отсутствовать
     }
     const slotRows: SlotRow[] = []
     {
       let offset = 0
       for (;;) {
+        // select('*') — деплой-безопасно: колонка approval_status может ещё не
+        // существовать. Слоты, ждущие אישור מנהל ('pending') или отклонённые
+        // ('rejected'), в календарь НЕ проецируем.
         const { data, error } = await sb
           .from('class_schedule_slots')
-          .select('id, class_group_id, day_of_week, start_time, end_time, room')
+          .select('*')
           .in('class_group_id', ids)
           .order('day_of_week', { ascending: true })
           .order('start_time', { ascending: true })
@@ -82,7 +86,7 @@ export async function GET(request: NextRequest) {
           .range(offset, offset + PAGE - 1)
         if (error) throw error
         const page = (data ?? []) as SlotRow[]
-        slotRows.push(...page)
+        slotRows.push(...page.filter(s => (s.approval_status ?? 'active') === 'active'))
         if (page.length < PAGE) break
         offset += PAGE
       }
