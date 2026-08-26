@@ -4,6 +4,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getSlotAccess } from '@/lib/education/lesson-access'
 import { detectSlotConflicts } from '@/lib/education/slot-conflict-check'
+import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { createNotifications } from '@/lib/notifications/create'
 import type { ScheduleSlotUpdate } from '@/types/database'
 
@@ -84,7 +86,7 @@ export async function PATCH(
     const access = await getSlotAccess(sb, params.slotId)
     if (!access) return apiError('slot_not_found', 404)
 
-    await requireEducationPrivilege('set_lesson_topics', access.target)
+    const session = await requireEducationPrivilege('set_lesson_topics', access.target)
 
     const update: ScheduleSlotUpdate = {}
 
@@ -167,6 +169,24 @@ export async function PATCH(
       void locErr
     }
 
+    // Пересчёт утверждения при изменении дня/времени — чтобы правку нельзя было
+    // использовать в обход (создать вне кодеш-времени, потом сдвинуть в него).
+    // Не-מנהל כללי, попавший в зарезервированное окно → 'pending'; иначе (или
+    // вне кодеш-времени) → 'active'. Деплой-безопасно (колонки может не быть).
+    let pending = false
+    if (update.day_of_week !== undefined || update.start_time !== undefined || update.end_time !== undefined) {
+      const effStartStr = update.start_time ?? access.slot.start_time
+      const effEndStr = update.end_time ?? access.slot.end_time
+      const inKodesh = (access.target as { department_id?: string }).department_id !== KODESH_DEPT_ID
+        && collidesWithKodesh(effDow, effStartStr, effEndStr)
+      const newStatus = inKodesh && !session.roles.includes('superadmin') ? 'pending' : 'active'
+      const patch: Record<string, unknown> = { approval_status: newStatus }
+      if (newStatus === 'pending') patch.requested_by = session.person_id
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: apErr } = await (sb as any).from('class_schedule_slots').update(patch).eq('id', params.slotId)
+      if (!apErr && newStatus === 'pending') pending = true
+    }
+
     // Перенос кабинета (текст комнаты изменился на непустой) → уведомляем всех
     // משובצים (преподаватели + ученицы) — решение владельца «התראה».
     let notified = 0
@@ -176,6 +196,7 @@ export async function PATCH(
 
     return NextResponse.json({
       ...(data as object),
+      ...(pending ? { pending: true } : {}),
       ...(softConflicts.length ? { conflicts: softConflicts } : {}),
       ...(notified ? { room_move_notified: notified } : {}),
     })
