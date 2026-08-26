@@ -335,6 +335,7 @@
       "add_slot": "Add slot",
       "add_slot_day": "Add",
       "kodesh_tag": "Kodesh",
+      "kodesh_time_notice": "Note: this time is reserved for kodesh studies. Coordinate with the manager.",
       "generate": "Generate lessons",
       "loading": "Loading…",
       "load_error": "Failed to load schedule",
