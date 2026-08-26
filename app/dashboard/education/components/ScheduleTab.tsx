@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -443,16 +444,17 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
         >
           {result ? t('close') : t('btn_cancel')}
         </button>
-        <button
-          onClick={handleRun} disabled={running}
+        <SubmitButton
+          onClick={handleRun} loading={running}
+          loadingLabel={t('generating')}
           style={{
             padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
             background: accentColor, border: 'none', borderRadius: 8,
             cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.55 : 1,
           }}
         >
-          {running ? t('generating') : t('generate_run')}
-        </button>
+          {t('generate_run')}
+        </SubmitButton>
       </div>
     </ModalShell>
   )
@@ -497,12 +499,12 @@ function ModalActions({
       >
         {cancelLabel}
       </button>
-      <button
-        onClick={onSubmit} disabled={saving}
+      <SubmitButton
+        onClick={onSubmit} loading={saving}
         style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.55 : 1 }}
       >
         {saveLabel}
-      </button>
+      </SubmitButton>
     </div>
   )
 }

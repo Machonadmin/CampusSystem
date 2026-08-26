@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Profile {
   blood_type: string | null
@@ -225,7 +226,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
             </div>
             {canManage && (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button onClick={saveProfile} disabled={savingProfile} style={btn(primary)}>{tCommon('save')}</button>
+                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn(primary)}>{tCommon('save')}</SubmitButton>
                 {profileSaved && <span style={{ fontSize: 12, color: primary }}>{t('profile.saved')}</span>}
               </div>
             )}
@@ -257,7 +258,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                 </Field>
               </div>
               <div style={{ marginTop: 12 }}>
-                <button onClick={recordVisit} disabled={busy} style={btn(primary)}>{t('visit.record')}</button>
+                <SubmitButton onClick={recordVisit} loading={busy} style={btn(primary)}>{t('visit.record')}</SubmitButton>
               </div>
             </div>
           )}
@@ -295,10 +296,10 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                         </td>
                         <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                           {canManage && v.status === 'open' && (
-                            <button onClick={() => setStatus(v, 'closed')} disabled={busy} style={linkBtn(primary)}>{t('visit.close')}</button>
+                            <SubmitButton onClick={() => setStatus(v, 'closed')} loading={busy} style={linkBtn(primary)}>{t('visit.close')}</SubmitButton>
                           )}
                           {canManage && v.status === 'closed' && (
-                            <button onClick={() => setStatus(v, 'open')} disabled={busy} style={linkBtn('var(--text-muted)')}>{t('visit.reopen')}</button>
+                            <SubmitButton onClick={() => setStatus(v, 'open')} loading={busy} style={linkBtn('var(--text-muted)')}>{t('visit.reopen')}</SubmitButton>
                           )}
                         </td>
                       </tr>

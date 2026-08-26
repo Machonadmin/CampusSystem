@@ -6,6 +6,7 @@ import { getModuleHeaderGradient, getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Semester {
   id: string
@@ -109,7 +110,7 @@ export default function EducationSemestersPage() {
             <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('f_name')}</span>
             <input style={{ ...inp, width: 200 }} value={fName} onChange={e => setFName(e.target.value)} placeholder={t('f_name_ph')} />
           </label>
-          <button onClick={createSemester} disabled={saving || !fYear.trim() || !fTerm.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving || !fYear.trim() || !fTerm.trim() ? 0.6 : 1 }}>{tCommon('save')}</button>
+          <SubmitButton onClick={createSemester} loading={saving} disabled={saving || !fYear.trim() || !fTerm.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '9px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving || !fYear.trim() || !fTerm.trim() ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
         </div>
       )}
 

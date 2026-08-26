@@ -5,6 +5,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Teacher {
   person_id: string
@@ -133,9 +134,11 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
             <div style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{actionError}</div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
+            <SubmitButton
               onClick={handleAdd}
+              loading={saving}
               disabled={!selectedId || saving}
+              loadingLabel={t('common.saving')}
               style={{
                 padding: '6px 14px', fontSize: 12, fontWeight: 500, color: '#fff',
                 background: accentColor, border: 'none', borderRadius: 6,
@@ -143,8 +146,8 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
                 opacity: (!selectedId || saving) ? 0.6 : 1,
               }}
             >
-              {saving ? t('common.saving') : t('class_groups.add_confirm_button')}
-            </button>
+              {t('class_groups.add_confirm_button')}
+            </SubmitButton>
             <button
               onClick={() => { setAdding(false); setSelectedId(null); setActionError(null) }}
               disabled={saving}

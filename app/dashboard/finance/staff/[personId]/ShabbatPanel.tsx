@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import EmptyState from '@/components/ui/EmptyState'
 import { formatMoney } from '@/lib/finance/money'
 import { intlLocale } from '@/lib/i18n/format-date'
@@ -302,10 +303,10 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
           style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
           {tCommon('cancel')}
         </button>
-        <button onClick={submit} disabled={busy}
+        <SubmitButton onClick={submit} loading={busy}
           style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           {t('sh_save')}
-        </button>
+        </SubmitButton>
       </div>
     </div>
   )

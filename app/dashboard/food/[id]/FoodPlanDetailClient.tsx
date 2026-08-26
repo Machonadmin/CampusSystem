@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Enrollment {
@@ -216,7 +217,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
               </span>
               <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
               <input type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
-              <button onClick={enroll} disabled={busy} style={btn(primary)}>{t('plan.enroll')}</button>
+              <SubmitButton onClick={enroll} loading={busy} style={btn(primary)}>{t('plan.enroll')}</SubmitButton>
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
@@ -318,7 +319,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
               <textarea value={diet.notes ?? ''} onChange={e => setDiet(d => ({ ...d, notes: e.target.value }))} rows={2} style={area} />
             </label>
             <div>
-              <button onClick={saveDiet} disabled={dietBusy} style={btn(primary)}>{tCommon('save')}</button>
+              <SubmitButton onClick={saveDiet} loading={dietBusy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
             </div>
           </div>
         </div>

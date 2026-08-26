@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -251,7 +252,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
             <select value={priority} onChange={e => setPriority(e.target.value)} style={sel(140)}>
               {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
             </select>
-            <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+            <SubmitButton onClick={submit} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
             {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
           </div>
         </div>

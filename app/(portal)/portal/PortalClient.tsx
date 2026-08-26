@@ -13,6 +13,7 @@ import StudentShabbatPanel from '@/components/education/StudentShabbatPanel'
 import StudentTeachingSurveyPanel from '@/components/education/StudentTeachingSurveyPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 /**
  * Оболочка личного кабинета студентки: приветствие, три панели (дашборд,
@@ -62,13 +63,13 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
               </button>
             ))}
           </div>
-          <button
+          <SubmitButton
             onClick={logout}
-            disabled={busy}
-            style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', cursor: busy ? 'not-allowed' : 'pointer' }}
+            loading={busy}
+            style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px' }}
           >
             {t('logout')}
-          </button>
+          </SubmitButton>
         </div>
 
         <StudentMessagesPanel journeyId={journeyId} />

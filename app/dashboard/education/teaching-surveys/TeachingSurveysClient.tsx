@@ -9,6 +9,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Dept { id: string; name: string; name_he: string | null; name_en: string | null }
 interface SurveyRow { id: string; title: string; is_open: boolean; created_at: string; responses: number; department?: Dept | null }
@@ -106,10 +107,10 @@ export default function TeachingSurveysClient() {
             {depts.map(d => <option key={d.id} value={d.id}>{deptName(d)}</option>)}
           </select>
         )}
-        <button onClick={create} disabled={busy || !canCreate}
+        <SubmitButton onClick={create} loading={busy} disabled={busy || !canCreate}
           style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', opacity: busy || !canCreate ? 0.6 : 1 }}>
           {t('create')}
-        </button>
+        </SubmitButton>
       </div>
 
       {!loaded ? (
@@ -129,18 +130,18 @@ export default function TeachingSurveysClient() {
               <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: s.is_open ? 'var(--success-tint)' : 'var(--surface-2)', color: s.is_open ? 'var(--success)' : 'var(--text-faint)' }}>
                 {s.is_open ? t('is_open') : t('is_closed')}
               </span>
-              <button onClick={() => toggleOpen(s)} disabled={busy}
+              <SubmitButton onClick={() => toggleOpen(s)} loading={busy}
                 style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--surface)', color: 'var(--text)' }}>
                 {s.is_open ? t('close') : t('open')}
-              </button>
+              </SubmitButton>
               <Link href={`/dashboard/education/teaching-surveys/${s.id}`}
                 style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent-tint)', color: 'var(--accent-strong)', textDecoration: 'none' }}>
                 {t('manage')}
               </Link>
-              <button onClick={() => remove(s)} disabled={busy}
+              <SubmitButton onClick={() => remove(s)} loading={busy}
                 style={{ fontSize: 12, fontWeight: 600, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--surface)', color: 'var(--danger)' }}>
                 {t('delete')}
-              </button>
+              </SubmitButton>
             </div>
           ))}
         </div>

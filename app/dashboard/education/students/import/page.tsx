@@ -7,6 +7,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface RowResult { index: number; name: string; action: 'create' | 'duplicate' | 'error'; message?: string }
 interface ImportResult { dry_run: boolean; summary: { total: number; created: number; duplicates: number; errors: number }; results: RowResult[] }
@@ -142,14 +143,14 @@ export default function ImportStudentsPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-            <button onClick={() => run(true)} disabled={loading !== false || !hasName}
+            <SubmitButton onClick={() => run(true)} loading={loading === 'check'} loadingLabel={t('checking')} disabled={loading !== false || !hasName}
               style={{ padding: '9px 18px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', opacity: (loading !== false || !hasName) ? 0.6 : 1 }}>
-              {loading === 'check' ? t('checking') : t('dry_run')}
-            </button>
-            <button onClick={() => run(false)} disabled={loading !== false || !hasName || !result || result.dry_run === false}
+              {t('dry_run')}
+            </SubmitButton>
+            <SubmitButton onClick={() => run(false)} loading={loading === 'import'} loadingLabel={t('importing')} disabled={loading !== false || !hasName || !result || result.dry_run === false}
               style={{ padding: '9px 18px', fontSize: 13, fontWeight: 700, borderRadius: 8, cursor: 'pointer', border: 'none', background: 'var(--accent)', color: 'var(--accent-contrast)', opacity: (loading !== false || !hasName || !result || result.dry_run === false) ? 0.5 : 1 }}>
-              {loading === 'import' ? t('importing') : t('do_import')}
-            </button>
+              {t('do_import')}
+            </SubmitButton>
           </div>
         </div>
       )}

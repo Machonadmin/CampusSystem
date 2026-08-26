@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -277,7 +278,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
             <select value={severity} onChange={e => setSeverity(e.target.value)} style={sel(150)}>
               {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity.${s}`)}</option>)}
             </select>
-            <button onClick={submit} disabled={busy} style={btn(primary)}>{tCommon('save')}</button>
+            <SubmitButton onClick={submit} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
             {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
           </div>
         </div>

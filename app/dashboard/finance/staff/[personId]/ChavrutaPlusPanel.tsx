@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import EmptyState from '@/components/ui/EmptyState'
 
 interface Assignment {
@@ -127,10 +128,10 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
         {canManage && (
           <div style={{ display: 'flex', gap: 8 }}>
             {basis === 'per_student_month' && (
-              <button onClick={generate} disabled={generating}
+              <SubmitButton onClick={generate} loading={generating}
                 style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', border: `1px solid ${getModuleColor('finance', 'medium')}`, borderRadius: 8, background: getModuleColor('finance', 'light'), color: primary, cursor: generating ? 'default' : 'pointer', opacity: generating ? 0.6 : 1 }}>
                 {t('cp_generate')}
-              </button>
+              </SubmitButton>
             )}
             {!adding && (
               <button onClick={() => setAdding(true)}
@@ -154,10 +155,10 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
             {filtered.length === 0 ? (
               <EmptyState size="compact" text={t('no_results')} />
             ) : filtered.map(s => (
-              <button key={s.journey_id} onClick={() => addAssignment(s.journey_id)} disabled={busy}
+              <SubmitButton key={s.journey_id} onClick={() => addAssignment(s.journey_id)} loading={busy}
                 style={{ textAlign: 'start', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: busy ? 'default' : 'pointer' }}>
                 {s.name || s.journey_id}
-              </button>
+              </SubmitButton>
             ))}
           </div>
           <div style={{ marginTop: 8 }}>

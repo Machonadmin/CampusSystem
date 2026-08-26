@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { Modal as UIModal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { roleLabel } from '@/lib/roles/role-label'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, Role, T } from './workflow-shared'
@@ -82,7 +83,7 @@ export function ProcessCreateModal({ t, tCommon, onClose, onSaved }: {
     <Modal title={t('new_process_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -122,7 +123,7 @@ export function ProcessEditModal({ t, tCommon, template, onClose, onSaved }: {
     <Modal title={t('edit_process_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -195,7 +196,7 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
     <Modal title={stage ? t('edit_stage_title') : t('new_stage_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -280,7 +281,7 @@ export function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
     <Modal title={final ? t('edit_final_title') : t('new_final_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -355,7 +356,7 @@ export function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }
     <Modal title={task ? t('edit_task_title') : t('new_task_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -444,7 +445,7 @@ export function TransitionModal({ t, tCommon, stages, finals, transition, onClos
     <Modal title={transition ? t('edit_transition_title') : t('new_transition_title')} error={err} onClose={onClose} footer={
       <>
         <button onClick={onClose} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-        <button onClick={save} disabled={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</button>
+        <SubmitButton onClick={save} loading={busy} style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }}>{tCommon('save')}</SubmitButton>
       </>
     }>
       <div style={{ display: 'grid', gap: 12 }}>

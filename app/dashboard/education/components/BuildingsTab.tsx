@@ -6,6 +6,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Room { id: string; name: string; capacity: number | null }
 interface Building { id: string; name: string; code: string | null; rooms: Room[] }
@@ -71,7 +72,7 @@ export default function BuildingsTab() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '10px 0 16px', flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
           <input value={bName} onChange={e => setBName(e.target.value)} placeholder={t('buildings.building_name')} style={{ ...inp, flex: '1 1 200px' }} autoFocus />
           <input value={bCode} onChange={e => setBCode(e.target.value)} placeholder={t('buildings.building_code')} style={{ ...inp, width: 120 }} />
-          <button onClick={createBuilding} disabled={busy || !bName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !bName.trim() ? 0.6 : 1 }}>{t('common.create')}</button>
+          <SubmitButton onClick={createBuilding} loading={busy} disabled={busy || !bName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !bName.trim() ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
         </div>
       )}
 
@@ -94,7 +95,7 @@ export default function BuildingsTab() {
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
                   <input value={rName} onChange={e => setRName(e.target.value)} placeholder={t('buildings.room_name')} style={{ ...inp, flex: '1 1 160px' }} autoFocus />
                   <input value={rCap} onChange={e => setRCap(e.target.value)} type="number" min={0} placeholder={t('buildings.capacity')} style={{ ...inp, width: 110 }} />
-                  <button onClick={() => createRoom(b.id)} disabled={busy || !rName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !rName.trim() ? 0.6 : 1 }}>{t('common.create')}</button>
+                  <SubmitButton onClick={() => createRoom(b.id)} loading={busy} disabled={busy || !rName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !rName.trim() ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
                 </div>
               )}
 

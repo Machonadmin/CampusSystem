@@ -11,6 +11,7 @@ import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Role {
@@ -122,7 +123,7 @@ function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: Role
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</SubmitButton>
         </div>
     </Modal>
   )
@@ -398,13 +399,14 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
         {/* Footer */}
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <button
+          <SubmitButton
             onClick={save}
+            loading={saving}
             disabled={saving || !personChosen}
             style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
           >
             {tCommon('save', 'Save')}
-          </button>
+          </SubmitButton>
         </div>
     </Modal>
   )
@@ -509,7 +511,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</button>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</SubmitButton>
         </div>
     </Modal>
   )
@@ -581,7 +583,7 @@ function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProp
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-              <button onClick={save} disabled={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</button>
+              <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</SubmitButton>
             </div>
           </div>
       </Modal>

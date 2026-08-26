@@ -6,6 +6,7 @@ import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Question { id: string; text: string; kind: 'rating' | 'text'; position: number }
 interface Teacher { person_id: string; name: string }
@@ -112,10 +113,10 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
           <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{detail?.survey.is_open ? t('is_open') : t('is_closed')}</div>
         </div>
         {detail && (
-          <button onClick={toggleOpen} disabled={busy}
+          <SubmitButton onClick={toggleOpen} loading={busy}
             style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
             {detail.survey.is_open ? t('close') : t('open')}
-          </button>
+          </SubmitButton>
         )}
       </div>
 
@@ -153,8 +154,8 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                 <button onClick={() => setDrafts(ds => [...ds, { text: '', kind: 'rating' }])}
                   style={{ ...inp, cursor: 'pointer', fontWeight: 600 }}>+ {t('add_question')}</button>
-                <button onClick={saveQuestions} disabled={busy}
-                  style={{ fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>{t('save_questions')}</button>
+                <SubmitButton onClick={saveQuestions} loading={busy}
+                  style={{ fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>{t('save_questions')}</SubmitButton>
               </div>
             )}
           </div>
@@ -189,8 +190,8 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
                       )}
                     </div>
                   ))}
-                  <button onClick={submitFill} disabled={busy}
-                    style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', justifySelf: 'start' }}>{t('submit')}</button>
+                  <SubmitButton onClick={submitFill} loading={busy}
+                    style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', justifySelf: 'start' }}>{t('submit')}</SubmitButton>
                 </div>
               )}
             </div>

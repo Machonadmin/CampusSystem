@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface StudentMini {
   id: string
@@ -316,8 +317,9 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
           >
             {t('common.cancel')}
           </button>
-          <button
-            onClick={handleEnroll} disabled={selected.size === 0 || saving}
+          <SubmitButton
+            onClick={handleEnroll} loading={saving} disabled={selected.size === 0 || saving}
+            loadingLabel={t('class_groups.enrolling_button')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
               background: accentColor, border: 'none', borderRadius: 8,
@@ -325,8 +327,8 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
               opacity: (selected.size === 0 || saving) ? 0.55 : 1,
             }}
           >
-            {saving ? t('class_groups.enrolling_button') : t('class_groups.enroll_button').replace('{count}', String(selected.size))}
-          </button>
+            {t('class_groups.enroll_button').replace('{count}', String(selected.size))}
+          </SubmitButton>
         </div>
     </Modal>
   )

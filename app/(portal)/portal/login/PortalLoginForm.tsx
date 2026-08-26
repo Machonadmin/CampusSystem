@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 export default function PortalLoginForm() {
   const router = useRouter()
@@ -99,9 +100,11 @@ export default function PortalLoginForm() {
         </div>
       )}
 
-      <button
+      <SubmitButton
         type="submit"
+        loading={loading}
         disabled={loading || !email || !password}
+        loadingLabel="…"
         style={{
           width: '100%', padding: '11px 16px', fontSize: 14, fontWeight: 600,
           color: '#fff', background: 'var(--accent-strong)', border: 'none',
@@ -109,8 +112,8 @@ export default function PortalLoginForm() {
           opacity: loading || !email || !password ? 0.55 : 1, transition: 'opacity 0.15s',
         }}
       >
-        {loading ? '…' : t('sign_in')}
-      </button>
+        {t('sign_in')}
+      </SubmitButton>
     </form>
   )
 }

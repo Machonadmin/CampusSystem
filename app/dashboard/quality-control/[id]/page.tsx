@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateLong } from '@/lib/i18n/format-date'
@@ -515,14 +516,14 @@ export default function FillCheckPage() {
         </Link>
         {!isRO && (
           <>
-            <button type="button" onClick={() => handleSave(false)} disabled={saving}
+            <SubmitButton type="button" onClick={() => handleSave(false)} loading={saving} loadingLabel={t('fill.saving')}
               style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: saving ? 'not-allowed' : 'pointer', color: 'var(--text)', fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
-              {saving ? t('fill.saving') : t('fill.save_draft')}
-            </button>
-            <button type="button" onClick={() => handleSave(true)} disabled={saving}
+              {t('fill.save_draft')}
+            </SubmitButton>
+            <SubmitButton type="button" onClick={() => handleSave(true)} loading={saving} loadingLabel={t('fill.saving')}
               style={{ padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6, background: saving ? '#F9A8D4' : '#BE185D', cursor: saving ? 'not-allowed' : 'pointer', color: '#fff', fontWeight: 600 }}>
-              {saving ? t('fill.saving') : t('fill.complete_check')}
-            </button>
+              {t('fill.complete_check')}
+            </SubmitButton>
           </>
         )}
       </div>

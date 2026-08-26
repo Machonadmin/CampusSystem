@@ -9,6 +9,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Case {
@@ -145,7 +146,7 @@ export default function AbsencesClient() {
             </select>
           </div>
           <textarea value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, resize: 'vertical' }} />
-          <button onClick={create} disabled={!stu || busy === 'create'} style={{ ...smallBtn(true), justifySelf: 'start', padding: '8px 18px' }}>{t('open_case')}</button>
+          <SubmitButton onClick={create} loading={busy === 'create'} disabled={!stu || busy === 'create'} style={{ ...smallBtn(true), justifySelf: 'start', padding: '8px 18px' }}>{t('open_case')}</SubmitButton>
         </div>
       )}
 
@@ -172,9 +173,9 @@ export default function AbsencesClient() {
                 <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{fmtDate(c.absence_date || c.opened_at)}</span>
                 {c.department_name && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>· {t('at_dept')}: {c.department_name}</span>}
                 <div style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
-                  {c.status !== 'resolved' && <button onClick={() => { setTransferFor(transferFor === c.id ? null : c.id); setResolveFor(null) }} disabled={busy === c.id} style={smallBtn()}>{t('transfer')}</button>}
-                  {c.status !== 'resolved' && <button onClick={() => { setResolveFor(resolveFor === c.id ? null : c.id); setTransferFor(null) }} disabled={busy === c.id} style={smallBtn(true)}>{t('resolve')}</button>}
-                  {c.status === 'resolved' && <button onClick={() => patch(c.id, { status: 'in_handling' })} disabled={busy === c.id} style={smallBtn()}>{t('reopen')}</button>}
+                  {c.status !== 'resolved' && <SubmitButton onClick={() => { setTransferFor(transferFor === c.id ? null : c.id); setResolveFor(null) }} loading={busy === c.id} style={smallBtn()}>{t('transfer')}</SubmitButton>}
+                  {c.status !== 'resolved' && <SubmitButton onClick={() => { setResolveFor(resolveFor === c.id ? null : c.id); setTransferFor(null) }} loading={busy === c.id} style={smallBtn(true)}>{t('resolve')}</SubmitButton>}
+                  {c.status === 'resolved' && <SubmitButton onClick={() => patch(c.id, { status: 'in_handling' })} loading={busy === c.id} style={smallBtn()}>{t('reopen')}</SubmitButton>}
                 </div>
               </div>
               {c.note && <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>{c.note}</div>}

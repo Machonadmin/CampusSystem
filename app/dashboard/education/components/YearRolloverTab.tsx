@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Settings {
   rollover_month: number
@@ -118,13 +119,15 @@ export default function YearRolloverTab() {
               {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
-          <button
+          <SubmitButton
             onClick={save}
+            loading={saving}
             disabled={saving || FROZEN}
+            loadingLabel={t('common.saving')}
             style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
           >
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
+            {t('common.save')}
+          </SubmitButton>
         </div>
       </div>
 
@@ -135,13 +138,15 @@ export default function YearRolloverTab() {
             : t('rollover.never_run')}
         </div>
         <div style={{ flex: 1 }} />
-        <button
+        <SubmitButton
           onClick={runNow}
+          loading={running}
           disabled={running || FROZEN}
+          loadingLabel={t('common.saving')}
           style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: running ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: running || FROZEN ? 0.6 : 1 }}
         >
-          {running ? t('common.saving') : t('rollover.run_now')}
-        </button>
+          {t('rollover.run_now')}
+        </SubmitButton>
       </div>
     </div>
   )

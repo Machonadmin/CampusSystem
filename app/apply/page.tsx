@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField } from '@/lib/public/form-config'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 // Публичная посадочная страница + форма подачи заявки. НЕ под middleware
 // (matcher не покрывает /apply) → доступна без входа. Собственный «бренд»-стиль
@@ -431,9 +432,9 @@ export default function ApplyPage() {
                 )
               })}
 
-              <button className="ap-submit" type="submit" disabled={submitting}>
-                {submitting ? t('submitting') : t('submit')}
-              </button>
+              <SubmitButton className="ap-submit" type="submit" loading={submitting} loadingLabel={t('submitting')}>
+                {t('submit')}
+              </SubmitButton>
 
               <div className="ap-assure">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" stroke="#857785" strokeWidth="1.6" strokeLinejoin="round" /></svg>
