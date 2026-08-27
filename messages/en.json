@@ -934,7 +934,7 @@
         "class_groups": "Class groups",
         "semester_groups": "Semesters",
         "buildings": "Buildings",
-        "settings": "Studies settings",
+        "settings": "Settings",
         "actions": "Actions"
       },
       "common": {
@@ -1173,7 +1173,9 @@
         "status_student": "Student",
         "status_on_leave": "On Leave",
         "status_graduated": "Graduate",
-        "status_expelled": "Expelled"
+        "status_expelled": "Expelled",
+        "all_tracks": "All tracks",
+        "all_years": "All years"
       },
       "semester_groups": {
         "modal_create_title": "New semester",

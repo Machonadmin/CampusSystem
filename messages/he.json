@@ -934,7 +934,7 @@
         "class_groups": "קבוצות לימוד",
         "semester_groups": "סמסטרים",
         "buildings": "בניינים",
-        "settings": "הגדרות לימודים",
+        "settings": "הגדרות",
         "actions": "פעולות"
       },
       "common": {
@@ -1173,7 +1173,9 @@
         "status_student": "סטודנט",
         "status_on_leave": "חופשת לימודים",
         "status_graduated": "בוגר",
-        "status_expelled": "הורחק"
+        "status_expelled": "הורחק",
+        "all_tracks": "כל המסלולים",
+        "all_years": "כל השנים"
       },
       "semester_groups": {
         "modal_create_title": "סמסטר חדש",

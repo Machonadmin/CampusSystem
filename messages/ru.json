@@ -934,7 +934,7 @@
         "class_groups": "Учебные группы",
         "semester_groups": "Семестры",
         "buildings": "Здания",
-        "settings": "Настройки учёбы",
+        "settings": "Настройки",
         "actions": "Действия"
       },
       "common": {
@@ -1173,7 +1173,9 @@
         "status_student": "Студент",
         "status_on_leave": "Академотпуск",
         "status_graduated": "Выпускник",
-        "status_expelled": "Отчислен"
+        "status_expelled": "Отчислен",
+        "all_tracks": "Все маршруты",
+        "all_years": "Все годы"
       },
       "semester_groups": {
         "modal_create_title": "Новый семестр",
