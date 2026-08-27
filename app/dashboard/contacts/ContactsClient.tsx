@@ -346,7 +346,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
         ) : filtered.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="anim-rise" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
