@@ -4,10 +4,9 @@ import { hasJewishnessAccess } from '@/lib/jewishness/permissions'
 import JewishnessListClient from './JewishnessListClient'
 
 /**
- * Бирур яхадут (Jewishness verification) — плейсхолдер списка проверок. Доступ
- * гейтится привилегией jewishness.access (страница также защищена middleware —
- * PROTECTED_MODULES содержит 'jewishness'). Реальные записи проверки и загрузка
- * документов появятся в следующих шагах.
+ * Бирур яхадут (Jewishness verification): список проверок + модалка с
+ * документами и решением. Доступ гейтится привилегией jewishness.access
+ * (страница также защищена middleware — PROTECTED_MODULES содержит 'jewishness').
  */
 export default async function JewishnessPage() {
   const session = await getSession()

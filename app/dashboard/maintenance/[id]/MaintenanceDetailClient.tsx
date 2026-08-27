@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -146,9 +145,6 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
             <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4, letterSpacing: '0.04em' }}>{t('list.overdue')}</div>
           )}
         </div>
-        <Link href="/dashboard/maintenance" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {error ? (

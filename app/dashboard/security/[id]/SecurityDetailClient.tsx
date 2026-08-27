@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
@@ -148,9 +147,6 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
         <div style={{ minWidth: 0 }}>
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{incident?.title || incidentTitle}</h1>
         </div>
-        <Link href="/dashboard/security" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {error ? (

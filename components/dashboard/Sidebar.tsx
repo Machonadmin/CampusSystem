@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { isModuleImplemented } from '@/lib/module-colors'
@@ -180,7 +180,6 @@ function SidebarNavLink({
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const { t, isRTL } = useLang()
   const tEdu = useTranslations('education')
   const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
@@ -229,7 +228,8 @@ export default function Sidebar() {
 
   // Какой из трёх разделов сейчас активен (для подсветки пункта).
   function activeEduSection(): string | null {
-    if (pathname === '/dashboard/education') return searchParams.get('tab') || 'recruitment'
+    // Старый хаб /dashboard/education теперь редиректит на recruitment.
+    if (pathname === '/dashboard/education') return 'recruitment'
     if (pathname.startsWith('/dashboard/education/leads') || pathname.startsWith('/dashboard/education/recruitment')) return 'recruitment'
     if (pathname.startsWith('/dashboard/education/admission')) return 'committee'
     if (pathname.startsWith('/dashboard/education/studies')) return 'study'

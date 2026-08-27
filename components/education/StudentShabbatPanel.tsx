@@ -37,7 +37,7 @@ export default function StudentShabbatPanel({ journeyId }: { journeyId: string }
 
   const typeLabel = (ty: ShabbatType): string => t(`shabbat_type_${ty === 'shabbat_host' ? 'host' : 'family'}`)
 
-  if (!loaded) return null
+  if (!loaded || events.length === 0) return null  // пустой блок в портале не показываем (owner)
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>

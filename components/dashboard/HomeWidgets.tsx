@@ -23,7 +23,8 @@ export default function HomeWidgets() {
         <StalledApplicantsWidget onData={() => setHasAny(true)} />
         <PendingSignaturesWidget onData={() => setHasAny(true)} />
         <MyTasksWidget onData={() => setHasAny(true)} />
-        <UpcomingEventsWidget onData={() => setHasAny(true)} />
+        {/* UpcomingEventsWidget удалён (owner-декластеризация): те же события
+            уже показывает постоянный блок HomeAgenda на этой же странице. */}
       </div>
     </div>
   )
@@ -117,7 +118,7 @@ function StalledApplicantsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('stalled')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education')}>
+    <Card title={t('stalled')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education/recruitment')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.journey_id}
@@ -149,7 +150,7 @@ function PendingSignaturesWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('pending_signatures')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education')}>
+    <Card title={t('pending_signatures')} accent="var(--accent)" count={items.length} onClick={() => router.push('/dashboard/education/admission')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.stage_instance_id}
@@ -223,36 +224,3 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
 }
 
 // ── Скоро в календаре ────────────────────────────────────────────────────────
-interface CalEv { id: string; title: string; event_date: string; event_time: string | null; all_day: boolean }
-function UpcomingEventsWidget({ onData }: { onData: () => void }) {
-  const t = useTranslations('home')
-  const { lang } = useLang()
-  const router = useRouter()
-  const [items, setItems] = useState<CalEv[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  const load = useCallback(async () => {
-    try {
-      const now = new Date()
-      const p = (n: number) => String(n).padStart(2, '0')
-      const iso = (d: Date) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-      const to = new Date(now.getTime() + 14 * 86400000)
-      const res = await fetch(`/api/calendar/events?from=${iso(now)}&to=${iso(to)}`)
-      if (res.ok) { const b = await res.json(); const e = b.events ?? []; setItems(e); if (e.length) onData() }
-    } catch { /* тихо */ } finally { setLoaded(true) }
-  }, [onData])
-  useEffect(() => { load() }, [load])
-
-  if (!loaded || items.length === 0) return null
-  return (
-    <Card title={t('upcoming')} accent="var(--violet)" count={items.length} onClick={() => router.push('/dashboard/calendar')}>
-      <div style={{ display: 'grid', gap: 5 }}>
-        {items.slice(0, 4).map(ev => (
-          <Row key={ev.id} main={ev.title}
-            sub={`${formatDate(ev.event_date, lang)}${!ev.all_day && ev.event_time ? ' ' + ev.event_time.slice(0, 5) : ''}`} />
-        ))}
-        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--violet)' }}>+{items.length - 4} {t('more')}</span>}
-      </div>
-    </Card>
-  )
-}
