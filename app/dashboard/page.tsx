@@ -162,7 +162,7 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       {/* Welcome banner */}
       <div
-        className="flex items-center justify-between rounded-xl overflow-hidden"
+        className="flex items-center justify-between rounded-xl overflow-hidden anim-rise"
         style={{
           background: getModuleHeaderGradient('dashboard'),
           padding: '20px 24px',
@@ -181,10 +181,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Ежедневник: календарь под рукой прямо на главной (всегда виден) */}
-      <HomeAgenda />
+      <div className="anim-stagger" style={{ ['--i']: 2 } as React.CSSProperties}>
+        <HomeAgenda />
+      </div>
 
       {/* Personal "what needs attention" widgets — hidden when everything is empty */}
-      <HomeWidgets />
+      <div className="anim-stagger" style={{ ['--i']: 3 } as React.CSSProperties}>
+        <HomeWidgets />
+      </div>
 
       {/* Modules grid */}
       <div>
@@ -227,12 +231,13 @@ export default function DashboardPage() {
           </div>
         ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {cards.map(card => {
+          {cards.map((card, idx) => {
             const ready = card.ready
             const primary = getModuleColor(card.iconKey, 'primary')
             const name = card.label
             const desc = card.desc
-            const cardStyle: React.CSSProperties = {
+            // Стаггер-задержку ограничиваем, чтобы дальние плитки не «висли».
+            const cardStyle = {
               position: 'relative',
               padding: 20,
               backgroundColor: ready ? 'var(--surface)' : 'var(--surface-2)',
@@ -241,8 +246,8 @@ export default function DashboardPage() {
               borderRadius: 14,
               opacity: ready ? 1 : 0.7,
               boxShadow: 'var(--shadow)',
-              transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',
-            }
+              ['--i']: Math.min(idx, 11),
+            } as React.CSSProperties
             const badge = !ready && (
               <span style={{
                 position: 'absolute', top: 10, insetInlineEnd: 10,
@@ -269,25 +274,15 @@ export default function DashboardPage() {
                 key={card.id}
                 href={card.href}
                 prefetch={false}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-3 anim-stagger card-interactive"
                 style={cardStyle}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)'
-                  el.style.transform = 'translateY(-2px)'
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = 'var(--shadow)'
-                  el.style.transform = 'translateY(0)'
-                }}
               >
                 {inner}
               </Link>
             ) : (
               <div
                 key={card.id}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-3 anim-stagger"
                 style={{ ...cardStyle, cursor: 'not-allowed' }}
               >
                 {inner}
