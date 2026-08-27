@@ -203,7 +203,7 @@ export default function ApplyPage() {
 
   return (
     <div className="ap-root" dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ fontFamily: 'var(--font-heebo), -apple-system, "Segoe UI", system-ui, "Noto Sans Hebrew", sans-serif' }}>
+      style={{ fontFamily: 'var(--font-heebo), system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── Top bar ─────────────────────────────────────────────── */}
