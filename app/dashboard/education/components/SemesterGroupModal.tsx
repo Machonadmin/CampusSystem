@@ -7,11 +7,10 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { localizedDeptName } from '@/lib/departments/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
-interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null }
+interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null; department_id: string | null; years_count: number | null }
 interface StudentOption { id: string; person: { id: string; full_name: string } | null; main_group?: { id: string; name: string } | null }
 
 interface TeacherRow { person_id: string | null; monthly_rate: string; is_primary: boolean }
@@ -44,7 +43,7 @@ interface SemesterDefaults {
 interface Props {
   mode: 'create' | 'edit'
   initial: SemesterGroupInitial | null
-  departments: Department[]
+  departments?: Department[]   // больше не используется (подразделение берётся из маршрута); оставлено для обратной совместимости вызова
   defaults?: SemesterDefaults
   onClose: () => void
   onSaved: () => void
@@ -58,7 +57,7 @@ function trackLabel(tr: StudyTrack, lang: string): string {
   return (tr.name_he && tr.name_he.trim()) || tr.name_ru || tr.name_en || ''
 }
 
-export default function SemesterGroupModal({ mode, initial, departments, defaults, onClose, onSaved }: Props) {
+export default function SemesterGroupModal({ mode, initial, defaults, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
@@ -73,7 +72,6 @@ export default function SemesterGroupModal({ mode, initial, departments, default
       : defaults?.year_level != null ? String(defaults.year_level) : '',
   )
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? defaults?.study_track_id ?? '')
-  const [departmentId, setDepartmentId] = useState(initial?.department_id ?? defaults?.department_id ?? '')
   const [tuition, setTuition] = useState(initial?.tuition_amount != null ? String(initial.tuition_amount) : '')
   const [periodStart, setPeriodStart] = useState(initial?.period_start ?? '')
   const [periodEnd, setPeriodEnd] = useState(initial?.period_end ?? '')
@@ -93,6 +91,12 @@ export default function SemesterGroupModal({ mode, initial, departments, default
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Подразделение и число лет-ступеней берём из выбранного маршрута (owner:
+  // отдельное поле «подразделение» лишнее; год-ступень ограничена длиной маршрута,
+  // чтобы нельзя было открыть семестр на несуществующий год).
+  const selectedTrack = tracks.find(tr => tr.id === trackId) ?? null
+  const maxYears = selectedTrack?.years_count ?? 4
 
   // Справочник маршрутов (study_tracks). Деплой-безопасно: пустой при отсутствии.
   useEffect(() => {
@@ -132,7 +136,9 @@ export default function SemesterGroupModal({ mode, initial, departments, default
     if (!name.trim()) { setError(requiredFieldMsg(tCommon, t('semester_groups.name_field_label'))); return }
     if (!trackId) { setError(requiredFieldMsg(tCommon, t('semester_groups.track_label'))); return }
     if (!yearLevel.trim()) { setError(requiredFieldMsg(tCommon, t('semester_groups.year_level_label'))); return }
-    if (!departmentId) { setError(requiredFieldMsg(tCommon, t('common.department_label'))); return }
+    // Подразделение наследуется от маршрута; без него сохранить нельзя.
+    const deptId = selectedTrack?.department_id ?? ''
+    if (!deptId) { setError(t('semester_groups.track_no_department')); return }
 
     setSaving(true)
     setError(null)
@@ -153,7 +159,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
         term_number: termNumber.trim() ? Number(termNumber) : null,
         year_level: yearLevel.trim() ? Number(yearLevel) : null,
         study_track_id: trackId || null,
-        department_id: departmentId,
+        department_id: deptId,
         tuition_amount: tuition.trim() ? Number(tuition) : null,
         period_start: periodStart || null,
         period_end: periodEnd || null,
@@ -220,13 +226,33 @@ export default function SemesterGroupModal({ mode, initial, departments, default
             </div>
           </div>
 
-          {/* 2. Год-ступень (א/ב/ג) + еврейский год (набор) + номер семестра */}
+          {/* 2. Маршрут (study_track) — сразу после названия; определяет
+              подразделение и число лет-ступеней. */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={lbl}>{t('semester_groups.track_label')} *</label>
+            <select
+              value={trackId}
+              onChange={e => {
+                const v = e.target.value
+                setTrackId(v)
+                // Сбрасываем год-ступень, если она вне длины нового маршрута.
+                const my = tracks.find(tr => tr.id === v)?.years_count ?? 4
+                if (yearLevel && Number(yearLevel) > my) setYearLevel('')
+              }}
+              style={inp}
+            >
+              <option value="">{t('semester_groups.track_placeholder')}</option>
+              {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackLabel(tr, lang)}</option>)}
+            </select>
+          </div>
+
+          {/* 3. Год-ступень (ограничена длиной маршрута) + еврейский год + номер семестра */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.year_level_label')} *</label>
-              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
+              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp} disabled={!trackId}>
                 <option value="">—</option>
-                {[1, 2, 3, 4].map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
+                {Array.from({ length: maxYears }, (_, i) => i + 1).map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -237,24 +263,6 @@ export default function SemesterGroupModal({ mode, initial, departments, default
               <label style={lbl}>{t('semester_groups.term_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
               <input type="number" min={1} value={termNumber} onChange={e => setTermNumber(e.target.value)} style={inp} placeholder="1" />
             </div>
-          </div>
-
-          {/* 3. Маршрут (study_track) */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('semester_groups.track_label')} *</label>
-            <select value={trackId} onChange={e => setTrackId(e.target.value)} style={inp}>
-              <option value="">{t('semester_groups.track_placeholder')}</option>
-              {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackLabel(tr, lang)}</option>)}
-            </select>
-          </div>
-
-          {/* 4. Подразделение (обязательно) */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('common.department_label')} *</label>
-            <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
-              <option value="">{t('common.select_placeholder')}</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
-            </select>
           </div>
 
           {/* 5. Преподаватели: PersonSelect + месячная оплата */}

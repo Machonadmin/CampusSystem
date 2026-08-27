@@ -1186,6 +1186,7 @@
         "term_label": "מספר סמסטר",
         "track_label": "מסלול",
         "track_placeholder": "— בחר מסלול —",
+        "track_no_department": "למסלול הנבחר אין מחלקה משויכת",
         "teachers_label": "מורים",
         "teacher_placeholder": "בחר או צור מורה…",
         "monthly_pay_placeholder": "לחודש",
