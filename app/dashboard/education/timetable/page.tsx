@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
@@ -20,7 +21,7 @@ interface Slot {
   teachers: string[]
   approval_status?: 'active' | 'pending'
 }
-interface Unit { id: string; name: string }
+interface Unit { id: string; name: string; name_he?: string | null; name_en?: string | null }
 
 const DAY_ORDER = [7, 1, 2, 3, 4, 5, 6] // Sun..Sat (Israel week)
 const hhmm = (t: string) => t.slice(0, 5)
@@ -31,6 +32,7 @@ const PENDING_TINT = 'rgba(202,138,4,0.13)'
 export default function TimetablePage() {
   const t = useTranslations('education.timetable')
   const tNav = useTranslations('navigation')
+  const { lang } = useLang()
 
   const [slots, setSlots] = useState<Slot[]>([])
   const [conflicts, setConflicts] = useState<ScheduleConflict[]>([])
@@ -113,7 +115,7 @@ export default function TimetablePage() {
         <select value={unit} onChange={e => setUnit(e.target.value)}
           style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
           <option value="">{t('all_units')}</option>
-          {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          {units.map(u => <option key={u.id} value={u.id}>{localizedDeptName(u, lang)}</option>)}
         </select>
         <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
           {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}

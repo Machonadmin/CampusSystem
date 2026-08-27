@@ -3608,6 +3608,15 @@
   "reports": {
     "title": "Reports",
     "subtitle": "Key metrics across all modules",
+    "period": {
+      "label": "Period:",
+      "all": "All time",
+      "month": "Month",
+      "year": "Year",
+      "custom": "Custom",
+      "hint": "Affects finance cards only",
+      "applies": "For period"
+    },
     "loading": "Loading…",
     "error": "Failed to load",
     "empty": "No data",
