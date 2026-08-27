@@ -170,6 +170,15 @@ body { transition: background-color .25s ease, color .25s ease; }
   .study-rail::-webkit-scrollbar { display: none; }
   .study-rail > div { flex: 0 0 auto; }
   .study-rail > div > button { width: auto !important; padding: 8px 12px !important; }
+
+  /* Мобильный сайдбар — выдвижной ящик: держим его ЗА экраном, пока он не открыт
+     явно (data-open="true"), независимо от возможного мигания JS-состояния
+     isMobile (например, после router.refresh при смене языка) — иначе иконочный
+     рельс «зависает» поверх контента. !important перебивает инлайновый transform.
+     Направление ухода — по data-rtl самого сайдбара (тот же признак, что задаёт
+     сторону закрепления), чтобы не зависеть от неоднозначного dir-предка. */
+  .app-sidebar[data-rtl="false"]:not([data-open="true"]) { transform: translateX(-100%) !important; }
+  .app-sidebar[data-rtl="true"]:not([data-open="true"]) { transform: translateX(100%) !important; }
 }
 
 /* Адаптив таблиц: второстепенные колонки прячем на телефоне (данные видны при
