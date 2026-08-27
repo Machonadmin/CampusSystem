@@ -1191,6 +1191,7 @@
         "teacher_placeholder": "Выберите или создайте преподавателя…",
         "monthly_pay_placeholder": "в месяц",
         "monthly_pay_hint": "Месячная оплата преподавателю (₽ в месяц)",
+        "teacher_pay_finance_hint": "Зарплата преподавателей задаётся в модуле «Финансы» — здесь только назначаем, кто ведёт.",
         "primary_short": "Основной",
         "add_teacher_button": "+ Добавить преподавателя",
         "students_label": "Студентки",
