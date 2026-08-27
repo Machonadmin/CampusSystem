@@ -466,8 +466,8 @@ export default function StudentsTab() {
                     </th>
                   )}
                   <th style={thStyle}>{t('students.table_name')}</th>
-                  <th style={thStyle}>{t('students.table_department')}</th>
-                  <th style={thStyle}>{t('students.table_group')}</th>
+                  <th style={thStyle} className="col-hide-sm">{t('students.table_department')}</th>
+                  <th style={thStyle} className="col-hide-sm">{t('students.table_group')}</th>
                   <th style={{ ...thStyle, width: 110 }}>{t('students.table_status')}</th>
                   <th style={{ ...thStyle, width: 170 }}>{t('students.table_actions')}</th>
                 </tr>
@@ -505,8 +505,8 @@ export default function StudentsTab() {
                             <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={tdStyle}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
@@ -535,6 +535,8 @@ export default function StudentsTab() {
                         <tr style={{ background: 'var(--surface-2)' }}>
                           <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department?.name ?? '—'} /></div>
+                              <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group?.name ?? '—'} /></div>
                               <Detail label={t('students.table_contacts')} value={[s.person?.email, phone].filter(Boolean).join('  ·  ') || '—'} />
                               <Detail label={t('students.table_specialty')} value={s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : '—'} />
                               <Detail label={t('students.table_year')} value={s.year_level != null ? String(s.year_level) : '—'} />

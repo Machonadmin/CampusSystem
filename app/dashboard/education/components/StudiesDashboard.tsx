@@ -49,7 +49,7 @@ function todayIsoDow(): number {
   return d === 0 ? 7 : d
 }
 
-export default function StudiesDashboard() {
+export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: () => void } = {}) {
   const t = useTranslations('education.study.dashboard')
   const [loading, setLoading] = useState(true)
   const [studentsCount, setStudentsCount] = useState<number | null>(null)
@@ -137,9 +137,9 @@ export default function StudiesDashboard() {
     <div style={{ display: 'grid', gap: 14 }}>
       {/* KPI */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 11 }}>
-        <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" />
-        <Kpi value={loading ? '…' : String(todaySlots.length)} label={t('kpi_lessons_today')} tone="info" />
-        <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone={pending.length ? 'warn' : 'muted'} />
+        <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" onClick={onOpenStudents} />
+        <Kpi value={loading ? '…' : String(todaySlots.length)} label={t('kpi_lessons_today')} tone="info" href="/dashboard/education/timetable" />
+        <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone={pending.length ? 'warn' : 'muted'} href="/dashboard/education/track-assignment" />
       </div>
 
       {/* Пусковая панель вынесена в отдельный раздел «פעולות» (owner: дашборд =
@@ -279,14 +279,38 @@ export default function StudiesDashboard() {
   )
 }
 
-function Kpi({ value, label, tone }: { value: string; label: string; tone: 'accent' | 'info' | 'warn' | 'muted' }) {
+function Kpi({ value, label, tone, href, onClick }: {
+  value: string; label: string; tone: 'accent' | 'info' | 'warn' | 'muted'
+  href?: string; onClick?: () => void
+}) {
   const color = tone === 'accent' ? 'var(--accent-strong)' : tone === 'info' ? 'var(--info)' : tone === 'warn' ? 'var(--warn)' : 'var(--text)'
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 15px' }}>
+  const clickable = !!(href || onClick)
+  const base: React.CSSProperties = {
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 15px',
+    display: 'block', textDecoration: 'none', textAlign: 'start', width: '100%',
+    ...(clickable ? { cursor: 'pointer', transition: 'border-color 0.12s, box-shadow 0.12s' } : {}),
+  }
+  const enter = (el: HTMLElement) => { el.style.borderColor = 'var(--accent)'; el.style.boxShadow = 'var(--shadow)' }
+  const leave = (el: HTMLElement) => { el.style.borderColor = 'var(--border)'; el.style.boxShadow = 'none' }
+  const inner = (
+    <>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 750, lineHeight: 1, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{value}</div>
       <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6 }}>{label}</div>
-    </div>
+    </>
   )
+  if (href) {
+    return (
+      <a href={href} style={base}
+        onMouseEnter={e => enter(e.currentTarget)} onMouseLeave={e => leave(e.currentTarget)}>{inner}</a>
+    )
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} style={{ ...base, font: 'inherit' }}
+        onMouseEnter={e => enter(e.currentTarget)} onMouseLeave={e => leave(e.currentTarget)}>{inner}</button>
+    )
+  }
+  return <div style={base}>{inner}</div>
 }
 
 function Empty({ text }: { text: string }) {

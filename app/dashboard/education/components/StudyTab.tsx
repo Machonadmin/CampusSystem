@@ -169,7 +169,7 @@ export default function StudyTab() {
 
         {/* Контент */}
         <div style={{ padding: 18, overflowX: 'auto', minWidth: 0 }}>
-          {active === 'dashboard' && <StudiesDashboard />}
+          {active === 'dashboard' && <StudiesDashboard onOpenStudents={() => setActive('students')} />}
           {active === 'actions' && <StudiesActions />}
           {active === 'semester_groups' && <StudiesWorkspace />}
           {active === 'students' && <StudentsTab />}
