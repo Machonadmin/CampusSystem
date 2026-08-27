@@ -274,7 +274,7 @@ export default function SponsorDetailClient({
       <div style={{
         background: getModuleHeaderGradient('sponsors'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
       }}>
         <div style={{ flex: 1, minWidth: 200 }}>

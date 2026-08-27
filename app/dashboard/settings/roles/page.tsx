@@ -319,7 +319,7 @@ export default function RolesPage() {
       <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0, flexWrap: 'wrap' }}>
 
         {/* ── Left panel: roles list ── */}
-        <div className="md-rail" style={{ width: 268, flexShrink: 0, backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="md-rail" style={{ width: 268, flexShrink: 0, backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('roles_panel_title')}</span>
             <button
@@ -418,7 +418,7 @@ export default function RolesPage() {
         </div>
 
         {/* ── Right panel: privileges ── */}
-        <div style={{ flex: '1 1 320px', minWidth: 0, backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: '1 1 320px', minWidth: 0, backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!selectedRole ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
               {t('select_role_hint')}
@@ -479,7 +479,7 @@ export default function RolesPage() {
                               position: 'absolute', top: 2, left: isOn ? 18 : 2,
                               width: 14, height: 14, borderRadius: '50%', backgroundColor: 'var(--surface)',
                               transition: 'left 0.2s', display: 'block',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                              boxShadow: 'var(--shadow)',
                             }} />
                           </button>
                         </div>

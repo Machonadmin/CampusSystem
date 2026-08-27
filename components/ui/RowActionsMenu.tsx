@@ -93,7 +93,7 @@ export function RowActionsMenu({
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 10,
-            boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
+            boxShadow: 'var(--shadow)',
             padding: 4,
             display: 'grid',
             gap: 1,

@@ -252,7 +252,7 @@ export default function FinanceLedgerClient({
       <div style={{
         background: getModuleHeaderGradient('finance'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', gap: 14,
       }}>
         <div style={{

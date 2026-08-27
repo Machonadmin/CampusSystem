@@ -131,7 +131,7 @@ export default function AddToCalendar({
           maxWidth={440}
           zIndex={70}
           closeOnBackdrop
-          panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}
+          panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}
         >
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
 

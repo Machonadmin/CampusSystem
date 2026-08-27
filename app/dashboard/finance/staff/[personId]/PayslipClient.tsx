@@ -397,7 +397,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       <div style={{
         background: getModuleHeaderGradient('finance'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
         <div>

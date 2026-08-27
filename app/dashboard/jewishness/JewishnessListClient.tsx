@@ -289,7 +289,7 @@ function DetailModal({
       zIndex={50}
       padding={20}
       closeOnBackdrop
-      panelStyle={{ boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
+      panelStyle={{ boxShadow: 'var(--shadow-lg)' }}
     >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>

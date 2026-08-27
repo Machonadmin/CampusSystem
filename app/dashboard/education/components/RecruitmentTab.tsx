@@ -271,7 +271,7 @@ export default function RecruitmentTab() {
       )}
 
       {/* Table card */}
-      <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
@@ -412,7 +412,7 @@ export default function RecruitmentTab() {
                       <div style={{
                         position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 100,
                         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.18)', width: 190,
+                        boxShadow: 'var(--shadow)', width: 190,
                         overflow: 'hidden',
                       }}>
                         {lead.is_deleted ? (
@@ -484,7 +484,7 @@ export default function RecruitmentTab() {
       </div>
 
       {deleteTarget && (
-        <Modal onClose={() => setDeleteTarget(null)} maxWidth={400} panelStyle={{ padding: '28px 28px 24px', width: '90%', boxShadow: '0 20px 48px rgba(0,0,0,0.18)' }}>
+        <Modal onClose={() => setDeleteTarget(null)} maxWidth={400} panelStyle={{ padding: '28px 28px 24px', width: '90%', boxShadow: 'var(--shadow-lg)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
               {t('leads.delete_confirm.title')}
             </h2>

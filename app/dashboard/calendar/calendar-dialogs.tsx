@@ -40,8 +40,8 @@ export function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClo
   }
 
   return (
-    <div onClick={() => !deleting && onClose()} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+    <div onClick={() => !deleting && onClose()} className="anim-fade" style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} className="anim-pop" style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(420px,100%)', boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>📅 {ev.title}</div>
         <div style={{ fontSize: 13, color: 'var(--text)' }}>
           {formatDate(ev.event_date, lang)}{!ev.all_day && ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}
@@ -103,8 +103,8 @@ export function DayDetail({
     .format(new Date(`${dateISO}T00:00:00Z`))
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 65, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'} style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(460px,100%)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+    <div onClick={onClose} className="anim-fade" style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 65, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'} className="anim-pop" style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(460px,100%)', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{label}</div>
@@ -330,7 +330,7 @@ export function AppointmentForm({
             {pickerOpen && (
               <div style={{
                 position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20,
-                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: 'var(--shadow-lg)',
                 maxHeight: 220, overflowY: 'auto',
               }}>
                 <input
@@ -386,7 +386,7 @@ export function AppointmentForm({
               {t('form_invitees_none')}
             </button>
             {inviteeOpen && (
-              <div style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 220, overflowY: 'auto' }}>
+              <div style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: 'var(--shadow-lg)', maxHeight: 220, overflowY: 'auto' }}>
                 <input value={inviteeSearch} onChange={e => setInviteeSearch(e.target.value)} placeholder={t('form_invitees_search')} style={{ ...input, borderRadius: 0, border: 'none', borderBottom: '1px solid var(--surface-2)' }} autoFocus />
                 {inviteeOpts.filter(o => !invitees.some(iv => iv.id === o.id)).length === 0 ? (
                   <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '8px 12px' }}>{t('form_invitees_empty')}</div>

@@ -171,7 +171,7 @@ export default function AcceptanceOverviewTab() {
         ))}
       </div>
 
-      <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {error ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (
@@ -228,7 +228,7 @@ export default function AcceptanceOverviewTab() {
 
       {/* Sign modal */}
       {modal && (
-        <Modal onClose={() => !signing && setModal(null)} maxWidth={520} closeOnBackdrop panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+        <Modal onClose={() => !signing && setModal(null)} maxWidth={520} closeOnBackdrop panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
               {t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)} — {modal.applicant}
             </div>

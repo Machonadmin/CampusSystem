@@ -42,7 +42,7 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
         borderRadius: 14,
         padding: '16px 24px',
         color: '#fff',
-        boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
+        boxShadow: 'var(--shadow)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>

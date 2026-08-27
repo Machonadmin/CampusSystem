@@ -57,9 +57,9 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
   }
 
   return (
-    <div onClick={onClose}
+    <div onClick={onClose} className="anim-fade"
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '5vh 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()}
+      <div onClick={e => e.stopPropagation()} className="anim-pop"
         style={{ background: 'var(--bg)', border: '1px solid var(--border-strong)', borderRadius: 14, width: 'min(1000px, 100%)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }}>
         {/* Заголовок */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>

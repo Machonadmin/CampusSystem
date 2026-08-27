@@ -141,7 +141,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
       <div style={{
         background: getModuleHeaderGradient('security'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(220,38,38,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <div style={{ minWidth: 0 }}>
