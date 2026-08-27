@@ -56,20 +56,28 @@ export function Toaster() {
     >
       {items.map(t => {
         const s = STYLE[t.kind]
+        const glyph = t.kind === 'success' ? '✓' : t.kind === 'error' ? '✕' : 'ℹ'
         return (
           <div
             key={t.id}
+            className="anim-pop"
             onClick={() => setItems(prev => prev.filter(x => x.id !== t.id))}
             role="status"
             style={{
               pointerEvents: 'auto', cursor: 'pointer',
               background: s.bg, color: s.fg, border: `1px solid ${s.border}`,
-              borderRadius: 10, padding: '11px 14px', fontSize: 13.5, fontWeight: 500,
-              boxShadow: '0 6px 20px rgba(0,0,0,0.15)', lineHeight: 1.4,
+              borderRadius: 11, padding: '11px 14px', fontSize: 13.5, fontWeight: 500,
+              boxShadow: 'var(--shadow-lg, 0 6px 20px rgba(0,0,0,0.15))', lineHeight: 1.4,
               wordBreak: 'break-word',
+              display: 'flex', alignItems: 'flex-start', gap: 9,
             }}
           >
-            {t.message}
+            <span aria-hidden="true" style={{
+              flexShrink: 0, width: 18, height: 18, borderRadius: '50%',
+              display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700,
+              background: s.fg, color: s.bg, marginTop: 1,
+            }}>{glyph}</span>
+            <span>{t.message}</span>
           </div>
         )
       })}
