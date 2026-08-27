@@ -94,6 +94,7 @@ export function Modal({
   return (
     <div
       role="presentation"
+      className="anim-fade"
       onClick={closeOnBackdrop ? onClose : undefined}
       style={{
         position: 'fixed', inset: 0, zIndex, background: 'rgba(0,0,0,0.45)',
@@ -107,6 +108,7 @@ export function Modal({
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
+        className="anim-pop"
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--surface)', borderRadius: 14, width: '100%',
