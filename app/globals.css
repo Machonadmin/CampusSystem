@@ -172,6 +172,11 @@ body { transition: background-color .25s ease, color .25s ease; }
   .study-rail > div > button { width: auto !important; padding: 8px 12px !important; }
 }
 
+/* Адаптив таблиц: второстепенные колонки прячем на телефоне (данные видны при
+   раскрытии строки — через .sm-only). */
+@media (max-width: 640px) { .col-hide-sm { display: none !important; } }
+@media (min-width: 641px) { .sm-only { display: none !important; } }
+
 @media (max-width: 767px) {
   /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
      !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */
