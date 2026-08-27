@@ -708,7 +708,7 @@ function UsersPageContent({ embedded = false }: { embedded?: boolean }) {
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_users')}</div>
         ) : (
           <div className="table-scroll">
-          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
@@ -722,20 +722,20 @@ function UsersPageContent({ embedded = false }: { embedded?: boolean }) {
                   onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = 'var(--surface-2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}
                 >
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label={t('full_name')} style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Avatar name={personDisplayName(user)} photo={user.photo_url} />
                       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label={t('email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>
+                  <td data-label={t('table_roles')} style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 260 }}>
                       {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(lang.roles, r.code, r.name)} />)}
                       {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
                     </div>
                   </td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label={t('table_status')} style={{ padding: '10px 14px' }}>
                     <span style={{
                       display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
                       backgroundColor: user.is_active ? 'var(--success-tint)' : 'var(--danger-tint)',
@@ -744,10 +744,10 @@ function UsersPageContent({ embedded = false }: { embedded?: boolean }) {
                       {user.is_active ? t('active') : t('inactive')}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+                  <td data-label={t('table_last_login')} style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
                     {user.last_login ? new Date(user.last_login).toLocaleDateString() : t('never')}
                   </td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label="" style={{ padding: '10px 14px' }}>
                     <RowActionsMenu
                       actions={[
                         { key: 'edit', label: t('edit_button'), onClick: () => setEditTarget(user) },

@@ -169,7 +169,7 @@ export default function StudyGroupsTab() {
           </div>
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('groups.table_name')}</th>
@@ -190,19 +190,19 @@ export default function StudyGroupsTab() {
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                       >
-                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                        <td style={{ ...tdStyle, fontWeight: 500 }} data-label={t('groups.table_name')}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{g.department?.name ?? '—'}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('groups.table_department')}>{g.department?.name ?? '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('groups.table_specialty')}>
                           {g.specialty
                             ? (g.specialty.code ? `[${g.specialty.code}] ${g.specialty.name}` : g.specialty.name)
                             : <span style={{ color: 'var(--border-strong)' }}>—</span>}
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center' }} data-label={t('groups.table_students')}>
                           <span style={{
                             fontSize: 12, padding: '2px 8px', borderRadius: 99,
                             background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
@@ -212,7 +212,7 @@ export default function StudyGroupsTab() {
                             {g.counts.students}
                           </span>
                         </td>
-                        <td style={tdStyle}>
+                        <td style={tdStyle} data-label={t('groups.table_status')}>
                           {g.is_active
                             ? <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('groups.status_active')}</span>
                             : <span style={{ color: 'var(--text-faint)' }}>{t('groups.status_inactive')}</span>}
@@ -220,7 +220,7 @@ export default function StudyGroupsTab() {
                       </tr>
                       {open && (
                         <tr style={{ background: 'var(--surface-2)' }}>
-                          <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
+                          <td colSpan={5} style={{ padding: '2px 16px 14px' }} data-label="">
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <Detail label={t('groups.table_year_level')} value={g.year_level != null ? String(g.year_level) : '—'} />
                               <Detail label={t('groups.table_year_start')} value={g.year_start != null ? String(g.year_start) : '—'} />

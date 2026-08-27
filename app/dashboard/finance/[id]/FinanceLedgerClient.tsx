@@ -432,7 +432,7 @@ export default function FinanceLedgerClient({
             {ledger.payments.length === 0 ? (
               <Empty text={t('ledger.no_payments')} />
             ) : (
-              <Table head={[t('ledger.pay_date'), t('ledger.pay_method'), t('ledger.pay_reference'), t('ledger.pay_amount'), t('ledger.col_status'), '']}>
+              <Table cardsSm head={[t('ledger.pay_date'), t('ledger.pay_method'), t('ledger.pay_reference'), t('ledger.pay_amount'), t('ledger.col_status'), '']}>
                 {ledger.payments.map(p => {
                   const account = p.method === 'transfer'
                     ? [p.from_account, p.to_account].some(Boolean)
@@ -441,7 +441,7 @@ export default function FinanceLedgerClient({
                     : (p.deposited_to || null)
                   return (
                   <tr key={p.id}>
-                    <td style={td}>
+                    <td data-label={t('ledger.pay_date')} style={td}>
                       {p.paid_at}
                       {p.signed_at && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
@@ -451,16 +451,16 @@ export default function FinanceLedgerClient({
                         </div>
                       )}
                     </td>
-                    <td style={td}>
+                    <td data-label={t('ledger.pay_method')} style={td}>
                       {methodLabel(p.method)}
                       {account && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{account}</div>
                       )}
                     </td>
-                    <td style={td}>{p.reference || '—'}</td>
-                    <td style={tdNum}>{formatMoney(p.amount)}</td>
-                    <td style={td}><StatusBadge kind={p.status} label={t(`status.${p.status}`)} /></td>
-                    <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td data-label={t('ledger.pay_reference')} style={td}>{p.reference || '—'}</td>
+                    <td data-label={t('ledger.pay_amount')} style={tdNum}>{formatMoney(p.amount)}</td>
+                    <td data-label={t('ledger.col_status')} style={td}><StatusBadge kind={p.status} label={t(`status.${p.status}`)} /></td>
+                    <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <RowActionsMenu
                         accentColor={primary}
                         actions={[
@@ -534,7 +534,7 @@ function FormRow({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Table({ head, children }: { head: string[]; children: React.ReactNode }) {
+function Table({ head, cardsSm, children }: { head: string[]; cardsSm?: boolean; children: React.ReactNode }) {
   const th: React.CSSProperties = {
     textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
@@ -542,7 +542,7 @@ function Table({ head, children }: { head: string[]; children: React.ReactNode }
   }
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className={cardsSm ? 'cards-sm' : undefined} style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>{head.map((h, i) => (
             <th key={i} style={i === 3 ? { ...th, textAlign: 'right' } : th}>{h}</th>

@@ -162,7 +162,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
         <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('empty')}</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={th}>{t('col_date')}</th>
@@ -180,13 +180,13 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                       onClick={() => setExpandedId(open ? null : lesson.id)}
                       style={{ opacity: lesson.is_cancelled ? 0.55 : 1, cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                     >
-                      <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                      <td data-label={t('col_date')} style={{ ...td, whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                           <Caret open={open} />
                           {formatDate(lang, lesson.scheduled_date)}
                         </span>
                       </td>
-                      <td style={td}>
+                      <td data-label={t('col_topic')} style={td}>
                         <span>{lesson.topic || '—'}</span>
                         {lesson.is_cancelled && (
                           <span style={{
@@ -197,7 +197,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                           </span>
                         )}
                       </td>
-                      <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                      <td data-label={t('col_attendance')} style={{ ...td, whiteSpace: 'nowrap' }}>
                         {lesson.marked_count === 0 ? (
                           <span style={{ color: 'var(--text-faint)' }}>{tAtt('none')}</span>
                         ) : (
@@ -217,7 +217,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                           </div>
                         )}
                       </td>
-                      <td style={{ ...td, whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                      <td data-label="" style={{ ...td, whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           <button
                             onClick={() => setAttendanceLesson(lesson)}
@@ -240,7 +240,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                     </tr>
                     {open && (
                       <tr style={{ background: 'var(--surface-2)', opacity: lesson.is_cancelled ? 0.55 : 1 }}>
-                        <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                        <td data-label="" colSpan={4} style={{ padding: '2px 16px 14px' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                             <Detail label={t('col_time')} value={formatTime(lesson.scheduled_time)} />
                             <Detail label={t('col_location')} value={lesson.location || '—'} />

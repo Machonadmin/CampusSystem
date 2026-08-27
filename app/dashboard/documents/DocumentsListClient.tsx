@@ -170,7 +170,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {[t('list.student'), t('list.documents'), ''].map((h, i) => (
@@ -187,11 +187,11 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
-                    <td style={td}>
+                    <td data-label={t('list.student')} style={td}>
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
                       {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                     </td>
-                    <td style={td}>
+                    <td data-label={t('list.documents')} style={td}>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                         {s.doc_count > 0 && (
                           <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--text-muted)' }}>
@@ -213,7 +213,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
                         )}
                       </div>
                     </td>
-                    <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <span aria-hidden style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-faint)' }}>‹</span>
                     </td>
                   </tr>

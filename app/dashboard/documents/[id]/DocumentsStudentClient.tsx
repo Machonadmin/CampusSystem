@@ -269,7 +269,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('registry.empty')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       {[t('fields.doc_type'), t('fields.title'), t('fields.issued_date'), t('fields.expiry_date'), t('fields.status'), ''].map((h, i) => (
@@ -280,8 +280,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                   <tbody>
                     {docs.map(d => (
                       <tr key={d.id}>
-                        <td style={td}>{t(`types.${d.doc_type}`)}</td>
-                        <td style={td}>
+                        <td data-label={t('fields.doc_type')} style={td}>{t(`types.${d.doc_type}`)}</td>
+                        <td data-label={t('fields.title')} style={td}>
                           {d.storage_path ? (
                             <button onClick={() => openDoc(d)} style={{ ...linkBtn(primary), padding: 0, fontSize: 13 }}>{d.title}</button>
                           ) : d.file_url ? (
@@ -292,13 +292,13 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
                           {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
                         </td>
-                        <td style={td}>{d.issued_date || '—'}</td>
-                        <td style={{ ...td, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
+                        <td data-label={t('fields.issued_date')} style={td}>{d.issued_date || '—'}</td>
+                        <td data-label={t('fields.expiry_date')} style={{ ...td, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
                           {d.expiry_date || '—'}
                           {isExpired(d, today) && <span style={{ fontSize: 10, marginInlineStart: 6 }}>{t('list.expired_flag')}</span>}
                           {isExpiringSoon(d, today) && <span style={{ fontSize: 10, marginInlineStart: 6 }}>{t('list.expiring_flag')}</span>}
                         </td>
-                        <td style={td}>
+                        <td data-label={t('fields.status')} style={td}>
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                             background: d.status === 'active' ? light : 'var(--surface-2)',
@@ -307,7 +307,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                             {t(`status.${d.status}`)}
                           </span>
                         </td>
-                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                           {canManage && (
                             <RowActionsMenu
                               accentColor={primary}

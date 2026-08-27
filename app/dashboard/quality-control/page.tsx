@@ -190,7 +190,7 @@ export default function QualityControlPage() {
                   {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ backgroundColor: 'var(--surface-2)' }}>
                       {[t('list.table_date_time'), t('list.table_teacher'), t('list.table_group_course'), t('list.table_observer'), t('list.table_status'), t('list.table_rating'), t('list.table_actions')].map(h => (
@@ -203,28 +203,28 @@ export default function QualityControlPage() {
                   <tbody>
                     {checks.map((c, i) => (
                       <tr key={c.id} style={{ borderTop: '1px solid var(--surface-2)', backgroundColor: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
-                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                        <td data-label={t('list.table_date_time')} style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{formatDate(c.lesson_date)}</div>
                           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_teacher')} style={{ padding: '10px 14px' }}>
                           <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.teacher_name ?? '—'}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_group_course')} style={{ padding: '10px 14px' }}>
                           {c.group_name && <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.group_name}</div>}
                           {c.course_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.course_name}</div>}
                           {!c.group_name && !c.course_name && <span style={{ color: 'var(--border-strong)', fontSize: 13 }}>—</span>}
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_observer')} style={{ padding: '10px 14px' }}>
                           <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.observer_name ?? '—'}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_status')} style={{ padding: '10px 14px' }}>
                           <StatusBadge status={c.status} t={t} />
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_rating')} style={{ padding: '10px 14px' }}>
                           <RatingStars rating={c.overall_rating} />
                         </td>
-                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                        <td data-label="" style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <Link
                               href={`/dashboard/quality-control/${c.id}`}

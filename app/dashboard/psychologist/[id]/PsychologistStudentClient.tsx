@@ -260,7 +260,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('session.no_sessions')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       {[t('session.session_date'), t('session.session_type'), t('session.summary'), t('session.follow_up_date'), t('session.status'), ''].map((h, i) => (
@@ -271,11 +271,11 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
                   <tbody>
                     {sessions.map(s => (
                       <tr key={s.id}>
-                        <td style={td}>{s.session_date}</td>
-                        <td style={td}>{t(`session.types.${s.session_type}`)}</td>
-                        <td style={td}>{s.summary || '—'}</td>
-                        <td style={td}>{s.follow_up_date || '—'}</td>
-                        <td style={td}>
+                        <td style={td} data-label={t('session.session_date')}>{s.session_date}</td>
+                        <td style={td} data-label={t('session.session_type')}>{t(`session.types.${s.session_type}`)}</td>
+                        <td style={td} data-label={t('session.summary')}>{s.summary || '—'}</td>
+                        <td style={td} data-label={t('session.follow_up_date')}>{s.follow_up_date || '—'}</td>
+                        <td style={td} data-label={t('session.status')}>
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                             background: s.status === 'open' ? light : 'var(--surface-2)',
@@ -284,7 +284,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
                             {t(`status.${s.status}`)}
                           </span>
                         </td>
-                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} data-label="">
                           {canManage && s.status === 'open' && (
                             <SubmitButton onClick={() => setStatus(s, 'closed')} loading={busy} style={linkBtn(primary)}>{t('session.close')}</SubmitButton>
                           )}

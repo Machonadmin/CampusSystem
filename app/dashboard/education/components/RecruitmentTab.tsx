@@ -279,7 +279,7 @@ export default function RecruitmentTab() {
             {leads.length === 0 ? t('leads.no_data') : t('leads.no_results')}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 {([
@@ -327,7 +327,7 @@ export default function RecruitmentTab() {
                   onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
                   {/* Фото + Имя */}
-                  <td style={{ padding: '11px 14px' }}>
+                  <td data-label={t('leads.table.full_name')} style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Caret open={open} />
                       {lead.photo_url ? (
@@ -356,7 +356,7 @@ export default function RecruitmentTab() {
                   </td>
 
                   {/* Телефон */}
-                  <td style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
+                  <td data-label={t('leads.table.phone')} style={{ padding: '11px 14px', fontSize: 13, color: 'var(--text)' }}>
                     {lead.phones.length === 0 ? (
                       <span style={{ color: 'var(--text-faint)' }}>—</span>
                     ) : (
@@ -367,7 +367,7 @@ export default function RecruitmentTab() {
                   </td>
 
                   {/* Текущий этап и задачи */}
-                  <td style={{ padding: '11px 14px', minWidth: 200 }}>
+                  <td data-label={t('leads.table.current_stage')} style={{ padding: '11px 14px', minWidth: 200 }}>
                     {processStatus === 'deleted' ? (
                       <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'var(--danger-tint)', color: 'var(--danger)', fontWeight: 500 }}>
                         {t('page_status_deleted')}
@@ -396,7 +396,7 @@ export default function RecruitmentTab() {
                   </td>
 
                   {/* Действия */}
-                  <td onClick={e => e.stopPropagation()} style={{ padding: '11px 8px', width: 48 }}>
+                  <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '11px 8px', width: 48 }}>
                     <button
                       onClick={e => openRowMenu(e, lead.profile_id)}
                       style={{
@@ -465,7 +465,7 @@ export default function RecruitmentTab() {
                 </tr>
                 {open && (
                   <tr style={{ background: 'var(--surface-2)' }}>
-                    <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                    <td data-label="" colSpan={4} style={{ padding: '2px 16px 14px' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                         <ApplicantDetail label={t('leads.table.institution')} value={institution} />
                         <ApplicantDetail label={t('leads.table.direction')} value={direction} />

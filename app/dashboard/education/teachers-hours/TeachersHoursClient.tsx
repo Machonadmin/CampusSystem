@@ -62,7 +62,7 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
         <EmptyState text={t('no_data')} />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={th}>{t('col_teacher')}</th>
@@ -77,17 +77,17 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
                 return (
                   <Fragment key={tc.person_id}>
                     <tr onClick={() => setOpenId(open ? null : tc.person_id)} style={{ cursor: 'pointer' }}>
-                      <td style={{ ...td, fontWeight: 600 }}>{tc.name || '—'}</td>
-                      <td style={td}>{tc.groups_count}</td>
-                      <td style={td}>
+                      <td style={{ ...td, fontWeight: 600 }} data-label={t('col_teacher')}>{tc.name || '—'}</td>
+                      <td style={td} data-label={t('col_groups')}>{tc.groups_count}</td>
+                      <td style={td} data-label={t('col_hours')}>
                         <span style={{ fontWeight: 700, color: 'var(--accent-strong)' }}>{tc.weekly_hours}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 3 }}>{t('hours_short')}</span>
                       </td>
-                      <td style={{ ...td, textAlign: 'end', color: 'var(--text-faint)' }}>{tc.slots.length > 0 ? (open ? '▲' : '▼') : ''}</td>
+                      <td style={{ ...td, textAlign: 'end', color: 'var(--text-faint)' }} data-label="">{tc.slots.length > 0 ? (open ? '▲' : '▼') : ''}</td>
                     </tr>
                     {open && tc.slots.length > 0 && (
                       <tr>
-                        <td colSpan={4} style={{ padding: '0 14px 12px', background: 'var(--surface-2)' }}>
+                        <td colSpan={4} data-label="" style={{ padding: '0 14px 12px', background: 'var(--surface-2)' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4, padding: '10px 0 6px' }}>{t('schedule')}</div>
                           <div style={{ display: 'grid', gap: 5 }}>
                             {tc.slots.map((s, i) => (

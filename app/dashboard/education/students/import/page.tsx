@@ -125,14 +125,14 @@ export default function ImportStudentsPage() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>{t('preview_heading')}</h3>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
+            <table className="cards-sm" style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
               <thead>
                 <tr>{previewFields.map(f => <th key={f} style={{ textAlign: 'start', padding: '6px 10px', color: 'var(--text-muted)', fontWeight: 700, borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{t(`field_${f}`)}</th>)}</tr>
               </thead>
               <tbody>
                 {preview.map((row, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                    {previewFields.map(f => <td key={f} style={{ padding: '6px 10px', color: 'var(--text)', whiteSpace: 'nowrap' }}>{row[f] ?? '·'}</td>)}
+                    {previewFields.map(f => <td key={f} data-label={t(`field_${f}`)} style={{ padding: '6px 10px', color: 'var(--text)', whiteSpace: 'nowrap' }}>{row[f] ?? '·'}</td>)}
                   </tr>
                 ))}
               </tbody>
@@ -165,7 +165,7 @@ export default function ImportStudentsPage() {
             {result.dry_run ? t('done_dry') : t('done_real')}
           </div>
           <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8 }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
+            <table className="cards-sm" style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
               <thead>
                 <tr>
                   <th style={rh}>{t('col_row')}</th><th style={rh}>{t('col_name')}</th><th style={rh}>{t('col_status')}</th><th style={rh}>{t('col_message')}</th>
@@ -177,10 +177,10 @@ export default function ImportStudentsPage() {
                   const label = r.action === 'error' ? t('act_error') : r.action === 'duplicate' ? t('act_duplicate') : (result.dry_run ? t('act_create') : t('act_created'))
                   return (
                     <tr key={r.index} style={{ borderTop: '1px solid var(--border)' }}>
-                      <td style={rd}>{r.index + 1}</td>
-                      <td style={{ ...rd, fontWeight: 600 }}>{r.name}</td>
-                      <td style={{ ...rd, color: c, fontWeight: 700 }}>{label}</td>
-                      <td style={{ ...rd, color: 'var(--text-muted)' }}>{r.message ?? ''}</td>
+                      <td data-label={t('col_row')} style={rd}>{r.index + 1}</td>
+                      <td data-label={t('col_name')} style={{ ...rd, fontWeight: 600 }}>{r.name}</td>
+                      <td data-label={t('col_status')} style={{ ...rd, color: c, fontWeight: 700 }}>{label}</td>
+                      <td data-label={t('col_message')} style={{ ...rd, color: 'var(--text-muted)' }}>{r.message ?? ''}</td>
                     </tr>
                   )
                 })}

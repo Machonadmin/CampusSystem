@@ -148,7 +148,7 @@ export default function SemesterGroupsTab() {
           <EmptyState text={t('semester_groups.empty_none')} />
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('semester_groups.table_name')}</th>
@@ -173,7 +173,7 @@ export default function SemesterGroupsTab() {
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                       >
-                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                        <td style={{ ...tdStyle, fontWeight: 500 }} data-label={t('semester_groups.table_name')}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <Caret open={open} />
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
@@ -184,12 +184,12 @@ export default function SemesterGroupsTab() {
                             )}
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text)' }}>{trackName(g.study_track, lang)}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>
+                        <td style={{ ...tdStyle, color: 'var(--text)' }} data-label={t('semester_groups.table_track')}>{trackName(g.study_track, lang)}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('semester_groups.table_department')}>
                           {g.department ? localizedDeptName(g.department, lang) : '—'}
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>{g.counts.teachers}</td>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center' }} data-label={t('semester_groups.table_teachers')}>{g.counts.teachers}</td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }} data-label={t('semester_groups.table_students')}>
                           <span style={{
                             fontSize: 12, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
                             background: g.counts.students > 0 ? 'var(--accent-tint)' : 'var(--surface-2)',
@@ -201,7 +201,7 @@ export default function SemesterGroupsTab() {
                       </tr>
                       {open && (
                         <tr style={{ background: 'var(--surface-2)' }}>
-                          <td colSpan={5} style={{ padding: '2px 16px 14px' }}>
+                          <td colSpan={5} style={{ padding: '2px 16px 14px' }} data-label="">
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <Detail label={t('semester_groups.table_tuition')} value={g.tuition_amount != null ? `₽ ${g.tuition_amount}` : '—'} />
                             </div>
