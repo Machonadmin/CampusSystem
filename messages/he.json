@@ -2167,7 +2167,9 @@
     "all_depts": "כל המחלקות",
     "tabs": {
       "structure": "מבנה ארגוני",
-      "staff": "עובדים"
+      "staff": "עובדים",
+      "positions": "תפקידים",
+      "users": "משתמשים וגישה"
     },
     "table": {
       "full_name": "שם מלא",

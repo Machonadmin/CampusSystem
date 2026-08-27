@@ -2167,7 +2167,9 @@
     "all_depts": "All Departments",
     "tabs": {
       "structure": "Org Structure",
-      "staff": "Employees"
+      "staff": "Employees",
+      "positions": "Positions",
+      "users": "Users & Access"
     },
     "table": {
       "full_name": "Full Name",

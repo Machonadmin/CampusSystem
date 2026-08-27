@@ -10,6 +10,8 @@ import { personDisplayName } from '@/lib/persons/name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
+import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
+import { UsersAccessPanel } from '@/app/dashboard/settings/users/UsersAccessPanel'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ModuleTabs from '@/components/ui/ModuleTabs'
@@ -663,7 +665,15 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
+  const me = useMe()
+  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [activeTab, setActiveTab] = useState<string>('structure')
+  // Глубокая ссылка ?tab= (напр. со старых маршрутов /settings/users →
+  // редирект на объединённый хаб צוות с нужной вкладкой).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('tab')
+    if (q && ['structure', 'staff', 'positions', 'users'].includes(q)) setActiveTab(q)
+  }, [])
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -708,6 +718,9 @@ export default function StaffPage() {
         tabs={[
           { key: 'structure', label: t('tabs.structure') },
           { key: 'staff', label: t('tabs.staff') },
+          { key: 'positions', label: t('tabs.positions') },
+          // «משתמשים וגישה» — управление аккаунтами: только superadmin (как и API).
+          { key: 'users', label: t('tabs.users'), visible: isSuperadmin },
         ]}
         active={activeTab}
         onChange={setActiveTab}
@@ -766,6 +779,12 @@ export default function StaffPage() {
           refreshSignal={refreshSignal}
         />
       )}
+
+      {/* Каталог должностей и управление доступом — вкладки объединённого хаба
+          «צוות ומשתמשים» (запрос владельца). Рендерятся embedded (без своей
+          шапки/крошек). users — только superadmin. */}
+      {activeTab === 'positions' && <PositionsPanel embedded />}
+      {activeTab === 'users' && isSuperadmin && <UsersAccessPanel embedded />}
 
       {modal?.type === 'add' && (
         <DeptAddModal depts={depts} parentId={modal.parentId} onClose={() => setModal(null)} onSaved={() => { setModal(null); load() }} />
