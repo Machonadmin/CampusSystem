@@ -286,9 +286,9 @@ function PersonRow({
           )}
         </div>
       </div>
-      <div style={{ textAlign: 'end', minWidth: 0 }}>
-        {row.email && <div style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>{row.email}</div>}
-        {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{phone}</div>}
+      <div style={{ textAlign: 'end', minWidth: 0, maxWidth: '46%', flexShrink: 0 }}>
+        {row.email && <div style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(220px, 42vw)' }}>{row.email}</div>}
+        {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{phone}</div>}
       </div>
     </div>
   )

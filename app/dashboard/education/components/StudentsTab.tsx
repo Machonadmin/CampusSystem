@@ -505,7 +505,7 @@ export default function StudentsTab() {
                   <th style={thStyle} className="col-hide-sm">{t('students.table_department')}</th>
                   <th style={thStyle} className="col-hide-sm">{t('students.table_group')}</th>
                   <th style={{ ...thStyle, width: 110 }}>{t('students.table_status')}</th>
-                  <th style={{ ...thStyle, width: 170 }}>{t('students.table_actions')}</th>
+                  <th style={thStyle}>{t('students.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -552,7 +552,7 @@ export default function StudentsTab() {
                           </span>
                         </td>
                         <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             <button onClick={() => router.push(cardHref)} style={btnSecondary}>
                               {t('students.open_card')}
                             </button>
