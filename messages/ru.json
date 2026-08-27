@@ -1186,6 +1186,7 @@
         "term_label": "Номер семестра",
         "track_label": "Маршрут",
         "track_placeholder": "— выберите маршрут —",
+        "track_no_department": "У выбранного маршрута нет подразделения",
         "teachers_label": "Преподаватели",
         "teacher_placeholder": "Выберите или создайте преподавателя…",
         "monthly_pay_placeholder": "в месяц",

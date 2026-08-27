@@ -1186,6 +1186,7 @@
         "term_label": "Term number",
         "track_label": "Track",
         "track_placeholder": "— select a track —",
+        "track_no_department": "The selected track has no department",
         "teachers_label": "Teachers",
         "teacher_placeholder": "Select or create a teacher…",
         "monthly_pay_placeholder": "per month",
