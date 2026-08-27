@@ -43,18 +43,31 @@ export async function detectSlotConflicts(
   // room_id — из реестра кабинетов (buildings→rooms). Совпадение по room_id
   // надёжнее текста (одна и та же комната, разное написание). Deploy-safe:
   // колонки нет → '*'-fallback без room_id (тогда сверяем только по тексту).
+  // Постранично: без .range() PostgREST молча срезает выборку на db-max-rows —
+  // при большом расписании часть конфликтов «исчезала» бы из проверки.
   let slotRows: Array<{ id: string; class_group_id: string; start_time: string; end_time: string; room: string | null; room_id?: string | null }> = []
   {
-    const r = await sb.from('class_schedule_slots')
-      .select('id, class_group_id, start_time, end_time, room, room_id')
-      .eq('day_of_week', cand.dayOfWeek)
-    if (r.error) {
-      const r2 = await sb.from('class_schedule_slots')
-        .select('id, class_group_id, start_time, end_time, room')
-        .eq('day_of_week', cand.dayOfWeek)
-      slotRows = (r2.data ?? []) as typeof slotRows
-    } else {
-      slotRows = (r.data ?? []) as typeof slotRows
+    const PAGE = 1000
+    let withRoomId = true
+    for (let fromRow = 0; ; fromRow += PAGE) {
+      let rows: typeof slotRows | null = null
+      if (withRoomId) {
+        const r = await sb.from('class_schedule_slots')
+          .select('id, class_group_id, start_time, end_time, room, room_id')
+          .eq('day_of_week', cand.dayOfWeek)
+          .range(fromRow, fromRow + PAGE - 1)
+        if (r.error) withRoomId = false
+        else rows = (r.data ?? []) as typeof slotRows
+      }
+      if (rows === null) {
+        const r2 = await sb.from('class_schedule_slots')
+          .select('id, class_group_id, start_time, end_time, room')
+          .eq('day_of_week', cand.dayOfWeek)
+          .range(fromRow, fromRow + PAGE - 1)
+        rows = (r2.data ?? []) as typeof slotRows
+      }
+      slotRows.push(...rows)
+      if (rows.length < PAGE) break
     }
   }
   const others = (slotRows ?? []).filter(s => {

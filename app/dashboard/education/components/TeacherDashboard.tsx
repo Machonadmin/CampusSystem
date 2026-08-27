@@ -1,19 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import AttendancePanel from './AttendancePanel'
+import type { LessonItem } from './LessonsJournalTab'
 
 interface MyLesson {
   id: string
+  class_group_id: string
   class_group_name: string
   subject: string | null
+  scheduled_date: string
   scheduled_time: string | null
   topic: string | null
+  description: string | null
+  location: string | null
   is_cancelled: boolean
   marked_count: number
+  present_count: number
+  late_count: number
+  absent_count: number
   enrolled_count: number
 }
 interface MyGroup {
@@ -35,21 +43,28 @@ function hhmm(t: string | null): string {
 
 export default function TeacherDashboard() {
   const t = useTranslations('education.study')
-  const router = useRouter()
   const [lessons, setLessons] = useState<MyLesson[] | null>(null)
   const [groups, setGroups] = useState<MyGroup[] | null>(null)
+  // Урок, открытый для отметки посещаемости ПРЯМО ЗДЕСЬ (раньше клик уводил на
+  // страницу календаря, где урок надо было искать заново — главный ежедневный
+  // барьер преподавателя по gap-анализу).
+  const [attendanceLesson, setAttendanceLesson] = useState<MyLesson | null>(null)
   const today = new Date().toISOString().slice(0, 10)
 
-  useEffect(() => {
+  const loadLessons = useCallback(() => {
     fetch(`/api/education/my-lessons?date=${today}`)
       .then(r => (r.ok ? r.json() : { lessons: [] }))
       .then(b => setLessons((b.lessons ?? []) as MyLesson[]))
       .catch(() => setLessons([]))
+  }, [today])
+
+  useEffect(() => {
+    loadLessons()
     fetch('/api/education/my-groups')
       .then(r => (r.ok ? r.json() : { groups: [] }))
       .then(b => setGroups((b.groups ?? []) as MyGroup[]))
       .catch(() => setGroups([]))
-  }, [today])
+  }, [loadLessons])
 
   const card: React.CSSProperties = {
     background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16,
@@ -81,7 +96,7 @@ export default function TeacherDashboard() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => router.push('/dashboard/calendar')}
+                onClick={() => { if (!l.is_cancelled) setAttendanceLesson(l) }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'start',
                   padding: '10px 12px', borderRadius: 9, border: '1px solid var(--border)',
@@ -121,7 +136,8 @@ export default function TeacherDashboard() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
             {groups.map(g => (
-              <div key={g.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12 }}>
+              <a key={g.id} href={`/dashboard/education/class-groups/${g.id}`}
+                style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'block', textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
                   {g.is_primary && (
@@ -136,11 +152,34 @@ export default function TeacherDashboard() {
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
                   {t('teacher.students_count').replace('{n}', String(g.student_count))}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}
       </div>
+
+      {attendanceLesson && (
+        <AttendancePanel
+          lesson={{
+            id: attendanceLesson.id,
+            class_group_id: attendanceLesson.class_group_id,
+            scheduled_date: attendanceLesson.scheduled_date,
+            scheduled_time: attendanceLesson.scheduled_time,
+            topic: attendanceLesson.topic,
+            description: attendanceLesson.description,
+            location: attendanceLesson.location,
+            is_cancelled: attendanceLesson.is_cancelled,
+            marked_count: attendanceLesson.marked_count,
+            present_count: attendanceLesson.present_count,
+            late_count: attendanceLesson.late_count,
+            absent_count: attendanceLesson.absent_count,
+          } as LessonItem}
+          canMarkAttendance
+          accentColor={accent}
+          onClose={() => setAttendanceLesson(null)}
+          onSaved={() => { setAttendanceLesson(null); loadLessons() }}
+        />
+      )}
     </div>
   )
 }
