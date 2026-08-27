@@ -566,7 +566,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           maxWidth={520}
           zIndex={60}
           closeOnBackdrop
-          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}
+          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: 'var(--shadow-lg)' }}
         >
             {/* Header */}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
@@ -774,7 +774,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           maxWidth={520}
           zIndex={60}
           closeOnBackdrop
-          panelStyle={{ padding: 20, boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 14 }}
+          panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 14 }}
         >
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{t('process.signature.title')}</div>
             <textarea
@@ -812,7 +812,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           maxWidth={480}
           zIndex={60}
           closeOnBackdrop
-          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}
+          panelStyle={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: 'var(--shadow-lg)' }}
         >
             {/* Header */}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
@@ -887,7 +887,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           maxWidth={440}
           zIndex={60}
           closeOnBackdrop
-          panelStyle={{ boxShadow: '0 16px 48px rgba(0,0,0,0.2)', overflow: 'hidden' }}
+          panelStyle={{ boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }}
         >
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>

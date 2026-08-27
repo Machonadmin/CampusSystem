@@ -220,7 +220,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
       <div style={{
         background: getModuleHeaderGradient('dormitory'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(6,182,212,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <div>
@@ -315,7 +315,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                     style={inp(320)}
                   />
                   {hits.length > 0 && (
-                    <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                    <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                       {hits.map(h => (
                         <div
                           key={h.journey_id}

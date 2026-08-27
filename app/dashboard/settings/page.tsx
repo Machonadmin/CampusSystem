@@ -67,7 +67,7 @@ export default function SettingsPage() {
                   padding: 24,
                   background: 'var(--surface)',
                   borderTop: `3px solid ${s.color}`,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+                  boxShadow: 'var(--shadow)',
                   transition: 'box-shadow 0.15s ease',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(45,49,112,0.12)' }}

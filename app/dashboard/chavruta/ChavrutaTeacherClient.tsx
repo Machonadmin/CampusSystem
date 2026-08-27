@@ -193,7 +193,7 @@ export default function ChavrutaTeacherClient() {
       <div style={{
         background: getModuleHeaderGradient('chavruta'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(13,148,136,0.15)',
+        boxShadow: 'var(--shadow)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
         <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>

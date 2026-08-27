@@ -208,7 +208,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
       zIndex={70}
       padding={24}
       closeOnBackdrop
-      panelStyle={{ width: '80vw', height: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}
+      panelStyle={{ width: '80vw', height: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: 'var(--shadow-lg)' }}
     >
       {/* Анимация пульсации активного узла + кликабельность */}
       <style>{`

@@ -568,7 +568,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         />
       </div>
 
-      <div className="anim-rise" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div className="anim-rise" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : employees.length === 0 ? (
@@ -724,7 +724,7 @@ export default function StaffPage() {
             />
           </div>
 
-          <div style={{ backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
             {loading ? (
               <SkeletonRows avatar={false} rows={6} />
             ) : error ? (

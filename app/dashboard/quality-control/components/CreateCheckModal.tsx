@@ -90,7 +90,7 @@ function PersonAutocomplete({
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: 2,
+          boxShadow: 'var(--shadow)', marginTop: 2,
         }}>
           {options.map(p => (
             <div

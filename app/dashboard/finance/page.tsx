@@ -383,7 +383,7 @@ export default function FinancePage() {
           maxWidth={460}
           zIndex={50}
           closeOnBackdrop
-          panelStyle={{ borderRadius: 14, padding: 22, boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}
+          panelStyle={{ borderRadius: 14, padding: 22, boxShadow: 'var(--shadow-lg)' }}
         >
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('bulk.charge_title')}</h2>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{t('bulk.selected').replace('{n}', String(selected.size))}</p>

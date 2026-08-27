@@ -136,7 +136,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
       <div style={{
         background: getModuleHeaderGradient('maintenance'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(146,64,14,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <div style={{ minWidth: 0 }}>

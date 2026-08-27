@@ -166,7 +166,7 @@ export default function DashboardPage() {
         style={{
           background: getModuleHeaderGradient('dashboard'),
           padding: '20px 24px',
-          boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+          boxShadow: 'var(--shadow)',
           gap: 12,
         }}
       >
@@ -254,7 +254,7 @@ export default function DashboardPage() {
                 background: 'var(--warn)', color: '#fff',
                 padding: '3px 8px', borderRadius: 6,
                 fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                boxShadow: 'var(--shadow)',
               }}>
                 {t.soon}
               </span>

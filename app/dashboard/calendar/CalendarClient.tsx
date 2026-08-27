@@ -365,7 +365,7 @@ export default function CalendarClient() {
       <div style={{
         background: getModuleHeaderGradient('dashboard'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(59,130,246,0.18)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
       }}>
         <div>
@@ -398,7 +398,7 @@ export default function CalendarClient() {
                 style={{
                   position: 'absolute', zIndex: 46, top: 'calc(100% + 4px)', insetInlineEnd: 0, minWidth: 220,
                   background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.12)', padding: 4, display: 'grid', gap: 1,
+                  boxShadow: 'var(--shadow)', padding: 4, display: 'grid', gap: 1,
                 }}
               >
                 <button

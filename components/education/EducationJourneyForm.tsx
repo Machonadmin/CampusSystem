@@ -667,7 +667,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                         </button>
                       </div>
                       {(searching || results.length > 0) && (
-                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
                           {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('form.searching')}</div>}
                           {results.map(p => (
                             <button key={p.id} onClick={() => selectPerson(p)}
@@ -1080,7 +1080,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
   const formInner = (
     <div style={inline
-      ? { background: 'var(--surface)', borderRadius: 14, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid var(--border)' }
+      ? { background: 'var(--surface)', borderRadius: 14, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }
       : { display: 'flex', flexDirection: 'column', width: '100%' }}>
 
         {/* Header */}

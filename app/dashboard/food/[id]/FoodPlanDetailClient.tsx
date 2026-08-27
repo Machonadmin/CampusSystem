@@ -194,7 +194,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
       <div style={{
         background: getModuleHeaderGradient('food'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <div>
@@ -223,7 +223,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
             <div style={{ position: 'relative' }}>
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('plan.search_student')} style={inp(320)} />
               {hits.length > 0 && (
-                <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                   {hits.map(h => (
                     <div
                       key={h.journey_id}

@@ -354,7 +354,7 @@ function TemplateBuilder({
       onClose={onClose}
       maxWidth={860}
       zIndex={100}
-      panelStyle={{ borderRadius: 14, maxHeight: '94vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
+      panelStyle={{ borderRadius: 14, maxHeight: '94vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: 'var(--shadow-lg)' }}
     >
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>
@@ -591,7 +591,7 @@ export default function TemplatesTab({ perms }: Props) {
         </div>
       )}
 
-      <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+      <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : error ? (

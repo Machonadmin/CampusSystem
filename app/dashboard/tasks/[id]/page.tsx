@@ -56,7 +56,7 @@ export default function TaskPage() {
       <div style={{
         background: getModuleHeaderGradient('tasks'),
         borderRadius: 14, padding: '12px 24px',
-        boxShadow: '0 2px 8px rgba(245,158,11,0.2)', color: '#fff',
+        boxShadow: 'var(--shadow)', color: '#fff',
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <button

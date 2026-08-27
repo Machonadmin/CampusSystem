@@ -500,7 +500,7 @@ export default function AddEmployeeModal({
                       </button>
                     </div>
                     {(searching || results.length > 0) && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
                         {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}

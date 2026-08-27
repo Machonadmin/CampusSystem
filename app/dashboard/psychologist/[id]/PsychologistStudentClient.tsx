@@ -180,7 +180,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
       <div style={{
         background: getModuleHeaderGradient('psychologist'),
         borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(124,58,237,0.15)',
+        boxShadow: 'var(--shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
