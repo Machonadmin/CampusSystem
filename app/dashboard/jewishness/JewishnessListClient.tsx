@@ -114,14 +114,17 @@ export default function JewishnessListClient() {
   useEffect(() => { load() }, [load])
 
   const total = counts.pending + counts.verified + counts.partial + counts.rejected + counts.needs_review
-  const chips: Array<{ key: Status | 'all'; label: string; count: number }> = [
-    { key: 'all', label: t('filter_all'), count: total },
-    { key: 'pending', label: t('status_pending'), count: counts.pending },
-    { key: 'verified', label: t('status_verified'), count: counts.verified },
-    { key: 'partial', label: t('status_partial'), count: counts.partial },
-    { key: 'rejected', label: t('status_rejected'), count: counts.rejected },
-    { key: 'needs_review', label: t('status_needs_review'), count: counts.needs_review },
-  ]
+  // Owner: чип с нулём — шум, скрываем (кроме «всех» и активного фильтра, чтобы
+  // с него можно было сойти). «partial» больше не назначается решениями — чип
+  // показываем только если такие записи ещё остались.
+  const chips: Array<{ key: Status | 'all'; label: string; count: number }> = ([
+    { key: 'all' as const, label: t('filter_all'), count: total },
+    { key: 'pending' as const, label: t('status_pending'), count: counts.pending },
+    { key: 'verified' as const, label: t('status_verified'), count: counts.verified },
+    { key: 'partial' as const, label: t('status_partial'), count: counts.partial },
+    { key: 'rejected' as const, label: t('status_rejected'), count: counts.rejected },
+    { key: 'needs_review' as const, label: t('status_needs_review'), count: counts.needs_review },
+  ]).filter(c => c.key === 'all' || c.key === statusFilter || c.count > 0)
 
   return (
     <div className="p-6 space-y-5">
@@ -222,7 +225,12 @@ function StudentRow({ student, primary, onOpen }: { student: ListStudent; primar
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '1px solid var(--border)', borderRadius: 10, background: 'var(--surface)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</span>
+          {/* Имя ведёт в карточку человека — раньше список был тупиком. */}
+          <a href={`/dashboard/education/leads/${student.journey_id}`}
+            style={{ fontWeight: 600, color: 'var(--text)', textDecoration: 'none' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none' }}
+          >{name}</a>
           {student.hebrew_name && student.full_name && student.hebrew_name !== student.full_name && (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{student.hebrew_name}</span>
           )}

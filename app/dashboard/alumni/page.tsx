@@ -1,11 +1,10 @@
 'use client'
 
-import { Fragment, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { phoneList } from '@/lib/persons/phone'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -39,13 +38,12 @@ export default function AlumniPage() {
   const router = useRouter()
   const t = useTranslations('alumni')
   const tNav = useTranslations('navigation')
-  const { lang } = useLang()
 
   const [items, setItems] = useState<AlumniItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
+  // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -147,60 +145,33 @@ export default function AlumniPage() {
             </thead>
             <tbody>
               {filtered.map(a => {
-                const open = expandedId === a.journey_id
-                const phones = phoneList(a.phones)
                 return (
-                  <Fragment key={a.journey_id}>
-                    <tr
-                      onClick={() => setExpandedId(open ? null : a.journey_id)}
-                      style={{ cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
-                      onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
-                      onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
-                    >
-                      <td style={td}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : (lang === 'he' ? 180 : 0)}deg)` }}>▶</span>
-                          <div style={{
-                            width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                            background: light, color: primary,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 12, fontWeight: 700,
-                          }}>
-                            {a.photo_url
-                              ? <img src={a.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              : initials(a.full_name)}
-                          </div>
-                          <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
+                  <tr
+                    key={a.journey_id}
+                    onClick={() => router.push(`/dashboard/alumni/${a.journey_id}`)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
+                  >
+                    <td style={td}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                          background: light, color: primary,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, fontWeight: 700,
+                        }}>
+                          {a.photo_url
+                            ? <img src={a.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            : initials(a.full_name)}
                         </div>
-                      </td>
-                      <td style={td}>{a.graduation_year ?? '—'}</td>
-                      <td style={td}>{a.institution || '—'}</td>
-                      <td style={td}>{a.current_occupation || '—'}</td>
-                    </tr>
-                    {open && (
-                      <tr style={{ background: 'var(--surface-2)' }}>
-                        <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
-                            <Detail label={t('list.col_direction')} value={a.direction || '—'} />
-                            <Detail label={t('list.col_location')} value={a.current_location || '—'} />
-                            <Detail label={t('list.col_email')} value={a.email || '—'} />
-                            <Detail label={t('list.col_phone')} value={phones.length ? phones.join(', ') : '—'} />
-                          </div>
-                          <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
-                            <button
-                              onClick={() => router.push(`/dashboard/alumni/${a.journey_id}`)}
-                              style={{
-                                padding: '5px 12px', fontSize: 12, fontWeight: 600, color: primary,
-                                background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 6, cursor: 'pointer',
-                              }}
-                            >
-                              {t('list.open_card')}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
+                        <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
+                      </div>
+                    </td>
+                    <td style={td}>{a.graduation_year ?? '—'}</td>
+                    <td style={td}>{a.institution || '—'}</td>
+                    <td style={td}>{a.current_occupation || '—'}</td>
+                  </tr>
                 )
               })}
             </tbody>
@@ -211,12 +182,3 @@ export default function AlumniPage() {
   )
 }
 
-// Пара «метка → значение» в раскрытой панели деталей строки.
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
-    </div>
-  )
-}

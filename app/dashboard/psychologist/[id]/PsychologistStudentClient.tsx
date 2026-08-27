@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -185,9 +184,6 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
-        <Link href="/dashboard/psychologist" style={{ fontSize: 13, color: '#fff', opacity: 0.9, textDecoration: 'underline' }}>
-          {tCommon('back')}
-        </Link>
       </div>
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}

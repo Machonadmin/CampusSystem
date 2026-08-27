@@ -57,7 +57,7 @@ export default function StudentGradesPanel({ journeyId }: { journeyId: string; c
     return order.map(key => ({ subject: key, items: map.get(key)! }))
   }, [grades])
 
-  if (!loaded) return null
+  if (!loaded || grades.length === 0) return null  // пустой блок в портале не показываем (owner)
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>

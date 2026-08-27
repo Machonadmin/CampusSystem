@@ -60,9 +60,10 @@ const HREF_OVERRIDES: Record<string, string> = {
   quality_control: '/dashboard/quality-control',
 }
 
-// Full ordered list — always shown, implemented ones first
+// Плитки главной. «tasks» убрана (owner-декластеризация: задачи всегда в
+// верхней части бокового меню + виджет «Мои задачи» на этой же странице).
 const ALL_MODULE_CARDS = [
-  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'tasks', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'finance', 'dormitory', 'food',
   'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
   'documents', 'reports', 'contacts', 'settings',
 ]
@@ -122,10 +123,9 @@ export default function DashboardPage() {
   // Only modules the user can actually open (accessible_modules from
   // /api/auth/me) — a user must not even see modules they can't reach.
   const accessible = user?.accessible_modules ?? []
-  const orderedKeys = [
-    ...ALL_MODULE_CARDS.filter(k => accessible.includes(k) && isModuleImplemented(k)),
-    ...ALL_MODULE_CARDS.filter(k => accessible.includes(k) && !isModuleImplemented(k)),
-  ]
+  // Owner-декластеризация: нереализованные модули («בקרוב») больше не рендерим —
+  // мёртвая плитка это шум. Появятся сами, когда isModuleImplemented станет true.
+  const orderedKeys = ALL_MODULE_CARDS.filter(k => accessible.includes(k) && isModuleImplemented(k))
 
   const cards: CardDef[] = []
   for (const key of orderedKeys) {

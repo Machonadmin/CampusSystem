@@ -32,7 +32,7 @@ export default function StudentChavrutaPanel({ journeyId }: { journeyId: string 
     return () => { alive = false }
   }, [journeyId])
 
-  if (!loaded) return null
+  if (!loaded || sessions.length === 0) return null  // пустой блок в портале не показываем (owner)
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>

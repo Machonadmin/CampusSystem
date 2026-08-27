@@ -68,7 +68,7 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
     } catch { setErr(t('save_failed')) } finally { setBusy(false) }
   }
 
-  if (!loaded) return null
+  if (!loaded || (meetings.length === 0 && !canEdit)) return null  // пусто и добавить нельзя — блок не показываем (owner)
 
   const inp: React.CSSProperties = { padding: '7px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }
 

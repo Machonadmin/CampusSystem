@@ -226,7 +226,8 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
       {/* Summary bar */}
       {stats && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {STATUSES.map(s => (
+          {/* Owner: пилюли с нулём — шум, показываем только ненулевые статусы. */}
+          {STATUSES.filter(s => (stats[s as 'open' | 'investigating' | 'resolved' | 'closed'] ?? 0) > 0).map(s => (
             <SummaryPill
               key={s}
               label={t(`status.${s}`)}

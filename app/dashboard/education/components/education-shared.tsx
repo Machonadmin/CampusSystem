@@ -25,24 +25,6 @@ export interface Lead {
 export type LeadSortKey = 'full_name' | 'application_date'
 export type ProcessStatusFilter = 'active' | 'closed' | 'all' | 'deleted'
 
-/** Строка из GET /api/education/journeys?status=applicant */
-export interface ApplicantJourney {
-  id: string
-  application_date: string | null
-  opened_at: string | null
-  person: {
-    full_name: string | null
-    hebrew_name?: string | null
-    email: string | null
-    phones: unknown
-  } | null
-  primary_department: { name: string } | null
-  desired_department: { name: string } | null
-  desired_specialty: { name: string } | null
-  interests?: { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }[]
-  active_stages_with_tasks?: { stage_name: string; stage_code?: string | null; tasks: string[] }[]
-}
-
 type Interest = { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }
 
 export function initials(name: string) {

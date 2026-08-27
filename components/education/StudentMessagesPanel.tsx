@@ -54,7 +54,7 @@ export default function StudentMessagesPanel({ journeyId }: { journeyId: string 
     })
   }, [loaded, messages, journeyId])
 
-  if (!loaded) return null
+  if (!loaded || messages.length === 0) return null  // пустой блок в портале не показываем (owner)
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>

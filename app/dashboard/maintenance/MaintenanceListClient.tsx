@@ -210,7 +210,8 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       {/* Summary bar */}
       {stats && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {STATUSES.map(s => (
+          {/* Owner: пилюли с нулём — шум, показываем только ненулевые статусы. */}
+          {STATUSES.filter(s => (stats.status_counts[s] ?? 0) > 0).map(s => (
             <SummaryPill
               key={s}
               label={t(`status.${s}`)}
