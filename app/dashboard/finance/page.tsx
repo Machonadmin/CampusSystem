@@ -43,6 +43,7 @@ export default function FinancePage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [canCharge, setCanCharge] = useState(false)
+  const [canManageAccess, setCanManageAccess] = useState(false)
 
   // ── Массовое начисление (bulk charge) ──
   const [selectMode, setSelectMode] = useState(false)
@@ -74,6 +75,7 @@ export default function FinancePage() {
       const body = await res.json()
       setItems(body.students ?? [])
       setCanCharge(!!body.can_charge)
+      setCanManageAccess(!!body.can_manage_access)
     } catch {
       setError(t('list.load_error'))
     } finally {
@@ -151,9 +153,13 @@ export default function FinancePage() {
           <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <a href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
-            {t('access.link_label')}
-          </a>
+          {/* Ссылка на управление доступом — только тем, кто может им управлять
+              (иначе кнопка вела в «אין גישה»). */}
+          {canManageAccess && (
+            <a href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+              {t('access.link_label')}
+            </a>
+          )}
           <a href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
             {t('semesters.title')}
           </a>

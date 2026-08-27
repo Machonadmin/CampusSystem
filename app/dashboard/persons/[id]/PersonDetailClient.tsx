@@ -131,11 +131,13 @@ export default function PersonDetailClient({
   )
 }
 
+// Пустая ячейка не рендерится вовсе (owner: сетка из «—» — шум).
 function Info({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 14, color: value ? 'var(--text)' : 'var(--text-faint)', marginTop: 3 }}>{value || '—'}</div>
+      <div style={{ fontSize: 14, color: 'var(--text)', marginTop: 3 }}>{value}</div>
     </div>
   )
 }

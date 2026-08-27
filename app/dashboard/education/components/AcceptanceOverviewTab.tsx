@@ -146,6 +146,11 @@ export default function AcceptanceOverviewTab() {
     { key: 'all', label: t('overview.filter_all') },
   ]
 
+  // Показываем только этапы, которые есть хоть у кого-то (owner: пустые
+  // колонки «—» — шум; медицинские этапы опциональны). STAGE_ORDER — порядок.
+  const visibleStages = STAGE_ORDER.filter(code =>
+    applicants.some(a => a.stages.some(s => s.stage_code === code)))
+
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       {/* Filter */}
@@ -174,11 +179,11 @@ export default function AcceptanceOverviewTab() {
         ) : applicants.length === 0 ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('overview.no_data')}</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 160 + visibleStages.length * 110 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 <th style={th}>{t('overview.applicant')}</th>
-                {STAGE_ORDER.map(code => (
+                {visibleStages.map(code => (
                   <th key={code} style={th}>{t(`acceptance_stages.${code}`, code)}</th>
                 ))}
               </tr>
@@ -197,7 +202,7 @@ export default function AcceptanceOverviewTab() {
                         {name}
                       </button>
                     </td>
-                    {STAGE_ORDER.map(code => {
+                    {visibleStages.map(code => {
                       const cell = byCode.get(code)
                       const medicalPending = app.stages.some(s => (s.stage_code === 'medical' || s.stage_code === 'medical_psych') && s.status === 'active')
                       return (

@@ -1957,6 +1957,11 @@
       "subtitle": "Teaching hours and attendance in one place",
       "tab_hours": "Hours",
       "tab_attendance": "Attendance"
+    },
+    "quick_lead": {
+      "title": "New lead",
+      "hint": "Just what you need during the call — the rest can be filled in later on the card.",
+      "full_form": "Full form"
     }
   },
   "tasks": {

@@ -72,6 +72,10 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireFinancePrivilege('view')
     const canCharge = await hasFinancePrivilege(session, 'create_invoice')
+    // Для шапки финансов: ссылку «доступ к финансам» видят только те, кто
+    // может им управлять (superadmin / approve_payment) — иначе она вела в стену.
+    const canManageAccess = session.roles.includes('superadmin')
+      || await hasFinancePrivilege(session, 'approve_payment')
 
     const sb = createServerClient()
 
@@ -142,7 +146,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ students, can_charge: canCharge })
+    return NextResponse.json({ students, can_charge: canCharge, can_manage_access: canManageAccess })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

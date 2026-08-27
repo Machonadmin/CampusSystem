@@ -59,8 +59,7 @@ function isLead(row: Row): row is LeadItem {
   return 'lead_id' in row
 }
 
-export default function PersonsClient({ canViewStudentCards }: { canViewStudentCards: boolean }) {
-  void canViewStudentCards // используется на странице детали; здесь список не нуждается
+export default function PersonsClient() {
   const t = useTranslations('persons')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')

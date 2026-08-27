@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
@@ -18,7 +17,6 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
-  const [savedAt, setSavedAt] = useState<Date | null>(null)
 
   const viewHref = `/dashboard/education/leads/${journeyId}`
 
@@ -58,15 +56,6 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
         </div>
       </div>
 
-      {savedAt && (
-        <div style={{
-          background: 'var(--success-tint)', border: '1px solid var(--success)', borderRadius: 8,
-          padding: '10px 16px', fontSize: 13, color: 'var(--success)',
-        }}>
-          {t('card.labels.data_saved')}
-        </div>
-      )}
-
       <div className="split-cols" style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) 350px',
@@ -78,7 +67,7 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
           inline
           journeyId={journeyId}
           onClose={() => router.push(viewHref)}
-          onSaved={() => { setSavedAt(new Date()); router.push(viewHref) }}
+          onSaved={() => router.push(viewHref)}
         />
         <ProcessInfoBlock journeyId={journeyId} />
       </div>
