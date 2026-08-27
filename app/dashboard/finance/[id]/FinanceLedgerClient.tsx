@@ -465,6 +465,7 @@ export default function FinanceLedgerClient({
                         accentColor={primary}
                         actions={[
                           { key: 'approve', label: t('action.approve'), onClick: async () => { if (await confirmDialog({ message: t('confirm.approve_payment') })) mutate(`/api/finance/payments/${p.id}/approve`, 'POST') }, disabled: busy, hidden: !(canApprove && p.status === 'pending') },
+                          { key: 'receipt', label: t('ledger.print_receipt'), onClick: () => { window.open(`/dashboard/finance/receipt/${p.id}`, '_blank') }, hidden: p.status !== 'approved' },
                           { key: 'cancel', label: t('action.cancel'), onClick: async () => { if (await confirmDialog({ message: t('confirm.cancel_payment'), tone: 'danger' })) mutate(`/api/finance/payments/${p.id}`, 'PATCH', { status: 'cancelled' }) }, disabled: busy, danger: true, hidden: !(canCreateInvoice && p.status !== 'cancelled') },
                         ]}
                       />

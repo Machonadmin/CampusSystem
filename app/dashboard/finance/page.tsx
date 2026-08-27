@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { formatMoney } from '@/lib/finance/money'
+import { downloadCsv } from '@/lib/csv'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ interface FinanceStudent {
   charges_total: number
   payments_total: number
   balance: number
+  overdue_days: number | null
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -42,6 +44,9 @@ export default function FinancePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  // Гашение месячного сбора: только должницы + сортировка (имя/долг/просрочка).
+  const [debtorsOnly, setDebtorsOnly] = useState(false)
+  const [sortBy, setSortBy] = useState<'name' | 'balance' | 'overdue'>('name')
   const [canCharge, setCanCharge] = useState(false)
   const [canManageAccess, setCanManageAccess] = useState(false)
 
@@ -116,14 +121,31 @@ export default function FinancePage() {
   }
 
   const q = search.trim().toLowerCase()
-  const filtered = q
+  const searched = q
     ? items.filter(s =>
         s.full_name.toLowerCase().includes(q) ||
         (s.hebrew_name ?? '').toLowerCase().includes(q) ||
         (s.email ?? '').toLowerCase().includes(q))
     : items
+  const filtered = (debtorsOnly ? searched.filter(s => s.balance > 0.005) : searched)
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === 'balance') return b.balance - a.balance
+      if (sortBy === 'overdue') return (b.overdue_days ?? -1) - (a.overdue_days ?? -1)
+      return a.full_name.localeCompare(b.full_name)
+    })
 
   const primary = getModuleColor('finance', 'primary')
+
+  // Экспорт текущего (отфильтрованного) списка в CSV — для месячного сбора.
+  function exportDebtors() {
+    const headers = [t('list.col_name'), t('list.col_charges'), t('list.col_payments'), t('list.col_balance'), t('list.col_overdue')]
+    const rows = filtered.map(s => [
+      s.full_name, String(s.charges_total), String(s.payments_total), String(s.balance),
+      s.overdue_days != null ? String(s.overdue_days) : '',
+    ])
+    downloadCsv('debtors', [headers, ...rows])
+  }
 
   const th: React.CSSProperties = {
     textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -183,6 +205,38 @@ export default function FinancePage() {
         <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
           {t('list.count')}: {filtered.length}
         </span>
+        <button
+          onClick={() => setDebtorsOnly(v => !v)}
+          style={{
+            fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
+            border: `1px solid ${debtorsOnly ? 'var(--danger)' : 'var(--border-strong)'}`,
+            background: debtorsOnly ? 'var(--danger-tint)' : 'var(--surface)',
+            color: debtorsOnly ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap',
+          }}
+        >
+          {t('list.debtors_only')}
+        </button>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as 'name' | 'balance' | 'overdue')}
+          style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
+        >
+          <option value="name">{t('list.sort_name')}</option>
+          <option value="balance">{t('list.sort_balance')}</option>
+          <option value="overdue">{t('list.sort_overdue')}</option>
+        </select>
+        <button
+          onClick={exportDebtors}
+          disabled={filtered.length === 0}
+          style={{
+            fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 8,
+            cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap',
+            border: '1px solid var(--border-strong)', background: 'var(--surface)',
+            color: 'var(--text-muted)', opacity: filtered.length === 0 ? 0.5 : 1,
+          }}
+        >
+          {t('list.export_csv')}
+        </button>
         <div style={{ flex: 1 }} />
         {canCharge && (
           <button
@@ -235,6 +289,7 @@ export default function FinancePage() {
                 <th style={thNum}>{t('list.col_charges')}</th>
                 <th style={thNum}>{t('list.col_payments')}</th>
                 <th style={thNum}>{t('list.col_balance')}</th>
+                <th style={th}>{t('list.col_overdue')}</th>
               </tr>
             </thead>
             <tbody>
@@ -273,6 +328,17 @@ export default function FinancePage() {
                     <td style={tdNum}>{formatMoney(s.payments_total)}</td>
                     <td style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
                       {formatMoney(s.balance)}
+                    </td>
+                    <td style={td}>
+                      {s.overdue_days != null && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, whiteSpace: 'nowrap',
+                          background: s.overdue_days > 60 ? 'var(--danger-tint)' : s.overdue_days > 30 ? 'var(--warn-tint)' : 'var(--surface-2)',
+                          color: s.overdue_days > 60 ? 'var(--danger)' : s.overdue_days > 30 ? 'var(--warn)' : 'var(--text-muted)',
+                        }}>
+                          {t('list.overdue_days').replace('{n}', String(s.overdue_days))}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 )
