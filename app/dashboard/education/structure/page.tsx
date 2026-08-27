@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -115,10 +115,7 @@ export default function StructurePage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
-      </div>
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={unit} onChange={e => setUnit(e.target.value)} disabled={loadingUnits || units.length === 0}

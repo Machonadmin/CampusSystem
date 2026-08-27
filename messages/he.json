@@ -2951,7 +2951,11 @@
       "sort_overdue": "מיון: פיגור",
       "export_csv": "ייצוא",
       "col_overdue": "פיגור",
-      "overdue_days": "{n} ימים בפיגור"
+      "overdue_days": "{n} ימים בפיגור",
+      "sum_charged": "סך חיובים",
+      "sum_collected": "נגבה",
+      "sum_outstanding": "יתרה לגבייה",
+      "sum_collected_pct": "{n}% נגבו"
     },
     "ledger": {
       "load_error": "שגיאה בטעינת כרטיס הכספים",

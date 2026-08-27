@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { CountrySelect } from '@/components/ui/country-select'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { countryLabel } from '@/lib/geo'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -120,18 +121,7 @@ export default function ReferenceCitiesPage() {
         { label: t('title') },
       ]} />
 
-      <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('settings'),
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>
-          {t('title')}
-        </h1>
-      </div>
+      <ModuleHeader module="settings" title={t('title')} />
 
       <div style={{ maxWidth: 420 }}>
         <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>

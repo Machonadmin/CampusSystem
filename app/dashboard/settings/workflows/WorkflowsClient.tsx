@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, TemplateDetail, Role } from './workflow-shared'
 import { btnPrimary, btnGhost, btnDanger } from './workflow-shared'
@@ -148,19 +148,16 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
         { label: t('title') },
       ]} />
 
-      <div style={{
-        background: getModuleHeaderGradient('settings'), borderRadius: 14,
-        padding: '16px 24px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
-        </div>
-        {!canEdit && (
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 8 }}>{t('readonly_badge')}</span>
-        )}
-      </div>
+      <ModuleHeader
+        module="settings"
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={<>
+          {!canEdit && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 8 }}>{t('readonly_badge')}</span>
+          )}
+        </>}
+      />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 

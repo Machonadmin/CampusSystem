@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ─── Типы ответа API ────────────────────────────────────────────────────────
@@ -54,10 +54,7 @@ export default function RecruitmentReportPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
-      </div>
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
       {forbidden ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('forbidden')}</div>

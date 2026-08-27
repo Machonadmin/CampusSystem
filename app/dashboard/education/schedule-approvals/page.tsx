@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toast } from '@/components/ui/toast'
@@ -82,10 +82,7 @@ export default function ScheduleApprovalsPage() {
         { label: t('approvals_title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('approvals_title')}</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('approvals_subtitle')}</p>
-      </div>
+      <ModuleHeader module="education" title={t('approvals_title')} subtitle={t('approvals_subtitle')} />
 
       {loading ? (
         <SkeletonRows avatar={false} rows={4} />

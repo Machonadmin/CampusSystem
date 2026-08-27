@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { MiniBar } from '@/components/ui/MiniBar'
 import { formatMoney } from '@/lib/finance/money'
 import { downloadCsv } from '@/lib/csv'
 
@@ -137,6 +139,16 @@ export default function FinancePage() {
 
   const primary = getModuleColor('finance', 'primary')
 
+  // Сводка сбора по всем студенткам (не по фильтру): сколько начислено, оплачено,
+  // сколько осталось. Даёт мгновенную картину «где мы» + мини-график доли сбора.
+  const totals = items.reduce((a, s) => {
+    a.charged += s.charges_total
+    a.paid += s.payments_total
+    return a
+  }, { charged: 0, paid: 0 })
+  const outstanding = Math.max(0, totals.charged - totals.paid)
+  const collectedPct = totals.charged > 0 ? Math.round(totals.paid / totals.charged * 100) : 0
+
   // Экспорт текущего (отфильтрованного) списка в CSV — для месячного сбора.
   function exportDebtors() {
     const headers = [t('list.col_name'), t('list.col_charges'), t('list.col_payments'), t('list.col_balance'), t('list.col_overdue')]
@@ -164,17 +176,11 @@ export default function FinancePage() {
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('finance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('finance')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <ModuleHeader
+        module="finance"
+        title={tNav('finance')}
+        subtitle={t('list.subtitle')}
+        actions={<>
           {/* Ссылка на управление доступом — только тем, кто может им управлять
               (иначе кнопка вела в «אין גישה»). */}
           {canManageAccess && (
@@ -188,8 +194,30 @@ export default function FinancePage() {
           <a href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
             {t('staff.link_label')}
           </a>
+        </>}
+      />
+
+      {/* Сводка сбора: начислено / оплачено / остаток + доля собранного. */}
+      {!loading && !error && totals.charged > 0 && (
+        <div className="anim-rise" style={{
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+          padding: '14px 18px', boxShadow: 'var(--shadow)', display: 'grid', gap: 12,
+        }}>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+            <Metric label={t('list.sum_charged')} value={formatMoney(totals.charged)} color="var(--text)" />
+            <Metric label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
+            <Metric label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
+            <div style={{ flex: 1 }} />
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', fontVariantNumeric: 'tabular-nums' }}>
+              {t('list.sum_collected_pct').replace('{n}', String(collectedPct))}
+            </div>
+          </div>
+          <MiniBar height={10} segments={[
+            { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
+            { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
+          ]} />
         </div>
-      </div>
+      )}
 
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -391,4 +419,13 @@ const inpModal: React.CSSProperties = {
   width: '100%', fontSize: 13, padding: '8px 10px',
   border: '1px solid var(--border-strong)', borderRadius: 8,
   color: 'var(--text)', background: 'var(--surface)',
+}
+
+function Metric({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+    </div>
+  )
 }

@@ -2951,7 +2951,11 @@
       "sort_overdue": "Sort: overdue",
       "export_csv": "Export",
       "col_overdue": "Overdue",
-      "overdue_days": "{n} days overdue"
+      "overdue_days": "{n} days overdue",
+      "sum_charged": "Total charged",
+      "sum_collected": "Collected",
+      "sum_outstanding": "Outstanding",
+      "sum_collected_pct": "{n}% collected"
     },
     "ledger": {
       "load_error": "Failed to load the finance card",

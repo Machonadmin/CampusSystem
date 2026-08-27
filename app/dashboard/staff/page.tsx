@@ -10,7 +10,8 @@ import { personDisplayName } from '@/lib/persons/name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
@@ -701,13 +702,7 @@ export default function StaffPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{
-        background: getModuleHeaderGradient('staff'),
-        borderRadius: 14, padding: '16px 24px',
-        boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
-      }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-      </div>
+      <ModuleHeader module="staff" title={t('title')} />
 
       <ModuleTabs
         tabs={[

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -218,14 +219,7 @@ export default function ReportsClient() {
       ]} />
 
       {/* Заголовок модуля — зелёный акцент reports */}
-      <div style={{
-        background: getModuleHeaderGradient('reports'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(22,163,74,0.15)',
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
-      </div>
+      <ModuleHeader module="reports" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Период — влияет на денежные карточки (финансы, спонсоры) */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

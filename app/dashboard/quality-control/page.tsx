@@ -10,7 +10,8 @@ import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate as fmtDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -139,16 +140,7 @@ export default function QualityControlPage() {
       ]} />
 
       {/* Page header */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('quality_control'),
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
-      </div>
+      <ModuleHeader module="quality_control" title={t('title')} />
 
       {/* Tabs */}
       <ModuleTabs

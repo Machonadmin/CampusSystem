@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 
 const SECTIONS = [
   {
@@ -54,18 +54,7 @@ export default function SettingsPage() {
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
       ]} />
-      <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('settings'),
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>
-          {t('system_title')}
-        </h1>
-      </div>
+      <ModuleHeader module="settings" title={t('system_title')} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {SECTIONS.map(s => {
