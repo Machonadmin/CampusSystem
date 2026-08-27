@@ -364,7 +364,7 @@ export default function CalendarClient() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('dashboard'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(59,130,246,0.18)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
       }}>

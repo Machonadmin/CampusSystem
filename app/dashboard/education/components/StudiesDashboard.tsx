@@ -115,7 +115,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
   }, [])
 
   const card: React.CSSProperties = {
-    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 15,
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 15,
   }
   const cardHead: React.CSSProperties = {
     margin: '0 0 11px', fontSize: 13, fontWeight: 700, color: 'var(--text)',
@@ -287,7 +287,7 @@ function Kpi({ value, label, tone, href, onClick }: {
   const color = tone === 'accent' ? 'var(--accent-strong)' : tone === 'info' ? 'var(--info)' : tone === 'warn' ? 'var(--warn)' : 'var(--text)'
   const clickable = !!(href || onClick)
   const base: React.CSSProperties = {
-    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 15px',
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '13px 15px',
     display: 'block', textDecoration: 'none', textAlign: 'start', width: '100%',
     ...(clickable ? { cursor: 'pointer', transition: 'border-color 0.12s, box-shadow 0.12s' } : {}),
   }
@@ -372,7 +372,7 @@ export function Launcher({ t, access }: { t: ReturnType<typeof useTranslations>;
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: 10 }}>
         {[0, 1, 2, 3, 4, 5].map(i => (
-          <div key={i} style={{ height: 58, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', opacity: 0.6 }} />
+          <div key={i} style={{ height: 58, borderRadius: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', opacity: 0.6 }} />
         ))}
       </div>
     )
@@ -407,7 +407,7 @@ export function Launcher({ t, access }: { t: ReturnType<typeof useTranslations>;
 function LaunchCard({ it, label }: { it: LItem; label: string }) {
   const style: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 11, padding: '12px 13px', width: '100%',
-    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
     textAlign: 'start', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none',
   }
   return (

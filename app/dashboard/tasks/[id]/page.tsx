@@ -354,7 +354,7 @@ export default function TaskPage() {
       {/* Хедер */}
       <div style={{
         background: getModuleHeaderGradient('tasks'),
-        borderRadius: 12,
+        borderRadius: 14,
         padding: '12px 24px',
         boxShadow: '0 2px 8px rgba(245,158,11,0.2)',
         color: '#fff',
@@ -388,7 +388,7 @@ export default function TaskPage() {
 
       {!loading && task && (
         <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
           padding: 24, maxWidth: 720,
         }}>
           {/* Заголовок с приоритет-баром */}
@@ -403,7 +403,7 @@ export default function TaskPage() {
                   padding: '3px 10px', fontSize: 11, fontWeight: 600,
                   background: STATUS_COLORS[task.status].bg,
                   color: STATUS_COLORS[task.status].fg,
-                  borderRadius: 12,
+                  borderRadius: 14,
                 }}>
                   {t(`status.${task.status}`, task.status)}
                 </span>
@@ -492,7 +492,7 @@ export default function TaskPage() {
                   <div key={w.person_id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '4px 10px', background: 'var(--accent-tint)', color: 'var(--info)',
-                    borderRadius: 12, fontSize: 12,
+                    borderRadius: 14, fontSize: 12,
                   }}>
                     <span>{(w.person?.hebrew_name || w.person?.full_name) ?? '…'}</span>
                     <button

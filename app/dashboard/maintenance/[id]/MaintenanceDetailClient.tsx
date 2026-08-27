@@ -135,7 +135,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('maintenance'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(146,64,14,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -156,7 +156,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
           {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
 
           {/* Meta card */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge label={t(`status.${ticket.status}`)} colors={sc} />
               <Badge label={t(`priority.${ticket.priority}`)} colors={pc} />
@@ -180,7 +180,7 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
 
           {/* Actions */}
           {canManage && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 16 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('detail.actions')}</div>
 
               {/* Status transitions */}

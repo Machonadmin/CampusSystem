@@ -37,7 +37,7 @@ export default function HealthClient({ canManageDoctor, canManagePsych }: {
         { label: t.nav.health },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient(tab), borderRadius: 12, padding: '16px 24px', color: '#fff' }}>
+      <div style={{ background: getModuleHeaderGradient(tab), borderRadius: 14, padding: '16px 24px', color: '#fff' }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t.nav.health}</h1>
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t.moduleDesc.health}</div>
       </div>

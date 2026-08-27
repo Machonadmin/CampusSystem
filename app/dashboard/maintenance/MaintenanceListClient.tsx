@@ -188,7 +188,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('maintenance'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(146,64,14,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>

@@ -212,7 +212,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('contacts'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(219,39,119,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
@@ -233,7 +233,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       {/* Stats bar */}
       {stats && (
         <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 16px',
           display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
         }}>
           <span style={{ fontSize: 13, color: 'var(--text)' }}>
@@ -278,7 +278,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
 
       {/* Inline editor */}
       {canManage && editingId !== null && (
-        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
             {editingId === '' ? t('form.new_title') : t('form.edit_title')}
           </h2>
@@ -341,7 +341,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       )}
 
       {/* Directory list */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (

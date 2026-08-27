@@ -57,7 +57,7 @@ export default function TrackAssignmentPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
@@ -73,7 +73,7 @@ export default function TrackAssignmentPage() {
           <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
             {t('pending_count', '{n}').replace('{n}', String(students.length))}
           </div>
-          <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
             {students.map((s, i) => (
               <div key={s.journey_id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '11px 14px', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
                 <div style={{ flex: 1, minWidth: 160 }}>

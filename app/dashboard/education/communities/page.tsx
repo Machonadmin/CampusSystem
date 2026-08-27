@@ -199,7 +199,7 @@ export default function CommunitiesPage() {
       ]} />
 
       <div style={{
-        background: getModuleHeaderGradient('education'), borderRadius: 12,
+        background: getModuleHeaderGradient('education'), borderRadius: 14,
         padding: '16px 24px', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
@@ -235,7 +235,7 @@ export default function CommunitiesPage() {
       {loading ? (
         <SkeletonRows rows={6} />
       ) : (
-        <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>
             <div style={{ flex: 1, minWidth: 160 }}>{t('col_name')}</div>
             <div style={{ flex: 1, minWidth: 140 }}>{t('col_location')}</div>

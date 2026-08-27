@@ -110,7 +110,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('food'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -157,7 +157,7 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
             <div
               key={p.id}
               onClick={() => router.push(`/dashboard/food/${p.id}`)}
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, cursor: 'pointer' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, cursor: 'pointer' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
             >

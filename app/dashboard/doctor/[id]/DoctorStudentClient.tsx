@@ -184,7 +184,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('doctor'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -197,7 +197,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
       ) : (
         <>
           {/* Medical profile */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
             {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -230,7 +230,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
           {/* Record visit */}
           {canManage && (
-            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
               {visitError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{visitError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -260,7 +260,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
           )}
 
           {/* Visit history */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.history_title')}</h2>
             {visits.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('visit.no_visits')}</div>

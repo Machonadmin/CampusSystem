@@ -127,7 +127,7 @@ export default function FinanceAccessPage() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('finance'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>

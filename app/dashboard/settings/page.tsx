@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)' }}
               >
                 <div
-                  style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: s.bg, flexShrink: 0, marginBottom: 14 }}
+                  style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: s.bg, flexShrink: 0, marginBottom: 14 }}
                   className="flex items-center justify-center"
                 >
                   <svg style={{ width: 22, height: 22, color: s.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">

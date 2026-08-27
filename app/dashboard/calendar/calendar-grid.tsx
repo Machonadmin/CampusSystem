@@ -46,7 +46,7 @@ export function MonthView({
   t: (k: string, f?: string) => string
 }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
       {/* Weekday header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
         {weekdayLabels.map((w, i) => (
@@ -286,7 +286,7 @@ export function WeekView({
           .format(new Date(`${day}T00:00:00Z`))
         return (
           <div key={day} style={{
-            background: 'var(--surface)', border: `1px solid ${isToday ? primary : 'var(--border)'}`, borderRadius: 12, padding: 14,
+            background: 'var(--surface)', border: `1px solid ${isToday ? primary : 'var(--border)'}`, borderRadius: 14, padding: 14,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

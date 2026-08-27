@@ -1080,7 +1080,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
   const formInner = (
     <div style={inline
-      ? { background: 'var(--surface)', borderRadius: 12, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid var(--border)' }
+      ? { background: 'var(--surface)', borderRadius: 14, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid var(--border)' }
       : { display: 'flex', flexDirection: 'column', width: '100%' }}>
 
         {/* Header */}

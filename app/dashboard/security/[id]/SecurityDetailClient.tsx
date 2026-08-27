@@ -140,7 +140,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('security'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(220,38,38,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -158,7 +158,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
           {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
 
           {/* Meta card */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge label={t(`severity.${incident.severity}`)} colors={vc} />
               <Badge label={t(`status.${incident.status}`)} colors={sc} />
@@ -189,7 +189,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
 
           {/* Actions */}
           {canManage && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 16 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('detail.actions')}</div>
 
               {/* Status transitions */}

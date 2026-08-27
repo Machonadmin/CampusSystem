@@ -63,7 +63,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   // пустоты показываем понятную подсказку, чтобы CTA не «исчезала молча».
   if (!stageId) {
     return (
-      <div style={{ background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 14, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)' }}>→ {t('handoff.button')}</div>
         <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.5 }}>{t('handoff.not_ready')}</div>
       </div>
@@ -74,7 +74,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   const missingLabels = missing.map(m => m === 'name' ? t('handoff.field_name') : m === 'phone' ? t('handoff.field_phone') : m)
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <button
         onClick={handoff}
         disabled={busy || !ready}

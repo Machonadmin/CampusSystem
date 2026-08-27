@@ -62,7 +62,7 @@ export default function StudentStructuresPanel({ journeyId }: { journeyId: strin
   const options = departments.filter(d => !takenIds.has(d.id))
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('title')}</div>
       <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 12 }}>{t('hint')}</div>
 

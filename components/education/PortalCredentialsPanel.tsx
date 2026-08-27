@@ -61,7 +61,7 @@ export default function PortalCredentialsPanel({ journeyId }: { journeyId: strin
   }
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>🔑 {t('title')}</h3>
         <span style={{ fontSize: 11.5, color: exists ? 'var(--success)' : 'var(--text-faint)' }}>

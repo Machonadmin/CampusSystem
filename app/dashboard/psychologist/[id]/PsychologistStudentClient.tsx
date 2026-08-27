@@ -179,7 +179,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('psychologist'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(124,58,237,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -192,7 +192,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
       ) : (
         <>
           {/* Counseling profile */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
             {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -226,7 +226,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
 
           {/* Record session */}
           {canManage && (
-            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('session.record_title')}</h2>
               {sessionError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{sessionError}</div>}
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -254,7 +254,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
           )}
 
           {/* Session history */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('session.history_title')}</h2>
             {sessions.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('session.no_sessions')}</div>

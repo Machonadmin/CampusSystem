@@ -35,7 +35,7 @@ export default function StudentChavrutaPanel({ journeyId }: { journeyId: string 
   if (!loaded || sessions.length === 0) return null  // пустой блок в портале не показываем (owner)
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>{t('portal_title')}</h3>
 
       {sessions.length === 0 ? (

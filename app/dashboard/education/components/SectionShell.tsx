@@ -54,7 +54,7 @@ export default function SectionShell({
 
       <div style={{
         background: getModuleHeaderGradient('education'),
-        borderRadius: 12, padding: '11px 22px',
+        borderRadius: 14, padding: '11px 22px',
         boxShadow: '0 2px 8px rgba(16,185,129,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>

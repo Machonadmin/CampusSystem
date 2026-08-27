@@ -116,7 +116,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
     } catch { toastError(t('error')) }
   }
 
-  const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }
+  const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }
   const sectionTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }
   const input: React.CSSProperties = {
     width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
@@ -140,7 +140,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('education'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
       }}>

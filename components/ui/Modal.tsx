@@ -109,7 +109,7 @@ export function Modal({
         tabIndex={-1}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--surface)', borderRadius: 12, width: '100%',
+          background: 'var(--surface)', borderRadius: 14, width: '100%',
           maxWidth, maxHeight: '90vh', overflowY: 'auto', outline: 'none',
           boxShadow: 'var(--shadow-lg, 0 20px 60px rgba(0,0,0,0.2))',
           ...panelStyle,

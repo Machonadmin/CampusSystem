@@ -93,7 +93,7 @@ export default function HomeAgenda() {
         </h2>
       </div>
 
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)', borderInlineStart: '4px solid var(--violet)' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, boxShadow: 'var(--shadow)', borderInlineStart: '4px solid var(--violet)' }}>
         {items.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>{t('agenda_empty')}</div>
         ) : (
