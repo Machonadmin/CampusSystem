@@ -9,7 +9,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 
 /**
  * Оболочка отдельного раздела «Учёбы» как САМОСТОЯТЕЛЬНОГО модуля (запрос
- * владельца: גיוס / קבלה / לимודים — раздельные модули, без «התנגשויות»).
+ * владельца: גיוс / קבלה / לимудим — раздельные модули, без «התנגשויות»).
  * Каждый раздел живёт на своём маршруте (/dashboard/education/{recruitment|
  * admission|studies}) и МОНТИРУЕТСЯ заново при переходе — поэтому состояние и
  * фильтры одного раздела не «протекают» в другой. Оболочка даёт общую шапку
@@ -32,7 +32,7 @@ export default function SectionShell({
   const label = t(titleKey)
 
   // null = ещё грузим, true = есть доступ, false = нет. Пока не подтверждён
-  // доступ — контент НЕ рендерим (иначе секретарь кодеша на миг видит גיוס).
+  // доступ — контент НЕ рендерим (иначе секретарь кодеша на миг видит גיוс).
   // Fail-closed: любая ошибка/невалидный ответ → доступа нет.
   const [allowed, setAllowed] = useState<boolean | null>(null)
   useEffect(() => {
@@ -43,6 +43,11 @@ export default function SectionShell({
       .catch(() => { if (alive) setAllowed(false) })
     return () => { alive = false }
   }, [sectionKey])
+
+  // «מערכת שעות» / «אישורי שיבוץ» — инструменты раздела «лимудим». В גיוс/קבלה
+  // им не место (запрос владельца), поэтому шапочную навигацию показываем
+  // только в разделе study.
+  const headerActions = sectionKey === 'study' ? <EducationHeaderNav /> : undefined
 
   return (
     <div className="p-6 space-y-5">
@@ -61,7 +66,7 @@ export default function SectionShell({
           </svg>
         }
         title={<span style={{ fontWeight: 700 }}>{label}</span>}
-        actions={<EducationHeaderNav />}
+        actions={headerActions}
       />
 
       {allowed === true ? children : (

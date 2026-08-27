@@ -41,12 +41,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Группы (опц. по единице, с учётом ограничения scope) → их id.
-    let groupsQ = sb.from('class_groups').select('id, name, department_id, subject:subjects(name), department:departments(id, name)').eq('is_active', true)
+    let groupsQ = sb.from('class_groups').select('id, name, department_id, subject:subjects(name), department:departments(id, name, name_he, name_en)').eq('is_active', true)
     if (unit) groupsQ = groupsQ.eq('department_id', unit)
     if (allowedDeptIds) groupsQ = groupsQ.in('department_id', allowedDeptIds)
     if (allowedGroupIds) groupsQ = groupsQ.in('id', allowedGroupIds)
     const { data: groupsRaw } = await groupsQ
-    const groups = (groupsRaw ?? []) as unknown as Array<{ id: string; name: string; department_id: string | null; subject: { name: string } | null; department: { id: string; name: string } | null }>
+    type Dept = { id: string; name: string; name_he: string | null; name_en: string | null }
+    const groups = (groupsRaw ?? []) as unknown as Array<{ id: string; name: string; department_id: string | null; subject: { name: string } | null; department: Dept | null }>
     const groupById = new Map(groups.map(g => [g.id, g]))
     const groupIds = groups.map(g => g.id)
     if (groupIds.length === 0) return NextResponse.json({ slots: [], conflicts: [] })
@@ -116,9 +117,11 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Список единиц для фильтра.
-    const unitOptions = [...new Map(groups.filter(g => g.department).map(g => [g.department!.id, g.department!.name])).entries()]
-      .map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'he'))
+    // Список единиц для фильтра — с локализуемыми именами (name_he/name_en),
+    // чтобы селектор не показывал «сырое» русское имя отдела.
+    const unitOptions = [...new Map(groups.filter(g => g.department).map(g => [g.department!.id, g.department!])).values()]
+      .map(d => ({ id: d.id, name: d.name, name_he: d.name_he, name_en: d.name_en }))
+      .sort((a, b) => (a.name_he || a.name).localeCompare(b.name_he || b.name, 'he'))
 
     return NextResponse.json({ slots: out, conflicts, units: unitOptions, can_edit: canEdit })
   } catch (err: unknown) {
