@@ -220,7 +220,7 @@ export default function PersonsClient() {
         ) : rows.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--text-faint)', padding: 8 }}>{t('list.empty')}</div>
         ) : (
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div className="anim-rise" style={{ display: 'grid', gap: 8 }}>
             {rows.map(row => (
               <PersonRow
                 key={isStudent(row) ? row.journey_id : isLead(row) ? row.lead_id : row.person_id}

@@ -127,7 +127,7 @@ export default function AlumniPage() {
       ) : filtered.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
+        <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
