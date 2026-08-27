@@ -55,6 +55,7 @@ const accent = getModuleColor('education')
 
 export default function StudentsTab() {
   const t = useTranslations('education.study')
+  const tEdu = useTranslations('education')
   const { lang } = useLang()
   const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
@@ -379,6 +380,22 @@ export default function StudentsTab() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
           </svg>
           {t('students.export_button')}
+        </button>
+        {/* Импорт студенток — здесь, рядом с экспортом (перенесён из «Настроек»:
+            owner — меньше карточек; импорт = операция над списком студенток). */}
+        <button
+          type="button"
+          onClick={() => router.push('/dashboard/education/students/import')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)',
+          }}
+        >
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          {tEdu('import.title')}
         </button>
       </div>
 
