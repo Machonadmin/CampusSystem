@@ -43,6 +43,12 @@ export default function TimetablePage() {
   const [dragId, setDragId] = useState<string | null>(null)
   const [overDay, setOverDay] = useState<number | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
+  // Тип вида: 'week' — по дням (текущий, с драгом); 'day' — «взгляд менеджера»:
+  // ось времени для одного дня, все параллельные уроки на одном времени видны
+  // разом (кто где и с кем в 14:00). По умолчанию — сегодня.
+  const [view, setView] = useState<'week' | 'day'>('week')
+  const jsDow = new Date().getDay() // 0=вс..6=сб
+  const [selDay, setSelDay] = useState<number>(jsDow === 0 ? 7 : jsDow)
 
   const load = useCallback(async (u: string) => {
     setLoading(true)
@@ -100,6 +106,29 @@ export default function TimetablePage() {
     return m
   }, [slots])
 
+  // «Взгляд менеджера»: уроки выбранного дня, сгруппированные по времени начала —
+  // каждая строка времени показывает ВСЕ параллельные занятия сразу.
+  const dayTimeRows = useMemo(() => {
+    const list = (byDay.get(selDay) ?? [])
+    const m = new Map<string, Slot[]>()
+    for (const s of list) {
+      const k = hhmm(s.start_time)
+      const arr = m.get(k) ?? []; arr.push(s); m.set(k, arr)
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [byDay, selDay])
+
+  // Сводка дня: сколько уроков, сколько разных кабинетов и преподавателей заняты.
+  const daySummary = useMemo(() => {
+    const list = byDay.get(selDay) ?? []
+    const rooms = new Set<string>(), teachers = new Set<string>()
+    for (const s of list) {
+      if (s.room) rooms.add(s.room)
+      for (const tn of s.teachers) teachers.add(tn)
+    }
+    return { lessons: list.length, rooms: rooms.size, teachers: teachers.size, peak: dayTimeRows.reduce((mx, [, ss]) => Math.max(mx, ss.length), 0) }
+  }, [byDay, selDay, dayTimeRows])
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -120,14 +149,39 @@ export default function TimetablePage() {
         <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
           {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
         </span>
-        {canEdit && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור ליום אחר')}</span>}
+        {canEdit && view === 'week' && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור ליום אחר')}</span>}
+        <div style={{ flex: 1 }} />
+        {/* Переключатель вида: по дням / взгляд менеджера (ось времени). */}
+        <div style={{ display: 'inline-flex', border: '1px solid var(--border-strong)', borderRadius: 9, overflow: 'hidden' }}>
+          {(['week', 'day'] as const).map(v => (
+            <button key={v} type="button" onClick={() => setView(v)} style={{
+              fontSize: 12.5, fontWeight: 600, padding: '7px 14px', cursor: 'pointer', border: 'none',
+              background: view === v ? 'var(--accent-strong)' : 'var(--surface)',
+              color: view === v ? '#fff' : 'var(--text-muted)',
+            }}>{v === 'week' ? t('view_week', 'לפי יום') : t('view_manager', 'תצוגת מנהל')}</button>
+          ))}
+        </div>
       </div>
+
+      {/* Взгляд менеджера — выбор дня недели (по умолчанию сегодня). */}
+      {view === 'day' && !loading && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {DAY_ORDER.map(day => (
+            <button key={day} type="button" onClick={() => setSelDay(day)} style={{
+              fontSize: 12.5, fontWeight: 600, padding: '6px 13px', borderRadius: 999, cursor: 'pointer',
+              border: `1px solid ${selDay === day ? 'var(--accent)' : 'var(--border-strong)'}`,
+              background: selDay === day ? 'var(--accent-tint)' : 'var(--surface)',
+              color: selDay === day ? 'var(--accent-strong)' : 'var(--text-muted)',
+            }}>{t(`days.${day}`, String(day))}</button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : slots.length === 0 ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_slots')}</div>
-      ) : (
+      ) : view === 'week' ? (
         <div style={{ overflowX: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${DAY_ORDER.length}, minmax(150px, 1fr))`, gap: 10, minWidth: 900 }}>
             {DAY_ORDER.map(day => (
@@ -186,6 +240,86 @@ export default function TimetablePage() {
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        // «Взгляд менеджера»: ось времени выбранного дня. Каждая строка — момент
+        // начала, справа все параллельные уроки этого времени (класс·מורה·חדר).
+        <div className="space-y-4">
+          {/* Сводка дня. */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {[
+              { label: t('mgr_lessons', 'שיעורים ביום'), value: daySummary.lessons },
+              { label: t('mgr_peak', 'שיא במקביל'), value: daySummary.peak },
+              { label: t('mgr_rooms', 'חדרים בשימוש'), value: daySummary.rooms },
+              { label: t('mgr_teachers', 'מורים פעילים'), value: daySummary.teachers },
+            ].map(m => (
+              <div key={m.label} style={{ flex: '1 1 130px', minWidth: 120, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 13px', boxShadow: 'var(--shadow)' }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-strong)', fontVariantNumeric: 'tabular-nums' }}>{m.value}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {dayTimeRows.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12 }}>
+              {t('mgr_empty_day', 'אין שיעורים ביום זה')}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {dayTimeRows.map(([time, ss]) => (
+                <div key={time} style={{ display: 'grid', gridTemplateColumns: 'minmax(66px, 78px) 1fr', gap: 12, alignItems: 'start' }}>
+                  {/* Ось времени. */}
+                  <div style={{ position: 'sticky', top: 0, textAlign: 'center', paddingTop: 4 }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 800, color: 'var(--accent-strong)' }}>{time}</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-faint)', marginTop: 2 }}>
+                      {t('mgr_parallel', '{n} במקביל').replace('{n}', String(ss.length))}
+                    </div>
+                  </div>
+                  {/* Параллельные уроки. */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {ss.map(s => {
+                      const bad = conflicted.has(s.id)
+                      const pending = s.approval_status === 'pending'
+                      return (
+                        <div key={s.id} style={{
+                          flex: '1 1 220px', minWidth: 190, maxWidth: 320,
+                          background: 'var(--surface)', borderRadius: 10, padding: '9px 12px',
+                          border: bad ? '1px solid var(--danger)' : pending ? `1px dashed ${PENDING_GOLD}` : '1px solid var(--border)',
+                          boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{s.class_group_name}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>–{hhmm(s.end_time)}</span>
+                          </div>
+                          {s.subject && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.subject}</div>}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 5, fontSize: 11.5, color: 'var(--text-muted)' }}>
+                            {s.teachers.length > 0 && (
+                              <span style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{s.teachers.join(', ')}</span>
+                            )}
+                            {s.room && (
+                              <span style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{t('room')} {s.room}</span>
+                            )}
+                            {pending && (
+                              <span style={{ fontWeight: 700, color: PENDING_GOLD, background: PENDING_TINT, padding: '2px 7px', borderRadius: 6 }}>{t('pending', 'ממתין לאישור')}</span>
+                            )}
+                          </div>
+                          {bad && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+                              {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
+                                <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
+                                  ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
