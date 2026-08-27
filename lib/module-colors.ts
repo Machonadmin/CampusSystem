@@ -41,5 +41,10 @@ export function getModuleColor(moduleCode: string, shade: Shade = 'primary'): st
 }
 
 export function getModuleHeaderGradient(moduleCode: string): string {
-  return `linear-gradient(135deg, ${getModuleColor(moduleCode, 'medium')} 0%, ${getModuleColor(moduleCode, 'primary')} 100%)`
+  // Три стопа вместо двух: medium → primary → чуть притемнённый хвост (perceptual
+  // oklab-mix с чёрным). Даёт заголовкам глубину/объём вместо плоской заливки,
+  // не меняя опознаваемый цвет модуля. color-mix поддержан во всех evergreen.
+  const medium = getModuleColor(moduleCode, 'medium')
+  const primary = getModuleColor(moduleCode, 'primary')
+  return `linear-gradient(140deg, ${medium} 0%, ${primary} 62%, color-mix(in oklab, ${primary} 84%, #000) 100%)`
 }
