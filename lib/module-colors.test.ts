@@ -32,8 +32,8 @@ describe('getModuleColor', () => {
 })
 
 describe('getModuleHeaderGradient', () => {
-  it('строит linear-gradient из medium и primary', () => {
+  it('строит трёхстоповый linear-gradient из medium, primary и притемнённого хвоста', () => {
     expect(getModuleHeaderGradient('education'))
-      .toBe('linear-gradient(135deg, #34D399 0%, #10B981 100%)')
+      .toBe('linear-gradient(140deg, #34D399 0%, #10B981 62%, color-mix(in oklab, #10B981 84%, #000) 100%)')
   })
 })

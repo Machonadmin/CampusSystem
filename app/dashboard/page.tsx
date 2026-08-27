@@ -73,9 +73,12 @@ const ALL_MODULE_CARDS = [
 function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boolean }) {
   const path = ICONS[moduleKey] ?? ''
   const iconColor = getModuleColor(moduleKey, 'primary')
+  // Плитка иконки красится тинтом цвета модуля (полупрозрачный primary поверх
+  // карточки) — работает в обеих темах и даёт каждой плитке цветовую личность.
+  const tile = disabled ? 'var(--surface-2)' : `color-mix(in oklab, ${iconColor} 14%, transparent)`
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg style={{ width: 22, height: 22, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ width: 46, height: 46, borderRadius: 13, backgroundColor: tile, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 23, height: 23, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
