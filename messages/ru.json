@@ -2940,7 +2940,14 @@
       "col_name": "Студент",
       "col_charges": "Начислено",
       "col_payments": "Оплачено",
-      "col_balance": "Баланс"
+      "col_balance": "Баланс",
+      "debtors_only": "Только должницы",
+      "sort_name": "Сортировка: имя",
+      "sort_balance": "Сортировка: долг",
+      "sort_overdue": "Сортировка: просрочка",
+      "export_csv": "Экспорт",
+      "col_overdue": "Просрочка",
+      "overdue_days": "{n} дн. просрочки"
     },
     "ledger": {
       "load_error": "Не удалось загрузить финансовую карточку",
@@ -2981,7 +2988,23 @@
       "method_other": "Другое",
       "deposited_to": "Куда поступили деньги",
       "from_account": "С какого счёта",
-      "to_account": "На какой счёт"
+      "to_account": "На какой счёт",
+      "print_receipt": "Печать квитанции"
+    },
+    "receipt": {
+      "institution": "Кампус «Махон Хамеш»",
+      "title": "Квитанция",
+      "receipt_no": "Номер квитанции",
+      "back": "Назад к карточке",
+      "print": "Печать",
+      "received_from": "Получено от",
+      "amount_paid": "Оплаченная сумма",
+      "payment_date": "Дата платежа",
+      "account": "Счёт",
+      "approved_at": "Подтверждено",
+      "signature": "Подпись",
+      "stamp": "Печать",
+      "not_approved_warning": "Этот платёж ещё не подтверждён — квитанция не является окончательной до подтверждения."
     },
     "action": {
       "add_charge": "Начисление",

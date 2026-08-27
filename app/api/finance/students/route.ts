@@ -68,6 +68,42 @@ async function sumCentsByJourney(
   return acc
 }
 
+/**
+ * Старейшая ПРОСРОЧЕННАЯ дата due_date активного начисления по journey.
+ * Точной привязки платежа к счёту нет (см. finance_billing), поэтому просрочка
+ * приближённая: студентка «в просрочке», если её ОБЩИЙ баланс > 0 и есть
+ * активный счёт с due_date в прошлом. Читаем постранично (db-max-rows).
+ */
+async function oldestPastDueByJourney(
+  sb: ReturnType<typeof createServerClient>,
+  journeyIds: string[],
+  todayStr: string,
+): Promise<Map<string, string>> {
+  const acc = new Map<string, string>()
+  if (journeyIds.length === 0) return acc
+  let from = 0
+  for (;;) {
+    const { data, error } = await sb
+      .from('finance_charges')
+      .select('journey_id, due_date')
+      .in('journey_id', journeyIds)
+      .eq('status', 'active')
+      .not('due_date', 'is', null)
+      .lt('due_date', todayStr)
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    const rows = (data ?? []) as Array<{ journey_id: string; due_date: string }>
+    for (const r of rows) {
+      const cur = acc.get(r.journey_id)
+      if (!cur || r.due_date < cur) acc.set(r.journey_id, r.due_date)
+    }
+    if (rows.length < PAGE) break
+    from += PAGE
+  }
+  return acc
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await requireFinancePrivilege('view')
@@ -110,6 +146,9 @@ export async function GET(request: NextRequest) {
     // db-max-rows. Суммируем по journey_id в копейках.
     const chargeCents = await sumCentsByJourney(sb, 'finance_charges', journeyIds, 'active')
     const payCents = await sumCentsByJourney(sb, 'finance_payments', journeyIds, 'approved')
+    const todayStr = new Date().toISOString().slice(0, 10)
+    const pastDue = await oldestPastDueByJourney(sb, journeyIds, todayStr)
+    const todayMs = Date.parse(todayStr + 'T00:00:00Z')
 
     let students = rows.map(j => {
       const person = j.person as {
@@ -133,6 +172,11 @@ export async function GET(request: NextRequest) {
         charges_total: centsToNumber(charged),
         payments_total: centsToNumber(paid),
         balance: centsToNumber(charged - paid),
+        // Просрочка только у должниц (balance > 0): дней с самой старой
+        // просроченной due_date. null — нет просрочки.
+        overdue_days: (charged - paid) > 0 && pastDue.has(j.id)
+          ? Math.max(1, Math.round((todayMs - Date.parse(pastDue.get(j.id)! + 'T00:00:00Z')) / 86400000))
+          : null,
       }
     })
 

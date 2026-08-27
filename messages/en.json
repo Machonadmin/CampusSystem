@@ -2940,7 +2940,14 @@
       "col_name": "Student",
       "col_charges": "Charged",
       "col_payments": "Paid",
-      "col_balance": "Balance"
+      "col_balance": "Balance",
+      "debtors_only": "Debtors only",
+      "sort_name": "Sort: name",
+      "sort_balance": "Sort: balance",
+      "sort_overdue": "Sort: overdue",
+      "export_csv": "Export",
+      "col_overdue": "Overdue",
+      "overdue_days": "{n} days overdue"
     },
     "ledger": {
       "load_error": "Failed to load the finance card",
@@ -2981,7 +2988,23 @@
       "method_other": "Other",
       "deposited_to": "Where the money went",
       "from_account": "From account",
-      "to_account": "To account"
+      "to_account": "To account",
+      "print_receipt": "Print receipt"
+    },
+    "receipt": {
+      "institution": "Campus «Machon Chamesh»",
+      "title": "Receipt",
+      "receipt_no": "Receipt no.",
+      "back": "Back to card",
+      "print": "Print",
+      "received_from": "Received from",
+      "amount_paid": "Amount paid",
+      "payment_date": "Payment date",
+      "account": "Account",
+      "approved_at": "Approved on",
+      "signature": "Signature",
+      "stamp": "Stamp",
+      "not_approved_warning": "This payment is not yet approved — the receipt is not final until it is approved."
     },
     "action": {
       "add_charge": "Charge",
