@@ -13,7 +13,7 @@ interface Department { id: string; name: string; name_he?: string | null; name_e
 interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null; department_id: string | null; years_count: number | null }
 interface StudentOption { id: string; person: { id: string; full_name: string } | null; main_group?: { id: string; name: string } | null }
 
-interface TeacherRow { person_id: string | null; monthly_rate: string; is_primary: boolean }
+interface TeacherRow { person_id: string | null; is_primary: boolean }
 
 interface SemesterGroupInitial {
   id: string
@@ -78,8 +78,8 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
 
   const [teachers, setTeachers] = useState<TeacherRow[]>(
     initial?.teachers.length
-      ? initial.teachers.map(tc => ({ person_id: tc.person_id, monthly_rate: tc.monthly_rate != null ? String(tc.monthly_rate) : '', is_primary: tc.is_primary }))
-      : [{ person_id: null, monthly_rate: '', is_primary: true }],
+      ? initial.teachers.map(tc => ({ person_id: tc.person_id, is_primary: tc.is_primary }))
+      : [{ person_id: null, is_primary: true }],
   )
 
   const [tracks, setTracks] = useState<StudyTrack[]>([])
@@ -114,12 +114,10 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
       .catch(() => setStudentOptions([]))
   }, [])
 
-  const addTeacherRow = () => setTeachers(prev => [...prev, { person_id: null, monthly_rate: '', is_primary: prev.length === 0 }])
+  const addTeacherRow = () => setTeachers(prev => [...prev, { person_id: null, is_primary: prev.length === 0 }])
   const removeTeacherRow = (idx: number) => setTeachers(prev => prev.filter((_, i) => i !== idx))
   const setTeacherPerson = (idx: number, id: string | null) =>
     setTeachers(prev => prev.map((r, i) => (i === idx ? { ...r, person_id: id } : r)))
-  const setTeacherRate = (idx: number, val: string) =>
-    setTeachers(prev => prev.map((r, i) => (i === idx ? { ...r, monthly_rate: val } : r)))
   const setPrimary = (idx: number) =>
     setTeachers(prev => prev.map((r, i) => ({ ...r, is_primary: i === idx })))
 
@@ -148,7 +146,6 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         .map(tc => ({
           person_id: tc.person_id as string,
           is_primary: tc.is_primary,
-          monthly_rate: tc.monthly_rate.trim() ? Number(tc.monthly_rate) : null,
         }))
 
       const payload: Record<string, unknown> = {
@@ -265,7 +262,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
             </div>
           </div>
 
-          {/* 5. Преподаватели: PersonSelect + месячная оплата */}
+          {/* 5. Преподаватели: только назначение (оплата — в модуле «Финансы»). */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.teachers_label')}</label>
             {teachers.map((row, idx) => (
@@ -281,16 +278,6 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
                     allowAdd={false}
                   />
                 </div>
-                <div style={{ width: 130, position: 'relative' }}>
-                  <input
-                    type="number" min={0} step="0.01"
-                    value={row.monthly_rate}
-                    onChange={e => setTeacherRate(idx, e.target.value)}
-                    style={{ ...inp, paddingRight: 26 }}
-                    placeholder={t('semester_groups.monthly_pay_placeholder')}
-                  />
-                  <span style={{ position: 'absolute', right: 9, top: 8, fontSize: 12, color: 'var(--text-faint)', pointerEvents: 'none' }}>₽</span>
-                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', paddingTop: 8, whiteSpace: 'nowrap', cursor: 'pointer' }}>
                   <input type="radio" name="sg-primary" checked={row.is_primary} onChange={() => setPrimary(idx)} />
                   {t('semester_groups.primary_short')}
@@ -301,7 +288,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
             <button type="button" onClick={addTeacherRow} style={{ marginTop: 2, padding: '5px 10px', fontSize: 12, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 6, cursor: 'pointer' }}>
               {t('semester_groups.add_teacher_button')}
             </button>
-            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('semester_groups.monthly_pay_hint')}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('semester_groups.teacher_pay_finance_hint')}</div>
           </div>
 
           {/* 6. Студентки — мультивыбор */}

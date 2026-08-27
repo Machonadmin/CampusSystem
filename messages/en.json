@@ -1191,6 +1191,7 @@
         "teacher_placeholder": "Select or create a teacher…",
         "monthly_pay_placeholder": "per month",
         "monthly_pay_hint": "Monthly pay to the teacher (₽ per month)",
+        "teacher_pay_finance_hint": "Teacher pay is set in the Finance module — here you only assign who teaches.",
         "primary_short": "Primary",
         "add_teacher_button": "+ Add teacher",
         "students_label": "Students",

@@ -1191,6 +1191,7 @@
         "teacher_placeholder": "בחר או צור מורה…",
         "monthly_pay_placeholder": "לחודש",
         "monthly_pay_hint": "תשלום חודשי למורה (₽ לחודש)",
+        "teacher_pay_finance_hint": "שכר המורים נקבע במודול הכספים — כאן רק משבצים מי מלמד.",
         "primary_short": "ראשי",
         "add_teacher_button": "+ הוסף מורה",
         "students_label": "סטודנטיות",

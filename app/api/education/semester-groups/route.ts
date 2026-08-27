@@ -10,6 +10,7 @@ import {
   getUserDepartmentIds,
 } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
+import { notifyFinanceSemesterOpened } from '@/lib/finance/notify-semester-opened'
 
 /**
  * Единый объект «семестр-группа» = class_groups с is_semester=true.
@@ -339,6 +340,16 @@ export async function POST(request: NextRequest) {
         warning = (warning ? warning + ' ' : '') + `${skipped} из выбранных не являются студентками и пропущены.`
       }
     }
+
+    // (6) Уведомляем финансовый отдел, что открыли новый семестр — им нужно
+    // задать его стоимость и зарплату преподавателей (суммы ведёт «Финансы»,
+    // не «Учёба»). Best-effort: не влияет на успех создания семестра.
+    await notifyFinanceSemesterOpened(sb, {
+      classGroupId: groupId,
+      name,
+      yearLabel: body.year_label ?? null,
+      termNumber: body.term_number ?? null,
+    })
 
     return NextResponse.json({ id: groupId, ...(warning ? { warning } : {}) }, { status: 201 })
   } catch (err: unknown) {
