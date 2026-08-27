@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -86,10 +86,7 @@ export default function ImportStudentsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
-      </div>
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Step 1: file */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>

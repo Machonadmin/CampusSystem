@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { PersonSelect } from '@/components/ui/person-select'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -138,24 +139,20 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('education'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('hub_title')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('hub_subtitle')}</div>
-        </div>
-        <a
-          href="/dashboard/chavruta"
-          style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)',
-            border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
-          }}
-        >{t('open_teacher_journal')}</a>
-      </div>
+      <ModuleHeader
+        module="education"
+        title={t('hub_title')}
+        subtitle={t('hub_subtitle')}
+        actions={<>
+          <a
+            href="/dashboard/chavruta"
+            style={{
+              fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)',
+              border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
+            }}
+          >{t('open_teacher_journal')}</a>
+        </>}
+      />
 
       {!loaded ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>

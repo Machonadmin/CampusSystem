@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
@@ -113,17 +113,18 @@ export default function AbsencesClient() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-        </div>
-        {canManage && (
-          <button onClick={() => setShowForm(s => !s)} style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
-            {showForm ? t('cancel') : t('new_case')}
-          </button>
-        )}
-      </div>
+      <ModuleHeader
+        module="education"
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={() => setShowForm(s => !s)} style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+              {showForm ? t('cancel') : t('new_case')}
+            </button>
+          )}
+        </>}
+      />
 
       {/* Создание */}
       {showForm && canManage && (

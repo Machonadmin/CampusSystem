@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -100,14 +101,7 @@ export default function AlumniPage() {
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('alumni'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(219,39,119,0.15)',
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('alumni')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
-      </div>
+      <ModuleHeader module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
 
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
@@ -198,24 +198,21 @@ export default function CommunitiesPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{
-        background: getModuleHeaderGradient('education'), borderRadius: 14,
-        padding: '16px 24px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
-        </div>
-        {canManage && (
-          <button onClick={openNew} style={{
-            fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-            borderRadius: 8, background: 'var(--surface)', color: 'var(--accent-strong)', cursor: 'pointer',
-          }}>
-            {t('new')}
-          </button>
-        )}
-      </div>
+      <ModuleHeader
+        module="education"
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={openNew} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
+              borderRadius: 8, background: 'var(--surface)', color: 'var(--accent-strong)', cursor: 'pointer',
+            }}>
+              {t('new')}
+            </button>
+          )}
+        </>}
+      />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
@@ -186,26 +187,22 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('maintenance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(146,64,14,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('maintenance')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('list.subtitle')}</div>
-        </div>
-        {canManage && (
-          <button onClick={() => setShowForm(v => !v)} style={{
-            fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-            border: '1px solid rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)',
-            color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
-          }}>
-            + {t('list.new_ticket')}
-          </button>
-        )}
-      </div>
+      <ModuleHeader
+        module="maintenance"
+        title={tNav('maintenance')}
+        subtitle={t('list.subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={() => setShowForm(v => !v)} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+              border: '1px solid rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)',
+              color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+            }}>
+              + {t('list.new_ticket')}
+            </button>
+          )}
+        </>}
+      />
 
       {/* Summary bar */}
       {stats && (

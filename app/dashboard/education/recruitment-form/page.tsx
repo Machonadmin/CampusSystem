@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
@@ -169,19 +170,20 @@ export default function RecruitmentFormSettingsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
-          <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.88)', marginTop: 3 }}>{t('subtitle')}</p>
-        </div>
-        {/* Просмотр публичной страницы регистрации «как видит абитуриентка». */}
-        <a
-          href="/apply" target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)', border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
-        >
-          {t('preview', 'תצוגה מקדימה')}
-        </a>
-      </div>
+      <ModuleHeader
+        module="education"
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={<>
+          {/* Просмотр публичной страницы регистрации «как видит абитуриентка». */}
+          <a
+            href="/apply" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)', border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
+            {t('preview', 'תצוגה מקדימה')}
+          </a>
+        </>}
+      />
 
       {loading ? (
         <SkeletonRows />

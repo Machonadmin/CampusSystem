@@ -2951,7 +2951,11 @@
       "sort_overdue": "Сортировка: просрочка",
       "export_csv": "Экспорт",
       "col_overdue": "Просрочка",
-      "overdue_days": "{n} дн. просрочки"
+      "overdue_days": "{n} дн. просрочки",
+      "sum_charged": "Всего начислено",
+      "sum_collected": "Собрано",
+      "sum_outstanding": "Остаток к сбору",
+      "sum_collected_pct": "Собрано {n}%"
     },
     "ledger": {
       "load_error": "Не удалось загрузить финансовую карточку",

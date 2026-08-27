@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -93,14 +94,7 @@ export default function StaffCompIndexClient() {
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('finance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-      </div>
+      <ModuleHeader module="finance" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

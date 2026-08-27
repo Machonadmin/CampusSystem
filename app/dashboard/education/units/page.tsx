@@ -5,7 +5,8 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -79,16 +80,17 @@ export default function UnitTeamPage() {
         { label: t('units.title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('units.title')}</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('units.subtitle')}</p>
-        </div>
-        {/* «מבנה יחידות» живёт здесь (в настройках учёбы одна карточка на юниты). */}
-        <a href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-          {t('study.dashboard.launch_structure')}
-        </a>
-      </div>
+      <ModuleHeader
+        module="education"
+        title={t('units.title')}
+        subtitle={t('units.subtitle')}
+        actions={<>
+          {/* «מבנה יחידות» живёт здесь (в настройках учёбы одна карточка на юниты). */}
+          <a href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            {t('study.dashboard.launch_structure')}
+          </a>
+        </>}
+      />
 
       {loading ? (
         <SkeletonRows rows={6} />

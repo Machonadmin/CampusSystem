@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
@@ -166,25 +167,21 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
       ]} />
 
       {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('sponsors'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
-        </div>
-        {canManage && (
-          <button onClick={openNew} style={{
-            fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-            borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer',
-          }}>
-            {t('list.new_sponsor')}
-          </button>
-        )}
-      </div>
+      <ModuleHeader
+        module="sponsors"
+        title={t('title')}
+        subtitle={t('list.subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={openNew} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
+              borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer',
+            }}>
+              {t('list.new_sponsor')}
+            </button>
+          )}
+        </>}
+      />
 
       {/* Stats bar */}
       {stats && (

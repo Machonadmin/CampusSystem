@@ -6,6 +6,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import CountUp from '@/components/ui/CountUp'
+import { MiniBar } from '@/components/ui/MiniBar'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -205,6 +206,14 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                           <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--danger)' }}>
                             {t('at_risk_absences').replace('{n}', String(s.absent_count))}
                           </div>
+                          {(s.absent_count > 0 || s.late_count > 0) && (
+                            <div style={{ marginTop: 5, maxWidth: 150 }}>
+                              <MiniBar height={5} segments={[
+                                { value: s.absent_count, color: 'var(--danger)', label: t('at_risk_absences').replace('{n}', String(s.absent_count)) },
+                                { value: s.late_count, color: 'var(--warn)' },
+                              ]} />
+                            </div>
+                          )}
                         </div>
                       </a>
                       {canOpenCase && (

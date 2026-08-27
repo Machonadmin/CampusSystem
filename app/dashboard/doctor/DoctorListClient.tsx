@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
@@ -115,14 +116,7 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
             { label: t('title') },
           ]} />
 
-          <div style={{
-            background: getModuleHeaderGradient('doctor'),
-            borderRadius: 14, padding: '16px 24px', color: '#fff',
-            boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
-          }}>
-            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
-          </div>
+          <ModuleHeader module="doctor" title={t('title')} subtitle={t('list.subtitle')} />
         </>
       )}
 

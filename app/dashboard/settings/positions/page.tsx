@@ -2,7 +2,8 @@
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
@@ -114,18 +115,7 @@ export default function PositionsPage() {
         { label: t('title') },
       ]} />
 
-      <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('settings'),
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>
-          {t('title')}
-        </h1>
-      </div>
+      <ModuleHeader module="settings" title={t('title')} />
 
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
