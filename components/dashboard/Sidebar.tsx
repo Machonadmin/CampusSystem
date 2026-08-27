@@ -293,6 +293,7 @@ export default function Sidebar() {
     <aside
       ref={sidebarRef}
       data-open={isOpen}
+      data-rtl={isRTL}
       className="app-sidebar fixed top-16 bottom-0 z-40 flex flex-col overflow-hidden"
       style={{
         width: isOpen ? 240 : 56,

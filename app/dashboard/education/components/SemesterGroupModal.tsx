@@ -281,7 +281,7 @@ export default function SemesterGroupModal({ mode, initial, departments, default
                     style={{ ...inp, paddingRight: 26 }}
                     placeholder={t('semester_groups.monthly_pay_placeholder')}
                   />
-                  <span style={{ position: 'absolute', right: 9, top: 8, fontSize: 12, color: 'var(--text-faint)', pointerEvents: 'none' }}>₪</span>
+                  <span style={{ position: 'absolute', right: 9, top: 8, fontSize: 12, color: 'var(--text-faint)', pointerEvents: 'none' }}>₽</span>
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', paddingTop: 8, whiteSpace: 'nowrap', cursor: 'pointer' }}>
                   <input type="radio" name="sg-primary" checked={row.is_primary} onChange={() => setPrimary(idx)} />
@@ -323,8 +323,8 @@ export default function SemesterGroupModal({ mode, initial, departments, default
             </div>
           </div>
 
-          {/* 7. Плата за семестр (что платит СТУДЕНТКА, в рублях — не зарплата
-              преподавателя, та в ₪ выше). */}
+          {/* 7. Плата за семестр (что платит СТУДЕНТКА, в рублях; зарплата
+              преподавателя — тоже в рублях, поле выше). */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.tuition_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
             <div style={{ position: 'relative' }}>
