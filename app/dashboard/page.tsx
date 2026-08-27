@@ -74,7 +74,7 @@ function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boo
   const path = ICONS[moduleKey] ?? ''
   const iconColor = getModuleColor(moduleKey, 'primary')
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg style={{ width: 22, height: 22, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 key={i}
                 className="flex flex-col gap-3"
                 style={{
-                  padding: 20, borderRadius: 12, background: 'var(--surface)',
+                  padding: 20, borderRadius: 14, background: 'var(--surface)',
                   border: '1px solid var(--border)', borderInlineStart: '4px solid var(--border-strong)',
                 }}
               >
@@ -217,7 +217,7 @@ export default function DashboardPage() {
           </div>
         ) : cards.length === 0 ? (
           <div style={{
-            border: '1px dashed var(--border-strong)', borderRadius: 12, padding: '28px 20px',
+            border: '1px dashed var(--border-strong)', borderRadius: 14, padding: '28px 20px',
             textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
           }}>
             {t.noModules}
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               backgroundColor: ready ? 'var(--surface)' : 'var(--surface-2)',
               border: '1px solid var(--border)',
               borderInlineStart: `4px solid ${ready ? primary : 'var(--border-strong)'}`,
-              borderRadius: 12,
+              borderRadius: 14,
               opacity: ready ? 1 : 0.7,
               boxShadow: 'var(--shadow)',
               transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',

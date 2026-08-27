@@ -47,7 +47,7 @@ export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
   if (items.length === 0 && !canWrite) return null
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
       <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 12 }}>{t('subtitle')}</div>
 

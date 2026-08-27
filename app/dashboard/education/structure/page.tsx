@@ -115,7 +115,7 @@ export default function StructurePage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
@@ -135,7 +135,7 @@ export default function StructurePage() {
       ) : !root ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>
       ) : (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 14 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 14 }}>
           <TreeNode node={root} depth={0} index={0} siblingCount={1} childrenOf={childrenOf} busy={busy}
             onAdd={addChild} onRename={rename} onRemove={remove} onMove={move} onMoveGroup={moveGroup} nodeOptions={nodeOptions} t={t} />
         </div>

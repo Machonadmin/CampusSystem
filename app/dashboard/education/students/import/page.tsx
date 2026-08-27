@@ -86,13 +86,13 @@ export default function ImportStudentsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
 
       {/* Step 1: file */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
         <label style={{ display: 'inline-block', padding: '9px 16px', fontSize: 13, fontWeight: 600, color: 'var(--accent-contrast)', background: 'var(--accent)', borderRadius: 8, cursor: 'pointer' }}>
           {t('choose_file')}
           <input type="file" accept=".csv,text/csv" onChange={onFile} style={{ display: 'none' }} />
@@ -105,7 +105,7 @@ export default function ImportStudentsPage() {
 
       {/* Step 2: mapping */}
       {headers.length > 0 && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>{t('map_heading')}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
             {headers.map((h, i) => (
@@ -125,7 +125,7 @@ export default function ImportStudentsPage() {
 
       {/* Step 3: preview */}
       {headers.length > 0 && previewFields.length > 0 && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>{t('preview_heading')}</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', fontSize: 12.5, width: '100%' }}>
@@ -157,7 +157,7 @@ export default function ImportStudentsPage() {
 
       {/* Result */}
       {result && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: 10, marginBottom: 12 }}>
             <Stat label={t('summary_total')} value={result.summary.total} />
             <Stat label={result.dry_run ? t('summary_create') : t('summary_created')} value={result.summary.created} color="var(--success)" />

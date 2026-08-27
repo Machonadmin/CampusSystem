@@ -381,7 +381,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
           <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{
               padding: '3px 10px', fontSize: 11, fontWeight: 600,
-              background: statusColor.bg, color: statusColor.fg, borderRadius: 12,
+              background: statusColor.bg, color: statusColor.fg, borderRadius: 14,
             }}>
               {t(`status.${task.status}`, task.status)}
             </span>
@@ -460,7 +460,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
               <div key={w.person_id} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 padding: '4px 10px', background: 'var(--accent-tint)', color: 'var(--info)',
-                borderRadius: 12, fontSize: 12,
+                borderRadius: 14, fontSize: 12,
               }}>
                 <span>{(w.person?.hebrew_name || w.person?.full_name) ?? '…'}</span>
                 <button

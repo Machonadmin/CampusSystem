@@ -101,7 +101,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
 
           <span style={{
             padding: '2px 8px', fontSize: 11, fontWeight: 600,
-            background: status.bg, color: status.fg, borderRadius: 12,
+            background: status.bg, color: status.fg, borderRadius: 14,
             whiteSpace: 'nowrap', flexShrink: 0,
           }}>
             {t(`status.${task.status}`, task.status)}

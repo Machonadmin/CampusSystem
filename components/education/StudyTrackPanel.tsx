@@ -77,7 +77,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
   const yearName = (n: number) => t(`study.subjects.year_${n}`)
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('study_track.title')}</h3>
         {canEdit && !editing && (

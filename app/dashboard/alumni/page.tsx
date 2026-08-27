@@ -102,7 +102,7 @@ export default function AlumniPage() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('alumni'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(219,39,119,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{tNav('alumni')}</h1>

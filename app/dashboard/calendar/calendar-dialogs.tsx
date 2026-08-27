@@ -41,7 +41,7 @@ export function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClo
 
   return (
     <div onClick={() => !deleting && onClose()} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(420px,100%)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>📅 {ev.title}</div>
         <div style={{ fontSize: 13, color: 'var(--text)' }}>
           {formatDate(ev.event_date, lang)}{!ev.all_day && ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}
@@ -104,7 +104,7 @@ export function DayDetail({
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 65, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'} style={{ background: 'var(--surface)', borderRadius: 12, padding: 20, width: 'min(460px,100%)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
+      <div onClick={e => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'} style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(460px,100%)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{label}</div>

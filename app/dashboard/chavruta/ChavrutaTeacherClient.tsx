@@ -192,7 +192,7 @@ export default function ChavrutaTeacherClient() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('chavruta'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(13,148,136,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
@@ -203,18 +203,18 @@ export default function ChavrutaTeacherClient() {
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
       ) : forbidden ? (
         <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
           padding: 16, fontSize: 13, color: 'var(--text-muted)',
         }}>{t('not_a_teacher')}</div>
       ) : featureOff ? (
         <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
           padding: 16, fontSize: 13, color: 'var(--text-muted)',
         }}>{t('feature_not_ready')}</div>
       ) : (
         <>
           {/* Date + Add form */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 12 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 12 }}>
             <div style={{ maxWidth: 220 }}>
               <span style={label}>{t('date')}</span>
               <DateInput
@@ -285,7 +285,7 @@ export default function ChavrutaTeacherClient() {
           ) : (
             <div style={{ display: 'grid', gap: 10 }}>
               {sessions.map(s => (
-                <div key={s.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+                <div key={s.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{s.student_name}</div>
                     {s.amount !== null && s.amount !== undefined && (

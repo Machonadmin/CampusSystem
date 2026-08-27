@@ -97,7 +97,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('dormitory'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(6,182,212,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -145,7 +145,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
             <div
               key={b.id}
               onClick={() => router.push(`/dashboard/dormitory/${b.id}`)}
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, cursor: 'pointer' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, cursor: 'pointer' }}
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
             >

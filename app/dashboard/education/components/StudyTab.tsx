@@ -121,7 +121,7 @@ export default function StudyTab() {
   // не было пустого прямоугольника (мягкое ожидание вместо белого «мигания»).
   if (teacherHome === null) {
     return (
-      <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 18, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)', padding: 18, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ height: 22, width: '38%', borderRadius: 7, background: 'var(--surface-2)' }} />
         <div style={{ height: 60, borderRadius: 10, background: 'var(--surface-2)' }} />
         <div style={{ height: 60, borderRadius: 10, background: 'var(--surface-2)' }} />
@@ -131,14 +131,14 @@ export default function StudyTab() {
   // Преподаватель: только домашний экран учителя, без управленческого рельса.
   if (teacherHome) {
     return (
-      <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 18 }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)', padding: 18 }}>
         <TeacherDashboard />
       </div>
     )
   }
 
   return (
-    <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)', overflow: 'hidden' }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : `${collapsed ? 60 : 190}px 1fr` }} className="study-ws">
         {/* Боковой рельс — 4 пункта (на телефоне — горизонтальная полоса) */}
         <nav style={{ background: 'var(--surface-2)', borderInlineEnd: '1px solid var(--border)', padding: railCollapsed ? '10px 8px' : '12px 9px', display: 'flex', flexDirection: 'column', gap: 3 }} className="study-rail">

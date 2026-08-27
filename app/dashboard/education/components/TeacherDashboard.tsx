@@ -67,7 +67,7 @@ export default function TeacherDashboard() {
   }, [loadLessons])
 
   const card: React.CSSProperties = {
-    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16,
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16,
   }
   const sectionTitle: React.CSSProperties = {
     fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px',

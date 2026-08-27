@@ -105,7 +105,7 @@ export default function ReportsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
@@ -242,7 +242,7 @@ function exportSummary(report: Report, tab: 'groups' | 'students', t: (k: string
 
 function StatCard({ label, value, color, footer }: { label: string; value: string; color?: string; footer?: ReactNode }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
       {footer && <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>{footer}</div>}
@@ -293,7 +293,7 @@ function ReportTable({ headers, rows, empty, onRowClick }: {
 }) {
   if (rows.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{empty}</div>
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
+    <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
         <thead>
           <tr>

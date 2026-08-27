@@ -193,7 +193,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('food'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -246,7 +246,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
       )}
 
       {/* Enrolled students */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('plan.enrolled_section')}</h2>
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
@@ -300,7 +300,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
 
       {/* Dietary editor */}
       {dietFor && (
-        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('dietary.title')} · {dietFor.student_name || dietFor.student_hebrew_name || '—'}

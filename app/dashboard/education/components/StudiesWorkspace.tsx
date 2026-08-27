@@ -413,7 +413,7 @@ function Card({ title, sub, icon, onClick }: { title: string; sub: string; icon:
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 12, textAlign: 'start', width: '100%',
-        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
         padding: '14px 15px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: 'var(--shadow)',
         transition: 'border-color 0.12s, transform 0.12s',
       }}
@@ -438,7 +438,7 @@ function SemesterCard({ g, students, manageLabel, onManage, onOpen }: { g: Semes
       role="button"
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen() } }}
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 15px', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer', transition: 'border-color 0.12s, transform 0.12s' }}
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 15px', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer', transition: 'border-color 0.12s, transform 0.12s' }}
       onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--accent-strong)'; el.style.transform = 'translateY(-1px)' }}
       onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.transform = 'translateY(0)' }}
     >

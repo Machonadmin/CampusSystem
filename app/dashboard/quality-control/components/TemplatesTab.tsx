@@ -591,7 +591,7 @@ export default function TemplatesTab({ perms }: Props) {
         </div>
       )}
 
-      <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+      <div className="table-scroll" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : error ? (

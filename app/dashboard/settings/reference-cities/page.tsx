@@ -149,7 +149,7 @@ export default function ReferenceCitiesPage() {
       </div>
 
       <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>

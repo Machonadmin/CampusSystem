@@ -27,7 +27,7 @@ export default function StudentViewClient({ journeyId, name }: { journeyId: stri
         </div>
 
         {/* Приветствие */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('hello')}</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{name || t('student')}</div>
         </div>

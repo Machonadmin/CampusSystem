@@ -81,7 +81,7 @@ export function ConfirmRoot() {
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 380, background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 12, boxShadow: 'var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.25))', padding: 20,
+          borderRadius: 14, boxShadow: 'var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.25))', padding: 20,
         }}
       >
         {opts.title && (

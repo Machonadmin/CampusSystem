@@ -70,11 +70,11 @@ export default function PersonDetailClient({
       ]} />
 
       {error ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--danger)' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--danger)' }}>
           {error}
         </div>
       ) : loading || !data ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--text-faint)' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-faint)' }}>
           {tCommon('loading')}
         </div>
       ) : (
@@ -82,7 +82,7 @@ export default function PersonDetailClient({
           {/* Header card */}
           <div style={{
             background: getModuleHeaderGradient('persons'),
-            borderRadius: 12, padding: '20px 24px', color: '#fff',
+            borderRadius: 14, padding: '20px 24px', color: '#fff',
             display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
           }}>
             <Avatar name={data.full_name} photoUrl={data.photo_url} />
@@ -99,7 +99,7 @@ export default function PersonDetailClient({
           </div>
 
           {/* Info card */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Info label={t('fields.email')} value={data.email} />
             <Info label={t('fields.phone')} value={phoneList(data.phones).join(', ') || null} />
             <Info label={t('fields.department')} value={data.department} />

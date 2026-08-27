@@ -84,7 +84,7 @@ export default function SemestersPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('finance'), borderRadius: 12, padding: '16px 24px', color: '#fff' }}>
+      <div style={{ background: getModuleHeaderGradient('finance'), borderRadius: 14, padding: '16px 24px', color: '#fff' }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
         <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
       </div>
@@ -101,7 +101,7 @@ export default function SemestersPage() {
             const title = s.name_he?.trim() || s.name?.trim() || `${s.year_label ?? ''} · ${t('term_n').replace('{n}', String(s.term_number ?? ''))}`
             const track = trackName(s.study_track)
             return (
-              <div key={s.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', padding: 16, opacity: s.status === 'closed' ? 0.65 : 1 }}>
+              <div key={s.id} style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', padding: 16, opacity: s.status === 'closed' ? 0.65 : 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{title}</div>
                   <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: s.status === 'open' ? 'var(--success-tint)' : 'var(--surface-2)', color: s.status === 'open' ? 'var(--success)' : 'var(--text-muted)' }}>

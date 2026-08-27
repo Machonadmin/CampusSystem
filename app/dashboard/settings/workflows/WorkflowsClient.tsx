@@ -149,7 +149,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
       ]} />
 
       <div style={{
-        background: getModuleHeaderGradient('settings'), borderRadius: 12,
+        background: getModuleHeaderGradient('settings'), borderRadius: 14,
         padding: '16px 24px', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
       }}>
@@ -167,7 +167,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
         {/* ── Left: process list ── */}
-        <div className="md-rail" style={{ width: 280, flexShrink: 0, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+        <div className="md-rail" style={{ width: 280, flexShrink: 0, border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
           <div style={{ padding: '11px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{t('process_list_title')}</span>
             {canEdit && (
@@ -200,7 +200,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
         {/* ── Right: detail ── */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {!selectedId ? (
-            <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
+            <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13, border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)' }}>
               {t('select_process_hint')}
             </div>
           ) : loadingDetail && !detail ? (
@@ -209,7 +209,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
             <div className="space-y-4">
 
               {/* Process header */}
-              <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', padding: 18 }}>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', padding: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -231,7 +231,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
               </div>
 
               {/* Stages */}
-              <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', padding: 18 }}>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', padding: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{t('stages_title')}</h3>
                   {canEdit && <button onClick={() => setStageModal({ stage: null })} style={{ ...btnPrimary, padding: '6px 12px', fontSize: 12 }}>{t('add_stage')}</button>}
@@ -337,7 +337,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
               </div>
 
               {/* Transitions */}
-              <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', padding: 18 }}>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', padding: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{t('transitions_title')}</h3>
                   {canEdit && <button onClick={() => setTransitionModal({ transition: null })} style={{ ...btnPrimary, padding: '6px 12px', fontSize: 12 }} disabled={detail.stages.length === 0}>{t('add_transition')}</button>}

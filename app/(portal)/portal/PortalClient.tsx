@@ -42,7 +42,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
       <ForcePasswordChangeGate portal />
       <div style={{ maxWidth: 680, margin: '0 auto', display: 'grid', gap: 14 }}>
         {/* Приветствие + выход */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('greeting')}</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{name || t('my_studies')}</div>

@@ -165,7 +165,7 @@ export default function PersonsClient() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('persons'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(37,99,235,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
@@ -218,7 +218,7 @@ export default function PersonsClient() {
       </div>
 
       {/* List */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 12 }}>
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)', padding: 8 }}>{error}</div>
         ) : loading ? (

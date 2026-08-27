@@ -169,7 +169,7 @@ export default function RecruitmentFormSettingsPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
           <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.88)', marginTop: 3 }}>{t('subtitle')}</p>
@@ -330,7 +330,7 @@ export default function RecruitmentFormSettingsPage() {
   )
 }
 
-const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }
+const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20 }
 const sectionTitle: React.CSSProperties = { fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }
 const sectionNote: React.CSSProperties = { fontSize: 13, color: 'var(--text-muted)', margin: '6px 0 14px' }
 const gridRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 90px 90px', alignItems: 'center', padding: '10px 14px' }

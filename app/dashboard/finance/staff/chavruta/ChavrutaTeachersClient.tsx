@@ -97,7 +97,7 @@ export default function ChavrutaTeachersClient() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('finance'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('teachers_title')}</h1>
@@ -107,13 +107,13 @@ export default function ChavrutaTeachersClient() {
       {!loaded ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
       ) : forbidden ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('not_a_teacher')}</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('not_a_teacher')}</div>
       ) : featureOff ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('feature_not_ready')}</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('feature_not_ready')}</div>
       ) : (
         <>
           {/* Add teacher */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 240 }}>
               <PersonSelect
                 value={addPerson}

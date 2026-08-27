@@ -41,7 +41,7 @@ export default function StaffShabbatPanel({ journeyId }: { journeyId: string; ca
   if (!loaded) return null
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>{t('shabbat_staff_title')}</h3>
 
       {events.length === 0 ? (

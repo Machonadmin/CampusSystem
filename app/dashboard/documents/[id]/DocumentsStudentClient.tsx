@@ -191,7 +191,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('documents'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(107,114,128,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -210,7 +210,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
             </button>
           )}
           {canManage && showAddForm && (
-            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{t('add.title')}</h2>
                 <button onClick={() => setShowAddForm(false)} aria-label={tCommon('cancel')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -263,7 +263,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
           )}
 
           {/* Document list */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('registry.title')}</h2>
             {docs.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('registry.empty')}</div>

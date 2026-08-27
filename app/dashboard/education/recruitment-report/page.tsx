@@ -54,7 +54,7 @@ export default function RecruitmentReportPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('subtitle')}</p>
       </div>
@@ -129,7 +129,7 @@ function Dashboard({ report, t }: { report: Report; t: T }) {
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
     </div>
@@ -147,7 +147,7 @@ function BreakdownCard({ title, rows, empty }: {
 }) {
   const max = rows.reduce((m, r) => Math.max(m, r.value), 0)
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>{title}</div>
       {rows.length === 0 ? (
         <div style={{ padding: '18px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{empty}</div>

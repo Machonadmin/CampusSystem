@@ -414,7 +414,7 @@ export default function TasksPage() {
       {!loading && !error && tasks.length === 0 && (
         <div style={{
           padding: '48px 24px', textAlign: 'center',
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
         }}>
           {emptyIcon}

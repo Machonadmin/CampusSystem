@@ -136,7 +136,7 @@ export default function JewishnessListClient() {
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('jewishness'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(202,138,4,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
@@ -185,7 +185,7 @@ export default function JewishnessListClient() {
       ) : loading ? (
         <SkeletonRows rows={6} />
       ) : students.length === 0 ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {students.map(s => (

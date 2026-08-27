@@ -82,7 +82,7 @@ export default function ScheduleApprovalsPage() {
         { label: t('approvals_title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px' }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('approvals_title')}</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('approvals_subtitle')}</p>
       </div>
@@ -99,7 +99,7 @@ export default function ScheduleApprovalsPage() {
         <div style={{ display: 'grid', gap: 10 }}>
           {requests.map(r => (
             <div key={r.id} style={{
-              background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+              background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
               padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap',
             }}>
               <div style={{ minWidth: 0 }}>

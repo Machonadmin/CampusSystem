@@ -154,7 +154,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function PanelGroup({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
@@ -372,7 +372,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
       {/* Header with avatar */}
       <div style={{
         background: getModuleHeaderGradient(headerColorKey),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(16,185,129,0.15)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>

@@ -171,7 +171,7 @@ export default function AcceptanceOverviewTab() {
         ))}
       </div>
 
-      <div style={{ background: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
         {error ? (
           <div style={{ padding: 24, fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (

@@ -704,7 +704,7 @@ function UsersPageContent() {
         </button>
       </div>
 
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : error ? (

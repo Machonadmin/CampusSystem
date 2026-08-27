@@ -36,7 +36,7 @@ export default function StaffChavrutaPanel({ journeyId }: { journeyId: string; c
   if (!loaded) return null
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>{t('staff_history_title')}</h3>
 
       {sessions.length === 0 ? (

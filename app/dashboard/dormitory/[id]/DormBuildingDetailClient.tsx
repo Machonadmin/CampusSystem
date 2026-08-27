@@ -219,7 +219,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('dormitory'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(6,182,212,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
       }}>
@@ -282,7 +282,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
       {/* Selected room panel */}
       {selected && (
-        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('room.title')} {selected.room_number}

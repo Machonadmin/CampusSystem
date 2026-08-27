@@ -63,7 +63,7 @@ export default function JourneyTimeline({ journeyId }: { journeyId: string }) {
   }
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{ width: '100%', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}

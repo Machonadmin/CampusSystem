@@ -59,7 +59,7 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
   if (roleStages.length === 0) return null
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 2px' }}>{t('signatures.title')}</h3>
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('signatures.subtitle')}</div>
 

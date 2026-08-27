@@ -38,7 +38,7 @@ function Card({ title, accent, count, children, onClick }: {
       onClick={onClick}
       className="home-card"
       style={{
-        textAlign: 'start', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+        textAlign: 'start', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
         padding: 16, cursor: 'pointer', display: 'grid', gap: 10, boxShadow: 'var(--shadow)',
         borderInlineStart: `4px solid ${accent}`,
       }}

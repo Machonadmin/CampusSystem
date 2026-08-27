@@ -273,7 +273,7 @@ export default function SponsorDetailClient({
       {/* Header */}
       <div style={{
         background: getModuleHeaderGradient('sponsors'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(217,119,6,0.15)',
         display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
       }}>

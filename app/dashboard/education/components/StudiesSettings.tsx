@@ -113,7 +113,7 @@ function SettingCard({ label, icon, onClick }: { label: string; icon: string; on
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 12, textAlign: 'start', width: '100%',
-        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
         padding: '13px 14px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: 'var(--shadow)',
         transition: 'border-color 0.12s, transform 0.12s',
       }}

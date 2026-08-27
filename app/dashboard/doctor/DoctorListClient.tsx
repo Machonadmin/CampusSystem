@@ -117,7 +117,7 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
 
           <div style={{
             background: getModuleHeaderGradient('doctor'),
-            borderRadius: 12, padding: '16px 24px', color: '#fff',
+            borderRadius: 14, padding: '16px 24px', color: '#fff',
             boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
           }}>
             <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
@@ -131,7 +131,7 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
 
       {/* Follow-ups worklist — для управляющих */}
       {canManage && (upcoming.length > 0 || overdue.length > 0) && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('followups.title')}</h2>
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
             <WorklistColumn
@@ -173,7 +173,7 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
       </div>
 
       {/* Students list */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
         {error ? (
           <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
         ) : loading ? (

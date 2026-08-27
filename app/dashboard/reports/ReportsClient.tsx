@@ -111,7 +111,7 @@ function ReportCard<T>({
   return (
     <div style={{
       border: '1px solid var(--border)',
-      borderRadius: 12,
+      borderRadius: 14,
       background: 'var(--surface)',
       overflow: 'hidden',
       display: 'flex',
@@ -220,7 +220,7 @@ export default function ReportsClient() {
       {/* Заголовок модуля — зелёный акцент reports */}
       <div style={{
         background: getModuleHeaderGradient('reports'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
+        borderRadius: 14, padding: '16px 24px', color: '#fff',
         boxShadow: '0 2px 8px rgba(22,163,74,0.15)',
       }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>

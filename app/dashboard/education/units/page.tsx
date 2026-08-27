@@ -79,7 +79,7 @@ export default function UnitTeamPage() {
         { label: t('units.title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff' }}>{t('units.title')}</h1>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t('units.subtitle')}</p>
@@ -116,7 +116,7 @@ export default function UnitTeamPage() {
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>
               {members.map(m => (
-                <div key={m.position_id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, boxShadow: 'var(--shadow)' }}>
+                <div key={m.position_id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, boxShadow: 'var(--shadow)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{m.hebrew_name || m.full_name || '—'}</span>
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>

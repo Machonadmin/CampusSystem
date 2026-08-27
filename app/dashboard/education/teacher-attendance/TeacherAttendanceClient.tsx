@@ -105,7 +105,7 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
             { label: t('title') },
           ]} />
 
-          <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
+          <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
             <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
             <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
           </div>
