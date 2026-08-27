@@ -2885,7 +2885,11 @@
       "unenroll_confirm": "Remove assignment and cancel the charge?",
       "charge_cancelled": "Charge cancelled",
       "empty_finance": "No semesters. They are opened in Studies.",
-      "opened_in_studies": "Semesters are opened in the Studies module. Here you set the price, assign students and see debt."
+      "opened_in_studies": "Semesters and students are managed in the Studies module. Here you set the tuition — the charge is created automatically for enrolled students.",
+      "price_bills_hint": "Setting the price creates a tuition charge for every student already enrolled (in Studies) in the semester. Changing the price does not rewrite charges already issued.",
+      "tuition_saved": "Tuition saved",
+      "charges_created_n": "{n} charges created",
+      "students_n": "Students: {n}"
     },
     "bulk": {
       "select": "Select",

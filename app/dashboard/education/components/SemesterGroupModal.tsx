@@ -72,7 +72,6 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
       : defaults?.year_level != null ? String(defaults.year_level) : '',
   )
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? defaults?.study_track_id ?? '')
-  const [tuition, setTuition] = useState(initial?.tuition_amount != null ? String(initial.tuition_amount) : '')
   const [periodStart, setPeriodStart] = useState(initial?.period_start ?? '')
   const [periodEnd, setPeriodEnd] = useState(initial?.period_end ?? '')
 
@@ -157,7 +156,6 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         year_level: yearLevel.trim() ? Number(yearLevel) : null,
         study_track_id: trackId || null,
         department_id: deptId,
-        tuition_amount: tuition.trim() ? Number(tuition) : null,
         period_start: periodStart || null,
         period_end: periodEnd || null,
         teachers: teacherPayload,
@@ -318,16 +316,8 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
             </div>
           </div>
 
-          {/* 7. Плата за семестр (что платит СТУДЕНТКА, в рублях; зарплата
-              преподавателя — тоже в рублях, поле выше). */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>{t('semester_groups.tuition_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <div style={{ position: 'relative' }}>
-              <input type="number" min={0} step="0.01" value={tuition} onChange={e => setTuition(e.target.value)} style={{ ...inp, paddingRight: 26 }} placeholder="0.00" />
-              <span style={{ position: 'absolute', right: 10, top: 8, fontSize: 13, color: 'var(--text-faint)', pointerEvents: 'none' }}>₽</span>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('semester_groups.tuition_hint')}</div>
-          </div>
+          {/* 7. Плата за обучение (שכר לימוד) задаётся в модуле «Финансы» —
+              не здесь (решение владельца). См. finance/semesters. */}
 
           {/* 8. Период */}
           <div style={{ marginBottom: 12 }}>
