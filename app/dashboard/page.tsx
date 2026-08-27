@@ -41,6 +41,8 @@ const ICONS: Record<string, string> = {
     'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z',
   psychologist:
     'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
+  health:
+    'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z M12 8.25v6 M9 11.25h6',
   documents:
     'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
   reports:
@@ -64,7 +66,7 @@ const HREF_OVERRIDES: Record<string, string> = {
 // верхней части бокового меню + виджет «Мои задачи» на этой же странице).
 const ALL_MODULE_CARDS = [
   'persons', 'staff', 'quality_control', 'education', 'jewishness', 'finance', 'dormitory', 'food',
-  'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
+  'maintenance', 'security', 'alumni', 'sponsors', 'health',
   'documents', 'reports', 'contacts', 'settings',
 ]
 
@@ -125,7 +127,10 @@ export default function DashboardPage() {
   const accessible = user?.accessible_modules ?? []
   // Owner-декластеризация: нереализованные модули («בקרוב») больше не рендерим —
   // мёртвая плитка это шум. Появятся сами, когда isModuleImplemented станет true.
-  const orderedKeys = ALL_MODULE_CARDS.filter(k => accessible.includes(k) && isModuleImplemented(k))
+  // «health» — объединённая плитка рофэ+психолога: видна при доступе к любому из них.
+  const cardAccessible = (k: string) =>
+    k === 'health' ? (accessible.includes('doctor') || accessible.includes('psychologist')) : accessible.includes(k)
+  const orderedKeys = ALL_MODULE_CARDS.filter(k => cardAccessible(k) && isModuleImplemented(k))
 
   const cards: CardDef[] = []
   for (const key of orderedKeys) {

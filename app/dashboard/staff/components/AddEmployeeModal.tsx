@@ -5,6 +5,9 @@ import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
+import { toast } from '@/components/ui/toast'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -98,7 +101,7 @@ export default function AddEmployeeModal({
 }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
-  const { lang } = useLang()
+  const { lang, t: langT } = useLang()
   const isEditing = !!editing
 
   const MODAL_TABS = [
@@ -157,6 +160,12 @@ export default function AddEmployeeModal({
   const [hireDate, setHireDate] = useState<Date | null>(null)
   const [employmentType, setEmploymentType] = useState('staff')
   const [workSchedule, setWorkSchedule] = useState('')
+  // Роль в системе (перенесено из отдельной модалки «посадить на стул» —
+  // owner: одна форма добавления). Необязательно; назначается после сохранения
+  // через /api/staff/seat (superadmin).
+  const [rolesList, setRolesList] = useState<{ id: string; code: string; name: string }[]>([])
+  const [roleId, setRoleId] = useState('')
+  const [isHead, setIsHead] = useState(false)
 
   // Tab 3 — Документы и образование
   const [passportSeries, setPassportSeries] = useState('')
@@ -189,6 +198,10 @@ export default function AddEmployeeModal({
     fetch('/api/settings/positions?active_only=true')
       .then(r => r.ok ? r.json() : { positions: [] })
       .then((d: { positions?: PositionOption[] }) => setPositions(d.positions ?? []))
+      .catch(() => {})
+    fetch('/api/settings/roles')
+      .then(r => r.ok ? r.json() : [])
+      .then((d: { id: string; code: string; name: string }[]) => setRolesList(Array.isArray(d) ? d.filter(x => !isDeprecatedRole(x.code)) : []))
       .catch(() => {})
   }, [])
 
@@ -405,6 +418,24 @@ export default function AddEmployeeModal({
         const data = await res.json()
         setError(data.error ?? tCommon('error'))
         return
+      }
+
+      // Назначение роли (если выбрана) — тем же атомарным эндпоинтом «стула».
+      // Сбой роли НЕ отменяет создание сотрудника — предупреждаем тостом.
+      if (roleId) {
+        const created = await res.json().catch(() => ({})) as { person_id?: string }
+        const personId = created.person_id ?? (view === 'existing' && selected ? selected.id : null)
+        if (personId) {
+          const seatRes = await fetch('/api/staff/seat', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              person_id: personId, department_id: departmentId, position_id: positionId,
+              role_id: roleId, is_head: isHead,
+              hire_date: hireDate ? hireDate.toISOString().split('T')[0] : null,
+            }),
+          })
+          if (!seatRes.ok) toast(t('add_modal.role_assign_failed'), 'error')
+        }
       }
       onSaved()
     } finally {
@@ -661,6 +692,19 @@ export default function AddEmployeeModal({
               <label style={lbl}>{t('add_modal.hire_date')} *</label>
               <DateInput value={hireDate} onChange={setHireDate} />
             </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>{t('seat_role')}</label>
+              <select value={roleId} onChange={e => setRoleId(e.target.value)} style={inp}>
+                <option value="">{t('add_modal.role_none')}</option>
+                {rolesList.map(r => <option key={r.id} value={r.id}>{roleLabel(langT.roles, r.code, r.name)}</option>)}
+              </select>
+            </div>
+            {roleId && (
+              <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} />
+                {t('seat_is_head')}
+              </label>
+            )}
             <div>
               <label style={lbl}>{t('add_modal.employment_type')}</label>
               <select value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>

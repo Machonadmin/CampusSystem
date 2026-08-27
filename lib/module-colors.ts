@@ -1,5 +1,5 @@
 const IMPLEMENTED_MODULES = new Set([
-  'persons', 'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance', 'security', 'doctor', 'psychologist', 'reports', 'documents', 'contacts', 'sponsors', 'jewishness', 'chavruta',
+  'persons', 'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance', 'security', 'doctor', 'psychologist', 'health', 'reports', 'documents', 'contacts', 'sponsors', 'jewishness', 'chavruta',
 ])
 
 export function isModuleImplemented(moduleCode: string): boolean {
@@ -24,6 +24,8 @@ const MODULE_COLORS = {
   sponsors:        { primary: '#D97706', light: '#FEF3C7', medium: '#F59E0B' },
   doctor:          { primary: '#059669', light: '#D1FAE5', medium: '#10B981' },
   psychologist:    { primary: '#7C3AED', light: '#EDE9FE', medium: '#A78BFA' },
+  // «Здоровье» — объединённый вход (медпункт + психолог); палитра медпункта.
+  health:          { primary: '#059669', light: '#D1FAE5', medium: '#10B981' },
   documents:       { primary: '#6B7280', light: '#F3F4F6', medium: '#9CA3AF' },
   reports:         { primary: '#16A34A', light: '#DCFCE7', medium: '#22C55E' },
   contacts:        { primary: '#DB2777', light: '#FCE7F3', medium: '#EC4899' },

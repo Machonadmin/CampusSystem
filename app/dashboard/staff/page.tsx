@@ -10,7 +10,6 @@ import { personDisplayName } from '@/lib/persons/name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
-import SeatPersonModal from './components/SeatPersonModal'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -502,7 +501,7 @@ function flattenDeptOptions(depts: Department[], lang: Lang): { id: string; labe
   return out
 }
 
-function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; onSeat: () => void; depts: Department[]; refreshSignal: number }) {
+function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; depts: Department[]; refreshSignal: number }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
   const router = useRouter()
@@ -560,12 +559,7 @@ function EmployeesTab({ onAdd, onSeat, depts, refreshSignal }: { onAdd: (employe
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        <button
-          onClick={onSeat}
-          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' }}
-        >
-          {t('seat_button')}
-        </button>
+        {/* «посадить на стул» слит в «Добавить сотрудника» (роль — на вкладке должности). */}
         <PageActionButton
           label={t('add_employee')}
           onClick={() => onAdd()}
@@ -682,7 +676,6 @@ export default function StaffPage() {
   const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
-  const [seatOpen, setSeatOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -774,7 +767,6 @@ export default function StaffPage() {
       {activeTab === 'staff' && (
         <EmployeesTab
           onAdd={(employee) => { setEditingEmployee(employee ?? null); setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }}
-          onSeat={() => setSeatOpen(true)}
           depts={depts}
           refreshSignal={refreshSignal}
         />
@@ -792,12 +784,6 @@ export default function StaffPage() {
           editing={editingEmployee}
           onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null) }}
           onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null); load(); setRefreshSignal(s => s + 1) }}
-        />
-      )}
-      {seatOpen && (
-        <SeatPersonModal
-          onClose={() => setSeatOpen(false)}
-          onSaved={() => { setSeatOpen(false); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>

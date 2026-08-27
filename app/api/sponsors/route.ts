@@ -6,6 +6,7 @@ import { mapDbError } from '@/lib/sponsors/http'
 import { isSponsorType } from '@/lib/sponsors/validation'
 import { matchesSponsorSearch } from '@/lib/sponsors/donations'
 import { loadDonationAggregates, receivedForSponsor } from '@/lib/sponsors/donations-server'
+import { syncSponsorToContacts } from '@/lib/contacts/sync-sponsor'
 import type { SponsorRow, SponsorInsert } from '@/types/database'
 
 /**
@@ -144,6 +145,13 @@ export async function POST(request: NextRequest) {
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
+
+    // Владелец: реквизиты донора (имя/телефон/почта) сохраняются и в контактах
+    // (category='financial'). Best-effort — не влияет на успех создания.
+    await syncSponsorToContacts(sb, {
+      name, email: insert.email ?? null, phone: insert.phone ?? null,
+      sponsor_type: insert.sponsor_type ?? null, created_by: session.person_id,
+    })
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {

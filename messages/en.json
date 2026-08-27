@@ -689,7 +689,9 @@
         "extra": "Additional",
         "study": "Study lifecycle",
         "report": "Performance",
-        "overview": "360 Overview"
+        "overview": "360 Overview",
+        "background": "Family & community",
+        "recruitment_info": "Recruitment info"
       },
       "status": {
         "lead": "Lead",
@@ -814,6 +816,11 @@
         "undecided": "Undecided",
         "hint": "Activates the doctor and psychologist stages; if boarding is not needed, the dormitory stage is skipped.",
         "updated": "Updated"
+      },
+      "groups": {
+        "study": "Studies",
+        "campus": "Campus life",
+        "admin": "Admin & finance"
       }
     },
     "cascade": {
@@ -1328,7 +1335,8 @@
       "load_error": "Failed to load the overview",
       "track_label": "Chol track",
       "track_later": "Assign later",
-      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject)."
+      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject).",
+      "handle_in_module": "Handle in module"
     },
     "study_track": {
       "title": "Study track",
@@ -2297,7 +2305,9 @@
       "specialty_placeholder": "Management",
       "contract_number_placeholder": "EC-2026-001",
       "edit_title": "Employee details",
-      "edit_save_disabled_note": "Editing employee data here isn't available yet (view only)."
+      "edit_save_disabled_note": "Editing employee data here isn't available yet (view only).",
+      "role_none": "No system role",
+      "role_assign_failed": "Employee saved, but role assignment failed — assign it in user settings"
     },
     "name_required": "Name is required",
     "error": "Error",

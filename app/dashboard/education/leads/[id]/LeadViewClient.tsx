@@ -132,7 +132,9 @@ function getInitials(p: LeadViewData['person']): string {
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'overview' | 'personal' | 'contacts' | 'communication' | 'family' | 'community' | 'directions' | 'documents' | 'extra' | 'study' | 'report'
+// Вкладки укрупнены (owner: «11 вкладок — много»): personal+contacts → «פרטים»,
+// family+community → «רקע», directions+extra → «פרטי גיוס». Пустые скрываются.
+type TabKey = 'overview' | 'personal' | 'communication' | 'background' | 'recruitment_info' | 'documents' | 'study' | 'report'
 
 // ── Small presentational pieces ────────────────────────────────────────────────
 
@@ -143,6 +145,29 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </div>
       {children}
+    </div>
+  )
+}
+
+// Раскрывающаяся группа панелей правой колонки. Закрыта по умолчанию; дети
+// монтируются только при раскрытии (их fetch-и не бегут зря).
+function PanelGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+          padding: '12px 16px', fontSize: 14, fontWeight: 700, color: 'var(--text)',
+          background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
+        }}
+      >
+        <span>{title}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 180 : 0}deg)` }}>▼</span>
+      </button>
+      {open && <div style={{ padding: '0 16px 16px', display: 'grid', gap: 16 }}>{children}</div>}
     </div>
   )
 }
@@ -171,16 +196,17 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const moduleHref = navContext?.moduleHref ?? '/dashboard/education'
   const headerColorKey = navContext?.colorKey ?? 'education'
 
+  // Пустые вкладки не показываем (owner): фону/данным набора нечего показать у
+  // свежего лида — вкладка исчезает, а не рендерит «нет данных».
+  const hasBackground = data.relatives.length > 0 || data.communities.length > 0
+  const hasRecruitInfo = data.interests.length > 0 || !!data.referral_source || !!data.comment
   const TABS: { key: TabKey; labelKey: string }[] = [
     ...(showOverview ? [{ key: 'overview' as TabKey, labelKey: 'overview' }] : []),
     { key: 'personal',   labelKey: 'personal' },
-    { key: 'contacts',   labelKey: 'contacts' },
     { key: 'communication', labelKey: 'communication' },
-    { key: 'family',     labelKey: 'family' },
-    { key: 'community',  labelKey: 'community' },
-    { key: 'directions', labelKey: 'directions' },
+    ...(hasBackground ? [{ key: 'background' as TabKey, labelKey: 'background' }] : []),
+    ...(hasRecruitInfo ? [{ key: 'recruitment_info' as TabKey, labelKey: 'recruitment_info' }] : []),
     { key: 'documents',  labelKey: 'documents' },
-    { key: 'extra',      labelKey: 'extra' },
     ...(studyLifecycle ? [{ key: 'study' as TabKey, labelKey: 'study' }] : []),
     ...(showReport ? [{ key: 'report' as TabKey, labelKey: 'report' }] : []),
   ]
@@ -205,6 +231,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   function renderTab() {
     switch (tab) {
       case 'personal':
+        // Объединённая вкладка: личные данные + контакты (owner: меньше вкладок).
         return (
           <>
             <Field label={t('card.labels.last_name')} value={person.last_name} />
@@ -216,11 +243,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.marital_status')} value={person.marital_status ? t(`card.marital.${person.marital_status}`, person.marital_status) : '—'} />
             <Field label={t('card.labels.citizenship')} value={person.nationality} />
             <Field label={t('card.labels.passport')} value={person.passport_number} />
-          </>
-        )
-      case 'contacts':
-        return (
-          <>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, margin: '14px 0 6px' }}>
+              {t('card.tabs.contacts')}
+            </div>
             <Field label={t('card.labels.phone')} value={phoneList(person.phones).length > 0 ? phoneList(person.phones).join(', ') : '—'} />
             <Field label={t('card.labels.email')} value={person.email} />
             <Field label={t('card.labels.country')} value={addr.country} />
@@ -235,61 +260,67 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         return (
           <LeadCommunicationPanel journeyId={data.journeyId} canManage={canManage} />
         )
-      case 'family':
-        return data.relatives.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_relatives')}</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {data.relatives.map((r, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
-                {r.full_name || '—'} — {t(`card.relation.${r.relation_type}`, r.relation_type).toLowerCase()}
-                {r.notes ? <span style={{ color: 'var(--text-faint)' }}> ({r.notes})</span> : null}
-              </div>
-            ))}
-          </div>
-        )
-      case 'community':
-        return data.communities.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_communities')}</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {data.communities.map((c, idx) => (
-              <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
-                <div style={{ fontWeight: 500 }}>
-                  {c.name || '—'}
-                  {(c.city || c.country) ? <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
+      case 'background':
+        // Объединённая вкладка: семья + община (рендерится только если есть данные).
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {data.relatives.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{t('card.tabs.family')}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {data.relatives.map((r, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
+                      {r.full_name || '—'} — {t(`card.relation.${r.relation_type}`, r.relation_type).toLowerCase()}
+                      {r.notes ? <span style={{ color: 'var(--text-faint)' }}> ({r.notes})</span> : null}
+                    </div>
+                  ))}
                 </div>
-                {(c.contact_name || c.contact_role || c.contact_phone || c.contact_email) && (
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                    {[c.contact_name, c.contact_role, c.contact_phone, c.contact_email].filter(Boolean).join(' · ')}
-                  </div>
-                )}
               </div>
-            ))}
+            )}
+            {data.communities.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{t('card.tabs.community')}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {data.communities.map((c, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: 'var(--text)' }}>
+                      <div style={{ fontWeight: 500 }}>
+                        {c.name || '—'}
+                        {(c.city || c.country) ? <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}> · {[c.country, c.city].filter(Boolean).join(', ')}</span> : null}
+                      </div>
+                      {(c.contact_name || c.contact_role || c.contact_phone || c.contact_email) && (
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {[c.contact_name, c.contact_role, c.contact_phone, c.contact_email].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )
-      case 'directions':
-        return interestTexts.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.labels.no_directions')}</div>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {interestTexts.map((text, idx) => (
-              <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
-                {text}
-              </span>
-            ))}
+      case 'recruitment_info':
+        // Объединённая вкладка: направления интереса + источник/комментарий набора.
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {interestTexts.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {interestTexts.map((text, idx) => (
+                  <span key={idx} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-tint)', color: 'var(--accent-strong)' }}>
+                    {text}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div>
+              <Field label={t('card.labels.referral_source')} value={data.referral_source ? t(`card.source.${data.referral_source}`, data.referral_source) : '—'} />
+              <Field label={t('card.labels.comment')} value={data.comment} />
+            </div>
           </div>
         )
       case 'documents':
         return (
           <JourneyDocumentsPanel journeyId={data.journeyId} canManage={canManage} />
-        )
-      case 'extra':
-        return (
-          <>
-            <Field label={t('card.labels.referral_source')} value={data.referral_source ? t(`card.source.${data.referral_source}`, data.referral_source) : '—'} />
-            <Field label={t('card.labels.comment')} value={data.comment} />
-          </>
         )
       case 'study':
         return (
@@ -435,20 +466,35 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               {t('card.preview_as_student', 'Просмотр глазами студентки')}
             </a>
           )}
-          {data.status === 'student' && canManage && <StudentStructuresPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
-          {data.status === 'student' && <KodeshExceptionsPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && <StudentDashboardPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && <StudentFinancePanel journeyId={data.journeyId} />}
-          {data.status === 'student' && <StaffChavrutaPanel journeyId={data.journeyId} canManage={canManage} />}
-          {data.status === 'student' && <StaffShabbatPanel journeyId={data.journeyId} canManage={canManage} />}
-          {data.status === 'student' && <StudentCalendarPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />}
-          {data.status === 'student' && <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />}
-          {data.status === 'student' && <StudyPlanPanel journeyId={data.journeyId} canEdit={canManage} />}
-          {data.status === 'student' && <PlacementsPanel journeyId={data.journeyId} />}
-          {data.status === 'student' && <EvaluationsPanel journeyId={data.journeyId} />}
+          {/* 14 студенческих панелей сгруппированы в 3 раскрывающихся блока
+              (owner: «ерунда стеной» — карточка была нечитаемой). Панели внутри
+              монтируются только при раскрытии — меньше запросов при открытии. */}
+          {data.status === 'student' && (
+            <PanelGroup title={t('card.groups.study', 'לימודים')}>
+              <StudentDashboardPanel journeyId={data.journeyId} />
+              <StudyTrackPanel journeyId={data.journeyId} canEdit={canManage} />
+              <StudyPlanPanel journeyId={data.journeyId} canEdit={canManage} />
+              <KodeshExceptionsPanel journeyId={data.journeyId} />
+              <PlacementsPanel journeyId={data.journeyId} />
+              <EvaluationsPanel journeyId={data.journeyId} />
+            </PanelGroup>
+          )}
+          {data.status === 'student' && (
+            <PanelGroup title={t('card.groups.campus', 'חיי קמפוס')}>
+              <StaffChavrutaPanel journeyId={data.journeyId} canManage={canManage} />
+              <StaffShabbatPanel journeyId={data.journeyId} canManage={canManage} />
+              <StudentCalendarPanel journeyId={data.journeyId} />
+              <MeetingsPanel journeyId={data.journeyId} canEdit={canManage} />
+            </PanelGroup>
+          )}
+          {data.status === 'student' && (
+            <PanelGroup title={t('card.groups.admin', 'ניהול וכספים')}>
+              {canManage && <StudentStructuresPanel journeyId={data.journeyId} />}
+              {canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
+              {canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
+              <StudentFinancePanel journeyId={data.journeyId} />
+            </PanelGroup>
+          )}
           <JourneyTimeline journeyId={data.journeyId} />
         </div>
       </div>

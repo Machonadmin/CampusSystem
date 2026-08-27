@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
 import { isSponsorType } from '@/lib/sponsors/validation'
+import { syncSponsorToContacts } from '@/lib/contacts/sync-sponsor'
 import type { SponsorUpdate } from '@/types/database'
 
 /**
@@ -114,6 +115,14 @@ export async function PATCH(
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
+
+    // Владелец: реквизиты донора (имя/телефон/почта) сохраняются и в контактах.
+    // Берём итоговые значения из обновлённой строки. Best-effort.
+    const s = data as { name: string; email: string | null; phone: string | null; sponsor_type: string | null; created_by: string | null }
+    await syncSponsorToContacts(sb, {
+      name: s.name, email: s.email, phone: s.phone,
+      sponsor_type: s.sponsor_type, created_by: s.created_by,
+    })
 
     return NextResponse.json(data)
   } catch (err: unknown) {
