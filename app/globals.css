@@ -186,6 +186,31 @@ body { transition: background-color .25s ease, color .25s ease; }
 @media (max-width: 640px) { .col-hide-sm { display: none !important; } }
 @media (min-width: 641px) { .sm-only { display: none !important; } }
 
+/* Таблица → карточки на телефоне. Добавь className "cards-sm" таблице и
+   data-label="Заголовок" каждой <td>; ниже <768px строки становятся карточками
+   «ярлык — значение», а шапка прячется. Ширина таблицы больше не «убегает» за
+   экран. td с data-label="" (напр. колонка действий) показывает только значение. */
+@media (max-width: 767px) {
+  table.cards-sm, table.cards-sm tbody, table.cards-sm tr, table.cards-sm td { display: block; width: 100%; }
+  table.cards-sm thead { display: none; }
+  table.cards-sm tr {
+    border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px;
+    padding: 4px 14px; background: var(--surface); box-shadow: var(--shadow);
+  }
+  table.cards-sm td {
+    border: none !important; display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 8px 0; text-align: start; white-space: normal; min-width: 0;
+  }
+  table.cards-sm td + td { border-top: 1px solid var(--surface-2) !important; }
+  table.cards-sm td::before {
+    content: attr(data-label); flex-shrink: 0;
+    font-size: 11px; font-weight: 600; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  table.cards-sm td[data-label=""]::before { content: none; }
+  table.cards-sm td[data-label=""] { justify-content: flex-start; }
+}
+
 @media (max-width: 767px) {
   /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
      !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */

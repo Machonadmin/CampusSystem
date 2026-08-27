@@ -347,7 +347,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div className="anim-rise" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {[t('list.name'), t('list.type'), t('list.category'), t('list.email'), t('list.phone'), t('list.status')].map((h, i) => (
@@ -364,19 +364,19 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                     onMouseEnter={e => { if (canManage) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
-                    <td style={td}>
+                    <td style={td} data-label={t('list.name')}>
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{c.name}</div>
                       {c.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{c.contact_person}</div>}
                     </td>
-                    <td style={td}>{t(`types.${c.contact_type}`)}</td>
-                    <td style={td}>
+                    <td style={td} data-label={t('list.type')}>{t(`types.${c.contact_type}`)}</td>
+                    <td style={td} data-label={t('list.category')}>
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--violet)' }}>
                         {t(`categories.${c.category}`)}
                       </span>
                     </td>
-                    <td style={td}>{c.email || '—'}</td>
-                    <td style={td}>{c.phone || '—'}</td>
-                    <td style={td}>
+                    <td style={td} data-label={t('list.email')}>{c.email || '—'}</td>
+                    <td style={td} data-label={t('list.phone')}>{c.phone || '—'}</td>
+                    <td style={td} data-label={t('list.status')}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: c.is_active ? light : 'var(--surface-2)',
