@@ -356,7 +356,9 @@ const LIC = {
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   { key: 'launch_actions_flat', fb: '', items: [
     { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
-    { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment', acc: 'tracks' },
+    // «שיבוץ מסלולים» убран (owner: «ממה נפשך» — дубль): вход на распределение
+    // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
+    // который появляется ровно тогда, когда есть кого распределять.
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
     { key: 'launch_teachers_hours', fb: 'מורים ושעות', icon: LIC.users, href: '/dashboard/education/teachers-hours', acc: 'teachers_hours' },
     { key: 'launch_teacher_attendance', fb: 'נוכחות מורים', icon: LIC.check, href: '/dashboard/education/teacher-attendance', acc: 'teacher_attendance' },

@@ -108,8 +108,11 @@ export default function AssignmentBoardClient() {
         <SkeletonRows />
       ) : (
         <div className="split-cols" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
-          {/* Пул для перетаскивания */}
-          <div style={{ position: 'sticky', top: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, maxHeight: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+          {/* Пул для перетаскивания. На телефоне sticky-панель почти во весь экран
+              «прилипала» ПОВЕРХ карточек групп при скролле (owner: «מרכת אחת על
+              השנייה») — мобильные правила в <style> ниже снимают sticky и
+              ограничивают высоту списка, чтобы группы были видны под пулом. */}
+          <div className="assign-pool" style={{ position: 'sticky', top: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, maxHeight: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: 4, padding: 2, background: 'var(--surface-2)', borderRadius: 8, marginBottom: 10 }}>
               {(['students', 'teachers'] as Mode[]).map(m => (
                 <button key={m} onClick={() => { setMode(m); setSearch('') }}
@@ -123,7 +126,7 @@ export default function AssignmentBoardClient() {
             <div style={{ fontSize: 11, color: selected ? 'var(--accent-strong)' : 'var(--text-faint)', fontWeight: selected ? 600 : 400, marginBottom: 8 }}>
               {selected ? t('click_target_hint').replace('{name}', selected.name) : t('drag_hint')}
             </div>
-            <div style={{ overflowY: 'auto', display: 'grid', gap: 6 }}>
+            <div className="assign-pool-list" style={{ overflowY: 'auto', display: 'grid', gap: 6 }}>
               {pool.length === 0 ? (
                 <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('pool_empty')}</div>
               ) : pool.map(p => {
@@ -200,6 +203,16 @@ export default function AssignmentBoardClient() {
           </div>
         </div>
       )}
+
+      {/* Мобильная раскладка: колонки уже схлопывает .split-cols (globals.css);
+          здесь дополнительно снимаем sticky с пула (иначе он «прилипал» поверх
+          групп) и ограничиваем высоту списка имён, чтобы группы были достижимы. */}
+      <style>{`
+        @media (max-width: 860px){
+          .assign-pool{ position: static !important; max-height: none !important; }
+          .assign-pool-list{ max-height: 38vh; }
+        }
+      `}</style>
     </div>
   )
 }
