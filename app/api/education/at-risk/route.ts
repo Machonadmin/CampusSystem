@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
-import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds, canDoEducationInAny } from '@/lib/education/permissions'
+import { fetchAllByIn, loadAbsenceCounts } from '@/lib/education/absence-counts'
 
 /**
  * GET /api/education/at-risk?days=30&min=3
@@ -18,41 +17,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  * только свои подразделения; 'all'/superadmin — весь институт. Иначе 403.
  * Deploy-safe: отсутствие таблиц (42P01) → { students: [] }.
  */
-
-// PostgREST молча обрезает выдачу на db-max-rows (~1000), а длинный .in()
-// упирается в длину URL. Читаем чанками по фильтру + пагинацией внутри чанка.
-const PAGE = 1000
-const IN_CHUNK = 150
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Filter = any
-async function fetchAllByIn<Row>(
-  sb: SupabaseClient,
-  table: string,
-  selectCols: string,
-  filterCol: string,
-  ids: string[],
-  orderCols: string[],
-  extra?: (q: Filter) => Filter,
-): Promise<Row[]> {
-  const out: Row[] = []
-  for (let i = 0; i < ids.length; i += IN_CHUNK) {
-    const chunk = ids.slice(i, i + IN_CHUNK)
-    let from = 0
-    for (;;) {
-      let q: Filter = sb.from(table).select(selectCols).in(filterCol, chunk)
-      if (extra) q = extra(q)
-      for (const col of orderCols) q = q.order(col, { ascending: true })
-      const { data, error } = await q.range(from, from + PAGE - 1)
-      if (error) throw error
-      const rows = (data ?? []) as unknown as Row[]
-      out.push(...rows)
-      if (rows.length < PAGE) break
-      from += PAGE
-    }
-  }
-  return out
-}
 
 function clampInt(raw: string | null, def: number, min: number, max: number): number {
   const n = parseInt(raw ?? '', 10)
@@ -88,59 +52,16 @@ export async function GET(request: NextRequest) {
       if (myDepts.length === 0) return NextResponse.json({ students: [] })
     }
 
-    // 1. Учебные группы в зоне видимости.
-    let gq = sb.from('class_groups').select('id, department_id')
-    if (myDepts) gq = gq.in('department_id', myDepts)
-    const { data: groupsRaw, error: gErr } = await gq
-    if (gErr) throw gErr
-    const groupIds = ((groupsRaw ?? []) as Array<{ id: string }>).map(g => g.id)
-    if (groupIds.length === 0) return NextResponse.json({ students: [] })
-
-    // Какие из видимых групп — кодеш (чтобы применить חריגות ниже).
-    const kodeshGroupIds = new Set(
-      ((groupsRaw ?? []) as Array<{ id: string; department_id: string | null }>)
-        .filter(g => g.department_id === KODESH_DEPT_ID).map(g => g.id))
-
-    // 2. Уроки этих групп: не отменённые, за период (scheduled_date >= cutoff).
-    const lessonRows = await fetchAllByIn<{ id: string; class_group_id: string; scheduled_date: string }>(
-      sb, 'lessons', 'id, class_group_id, scheduled_date', 'class_group_id', groupIds, ['id'],
-      q => q.eq('is_cancelled', false).gte('scheduled_date', cutoff),
-    )
-    const lessonInfo = new Map<string, { gid: string; date: string }>()
-    for (const l of lessonRows) lessonInfo.set(l.id, { gid: l.class_group_id, date: l.scheduled_date })
-    const lessonIds = lessonRows.map(l => l.id)
-    if (lessonIds.length === 0) return NextResponse.json({ students: [] })
-
-    // 3. Посещаемость: только absent/late. Считаем по journey_id.
-    const attRows = await fetchAllByIn<{ id: string; lesson_id: string; journey_id: string; status: string | null }>(
-      sb, 'attendance', 'id, lesson_id, journey_id, status', 'lesson_id', lessonIds, ['id'],
-      q => q.in('status', ['absent', 'late']),
-    )
-
-    // חריגות קודש: пропуск урока кодеша освобождённой студенткой не считается
-    // «риском» — исключаем такие строки. Загружаем исключения только для тех,
-    // у кого вообще есть отметки на уроках кодеша.
-    let exemptions: Awaited<ReturnType<typeof loadKodeshExemptions>> | null = null
-    if (kodeshGroupIds.size > 0) {
-      const kodeshJourneyIds = [...new Set(attRows
-        .filter(r => { const i = lessonInfo.get(r.lesson_id); return !!i && kodeshGroupIds.has(i.gid) })
-        .map(r => r.journey_id).filter(Boolean))]
-      if (kodeshJourneyIds.length > 0) exemptions = await loadKodeshExemptions(sb, kodeshJourneyIds)
-    }
-
+    // Подсчёт пропусков/опозданий — общий помощник (тот же, что у cron-порога),
+    // с учётом חריגות קודש. Кандидаты: absent_count >= min.
+    const counts = await loadAbsenceCounts(sb, { cutoff, deptIds: myDepts })
     const absentByJourney = new Map<string, number>()
     const lateByJourney = new Map<string, number>()
-    for (const r of attRows) {
-      if (!r.journey_id) continue
-      const i = lessonInfo.get(r.lesson_id)
-      if (i && exemptions?.hasAny && kodeshGroupIds.has(i.gid) && exemptions.isExempt(r.journey_id, i.date)) {
-        continue
-      }
-      if (r.status === 'absent') absentByJourney.set(r.journey_id, (absentByJourney.get(r.journey_id) ?? 0) + 1)
-      else if (r.status === 'late') lateByJourney.set(r.journey_id, (lateByJourney.get(r.journey_id) ?? 0) + 1)
+    for (const [jid, c] of counts) {
+      absentByJourney.set(jid, c.absent)
+      lateByJourney.set(jid, c.late)
     }
 
-    // Кандидаты: absent_count >= min.
     const candidateIds = [...absentByJourney.entries()]
       .filter(([, c]) => c >= min)
       .map(([jid]) => jid)
@@ -169,7 +90,11 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.absent_count - a.absent_count)
       .slice(0, 50)
 
-    return NextResponse.json({ students, days, min })
+    // Открывать «случай отсутствия» может manage_students / superadmin — флаг
+    // управляет кнопкой «פתח טיפול» в карточке «в зоне риска».
+    const canOpenCase = isSuper || await canDoEducationInAny(session, 'manage_students')
+
+    return NextResponse.json({ students, days, min, can_open_case: canOpenCase })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code === '42P01') return NextResponse.json({ students: [] })

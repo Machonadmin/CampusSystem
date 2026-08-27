@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -56,6 +57,9 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
   const [todaySlots, setTodaySlots] = useState<Slot[]>([])
   const [pending, setPending] = useState<PendingStudent[]>([])
   const [atRisk, setAtRisk] = useState<AtRiskStudent[]>([])
+  const [canOpenCase, setCanOpenCase] = useState(false)
+  // journey_id → 'busy' | 'done' для кнопки «פתח טיפול».
+  const [caseState, setCaseState] = useState<Record<string, 'busy' | 'done'>>({})
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
 
@@ -98,7 +102,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
       // Студентки в зоне риска (много пропусков). Ошибка/403 → пусто → карточка скрыта.
       if (atRiskRes.status === 'fulfilled' && atRiskRes.value.ok) {
         const body = await atRiskRes.value.json().catch(() => null)
-        if (alive) setAtRisk(body?.students ?? [])
+        if (alive) { setAtRisk(body?.students ?? []); setCanOpenCase(!!body?.can_open_case) }
       }
 
       // Зависшие абитуриентки. 403 (нет view_applicants) или ошибка → null → карточка скрыта.
@@ -113,6 +117,30 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
     load()
     return () => { alive = false }
   }, [])
+
+  // «פתח טיפול» — открыть случай отсутствия прямо из карточки «в зоне риска»,
+  // не уходя со сводки. Дальше передача в подразделение — на доске העדרויות.
+  async function openCase(journeyId: string) {
+    if (caseState[journeyId]) return
+    setCaseState(s => ({ ...s, [journeyId]: 'busy' }))
+    try {
+      const res = await fetch('/api/education/absences', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_id: journeyId }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        toastError(b.error ?? t('case_open_failed'))
+        setCaseState(s => { const n = { ...s }; delete n[journeyId]; return n })
+        return
+      }
+      toastSuccess(t('case_opened'))
+      setCaseState(s => ({ ...s, [journeyId]: 'done' }))
+    } catch {
+      toastError(t('case_open_failed'))
+      setCaseState(s => { const n = { ...s }; delete n[journeyId]; return n })
+    }
+  }
 
   const card: React.CSSProperties = {
     background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 15,
@@ -161,20 +189,42 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                   </span>
                 </h5>
                 <div>
-                  {atRisk.slice(0, 5).map(s => (
-                    <a key={s.journey_id} href={`/dashboard/education/leads/${s.journey_id}`}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)', textDecoration: 'none' }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-                        {(s.name || '?').split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{s.name || '—'}</div>
-                        <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--danger)' }}>
-                          {t('at_risk_absences').replace('{n}', String(s.absent_count))}
+                  {atRisk.slice(0, 5).map(s => {
+                    const cs = caseState[s.journey_id]
+                    return (
+                    <div key={s.journey_id}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)' }}>
+                      <a href={`/dashboard/education/leads/${s.journey_id}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                          {(s.name || '?').split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
                         </div>
-                      </div>
-                    </a>
-                  ))}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{s.name || '—'}</div>
+                          <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--danger)' }}>
+                            {t('at_risk_absences').replace('{n}', String(s.absent_count))}
+                          </div>
+                        </div>
+                      </a>
+                      {canOpenCase && (
+                        <button
+                          type="button"
+                          onClick={() => openCase(s.journey_id)}
+                          disabled={!!cs}
+                          style={{
+                            fontSize: 11.5, fontWeight: 600, padding: '5px 10px', borderRadius: 8, flexShrink: 0,
+                            border: `1px solid ${cs === 'done' ? 'var(--success)' : 'var(--border-strong)'}`,
+                            background: cs === 'done' ? 'var(--success-tint)' : 'var(--surface)',
+                            color: cs === 'done' ? 'var(--success)' : 'var(--text-muted)',
+                            cursor: cs ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {cs === 'done' ? t('case_opened_short') : cs === 'busy' ? '…' : t('open_case')}
+                        </button>
+                      )}
+                    </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
