@@ -34,7 +34,9 @@ function fmtDate(lang: string, iso: string | null): string {
   return d.toLocaleDateString(loc, { day: '2-digit', month: 'short', weekday: 'short' })
 }
 
-export default function TeacherAttendanceClient({ canApprove }: { canApprove: boolean }) {
+// embedded=true — рендер внутри объединённой страницы «מורים» (без хлебных
+// крошек и своего заголовка: они у обёртки TeachersClient).
+export default function TeacherAttendanceClient({ canApprove, embedded = false }: { canApprove: boolean; embedded?: boolean }) {
   const t = useTranslations('education.teacher_attendance')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
@@ -94,17 +96,21 @@ export default function TeacherAttendanceClient({ canApprove }: { canApprove: bo
   const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, padding: '11px 4px', borderBottom: '1px solid var(--surface-2)', flexWrap: 'wrap' }
 
   return (
-    <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        { label: t('title') },
-      ]} />
+    <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
+      {!embedded && (
+        <>
+          <Breadcrumb items={[
+            { label: tNav('home'), href: '/dashboard' },
+            { label: tNav('education'), href: '/dashboard/education' },
+            { label: t('title') },
+          ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-      </div>
+          <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
+            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
+          </div>
+        </>
+      )}
 
       {!loaded ? (
         <SkeletonRows />

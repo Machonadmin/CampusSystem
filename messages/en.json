@@ -924,7 +924,8 @@
         "launch_structure": "Unit structure",
         "launch_subjects": "Subjects",
         "launch_units": "Study units",
-        "launch_reports": "Reports"
+        "launch_reports": "Reports",
+        "launch_teachers": "Teachers"
       },
       "tabs": {
         "subjects": "Subjects",
@@ -1942,6 +1943,12 @@
       "resolution": "Summary",
       "resolution_ph": "How it was handled",
       "do_resolve": "Resolve"
+    },
+    "teachers_hub": {
+      "title": "Teachers",
+      "subtitle": "Teaching hours and attendance in one place",
+      "tab_hours": "Hours",
+      "tab_attendance": "Attendance"
     }
   },
   "tasks": {

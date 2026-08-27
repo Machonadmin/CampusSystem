@@ -924,7 +924,8 @@
         "launch_structure": "Структура подразделений",
         "launch_subjects": "Предметы",
         "launch_units": "Учебные единицы",
-        "launch_reports": "Отчёты"
+        "launch_reports": "Отчёты",
+        "launch_teachers": "Преподаватели"
       },
       "tabs": {
         "subjects": "Предметы",
@@ -1942,6 +1943,12 @@
       "resolution": "Итог",
       "resolution_ph": "Как решено",
       "do_resolve": "Закрыть"
+    },
+    "teachers_hub": {
+      "title": "Преподаватели",
+      "subtitle": "Часы преподавания и посещаемость в одном месте",
+      "tab_hours": "Часы",
+      "tab_attendance": "Посещаемость"
     }
   },
   "tasks": {
