@@ -1239,7 +1239,10 @@
         "marked": "отмечено {done}/{total}",
         "cancelled": "Отменён",
         "primary": "Ведущий преподаватель"
-      }
+      },
+      "settings_card_catalogs": "Предметы и специализации",
+      "settings_card_groups": "Группы",
+      "settings_card_units": "Юниты и структура"
     },
     "docs_error": "Ошибка",
     "docs_loading": "Загрузка документов…",

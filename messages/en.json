@@ -1239,7 +1239,10 @@
         "marked": "marked {done}/{total}",
         "cancelled": "Cancelled",
         "primary": "Lead teacher"
-      }
+      },
+      "settings_card_catalogs": "Subjects & specialties",
+      "settings_card_groups": "Groups",
+      "settings_card_units": "Units & structure"
     },
     "docs_error": "Error",
     "docs_loading": "Loading documents…",

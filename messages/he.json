@@ -1239,7 +1239,10 @@
         "marked": "סומן {done}/{total}",
         "cancelled": "בוטל",
         "primary": "מורה ראשי"
-      }
+      },
+      "settings_card_catalogs": "מקצועות והתמחויות",
+      "settings_card_groups": "קבוצות",
+      "settings_card_units": "יחידות ומבנה"
     },
     "docs_error": "שגיאה",
     "docs_loading": "טוען מסמכים…",
