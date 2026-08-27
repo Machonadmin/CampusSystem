@@ -291,7 +291,7 @@ function ReportTable({ headers, rows, empty, onRowClick }: {
   if (rows.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{empty}</div>
   return (
     <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
+      <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 560 }}>
         <thead>
           <tr>
             {headers.map((h, i) => (
@@ -305,7 +305,7 @@ function ReportTable({ headers, rows, empty, onRowClick }: {
               onClick={onRowClick ? () => onRowClick(r.key) : undefined}
               style={{ borderBottom: '1px solid var(--border)', cursor: onRowClick ? 'pointer' : undefined }}>
               {r.cells.map((c, i) => (
-                <td key={i} style={{
+                <td key={i} data-label={headers[i]} style={{
                   textAlign: i === 0 ? 'start' : 'center', padding: '9px 14px',
                   color: c.color ?? 'var(--text)', fontWeight: c.strong ? 700 : 400,
                   fontFamily: i === 0 ? undefined : 'var(--font-mono)', whiteSpace: 'nowrap',

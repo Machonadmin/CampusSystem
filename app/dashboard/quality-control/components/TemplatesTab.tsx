@@ -601,7 +601,7 @@ export default function TemplatesTab({ perms }: Props) {
             {t('templates.no_templates')}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 {[t('templates.table_name'), t('templates.table_description'), t('templates.table_blocks'), t('templates.table_questions'), t('templates.table_created'), ''].map(h => (
@@ -614,18 +614,18 @@ export default function TemplatesTab({ perms }: Props) {
                 <tr key={tpl.id} style={{ borderBottom: '1px solid var(--surface-2)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label={t('templates.table_name')} style={{ padding: '10px 14px' }}>
                     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{tpl.name}</span>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', maxWidth: 260 }}>
+                  <td data-label={t('templates.table_description')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', maxWidth: 260 }}>
                     <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {tpl.description ?? '—'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.block_count}</td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.question_count}</td>
-                  <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(tpl.created_at, lang)}</td>
-                  <td style={{ padding: '10px 14px' }}>
+                  <td data-label={t('templates.table_blocks')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.block_count}</td>
+                  <td data-label={t('templates.table_questions')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{tpl.question_count}</td>
+                  <td data-label={t('templates.table_created')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(tpl.created_at, lang)}</td>
+                  <td data-label="" style={{ padding: '10px 14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <RowActionsMenu
                         accentColor={getModuleColor('quality_control')}

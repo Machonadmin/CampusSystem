@@ -256,7 +256,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('plan.no_enrollments')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {[t('plan.student'), t('form.from'), t('form.to'), t('plan.status'), ''].map((h, i) => (
@@ -267,10 +267,10 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
               <tbody>
                 {enrollments.map(e => (
                   <tr key={e.id}>
-                    <td style={td}>{e.student_name || e.student_hebrew_name || '—'}</td>
-                    <td style={td}>{e.enrolled_from}</td>
-                    <td style={td}>{e.enrolled_to || '—'}</td>
-                    <td style={td}>
+                    <td data-label={t('plan.student')} style={td}>{e.student_name || e.student_hebrew_name || '—'}</td>
+                    <td data-label={t('form.from')} style={td}>{e.enrolled_from}</td>
+                    <td data-label={t('form.to')} style={td}>{e.enrolled_to || '—'}</td>
+                    <td data-label={t('plan.status')} style={td}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: e.status === 'active' ? light : 'var(--surface-2)',
@@ -279,7 +279,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                         {t(`status.${e.status}`)}
                       </span>
                     </td>
-                    <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {canManage && (
                         <RowActionsMenu
                           accentColor={primary}

@@ -161,7 +161,7 @@ export default function SubjectsTab() {
           </div>
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('subjects.table_name')}</th>
@@ -180,18 +180,18 @@ export default function SubjectsTab() {
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
-                    <td style={tdStyle}>{s.name}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{trackName(s.track, lang)}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{s.year_level ? t(`subjects.year_${s.year_level}`) : '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }}>{s.sort_order}</td>
-                    <td style={tdStyle}>
+                    <td style={tdStyle} data-label={t('subjects.table_name')}>{s.name}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.track_label')}>{trackName(s.track, lang)}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.year_label')}>{s.year_level ? t(`subjects.year_${s.year_level}`) : '—'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('subjects.table_sort_order')}>{s.sort_order}</td>
+                    <td style={tdStyle} data-label={t('subjects.table_status')}>
                       {s.is_active ? (
                         <span style={{ color: '#10B981', fontWeight: 500 }}>{t('subjects.status_active')}</span>
                       ) : (
                         <span style={{ color: 'var(--text-faint)' }}>{t('subjects.status_inactive')}</span>
                       )}
                     </td>
-                    <td style={tdStyle}>
+                    <td style={tdStyle} data-label="">
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button
                           onClick={() => setSemSubject(s)}

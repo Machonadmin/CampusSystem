@@ -204,7 +204,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_pairs')}</div>
             ) : (
               <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       <th style={th}>{t('col_teacher')}</th>
@@ -215,10 +215,10 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
                   <tbody>
                     {assignments.map(a => (
                       <tr key={a.id}>
-                        <td style={{ ...td, fontWeight: 500 }}>{a.teacher_name || '—'}</td>
-                        <td style={td}>{a.student_name || '—'}</td>
+                        <td data-label={t('col_teacher')} style={{ ...td, fontWeight: 500 }}>{a.teacher_name || '—'}</td>
+                        <td data-label={t('col_student')} style={td}>{a.student_name || '—'}</td>
                         {canManage && (
-                          <td style={{ ...td, textAlign: 'end' }}>
+                          <td data-label="" style={{ ...td, textAlign: 'end' }}>
                             <button
                               type="button"
                               onClick={() => removePair(a.id)}
@@ -262,7 +262,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_teachers')}</div>
             ) : (
               <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       <th style={th}>{t('col_name')}</th>
@@ -273,8 +273,8 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
                   <tbody>
                     {teachers.map(tc => (
                       <tr key={tc.person_id}>
-                        <td style={{ ...td, fontWeight: 500 }}>{tc.name || '—'}</td>
-                        <td style={td}>
+                        <td data-label={t('col_name')} style={{ ...td, fontWeight: 500 }}>{tc.name || '—'}</td>
+                        <td data-label={t('col_source')} style={td}>
                           <span style={{
                             display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
                             background: tc.source === 'kodesh' ? 'var(--surface-2)' : 'var(--accent-tint, #ECFDF5)',
@@ -284,7 +284,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
                           </span>
                         </td>
                         {canManage && (
-                          <td style={{ ...td, textAlign: 'end' }}>
+                          <td data-label="" style={{ ...td, textAlign: 'end' }}>
                             {tc.source === 'manual' && (
                               <button
                                 type="button"

@@ -156,7 +156,7 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
 
       {/* ── Таблица по группам ──────────────────────────────────────────── */}
       <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
-        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
+        <table className="cards-sm" style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
           <thead>
             <tr>
               <th style={th}>{t('col_group')}</th>
@@ -239,13 +239,13 @@ function FragmentRow({
         onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
       >
         {/* Группа */}
-        <td style={td}>
+        <td data-label={t('col_group')} style={td}>
           <div style={{ fontWeight: 600, color: 'var(--text)' }}>{subj || group.name}</div>
           {subj && <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 1 }}>{group.name}</div>}
         </td>
 
         {/* Посещаемость: % + покрытие + разбивка */}
-        <td style={{ ...td, textAlign: 'center' }}>
+        <td data-label={t('col_attendance')} style={{ ...td, textAlign: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(a.percent) }}>{pct(a.percent)}</div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
             {fill(t('coverage'), { done: a.marked, total: a.total_lessons })}
@@ -258,7 +258,7 @@ function FragmentRow({
         </td>
 
         {/* Оценки: средний % + покрытие */}
-        <td style={{ ...td, textAlign: 'center' }}>
+        <td data-label={t('col_grades')} style={{ ...td, textAlign: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(gr.average) }}>{pct(gr.average)}</div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
             {fill(t('coverage'), { done: gr.graded_count, total: gr.total_assessments })}
@@ -266,7 +266,7 @@ function FragmentRow({
         </td>
 
         {/* Шеврон */}
-        <td style={{ ...td, textAlign: 'center', color: accentColor, fontSize: 12 }}>
+        <td data-label="" style={{ ...td, textAlign: 'center', color: accentColor, fontSize: 12 }}>
           <span style={{ display: 'inline-block', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>▸</span>
         </td>
       </tr>
@@ -274,7 +274,7 @@ function FragmentRow({
       {/* Деталь по заданиям */}
       {isOpen && (
         <tr>
-          <td colSpan={4} style={{ padding: 0, borderBottom: '1px solid var(--surface-2)', background: 'var(--surface-2)' }}>
+          <td data-label="" colSpan={4} style={{ padding: 0, borderBottom: '1px solid var(--surface-2)', background: 'var(--surface-2)' }}>
             <div style={{ padding: '12px 16px' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
                 {t('assessments_title')}

@@ -266,7 +266,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('visit.no_visits')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       {[t('visit.visit_date'), t('visit.reason'), t('visit.diagnosis'), t('visit.follow_up_date'), t('visit.status'), ''].map((h, i) => (
@@ -277,11 +277,11 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                   <tbody>
                     {visits.map(v => (
                       <tr key={v.id}>
-                        <td style={td}>{v.visit_date}</td>
-                        <td style={td}>{v.reason || '—'}</td>
-                        <td style={td}>{v.diagnosis || '—'}</td>
-                        <td style={td}>{v.follow_up_date || '—'}</td>
-                        <td style={td}>
+                        <td style={td} data-label={t('visit.visit_date')}>{v.visit_date}</td>
+                        <td style={td} data-label={t('visit.reason')}>{v.reason || '—'}</td>
+                        <td style={td} data-label={t('visit.diagnosis')}>{v.diagnosis || '—'}</td>
+                        <td style={td} data-label={t('visit.follow_up_date')}>{v.follow_up_date || '—'}</td>
+                        <td style={td} data-label={t('visit.status')}>
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                             background: v.status === 'open' ? light : 'var(--surface-2)',
@@ -290,7 +290,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
                             {t(`status.${v.status}`)}
                           </span>
                         </td>
-                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} data-label="">
                           {canManage && v.status === 'open' && (
                             <SubmitButton onClick={() => setStatus(v, 'closed')} loading={busy} style={linkBtn(primary)}>{t('visit.close')}</SubmitButton>
                           )}

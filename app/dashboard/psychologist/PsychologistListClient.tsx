@@ -183,7 +183,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {[t('list.student'), t('list.status'), ''].map((h, i) => (
@@ -202,11 +202,11 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
                       onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                     >
-                      <td style={td}>
+                      <td style={td} data-label={t('list.student')}>
                         <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
                         {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                       </td>
-                      <td style={td}>
+                      <td style={td} data-label={t('list.status')}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           {s.open_sessions > 0 && (
                             <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: '#6D28D9' }}>
@@ -223,7 +223,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
                           )}
                         </div>
                       </td>
-                      <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} data-label="">
                         <span style={{ fontSize: 12, fontWeight: 600, color: primary }}>{t('list.open_card')}</span>
                       </td>
                     </tr>

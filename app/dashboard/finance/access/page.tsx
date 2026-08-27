@@ -170,7 +170,7 @@ export default function FinanceAccessPage() {
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
           ) : (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
                     <th style={th}>{t('col_person')}</th>
@@ -182,14 +182,14 @@ export default function FinanceAccessPage() {
                 <tbody>
                   {grants.map(g => (
                     <tr key={g.id}>
-                      <td style={{ ...td, fontWeight: 500 }}>{g.person_name || '—'}</td>
-                      <td style={td}>
+                      <td data-label={t('col_person')} style={{ ...td, fontWeight: 500 }}>{g.person_name || '—'}</td>
+                      <td data-label={t('col_scope')} style={td}>
                         {g.scope === 'all'
                           ? <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 99, background: 'var(--surface-2)', color: primary, fontWeight: 600 }}>{t('scope_all')}</span>
                           : (g.journey_name || '—')}
                       </td>
-                      <td style={td}>{formatDate(g.created_at, lang)}</td>
-                      <td style={{ ...td, textAlign: 'end' }}>
+                      <td data-label={t('col_created')} style={td}>{formatDate(g.created_at, lang)}</td>
+                      <td data-label="" style={{ ...td, textAlign: 'end' }}>
                         <button
                           onClick={() => revoke(g.id)}
                           style={{

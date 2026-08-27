@@ -344,7 +344,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('room.no_assignments')}</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
                     {[t('room.student'), t('form.from'), t('form.to'), t('room.status'), ''].map((h, i) => (
@@ -355,10 +355,10 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                 <tbody>
                   {assignments.map(a => (
                     <tr key={a.id}>
-                      <td style={td}>{a.student_name || a.student_hebrew_name || '—'}</td>
-                      <td style={td}>{a.assigned_from}</td>
-                      <td style={td}>{a.assigned_to || '—'}</td>
-                      <td style={td}>
+                      <td data-label={t('room.student')} style={td}>{a.student_name || a.student_hebrew_name || '—'}</td>
+                      <td data-label={t('form.from')} style={td}>{a.assigned_from}</td>
+                      <td data-label={t('form.to')} style={td}>{a.assigned_to || '—'}</td>
+                      <td data-label={t('room.status')} style={td}>
                         <span style={{
                           fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                           background: a.status === 'active' ? 'var(--accent-tint)' : 'var(--surface-2)',
@@ -367,7 +367,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                           {t(`status.${a.status}`)}
                         </span>
                       </td>
-                      <td style={{ ...td, textAlign: 'right' }}>
+                      <td data-label="" style={{ ...td, textAlign: 'right' }}>
                         {canManage && a.status === 'active' && (
                           <SubmitButton onClick={() => endAssignment(a)} loading={busy} style={{ background: 'none', border: 'none', color: '#D97706', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                             {t('room.end_assignment')}

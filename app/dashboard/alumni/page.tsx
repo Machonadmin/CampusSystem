@@ -128,7 +128,7 @@ export default function AlumniPage() {
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={th}>{t('list.col_name')}</th>
@@ -147,7 +147,7 @@ export default function AlumniPage() {
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                   >
-                    <td style={td}>
+                    <td data-label={t('list.col_name')} style={td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
@@ -162,9 +162,9 @@ export default function AlumniPage() {
                         <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
                       </div>
                     </td>
-                    <td style={td}>{a.graduation_year ?? '—'}</td>
-                    <td style={td}>{a.institution || '—'}</td>
-                    <td style={td}>{a.current_occupation || '—'}</td>
+                    <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
+                    <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
                   </tr>
                 )
               })}

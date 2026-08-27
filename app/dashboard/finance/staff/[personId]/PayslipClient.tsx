@@ -500,7 +500,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_entries')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       <th style={th}>{t('col_type')}</th>
@@ -512,10 +512,10 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                   <tbody>
                     {groups.map(g => (
                       <tr key={g.type}>
-                        <td style={td}>{t(`types.${g.type}`, g.type)}</td>
-                        <td style={tdNum}>{g.count}</td>
-                        <td style={tdNum}>{fmtHours(g.hours)}</td>
-                        <td style={tdNum}>{fmtMoney(g.amount)}</td>
+                        <td data-label={t('col_type')} style={td}>{t(`types.${g.type}`, g.type)}</td>
+                        <td data-label={t('col_count')} style={tdNum}>{g.count}</td>
+                        <td data-label={t('col_hours')} style={tdNum}>{fmtHours(g.hours)}</td>
+                        <td data-label={t('col_amount')} style={tdNum}>{fmtMoney(g.amount)}</td>
                       </tr>
                     ))}
                   </tbody>

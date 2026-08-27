@@ -578,7 +578,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
             {search || deptFilter ? t('no_results') : t('no_employees')}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
@@ -594,7 +594,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                   <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
-                    <td style={{ padding: '10px 14px' }}>
+                    <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         {emp.photo_url
                           // eslint-disable-next-line @next/next/no-img-element
@@ -614,21 +614,21 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
+                    <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
                       <div>{emp.position}</div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? '—'}</td>
-                    <td style={{ padding: '10px 14px' }}>
+                    <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
+                    <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
+                    <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? '—'}</td>
+                    <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
                         {t(`status.${statusKey}`, statusKey)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 14px' }}>
+                    <td data-label="" style={{ padding: '10px 14px' }}>
                       <RowActionsMenu
                         accentColor={getModuleColor('staff')}
                         actions={[

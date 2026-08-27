@@ -276,7 +276,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
           <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   <th style={th}>{t('list.name')}</th>
@@ -295,18 +295,18 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
-                    <td style={td}>
+                    <td style={td} data-label={t('list.name')}>
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.name}</div>
                       {s.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.contact_person}</div>}
                     </td>
-                    <td style={td}>
+                    <td style={td} data-label={t('list.type')}>
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--warn)' }}>
                         {t(`types.${s.sponsor_type}`)}
                       </span>
                     </td>
-                    <td style={td}>{s.phone || '—'}</td>
-                    <td style={tdNum}>{formatMoney(s.total_received)}</td>
-                    <td style={td}>
+                    <td style={td} data-label={t('list.phone')}>{s.phone || '—'}</td>
+                    <td style={tdNum} data-label={t('list.received')}>{formatMoney(s.total_received)}</td>
+                    <td style={td} data-label={t('list.status')}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                         background: s.is_active ? light : 'var(--surface-2)',

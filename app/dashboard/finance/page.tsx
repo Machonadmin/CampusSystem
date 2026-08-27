@@ -309,7 +309,7 @@ export default function FinancePage() {
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {selectMode && <th style={{ ...th, width: 36, textAlign: 'center' }} />}
@@ -333,11 +333,11 @@ export default function FinancePage() {
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                   >
                     {selectMode && (
-                      <td style={{ ...td, textAlign: 'center' }} onClick={e => { e.stopPropagation(); toggleSelect(s.journey_id) }}>
+                      <td data-label="" style={{ ...td, textAlign: 'center' }} onClick={e => { e.stopPropagation(); toggleSelect(s.journey_id) }}>
                         <input type="checkbox" checked={selected.has(s.journey_id)} readOnly style={{ cursor: 'pointer' }} />
                       </td>
                     )}
-                    <td style={td}>
+                    <td data-label={t('list.col_name')} style={td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
@@ -352,12 +352,12 @@ export default function FinancePage() {
                         <span style={{ fontWeight: 500 }}>{s.full_name || '—'}</span>
                       </div>
                     </td>
-                    <td style={tdNum}>{formatMoney(s.charges_total)}</td>
-                    <td style={tdNum}>{formatMoney(s.payments_total)}</td>
-                    <td style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
+                    <td data-label={t('list.col_charges')} style={tdNum}>{formatMoney(s.charges_total)}</td>
+                    <td data-label={t('list.col_payments')} style={tdNum}>{formatMoney(s.payments_total)}</td>
+                    <td data-label={t('list.col_balance')} style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
                       {formatMoney(s.balance)}
                     </td>
-                    <td style={td}>
+                    <td data-label={t('list.col_overdue')} style={td}>
                       {s.overdue_days != null && (
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, whiteSpace: 'nowrap',

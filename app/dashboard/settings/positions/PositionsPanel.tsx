@@ -157,7 +157,7 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
           </div>
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('table_position')}</th>
@@ -178,16 +178,16 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
                         onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                         onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                       >
-                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                        <td style={{ ...tdStyle, fontWeight: 500 }} data-label={t('table_position')}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : 0}deg)` }}>▶</span>
                             <span style={{ color: 'var(--text)', fontWeight: 600 }}>{pos.name_ru}</span>
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }}>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }} data-label={t('table_hebrew')}>
                           {pos.name_he ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
                         </td>
-                        <td style={tdStyle}>
+                        <td style={tdStyle} data-label={t('table_category')}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
                             background: catStyle.bg, color: catStyle.fg,
@@ -195,7 +195,7 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
                             {CATEGORY_LABELS[pos.category]}
                           </span>
                         </td>
-                        <td style={tdStyle}>
+                        <td style={tdStyle} data-label={t('table_status')}>
                           {pos.is_active
                             ? <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('status_active')}</span>
                             : <span style={{ color: 'var(--text-faint)' }}>{t('status_inactive')}</span>}
@@ -203,7 +203,7 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
                       </tr>
                       {open && (
                         <tr style={{ background: 'var(--surface-2)', opacity: pos.is_active ? 1 : 0.55 }}>
-                          <td colSpan={4} style={{ padding: '2px 16px 14px' }}>
+                          <td colSpan={4} data-label="" style={{ padding: '2px 16px 14px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <Detail label={t('table_teaching')} value={pos.is_teaching ? t('yes') : '—'} />
                               <Detail label={t('table_sort_order')} value={String(pos.sort_order)} />

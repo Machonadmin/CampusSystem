@@ -128,7 +128,7 @@ export default function StaffCompIndexClient() {
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={th}>{t('col_name')}</th>
@@ -144,7 +144,7 @@ export default function StaffCompIndexClient() {
                   onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--success-tint)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                 >
-                  <td style={td}>
+                  <td data-label={t('col_name')} style={td}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
@@ -163,7 +163,7 @@ export default function StaffCompIndexClient() {
                       </div>
                     </div>
                   </td>
-                  <td style={td}>{s.department ?? '—'}</td>
+                  <td data-label={t('col_department')} style={td}>{s.department ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
