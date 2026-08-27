@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import {
   requireEducationPrivilege,
   hasEducationPrivilege,
@@ -99,6 +100,23 @@ export async function GET(request: NextRequest) {
     const personId = params.get('person_id')
     const deptFilter = params.get('department_id')
     const mainGroupId = params.get('main_group_id')
+    // Каталог по маршруту/году (owner: фильтр студенток = «מסלול + שנה»).
+    const trackFilter = params.get('track_id')
+    const yearLevelRaw = params.get('year_level')
+    const yearLevelFilter = yearLevelRaw && Number.isFinite(Number(yearLevelRaw)) ? Number(yearLevelRaw) : null
+
+    // Маршрут хранится в journey_study_tracks (1 строка на journey) — переводим
+    // фильтр по маршруту в набор journey_id. Пусто → сразу пустой список.
+    let trackJourneyIds: string[] | null = null
+    if (trackFilter) {
+      const { data: tjRows, error: tjErr } = await sb
+        .from('journey_study_tracks')
+        .select('journey_id')
+        .eq('track_id', trackFilter)
+      if (tjErr && !isMissingRelation(tjErr)) throw tjErr
+      trackJourneyIds = [...new Set((tjRows ?? []).map(r => r.journey_id))]
+      if (trackJourneyIds.length === 0) return NextResponse.json({ journeys: [] })
+    }
 
     let myDepts: string[] | null = null
     if (scope === 'department') {
@@ -144,6 +162,8 @@ export async function GET(request: NextRequest) {
           : qb.eq('desired_department_id', deptFilter)
       }
       if (mainGroupId) qb = qb.eq('main_group_id', mainGroupId)
+      if (yearLevelFilter != null) qb = qb.eq('year_level', yearLevelFilter)
+      if (trackJourneyIds) qb = qb.in('id', trackJourneyIds)
       if (ownJourneyIds) qb = qb.in('id', ownJourneyIds)
       if (myDepts) {
         if (scopedByPrimary) {

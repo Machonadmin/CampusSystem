@@ -135,11 +135,16 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      {/* KPI */}
+      {/* KPI. Owner: пустые нули не показываем — карточка с 0 скрывается,
+          КРОМЕ «уроки сегодня» (единственный ноль, который сам по себе информация). */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 11 }}>
-        <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" onClick={onOpenStudents} />
+        {(loading || (studentsCount ?? 0) > 0) && (
+          <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" onClick={onOpenStudents} />
+        )}
         <Kpi value={loading ? '…' : String(todaySlots.length)} label={t('kpi_lessons_today')} tone="info" href="/dashboard/education/timetable" />
-        <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone={pending.length ? 'warn' : 'muted'} href="/dashboard/education/track-assignment" />
+        {(loading || pending.length > 0) && (
+          <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone="warn" href="/dashboard/education/track-assignment" />
+        )}
       </div>
 
       {/* Пусковая панель вынесена в отдельный раздел «פעולות» (owner: дашборд =
@@ -209,7 +214,9 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: 13 }} className="dash-grid">
+      {/* Owner: пустые блоки не показываем — карточка «ждут распределения»
+          скрывается при нуле; расписание остаётся всегда (исключение — уроки). */}
+      <div style={{ display: 'grid', gridTemplateColumns: !loading && pending.length === 0 ? 'minmax(0, 1fr)' : 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: 13 }} className="dash-grid">
         {/* Сегодняшнее расписание */}
         <div style={card}>
           <h5 style={cardHead}>
@@ -241,7 +248,8 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
           )}
         </div>
 
-        {/* Ждут распределения */}
+        {/* Ждут распределения — скрыто целиком, когда нет ожидающих (owner). */}
+        {(loading || pending.length > 0) && (
         <div style={card}>
           <h5 style={cardHead}>
             {t('pending_title')}
@@ -249,8 +257,6 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
           </h5>
           {loading ? (
             <SkeletonRows rows={4} />
-          ) : pending.length === 0 ? (
-            <Empty text={t('pending_none')} />
           ) : (
             <div>
               {pending.slice(0, 5).map(p => (
@@ -272,6 +278,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
             </div>
           )}
         </div>
+        )}
       </div>
 
       <style>{`@media (max-width: 640px){ .dash-grid{ grid-template-columns: 1fr !important; } }`}</style>
@@ -340,11 +347,14 @@ const LIC = {
   alert: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
 }
 
-// Дедуп (запрос владельца): убраны дубли рельса StudyTab (תלמידות / קבוצות סמסטר /
-// הגדרות — они в рельсе слева), «מערכת שעות»/«היום שלי» (живут на главной), и
-// «קהילות» (не относится к «Учёбе»). Остаются ярлыки на то, чего нет в рельсе.
+// Дедуп (запрос владельца, вторая итерация): «פעולות» = ТОЛЬКО ежедневные
+// действия, одной плоской сеткой без под-заголовков. Убраны дубли и настройки:
+//   • «סמסטרים» — есть в рельсе слева (и вёл на ЛЕГАСИ-страницу старой таблицы);
+//   • «מקצועות» — есть в «הגדרות» (тот же экран);
+//   • «מבנה יחידות», «יחידות לימוד» — конфигурация → перенесены в «הגדרות».
+// Ничего не удалено из системы — только из этой панели.
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
-  { key: 'launch_students', fb: 'תלמידות ומבנה', items: [
+  { key: 'launch_actions_flat', fb: '', items: [
     { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
     { key: 'launch_tracks', fb: 'שיבוץ מסלולים', icon: LIC.map, href: '/dashboard/education/track-assignment', acc: 'tracks' },
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
@@ -355,12 +365,6 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     // Единое имя «חברותא» (тот же адрес, что и пункт «חברותא» в боковом меню) —
     // раньше здесь было «מרכז חברותא», что путало (owner: «תאחד את זה לחברותא»).
     { key: 'launch_chavruta_hub', fb: 'חברותא', icon: LIC.users, href: '/dashboard/education/chavruta', acc: 'chavruta' },
-  ] },
-  { key: 'launch_admin', fb: 'ניהול ותצורה', items: [
-    { key: 'launch_subjects', fb: 'מקצועות', icon: LIC.cap, href: '/dashboard/education/subjects', acc: 'structure' },
-    { key: 'launch_semesters', fb: 'סמסטרים', icon: LIC.cal, href: '/dashboard/education/semesters', acc: 'semesters' },
-    { key: 'launch_structure', fb: 'מבנה יחידות', icon: LIC.bld, href: '/dashboard/education/structure', acc: 'structure' },
-    { key: 'launch_units', fb: 'יחידות לימוד', icon: LIC.grid, href: '/dashboard/education/units', acc: 'units' },
     { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports', acc: 'reports' },
   ] },
 ]
@@ -387,12 +391,15 @@ export function Launcher({ t, access }: { t: ReturnType<typeof useTranslations>;
     <div style={{ display: 'grid', gap: 16 }}>
       {groups.map(g => (
         <div key={g.key}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 2px 9px' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>{t(g.key, g.fb)}</span>
-            {g.badge && (
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--accent-strong)', background: 'var(--accent-tint)', padding: '2px 8px', borderRadius: 999 }}>{t(g.key + '_badge', g.badge)}</span>
-            )}
-          </div>
+          {/* Под-заголовок группы — только если задан (плоская сетка без него). */}
+          {g.fb && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 2px 9px' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>{t(g.key, g.fb)}</span>
+              {g.badge && (
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--accent-strong)', background: 'var(--accent-tint)', padding: '2px 8px', borderRadius: 999 }}>{t(g.key + '_badge', g.badge)}</span>
+              )}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: 10 }}>
             {g.items.map(it => <LaunchCard key={it.key} it={it} label={t(it.key, it.fb)} />)}
           </div>

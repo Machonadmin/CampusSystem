@@ -9,9 +9,10 @@ import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Caret } from '@/components/ui/Caret'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { yearLevelLabel } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
 
-interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
 interface StudyGroup { id: string; name: string; department_id: string }
 
 /** Статусы учебного цикла (education_status в education_journeys). */
@@ -66,6 +67,9 @@ export default function StudentsTab() {
   const [filterDept, setFilterDept] = useState('')
   const [filterGroup, setFilterGroup] = useState('')
   const [filterStatus, setFilterStatus] = useState('')  // '' = active+on_leave
+  // Каталог по маршруту и году (owner: «הפילטר שאני רוצה זה קטלוג על פי מסלולים»).
+  const [filterTrack, setFilterTrack] = useState('')
+  const [filterYear, setFilterYear] = useState('')
 
   const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
   // Фильтры (подразделение/группа/статус) свёрнуты за одной кнопкой «Фильтры»,
@@ -106,6 +110,8 @@ export default function StudentsTab() {
       if (q) params.set('search', q)
       if (filterDept) params.set('department_id', filterDept)
       if (filterGroup) params.set('main_group_id', filterGroup)
+      if (filterTrack) params.set('track_id', filterTrack)
+      if (filterYear) params.set('year_level', filterYear)
       // Фильтр статуса → набор education_status учебного цикла.
       const statusSet =
         filterStatus === 'active' ? 'student'
@@ -122,7 +128,7 @@ export default function StudentsTab() {
     } finally {
       setLoading(false)
     }
-  }, [filterDept, filterGroup, filterStatus, t])
+  }, [filterDept, filterGroup, filterStatus, filterTrack, filterYear, t])
 
   // Загрузка справочников один раз
   useEffect(() => {
@@ -130,7 +136,10 @@ export default function StudentsTab() {
       fetch('/api/settings/departments').then(r => r.ok ? r.json() : []),
       fetch('/api/education/study-groups?active_only=false').then(r => r.ok ? r.json() : { study_groups: [] }),
     ]).then(([dJson, gJson]) => {
-      setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
+      // Только учебные заведения (owner: «אוכל» и «אבטחה» в фильтре студенток —
+      // мусор). Поле false/undefined → не учебное → в фильтр не попадает.
+      const allDepts: Department[] = Array.isArray(dJson) ? dJson : (dJson.departments ?? [])
+      setDepartments(allDepts.filter(d => d.is_educational_institution === true))
       setStudyGroups((gJson.study_groups ?? []).map((g: { id: string; name: string; department_id: string }) => ({
         id: g.id, name: g.name, department_id: g.department_id,
       })))
@@ -303,6 +312,7 @@ export default function StudentsTab() {
 
   // Сколько фильтров активно — показываем счётчиком на кнопке «Фильтры».
   const activeFilters = (filterDept ? 1 : 0) + (filterGroup ? 1 : 0) + (filterStatus ? 1 : 0)
+    + (filterTrack ? 1 : 0) + (filterYear ? 1 : 0)
 
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
@@ -375,6 +385,15 @@ export default function StudentsTab() {
       {/* Свёрнутые фильтры — открываются по кнопке «Фильтры». */}
       {filtersOpen && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
+          {/* Каталог: маршрут + год — первыми (owner). */}
+          <select value={filterTrack} onChange={e => setFilterTrack(e.target.value)} style={inp}>
+            <option value="">{t('students.all_tracks')}</option>
+            {tracks.map(tk => <option key={tk.id} value={tk.id}>{tk.name}</option>)}
+          </select>
+          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} style={inp}>
+            <option value="">{t('students.all_years')}</option>
+            {[1, 2, 3, 4].map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
+          </select>
           <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
             <option value="">{t('students.all_departments')}</option>
             {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
@@ -396,7 +415,7 @@ export default function StudentsTab() {
           {activeFilters > 0 && (
             <button
               type="button"
-              onClick={() => { setFilterDept(''); setFilterGroup(''); setFilterStatus('') }}
+              onClick={() => { setFilterDept(''); setFilterGroup(''); setFilterStatus(''); setFilterTrack(''); setFilterYear('') }}
               style={{ padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--accent-strong)', fontWeight: 600, fontFamily: 'inherit' }}
             >
               {t('students.filters_clear')}
