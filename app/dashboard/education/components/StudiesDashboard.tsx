@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import CountUp from '@/components/ui/CountUp'
 
 /**
  * Дашборд области «Учёба» — приборная панель, которую секретарь колледжа видит
@@ -161,11 +162,11 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
           КРОМЕ «уроки сегодня» (единственный ноль, который сам по себе информация). */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 11 }}>
         {(loading || (studentsCount ?? 0) > 0) && (
-          <Kpi value={loading ? '…' : String(studentsCount ?? 0)} label={t('kpi_students')} tone="accent" onClick={onOpenStudents} />
+          <Kpi value="…" num={loading ? undefined : (studentsCount ?? 0)} label={t('kpi_students')} tone="accent" onClick={onOpenStudents} />
         )}
-        <Kpi value={loading ? '…' : String(todaySlots.length)} label={t('kpi_lessons_today')} tone="info" href="/dashboard/education/timetable" />
+        <Kpi value="…" num={loading ? undefined : todaySlots.length} label={t('kpi_lessons_today')} tone="info" href="/dashboard/education/timetable" />
         {(loading || pending.length > 0) && (
-          <Kpi value={loading ? '…' : String(pending.length)} label={t('kpi_pending')} tone="warn" href="/dashboard/education/track-assignment" />
+          <Kpi value="…" num={loading ? undefined : pending.length} label={t('kpi_pending')} tone="warn" href="/dashboard/education/track-assignment" />
         )}
       </div>
 
@@ -330,8 +331,8 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
   )
 }
 
-function Kpi({ value, label, tone, href, onClick }: {
-  value: string; label: string; tone: 'accent' | 'info' | 'warn' | 'muted'
+function Kpi({ value, num, label, tone, href, onClick }: {
+  value: string; num?: number; label: string; tone: 'accent' | 'info' | 'warn' | 'muted'
   href?: string; onClick?: () => void
 }) {
   const color = tone === 'accent' ? 'var(--accent-strong)' : tone === 'info' ? 'var(--info)' : tone === 'warn' ? 'var(--warn)' : 'var(--text)'
@@ -345,7 +346,9 @@ function Kpi({ value, label, tone, href, onClick }: {
   const leave = (el: HTMLElement) => { el.style.borderColor = 'var(--border)'; el.style.boxShadow = 'none' }
   const inner = (
     <>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 750, lineHeight: 1, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{value}</div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 750, lineHeight: 1, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>
+        {num != null ? <CountUp value={num} /> : value}
+      </div>
       <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6 }}>{label}</div>
     </>
   )
