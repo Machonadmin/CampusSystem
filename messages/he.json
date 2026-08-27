@@ -924,7 +924,8 @@
         "launch_structure": "מבנה יחידות",
         "launch_subjects": "מקצועות",
         "launch_units": "יחידות לימוד",
-        "launch_reports": "דוחות"
+        "launch_reports": "דוחות",
+        "launch_teachers": "מורים"
       },
       "tabs": {
         "subjects": "מקצועות",
@@ -1942,6 +1943,12 @@
       "resolution": "סיכום",
       "resolution_ph": "איך טופל",
       "do_resolve": "סגור טיפול"
+    },
+    "teachers_hub": {
+      "title": "מורים",
+      "subtitle": "שעות הוראה ונוכחות מורים במקום אחד",
+      "tab_hours": "שעות",
+      "tab_attendance": "נוכחות"
     }
   },
   "tasks": {

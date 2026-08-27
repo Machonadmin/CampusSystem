@@ -44,21 +44,14 @@ export async function POST(request: NextRequest) {
     const action = body.action ?? 'auto'
     const sb = createServerClient()
 
-    // ── Тихий авто-переход при заходе на дашборд ──
+    // ── Авто-переход ОТКЛЮЧЁН (owner: «סיכמנו שזה יהיה מבוטל כרגע ולא יעברו
+    // לי שנה»). Дашборд его больше не вызывает; этот no-op — страховка, чтобы
+    // никакой старый клиент/скрипт не сдвинул год автоматически. Год двигается
+    // только вручную (action='run', экран «מעבר שנה»).
     if (action === 'auto') {
       const session = await getSession()
       if (!session) return apiError('unauthorized', 401)
-      const allowed =
-        (await canDoEducationInAny(session, 'manage_students')) ||
-        (await canDoEducationInAny(session, 'view_students'))
-      if (!allowed) return apiError('forbidden', 403)
-      try {
-        const result = await runYearRollover(sb, { manual: false })
-        return NextResponse.json(result)
-      } catch {
-        // Миграция ещё не применена и т.п. — не роняем дашборд.
-        return NextResponse.json({ ran: false, promoted: 0, graduated: 0 })
-      }
+      return NextResponse.json({ ran: false, promoted: 0, graduated: 0, disabled: true })
     }
 
     // ── Ручной запуск / сохранение настроек — только manage ──

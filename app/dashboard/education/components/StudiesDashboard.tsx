@@ -59,14 +59,8 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
 
-  // Авто-переход учебного года: тихая идемпотентная проверка при заходе.
-  // Выполняется максимум раз в год после заданной даты; иначе — мгновенный no-op.
-  useEffect(() => {
-    fetch('/api/education/year-rollover', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'auto' }),
-    }).catch(() => {})
-  }, [])
+  // Авто-переход учебного года ОТКЛЮЧЁН (owner: «סיכמנו שזה יהיה מבוטל כרגע
+  // ולא יעברו לי שנה») — год двигается только вручную с экрана «מעבר שנה».
 
   useEffect(() => {
     let alive = true
@@ -360,8 +354,8 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
     // который появляется ровно тогда, когда есть кого распределять.
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
-    { key: 'launch_teachers_hours', fb: 'מורים ושעות', icon: LIC.users, href: '/dashboard/education/teachers-hours', acc: 'teachers_hours' },
-    { key: 'launch_teacher_attendance', fb: 'נוכחות מורים', icon: LIC.check, href: '/dashboard/education/teacher-attendance', acc: 'teacher_attendance' },
+    // Объединённая «מורים» (часы + посещаемость) вместо двух карточек.
+    { key: 'launch_teachers', fb: 'מורים', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
     { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
     // «חברותא» убрана (owner: дубль): модуль «חברותא» есть в главном боковом

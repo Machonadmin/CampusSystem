@@ -19,7 +19,9 @@ function dayName(lang: string, iso: number): string {
   return d.toLocaleDateString(loc, { weekday: 'short', timeZone: 'UTC' })
 }
 
-export default function TeachersHoursClient() {
+// embedded=true — рендер внутри объединённой страницы «מורים» (без хлебных
+// крошек и своего заголовка: они у обёртки TeachersClient).
+export default function TeachersHoursClient({ embedded = false }: { embedded?: boolean } = {}) {
   const t = useTranslations('education.teachers_hours')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
@@ -41,17 +43,21 @@ export default function TeachersHoursClient() {
   const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '11px 14px', borderBottom: '1px solid var(--surface-2)' }
 
   return (
-    <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        { label: t('title') },
-      ]} />
+    <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
+      {!embedded && (
+        <>
+          <Breadcrumb items={[
+            { label: tNav('home'), href: '/dashboard' },
+            { label: tNav('education'), href: '/dashboard/education' },
+            { label: t('title') },
+          ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-      </div>
+          <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 12, padding: '16px 24px', color: '#fff', boxShadow: '0 2px 8px rgba(16,185,129,0.15)' }}>
+            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
+          </div>
+        </>
+      )}
 
       {!loaded ? (
         <SkeletonRows />
