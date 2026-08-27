@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
 import PersonsClient from './PersonsClient'
 
 /**
@@ -17,7 +16,6 @@ export default async function PersonsPage() {
   const canView = await hasPersonsPrivilege(session, 'view')
   if (!canView) redirect('/dashboard')
 
-  const canViewStudentCards = await hasEducationPrivilege(session, 'view_students')
 
-  return <PersonsClient canViewStudentCards={canViewStudentCards} />
+  return <PersonsClient />
 }

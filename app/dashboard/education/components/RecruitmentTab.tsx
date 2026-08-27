@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import QuickLeadModal from './QuickLeadModal'
 import RecruitmentSummary from './RecruitmentSummary'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -32,7 +33,8 @@ export default function RecruitmentTab() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
-  const [addOpen, setAddOpen] = useState(false)
+  // 'quick' — короткая форма (по умолчанию); 'full' — старый 6-шаговый мастер.
+  const [addOpen, setAddOpen] = useState<null | 'quick' | 'full'>(null)
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
@@ -98,7 +100,14 @@ export default function RecruitmentTab() {
 
   function handleLeadSort(key: LeadSortKey) {
     if (sortBy === key) {
-      setSortOrder(o => o === 'asc' ? 'desc' : 'asc')
+      if (sortOrder === 'asc') {
+        setSortOrder('desc')
+      } else {
+        // Третий клик возвращает сортировку по умолчанию (новые лиды сверху) —
+        // раньше к ней нельзя было вернуться после клика по имени.
+        setSortBy('application_date')
+        setSortOrder('desc')
+      }
     } else {
       setSortBy(key)
       setSortOrder('asc')
@@ -202,7 +211,7 @@ export default function RecruitmentTab() {
         </button>
         <PageActionButton
           label={t('leads.create_button')}
-          onClick={() => setAddOpen(true)}
+          onClick={() => setAddOpen('quick')}
           accentColor={getModuleColor('education')}
         />
         <button
@@ -501,8 +510,15 @@ export default function RecruitmentTab() {
         </Modal>
       )}
 
-      {addOpen && (
-        <EducationJourneyForm mode="lead" onClose={() => setAddOpen(false)} onSaved={() => { setAddOpen(false); loadLeads() }} />
+      {addOpen === 'quick' && (
+        <QuickLeadModal
+          onClose={() => setAddOpen(null)}
+          onSaved={() => { setAddOpen(null); loadLeads() }}
+          onFullForm={() => setAddOpen('full')}
+        />
+      )}
+      {addOpen === 'full' && (
+        <EducationJourneyForm mode="lead" onClose={() => setAddOpen(null)} onSaved={() => { setAddOpen(null); loadLeads() }} />
       )}
     </>
   )
