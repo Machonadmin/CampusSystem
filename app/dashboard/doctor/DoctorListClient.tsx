@@ -30,7 +30,9 @@ interface FollowUp {
   days_until: number | null
 }
 
-export default function DoctorListClient({ canManage }: { canManage: boolean }) {
+// embedded=true — рендер внутри объединённой страницы «Здоровье» (без хлебных
+// крошек и своего заголовка: они у обёртки HealthClient).
+export default function DoctorListClient({ canManage, embedded = false }: { canManage: boolean; embedded?: boolean }) {
   const router = useRouter()
   const t = useTranslations('doctor')
   const tNav = useTranslations('navigation')
@@ -105,21 +107,24 @@ export default function DoctorListClient({ canManage }: { canManage: boolean }) 
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
+    <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
+      {!embedded && (
+        <>
+          <Breadcrumb items={[
+            { label: tNav('home'), href: '/dashboard' },
+            { label: t('title') },
+          ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('doctor'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
-      </div>
+          <div style={{
+            background: getModuleHeaderGradient('doctor'),
+            borderRadius: 12, padding: '16px 24px', color: '#fff',
+            boxShadow: '0 2px 8px rgba(5,150,105,0.15)',
+          }}>
+            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
+            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
+          </div>
+        </>
+      )}
 
       {/* Очередь направлений «Направленные к врачу» — показывается только при наличии */}
       <MedicalReferrals />

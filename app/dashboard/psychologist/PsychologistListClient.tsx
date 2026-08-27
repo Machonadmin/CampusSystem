@@ -37,7 +37,9 @@ const RISK_STYLE: Record<string, { bg: string; color: string }> = {
   high:   { bg: 'var(--danger-tint)', color: 'var(--danger)' },
 }
 
-export default function PsychologistListClient({ canManage }: { canManage: boolean }) {
+// embedded=true — рендер внутри объединённой страницы «Здоровье» (без хлебных
+// крошек и своего заголовка: они у обёртки HealthClient).
+export default function PsychologistListClient({ canManage, embedded = false }: { canManage: boolean; embedded?: boolean }) {
   const router = useRouter()
   const t = useTranslations('psychologist')
   const tNav = useTranslations('navigation')
@@ -112,21 +114,24 @@ export default function PsychologistListClient({ canManage }: { canManage: boole
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
+    <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
+      {!embedded && (
+        <>
+          <Breadcrumb items={[
+            { label: tNav('home'), href: '/dashboard' },
+            { label: t('title') },
+          ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('psychologist'),
-        borderRadius: 12, padding: '16px 24px', color: '#fff',
-        boxShadow: '0 2px 8px rgba(124,58,237,0.15)',
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
-      </div>
+          <div style={{
+            background: getModuleHeaderGradient('psychologist'),
+            borderRadius: 12, padding: '16px 24px', color: '#fff',
+            boxShadow: '0 2px 8px rgba(124,58,237,0.15)',
+          }}>
+            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
+            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.subtitle')}</div>
+          </div>
+        </>
+      )}
 
       {/* Очередь направлений «Направленные к психологу» — показывается только при наличии */}
       <PsychReferrals />

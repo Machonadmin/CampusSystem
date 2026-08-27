@@ -274,6 +274,17 @@ export default function Sidebar() {
         .filter((m): m is ModuleItem => !!m)
         .filter(m => canAccess(m.key)),
     }))
+    // «Здоровье»: рофэ + психолог схлопываются в ОДИН пункт (owner-декластеризация).
+    // Пункт виден, если доступен хотя бы один из двух модулей; страница
+    // /dashboard/health сама разрулит (оба → вкладки, один → редирект в него).
+    .map(group => {
+      const firstIdx = group.items.findIndex(m => m.key === 'doctor' || m.key === 'psychologist')
+      if (firstIdx === -1) return group
+      const health = { key: 'health', href: '/dashboard/health', icon: group.items[firstIdx].icon } as unknown as ModuleItem
+      const rebuilt: ModuleItem[] = group.items.filter(m => m.key !== 'doctor' && m.key !== 'psychologist')
+      rebuilt.splice(Math.min(firstIdx, rebuilt.length), 0, health)
+      return { ...group, items: rebuilt }
+    })
     .filter(section => section.items.length > 0)
 
   // Группа активного маршрута — открывается по умолчанию; при смене маршрута
@@ -442,13 +453,17 @@ export default function Sidebar() {
                 const href = item.key === 'chavruta' && !isChavrutaTeacher
                   ? '/dashboard/education/chavruta'
                   : item.href
+                // «Здоровье» подсвечивается и на старых адресах рофэ/психолога.
+                const active = (item.key as string) === 'health'
+                  ? ['/dashboard/health', '/dashboard/doctor', '/dashboard/psychologist'].some(p => pathname.startsWith(p))
+                  : isActive(href)
                 return [(
                   <SidebarNavLink
                     key={item.key}
                     href={href}
                     iconPath={item.icon}
                     label={t.nav[item.key]}
-                    active={isActive(href)}
+                    active={active}
                     isOpen={isOpen}
                     isRTL={isRTL}
                     moduleKey={item.key}
