@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/validation'
@@ -49,7 +50,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   const t = useTranslations('documents')
   const tCommon = useTranslations('common')
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
 
   const [docs, setDocs] = useState<Doc[]>([])
   const [loading, setLoading] = useState(true)

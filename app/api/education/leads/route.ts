@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { phoneList } from '@/lib/persons/phone'
 import type { StartProcessResult } from '@/lib/workflow/start-process'
@@ -276,7 +277,7 @@ export async function POST(request: NextRequest) {
       }
       journeyId = existingJourney.id
     } else {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = todayISO()
       const journeyInsert: EducationJourneyInsert = {
         person_id: personId,
         education_status: 'lead',

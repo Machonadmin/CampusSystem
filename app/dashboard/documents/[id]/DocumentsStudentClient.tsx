@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -37,7 +38,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   const primary = getModuleColor('documents', 'primary')
   const light = getModuleColor('documents', 'light')
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
 
   const [docs, setDocs] = useState<Doc[]>([])
   const [loading, setLoading] = useState(true)

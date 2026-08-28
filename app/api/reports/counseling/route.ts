@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { requireReportsPrivilege } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
@@ -26,7 +27,7 @@ export async function GET() {
     await requireReportsPrivilege('view')
     const sb = createServerClient()
 
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
 
     const sessions = await pageAll<{ status: string; follow_up_date: string | null }>((from, to) =>
       sb

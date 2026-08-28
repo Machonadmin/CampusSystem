@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit, GRANTABLE_EDUCATION_PRIVILEGES } from '@/lib/education/unit-access'
 import { getCookieLocale } from '@/lib/i18n/locale'
@@ -27,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
     const sb = createServerClient()
 
     // Активные позиции в единице.
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const { data: positions } = await sb
       .from('staff_positions')
       .select('id, person_id, position_he, position_ru, is_head, end_date')
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
       const { error: posErr } = await sb.from('staff_positions').insert({
         person_id: personId, department_id: params.unitId,
         position_ru: posLabel.ru, position_he: posLabel.he, position_id: null,
-        is_head: false, start_date: new Date().toISOString().slice(0, 10), end_date: null,
+        is_head: false, start_date: todayISO(), end_date: null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       if (posErr) throw posErr

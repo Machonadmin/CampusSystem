@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 
@@ -18,7 +19,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { unitId: 
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
 
     // Нельзя убрать главу единицы через эту панель.
     const { data: positions } = await sb.from('staff_positions')

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit, isGrantablePrivilege, getHeadedUnitIds } from '@/lib/education/unit-access'
 import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
@@ -23,7 +24,7 @@ export async function PUT(request: NextRequest, { params }: { params: { unitId: 
     const sb = createServerClient()
 
     // Цель — активный член именно этой единицы.
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const { data: pos } = await sb.from('staff_positions')
       .select('id, end_date').eq('person_id', params.personId).eq('department_id', params.unitId)
     const isMember = (pos ?? []).some(p => {

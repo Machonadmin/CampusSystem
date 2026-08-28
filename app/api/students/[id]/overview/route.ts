@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { hasDormitoryPrivilege } from '@/lib/dormitory/permissions'
@@ -265,7 +266,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       hasDocumentsPrivilege(session, 'view'),
     ])
 
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
 
     // 4. Данные разрешённых секций — параллельно. Null, если нет права ИЛИ данных.
     const [finance, dormitory, food, medical, counseling, documents] = await Promise.all([

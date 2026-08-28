@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
@@ -99,7 +100,7 @@ export async function getUserDepartmentIds(personId: string): Promise<string[]> 
   if (cached) return cached.departmentIds
 
   const sb = createServerClient()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
   const { data, error } = await sb
     .from('staff_positions')
     .select('department_id, end_date')

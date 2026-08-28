@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       reason?: string; effective_from?: string; effective_to?: string
     }
     const reason = (body.reason ?? '').trim() || null
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const effectiveFrom = (body.effective_from ?? '').trim() || today
     const effectiveTo = (body.effective_to ?? '').trim() || null
     if (effectiveTo !== null && effectiveTo < effectiveFrom) {

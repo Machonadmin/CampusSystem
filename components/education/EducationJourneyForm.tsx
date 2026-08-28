@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
@@ -154,7 +155,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const [mainGroupId, setMainGroupId] = useState<string | null>(null)
   const [yearLevel, setYearLevel] = useState<string>('')
   const [yearStart, setYearStart] = useState<string>('')
-  const [enrolledAt, setEnrolledAt] = useState<string>(() => new Date().toISOString().slice(0, 10))
+  const [enrolledAt, setEnrolledAt] = useState<string>(() => todayISO())
 
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [specialties, setSpecialties] = useState<{ id: string; name: string; department_id: string }[]>([])
@@ -368,7 +369,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setMainGroupId(null)
     setYearLevel('')
     setYearStart('')
-    setEnrolledAt(new Date().toISOString().slice(0, 10))
+    setEnrolledAt(todayISO())
   }
 
   async function loadPersonData(id: string) {

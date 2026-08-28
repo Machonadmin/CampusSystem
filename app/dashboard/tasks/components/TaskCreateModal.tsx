@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -42,7 +43,7 @@ const PRIORITY_COLORS: Record<typeof PRIORITY_VALUES[number], string> = {
   urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-muted)',
 }
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => todayISO()
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 

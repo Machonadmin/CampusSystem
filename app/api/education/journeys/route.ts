@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import {
   requireEducationPrivilege,
@@ -403,7 +404,7 @@ export async function POST(request: NextRequest) {
     const insert: EducationJourneyInsert = {
       person_id: personId,
       education_status: status,
-      opened_at: body.opened_at ?? new Date().toISOString().slice(0, 10),
+      opened_at: body.opened_at ?? todayISO(),
       closed_at: null,
       application_date: body.application_date ?? null,
       interview_date: null,
