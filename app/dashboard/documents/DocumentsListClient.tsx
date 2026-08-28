@@ -122,7 +122,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
             <WorklistColumn
               heading={t('expiring.expired')}
-              accent="#DC2626"
+              accent="var(--danger)"
               items={expired}
               emptyLabel={t('expiring.none')}
               dueLabel={t('fields.expiry_date')}
