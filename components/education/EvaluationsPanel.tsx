@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
 import { getModuleColor } from '@/lib/module-colors'
+import { toast } from '@/components/ui/toast'
 
 interface Evaluation { id: string; body: string; created_at: string; author: string | null }
 
@@ -14,6 +15,7 @@ interface Evaluation { id: string; body: string; created_at: string; author: str
  */
 export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education.evaluations')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const accent = getModuleColor('education')
 
@@ -40,6 +42,7 @@ export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: text }),
       })
       if (res.ok) { setBody(''); load() }
+      else { const b = await res.json().catch(() => ({})); toast(b.error ?? tCommon('action_failed'), 'error') }
     } finally { setSaving(false) }
   }
 

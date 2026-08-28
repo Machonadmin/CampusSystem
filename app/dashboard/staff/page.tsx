@@ -301,6 +301,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
   refreshSignal: number
 }) {
   const tStaff = useTranslations('staff')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [expanded, setExpanded] = useState(true)
   const [staffOpen, setStaffOpen] = useState(false)
@@ -314,9 +315,9 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
     fetch(`/api/settings/departments/${node.id}/staff`)
       .then(r => r.ok ? r.json() : [])
       .then((d: StaffMember[]) => setStaff(d))
-      .catch(() => setStaff([]))
+      .catch(() => { setStaff([]); toast(tCommon('load_error'), 'error') })
       .finally(() => setStaffLoading(false))
-  }, [staffOpen, node.id, refreshSignal])
+  }, [staffOpen, node.id, refreshSignal, tCommon])
 
   async function deactivateMember(member: StaffMember) {
     if (!(await confirmDialog({ message: `${tStaff('deactivate_confirm_q1')} "${member.full_name}" (${member.position_ru})?\n\n${tStaff('deactivate_confirm_q2')}`, tone: 'danger' }))) return
@@ -326,6 +327,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
       body: JSON.stringify({ end_date: today }),
     })
     if (res.ok) setStaff(prev => prev.filter(s => s.id !== member.id))
+    else { const b = await res.json().catch(() => ({})); toast(b.error ?? tCommon('action_failed'), 'error') }
   }
 
   const btnBase: React.CSSProperties = { padding: '3px 8px', borderRadius: 5, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500 }
@@ -443,7 +445,7 @@ function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaf
             fetch(`/api/settings/departments/${node.id}/staff`)
               .then(r => r.ok ? r.json() : [])
               .then((d: StaffMember[]) => setStaff(d))
-              .catch(() => setStaff([]))
+              .catch(() => { setStaff([]); toast(tCommon('load_error'), 'error') })
               .finally(() => setStaffLoading(false))
           }}
         />
@@ -532,10 +534,11 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       if (deptFilter) params.set('department', deptFilter)
       const res = await fetch(`/api/staff?${params}`)
       if (res.ok) setEmployees(await res.json())
+      else toast(tCommon('load_error'), 'error')
       setLoading(false)
     }, search ? 250 : 0)
     return () => clearTimeout(handle)
-  }, [search, deptFilter, refreshSignal, localRefresh])
+  }, [search, deptFilter, refreshSignal, localRefresh, tCommon])
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
     if (!(await confirmDialog({ message: `${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`, tone: 'danger' }))) return

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import AttendancePanel from './AttendancePanel'
 import type { LessonItem } from './LessonsJournalTab'
@@ -44,6 +45,7 @@ function hhmm(t: string | null): string {
 
 export default function TeacherDashboard() {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const [lessons, setLessons] = useState<MyLesson[] | null>(null)
   const [groups, setGroups] = useState<MyGroup[] | null>(null)
   // Урок, открытый для отметки посещаемости ПРЯМО ЗДЕСЬ (раньше клик уводил на
@@ -54,18 +56,18 @@ export default function TeacherDashboard() {
 
   const loadLessons = useCallback(() => {
     fetch(`/api/education/my-lessons?date=${today}`)
-      .then(r => (r.ok ? r.json() : { lessons: [] }))
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(b => setLessons((b.lessons ?? []) as MyLesson[]))
-      .catch(() => setLessons([]))
-  }, [today])
+      .catch(() => { setLessons([]); toast(tCommon('load_error'), 'error') })
+  }, [today, tCommon])
 
   useEffect(() => {
     loadLessons()
     fetch('/api/education/my-groups')
-      .then(r => (r.ok ? r.json() : { groups: [] }))
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(b => setGroups((b.groups ?? []) as MyGroup[]))
-      .catch(() => setGroups([]))
-  }, [loadLessons])
+      .catch(() => { setGroups([]); toast(tCommon('load_error'), 'error') })
+  }, [loadLessons, tCommon])
 
   const card: React.CSSProperties = {
     background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16,

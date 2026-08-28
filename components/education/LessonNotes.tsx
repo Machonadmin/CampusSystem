@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { toast } from '@/components/ui/toast'
 
 interface Note { id: string; body: string; created_at: string; author: string | null }
 
@@ -12,6 +13,7 @@ interface Note { id: string; body: string; created_at: string; author: string | 
  */
 export default function LessonNotes({ lessonId, accentColor }: { lessonId: string; accentColor: string }) {
   const t = useTranslations('education.lesson_notes')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [notes, setNotes] = useState<Note[]>([])
   const [body, setBody] = useState('')
@@ -34,6 +36,7 @@ export default function LessonNotes({ lessonId, accentColor }: { lessonId: strin
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: text }),
       })
       if (res.ok) { setBody(''); load() }
+      else { const b = await res.json().catch(() => ({})); toast(b.error ?? tCommon('action_failed'), 'error') }
     } finally { setSaving(false) }
   }
 
