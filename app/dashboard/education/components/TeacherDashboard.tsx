@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -49,7 +50,7 @@ export default function TeacherDashboard() {
   // страницу календаря, где урок надо было искать заново — главный ежедневный
   // барьер преподавателя по gap-анализу).
   const [attendanceLesson, setAttendanceLesson] = useState<MyLesson | null>(null)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
 
   const loadLessons = useCallback(() => {
     fetch(`/api/education/my-lessons?date=${today}`)

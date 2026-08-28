@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { requireReportsPrivilege } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
@@ -22,7 +23,7 @@ export async function GET() {
     await requireReportsPrivilege('view')
     const sb = createServerClient()
 
-    const todayISO = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const docs = await pageAll<{ expiry_date: string | null; status: string; doc_type: string }>(
       (from, to) =>
         sb
@@ -32,7 +33,7 @@ export async function GET() {
           .range(from, to),
     )
 
-    return NextResponse.json(documentsSummary(docs, todayISO))
+    return NextResponse.json(documentsSummary(docs, today))
   } catch (err: unknown) {
     return errorResponse(err)
   }

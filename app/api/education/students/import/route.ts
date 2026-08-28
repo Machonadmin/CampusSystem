@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseFlexibleDate, splitFullName, normalizeGender, dedupeKey } from '@/lib/education/import-map'
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (rows.length > 2000) return apiError('too_many_rows', 400)
 
     const sb = createServerClient()
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
 
     const results: Array<{ index: number; name: string; action: 'create' | 'duplicate' | 'error'; message?: string }> = []
     const seen = new Set<string>()

@@ -1,6 +1,7 @@
 'use client'
 
 import type { TaskRow } from '@/types/database'
+import { todayISO } from '@/lib/dates'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
@@ -43,7 +44,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
   const dueText = formatDue(task.due_date, task.due_time, task.due_all_day, lang)
   const isOverdue =
     !!task.due_date &&
-    task.due_date < new Date().toISOString().slice(0, 10) &&
+    task.due_date < todayISO() &&
     !['completed', 'cancelled', 'declined'].includes(task.status)
 
   return (

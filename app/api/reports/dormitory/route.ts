@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { requireReportsPrivilege } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
@@ -41,7 +42,7 @@ export async function GET() {
     if (bErr) throw bErr
 
     // Занятость на сегодня по строкам назначений (reuse dormitory isActiveOn).
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const assignments = await pageAll<Assignment>((from, to) =>
       sb
         .from('dorm_assignments')

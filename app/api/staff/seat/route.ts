@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 
 /**
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     const isHead = body.is_head === true
     const hireDate = (body.hire_date && String(body.hire_date).trim())
       ? String(body.hire_date).trim()
-      : new Date().toISOString().slice(0, 10)
+      : todayISO()
 
     // 3) staff_positions — обновить активную в этом подразделении или создать.
     const { data: existing } = await sb

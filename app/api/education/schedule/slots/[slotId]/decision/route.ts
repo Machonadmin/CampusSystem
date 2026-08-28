@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/lesson-generation'
 
 /**
@@ -62,7 +63,7 @@ export async function POST(
           .eq('id', groupId)
           .maybeSingle()
         const horizon = clampHorizonToPeriod(
-          new Date().toISOString().slice(0, 10), 14,
+          todayISO(), 14,
           group?.period_start ?? null, group?.period_end ?? null,
         )
         if (horizon) {

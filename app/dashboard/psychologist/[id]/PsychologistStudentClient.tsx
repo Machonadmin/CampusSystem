@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -59,7 +60,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
   // record-session form
   const [busy, setBusy] = useState(false)
   const [sessionError, setSessionError] = useState<string | null>(null)
-  const [sDate, setSDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [sDate, setSDate] = useState(() => todayISO())
   const [sType, setSType] = useState<string>('followup')
   const [sSummary, setSSummary] = useState('')
   const [sFollowUp, setSFollowUp] = useState('')

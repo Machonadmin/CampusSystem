@@ -14,9 +14,24 @@ export function isIsoDate(s: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s
 }
 
-/** Сегодняшняя дата в ISO 'YYYY-MM-DD' (по UTC). */
+/**
+ * Часовой пояс учреждения. «Сегодня» в бизнес-логике = сегодня в Израиле —
+ * иначе на UTC-сервере (Vercel) с полуночи до 02:00–03:00 по Израилю дата
+ * съезжала бы на «вчера» (просроченность, дефолтные даты форм, активные окна).
+ */
+export const APP_TIME_ZONE = 'Asia/Jerusalem'
+
+/** ISO 'YYYY-MM-DD' переданного момента в указанном поясе (по умолчанию — TZ учреждения). */
+export function isoInTZ(date: Date, tz: string = APP_TIME_ZONE): string {
+  // en-CA даёт формат YYYY-MM-DD; timeZone переводит инстант в местную дату.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date)
+}
+
+/** Сегодняшняя дата в ISO 'YYYY-MM-DD' по времени учреждения (Asia/Jerusalem). */
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
+  return isoInTZ(new Date())
 }
 
 /**

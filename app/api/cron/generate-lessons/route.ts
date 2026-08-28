@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/lesson-generation'
 
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   const sb = createServerClient()
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = todayISO()
 
   try {
     // Группы, у которых вообще есть слоты (постранично — без тихого среза на 1000).

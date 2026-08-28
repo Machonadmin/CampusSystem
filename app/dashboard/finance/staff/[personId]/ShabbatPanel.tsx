@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
@@ -187,7 +188,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
   const primary = getModuleColor('finance', 'primary')
 
   const [entryType, setEntryType] = useState<ShabbatType>('shabbat_host')
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10))
+  const [entryDate, setEntryDate] = useState(todayISO())
   const [amount, setAmount] = useState('')
   const [summary, setSummary] = useState('')
   const [privateNotes, setPrivateNotes] = useState('')

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -97,7 +98,7 @@ function EntryForm({ initial, editing, onSubmit, onCancel, busy }: {
   const primary = getModuleColor('finance', 'primary')
 
   const [entryType, setEntryType] = useState<EntryType>((initial?.entry_type as EntryType) ?? 'other')
-  const [entryDate, setEntryDate] = useState(initial?.entry_date ?? new Date().toISOString().slice(0, 10))
+  const [entryDate, setEntryDate] = useState(initial?.entry_date ?? todayISO())
   const [hours, setHours] = useState(initial?.hours != null ? String(initial.hours) : '')
   const [amount, setAmount] = useState(initial?.amount != null ? String(initial.amount) : '')
   const [title, setTitle] = useState(initial?.title ?? '')

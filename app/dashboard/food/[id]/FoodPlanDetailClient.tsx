@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -125,7 +126,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
     if (!(await confirmDialog({ message: t('plan.end_confirm'), tone: 'danger' }))) return
     setBusy(true); setPanelError(null)
     try {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = todayISO()
       const res = await fetch(`/api/food/enrollments/${e.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

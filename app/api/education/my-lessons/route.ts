@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
 
-    const date = (request.nextUrl.searchParams.get('date') ?? '').trim() || new Date().toISOString().slice(0, 10)
+    const date = (request.nextUrl.searchParams.get('date') ?? '').trim() || todayISO()
 
     // Группы, которые ведёт этот учитель.
     const { data: ct } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', session.person_id)

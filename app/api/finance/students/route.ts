@@ -2,6 +2,7 @@ import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
 import { toCents, centsToNumber } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
@@ -146,7 +147,7 @@ export async function GET(request: NextRequest) {
     // db-max-rows. Суммируем по journey_id в копейках.
     const chargeCents = await sumCentsByJourney(sb, 'finance_charges', journeyIds, 'active')
     const payCents = await sumCentsByJourney(sb, 'finance_payments', journeyIds, 'approved')
-    const todayStr = new Date().toISOString().slice(0, 10)
+    const todayStr = todayISO()
     const pastDue = await oldestPastDueByJourney(sb, journeyIds, todayStr)
     const todayMs = Date.parse(todayStr + 'T00:00:00Z')
 

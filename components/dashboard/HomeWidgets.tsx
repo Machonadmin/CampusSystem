@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
-import { localTodayISO } from '@/lib/dates'
+import { localTodayISO, todayISO } from '@/lib/dates'
 
 /**
  * «Что требует внимания» на главной: личные виджеты, каждый грузится сам и
@@ -74,7 +74,7 @@ function MyLessonsWidget({ onData }: { onData: () => void }) {
 
   const load = useCallback(async () => {
     try {
-      const d = new Date().toISOString().slice(0, 10)
+      const d = todayISO()
       const res = await fetch(`/api/education/my-lessons?date=${d}`)
       if (res.ok) { const b = await res.json(); const s = (b.lessons ?? []) as MyLesson[]; setItems(s); if (s.length) onData() }
     } catch { /* тихо */ } finally { setLoaded(true) }

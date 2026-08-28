@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import {
   requireEducationPrivilege,
   getEducationPrivilegeScope,
@@ -288,7 +289,7 @@ export async function DELETE(
       }
     }
 
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const { error } = await sb
       .from('education_journeys')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

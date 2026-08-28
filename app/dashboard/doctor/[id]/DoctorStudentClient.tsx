@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -59,7 +60,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
   // record-visit form
   const [busy, setBusy] = useState(false)
   const [visitError, setVisitError] = useState<string | null>(null)
-  const [vDate, setVDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [vDate, setVDate] = useState(() => todayISO())
   const [vReason, setVReason] = useState('')
   const [vDiagnosis, setVDiagnosis] = useState('')
   const [vTreatment, setVTreatment] = useState('')

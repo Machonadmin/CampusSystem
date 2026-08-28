@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 
@@ -19,7 +20,7 @@ export async function PUT(request: NextRequest, { params }: { params: { unitId: 
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     const { data: pos } = await sb.from('staff_positions')
       .select('end_date').eq('person_id', params.personId).eq('department_id', params.unitId)
     const isMember = (pos ?? []).some(p => { const ed = (p as { end_date: string | null }).end_date; return ed === null || ed > today })

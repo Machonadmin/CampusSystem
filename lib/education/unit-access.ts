@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 /**
@@ -10,7 +11,7 @@ import type { SessionPayload } from '@/lib/auth/jwt'
 /** Активные единицы, где человек — глава (is_head, позиция не закрыта). */
 export async function getHeadedUnitIds(personId: string): Promise<string[]> {
   const sb = createServerClient()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
   const { data } = await sb
     .from('staff_positions')
     .select('department_id, is_head, end_date')
@@ -31,7 +32,7 @@ export async function getHeadedUnitIds(personId: string): Promise<string[]> {
  */
 async function hasDelegatedTeamAccess(personId: string, unitId: string): Promise<boolean> {
   const sb = createServerClient()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
   const { data: pos } = await sb.from('staff_positions')
     .select('end_date').eq('person_id', personId).eq('department_id', unitId)
   const active = (pos ?? []).some(p => {

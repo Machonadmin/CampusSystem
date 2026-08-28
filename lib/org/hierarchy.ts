@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 
 /**
  * Иерархия «кто выше кого» — по дереву подразделений (по решению владельца).
@@ -15,7 +16,7 @@ import { createServerClient } from '@/lib/supabase/server'
  * («не выше») — чтобы неопределённость НЕ блокировала встречи по ошибке.
  */
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => todayISO()
 
 /**
  * Для ОДНОГО candidate и МНОЖЕСТВА subjects (напр. проверка списка участников
