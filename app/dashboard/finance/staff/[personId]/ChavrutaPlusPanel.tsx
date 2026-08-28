@@ -30,6 +30,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
   onGenerated: () => void
 }) {
   const t = useTranslations('finance.staff')
+  const tCommon = useTranslations('common')
   const primary = getModuleColor('finance', 'primary')
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
@@ -162,7 +163,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
             ))}
           </div>
           <div style={{ marginTop: 8 }}>
-            <button onClick={() => { setAdding(false); setSearch('') }}
+            <button type="button" onClick={() => { setAdding(false); setSearch('') }} aria-label={tCommon('cancel')}
               style={{ fontSize: 12, padding: '5px 12px', border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer' }}>×</button>
           </div>
         </div>

@@ -186,7 +186,7 @@ export default function SubjectsTab() {
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('subjects.table_sort_order')}>{s.sort_order}</td>
                     <td style={tdStyle} data-label={t('subjects.table_status')}>
                       {s.is_active ? (
-                        <span style={{ color: '#10B981', fontWeight: 500 }}>{t('subjects.status_active')}</span>
+                        <span style={{ color: 'var(--success)', fontWeight: 500 }}>{t('subjects.status_active')}</span>
                       ) : (
                         <span style={{ color: 'var(--text-faint)' }}>{t('subjects.status_inactive')}</span>
                       )}

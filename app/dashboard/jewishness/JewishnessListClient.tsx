@@ -590,7 +590,7 @@ function AcceptanceDecisionSection({
             onClick={() => { setSelectedFinal(f.code); setSig(null); setError('') }}
             style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-              border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? '#059669' : '#DC2626') : 'var(--border-strong)'}`,
+              border: `1px solid ${selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--border-strong)'}`,
               background: selectedFinal === f.code ? (f.is_positive ? 'var(--success-tint)' : 'var(--danger-tint)') : 'var(--surface)',
               color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
             }}

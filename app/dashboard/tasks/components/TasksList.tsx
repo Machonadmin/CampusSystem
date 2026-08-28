@@ -110,7 +110,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
           {dueText && (
             <span style={{
               fontSize: 12,
-              color: isOverdue ? '#DC2626' : 'var(--text-muted)',
+              color: isOverdue ? 'var(--danger)' : 'var(--text-muted)',
               fontWeight: isOverdue ? 600 : 400,
               whiteSpace: 'nowrap', flexShrink: 0,
             }}>

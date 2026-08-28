@@ -22,9 +22,9 @@ function formatDate(lang: string, iso: string | null): string {
 
 /** Цвет для уровня риска психолог-карты. */
 function riskColor(level: string | null): string {
-  if (level === 'high') return '#DC2626'
-  if (level === 'medium') return '#D97706'
-  if (level === 'low') return '#059669'
+  if (level === 'high') return 'var(--danger)'
+  if (level === 'medium') return 'var(--warn)'
+  if (level === 'low') return 'var(--success)'
   return 'var(--text-faint)'
 }
 
@@ -164,8 +164,8 @@ export default function StudentOverviewTab({ journeyId }: Props) {
             return (
               <>
                 <Row label={t('label_doc_total')} value={String(dc.total)} />
-                <Row label={t('label_doc_expiring')} value={String(dc.expiring_soon)} valueColor={dc.expiring_soon > 0 ? '#D97706' : undefined} />
-                <Row label={t('label_doc_expired')} value={String(dc.expired)} strong valueColor={dc.expired > 0 ? '#DC2626' : undefined} />
+                <Row label={t('label_doc_expiring')} value={String(dc.expiring_soon)} valueColor={dc.expiring_soon > 0 ? 'var(--warn)' : undefined} />
+                <Row label={t('label_doc_expired')} value={String(dc.expired)} strong valueColor={dc.expired > 0 ? 'var(--danger)' : undefined} />
               </>
             )
           }

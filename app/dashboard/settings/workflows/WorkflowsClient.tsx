@@ -178,7 +178,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
           ) : templates.map(tpl => {
             const active = tpl.id === selectedId
             return (
-              <div key={tpl.id} onClick={() => setSelectedId(tpl.id)} style={{
+              <div key={tpl.id} role="button" tabIndex={0} onClick={() => setSelectedId(tpl.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { if (e.key === ' ') e.preventDefault(); setSelectedId(tpl.id) } }} style={{
                 padding: '10px 14px', cursor: 'pointer', borderTop: '1px solid var(--border)',
                 borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
                 background: active ? 'var(--accent-tint)' : 'transparent',

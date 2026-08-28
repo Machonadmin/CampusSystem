@@ -205,7 +205,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
           maxWidth={420}
           zIndex={50}
           closeOnBackdrop
-          panelStyle={{ padding: 24, boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}
+          panelStyle={{ padding: 24, boxShadow: 'var(--shadow-lg)' }}
         >
           <div
             dir={isRTL ? 'rtl' : 'ltr'}

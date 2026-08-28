@@ -21,6 +21,7 @@ const shortDate = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '')
 
 export default function GradebookModal({ group, from, to, onClose }: { group: { id: string; name: string }; from?: string; to?: string; onClose: () => void }) {
   const t = useTranslations('education.reports')
+  const tCommon = useTranslations('common')
   const [data, setData] = useState<Gradebook | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -71,7 +72,7 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
             style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>
             <DownloadIcon /> {t('export_csv')}
           </button>
-          <button onClick={onClose}
+          <button type="button" onClick={onClose} aria-label={tCommon('close')}
             style={{ padding: '6px 10px', fontSize: 15, lineHeight: 1, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)' }}>✕</button>
         </div>
 
