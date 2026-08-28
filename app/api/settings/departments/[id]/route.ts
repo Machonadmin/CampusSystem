@@ -29,7 +29,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     const sb = createServerClient()
 
     // Re-parent children to this dept's parent before deleting
-    const { data: dept } = await sb.from('departments').select('parent_id').eq('id', params.id).single()
+    const { data: dept } = await sb.from('departments').select('parent_id').eq('id', params.id).maybeSingle()
     await sb.from('departments').update({ parent_id: dept?.parent_id ?? null }).eq('parent_id', params.id)
 
     const { error } = await sb.from('departments').delete().eq('id', params.id)

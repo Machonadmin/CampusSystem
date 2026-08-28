@@ -66,9 +66,7 @@ export async function activeAssignmentsByRoom(
 }
 
 /** Сегодняшняя дата в ISO 'YYYY-MM-DD'. */
-export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
-}
+export { todayISO } from '@/lib/dates'
 
 /**
  * Кол-во АКТИВНЫХ назначений в комнате, пересекающихся по датам с [from,to].

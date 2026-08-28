@@ -211,10 +211,11 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingSet  = new Set((existingRels ?? [] as any[]).map((r: { relative_id: string; relation_type: string }) => `${r.relative_id}:${r.relation_type}`))
 
-      for (const rel of existingRels ?? []) {
-        if (!submittedSet.has(`${rel.relative_id}:${rel.relation_type}`)) {
-          await sb.from('person_relatives').delete().eq('id', rel.id)
-        }
+      const idsToRemove = (existingRels ?? [])
+        .filter(rel => !submittedSet.has(`${rel.relative_id}:${rel.relation_type}`))
+        .map(rel => rel.id)
+      if (idsToRemove.length > 0) {
+        await sb.from('person_relatives').delete().in('id', idsToRemove)
       }
       for (const rel of body.relatives ?? []) {
         if (!rel.relative_id) continue

@@ -11,9 +11,6 @@ export interface Assignment {
   status: string
 }
 
-/** Сентинел «открытого конца» диапазона (позже любой реальной ISO-даты). */
-const OPEN_ENDED = '9999-12-31'
-
 /** Активно ли назначение на дату dateISO. */
 export function isActiveOn(a: Assignment, dateISO: string): boolean {
   return (
@@ -23,16 +20,7 @@ export function isActiveOn(a: Assignment, dateISO: string): boolean {
   )
 }
 
-/**
- * Пересекаются ли два диапазона дат. null 'to' — открытый конец
- * (+бесконечность). Пересечение: aFrom <= bTo && bFrom <= aTo.
- */
-export function rangesOverlap(
-  aFrom: string, aTo: string | null,
-  bFrom: string, bTo: string | null,
-): boolean {
-  return aFrom <= (bTo ?? OPEN_ENDED) && bFrom <= (aTo ?? OPEN_ENDED)
-}
+export { rangesOverlap } from '@/lib/dates'
 
 export interface Occupancy {
   capacity: number

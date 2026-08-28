@@ -16,11 +16,7 @@ export interface VisitLike {
  * 0 — сегодня. Обе даты берутся как UTC-полночь, поэтому разница — точное
  * кратное суткам. Чистая: «сегодня» передаётся, Date.now НЕ вызывается.
  */
-export function daysUntil(dateISO: string, todayISO: string): number {
-  const target = Date.parse(`${dateISO}T00:00:00Z`)
-  const today = Date.parse(`${todayISO}T00:00:00Z`)
-  return Math.round((target - today) / 86_400_000)
-}
+export { daysUntil } from '@/lib/dates'
 
 /**
  * Предстоит ли контрольный визит: приём ещё открыт, дата контроля задана и
