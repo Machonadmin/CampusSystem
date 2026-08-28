@@ -4,16 +4,18 @@ import { requireReportsPrivilege } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { toCents } from '@/lib/finance/money'
+import { sumDiscountCentsForCharges } from '@/lib/finance/discounts'
 import { financeSummary } from '@/lib/reports/summaries'
 
 /**
  * GET /api/reports/finance — READ-ONLY.
  *
- * Финансовая сводка по правилу баланса:
- *   charged   = Σ(finance_charges.amount  WHERE status='active')
- *   collected = Σ(finance_payments.amount WHERE status='approved')
- *   debtor_count = число journey, у которых (активные начисления − подтверждённые
- *                  платежи) > 0.
+ * Финансовая сводка по правилу баланса (то же, что в ledger-роуте):
+ *   charged   = Σ(finance_charges.amount    WHERE status='active')
+ *   discounts = Σ(finance_discounts.amount по этим активным счетам)
+ *   collected = Σ(finance_payments.amount   WHERE status='approved')
+ *   outstanding  = charged − discounts − collected
+ *   debtor_count = число journey, у которых (начислено − скидки − оплачено) > 0.
  * Право: reports.view.
  *
  * Корректность: суммы считаются в ЦЕЛЫХ КОПЕЙКАХ (toCents), строки читаются
@@ -37,8 +39,8 @@ export async function GET(request: Request) {
     const from = dFrom && ISO.test(dFrom) ? dFrom : null
     const to = dTo && ISO.test(dTo) ? dTo : null
 
-    const chargeRows = await pageAll<{ journey_id: string; amount: number | string }>((pFrom, pTo) => {
-      let q = sb.from('finance_charges').select('journey_id, amount').eq('status', 'active')
+    const chargeRows = await pageAll<{ id: string; journey_id: string; amount: number | string }>((pFrom, pTo) => {
+      let q = sb.from('finance_charges').select('id, journey_id, amount').eq('status', 'active')
       if (from) q = q.gte('created_at', from)
       if (to) q = q.lte('created_at', `${to}T23:59:59.999`)
       return q.order('id', { ascending: true }).range(pFrom, pTo)
@@ -52,10 +54,12 @@ export async function GET(request: Request) {
 
     let chargesActiveCents = 0
     const chargeByJourney = new Map<string, number>()
+    const chargeToJourney = new Map<string, string>()
     for (const r of chargeRows) {
       const c = toCents(r.amount)
       chargesActiveCents += c
       chargeByJourney.set(r.journey_id, (chargeByJourney.get(r.journey_id) ?? 0) + c)
+      chargeToJourney.set(r.id, r.journey_id)
     }
 
     let paymentsApprovedCents = 0
@@ -66,16 +70,22 @@ export async function GET(request: Request) {
       payByJourney.set(r.journey_id, (payByJourney.get(r.journey_id) ?? 0) + c)
     }
 
-    // Должник = journey с положительным балансом (начислено активно > оплачено).
+    // Скидки по учитываемым (активным, и в периоде — если задан) счетам. То же
+    // правило баланса, что в ledger-роуте: скидка уменьшает долг.
+    const discountByJourney = await sumDiscountCentsForCharges(sb, chargeToJourney)
+    let discountsCents = 0
+    for (const c of discountByJourney.values()) discountsCents += c
+
+    // Должник = journey с положительным балансом (начислено − скидки > оплачено).
     let debtorCount = 0
     const journeyIds = new Set<string>([...chargeByJourney.keys(), ...payByJourney.keys()])
     for (const jid of journeyIds) {
-      const balance = (chargeByJourney.get(jid) ?? 0) - (payByJourney.get(jid) ?? 0)
+      const balance = (chargeByJourney.get(jid) ?? 0) - (discountByJourney.get(jid) ?? 0) - (payByJourney.get(jid) ?? 0)
       if (balance > 0) debtorCount++
     }
 
     return NextResponse.json(
-      financeSummary(chargesActiveCents, paymentsApprovedCents, debtorCount),
+      financeSummary(chargesActiveCents, paymentsApprovedCents, debtorCount, discountsCents),
     )
   } catch (err: unknown) {
     return errorResponse(err)

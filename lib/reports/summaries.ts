@@ -45,21 +45,27 @@ export function financeSummary(
   chargesActiveCents: number,
   paymentsApprovedCents: number,
   debtorCount: number,
+  discountsCents = 0,
 ): {
   charged: number
+  discounts: number
   collected: number
   outstanding: number
   collection_rate: number
   debtor_count: number
 } {
+  // collection_rate — доля собранного от gross-начислений (формула без скидок,
+  // как раньше). outstanding — РЕАЛЬНАЯ задолженность: начислено − скидки −
+  // оплачено (то же правило, что в ledger-роуте).
   const collection_rate =
     chargesActiveCents === 0
       ? 0
       : Math.round((paymentsApprovedCents / chargesActiveCents) * 100)
   return {
     charged: centsToNumber(chargesActiveCents),
+    discounts: centsToNumber(discountsCents),
     collected: centsToNumber(paymentsApprovedCents),
-    outstanding: centsToNumber(chargesActiveCents - paymentsApprovedCents),
+    outstanding: centsToNumber(chargesActiveCents - discountsCents - paymentsApprovedCents),
     collection_rate,
     debtor_count: debtorCount,
   }

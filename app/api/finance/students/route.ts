@@ -5,16 +5,19 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
 import { toCents, centsToNumber } from '@/lib/finance/money'
+import { sumDiscountCentsForCharges } from '@/lib/finance/discounts'
 import { mapDbError } from '@/lib/finance/http'
 
 /**
  * GET /api/finance/students
  *
  * Список студентов (education_journeys со статусом 'student'), присоединённых
- * к persons, с ВЫЧИСЛЯЕМЫМ балансом. Баланс не хранится:
- *   balance = Σ(finance_charges.amount WHERE status='active')
- *           − Σ(finance_payments.amount WHERE status='approved')
- * Считается пакетно (два запроса .in(journey_id), без N+1), в целых копейках.
+ * к persons, с ВЫЧИСЛЯЕМЫМ балансом. Баланс не хранится (то же правило, что в
+ * ledger-роуте):
+ *   balance = Σ(finance_charges.amount   WHERE status='active')
+ *           − Σ(finance_discounts.amount по этим активным счетам)
+ *           − Σ(finance_payments.amount  WHERE status='approved')
+ * Считается пакетно (без N+1), в целых копейках.
  *
  * Право: finance.view.
  *
@@ -67,6 +70,39 @@ async function sumCentsByJourney(
     from += PAGE
   }
   return acc
+}
+
+/**
+ * Активные начисления по journey: суммы (копейки) + карта chargeId → journeyId
+ * (нужна, чтобы подтянуть скидки, привязанные к charge_id). Постранично.
+ */
+async function fetchActiveCharges(
+  sb: ReturnType<typeof createServerClient>,
+  journeyIds: string[],
+): Promise<{ cents: Map<string, number>; chargeToJourney: Map<string, string> }> {
+  const cents = new Map<string, number>()
+  const chargeToJourney = new Map<string, string>()
+  if (journeyIds.length === 0) return { cents, chargeToJourney }
+
+  let from = 0
+  for (;;) {
+    const { data, error } = await sb
+      .from('finance_charges')
+      .select('id, journey_id, amount')
+      .in('journey_id', journeyIds)
+      .eq('status', 'active')
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    const rows = (data ?? []) as Array<{ id: string; journey_id: string; amount: number | string }>
+    for (const r of rows) {
+      cents.set(r.journey_id, (cents.get(r.journey_id) ?? 0) + toCents(r.amount))
+      chargeToJourney.set(r.id, r.journey_id)
+    }
+    if (rows.length < PAGE) break
+    from += PAGE
+  }
+  return { cents, chargeToJourney }
 }
 
 /**
@@ -145,8 +181,9 @@ export async function GET(request: NextRequest) {
     // Баланс пакетно (без N+1, без float-дрейфа): активные начисления и
     // подтверждённые платежи, каждое — постранично, чтобы не обрезаться на
     // db-max-rows. Суммируем по journey_id в копейках.
-    const chargeCents = await sumCentsByJourney(sb, 'finance_charges', journeyIds, 'active')
+    const { cents: chargeCents, chargeToJourney } = await fetchActiveCharges(sb, journeyIds)
     const payCents = await sumCentsByJourney(sb, 'finance_payments', journeyIds, 'approved')
+    const discountCents = await sumDiscountCentsForCharges(sb, chargeToJourney)
     const todayStr = todayISO()
     const pastDue = await oldestPastDueByJourney(sb, journeyIds, todayStr)
     const todayMs = Date.parse(todayStr + 'T00:00:00Z')
@@ -161,7 +198,9 @@ export async function GET(request: NextRequest) {
         photo_url?: string | null
       } | null
       const charged = chargeCents.get(j.id) ?? 0
+      const discount = discountCents.get(j.id) ?? 0
       const paid = payCents.get(j.id) ?? 0
+      const balanceCents = charged - discount - paid
       return {
         journey_id: j.id,
         person_id: person?.id ?? j.person_id,
@@ -171,11 +210,12 @@ export async function GET(request: NextRequest) {
         phones: flattenPhones(person?.phones),
         photo_url: person?.photo_url ?? null,
         charges_total: centsToNumber(charged),
+        discounts_total: centsToNumber(discount),
         payments_total: centsToNumber(paid),
-        balance: centsToNumber(charged - paid),
+        balance: centsToNumber(balanceCents),
         // Просрочка только у должниц (balance > 0): дней с самой старой
         // просроченной due_date. null — нет просрочки.
-        overdue_days: (charged - paid) > 0 && pastDue.has(j.id)
+        overdue_days: balanceCents > 0 && pastDue.has(j.id)
           ? Math.max(1, Math.round((todayMs - Date.parse(pastDue.get(j.id)! + 'T00:00:00Z')) / 86400000))
           : null,
       }

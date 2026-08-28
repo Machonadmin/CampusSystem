@@ -23,6 +23,7 @@ interface FinanceStudent {
   phones: string[]
   photo_url: string | null
   charges_total: number
+  discounts_total?: number
   payments_total: number
   balance: number
   overdue_days: number | null
@@ -143,17 +144,19 @@ export default function FinancePage() {
   // сколько осталось. Даёт мгновенную картину «где мы» + мини-график доли сбора.
   const totals = items.reduce((a, s) => {
     a.charged += s.charges_total
+    a.discounts += s.discounts_total ?? 0
     a.paid += s.payments_total
     return a
-  }, { charged: 0, paid: 0 })
-  const outstanding = Math.max(0, totals.charged - totals.paid)
+  }, { charged: 0, discounts: 0, paid: 0 })
+  const hasDiscounts = totals.discounts > 0.005
+  const outstanding = Math.max(0, totals.charged - totals.discounts - totals.paid)
   const collectedPct = totals.charged > 0 ? Math.round(totals.paid / totals.charged * 100) : 0
 
   // Экспорт текущего (отфильтрованного) списка в CSV — для месячного сбора.
   function exportDebtors() {
-    const headers = [t('list.col_name'), t('list.col_charges'), t('list.col_payments'), t('list.col_balance'), t('list.col_overdue')]
+    const headers = [t('list.col_name'), t('list.col_charges'), t('list.col_discounts'), t('list.col_payments'), t('list.col_balance'), t('list.col_overdue')]
     const rows = filtered.map(s => [
-      s.full_name, String(s.charges_total), String(s.payments_total), String(s.balance),
+      s.full_name, String(s.charges_total), String(s.discounts_total ?? 0), String(s.payments_total), String(s.balance),
       s.overdue_days != null ? String(s.overdue_days) : '',
     ])
     downloadCsv('debtors', [headers, ...rows])
@@ -205,6 +208,7 @@ export default function FinancePage() {
         }}>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
             <Metric label={t('list.sum_charged')} value={formatMoney(totals.charged)} color="var(--text)" />
+            {hasDiscounts && <Metric label={t('list.sum_discounts')} value={`−${formatMoney(totals.discounts)}`} color="var(--violet)" />}
             <Metric label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
             <Metric label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
             <div style={{ flex: 1 }} />
@@ -214,6 +218,7 @@ export default function FinancePage() {
           </div>
           <MiniBar height={10} segments={[
             { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
+            ...(hasDiscounts ? [{ value: totals.discounts, color: 'var(--violet)', label: t('list.sum_discounts') }] : []),
             { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
           ]} />
         </div>
@@ -315,6 +320,7 @@ export default function FinancePage() {
                 {selectMode && <th style={{ ...th, width: 36, textAlign: 'center' }} />}
                 <th style={th}>{t('list.col_name')}</th>
                 <th style={thNum}>{t('list.col_charges')}</th>
+                {hasDiscounts && <th style={thNum}>{t('list.col_discounts')}</th>}
                 <th style={thNum}>{t('list.col_payments')}</th>
                 <th style={thNum}>{t('list.col_balance')}</th>
                 <th style={th}>{t('list.col_overdue')}</th>
@@ -353,6 +359,7 @@ export default function FinancePage() {
                       </div>
                     </td>
                     <td data-label={t('list.col_charges')} style={tdNum}>{formatMoney(s.charges_total)}</td>
+                    {hasDiscounts && <td data-label={t('list.col_discounts')} style={{ ...tdNum, color: 'var(--violet)' }}>{(s.discounts_total ?? 0) > 0.005 ? `−${formatMoney(s.discounts_total ?? 0)}` : '—'}</td>}
                     <td data-label={t('list.col_payments')} style={tdNum}>{formatMoney(s.payments_total)}</td>
                     <td data-label={t('list.col_balance')} style={{ ...tdNum, fontWeight: 700, color: owes ? 'var(--danger)' : 'var(--success)' }}>
                       {formatMoney(s.balance)}

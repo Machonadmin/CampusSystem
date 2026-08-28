@@ -2957,6 +2957,7 @@
       "forbidden": "Нет прав на просмотр финансов",
       "col_name": "Студент",
       "col_charges": "Начислено",
+      "col_discounts": "Скидки",
       "col_payments": "Оплачено",
       "col_balance": "Баланс",
       "debtors_only": "Только должницы",
@@ -2967,6 +2968,7 @@
       "col_overdue": "Просрочка",
       "overdue_days": "{n} дн. просрочки",
       "sum_charged": "Всего начислено",
+      "sum_discounts": "Всего скидок",
       "sum_collected": "Собрано",
       "sum_outstanding": "Остаток к сбору",
       "sum_collected_pct": "Собрано {n}%"
@@ -3650,6 +3652,7 @@
     "metrics": {
       "total": "Всего",
       "charged": "Начислено",
+      "discounts": "Скидки",
       "collected": "Собрано",
       "outstanding": "Задолженность",
       "collection_rate": "Собираемость",

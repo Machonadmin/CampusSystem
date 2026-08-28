@@ -2957,6 +2957,7 @@
       "forbidden": "אין הרשאה לצפייה בכספים",
       "col_name": "סטודנט",
       "col_charges": "חויב",
+      "col_discounts": "הנחות",
       "col_payments": "שולם",
       "col_balance": "יתרה",
       "debtors_only": "חייבות בלבד",
@@ -2967,6 +2968,7 @@
       "col_overdue": "פיגור",
       "overdue_days": "{n} ימים בפיגור",
       "sum_charged": "סך חיובים",
+      "sum_discounts": "סך הנחות",
       "sum_collected": "נגבה",
       "sum_outstanding": "יתרה לגבייה",
       "sum_collected_pct": "{n}% נגבו"
@@ -3650,6 +3652,7 @@
     "metrics": {
       "total": "סך הכול",
       "charged": "חויב",
+      "discounts": "הנחות",
       "collected": "נגבה",
       "outstanding": "יתרה לתשלום",
       "collection_rate": "אחוז גבייה",

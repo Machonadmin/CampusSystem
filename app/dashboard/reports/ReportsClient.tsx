@@ -17,7 +17,7 @@ interface AdmissionFunnel {
   stages: { code: string; active: number; completed: number }[]
 }
 interface FinanceSummary {
-  charged: number; collected: number; outstanding: number
+  charged: number; discounts?: number; collected: number; outstanding: number
   collection_rate: number; debtor_count: number
 }
 interface DormitorySummary {
@@ -294,6 +294,7 @@ export default function ReportsClient() {
           render={(d) => (
             <>
               <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
+              {(d.discounts ?? 0) > 0.005 && <Metric label={t('metrics.discounts')} value={`−${fmt(d.discounts ?? 0)}`} accent="var(--violet)" />}
               <Metric label={t('metrics.collected')} value={fmt(d.collected)} accent={getModuleColor('finance', 'primary')} />
               <Metric label={t('metrics.outstanding')} value={fmt(d.outstanding)} accent="var(--danger)" />
               <Metric label={t('metrics.collection_rate')} value={`${d.collection_rate}%`} strong accent={getModuleColor('finance', 'primary')} />
