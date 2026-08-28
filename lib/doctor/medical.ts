@@ -6,45 +6,19 @@
 // сравниваются лексикографически (для этого формата совпадает с хронологическим
 // порядком). daysUntil считает разницу через UTC-полночь (точные целые дни).
 
+// daysUntil — общий чистый date-хелпер (lib/dates.ts). Контрольные визиты
+// (is*FollowUp) и переход статуса приёма (open↔closed) — общая логика lib/follow-up.ts,
+// реэкспортируется под историческими именами (canTransitionVisit = canToggleOpenClosed).
+import { isUpcomingFollowUp, isOverdueFollowUp, canToggleOpenClosed } from '@/lib/follow-up'
+
 export interface VisitLike {
   follow_up_date: string | null
   status: string
 }
 
-/**
- * Целое число дней от сегодня до даты dateISO. Отрицательное — дата в прошлом,
- * 0 — сегодня. Обе даты берутся как UTC-полночь, поэтому разница — точное
- * кратное суткам. Чистая: «сегодня» передаётся, Date.now НЕ вызывается.
- */
 export { daysUntil } from '@/lib/dates'
-
-/**
- * Предстоит ли контрольный визит: приём ещё открыт, дата контроля задана и
- * НЕ раньше сегодня (граница — сегодня — считается предстоящим, НЕ просроченным).
- */
-export function isUpcomingFollowUp(v: VisitLike, todayISO: string): boolean {
-  return v.status === 'open' && v.follow_up_date !== null && v.follow_up_date >= todayISO
-}
-
-/**
- * Просрочен ли контрольный визит: приём ещё открыт, дата контроля задана и
- * СТРОГО раньше сегодня. Закрытые приёмы не учитываются (status !== 'open').
- */
-export function isOverdueFollowUp(v: VisitLike, todayISO: string): boolean {
-  return v.status === 'open' && v.follow_up_date !== null && v.follow_up_date < todayISO
-}
-
-/**
- * Допустим ли переход статуса приёма. Разрешено open↔closed (открыть закрытый
- * приём заново тоже можно). Переход в тот же статус (from === to) запрещён;
- * любой неизвестный статус — запрещён.
- */
-export function canTransitionVisit(from: string, to: string): boolean {
-  if (from === to) return false
-  if (from === 'open' && to === 'closed') return true
-  if (from === 'closed' && to === 'open') return true
-  return false
-}
+export { isUpcomingFollowUp, isOverdueFollowUp }
+export { canToggleOpenClosed as canTransitionVisit }
 
 export interface VisitStats {
   total: number

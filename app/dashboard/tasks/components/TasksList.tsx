@@ -4,6 +4,8 @@ import type { TaskRow } from '@/types/database'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+// STATUS_COLORS / PRIORITY_COLORS — единая копия в TaskDetailBody (идентичны).
+import { STATUS_COLORS, PRIORITY_COLORS } from './TaskDetailBody'
 
 interface Props {
   tasks: TaskRow[]
@@ -11,23 +13,6 @@ interface Props {
   // Массовый выбор (bulk). Если передан onToggleSelect — рисуем чекбоксы.
   selectedIds?: Set<string>
   onToggleSelect?: (taskId: string) => void
-}
-
-const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
-  unassigned:  { bg: 'var(--surface-2)', fg: 'var(--text)' },
-  pending:     { bg: 'var(--info-tint)', fg: 'var(--info)' },
-  in_progress: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
-  review:      { bg: 'var(--violet-tint)', fg: 'var(--violet)' },
-  completed:   { bg: 'var(--success-tint)', fg: 'var(--success)' },
-  cancelled:   { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
-  declined:    { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
-}
-
-const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
-  low:    'var(--text-faint)',
-  normal: 'var(--text-muted)',
-  high:   '#F59E0B',
-  urgent: '#DC2626',
 }
 
 export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSelect }: Props) {

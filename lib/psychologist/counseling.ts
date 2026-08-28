@@ -6,47 +6,19 @@
 // сравниваются лексикографически (для этого формата совпадает с хронологическим
 // порядком). daysUntil считает разницу через UTC-полночь (точные целые дни).
 
+// daysUntil — общий чистый date-хелпер (lib/dates.ts). Контрольные консультации
+// (is*FollowUp) и переход статуса сессии (open↔closed) — общая логика lib/follow-up.ts,
+// реэкспортируется под историческими именами (canTransitionSession = canToggleOpenClosed).
+import { isUpcomingFollowUp, isOverdueFollowUp, canToggleOpenClosed } from '@/lib/follow-up'
+
 export interface SessionLike {
   follow_up_date: string | null
   status: string
 }
 
-/**
- * Целое число дней от сегодня до даты dateISO. Отрицательное — дата в прошлом,
- * 0 — сегодня. Обе даты берутся как UTC-полночь, поэтому разница — точное
- * кратное суткам. Чистая: «сегодня» передаётся, Date.now НЕ вызывается.
- */
 export { daysUntil } from '@/lib/dates'
-
-/**
- * Предстоит ли контрольная консультация: сессия ещё открыта, дата контроля
- * задана и НЕ раньше сегодня (граница — сегодня — считается предстоящей, НЕ
- * просроченной).
- */
-export function isUpcomingFollowUp(s: SessionLike, todayISO: string): boolean {
-  return s.status === 'open' && s.follow_up_date !== null && s.follow_up_date >= todayISO
-}
-
-/**
- * Просрочена ли контрольная консультация: сессия ещё открыта, дата контроля
- * задана и СТРОГО раньше сегодня. Закрытые сессии не учитываются
- * (status !== 'open').
- */
-export function isOverdueFollowUp(s: SessionLike, todayISO: string): boolean {
-  return s.status === 'open' && s.follow_up_date !== null && s.follow_up_date < todayISO
-}
-
-/**
- * Допустим ли переход статуса сессии. Разрешено open↔closed (открыть закрытую
- * сессию заново тоже можно). Переход в тот же статус (from === to) запрещён;
- * любой неизвестный статус — запрещён.
- */
-export function canTransitionSession(from: string, to: string): boolean {
-  if (from === to) return false
-  if (from === 'open' && to === 'closed') return true
-  if (from === 'closed' && to === 'open') return true
-  return false
-}
+export { isUpcomingFollowUp, isOverdueFollowUp }
+export { canToggleOpenClosed as canTransitionSession }
 
 export interface SessionStats {
   total: number

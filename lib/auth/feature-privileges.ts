@@ -16,7 +16,7 @@ import type { SessionPayload } from './jwt'
 
 export type FeatureAction = 'can_view' | 'can_create' | 'can_edit' | 'can_delete'
 
-export async function hasFeaturePrivilege(
+async function hasFeaturePrivilege(
   session: SessionPayload | null,
   moduleCode: string,
   featureCode: string,

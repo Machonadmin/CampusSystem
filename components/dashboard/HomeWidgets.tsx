@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
+import { localTodayISO } from '@/lib/dates'
 
 /**
  * «Что требует внимания» на главной: личные виджеты, каждый грузится сам и
@@ -169,11 +170,6 @@ interface MyTask { id: string; title: string; due_date: string | null; due_time?
 
 const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
   urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-faint)',
-}
-
-function localTodayISO(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function MyTasksWidget({ onData }: { onData: () => void }) {

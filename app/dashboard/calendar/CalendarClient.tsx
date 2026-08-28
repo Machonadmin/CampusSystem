@@ -470,7 +470,7 @@ export default function CalendarClient() {
                   fontSize: 13, fontWeight: 600, padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
                   background: view === v ? 'var(--surface)' : 'transparent',
                   color: view === v ? primary : 'var(--text-muted)',
-                  boxShadow: view === v ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                  boxShadow: view === v ? 'var(--shadow)' : 'none',
                 }}
               >
                 {t(`view.${v}`)}

@@ -12,20 +12,8 @@ type SB = ReturnType<typeof createServerClient>
 const PAGE = 1000                       // размер страницы чтения комнат (dorm_rooms)
 const CHUNK = 500                        // размер чанка id для .in()-резолва имён
 
-/** name по building_id. Пустой вход → пустая Map. Id режутся на чанки. */
-export async function buildingNamesByIds(sb: SB, ids: string[]): Promise<Map<string, string>> {
-  const map = new Map<string, string>()
-  const unique = [...new Set(ids.filter(Boolean))]
-  for (let i = 0; i < unique.length; i += CHUNK) {
-    const { data, error } = await sb
-      .from('dorm_buildings')
-      .select('id, name')
-      .in('id', unique.slice(i, i + CHUNK))
-    if (error) throw error
-    for (const b of data ?? []) map.set(b.id, b.name)
-  }
-  return map
-}
+/** name по building_id — единая копия в lib/dormitory/building-names.ts. */
+export { buildingNamesByIds } from '@/lib/dormitory/building-names'
 
 /** room_number по room_id. Пустой вход → пустая Map. Id режутся на чанки. */
 export async function roomNumbersByIds(sb: SB, ids: string[]): Promise<Map<string, string>> {

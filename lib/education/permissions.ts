@@ -355,7 +355,7 @@ export async function requireEducationPrivilege(
  * карточку человека ТОЛЬКО если человек относится к его юниту — без доступа ко
  * всему справочнику людей института.
  */
-export async function getPersonEducationDepartments(personId: string): Promise<string[]> {
+async function getPersonEducationDepartments(personId: string): Promise<string[]> {
   const sb = createServerClient()
   const out = new Set<string>()
 

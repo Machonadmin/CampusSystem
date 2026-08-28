@@ -274,7 +274,7 @@ export default function TasksPage() {
                   padding: '7px 16px', fontSize: 13.5, fontWeight: 600,
                   background: on ? 'var(--surface)' : 'transparent',
                   color: on ? accent : 'var(--text-muted)',
-                  boxShadow: on ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  boxShadow: on ? 'var(--shadow)' : 'none',
                 }}
               >
                 {v.label}

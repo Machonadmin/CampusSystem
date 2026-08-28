@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
+import { localTodayISO } from '@/lib/dates'
 import { Modal } from '@/components/ui/Modal'
 
 interface Props {
@@ -53,15 +54,9 @@ export default function AddToCalendar({
   const [done, setDone] = useState<'added' | 'already' | null>(null)
   const [error, setError] = useState('')
 
-  function todayISO(): string {
-    const d = new Date()
-    const p = (n: number) => String(n).padStart(2, '0')
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-  }
-
   function openDialog() {
     setTitle(defaultTitle)
-    setDate(defaultDate ?? todayISO())
+    setDate(defaultDate ?? localTodayISO())
     setTime(defaultTime)
     setReminder('none')
     setNotes('')
