@@ -70,7 +70,8 @@
     "date_format_placeholder": "DD.MM.YYYY",
     "optional_note": "הערה / סיבה (רשות)",
     "note_placeholder": "הסבר קצר או סיבה…",
-    "export_csv": "ייצוא ל-CSV"
+    "export_csv": "ייצוא ל-CSV",
+    "load_error": "שגיאה בטעינה"
   },
   "jewishness": {
     "title": "בירור יהדות",

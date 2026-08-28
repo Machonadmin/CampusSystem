@@ -15,6 +15,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate as fmtDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface CheckRow {
@@ -104,6 +105,7 @@ export default function QualityControlPage() {
       if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
       const res = await fetch(`/api/quality-control?${params}`)
       if (res.ok) setChecks(await res.json())
+      else toast(tCommon('load_error'), 'error')
     } finally {
       setLoading(false)
     }

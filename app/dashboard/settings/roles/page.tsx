@@ -210,7 +210,8 @@ export default function RolesPage() {
   const loadRoles = useCallback(async () => {
     const res = await fetch('/api/settings/roles')
     if (res.ok) setRoles(await res.json())
-  }, [])
+    else toastError(tCommon('load_error'))
+  }, [tCommon])
 
   useEffect(() => { loadRoles() }, [loadRoles])
 

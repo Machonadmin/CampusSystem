@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
+import { toast } from '@/components/ui/toast'
 
 interface KodeshException {
   id: string
@@ -22,6 +23,7 @@ interface KodeshException {
  */
 export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education.kodesh.exceptions')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [items, setItems] = useState<KodeshException[]>([])
   const [canManage, setCanManage] = useState(false)
@@ -78,6 +80,9 @@ export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string
         setFrom('')
         setTo('')
         load()
+      } else {
+        const b = await r.json().catch(() => ({}))
+        toast(b.error ?? tCommon('action_failed'), 'error')
       }
     } finally {
       setBusy(false)
@@ -92,6 +97,7 @@ export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string
         method: 'DELETE',
       })
       if (r.ok) load()
+      else { const b = await r.json().catch(() => ({})); toast(b.error ?? tCommon('action_failed'), 'error') }
     } finally {
       setBusy(false)
     }

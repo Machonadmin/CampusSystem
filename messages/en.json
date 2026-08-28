@@ -70,7 +70,8 @@
     "date_format_placeholder": "DD.MM.YYYY",
     "optional_note": "Note / reason (optional)",
     "note_placeholder": "Short explanation or reason…",
-    "export_csv": "Export CSV"
+    "export_csv": "Export CSV",
+    "load_error": "Loading error"
   },
   "jewishness": {
     "title": "Jewishness Verification",

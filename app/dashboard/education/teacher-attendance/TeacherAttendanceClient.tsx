@@ -5,6 +5,7 @@ import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 
@@ -39,6 +40,7 @@ function fmtDate(lang: string, iso: string | null): string {
 export default function TeacherAttendanceClient({ canApprove, embedded = false }: { canApprove: boolean; embedded?: boolean }) {
   const t = useTranslations('education.teacher_attendance')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [lessons, setLessons] = useState<LessonRow[]>([])
@@ -49,14 +51,14 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
   const load = useCallback(async () => {
     const reqs: Promise<void>[] = []
     reqs.push(fetch('/api/education/teacher-attendance?scope=lessons')
-      .then(r => r.ok ? r.json() : { items: [] }).then(d => { setLessons(d.items ?? []) }).catch(() => {}))
+      .then(r => { if (!r.ok) throw new Error(); return r.json() }).then(d => { setLessons(d.items ?? []) }).catch(() => { toast(tCommon('load_error'), 'error') }))
     if (canApprove) {
       reqs.push(fetch('/api/education/teacher-attendance?scope=pending')
-        .then(r => r.ok ? r.json() : { items: [] }).then(d => { setPending(d.items ?? []) }).catch(() => {}))
+        .then(r => { if (!r.ok) throw new Error(); return r.json() }).then(d => { setPending(d.items ?? []) }).catch(() => { toast(tCommon('load_error'), 'error') }))
     }
     await Promise.all(reqs)
     setLoaded(true)
-  }, [canApprove])
+  }, [canApprove, tCommon])
 
   useEffect(() => { load() }, [load])
 

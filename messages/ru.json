@@ -70,7 +70,8 @@
     "date_format_placeholder": "ДД.ММ.ГГГГ",
     "optional_note": "Заметка / причина (необязательно)",
     "note_placeholder": "Краткое пояснение или причина…",
-    "export_csv": "Экспорт CSV"
+    "export_csv": "Экспорт CSV",
+    "load_error": "Ошибка загрузки"
   },
   "jewishness": {
     "title": "Проверка еврейства",
