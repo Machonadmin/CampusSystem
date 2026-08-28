@@ -1723,7 +1723,9 @@
       "personal_time_optional": "שעה (לא חובה)",
       "personal_save": "הוספה",
       "personal_delete": "מחיקה",
-      "personal_none": "אין אירועים אישיים ביום זה"
+      "personal_none": "אין אירועים אישיים ביום זה",
+      "prev_month": "חודש קודם",
+      "next_month": "חודש הבא"
     },
     "student_dashboard": {
       "title": "דשבורד",
@@ -4616,7 +4618,12 @@
     "show_password": "הצג סיסמה",
     "hide_password": "הסתר סיסמה",
     "forgot_password": "שכחת סיסמה? פני למזכירות המוסד.",
-    "error": "ההתחברות נכשלה. בדקי אימייל וסיסמה",
+    "error": {
+      "title": "אירעה שגיאה",
+      "body": "משהו השתבש. אפשר לנסות שוב.",
+      "retry": "נסה שוב",
+      "back": "חזרה"
+    },
     "greeting": "שלום",
     "logout": "יציאה",
     "my_studies": "הלימודים שלי",

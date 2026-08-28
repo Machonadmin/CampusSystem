@@ -23,19 +23,31 @@ const pct = (p: number | null) => (p === null ? '—' : `${p}%`)
  */
 export default function StudentDashboardPanel({ journeyId }: { journeyId: string; canEdit?: boolean }) {
   const t = useTranslations('education.student_dashboard')
+  const tCommon = useTranslations('common')
   const [s, setS] = useState<Summary | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     let alive = true
     fetch(`/api/education/journeys/${journeyId}/report`)
-      .then(r => (r.ok ? r.json() : null))
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('load failed'))))
       .then(b => { if (alive) setS(b?.summary ?? null) })
+      .catch(() => { if (alive) setError(true) })
       .finally(() => { if (alive) setLoaded(true) })
     return () => { alive = false }
   }, [journeyId])
 
   if (!loaded) return null
+
+  if (error) {
+    return (
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>{t('title')}</h3>
+        <div style={{ fontSize: 12.5, color: 'var(--danger)' }}>{tCommon('load_error')}</div>
+      </div>
+    )
+  }
 
   const a = s?.attendance
   const g = s?.grades

@@ -88,7 +88,7 @@ export default function StudentTeachingSurveyPanel() {
                                 ))}
                               </div>
                             ) : (
-                              <textarea value={answers[q.id]?.text ?? ''} rows={2}
+                              <textarea value={answers[q.id]?.text ?? ''} rows={2} aria-label={q.text}
                                 onChange={e => setAnswers(a => ({ ...a, [q.id]: { rating: a[q.id]?.rating ?? null, text: e.target.value } }))}
                                 style={{ width: '100%', padding: '8px 10px', fontSize: 12.5, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', resize: 'vertical' }} />
                             )}

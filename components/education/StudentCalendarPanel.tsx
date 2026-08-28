@@ -145,9 +145,9 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('title')}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button onClick={() => shiftMonth(-1)} style={navBtn}>‹</button>
+          <button type="button" onClick={() => shiftMonth(-1)} aria-label={t('prev_month')} style={navBtn}>‹</button>
           <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', minWidth: 110, textAlign: 'center' }}>{monthLabel}</span>
-          <button onClick={() => shiftMonth(1)} style={navBtn}>›</button>
+          <button type="button" onClick={() => shiftMonth(1)} aria-label={t('next_month')} style={navBtn}>›</button>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
               ))}
               {/* Форма добавления */}
               <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-                <input value={peTitle} onChange={e => setPeTitle(e.target.value)} placeholder={t('personal_name_placeholder')}
+                <input value={peTitle} onChange={e => setPeTitle(e.target.value)} placeholder={t('personal_name_placeholder')} aria-label={t('personal_name_placeholder')}
                   style={{ flex: '1 1 140px', minWidth: 120, padding: '6px 9px', fontSize: 12.5, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }} />
                 <input type="time" value={peTime} onChange={e => setPeTime(e.target.value)} aria-label={t('personal_time_optional')}
                   style={{ width: 96, padding: '6px 9px', fontSize: 12.5, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }} />
