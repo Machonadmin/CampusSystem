@@ -162,7 +162,7 @@
   "education": {
     "no_access": "אין לך הרשאה לצפות בחלק זה.",
     "structures": {
-      "title": "מבנים נוספים",
+      "title": "מבנים ארגוניים נוספים",
       "hint": "התלמידה משתייכת גם למבנים הבאים (מלבד המבנה הראשי). כל מנהל של מבנה שהיא בו רואה את כרטיסה.",
       "add": "שייך למבנה נוסף",
       "pick": "בחר מבנה",
@@ -609,10 +609,10 @@
         "declined": "נדחתה"
       },
       "actions": {
-        "activate_stage": "▶ הפעלה",
+        "activate_stage": "הפעלת שלב",
         "change_decision": "שנה החלטה",
-        "close_process_early": "⚙ סגירה מוקדמת של התהליך",
-        "view_graph": "⛁ תרשים תהליך"
+        "close_process_early": "סגירת התהליך",
+        "view_graph": "תרשים התהליך"
       },
       "finals": {
         "done_event_yes": "רשום לאירוע",
@@ -684,12 +684,12 @@
         "communication": "תקשורת",
         "family": "משפחה",
         "community": "קהילה",
-        "directions": "כיוונים",
+        "directions": "כיווני לימוד",
         "documents": "מסמכים",
-        "extra": "נוסף",
-        "study": "מחזור לימודים",
-        "report": "ביצועים אקדמיים",
-        "overview": "סקירה 360",
+        "extra": "מידע נוסף",
+        "study": "נתוני לימודים",
+        "report": "הישגים לימודיים",
+        "overview": "סקירה כללית",
         "background": "רקע ומשפחה",
         "recruitment_info": "פרטי גיוס"
       },
@@ -914,7 +914,7 @@
         "case_opened": "נפתח טיפול בהעדרות",
         "case_opened_short": "נפתח",
         "case_open_failed": "פתיחת הטיפול נכשלה",
-        "stalled": "מועמדות תקועות",
+        "stalled": "מועמדות ממתינות",
         "open_timetable": "מערכת שעות מלאה",
         "open_myday": "היום שלי",
         "open_assign": "מסך שיבוצים",
@@ -941,7 +941,7 @@
       "tabs": {
         "subjects": "מקצועות",
         "specialties": "התמחויות",
-        "study_groups": "קבוצות בסיס",
+        "study_groups": "קבוצות אם",
         "students": "סטודנטים",
         "class_groups": "קבוצות לימוד",
         "semester_groups": "סמסטרים",
@@ -1445,7 +1445,7 @@
         "on_leave": "בחופשה",
         "graduated": "בוגרת",
         "expelled": "הורחקה",
-        "lost": "אבודה"
+        "lost": "לא רלוונטית"
       }
     },
     "units": {
@@ -1636,7 +1636,7 @@
     },
     "communities": {
       "nav": "קהילות",
-      "title": "ניהול קהילות",
+      "title": "ארגון קהילות",
       "subtitle": "רשימת הקהילות שמהן מגיעות המועמדות — מקור, איש קשר ופרטים",
       "load_failed": "טעינת הקהילות נכשלה",
       "save_failed": "השמירה נכשלה",
@@ -2007,7 +2007,7 @@
     },
     "status": {
       "unassigned": "לא מוקצית",
-      "pending": "בתור",
+      "pending": "ממתינה",
       "in_progress": "בעבודה",
       "review": "בבדיקה",
       "completed": "הושלמה",
@@ -2021,7 +2021,7 @@
       "urgent": "דחופה"
     },
     "actions": {
-      "claim": "קח לטיפול",
+      "claim": "העברה לטיפול",
       "start": "התחל עבודה",
       "decline": "דחייה",
       "send_to_review": "שליחה לבדיקה",
@@ -3151,7 +3151,7 @@
         "meeting": "אסיפת צוות",
         "chavruta": "חברותא",
         "chavruta_plus": "חברותא פלוס",
-        "shabbat_host": "שבת אצל העובד",
+        "shabbat_host": "שבת אצל איש צוות",
         "shabbat_family": "שבת עם המשפחה",
         "monthly": "תשלום חודשי",
         "other": "אחר"
@@ -3431,7 +3431,7 @@
       "open_card": "פתיחת רשומה רפואית"
     },
     "followups": {
-      "title": "ביקורי מעקב",
+      "title": "מעקב ביקורים",
       "upcoming": "קרובים",
       "overdue": "באיחור",
       "none": "אין ביקורים",
@@ -3673,7 +3673,7 @@
         "graduated": "בוגר",
         "expelled": "הורחק",
         "alumni": "בוגר בארכיון",
-        "lost": "אבוד"
+        "lost": "לא רלוונטית"
       },
       "priority": {
         "urgent": "דחופה",
