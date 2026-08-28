@@ -355,7 +355,7 @@ export default function CalendarClient() {
   // ─── Рендер ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 space-y-5" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="calendar-page p-6 space-y-5" dir={isRTL ? 'rtl' : 'ltr'}>
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },

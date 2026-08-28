@@ -46,9 +46,9 @@ export function MonthView({
   t: (k: string, f?: string) => string
 }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
       {/* Weekday header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
         {weekdayLabels.map((w, i) => (
           <div key={i} style={{
             textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)',
@@ -67,13 +67,14 @@ export function MonthView({
             return (
               <div
                 key={cell.dateISO}
+                className="cal-cell"
                 role="button"
                 tabIndex={0}
                 aria-label={cell.dateISO}
                 onClick={() => onOpenDay(cell.dateISO)}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDay(cell.dateISO) } }}
                 style={{
-                  minHeight: 104, borderInlineEnd: '1px solid var(--surface-2)', borderBottom: '1px solid var(--surface-2)',
+                  borderInlineEnd: '1px solid var(--surface-2)', borderBottom: '1px solid var(--surface-2)',
                   padding: 6, position: 'relative', background: blocked ? 'var(--surface-2)' : 'var(--surface)',
                   opacity: cell.inMonth ? 1 : 0.45, cursor: 'pointer',
                   backgroundImage: blocked
@@ -105,7 +106,7 @@ export function MonthView({
                   )}
                 </div>
 
-                <div style={{ marginTop: 4, display: 'grid', gap: 3 }}>
+                <div className="cal-full" style={{ marginTop: 4, display: 'grid', gap: 3 }}>
                   {events.slice(0, 3).map(ev => {
                     // Урок — read-only, education-зелёный чип с левой полосой.
                     if (ev.kind === 'lesson' && ev.lesson) {
@@ -237,6 +238,23 @@ export function MonthView({
                     </button>
                   )}
                 </div>
+
+                {/* Мобильная раскладка: события — цветными точками (см. .cal-dots
+                    в globals.css). Тап по ячейке открывает полный список дня. */}
+                {events.length > 0 && (
+                  <div className="cal-dots" aria-hidden>
+                    {events.slice(0, 8).map((ev, i) => {
+                      const c = ev.kind === 'lesson' ? LESSON_ACCENT
+                        : ev.kind === 'schedule' ? SCHEDULE_ACCENT
+                        : ev.kind === 'task' ? TASK_ACCENT
+                        : ev.kind === 'event' ? '#6366F1'
+                        : ev.kind === 'birthday' ? BIRTHDAY_ACCENT
+                        : primary
+                      return <span key={i} className="cal-dot" style={{ background: c }} />
+                    })}
+                    {events.length > 8 && <span className="cal-more">+{events.length - 8}</span>}
+                  </div>
+                )}
               </div>
             )
           })}

@@ -211,6 +211,22 @@ body { transition: background-color .25s ease, color .25s ease; }
   table.cards-sm td[data-label=""] { justify-content: flex-start; }
 }
 
+/* Месячная сетка календаря. На десктопе ячейка высокая и показывает полные
+   чипы-события (.cal-full). На телефоне 7 колонок нечитаемы подписями, поэтому
+   ячейка низкая и события показываются цветными точками (.cal-dots); тап по дню
+   открывает полный список (диалог дня). */
+.cal-cell { min-height: 104px; }
+.cal-dots { display: none; }
+.cal-dot { width: 6px; height: 6px; border-radius: 999px; flex: none; }
+@media (max-width: 767px) {
+  .cal-cell { min-height: 62px; padding: 4px !important; }
+  .cal-full { display: none; }
+  .cal-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; align-items: center; }
+  .cal-more { font-size: 9px; font-weight: 700; color: var(--text-faint); line-height: 1; }
+  /* Поменьше внешних отступов страницы календаря — больше места сетке. */
+  .calendar-page { padding: 12px !important; }
+}
+
 @media (max-width: 767px) {
   /* Контент занимает всю ширину: сайдбар — выдвижной ящик, не отодвигает контент.
      !important перебивает инлайновый оффсет во время SSR/гидратации (без прыжка). */
