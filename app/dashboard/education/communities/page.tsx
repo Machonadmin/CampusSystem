@@ -9,6 +9,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -287,7 +288,7 @@ export default function CommunitiesPage() {
               <Field label={`${t('f_country')} *`}><input style={inputStyle} value={form.country} onChange={e => setField('country', e.target.value)} /></Field>
               <Field label={`${t('f_city')} *`}><input style={inputStyle} value={form.city} onChange={e => setField('city', e.target.value)} /></Field>
               <Field label={t('f_contact_name')}><input style={inputStyle} value={form.default_contact_name} onChange={e => setField('default_contact_name', e.target.value)} /></Field>
-              <Field label={t('f_contact_role')}><input style={inputStyle} value={form.default_contact_role} onChange={e => setField('default_contact_role', e.target.value)} /></Field>
+              <Field label={t('f_contact_role')}><CommunityRoleSelect style={inputStyle} value={form.default_contact_role} onChange={v => setField('default_contact_role', v)} ariaLabel={t('f_contact_role')} /></Field>
               <Field label={t('f_contact_phone')}><input style={inputStyle} value={form.default_contact_phone} onChange={e => setField('default_contact_phone', e.target.value)} /></Field>
               <Field label={t('f_contact_email')}><input style={inputStyle} value={form.default_contact_email} onChange={e => setField('default_contact_email', e.target.value)} /></Field>
             </div>
