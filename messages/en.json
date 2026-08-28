@@ -4121,6 +4121,19 @@
       "task": "Task",
       "birthday": "Birthday",
       "day_off": "Day off"
+    },
+    "gcal": {
+      "button": "Connect Google Calendar",
+      "title": "Connect to Google Calendar",
+      "intro": "Copy your personal link and add it to your Google Calendar — campus events will appear automatically and refresh on their own.",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "steps_title": "How to add it in Google Calendar",
+      "step1": "Open Google Calendar on a computer (calendar.google.com)",
+      "step2": "Next to \"Other calendars\" click + then \"From URL\"",
+      "step3": "Paste the link and click \"Add calendar\"",
+      "step4": "Events also appear in the Google Calendar app on your phone",
+      "note": "The link is personal and secret — don't share it. Google's refresh isn't instant (up to several hours). Currently includes: your personal events and appointments."
     }
   },
   "errors": {

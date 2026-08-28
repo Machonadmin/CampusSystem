@@ -29,6 +29,7 @@ import {
 import { Legend, LessonDetail, TaskDetail, ScheduleDetail } from './calendar-details'
 import { CalEventDetail, DayDetail, AppointmentForm, AppointmentDetail } from './calendar-dialogs'
 import { MonthView, WeekView } from './calendar-grid'
+import { GoogleCalendarLink } from './GoogleCalendarLink'
 
 export default function CalendarClient() {
   const { lang, isRTL } = useLang()
@@ -454,7 +455,8 @@ export default function CalendarClient() {
           </span>
         </div>
 
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <GoogleCalendarLink primary={primary} />
           <button
             onClick={toggleHebrewDates}
             title={t('hebrew_dates')}
