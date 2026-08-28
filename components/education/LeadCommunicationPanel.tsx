@@ -97,9 +97,9 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
                 onClick={() => setNewType(tp)}
                 style={{
                   fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-                  border: newType === tp ? '1px solid #10B981' : '1px solid var(--border-strong)',
+                  border: newType === tp ? '1px solid var(--success)' : '1px solid var(--border-strong)',
                   background: newType === tp ? 'rgba(16,185,129,0.12)' : 'var(--surface)',
-                  color: newType === tp ? '#059669' : 'var(--text-muted)',
+                  color: newType === tp ? 'var(--success)' : 'var(--text-muted)',
                 }}
               >
                 {EVENT_ICON[tp]} {t(`types.${tp}`, tp)}
@@ -124,7 +124,7 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
             style={{
               marginTop: 10, padding: '9px 20px', fontSize: 13, fontWeight: 600,
               border: 'none', borderRadius: 8, cursor: saving || !newContent.trim() ? 'not-allowed' : 'pointer',
-              background: saving || !newContent.trim() ? 'var(--border-strong)' : '#10B981', color: '#fff',
+              background: saving || !newContent.trim() ? 'var(--border-strong)' : 'var(--success)', color: '#fff',
             }}
           >
             {t('add_button')}

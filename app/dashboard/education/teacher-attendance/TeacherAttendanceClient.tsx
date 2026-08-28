@@ -130,7 +130,7 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
                     </div>
                   </div>
                   <SubmitButton onClick={() => decide(p.id, 'approved')} loading={busy === p.id}
-                    style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#10B981', color: '#fff', opacity: busy === p.id ? 0.6 : 1 }}>
+                    style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--success)', color: '#fff', opacity: busy === p.id ? 0.6 : 1 }}>
                     {t('approve')}
                   </SubmitButton>
                   <SubmitButton onClick={() => decide(p.id, 'rejected')} loading={busy === p.id}

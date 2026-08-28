@@ -178,7 +178,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
             style={{
               marginTop: 8, padding: '7px 16px', fontSize: 12, fontWeight: 500,
               border: 'none', borderRadius: 6, cursor: saving || !newContent.trim() ? 'not-allowed' : 'pointer',
-              background: saving || !newContent.trim() ? 'var(--border-strong)' : '#10B981',
+              background: saving || !newContent.trim() ? 'var(--border-strong)' : 'var(--success)',
               color: '#fff', transition: 'opacity 0.15s',
             }}
           >

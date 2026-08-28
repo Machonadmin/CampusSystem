@@ -115,7 +115,7 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('balance')}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: balance === null ? 'var(--text-faint)' : (owes ? '#DC2626' : '#059669'), fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: balance === null ? 'var(--text-faint)' : (owes ? 'var(--danger)' : 'var(--success)'), fontFamily: 'var(--font-mono)', marginTop: 2 }}>
               {balance === null ? '—' : formatMoney(balance)}
             </div>
           </div>

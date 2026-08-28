@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { Modal } from '@/components/ui/Modal'
@@ -13,7 +13,7 @@ interface Department { id: string; name: string; name_he?: string | null; name_e
 interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null; department_id: string | null; years_count: number | null }
 interface StudentOption { id: string; person: { id: string; full_name: string } | null; main_group?: { id: string; name: string } | null }
 
-interface TeacherRow { person_id: string | null; is_primary: boolean }
+interface TeacherRow { id: string; person_id: string | null; is_primary: boolean }
 
 interface SemesterGroupInitial {
   id: string
@@ -77,8 +77,8 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
 
   const [teachers, setTeachers] = useState<TeacherRow[]>(
     initial?.teachers.length
-      ? initial.teachers.map(tc => ({ person_id: tc.person_id, is_primary: tc.is_primary }))
-      : [{ person_id: null, is_primary: true }],
+      ? initial.teachers.map((tc, i) => ({ id: `t${i}`, person_id: tc.person_id, is_primary: tc.is_primary }))
+      : [{ id: 't0', person_id: null, is_primary: true }],
   )
 
   const [tracks, setTracks] = useState<StudyTrack[]>([])
@@ -113,7 +113,11 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
       .catch(() => setStudentOptions([]))
   }, [])
 
-  const addTeacherRow = () => setTeachers(prev => [...prev, { person_id: null, is_primary: prev.length === 0 }])
+  // Стабильные id строк-преподавателей: детерминированные для начальных (SSR-safe),
+  // счётчик — для добавленных на клиенте. Ключ по id, а не по индексу, иначе после
+  // удаления средней строки PersonSelect показал бы значение соседа.
+  const nextRowId = useRef(1)
+  const addTeacherRow = () => setTeachers(prev => [...prev, { id: `n${nextRowId.current++}`, person_id: null, is_primary: prev.length === 0 }])
   const removeTeacherRow = (idx: number) => setTeachers(prev => prev.filter((_, i) => i !== idx))
   const setTeacherPerson = (idx: number, id: string | null) =>
     setTeachers(prev => prev.map((r, i) => (i === idx ? { ...r, person_id: id } : r)))
@@ -264,7 +268,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.teachers_label')}</label>
             {teachers.map((row, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 6 }}>
+              <div key={row.id} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 6 }}>
                 <div style={{ flex: 1 }}>
                   <PersonSelect
                     value={row.person_id}

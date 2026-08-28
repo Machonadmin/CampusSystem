@@ -278,11 +278,11 @@ export default function FinanceLedgerClient({
         <>
           {/* Totals */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            <TotalCard label={t('ledger.balance')} value={formatMoney(ledger.totals.balance)} color={owes ? '#DC2626' : '#059669'} strong />
+            <TotalCard label={t('ledger.balance')} value={formatMoney(ledger.totals.balance)} color={owes ? 'var(--danger)' : 'var(--success)'} strong />
             <TotalCard label={t('ledger.charges_total')} value={formatMoney(ledger.totals.charges_active)} color="var(--text)" />
             <TotalCard label={t('ledger.payments_approved')} value={formatMoney(ledger.totals.payments_approved)} color="var(--text)" />
-            <TotalCard label={t('ledger.payments_pending')} value={formatMoney(ledger.totals.payments_pending)} color="#D97706" />
-            <TotalCard label={t('ledger.discounts_total')} value={formatMoney(ledger.totals.discounts_total)} color="#7C3AED" />
+            <TotalCard label={t('ledger.payments_pending')} value={formatMoney(ledger.totals.payments_pending)} color="var(--warn)" />
+            <TotalCard label={t('ledger.discounts_total')} value={formatMoney(ledger.totals.discounts_total)} color="var(--violet)" />
           </div>
 
           {ledger.contract && (
@@ -350,7 +350,7 @@ export default function FinanceLedgerClient({
                       <td colSpan={6} style={{ ...td, background: 'var(--surface-2)', paddingTop: 6, paddingBottom: 8 }}>
                         {c.discounts.map(d => (
                           <div key={d.id} style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-                            <span style={{ fontWeight: 600, color: '#7C3AED', fontVariantNumeric: 'tabular-nums' }}>−{formatMoney(d.amount)} ({d.percent}%)</span>
+                            <span style={{ fontWeight: 600, color: 'var(--violet)', fontVariantNumeric: 'tabular-nums' }}>−{formatMoney(d.amount)} ({d.percent}%)</span>
                             {d.reason && <span>{d.reason}</span>}
                             <span style={{ color: 'var(--text-faint)' }}>
                               {t('ledger.signed_by')
@@ -373,8 +373,8 @@ export default function FinanceLedgerClient({
                             {[10, 25, 50, 100].map(p => (
                               <button key={p} type="button" onClick={() => setDPercent(String(p))} style={{
                                 fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
-                                border: `1px solid ${dPercent === String(p) ? '#7C3AED' : 'var(--border-strong)'}`,
-                                background: dPercent === String(p) ? '#7C3AED' : 'transparent',
+                                border: `1px solid ${dPercent === String(p) ? 'var(--violet)' : 'var(--border-strong)'}`,
+                                background: dPercent === String(p) ? 'var(--violet)' : 'transparent',
                                 color: dPercent === String(p) ? '#fff' : 'var(--text)',
                               }}>{p}%</button>
                             ))}
@@ -389,7 +389,7 @@ export default function FinanceLedgerClient({
                           <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
                           <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
                           <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
-                          <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('#7C3AED'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
+                          <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('var(--violet)'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
                           <button onClick={() => setDiscountChargeId(null)} disabled={busy} style={{ ...btn('var(--surface-2)'), color: 'var(--text)' }}>{tCommon('cancel')}</button>
                         </FormRow>
                       </td>

@@ -93,7 +93,7 @@ export default function PsychReferrals() {
     <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('referrals.title')}</h2>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: '#6D28D9' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: light, color: 'var(--violet)' }}>
           {referrals.length} · {t('referrals.count_badge')}
         </span>
       </div>

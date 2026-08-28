@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { PersonSelect } from '@/components/ui/person-select'
 import { Modal } from '@/components/ui/Modal'
@@ -27,7 +27,10 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
   const [name, setName] = useState('')
   const [subjectId, setSubjectId] = useState('')
   const [subjects, setSubjects] = useState<Subject[]>([])
-  const [teacherIds, setTeacherIds] = useState<(string | null)[]>([null])
+  // Строки-преподаватели со стабильным id: ключ по id (не по индексу), иначе после
+  // удаления средней строки PersonSelect показал бы значение соседней.
+  const [teacherIds, setTeacherIds] = useState<{ id: string; value: string | null }[]>([{ id: 't0', value: null }])
+  const nextRowId = useRef(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +57,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
         body: JSON.stringify({
           name: name.trim(),
           subject_id: subjectId || null,
-          teacher_ids: teacherIds.filter((x): x is string => Boolean(x)),
+          teacher_ids: teacherIds.map(r => r.value).filter((x): x is string => Boolean(x)),
           student_journey_ids: Array.from(selected),
         }),
       })
@@ -96,17 +99,17 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
 
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('courses.teachers_label')}</label>
-            {teacherIds.map((tid, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+            {teacherIds.map(row => (
+              <div key={row.id} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
                 <div style={{ flex: 1 }}>
-                  <PersonSelect value={tid} onChange={id => setTeacherIds(prev => prev.map((v, i) => i === idx ? id : v))} placeholder={t('semester_groups.teacher_placeholder')} accentColor={accent} source="/api/education/teachers" allowShowAll allowAdd={false} />
+                  <PersonSelect value={row.value} onChange={id => setTeacherIds(prev => prev.map(r => r.id === row.id ? { ...r, value: id } : r))} placeholder={t('semester_groups.teacher_placeholder')} accentColor={accent} source="/api/education/teachers" allowShowAll allowAdd={false} />
                 </div>
                 {teacherIds.length > 1 && (
-                  <button type="button" onClick={() => setTeacherIds(prev => prev.filter((_, i) => i !== idx))} aria-label={tCommon('delete')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
+                  <button type="button" onClick={() => setTeacherIds(prev => prev.filter(r => r.id !== row.id))} aria-label={tCommon('delete')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
                 )}
               </div>
             ))}
-            <button type="button" onClick={() => setTeacherIds(prev => [...prev, null])} style={{ marginTop: 2, padding: '5px 10px', fontSize: 12, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 6, cursor: 'pointer' }}>
+            <button type="button" onClick={() => setTeacherIds(prev => [...prev, { id: `n${nextRowId.current++}`, value: null }])} style={{ marginTop: 2, padding: '5px 10px', fontSize: 12, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 6, cursor: 'pointer' }}>
               {t('semester_groups.add_teacher_button')}
             </button>
           </div>

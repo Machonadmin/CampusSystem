@@ -295,12 +295,12 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
                 style={{
                   background: r.is_overdue ? 'var(--danger-tint)' : 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderInlineStart: `4px solid ${r.is_overdue ? '#DC2626' : pc.fg}`,
+                  borderInlineStart: `4px solid ${r.is_overdue ? 'var(--danger)' : pc.fg}`,
                   borderRadius: 10, padding: '12px 16px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? '#DC2626' : pc.fg }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? '#DC2626' : pc.fg }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? 'var(--danger)' : pc.fg }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? 'var(--danger)' : pc.fg }}
               >
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
