@@ -195,13 +195,16 @@ export default function Sidebar() {
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    let alive = true
     fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
+        if (!alive) return
         if (data?.accessible_modules) setAccessibleModules(data.accessible_modules)
         if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
       })
       .catch(() => { /* тихо: сеть упала — навигация остаётся с дефолтами */ })
+    return () => { alive = false }
   }, [])
 
   // Точка на «Задачах»: есть ли открытые задачи, назначенные на меня. Обновляем
