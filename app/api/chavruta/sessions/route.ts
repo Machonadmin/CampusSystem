@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
+import { todayISO } from '@/lib/dates'
 
 /**
  * Хавруты, которые мора записывает сама (кто с кем сидел сегодня).
@@ -33,12 +34,6 @@ async function studentNames(sb: ReturnType<typeof createServerClient>, journeyId
     }
   } catch { /* ignore */ }
   return out
-}
-
-function todayISO(): string {
-  const now = new Date()
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`
 }
 
 export async function GET(request: NextRequest) {
