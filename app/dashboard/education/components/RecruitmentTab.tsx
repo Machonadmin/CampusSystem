@@ -32,6 +32,7 @@ export default function RecruitmentTab() {
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [search, setSearch] = useState('')
   // 'quick' — короткая форма (по умолчанию); 'full' — старый 6-шаговый мастер.
   const [addOpen, setAddOpen] = useState<null | 'quick' | 'full'>(null)
@@ -65,9 +66,17 @@ export default function RecruitmentTab() {
 
   const loadLeads = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/education/leads?process_status=${processStatus}${mineOnly ? '&mine=1' : ''}`)
-    if (res.ok) setLeads(await res.json())
-    setLoading(false)
+    setLoadError(false)
+    // Не-ok/сеть → явная ошибка, а не ложное «нет лидов» (и не вечный скелетон).
+    try {
+      const res = await fetch(`/api/education/leads?process_status=${processStatus}${mineOnly ? '&mine=1' : ''}`)
+      if (res.ok) setLeads(await res.json())
+      else setLoadError(true)
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [processStatus, mineOnly])
 
   useEffect(() => { loadLeads() }, [loadLeads])
@@ -274,6 +283,10 @@ export default function RecruitmentTab() {
       <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
+        ) : loadError ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>
+            {tCommon('load_error')}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {leads.length === 0 ? t('leads.no_data') : t('leads.no_results')}

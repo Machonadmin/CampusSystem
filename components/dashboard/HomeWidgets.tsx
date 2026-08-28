@@ -21,6 +21,7 @@ export default function HomeWidgets() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: hasAny ? 24 : 0 }}>
         <MyLessonsWidget onData={() => setHasAny(true)} />
+        <RecentLeadsWidget onData={() => setHasAny(true)} />
         <StalledApplicantsWidget onData={() => setHasAny(true)} />
         <PendingSignaturesWidget onData={() => setHasAny(true)} />
         <MyTasksWidget onData={() => setHasAny(true)} />
@@ -91,6 +92,45 @@ function MyLessonsWidget({ onData }: { onData: () => void }) {
             sub={l.is_cancelled ? '—' : (l.scheduled_time ? l.scheduled_time.slice(0, 5) : '')} />
         ))}
         {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--accent-strong)' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
+  )
+}
+
+// ── Недавние лиды (гиюс) ─────────────────────────────────────────────────────
+// Ответ на жалобу владельца: аккаунт гиюса на телефоне «почти ничего не видит»
+// — на главной не было НИ ОДНОГО виджета про лидов. 403 (нет view_leads) → null.
+interface RecentLead { profile_id: string; full_name: string; hebrew_name: string | null; application_date: string | null }
+function RecentLeadsWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const { lang } = useLang()
+  const router = useRouter()
+  const [items, setItems] = useState<RecentLead[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/education/leads?process_status=active')
+      if (res.ok) {
+        const b = await res.json()
+        const s = (Array.isArray(b) ? b : []) as RecentLead[]
+        setItems(s)
+        if (s.length) onData()
+      }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('recent_leads')} accent="var(--violet)" count={items.length} onClick={() => router.push('/dashboard/education/recruitment')}>
+      <div style={{ display: 'grid', gap: 5 }}>
+        {items.slice(0, 4).map(l => (
+          <Row key={l.profile_id}
+            main={l.hebrew_name || l.full_name || '—'}
+            sub={l.application_date ? formatDate(l.application_date, lang) : ''} />
+        ))}
+        {items.length > 4 && <span style={{ fontSize: 12, color: 'var(--violet)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>
   )

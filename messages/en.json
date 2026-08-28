@@ -4623,7 +4623,8 @@
     "agenda_open": "Open calendar",
     "agenda_empty": "No meetings or events in the coming week",
     "agenda_today": "Today",
-    "agenda_all_day": "All day"
+    "agenda_all_day": "All day",
+    "recent_leads": "Recent leads"
   },
   "search": {
     "placeholder": "Search a person…",

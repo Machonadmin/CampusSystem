@@ -397,7 +397,11 @@ export default function Sidebar() {
         {/* Module sections — сворачиваемые группы (в развёрнутом сайдбаре).
             В icon-режиме (!isOpen) заголовков нет — показываем все пункты. */}
         {sections.map(section => {
-          const expanded = !isOpen || openGroups.has(section.key)
+          // У пользователя с 1-4 ссылками (например, только гиюс) группы всегда
+          // раскрыты: на телефоне ящик открывается с закрытыми группами, и его
+          // единственный раздел был спрятан за заголовком — «пустое» приложение.
+          const totalItems = sections.reduce((n, s) => n + s.items.length, 0)
+          const expanded = !isOpen || openGroups.has(section.key) || totalItems <= 4
           return (
             <div key={section.key}>
               {isOpen ? (

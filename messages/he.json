@@ -4623,7 +4623,8 @@
     "agenda_open": "פתח יומן",
     "agenda_empty": "אין אירועים או פגישות בשבוע הקרוב",
     "agenda_today": "היום",
-    "agenda_all_day": "כל היום"
+    "agenda_all_day": "כל היום",
+    "recent_leads": "לידים אחרונים"
   },
   "search": {
     "placeholder": "חיפוש אדם…",

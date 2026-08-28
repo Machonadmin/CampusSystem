@@ -192,6 +192,10 @@ body { transition: background-color .25s ease, color .25s ease; }
    экран. td с data-label="" (напр. колонка действий) показывает только значение. */
 @media (max-width: 767px) {
   table.cards-sm, table.cards-sm tbody, table.cards-sm tr, table.cards-sm td { display: block; width: 100%; }
+  /* !important — перебивает инлайновый minWidth (напр. 780 у таблицы лидов),
+     иначе «карточка» остаётся шириной с десктопную таблицу и значения ячеек
+     уезжают за экран телефона (жалоба владельца: «почти не видно данных»). */
+  table.cards-sm { min-width: 0 !important; }
   table.cards-sm thead { display: none; }
   table.cards-sm tr {
     border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px;

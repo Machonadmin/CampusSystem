@@ -230,7 +230,9 @@ export default function DashboardPage() {
             {t.noModules}
           </div>
         ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+        // Одна-две плитки (узкий доступ, напр. только гиюс) — во всю ширину,
+        // а не одинокая полу-плитка в сетке 2 колонок на телефоне.
+        <div className={cards.length <= 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-5' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'}>
           {cards.map((card, idx) => {
             const ready = card.ready
             const primary = getModuleColor(card.iconKey, 'primary')
