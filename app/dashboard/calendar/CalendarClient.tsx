@@ -68,6 +68,14 @@ export default function CalendarClient() {
       setHebrewDates(window.localStorage.getItem('calendar:hebrewDates') === '1')
     } catch { /* localStorage недоступен — оставляем выкл. */ }
   }, [])
+  // На телефоне по умолчанию — недельная (agenda) раскладка: месячная сетка 7×N
+  // на узком экране менее читаема. Переключаем ОДИН раз при монтировании; дальше
+  // пользователь свободно меняет вид. SSR-safe: старт всегда 'month' (совпадает
+  // с сервером), переключение только после гидратации на клиенте.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) setView('week')
+  }, [])
+
   function toggleHebrewDates() {
     setHebrewDates(prev => {
       const next = !prev
