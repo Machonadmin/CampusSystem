@@ -54,9 +54,9 @@ export default function ForcePasswordChangeGate({ portal = false }: { portal?: b
 
         <div style={{ display: 'grid', gap: 10 }}>
           <div style={{ position: 'relative' }}>
-            <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)} placeholder={t('new_password')} style={inp} autoFocus />
+            <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)} placeholder={t('new_password')} aria-label={t('new_password')} style={inp} autoFocus />
           </div>
-          <input type={show ? 'text' : 'password'} value={pw2} onChange={e => setPw2(e.target.value)} placeholder={t('confirm_password')}
+          <input type={show ? 'text' : 'password'} value={pw2} onChange={e => setPw2(e.target.value)} placeholder={t('confirm_password')} aria-label={t('confirm_password')}
             onKeyDown={e => { if (e.key === 'Enter') submit() }} style={inp} />
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer' }}>
             <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)} /> {t('show')}

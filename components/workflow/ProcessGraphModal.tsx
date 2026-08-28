@@ -165,7 +165,6 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
   useEffect(() => {
     const w = window as unknown as { processGraphNodeClick?: (instanceId: string) => void }
     w.processGraphNodeClick = (instanceId: string) => {
-      console.log('[ProcessGraphModal] node clicked:', instanceId)
       if (instanceId) onStageClickRef.current(instanceId)
     }
     return () => { delete (window as unknown as { processGraphNodeClick?: unknown }).processGraphNodeClick }

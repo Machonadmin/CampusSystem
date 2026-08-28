@@ -1723,7 +1723,9 @@
       "personal_time_optional": "Time (optional)",
       "personal_save": "Add",
       "personal_delete": "Delete",
-      "personal_none": "No personal events on this day"
+      "personal_none": "No personal events on this day",
+      "prev_month": "Previous month",
+      "next_month": "Next month"
     },
     "student_dashboard": {
       "title": "Dashboard",
@@ -4616,7 +4618,12 @@
     "show_password": "Show password",
     "hide_password": "Hide password",
     "forgot_password": "Forgot your password? Contact the institution office.",
-    "error": "Sign-in failed. Check your email and password",
+    "error": {
+      "title": "An error occurred",
+      "body": "Something went wrong. You can try again.",
+      "retry": "Try again",
+      "back": "Back"
+    },
     "greeting": "Hello",
     "logout": "Log out",
     "my_studies": "My studies",
