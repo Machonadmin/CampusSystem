@@ -48,6 +48,7 @@
     "cancel": "Cancel",
     "confirm_ok": "Confirm",
     "close": "Close",
+    "clear_selection": "Clear selection",
     "required_field": "Please fill in: {field}",
     "delete": "Delete",
     "back": "Back",

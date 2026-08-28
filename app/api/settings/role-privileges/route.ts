@@ -59,7 +59,8 @@ export async function PUT(request: NextRequest) {
       (existing ?? []).map(r => [`${r.module}::${r.privilege_code}`, r.scope as Scope]),
     )
 
-    await sb.from('role_privileges').delete().eq('role_id', role_id)
+    const { error: delErr } = await sb.from('role_privileges').delete().eq('role_id', role_id)
+    if (delErr) throw delErr
 
     if (privileges.length > 0) {
       const { error } = await sb.from('role_privileges').insert(
