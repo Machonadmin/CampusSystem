@@ -2957,6 +2957,7 @@
       "forbidden": "You don't have permission to view finance",
       "col_name": "Student",
       "col_charges": "Charged",
+      "col_discounts": "Discounts",
       "col_payments": "Paid",
       "col_balance": "Balance",
       "debtors_only": "Debtors only",
@@ -2967,6 +2968,7 @@
       "col_overdue": "Overdue",
       "overdue_days": "{n} days overdue",
       "sum_charged": "Total charged",
+      "sum_discounts": "Total discounts",
       "sum_collected": "Collected",
       "sum_outstanding": "Outstanding",
       "sum_collected_pct": "{n}% collected"
@@ -3650,6 +3652,7 @@
     "metrics": {
       "total": "Total",
       "charged": "Charged",
+      "discounts": "Discounts",
       "collected": "Collected",
       "outstanding": "Outstanding",
       "collection_rate": "Collection rate",

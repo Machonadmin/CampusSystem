@@ -39,10 +39,25 @@ describe('financeSummary', () => {
     const r = financeSummary(100_000, 75_000, 3)
     expect(r).toEqual({
       charged: 1000,
+      discounts: 0,
       collected: 750,
       outstanding: 250,
       collection_rate: 75,
       debtor_count: 3,
+    })
+  })
+
+  it('скидки уменьшают outstanding, но не collection_rate (gross)', () => {
+    // 1000 начислено, 200 скидка, 500 собрано → долг 1000−200−500 = 300;
+    // collection_rate = 500/1000 = 50% (по gross-начислениям, без скидок).
+    const r = financeSummary(100_000, 50_000, 2, 20_000)
+    expect(r).toEqual({
+      charged: 1000,
+      discounts: 200,
+      collected: 500,
+      outstanding: 300,
+      collection_rate: 50,
+      debtor_count: 2,
     })
   })
 
