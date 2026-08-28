@@ -7,6 +7,8 @@
 // порядком). daysUntilExpiry считает разницу через UTC-полночь (точные целые
 // дни). Тот же приём анкоринга «сегодня», что в lib/doctor/medical.ts.
 
+import { daysUntil } from '@/lib/dates'
+
 /** Минимальная форма документа для проверок срока годности. */
 export interface DocExpiryLike {
   expiry_date: string | null
@@ -25,9 +27,7 @@ export interface DocLike extends DocExpiryLike {
  * передаётся, Date.now НЕ вызывается.
  */
 export function daysUntilExpiry(expiryISO: string, todayISO: string): number {
-  const target = Date.parse(`${expiryISO}T00:00:00Z`)
-  const today = Date.parse(`${todayISO}T00:00:00Z`)
-  return Math.round((target - today) / 86_400_000)
+  return daysUntil(expiryISO, todayISO)
 }
 
 /**

@@ -16,8 +16,7 @@ import { getCookieLocale } from '@/lib/i18n/locale'
  * Право: superadmin или глава этой единицы (canManageUnit).
  */
 
-const MEMBER_ROLES = ['studies_secretary', 'teacher'] as const
-type MemberRole = (typeof MEMBER_ROLES)[number]
+type MemberRole = 'studies_secretary' | 'teacher'
 
 export async function GET(_req: NextRequest, { params }: { params: { unitId: string } }) {
   try {

@@ -13,9 +13,6 @@ export interface Enrollment {
   status: string
 }
 
-/** Сентинел «открытого конца» диапазона (позже любой реальной ISO-даты). */
-const OPEN_ENDED = '9999-12-31'
-
 /** Активна ли запись на дату dateISO. */
 export function isActiveOn(e: Enrollment, dateISO: string): boolean {
   return (
@@ -25,16 +22,7 @@ export function isActiveOn(e: Enrollment, dateISO: string): boolean {
   )
 }
 
-/**
- * Пересекаются ли два диапазона дат. null 'to' — открытый конец
- * (+бесконечность). Пересечение: aFrom <= bTo && bFrom <= aTo.
- */
-export function rangesOverlap(
-  aFrom: string, aTo: string | null,
-  bFrom: string, bTo: string | null,
-): boolean {
-  return aFrom <= (bTo ?? OPEN_ENDED) && bFrom <= (aTo ?? OPEN_ENDED)
-}
+export { rangesOverlap } from '@/lib/dates'
 
 /** Сколько записей активно на дату dateISO. */
 export function activeCount(enrollments: Enrollment[], dateISO: string): number {

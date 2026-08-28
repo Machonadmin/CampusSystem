@@ -28,7 +28,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     await guard()
     const sb = createServerClient()
 
-    const { data: role } = await sb.from('roles').select('is_system').eq('id', params.id).single()
+    const { data: role } = await sb.from('roles').select('is_system').eq('id', params.id).maybeSingle()
     if (role?.is_system)
       return apiError('cannot_delete_system_role', 400)
 

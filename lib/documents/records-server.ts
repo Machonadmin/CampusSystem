@@ -10,9 +10,7 @@ type SB = ReturnType<typeof createServerClient>
 const PAGE = 1000
 
 /** Сегодняшняя дата в ISO 'YYYY-MM-DD'. */
-export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
-}
+export { todayISO } from '@/lib/dates'
 
 /** Сводка по документам одного студента для списка. */
 export interface JourneyDocSummary {
