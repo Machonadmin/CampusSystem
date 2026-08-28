@@ -162,7 +162,7 @@
   "education": {
     "no_access": "You don't have permission to view this section.",
     "structures": {
-      "title": "Additional structures",
+      "title": "Additional organizational structures",
       "hint": "The student also belongs to these structures (besides the primary). Each structure's manager sees her card.",
       "add": "Add structure",
       "pick": "Pick a structure",
@@ -609,10 +609,10 @@
         "declined": "Declined"
       },
       "actions": {
-        "activate_stage": "▶ Activate",
+        "activate_stage": "Activate stage",
         "change_decision": "Change decision",
-        "close_process_early": "⚙ Close process early",
-        "view_graph": "⛁ Process diagram"
+        "close_process_early": "Close process",
+        "view_graph": "Process diagram"
       },
       "finals": {
         "done_event_yes": "Registered for event",
@@ -684,12 +684,12 @@
         "communication": "Communication",
         "family": "Family",
         "community": "Community",
-        "directions": "Directions",
+        "directions": "Study directions",
         "documents": "Documents",
-        "extra": "Additional",
-        "study": "Study lifecycle",
-        "report": "Performance",
-        "overview": "360 Overview",
+        "extra": "More info",
+        "study": "Study data",
+        "report": "Academic achievements",
+        "overview": "Overview",
         "background": "Family & community",
         "recruitment_info": "Recruitment info"
       },
@@ -914,7 +914,7 @@
         "case_opened": "Absence case opened",
         "case_opened_short": "Opened",
         "case_open_failed": "Failed to open case",
-        "stalled": "Stalled applicants",
+        "stalled": "Pending applicants",
         "open_timetable": "Full timetable",
         "open_myday": "My day",
         "open_assign": "Assignment screen",
@@ -941,7 +941,7 @@
       "tabs": {
         "subjects": "Subjects",
         "specialties": "Specialties",
-        "study_groups": "Study groups",
+        "study_groups": "Base groups",
         "students": "Students",
         "class_groups": "Class groups",
         "semester_groups": "Semesters",
@@ -1445,7 +1445,7 @@
         "on_leave": "On leave",
         "graduated": "Graduated",
         "expelled": "Expelled",
-        "lost": "Lost"
+        "lost": "Not relevant"
       }
     },
     "units": {
@@ -1636,7 +1636,7 @@
     },
     "communities": {
       "nav": "Communities",
-      "title": "Communities management",
+      "title": "Community organization",
       "subtitle": "Directory of communities applicants come from — origin, contact and details",
       "load_failed": "Failed to load communities",
       "save_failed": "Failed to save",
@@ -2007,7 +2007,7 @@
     },
     "status": {
       "unassigned": "Unassigned",
-      "pending": "In Pool",
+      "pending": "Pending",
       "in_progress": "In Progress",
       "review": "In Review",
       "completed": "Completed",
@@ -2021,7 +2021,7 @@
       "urgent": "Urgent"
     },
     "actions": {
-      "claim": "Claim",
+      "claim": "Take on",
       "start": "Start Working",
       "decline": "Decline",
       "send_to_review": "Send to Review",
@@ -3151,7 +3151,7 @@
         "meeting": "Staff meeting",
         "chavruta": "Chavruta",
         "chavruta_plus": "Chavruta plus",
-        "shabbat_host": "Shabbat at staff home",
+        "shabbat_host": "Shabbat at staff member's home",
         "shabbat_family": "Shabbat with family",
         "monthly": "Monthly pay",
         "other": "Other"
@@ -3431,7 +3431,7 @@
       "open_card": "Open record"
     },
     "followups": {
-      "title": "Follow-up visits",
+      "title": "Visit follow-ups",
       "upcoming": "Upcoming",
       "overdue": "Overdue",
       "none": "No visits",
@@ -3673,7 +3673,7 @@
         "graduated": "Graduated",
         "expelled": "Expelled",
         "alumni": "Alumni",
-        "lost": "Lost"
+        "lost": "Not relevant"
       },
       "priority": {
         "urgent": "Urgent",
