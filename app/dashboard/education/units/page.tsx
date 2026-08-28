@@ -36,20 +36,26 @@ interface Member {
 export default function UnitTeamPage() {
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const accent = getModuleColor('education')
 
   const [units, setUnits] = useState<Unit[]>([])
   const [unitId, setUnitId] = useState<string>('')
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
 
   useEffect(() => {
-    fetch('/api/education/units').then(r => r.ok ? r.json() : null).then(b => {
-      const u = (b?.units ?? []) as Unit[]
-      setUnits(u)
-      if (u.length > 0) setUnitId(u[0].id)
-    }).finally(() => setLoading(false))
+    fetch('/api/education/units')
+      .then(r => { if (!r.ok) throw new Error('load'); return r.json() })
+      .then(b => {
+        const u = (b?.units ?? []) as Unit[]
+        setUnits(u)
+        if (u.length > 0) setUnitId(u[0].id)
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }, [])
 
   const loadMembers = useCallback(async (uid: string) => {
@@ -94,6 +100,8 @@ export default function UnitTeamPage() {
 
       {loading ? (
         <SkeletonRows rows={6} />
+      ) : error ? (
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 14 }}>{tCommon('load_error')}</div>
       ) : units.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('units.no_units')}</div>
       ) : (

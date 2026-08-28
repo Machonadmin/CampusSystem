@@ -24,17 +24,19 @@ function dayName(lang: string, iso: number): string {
 export default function TeachersHoursClient({ embedded = false }: { embedded?: boolean } = {}) {
   const t = useTranslations('education.teachers_hours')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
     fetch('/api/education/teachers-hours')
-      .then(r => r.ok ? r.json() : { teachers: [] })
+      .then(r => { if (!r.ok) throw new Error('load'); return r.json() })
       .then(d => { if (alive) setTeachers(d.teachers ?? []) })
-      .catch(() => {})
+      .catch(() => { if (alive) setError(true) })
       .finally(() => { if (alive) setLoaded(true) })
     return () => { alive = false }
   }, [])
@@ -58,6 +60,8 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
 
       {!loaded ? (
         <SkeletonRows />
+      ) : error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)', padding: 12 }}>{tCommon('load_error')}</div>
       ) : teachers.length === 0 ? (
         <EmptyState text={t('no_data')} />
       ) : (

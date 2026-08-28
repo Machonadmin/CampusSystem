@@ -201,6 +201,7 @@ export default function Sidebar() {
         if (data?.accessible_modules) setAccessibleModules(data.accessible_modules)
         if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
       })
+      .catch(() => { /* тихо: сеть упала — навигация остаётся с дефолтами */ })
   }, [])
 
   // Точка на «Задачах»: есть ли открытые задачи, назначенные на меня. Обновляем

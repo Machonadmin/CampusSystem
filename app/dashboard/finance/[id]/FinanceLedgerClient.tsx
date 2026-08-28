@@ -319,7 +319,7 @@ export default function FinanceLedgerClient({
             {ledger.charges.length === 0 ? (
               <Empty text={t('ledger.no_charges')} />
             ) : (
-              <Table head={[t('ledger.charge_desc'), t('ledger.charge_period'), t('ledger.charge_due'), t('ledger.charge_amount'), t('ledger.col_status'), '']}>
+              <Table cardsSm head={[t('ledger.charge_desc'), t('ledger.charge_period'), t('ledger.charge_due'), t('ledger.charge_amount'), t('ledger.col_status'), '']}>
                 {ledger.charges.map(c => {
                   const discTotal = c.discounts.reduce((s, d) => s + d.amount, 0)
                   const remaining = c.amount - discTotal
@@ -327,12 +327,12 @@ export default function FinanceLedgerClient({
                   return (
                   <Fragment key={c.id}>
                   <tr>
-                    <td style={td}>{c.description}</td>
-                    <td style={td}>{c.period_label || '—'}</td>
-                    <td style={td}>{c.due_date || '—'}</td>
-                    <td style={tdNum}>{formatMoney(c.amount)}</td>
-                    <td style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
-                    <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td data-label={t('ledger.charge_desc')} style={td}>{c.description}</td>
+                    <td data-label={t('ledger.charge_period')} style={td}>{c.period_label || '—'}</td>
+                    <td data-label={t('ledger.charge_due')} style={td}>{c.due_date || '—'}</td>
+                    <td data-label={t('ledger.charge_amount')} style={tdNum}>{formatMoney(c.amount)}</td>
+                    <td data-label={t('ledger.col_status')} style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
+                    <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {canCreateInvoice && (
                         <RowActionsMenu
                           accentColor={primary}
@@ -347,7 +347,7 @@ export default function FinanceLedgerClient({
                   </tr>
                   {showDiscounts && (
                     <tr>
-                      <td colSpan={6} style={{ ...td, background: 'var(--surface-2)', paddingTop: 6, paddingBottom: 8 }}>
+                      <td data-label="" colSpan={6} style={{ ...td, background: 'var(--surface-2)', paddingTop: 6, paddingBottom: 8 }}>
                         {c.discounts.map(d => (
                           <div key={d.id} style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
                             <span style={{ fontWeight: 600, color: 'var(--violet)', fontVariantNumeric: 'tabular-nums' }}>−{formatMoney(d.amount)} ({d.percent}%)</span>
@@ -367,7 +367,7 @@ export default function FinanceLedgerClient({
                   )}
                   {canCreateInvoice && discountChargeId === c.id && c.status === 'active' && (
                     <tr>
-                      <td colSpan={6} style={{ ...td, padding: 0 }}>
+                      <td data-label="" colSpan={6} style={{ ...td, padding: 0 }}>
                         <FormRow>
                           <div style={{ display: 'flex', gap: 6 }}>
                             {[10, 25, 50, 100].map(p => (
