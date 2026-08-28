@@ -45,7 +45,7 @@ function ScaleInput({ value, onChange, disabled, err }: {
         <button key={n} type="button" disabled={disabled} onClick={() => onChange(n)}
           style={{
             width: 44, height: 44, borderRadius: 8, fontSize: 15, fontWeight: 700,
-            border: `2px solid ${value === n ? '#BE185D' : err ? '#FCA5A5' : 'var(--border)'}`,
+            border: `2px solid ${value === n ? '#BE185D' : err ? 'var(--danger)' : 'var(--border)'}`,
             backgroundColor: value === n ? '#BE185D' : 'var(--surface)',
             color: value === n ? 'var(--surface)' : 'var(--text)',
             cursor: disabled ? 'default' : 'pointer', transition: 'all 0.1s',
@@ -73,7 +73,7 @@ function YNPInput({ value, onChange, disabled, err }: {
           <button key={o.v} type="button" disabled={disabled} onClick={() => onChange(o.v)}
             style={{
               padding: '7px 18px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: `2px solid ${sel ? o.c : err ? '#FCA5A5' : 'var(--border)'}`,
+              border: `2px solid ${sel ? o.c : err ? 'var(--danger)' : 'var(--border)'}`,
               backgroundColor: sel ? o.bg : 'var(--surface)', color: sel ? o.c : 'var(--text)',
               cursor: disabled ? 'default' : 'pointer', transition: 'all 0.1s',
             }}
@@ -107,21 +107,21 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
         return (
           <input type="number" value={typeof val === 'number' ? val : ''} disabled={disabled}
             onChange={e => updateVal(e.target.value !== '' ? Number(e.target.value) : null)}
-            style={{ width: 110, padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none' }} />
+            style={{ width: 110, padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none' }} />
         )
       case 'text_short':
         return (
           <input type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
             placeholder={t('fill.answer_placeholder_short')}
             onChange={e => updateVal(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
+            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
         )
       case 'text_long':
         return (
           <textarea value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
             placeholder={t('fill.answer_placeholder_long')}
             onChange={e => updateVal(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
+            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
         )
     }
   }
@@ -413,7 +413,7 @@ export default function FillCheckPage() {
                 </label>
                 <input type="number" min={1} value={delayMin ?? ''} disabled={isRO}
                   onChange={e => setDelayMin(e.target.value ? Number(e.target.value) : null)}
-                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: `1px solid ${errs['delayMin'] ? '#FCA5A5' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: `1px solid ${errs['delayMin'] ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.delay_reason_label')}</label>
@@ -474,7 +474,7 @@ export default function FillCheckPage() {
                   </label>
                   <textarea value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
                     onChange={e => f.set(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${errs[f.key] ? '#FCA5A5' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${errs[f.key] ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
                 </div>
               ))}
 

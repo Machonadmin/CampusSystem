@@ -288,7 +288,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                               <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('no_finals')}</div>
                             ) : stageFinals.map(f => (
                               <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', flexWrap: 'wrap' }}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.is_positive ? '#16A34A' : 'var(--danger)', flexShrink: 0 }} />
+                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.is_positive ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }} />
                                 <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{f.name_ru}</span>
                                 <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{f.code}</span>
                                 {f.closes_process && <span style={{ fontSize: 10.5, fontWeight: 600, color: '#9A3412', background: '#FFF7ED', padding: '1px 6px', borderRadius: 5 }}>{t('f_closes_process')}{f.process_finish_reason ? `: ${f.process_finish_reason}` : ''}</span>}

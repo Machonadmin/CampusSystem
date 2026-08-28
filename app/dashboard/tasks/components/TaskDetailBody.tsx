@@ -203,8 +203,8 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                   style={{
                     padding: '8px 16px', fontSize: 13, fontWeight: 500,
                     background: a.danger ? 'var(--surface)' : accent,
-                    color: a.danger ? '#DC2626' : 'var(--surface)',
-                    border: a.danger ? '1px solid #FCA5A5' : 'none',
+                    color: a.danger ? 'var(--danger)' : 'var(--surface)',
+                    border: a.danger ? '1px solid var(--danger)' : 'none',
                     borderRadius: 8,
                     cursor: d.actionInProgress ? 'wait' : 'pointer',
                     opacity: d.actionInProgress ? 0.6 : 1,
@@ -243,7 +243,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                   onClick={() => d.handleAction('decline', true)}
                   disabled={d.actionInProgress || !d.declineReason.trim()}
                   style={{
-                    padding: '6px 12px', fontSize: 12, background: '#DC2626',
+                    padding: '6px 12px', fontSize: 12, background: 'var(--danger)',
                     color: '#fff', border: 'none', borderRadius: 6,
                     cursor: d.declineReason.trim() && !d.actionInProgress ? 'pointer' : 'not-allowed',
                     opacity: d.declineReason.trim() && !d.actionInProgress ? 1 : 0.5,
@@ -270,7 +270,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
             <label style={{
               display: 'flex', gap: 8, alignItems: 'flex-start',
               padding: 10, background: 'var(--surface)', borderRadius: 6, cursor: 'pointer',
-              border: d.cancelSeriesMode === 'future' ? '1.5px solid #DC2626' : '1px solid var(--border)',
+              border: d.cancelSeriesMode === 'future' ? '1.5px solid var(--danger)' : '1px solid var(--border)',
             }}>
               <input type="radio" checked={d.cancelSeriesMode === 'future'} onChange={() => d.setCancelSeriesMode('future')} style={{ marginTop: 3 }} />
               <div>
@@ -282,7 +282,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
             <label style={{
               display: 'flex', gap: 8, alignItems: 'flex-start',
               padding: 10, background: 'var(--surface)', borderRadius: 6, cursor: 'pointer',
-              border: d.cancelSeriesMode === 'all' ? '1.5px solid #DC2626' : '1px solid var(--border)',
+              border: d.cancelSeriesMode === 'all' ? '1.5px solid var(--danger)' : '1px solid var(--border)',
             }}>
               <input type="radio" checked={d.cancelSeriesMode === 'all'} onChange={() => d.setCancelSeriesMode('all')} style={{ marginTop: 3 }} />
               <div>
@@ -364,7 +364,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               disabled={d.actionInProgress || d.loadingPreview}
               style={{
                 padding: '8px 14px', fontSize: 12, color: '#fff',
-                background: '#DC2626', border: 'none', borderRadius: 6,
+                background: 'var(--danger)', border: 'none', borderRadius: 6,
                 cursor: d.actionInProgress || d.loadingPreview ? 'wait' : 'pointer',
                 opacity: d.actionInProgress || d.loadingPreview ? 0.6 : 1,
               }}

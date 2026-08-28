@@ -432,7 +432,7 @@ export default function RolesPage() {
                   {selectedRole.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{selectedRole.description}</p>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {savedMsg && <span style={{ fontSize: 12, color: '#16A34A' }}>✓ {t('saved_label')}</span>}
+                  {savedMsg && <span style={{ fontSize: 12, color: 'var(--success)' }}>✓ {t('saved_label')}</span>}
                   <button
                     onClick={savePrivileges}
                     disabled={saving || selectedRole.is_system}

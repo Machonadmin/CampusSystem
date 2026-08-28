@@ -325,7 +325,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                           onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
                         >
                           <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.hebrew_name || h.full_name || '—'}</div>
-                          <div style={{ fontSize: 11, color: h.room ? '#D97706' : 'var(--text-faint)' }}>
+                          <div style={{ fontSize: 11, color: h.room ? 'var(--warn)' : 'var(--text-faint)' }}>
                             {h.room ? `${h.room.building_name ?? ''} ${h.room.room_number ?? ''}`.trim() : t('room.unassigned')}
                           </div>
                         </div>
@@ -369,7 +369,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                       </td>
                       <td data-label="" style={{ ...td, textAlign: 'right' }}>
                         {canManage && a.status === 'active' && (
-                          <SubmitButton onClick={() => endAssignment(a)} loading={busy} style={{ background: 'none', border: 'none', color: '#D97706', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                          <SubmitButton onClick={() => endAssignment(a)} loading={busy} style={{ background: 'none', border: 'none', color: 'var(--warn)', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                             {t('room.end_assignment')}
                           </SubmitButton>
                         )}

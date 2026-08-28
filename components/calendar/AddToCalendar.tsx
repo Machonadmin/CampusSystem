@@ -136,7 +136,7 @@ export default function AddToCalendar({
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
 
             {done ? (
-              <div style={{ fontSize: 14, fontWeight: 600, color: done === 'added' ? '#059669' : 'var(--text-muted)', padding: '12px 0', textAlign: 'center' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: done === 'added' ? 'var(--success)' : 'var(--text-muted)', padding: '12px 0', textAlign: 'center' }}>
                 {done === 'added' ? t('added') : t('added_already')}
               </div>
             ) : (

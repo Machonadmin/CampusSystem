@@ -210,10 +210,10 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
     const label = t(`process.task_status.${status}`, status)
     if (status === 'completed') return { color: 'var(--text-muted)', label }
     if (status === 'in_progress') return { color: 'var(--accent-strong)', label }
-    if (status === 'review') return { color: '#7C3AED', label }
+    if (status === 'review') return { color: 'var(--violet)', label }
     if (status === 'cancelled') return { color: 'var(--danger)', label }
     if (status === 'declined') return { color: 'var(--danger)', label }
-    if (status === 'pending') return { color: '#D97706', label }
+    if (status === 'pending') return { color: 'var(--warn)', label }
     return { color: 'var(--text-faint)', label }
   }
 

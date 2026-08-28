@@ -233,7 +233,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
                     >
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{h.hebrew_name || h.full_name || '—'}</div>
-                      <div style={{ fontSize: 11, color: h.plan ? '#D97706' : 'var(--text-faint)' }}>
+                      <div style={{ fontSize: 11, color: h.plan ? 'var(--warn)' : 'var(--text-faint)' }}>
                         {h.plan ? h.plan.plan_name ?? '' : t('plan.no_plan')}
                       </div>
                     </div>

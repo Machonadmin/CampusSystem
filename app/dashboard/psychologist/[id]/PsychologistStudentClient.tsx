@@ -279,7 +279,7 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
                           <span style={{
                             fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
                             background: s.status === 'open' ? light : 'var(--surface-2)',
-                            color: s.status === 'open' ? '#6D28D9' : 'var(--text-muted)',
+                            color: s.status === 'open' ? 'var(--violet)' : 'var(--text-muted)',
                           }}>
                             {t(`status.${s.status}`)}
                           </span>

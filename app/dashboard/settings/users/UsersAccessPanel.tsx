@@ -248,7 +248,7 @@ function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPer
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
-            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {copied ? t('copied') : t('copy_password')}
             </button>
           </div>
@@ -461,7 +461,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('password_reset_done')}</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
-            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? '#059669' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {copied ? t('copied') : t('copy_password')}
             </button>
           </div>
@@ -504,7 +504,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
                   onChange={e => setConfirm(e.target.value)}
                   placeholder={t('confirm_password_placeholder')}
                   autoComplete="new-password"
-                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? '#FCA5A5' : 'var(--border-strong)'}`, fontSize: 13, outline: 'none' }}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? 'var(--danger)' : 'var(--border-strong)'}`, fontSize: 13, outline: 'none' }}
                 />
               </label>
             </>
@@ -512,7 +512,7 @@ function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalPro
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: '#DC2626', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</SubmitButton>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--danger)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</SubmitButton>
         </div>
     </Modal>
   )
