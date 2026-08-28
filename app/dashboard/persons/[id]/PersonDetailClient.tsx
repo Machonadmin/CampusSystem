@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
 
 interface PersonDetail {
@@ -33,6 +34,7 @@ export default function PersonDetailClient({
   const t = useTranslations('persons')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
 
   const primary = getModuleColor('persons', 'primary')
   const light = getModuleColor('persons', 'light')
@@ -108,7 +110,7 @@ export default function PersonDetailClient({
               value={data.roles.length ? data.roles.map(r => r.name).join(', ') : null}
             />
             <Info label={t('fields.gender')} value={data.gender ? t(`gender.${data.gender}`) : null} />
-            <Info label={t('fields.birth_date')} value={data.birth_date} />
+            <Info label={t('fields.birth_date')} value={data.birth_date ? formatDate(data.birth_date, lang) : null} />
           </div>
 
           {/* Student card link */}

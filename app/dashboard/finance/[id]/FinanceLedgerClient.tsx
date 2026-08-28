@@ -3,7 +3,8 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
@@ -92,6 +93,7 @@ export default function FinanceLedgerClient({
   const t = useTranslations('finance')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
 
   const [ledger, setLedger] = useState<Ledger | null>(null)
   const [loading, setLoading] = useState(true)
@@ -329,7 +331,7 @@ export default function FinanceLedgerClient({
                   <tr>
                     <td data-label={t('ledger.charge_desc')} style={td}>{c.description}</td>
                     <td data-label={t('ledger.charge_period')} style={td}>{c.period_label || '—'}</td>
-                    <td data-label={t('ledger.charge_due')} style={td}>{c.due_date || '—'}</td>
+                    <td data-label={t('ledger.charge_due')} style={td}>{c.due_date ? formatDate(c.due_date, lang) : '—'}</td>
                     <td data-label={t('ledger.charge_amount')} style={tdNum}>{formatMoney(c.amount)}</td>
                     <td data-label={t('ledger.col_status')} style={td}><StatusBadge kind={c.status} label={t(`status.${c.status}`)} /></td>
                     <td data-label="" style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -355,7 +357,7 @@ export default function FinanceLedgerClient({
                             <span style={{ color: 'var(--text-faint)' }}>
                               {t('ledger.signed_by')
                                 .replace('{name}', d.signer_name || d.typed_name || '—')
-                                .replace('{date}', (d.signed_at || '').slice(0, 10))}
+                                .replace('{date}', formatDate((d.signed_at || '').slice(0, 10), lang))}
                             </span>
                           </div>
                         ))}
@@ -442,12 +444,12 @@ export default function FinanceLedgerClient({
                   return (
                   <tr key={p.id}>
                     <td data-label={t('ledger.pay_date')} style={td}>
-                      {p.paid_at}
+                      {p.paid_at ? formatDate(p.paid_at, lang) : '—'}
                       {p.signed_at && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
                           {t('ledger.signed_by')
                             .replace('{name}', p.signer_name || p.typed_name || '—')
-                            .replace('{date}', (p.signed_at || '').slice(0, 10))}
+                            .replace('{date}', formatDate((p.signed_at || '').slice(0, 10), lang))}
                         </div>
                       )}
                     </td>
