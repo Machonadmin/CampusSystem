@@ -1978,6 +1978,19 @@
       "title": "New lead",
       "hint": "Just what you need during the call — the rest can be filled in later on the card.",
       "full_form": "Full form"
+    },
+    "community_roles": {
+      "rav": "Rabbi",
+      "shaliach": "Shaliach",
+      "rav_ir": "City Rabbi",
+      "rav_machoz": "Regional Rabbi",
+      "rav_medina": "Country Rabbi",
+      "rav_kehila": "Community Rabbi",
+      "rosh_kehila": "Community Head",
+      "mazkir": "Secretary",
+      "ozer_harav": "Rabbi's Assistant",
+      "other": "Other",
+      "other_ph": "Other role…"
     }
   },
   "tasks": {

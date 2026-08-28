@@ -1978,6 +1978,19 @@
       "title": "ליד חדש",
       "hint": "רק מה שצריך ברגע השיחה — את שאר הפרטים משלימים אחר־כך בכרטיס (עריכה).",
       "full_form": "טופס מלא"
+    },
+    "community_roles": {
+      "rav": "רב",
+      "shaliach": "שליח",
+      "rav_ir": "רב עיר",
+      "rav_machoz": "רב מחוז",
+      "rav_medina": "רב מדינה",
+      "rav_kehila": "רב קהילה",
+      "rosh_kehila": "ראש קהילה",
+      "mazkir": "מזכיר",
+      "ozer_harav": "עוזר הרב",
+      "other": "אחר",
+      "other_ph": "תפקיד אחר…"
     }
   },
   "tasks": {

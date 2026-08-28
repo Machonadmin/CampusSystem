@@ -8,6 +8,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
 import PersonRelationField, { type PersonRelationValue, type RelationType } from '@/components/ui/PersonRelationField'
 import CascadeDirectionSelector, { type CascadeValue } from '@/components/education/CascadeDirectionSelector'
+import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
@@ -916,8 +917,8 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     </div>
                     <div>
                       <label style={lbl}>{t('form.community_position')}</label>
-                      <input value={comm.position} onChange={e => updateComm(i, 'position', e.target.value)}
-                        placeholder={t('form.ph.community_position')} style={inp} />
+                      <CommunityRoleSelect value={comm.position} onChange={v => updateComm(i, 'position', v)}
+                        ariaLabel={t('form.community_position')} style={inp} />
                     </div>
                     <div>
                       <label style={lbl}>{t('form.community_phone')}</label>
