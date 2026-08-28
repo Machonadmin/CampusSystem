@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds, canDoEducationInAny } from '@/lib/education/permissions'
 import { fetchAllByIn, loadAbsenceCounts } from '@/lib/education/absence-counts'
+import { todayISO } from '@/lib/dates'
 
 /**
  * GET /api/education/at-risk?days=30&min=3
@@ -41,7 +42,12 @@ export async function GET(request: NextRequest) {
 
     const days = clampInt(request.nextUrl.searchParams.get('days'), 30, 1, 365)
     const min = clampInt(request.nextUrl.searchParams.get('min'), 3, 1, 100)
-    const cutoff = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)
+    // Окно «последние N дней» — от СЕГОДНЯ по Asia/Jerusalem (как весь апп),
+    // а не по UTC-инстанту: иначе в предрассветном израильском окне граница
+    // сдвигалась на день. Шаг назад — по дате (UTC-арифметика на date-only).
+    const anchor = new Date(`${todayISO()}T00:00:00Z`)
+    anchor.setUTCDate(anchor.getUTCDate() - days)
+    const cutoff = anchor.toISOString().slice(0, 10)
 
     const sb = createServerClient()
 
