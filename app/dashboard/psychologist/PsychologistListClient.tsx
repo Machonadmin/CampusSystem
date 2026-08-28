@@ -137,7 +137,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
             <WorklistColumn
               heading={t('followups.overdue')}
-              accent="#DC2626"
+              accent="var(--danger)"
               items={overdue}
               emptyLabel={t('followups.none')}
               dueLabel={t('followups.follow_up')}
