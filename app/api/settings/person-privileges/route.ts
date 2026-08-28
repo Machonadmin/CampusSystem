@@ -54,7 +54,8 @@ export async function PUT(request: NextRequest) {
     }
     if (!person_id) return NextResponse.json({ error: serverT('invalid_reference') }, { status: 400 })
 
-    await sb.from('person_privileges').delete().eq('person_id', person_id)
+    const { error: delErr } = await sb.from('person_privileges').delete().eq('person_id', person_id)
+    if (delErr) throw delErr
 
     const rows = (privileges ?? []).filter(p => p.module && p.privilege_code)
     if (rows.length > 0) {

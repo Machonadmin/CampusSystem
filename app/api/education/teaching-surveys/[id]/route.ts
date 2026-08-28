@@ -76,7 +76,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         const { data: resp } = await sb.from('teaching_survey_responses').select('id').eq('survey_id', params.id).limit(1)
         if ((resp ?? []).length > 0) return apiError('survey_has_responses', 409)
         // Полная замена набора вопросов.
-        await sb.from('teaching_survey_questions').delete().eq('survey_id', params.id)
+        const { error: delErr } = await sb.from('teaching_survey_questions').delete().eq('survey_id', params.id)
+        if (delErr) throw delErr
         const clean = body.questions
           .map((q, i) => ({ text: (q.text ?? '').trim(), kind: q.kind === 'text' ? 'text' : 'rating', position: Number.isFinite(q.position) ? Number(q.position) : i }))
           .filter(q => q.text)

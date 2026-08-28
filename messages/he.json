@@ -48,6 +48,7 @@
     "cancel": "ביטול",
     "confirm_ok": "אישור",
     "close": "סגירה",
+    "clear_selection": "ניקוי בחירה",
     "required_field": "יש למלא: {field}",
     "delete": "מחיקה",
     "back": "חזרה",

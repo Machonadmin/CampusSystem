@@ -153,11 +153,14 @@ export async function PATCH(
     // building_id — пропускаем update(update) и просто читаем строку.
     let data: unknown
     if (Object.keys(update).length > 0) {
-      const res = await sb.from('class_schedule_slots').update(update).eq('id', params.slotId).select('*').single()
+      const res = await sb.from('class_schedule_slots').update(update).eq('id', params.slotId).select('*').maybeSingle()
       if (res.error) { const m = mapDbError(res.error); return NextResponse.json({ error: m.message }, { status: m.status }) }
+      if (!res.data) return apiError('slot_not_found', 404)
       data = res.data
     } else {
-      const res = await sb.from('class_schedule_slots').select('*').eq('id', params.slotId).single()
+      const res = await sb.from('class_schedule_slots').select('*').eq('id', params.slotId).maybeSingle()
+      if (res.error) { const m = mapDbError(res.error); return NextResponse.json({ error: m.message }, { status: m.status }) }
+      if (!res.data) return apiError('slot_not_found', 404)
       data = res.data
     }
 
@@ -166,7 +169,7 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: locErr } = await (sb as any).from('class_schedule_slots')
         .update({ room_id: body.room_id ?? null, building_id: body.building_id ?? null }).eq('id', params.slotId)
-      void locErr
+      if (locErr && (locErr as { code?: string }).code !== '42703') throw locErr
     }
 
     // Пересчёт утверждения при изменении дня/времени — чтобы правку нельзя было

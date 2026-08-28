@@ -48,6 +48,7 @@
     "cancel": "Отмена",
     "confirm_ok": "Подтвердить",
     "close": "Закрыть",
+    "clear_selection": "Очистить выбор",
     "required_field": "Заполните: {field}",
     "delete": "Удалить",
     "back": "Назад",

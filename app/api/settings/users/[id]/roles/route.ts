@@ -36,7 +36,8 @@ export async function PUT(request: NextRequest) {
     const sb = createServerClient()
     const { person_id, role_ids } = await request.json() as { person_id: string; role_ids: string[] }
 
-    await sb.from('person_roles').delete().eq('person_id', person_id)
+    const { error: delErr } = await sb.from('person_roles').delete().eq('person_id', person_id)
+    if (delErr) throw delErr
 
     if (role_ids.length > 0) {
       const { error } = await sb.from('person_roles').insert(
