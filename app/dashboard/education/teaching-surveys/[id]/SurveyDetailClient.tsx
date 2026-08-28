@@ -21,6 +21,7 @@ interface QDraft { text: string; kind: 'rating' | 'text' }
 export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
   const t = useTranslations('education.teaching_surveys')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
 
   const [detail, setDetail] = useState<Detail | null>(null)
   const [results, setResults] = useState<Results | null>(null)
@@ -144,7 +145,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
                     <option value="text">{t('kind_text')}</option>
                   </select>
                   {!hasResponses && (
-                    <button onClick={() => setDrafts(ds => ds.filter((_, j) => j !== i))}
+                    <button type="button" onClick={() => setDrafts(ds => ds.filter((_, j) => j !== i))} aria-label={tCommon('delete')}
                       style={{ ...inp, cursor: 'pointer', color: 'var(--danger)', border: '1px solid var(--border)' }}>✕</button>
                   )}
                 </div>

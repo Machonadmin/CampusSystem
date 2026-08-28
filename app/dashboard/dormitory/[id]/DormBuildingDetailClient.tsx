@@ -287,7 +287,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
             <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
               {t('room.title')} {selected.room_number}
             </h3>
-            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
+            <button type="button" onClick={() => setSelected(null)} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: 13 }}>✕</button>
           </div>
 
           {panelError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{panelError}</div>}
@@ -300,7 +300,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: primary, background: getModuleColor('dormitory', 'light'), padding: '6px 10px', borderRadius: 8 }}>
                     {picked.hebrew_name || picked.full_name || picked.journey_id}
-                    <button onClick={() => setPicked(null)} style={{ background: 'none', border: 'none', color: primary, cursor: 'pointer', marginInlineStart: 6 }}>✕</button>
+                    <button type="button" onClick={() => setPicked(null)} aria-label="ניקוי בחירה" style={{ background: 'none', border: 'none', color: primary, cursor: 'pointer', marginInlineStart: 6 }}>✕</button>
                   </span>
                   <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
                   <input type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
