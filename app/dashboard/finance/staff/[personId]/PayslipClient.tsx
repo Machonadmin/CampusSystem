@@ -552,7 +552,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_entries')}</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
                       <th style={th}>{t('entry_type')}</th>
@@ -567,7 +567,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                     {entries.map(en => (
                       editingId === en.id ? (
                         <tr key={en.id}>
-                          <td style={td} colSpan={canManage ? 6 : 5}>
+                          <td data-label="" style={td} colSpan={canManage ? 6 : 5}>
                             <div style={{ padding: 12, background: 'var(--surface-2)', borderRadius: 10 }}>
                               <EntryForm editing busy={busy} initial={en}
                                 onCancel={() => setEditingId(null)}
@@ -577,11 +577,11 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                         </tr>
                       ) : (
                         <tr key={en.id}>
-                          <td style={td}>{t(`types.${en.entry_type}`, en.entry_type)}</td>
-                          <td style={td}>{fmtDate(en.entry_date, lang)}</td>
-                          <td style={tdNum}>{fmtHours(en.hours)}</td>
-                          <td style={tdNum}>{fmtMoney(en.amount)}</td>
-                          <td style={td}>
+                          <td data-label={t('entry_type')} style={td}>{t(`types.${en.entry_type}`, en.entry_type)}</td>
+                          <td data-label={t('entry_date')} style={td}>{fmtDate(en.entry_date, lang)}</td>
+                          <td data-label={t('hours')} style={tdNum}>{fmtHours(en.hours)}</td>
+                          <td data-label={t('amount')} style={tdNum}>{fmtMoney(en.amount)}</td>
+                          <td data-label={t('entry_title')} style={td}>
                             {en.title || '—'}
                             {en.private_notes && (
                               <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
@@ -590,7 +590,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                             )}
                           </td>
                           {canManage && (
-                            <td style={{ ...td, textAlign: 'end', whiteSpace: 'nowrap' }}>
+                            <td data-label="" style={{ ...td, textAlign: 'end', whiteSpace: 'nowrap' }}>
                               <RowActionsMenu
                                 accentColor={primary}
                                 actions={[
