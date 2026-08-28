@@ -4623,7 +4623,8 @@
     "agenda_open": "Открыть календарь",
     "agenda_empty": "Нет встреч и событий на ближайшую неделю",
     "agenda_today": "Сегодня",
-    "agenda_all_day": "Весь день"
+    "agenda_all_day": "Весь день",
+    "recent_leads": "Недавние лиды"
   },
   "search": {
     "placeholder": "Поиск человека…",
