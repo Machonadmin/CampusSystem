@@ -14,10 +14,24 @@ export function isIsoDate(s: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s
 }
 
-/** Сегодняшняя дата в ISO 'YYYY-MM-DD'. */
+/** Сегодняшняя дата в ISO 'YYYY-MM-DD' (по UTC). */
 export function todayISO(): string {
   return new Date().toISOString().slice(0, 10)
 }
+
+/**
+ * ISO 'YYYY-MM-DD' из ЛОКАЛЬНЫХ компонентов даты (getFullYear/getMonth/getDate).
+ * ВНИМАНИЕ: это НЕ UTC (в отличие от todayISO()) — дата соответствует часовому
+ * поясу среды. Для UI-виджетов, где граница «сегодня» должна совпадать с
+ * локальными часами пользователя.
+ */
+export function localISODate(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+/** Сегодня в ISO 'YYYY-MM-DD' по ЛОКАЛЬНОМУ времени (ср. todayISO() — UTC). */
+export const localTodayISO = (): string => localISODate(new Date())
 
 /** Кол-во целых дней от todayISO до dateISO (может быть отрицательным). */
 export function daysUntil(dateISO: string, todayISO: string): number {

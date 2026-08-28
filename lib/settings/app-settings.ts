@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase/server'
 
 export type SignatureMethod = 'typed' | 'drawn' | 'both'
 
-export function isSignatureMethod(v: unknown): v is SignatureMethod {
+function isSignatureMethod(v: unknown): v is SignatureMethod {
   return v === 'typed' || v === 'drawn' || v === 'both'
 }
 

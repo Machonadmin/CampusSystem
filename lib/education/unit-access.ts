@@ -29,7 +29,7 @@ export async function getHeadedUnitIds(personId: string): Promise<string[]> {
  * состава единицы (может выдавать права подчинённым — но не больше, чем держит
  * сам; см. cap в privileges-роуте).
  */
-export async function hasDelegatedTeamAccess(personId: string, unitId: string): Promise<boolean> {
+async function hasDelegatedTeamAccess(personId: string, unitId: string): Promise<boolean> {
   const sb = createServerClient()
   const today = new Date().toISOString().slice(0, 10)
   const { data: pos } = await sb.from('staff_positions')

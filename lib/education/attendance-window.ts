@@ -22,7 +22,7 @@ export interface AttendanceWindowInput {
 }
 
 /** «Сейчас» в местном времени, как Date.UTC(местные компоненты) — в мс. */
-export function nowLocalMs(now: Date, tz: string = TZ): number {
+function nowLocalMs(now: Date, tz: string = TZ): number {
   const f = new Intl.DateTimeFormat('en-CA', {
     timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: false,

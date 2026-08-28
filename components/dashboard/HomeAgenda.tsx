@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
+import { localISODate, localTodayISO } from '@/lib/dates'
 
 /**
  * «Ежедневник» на главной: всегда виден (даже пустой), сверху страницы —
@@ -33,10 +34,8 @@ export default function HomeAgenda() {
   const load = useCallback(async () => {
     try {
       const now = new Date()
-      const p = (n: number) => String(n).padStart(2, '0')
-      const iso = (d: Date) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-      const from = iso(now)
-      const to = iso(new Date(now.getTime() + DAYS_AHEAD * 86400000))
+      const from = localISODate(now)
+      const to = localISODate(new Date(now.getTime() + DAYS_AHEAD * 86400000))
 
       const [apptRes, evRes] = await Promise.all([
         fetch(`/api/calendar/appointments?from=${from}&to=${to}`).catch(() => null),
@@ -83,7 +82,7 @@ export default function HomeAgenda() {
     if (!byDay.has(it.date)) byDay.set(it.date, [])
     byDay.get(it.date)!.push(it)
   }
-  const todayIso = (() => { const d = new Date(); const p = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` })()
+  const todayIso = localTodayISO()
 
   return (
     <div style={{ marginBottom: 24 }}>

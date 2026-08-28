@@ -201,7 +201,7 @@ export interface TaskLike {
  * Задачи, чей дедлайн (due_date) приходится на день dateISO. Дата уже
  * 'YYYY-MM-DD', сравниваем напрямую. Сохраняет исходный порядок массива.
  */
-export function tasksForDay<T extends TaskLike>(tasks: T[], dateISO: string): T[] {
+function tasksForDay<T extends TaskLike>(tasks: T[], dateISO: string): T[] {
   return tasks.filter(t => t.due_date === dateISO)
 }
 
@@ -220,7 +220,7 @@ export interface ScheduleLike {
  * Экземпляры расписания, приходящиеся на день dateISO. Сохраняет исходный
  * порядок массива.
  */
-export function scheduleForDay<S extends ScheduleLike>(schedule: S[], dateISO: string): S[] {
+function scheduleForDay<S extends ScheduleLike>(schedule: S[], dateISO: string): S[] {
   return schedule.filter(s => s.dateISO === dateISO)
 }
 
@@ -237,7 +237,7 @@ export interface BirthdayLike {
  * Экземпляры дня рождения, приходящиеся на день dateISO. Дата уже 'YYYY-MM-DD',
  * сравниваем напрямую. Сохраняет исходный порядок массива.
  */
-export function birthdaysForDay<B extends BirthdayLike>(birthdays: B[], dateISO: string): B[] {
+function birthdaysForDay<B extends BirthdayLike>(birthdays: B[], dateISO: string): B[] {
   return birthdays.filter(b => b.dateISO === dateISO)
 }
 
