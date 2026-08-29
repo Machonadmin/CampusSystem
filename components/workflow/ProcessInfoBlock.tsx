@@ -511,7 +511,11 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       <span>{t('process.history_curtain', 'תחילת התהליך')}</span>
                       <span style={{ color: 'var(--text-faint)', fontWeight: 500 }}>· {history.length}</span>
                     </button>
-                    {open && history.map(stageRow)}
+                    {open && (
+                      <div className="anim-expand" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {history.map(stageRow)}
+                      </div>
+                    )}
                     {rest.map(stageRow)}
                   </>
                 )
