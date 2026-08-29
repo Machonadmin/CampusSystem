@@ -237,11 +237,11 @@ export default function AcceptanceOverviewTab() {
               </tr>
             </thead>
             <tbody>
-              {applicants.map(app => {
+              {applicants.map((app, rowIdx) => {
                 const byCode = new Map(app.stages.map(s => [s.stage_code, s]))
                 const name = app.applicant.hebrew_name || app.applicant.full_name || '—'
                 return (
-                  <tr key={app.process_instance_id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                  <tr key={app.process_instance_id} className="anim-row" style={{ ['--i' as string]: rowIdx, borderBottom: '1px solid var(--surface-2)' }}>
                     <td style={{ ...td, minWidth: 180 }}>
                       {/* Фото + телефон: раньше данные приходили с API и не
                           рендерились — двух похожих девушек было не различить,

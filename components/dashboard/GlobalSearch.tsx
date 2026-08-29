@@ -100,7 +100,7 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
 
       {open && q.trim().length >= 2 && (
         <div
-          className="absolute mt-2 w-full rounded-xl z-50 overflow-hidden"
+          className="absolute mt-2 w-full rounded-xl z-50 overflow-hidden anim-pop"
           style={{ maxHeight: 360, overflowY: 'auto', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
         >
           {loading && results.length === 0 ? (

@@ -302,7 +302,7 @@ export default function RecruitmentTab() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(lead => {
+              {filtered.map((lead, rowIdx) => {
                 const open = expandedLeadId === lead.profile_id
                 const depts = [...new Set(lead.interests.map(i => i.department_name).filter((d): d is string => Boolean(d)))]
                 const institution = depts.length === 0 ? '—' : depts.join(', ')
@@ -314,8 +314,9 @@ export default function RecruitmentTab() {
                 return (
                 <Fragment key={lead.profile_id}>
                 <tr
+                  className="anim-row"
                   onClick={() => setExpandedLeadId(open ? null : lead.profile_id)}
-                  style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                  style={{ ['--i' as string]: rowIdx, borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
                   onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                   onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
 
@@ -421,7 +422,7 @@ export default function RecruitmentTab() {
                       ···
                     </button>
                     {openMenuId === lead.profile_id && menuPos && (
-                      <div style={{
+                      <div className="anim-pop" style={{
                         position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 100,
                         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
                         boxShadow: 'var(--shadow)', width: 190,
@@ -470,7 +471,7 @@ export default function RecruitmentTab() {
                 {open && (
                   <tr style={{ background: 'var(--surface-2)' }}>
                     <td data-label="" colSpan={4} style={{ padding: '2px 16px 14px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                      <div className="anim-expand" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                         <ApplicantDetail label={t('leads.table.institution')} value={institution} />
                         <ApplicantDetail label={t('leads.table.direction')} value={direction} />
                         <ApplicantDetail label={t('leads.table.email')} value={lead.email ?? '—'} />
