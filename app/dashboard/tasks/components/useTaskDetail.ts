@@ -167,27 +167,34 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     const isAssignee = task.assignee_id === currentUserId
     const out: ActionDef[] = []
 
+    // Упрощённая модель (запрос владельца): у открытой задачи главная кнопка —
+    // «בוצע». Потоки «שליחה לבדיקה» и «דחייה» убраны из UI (легаси-строки в
+    // review/declined продолжают отображаться и получают выход).
     switch (task.status) {
       case 'unassigned':
         out.push({ label: t('actions.claim'), action: 'claim' })
+        out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'pending':
-        if (isAssignee) {
-          out.push({ label: t('actions.start'), action: 'start' })
-          out.push({ label: t('actions.decline'), action: 'decline', danger: true, needsReason: true })
-        }
+        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isAssignee) out.push({ label: t('actions.start'), action: 'start' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'in_progress':
-        if (isAssignee) out.push({ label: t('actions.send_to_review'), action: 'review' })
+        out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'review':
-        if (isCreator) {
-          out.push({ label: t('actions.approve'), action: 'complete' })
-          out.push({ label: t('actions.reopen'), action: 'reopen' })
-        }
+        // Легаси: задачи, отправленные «на проверку» до упрощения.
+        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isCreator) out.push({ label: t('actions.reopen'), action: 'reopen' })
+        break
+      case 'declined':
+        // Легаси-тупик: раньше у отклонённой задачи не было НИ ОДНОЙ кнопки.
+        out.push({ label: t('actions.reopen'), action: 'reopen' })
+        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
     }
 

@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { createNotifications } from '@/lib/notifications/create'
 import type { NotificationInsert } from '@/types/database'
+import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 
 // ─── Автозадачи приёмной комиссии (напоминание + календарь) ──────────────────
 //
@@ -18,7 +19,7 @@ import type { NotificationInsert } from '@/types/database'
 
 type SB = ReturnType<typeof createServerClient>
 
-const OPEN_STATUSES = ['unassigned', 'pending', 'in_progress', 'review', 'declined']
+const OPEN_STATUSES: readonly string[] = OPEN_TASK_STATUSES
 
 // Названия этапов на иврите для заголовка задачи (основной язык учреждения).
 const STAGE_TITLE_HE: Record<string, string> = {

@@ -13,12 +13,15 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import type { TaskRow } from '@/types/database'
 import { toastError, toastSuccess } from '@/components/ui/toast'
+import { isOpenTaskStatus } from '@/lib/tasks/status'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
 type StatusFilter = 'all' | 'active' | TaskRow['status']
 type PriorityFilter = 'all' | TaskRow['priority']
 
-const TERMINAL_STATUSES = ['completed', 'cancelled', 'declined'] as const
+// Упрощённая модель: «открыта» = всё, что не completed/cancelled (declined —
+// легаси, считается открытой и получает кнопки выхода).
+const TERMINAL_STATUSES = ['completed', 'cancelled'] as const
 
 const inp: React.CSSProperties = {
   padding: '6px 10px', fontSize: 13,
@@ -81,7 +84,7 @@ export default function TasksPage() {
       if (statusFilter === 'active') {
         list = list.filter(task => !(TERMINAL_STATUSES as readonly string[]).includes(task.status))
       } else if (statusFilter === 'cancelled') {
-        list = list.filter(task => task.status === 'cancelled' || task.status === 'declined')
+        list = list.filter(task => task.status === 'cancelled')
       }
 
       setTasks(list)
@@ -131,21 +134,15 @@ export default function TasksPage() {
     return res.ok
   }
 
-  // Быстрое «✓ выполнено» прямо с карточки — раньше единственный путь был
-  // 4 тапа через массовый выбор или открытие деталей. Та же двухшаговая
-  // логика статусов, что в bulkComplete.
+  // Быстрое «✓ выполнено» прямо с карточки. Один PATCH — completed теперь
+  // достижим напрямую из любого открытого статуса.
   const [completingIds, setCompletingIds] = useState<Set<string>>(new Set())
   async function quickComplete(id: string) {
     const task = tasks.find(x => x.id === id)
-    if (!task || completingIds.has(id)) return
+    if (!task || completingIds.has(id) || !isOpenTaskStatus(task.status)) return
     setCompletingIds(prev => new Set(prev).add(id))
     try {
-      let ok = false
-      if (task.status === 'in_progress' || task.status === 'review') {
-        ok = await patchStatus(id, 'completed')
-      } else if (task.status === 'pending') {
-        ok = (await patchStatus(id, 'in_progress')) && (await patchStatus(id, 'completed'))
-      }
+      const ok = await patchStatus(id, 'completed')
       if (ok) toastSuccess(t('card.completed_toast'))
       else toastError(tCommon('action_failed'))
       await load()
@@ -154,20 +151,15 @@ export default function TasksPage() {
     }
   }
 
-  // Завершить выбранные. completed достижим только из in_progress/review;
-  // pending проводим в два шага (in_progress → completed). Остальные — пропуск.
+  // Завершить выбранные: completed теперь достижим напрямую из любого
+  // открытого статуса (API), один PATCH на задачу. Закрытые — пропуск.
   async function bulkComplete() {
     setBulkBusy(true); setBulkMsg(null)
     let done = 0, skipped = 0
     for (const id of selectedIds) {
       const task = tasks.find(t => t.id === id)
-      if (!task) { skipped++; continue }
-      let ok = false
-      if (task.status === 'in_progress' || task.status === 'review') {
-        ok = await patchStatus(id, 'completed')
-      } else if (task.status === 'pending') {
-        ok = (await patchStatus(id, 'in_progress')) && (await patchStatus(id, 'completed'))
-      } else { skipped++; continue }
+      if (!task || !isOpenTaskStatus(task.status)) { skipped++; continue }
+      const ok = await patchStatus(id, 'completed')
       if (ok) done++; else skipped++
     }
     setBulkBusy(false)

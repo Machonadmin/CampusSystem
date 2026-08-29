@@ -8,14 +8,19 @@ import { createNotifications } from '@/lib/notifications/create'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 
+// Упрощение по запросу владельца («ясно: выполнена или нет, без лишних опций»):
+// completed достижим НАПРЯМУЮ из любого открытого статуса — раньше pending
+// требовал двух PATCH подряд (pending→in_progress→completed), из-за чего
+// «✓ бук» на карточке был неатомарным. review/declined остаются в модели для
+// легаси-строк; у declined появились выходы (раньше это был тупик без кнопок).
 const ALLOWED_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  unassigned:  ['cancelled'],
-  pending:     ['in_progress', 'declined', 'cancelled'],
+  unassigned:  ['completed', 'cancelled'],
+  pending:     ['in_progress', 'completed', 'declined', 'cancelled'],
   in_progress: ['review', 'completed', 'declined', 'cancelled', 'pending'],
   review:      ['completed', 'in_progress', 'cancelled'],
   completed:   [],
   cancelled:   [],
-  declined:    ['pending', 'cancelled'],
+  declined:    ['pending', 'in_progress', 'completed', 'cancelled'],
 }
 
 // ─── GET /api/tasks/[id] ──────────────────────────────────────────────────────
