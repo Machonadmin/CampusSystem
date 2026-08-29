@@ -16,6 +16,8 @@ const appFont = Rubik({
 export const metadata: Metadata = {
   title: 'CampusSystem',
   description: 'Campus Management System',
+  // iOS «Добавить на экран Домой»: отдельное окно + название под иконкой.
+  appleWebApp: { capable: true, title: 'מכון חמש', statusBarStyle: 'default' },
 }
 
 // Без width=device-width мобильные браузеры рендерят страницу на ~980px и
@@ -26,6 +28,11 @@ export const viewport: Viewport = {
   // Тема следует настройке устройства; сообщаем браузеру про обе схемы, чтобы
   // нативные элементы (скроллбары, поля) красились под текущую тему.
   colorScheme: 'light dark',
+  // Цвет системной панели браузера/PWA — под фон приложения в каждой теме.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#eef1f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f1218' },
+  ],
 }
 
 export default function RootLayout({
