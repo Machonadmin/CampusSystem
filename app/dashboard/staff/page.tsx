@@ -22,6 +22,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface Department {
   id: string
@@ -624,7 +625,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       )}
                     </td>
                     <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
-                    <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
+                    <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
                     <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? '—'}</td>
                     <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>

@@ -19,6 +19,7 @@ import {
   ApplicantDetail, formatDate, initials, interestLabel,
   type Lead, type LeadSortKey, type ProcessStatusFilter,
 } from './education-shared'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 // ─── Вкладка «Набор» (лиды) ──────────────────────────────────────────────────
 // Выделена из education/page.tsx (Workstream 3b). Владеет всем состоянием,
@@ -373,8 +374,8 @@ export default function RecruitmentTab() {
                     {lead.phones.length === 0 ? (
                       <span style={{ color: 'var(--text-faint)' }}>—</span>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {lead.phones.map((p, idx) => <span key={idx} style={{ whiteSpace: 'nowrap' }}>{p}</span>)}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+                        {lead.phones.map((p, idx) => <PhoneLink key={idx} phone={p} />)}
                       </div>
                     )}
                   </td>
@@ -526,7 +527,8 @@ export default function RecruitmentTab() {
       {addOpen === 'quick' && (
         <QuickLeadModal
           onClose={() => setAddOpen(null)}
-          onSaved={() => { setAddOpen(null); loadLeads() }}
+          // Сразу в карточку нового лида — там телефон и следующие шаги.
+          onSaved={jid => { setAddOpen(null); if (jid) router.push(`/dashboard/education/leads/${jid}`); else loadLeads() }}
           onFullForm={() => setAddOpen('full')}
         />
       )}

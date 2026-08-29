@@ -10,6 +10,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 /**
  * Управление общинами (קהילות): справочник, откуда приходят абитуриентки.
@@ -259,7 +260,10 @@ export default function CommunitiesPage() {
                   <>
                     <div style={{ color: 'var(--text)' }}>{c.default_contact_name}{c.default_contact_role ? ` · ${c.default_contact_role}` : ''}</div>
                     {(c.default_contact_phone || c.default_contact_email) && (
-                      <div style={{ marginTop: 1 }}>{[c.default_contact_phone, c.default_contact_email].filter(Boolean).join(' · ')}</div>
+                      <div style={{ marginTop: 1, display: 'flex', flexWrap: 'wrap', gap: '2px 12px', alignItems: 'center' }}>
+                        {c.default_contact_phone && <PhoneLink phone={c.default_contact_phone} />}
+                        {c.default_contact_email && <span>{c.default_contact_email}</span>}
+                      </div>
                     )}
                   </>
                 ) : '—'}

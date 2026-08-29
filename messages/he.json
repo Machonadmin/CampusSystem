@@ -71,7 +71,9 @@
     "optional_note": "הערה / סיבה (רשות)",
     "note_placeholder": "הסבר קצר או סיבה…",
     "export_csv": "ייצוא ל-CSV",
-    "load_error": "שגיאה בטעינה"
+    "load_error": "שגיאה בטעינה",
+    "call": "התקשר",
+    "whatsapp": "וואטסאפ"
   },
   "jewishness": {
     "title": "בירור יהדות",
@@ -2075,7 +2077,9 @@
       "decline_placeholder": "תאר את הסיבה…",
       "watcher_placeholder": "בחר עוקב",
       "remove_watcher": "הסרת עוקב",
-      "time_prefix": "בשעה"
+      "time_prefix": "בשעה",
+      "mark_done": "סמן כבוצע",
+      "completed_toast": "המשימה סומנה כבוצעה"
     },
     "module": {
       "general": "כללי",

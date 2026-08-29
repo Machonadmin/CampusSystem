@@ -12,6 +12,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import type { TaskRow } from '@/types/database'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
 type StatusFilter = 'all' | 'active' | TaskRow['status']
@@ -89,7 +90,7 @@ export default function TasksPage() {
     } finally {
       setLoading(false)
     }
-  }, [view, statusFilter, priorityFilter])
+  }, [view, statusFilter, priorityFilter, tCommon])
 
   useEffect(() => { load() }, [load])
 
@@ -128,6 +129,29 @@ export default function TasksPage() {
       body: JSON.stringify({ status }),
     })
     return res.ok
+  }
+
+  // Быстрое «✓ выполнено» прямо с карточки — раньше единственный путь был
+  // 4 тапа через массовый выбор или открытие деталей. Та же двухшаговая
+  // логика статусов, что в bulkComplete.
+  const [completingIds, setCompletingIds] = useState<Set<string>>(new Set())
+  async function quickComplete(id: string) {
+    const task = tasks.find(x => x.id === id)
+    if (!task || completingIds.has(id)) return
+    setCompletingIds(prev => new Set(prev).add(id))
+    try {
+      let ok = false
+      if (task.status === 'in_progress' || task.status === 'review') {
+        ok = await patchStatus(id, 'completed')
+      } else if (task.status === 'pending') {
+        ok = (await patchStatus(id, 'in_progress')) && (await patchStatus(id, 'completed'))
+      }
+      if (ok) toastSuccess(t('card.completed_toast'))
+      else toastError(tCommon('action_failed'))
+      await load()
+    } finally {
+      setCompletingIds(prev => { const n = new Set(prev); n.delete(id); return n })
+    }
   }
 
   // Завершить выбранные. completed достижим только из in_progress/review;
@@ -429,6 +453,8 @@ export default function TasksPage() {
           onTaskClick={id => setOpenTaskId(id)}
           selectedIds={selectMode ? selectedIds : undefined}
           onToggleSelect={selectMode ? toggleSelect : undefined}
+          onQuickComplete={selectMode ? undefined : quickComplete}
+          completingIds={completingIds}
         />
       )}
 

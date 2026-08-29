@@ -6,6 +6,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -75,6 +76,7 @@ interface Props {
   fullName: string
   hebrewName: string | null
   photoUrl: string | null
+  phones?: string[]
   canCreateInvoice: boolean
   canApprove: boolean
 }
@@ -88,7 +90,7 @@ function initials(name: string) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function FinanceLedgerClient({
-  journeyId, fullName, hebrewName, photoUrl, canCreateInvoice, canApprove,
+  journeyId, fullName, hebrewName, photoUrl, phones = [], canCreateInvoice, canApprove,
 }: Props) {
   const t = useTranslations('finance')
   const tNav = useTranslations('navigation')
@@ -269,6 +271,12 @@ export default function FinanceLedgerClient({
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{fullName || '—'}</h1>
           {hebrewName && <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>{hebrewName}</div>}
+          {/* Телефон прямо в шапке ПНК: экран, где смотрят на долг, — тот, откуда звонят. */}
+          {phones[0] && (
+            <div style={{ fontSize: 13, marginTop: 4 }}>
+              <PhoneLink phone={phones[0]} style={{ color: '#fff' }} />
+            </div>
+          )}
         </div>
       </div>
 

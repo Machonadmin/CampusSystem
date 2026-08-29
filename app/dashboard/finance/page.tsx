@@ -11,6 +11,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { MiniBar } from '@/components/ui/MiniBar'
 import { formatMoney } from '@/lib/finance/money'
 import { downloadCsv } from '@/lib/csv'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,8 @@ export default function FinancePage() {
     ? items.filter(s =>
         s.full_name.toLowerCase().includes(q) ||
         (s.hebrew_name ?? '').toLowerCase().includes(q) ||
-        (s.email ?? '').toLowerCase().includes(q))
+        (s.email ?? '').toLowerCase().includes(q) ||
+        s.phones.join(' ').includes(q))
     : items
   const filtered = (debtorsOnly ? searched.filter(s => s.balance > 0.005) : searched)
     .slice()
@@ -355,7 +357,16 @@ export default function FinancePage() {
                             ? <img src={s.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             : initials(s.full_name)}
                         </div>
-                        <span style={{ fontWeight: 500 }}>{s.full_name || '—'}</span>
+                        <div style={{ minWidth: 0 }}>
+                          <span style={{ fontWeight: 500 }}>{s.full_name || '—'}</span>
+                          {/* Телефон должницы прямо в списке — самый частый шаг
+                              месячного сбора: позвонить/написать в один тап. */}
+                          {s.phones[0] && (
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+                              <PhoneLink phone={s.phones[0]} />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td data-label={t('list.col_charges')} style={tdNum}>{formatMoney(s.charges_total)}</td>
