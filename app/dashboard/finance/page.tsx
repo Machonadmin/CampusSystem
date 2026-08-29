@@ -329,14 +329,15 @@ export default function FinancePage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(s => {
+              {filtered.map((s, rowIdx) => {
                 // balance > 0 → студент должен (красный); ≤ 0 → оплачено/переплата (зелёный)
                 const owes = s.balance > 0.005
                 return (
                   <tr
                     key={s.journey_id}
+                    className="anim-row"
                     onClick={() => selectMode ? toggleSelect(s.journey_id) : router.push(`/dashboard/finance/${s.journey_id}`)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ ['--i' as string]: rowIdx, cursor: 'pointer' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--success-tint)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
                   >

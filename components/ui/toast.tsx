@@ -34,15 +34,30 @@ const STYLE: Record<ToastKind, { bg: string; fg: string; border: string }> = {
 
 export function Toaster() {
   const [items, setItems] = useState<ToastItem[]>([])
+  // id тостов, которые «уходят» — на них вешается .toast-out на ~200мс до
+  // удаления из DOM, чтобы исчезновение было мягким, а не резким.
+  const [leaving, setLeaving] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const onToast = (t: ToastItem) => {
       setItems(prev => [...prev, t])
-      setTimeout(() => setItems(prev => prev.filter(x => x.id !== t.id)), 4500)
+      setTimeout(() => setLeaving(prev => new Set(prev).add(t.id)), 4300)
+      setTimeout(() => {
+        setItems(prev => prev.filter(x => x.id !== t.id))
+        setLeaving(prev => { const n = new Set(prev); n.delete(t.id); return n })
+      }, 4500)
     }
     listeners.add(onToast)
     return () => { listeners.delete(onToast) }
   }, [])
+
+  const dismiss = (id: number) => {
+    setLeaving(prev => new Set(prev).add(id))
+    setTimeout(() => {
+      setItems(prev => prev.filter(x => x.id !== id))
+      setLeaving(prev => { const n = new Set(prev); n.delete(id); return n })
+    }, 200)
+  }
 
   if (items.length === 0) return null
 
@@ -60,8 +75,8 @@ export function Toaster() {
         return (
           <div
             key={t.id}
-            className="anim-pop"
-            onClick={() => setItems(prev => prev.filter(x => x.id !== t.id))}
+            className={leaving.has(t.id) ? 'toast-out' : 'anim-pop'}
+            onClick={() => dismiss(t.id)}
             role="status"
             style={{
               pointerEvents: 'auto', cursor: 'pointer',

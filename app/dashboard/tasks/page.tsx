@@ -356,7 +356,7 @@ export default function TasksPage() {
 
       {/* מסננים מתקדמים + בחירה מרובה — נפתחים לפי דרישה בלבד */}
       {showFilters && (
-        <div style={{
+        <div className="anim-expand" style={{
           background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10,
           padding: '10px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
         }}>

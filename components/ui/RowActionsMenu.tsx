@@ -83,6 +83,7 @@ export function RowActionsMenu({
       {open && (
         <div
           role="menu"
+          className="anim-pop"
           style={{
             position: 'absolute',
             zIndex: 40,

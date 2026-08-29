@@ -571,7 +571,7 @@ export default function StudentsTab() {
                       {open && (
                         <tr style={{ background: 'var(--surface-2)' }}>
                           <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                            <div className="anim-expand" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department?.name ?? '—'} /></div>
                               <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group?.name ?? '—'} /></div>
                               <Detail label={t('students.table_contacts')} value={(s.person?.email || phone)
