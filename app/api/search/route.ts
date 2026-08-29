@@ -26,20 +26,58 @@ export async function GET(request: NextRequest) {
       || await hasEducationPrivilege(session, 'view_students')
     if (!allowed) return NextResponse.json({ results: [] })
 
-    const q = sanitizeOrSearch(request.nextUrl.searchParams.get('q'))
+    const rawQ = request.nextUrl.searchParams.get('q') ?? ''
+    const q = sanitizeOrSearch(rawQ)
     if (q.length < 2) return NextResponse.json({ results: [] })
 
     const sb = createServerClient()
-    const pattern = `%${q}%`
 
-    const { data: persons, error } = await sb
-      .from('persons')
-      .select('id, full_name, hebrew_name, email')
-      .or(`full_name.ilike.${pattern},hebrew_name.ilike.${pattern},email.ilike.${pattern}`)
-      .limit(12)
-    if (error) throw error
-
-    const list = (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null }>
+    // Поиск по НОМЕРУ ТЕЛЕФОНА: незнакомый номер звонит в офис — секретарь
+    // вставляет его в поиск и сразу видит, кто это. phones — JSONB-массив,
+    // ilike в .or() по нему не работает, поэтому цифровой запрос ищем
+    // app-side по нормализованным цифрам (ведущие 972/0 отбрасываем с обеих
+    // сторон, чтобы «052…», «+972 52…» и «52…» находили друг друга).
+    const digits = rawQ.replace(/\D/g, '')
+    const isPhoneQuery = digits.length >= 5 && digits.length * 2 >= rawQ.trim().length
+    let list: Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null }> = []
+    if (isPhoneQuery) {
+      const norm = (s: string) => s.replace(/\D/g, '').replace(/^972/, '').replace(/^0/, '')
+      const needle = norm(digits)
+      const PAGE = 1000
+      let from = 0
+      // Кап в 5 страниц — защита от неограниченного скана на больших базах.
+      while (list.length < 12 && from < PAGE * 5) {
+        const { data, error } = await sb
+          .from('persons')
+          .select('id, full_name, hebrew_name, email, phones')
+          .order('id', { ascending: true })
+          .range(from, from + PAGE - 1)
+        if (error) throw error
+        const rows = (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null; phones: unknown }>
+        for (const p of rows) {
+          const phones = Array.isArray(p.phones) ? p.phones : []
+          const hit = phones.some(ph => {
+            const n = typeof ph === 'string' ? ph : (ph as { number?: string })?.number ?? ''
+            return norm(String(n)).includes(needle)
+          })
+          if (hit) {
+            list.push({ id: p.id, full_name: p.full_name, hebrew_name: p.hebrew_name, email: p.email })
+            if (list.length >= 12) break
+          }
+        }
+        if (rows.length < PAGE) break
+        from += PAGE
+      }
+    } else {
+      const pattern = `%${q}%`
+      const { data: persons, error } = await sb
+        .from('persons')
+        .select('id, full_name, hebrew_name, email')
+        .or(`full_name.ilike.${pattern},hebrew_name.ilike.${pattern},email.ilike.${pattern}`)
+        .limit(12)
+      if (error) throw error
+      list = (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null }>
+    }
     if (list.length === 0) return NextResponse.json({ results: [] })
 
     // Статус в образовании (для типа + ссылки).
