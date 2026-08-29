@@ -70,15 +70,19 @@ export default function RecruitmentReportPage() {
 }
 
 function Dashboard({ report, t }: { report: Report; t: T }) {
+  const tEdu = useTranslations('education')
   const conv = report.conversion
   // Конверсия «лид → студентка» как ведущий KPI: доля студенток от когда-либо лидов.
   const convRate = conv.lead_to_applicant
 
+  // Этапы теперь РЕАЛЬНЫЕ workflow-этапы (contact/documents/event/decision) —
+  // подписи из единого словаря process.stages; легаси-значения ручного флага
+  // (interested/in_process) ещё могут прийти из старых данных.
   const stageLabel = (stage: string): string => {
     if (stage === 'interested') return t('stage_interested')
     if (stage === 'in_process') return t('stage_in_process')
     if (stage === 'unknown') return t('unknown')
-    return stage
+    return tEdu(`process.stages.${stage}`, stage)
   }
   const ageLabel = (bucket: string): string => {
     switch (bucket) {

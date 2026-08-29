@@ -16,13 +16,10 @@ interface Report {
   by_source: Array<{ source: string; count: number }>
 }
 
-function stageCount(r: Report, stage: string): number {
-  return r.by_stage.find(s => s.stage === stage)?.count ?? 0
-}
-
 export default function RecruitmentSummary() {
   const t = useTranslations('education.recruitment_report')
   const tSource = useTranslations('education.card')
+  const tEdu = useTranslations('education')
   const [report, setReport] = useState<Report | null>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -42,10 +39,16 @@ export default function RecruitmentSummary() {
 
   // Owner: пустые нули не показываем — плитка с 0 скрывается (как в «Учёбе»).
   // Плитка «דוח מלא» убрана: рядом уже есть чип «דוחות גיוס» на тот же адрес.
+  // Плитки этапов — по РЕАЛЬНЫМ активным workflow-этапам (ручной флаг
+  // interested/in_process удалён по решению владельца).
+  const STAGE_ACCENTS = ['var(--info, #2563EB)', 'var(--warn)', 'var(--success)', 'var(--violet)']
   const tiles = [
     { label: t('total_leads'), value: report.total_leads, accent: 'var(--accent-strong)' },
-    { label: t('stage_interested'), value: stageCount(report, 'interested'), accent: 'var(--info, #2563EB)' },
-    { label: t('stage_in_process'), value: stageCount(report, 'in_process'), accent: 'var(--warn)' },
+    ...report.by_stage.slice(0, 3).map((s, i) => ({
+      label: tEdu(`process.stages.${s.stage}`, s.stage),
+      value: s.count,
+      accent: STAGE_ACCENTS[i % STAGE_ACCENTS.length],
+    })),
   ].filter(tile => tile.value > 0)
   if (topSource && topSource.count > 0) {
     tiles.push({ label: t('dash_top_source'), value: topSource.count, accent: 'var(--violet)' })
