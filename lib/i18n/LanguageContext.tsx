@@ -2,16 +2,22 @@
 
 import { createContext, useContext, useState, useMemo, useCallback, type ReactNode } from 'react'
 import { translations, type Lang, type Translations } from './translations'
-import ruMessages from '@/messages/ru.json'
-import heMessages from '@/messages/he.json'
-import enMessages from '@/messages/en.json'
 
 type AnyRecord = Record<string, unknown>
 
-const allMessages: Record<Lang, AnyRecord> = {
-  ru: ruMessages as AnyRecord,
-  he: heMessages as AnyRecord,
-  en: enMessages as AnyRecord,
+/**
+ * Словари НЕ импортируются статически: три локали (~640 КБ сырого JSON) грузились
+ * в клиентский бандл КАЖДОЙ страницы (+~140 КБ gzip даже на /login). Теперь
+ * активную локаль передаёт серверный layout через initialMessages (SSR-текст
+ * работает как раньше), а другие локали догружаются динамически только при
+ * переключении языка — отдельными чанками, с кэшированием в state.
+ */
+function loadMessages(lang: Lang): Promise<AnyRecord> {
+  switch (lang) {
+    case 'he': return import('@/messages/he.json').then(m => m.default as AnyRecord)
+    case 'en': return import('@/messages/en.json').then(m => m.default as AnyRecord)
+    default: return import('@/messages/ru.json').then(m => m.default as AnyRecord)
+  }
 }
 
 function lookupKey(obj: AnyRecord, path: string): string {
@@ -29,6 +35,7 @@ interface LanguageContextType {
   setLang: (lang: Lang) => void
   t: Translations
   isRTL: boolean
+  messages: AnyRecord
 }
 
 const LanguageContext = createContext<LanguageContextType>({
@@ -36,16 +43,22 @@ const LanguageContext = createContext<LanguageContextType>({
   setLang: () => {},
   t: translations.ru,
   isRTL: false,
+  messages: {},
 })
 
 export function LanguageProvider({
   children,
   initialLocale = 'ru',
+  initialMessages = {},
 }: {
   children: ReactNode
   initialLocale?: Lang
+  initialMessages?: AnyRecord
 }) {
   const [lang, setLangState] = useState<Lang>(initialLocale)
+  const [msgsByLang, setMsgsByLang] = useState<Partial<Record<Lang, AnyRecord>>>(
+    () => ({ [initialLocale]: initialMessages }),
+  )
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next)
@@ -55,14 +68,30 @@ export function LanguageProvider({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ locale: next }),
     })
+    // Догружаем словарь выбранного языка (один раз; чанк кэшируется браузером).
+    setMsgsByLang(prev => {
+      if (!prev[next]) {
+        loadMessages(next)
+          .then(m => setMsgsByLang(p => ({ ...p, [next]: m })))
+          .catch(() => { /* сеть упала — t() отдаст fallback/ключ, не падаем */ })
+      }
+      return prev
+    })
   }, [])
+
+  // Пока словарь нового языка в пути — показываем прежний (без мигания ключей).
+  const messages = useMemo(
+    () => msgsByLang[lang] ?? msgsByLang[initialLocale] ?? {},
+    [msgsByLang, lang, initialLocale],
+  )
 
   const value = useMemo(() => ({
     lang,
     setLang,
     t: translations[lang],
     isRTL: lang === 'he',
-  }), [lang, setLang])
+    messages,
+  }), [lang, setLang, messages])
 
   return (
     <LanguageContext.Provider value={value}>
@@ -76,12 +105,11 @@ export function LanguageProvider({
 export const useLang = () => useContext(LanguageContext)
 
 export function useTranslations(namespace?: string) {
-  const { lang } = useLang()
-  const messages = allMessages[lang]
+  const { messages } = useLang()
   return useCallback((key: string, fallback?: string): string => {
     const fullPath = namespace ? `${namespace}.${key}` : key
     const result = lookupKey(messages, fullPath)
     if (result === fullPath) return fallback ?? key
     return result
-  }, [lang, namespace, messages])
+  }, [namespace, messages])
 }
