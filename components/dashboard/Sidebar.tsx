@@ -429,7 +429,7 @@ export default function Sidebar() {
                 </div>
               )}
 
-              {expanded && section.items.flatMap(item => {
+              {expanded && <div className="anim-expand">{section.items.flatMap(item => {
                 // «Образование» разворачивается в три пункта: набор / приём / учёба.
                 if (item.key === 'education') {
                   const activeSec = activeEduSection()
@@ -478,7 +478,7 @@ export default function Sidebar() {
                     soonLabel={t.soon}
                   />
                 )]
-              })}
+              })}</div>}
             </div>
           )
         })}

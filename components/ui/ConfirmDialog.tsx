@@ -69,6 +69,7 @@ export function ConfirmRoot() {
   return (
     <div
       role="presentation"
+      className="anim-fade"
       onClick={() => done(false)}
       style={{
         position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.5)',
@@ -78,6 +79,7 @@ export function ConfirmRoot() {
       <div
         role="dialog"
         aria-modal="true"
+        className="anim-pop"
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 380, background: 'var(--surface)', border: '1px solid var(--border)',
