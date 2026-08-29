@@ -134,22 +134,15 @@ export async function GET() {
     }
 
     // ─── 2. Лиды с полями для разбивок ────────────────────────────────────
-    // recruitment_stage может отсутствовать на свежей БД (42703) — тогда
-    // повторяем select без неё и не строим by_stage.
+    // by_stage теперь считается по workflow-этапам (см. ниже), ручной флаг
+    // recruitment_stage из отчёта убран.
     const baseCols = 'id, person_id, referral_source, application_date, opened_at'
-    // cols передаём строкой (не литералом): recruitment_stage может отсутствовать
-    // в сгенерированных типах БД, и оба select() должны иметь один тип результата.
     const buildLeadQuery = (cols: string) => sb
       .from('education_journeys')
       .select(cols)
       .eq('education_status', 'lead')
       .eq('is_deleted', false)
-    let stageAvailable = true
-    let leadRes = await buildLeadQuery(`${baseCols}, recruitment_stage`)
-    if (leadRes.error && (leadRes.error as { code?: string }).code === '42703') {
-      stageAvailable = false
-      leadRes = await buildLeadQuery(baseCols)
-    }
+    const leadRes = await buildLeadQuery(baseCols)
     if (leadRes.error) {
       if (isSoft(leadRes.error)) return NextResponse.json({ ...empty, conversion })
       throw leadRes.error
@@ -166,18 +159,38 @@ export async function GET() {
       .map(([source, count]) => ({ source, count }))
       .sort((a, b) => b.count - a.count)
 
-    // ─── by_stage (только если колонка есть) ──────────────────────────────
+    // ─── by_stage: по РЕАЛЬНЫМ активным этапам workflow ───────────────────
+    // Раньше считалось по ручному флагу recruitment_stage, который никто не
+    // поддерживал — плитки описывали флаг, а не пайплайн (владелец убрал флаг).
+    // Теперь: активные process_instances лидов → активные stage_instances →
+    // код шаблона этапа (contact/documents/event/decision).
     let by_stage: Array<{ stage: string; count: number }> = []
-    if (stageAvailable) {
-      const stageMap = new Map<string, number>()
-      for (const j of leadRows) {
-        const key = (j.recruitment_stage && j.recruitment_stage.trim()) || 'unknown'
-        stageMap.set(key, (stageMap.get(key) ?? 0) + 1)
+    try {
+      const journeyIds = leadRows.map(j => j.id).filter(Boolean)
+      if (journeyIds.length > 0) {
+        const { data: pis } = await sb
+          .from('process_instances')
+          .select('id')
+          .in('journey_id', journeyIds)
+          .eq('status', 'active')
+        const piIds = (pis ?? []).map(p => p.id as string)
+        if (piIds.length > 0) {
+          const { data: sis } = await sb
+            .from('stage_instances')
+            .select('id, stage_template:stage_templates!inner(code)')
+            .in('process_instance_id', piIds)
+            .eq('status', 'active')
+          const stageMap = new Map<string, number>()
+          for (const s of (sis ?? []) as unknown as Array<{ stage_template: { code: string } | null }>) {
+            const key = s.stage_template?.code?.trim() || 'unknown'
+            stageMap.set(key, (stageMap.get(key) ?? 0) + 1)
+          }
+          by_stage = [...stageMap.entries()]
+            .map(([stage, count]) => ({ stage, count }))
+            .sort((a, b) => b.count - a.count)
+        }
       }
-      by_stage = [...stageMap.entries()]
-        .map(([stage, count]) => ({ stage, count }))
-        .sort((a, b) => b.count - a.count)
-    }
+    } catch { /* нет таблиц workflow — просто без разбивки */ }
 
     // ─── by_month (по application_date, последние ~12 месяцев) ────────────
     const monthMap = new Map<string, number>()
