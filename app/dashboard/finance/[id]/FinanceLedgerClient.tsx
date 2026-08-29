@@ -315,7 +315,24 @@ export default function FinanceLedgerClient({
           {/* Charges */}
           <Section
             title={t('ledger.charges_section')}
-            action={canCreateInvoice ? { label: t('action.add_charge'), onClick: () => { setShowCharge(v => !v); setShowPayment(false) }, color: primary } : undefined}
+            action={canCreateInvoice ? {
+              label: t('action.add_charge'),
+              onClick: () => {
+                // Префилл из ПОСЛЕДНЕГО начисления: месячный сбор — та же сумма
+                // и формулировка из месяца в месяц; пустые поля заполняем при
+                // открытии (свои правки не трогаем).
+                setShowCharge(v => {
+                  const last = ledger?.charges?.[0]
+                  if (!v && last && !cAmount && !cDesc) {
+                    setCAmount(String(last.amount))
+                    setCDesc(last.description ?? '')
+                  }
+                  return !v
+                })
+                setShowPayment(false)
+              },
+              color: primary,
+            } : undefined}
           >
             {showCharge && canCreateInvoice && (
               <FormRow>

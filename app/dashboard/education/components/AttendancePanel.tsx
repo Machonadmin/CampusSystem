@@ -136,6 +136,9 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
       }
       setBanner({ kind: 'ok', text: t('att_saved') })
       onSaved()
+      // Успех → закрываем сами через мгновение (учителю не нужен лишний тап
+      // по «закрыть»; баннер успевает мелькнуть как подтверждение).
+      setTimeout(onClose, 600)
     } catch {
       setBanner({ kind: 'err', text: t('att_save_failed') })
     } finally {
