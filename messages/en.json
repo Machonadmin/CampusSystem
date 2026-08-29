@@ -427,7 +427,8 @@
         "cancel": "Cancel"
       },
       "my_leads": "My leads",
-      "all_leads": "All leads"
+      "all_leads": "All leads",
+      "to_handoff": "Ready to hand off to admission"
     },
     "recruitment_stage": {
       "interested": "Interested",
@@ -588,8 +589,11 @@
         "academic": "Academic review",
         "dormitory": "Dormitory",
         "jewishness": "Jewishness verification",
-        "medical": "Medical opinion",
-        "final_approval": "Final approval"
+        "medical": "Doctor's opinion",
+        "final_approval": "Final approval",
+        "medical_psych": "Psychologist's opinion",
+        "admission_decision": "Admission decision",
+        "waitlist": "Waitlist"
       },
       "stage_status": {
         "waiting": "Waiting",
@@ -636,7 +640,8 @@
         "exam_required": "Entrance exams required",
         "external_studies": "External studies",
         "admitted": "Admitted",
-        "admitted_conditional": "Admitted (conditional)"
+        "admitted_conditional": "Admitted (conditional)",
+        "waitlisted": "To waitlist"
       },
       "modals": {
         "activate_title": "Activate skipped stage?",
@@ -1298,7 +1303,9 @@
       "jewishness": "Jewishness verification",
       "medical": "Doctor's opinion",
       "medical_psych": "Psychologist's opinion",
-      "final_approval": "Final approval"
+      "final_approval": "Final approval",
+      "admission_decision": "Admission decision",
+      "waitlist": "Waitlist"
     },
     "acceptance_finals": {
       "approved": "Approved",
@@ -1310,7 +1317,8 @@
       "partial": "Partially confirmed",
       "exam_required": "Entrance exams required",
       "external_studies": "External studies",
-      "postponed": "Admission postponed"
+      "postponed": "Postponed",
+      "waitlisted": "To waitlist"
     },
     "signatures": {
       "title": "Signatures & approvals",
@@ -1344,7 +1352,9 @@
       "track_label": "Chol track",
       "track_later": "Assign later",
       "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject).",
-      "handle_in_module": "Handle in module"
+      "handle_in_module": "Handle in module",
+      "stalled_title": "Waiting over {n} days:",
+      "days_short": "{n}d"
     },
     "study_track": {
       "title": "Study track",

@@ -427,7 +427,8 @@
         "cancel": "Отмена"
       },
       "my_leads": "Мои лиды",
-      "all_leads": "Все лиды"
+      "all_leads": "Все лиды",
+      "to_handoff": "Готова к передаче в приёмную комиссию"
     },
     "recruitment_stage": {
       "interested": "Интересуется",
@@ -588,8 +589,11 @@
         "academic": "Учебная проверка",
         "dormitory": "Общежитие",
         "jewishness": "Проверка еврейства",
-        "medical": "Мед. заключение",
-        "final_approval": "Финальное утверждение"
+        "medical": "Заключение врача",
+        "final_approval": "Финальное утверждение",
+        "medical_psych": "Заключение психолога",
+        "admission_decision": "Приёмное решение",
+        "waitlist": "Список ожидания"
       },
       "stage_status": {
         "waiting": "Ожидает",
@@ -621,8 +625,8 @@
       "finals": {
         "done_event_yes": "Записан на мероприятие",
         "done_event_skip": "Без мероприятия",
-        "rejected": "Отказ",
-        "postponed": "Поступление отложено",
+        "rejected": "Отклонено",
+        "postponed": "Приём отложен",
         "all_collected": "Все собраны",
         "partial": "Частично собраны",
         "not_provided": "Не предоставил",
@@ -636,7 +640,8 @@
         "exam_required": "Нужны вступительные экзамены",
         "external_studies": "Внешнее обучение",
         "admitted": "Принята",
-        "admitted_conditional": "Условно принята"
+        "admitted_conditional": "Условно принята",
+        "waitlisted": "В список ожидания"
       },
       "modals": {
         "activate_title": "Активировать пропущенный подэтап?",
@@ -1298,7 +1303,9 @@
       "jewishness": "Проверка еврейства",
       "medical": "Заключение врача",
       "medical_psych": "Заключение психолога",
-      "final_approval": "Финальное утверждение"
+      "final_approval": "Финальное утверждение",
+      "admission_decision": "Приёмное решение",
+      "waitlist": "Список ожидания"
     },
     "acceptance_finals": {
       "approved": "Одобрено",
@@ -1310,7 +1317,8 @@
       "partial": "Подтверждено частично",
       "exam_required": "Нужны вступительные экзамены",
       "external_studies": "Внешнее обучение",
-      "postponed": "Приём отложен"
+      "postponed": "Приём отложен",
+      "waitlisted": "В список ожидания"
     },
     "signatures": {
       "title": "Подписи и утверждения",
@@ -1344,7 +1352,9 @@
       "track_label": "Маршрут חол",
       "track_later": "Назначу позже",
       "medical_pending_warn": "Направленная к врачу/психологу ещё не подписала — утвердить пока нельзя (отклонить можно).",
-      "handle_in_module": "Обработать в модуле"
+      "handle_in_module": "Обработать в модуле",
+      "stalled_title": "Ждут дольше {n} дней:",
+      "days_short": "{n} дн."
     },
     "study_track": {
       "title": "Учебный маршрут",
