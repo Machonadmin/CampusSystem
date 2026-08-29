@@ -19,7 +19,9 @@ const accent = getModuleColor('education')
  */
 export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
   onClose: () => void
-  onSaved: () => void
+  // journeyId нового лида — чтобы вызывающий сразу открыл его карточку
+  // (секретарь обычно прямо сейчас говорит с ним по телефону).
+  onSaved: (journeyId?: string) => void
   onFullForm: () => void
 }) {
   const t = useTranslations('education')
@@ -60,7 +62,8 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
         setSaving(false)
         return
       }
-      onSaved()
+      const b = await res.json().catch(() => ({}))
+      onSaved(typeof b.journey_id === 'string' ? b.journey_id : undefined)
     } catch {
       setError(tCommon('error'))
       setSaving(false)

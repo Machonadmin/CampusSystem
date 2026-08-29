@@ -31,6 +31,7 @@ import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/edu
 import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -246,7 +247,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, margin: '14px 0 6px' }}>
               {t('card.tabs.contacts')}
             </div>
-            <Field label={t('card.labels.phone')} value={phoneList(person.phones).length > 0 ? phoneList(person.phones).join(', ') : '—'} />
+            <Field label={t('card.labels.phone')} value={phoneList(person.phones).length > 0
+              ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px 14px' }}>{phoneList(person.phones).map((p, i) => <PhoneLink key={i} phone={p} />)}</span>
+              : '—'} />
             <Field label={t('card.labels.email')} value={person.email} />
             <Field label={t('card.labels.country')} value={addr.country} />
             <Field label={t('card.labels.city')} value={addr.city} />

@@ -14,9 +14,12 @@ interface Props {
   // Массовый выбор (bulk). Если передан onToggleSelect — рисуем чекбоксы.
   selectedIds?: Set<string>
   onToggleSelect?: (taskId: string) => void
+  // Быстрое «✓ выполнено» с карточки (1 тап вместо 4 через bulk).
+  onQuickComplete?: (taskId: string) => void
+  completingIds?: Set<string>
 }
 
-export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSelect }: Props) {
+export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSelect, onQuickComplete, completingIds }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {tasks.map(t => (
@@ -27,15 +30,18 @@ export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSel
           selectable={!!onToggleSelect}
           selected={selectedIds?.has(t.id) ?? false}
           onToggleSelect={onToggleSelect ? () => onToggleSelect(t.id) : undefined}
+          onQuickComplete={onQuickComplete ? () => onQuickComplete(t.id) : undefined}
+          completing={completingIds?.has(t.id) ?? false}
         />
       ))}
     </div>
   )
 }
 
-function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
+function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuickComplete, completing }: {
   task: TaskRow; onClick: () => void
   selectable?: boolean; selected?: boolean; onToggleSelect?: () => void
+  onQuickComplete?: () => void; completing?: boolean
 }) {
   const t = useTranslations('tasks')
   const { lang } = useLang()
@@ -92,6 +98,24 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect }: {
           }}>
             {t(`status.${task.status}`, task.status)}
           </span>
+
+          {onQuickComplete && ['pending', 'in_progress', 'review'].includes(task.status) && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); if (!completing) onQuickComplete() }}
+              aria-label={t('card.mark_done')}
+              title={t('card.mark_done')}
+              disabled={completing}
+              style={{
+                flexShrink: 0, width: 26, height: 26, borderRadius: 999, cursor: completing ? 'default' : 'pointer',
+                border: '1.5px solid var(--success)', background: 'transparent', color: 'var(--success)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700, lineHeight: 1, opacity: completing ? 0.5 : 1,
+              }}
+            >
+              ✓
+            </button>
+          )}
 
           {dueText && (
             <span style={{

@@ -11,6 +11,7 @@ import { Caret } from '@/components/ui/Caret'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
 interface StudyGroup { id: string; name: string; department_id: string }
@@ -573,7 +574,12 @@ export default function StudentsTab() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department?.name ?? '—'} /></div>
                               <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group?.name ?? '—'} /></div>
-                              <Detail label={t('students.table_contacts')} value={[s.person?.email, phone].filter(Boolean).join('  ·  ') || '—'} />
+                              <Detail label={t('students.table_contacts')} value={(s.person?.email || phone)
+                                ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px 14px', alignItems: 'center' }}>
+                                    {s.person?.email && <span>{s.person.email}</span>}
+                                    {phone && <PhoneLink phone={phone} />}
+                                  </span>
+                                : '—'} />
                               <Detail label={t('students.table_specialty')} value={s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : '—'} />
                               <Detail label={t('students.table_year')} value={s.year_level != null ? String(s.year_level) : '—'} />
                             </div>
@@ -599,7 +605,7 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
 
 // Пара «метка → значение» в раскрытой панели деталей строки.
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>

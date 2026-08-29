@@ -71,7 +71,9 @@
     "optional_note": "Заметка / причина (необязательно)",
     "note_placeholder": "Краткое пояснение или причина…",
     "export_csv": "Экспорт CSV",
-    "load_error": "Ошибка загрузки"
+    "load_error": "Ошибка загрузки",
+    "call": "Позвонить",
+    "whatsapp": "WhatsApp"
   },
   "jewishness": {
     "title": "Проверка еврейства",
@@ -2075,7 +2077,9 @@
       "decline_placeholder": "Опишите причину…",
       "watcher_placeholder": "Выберите наблюдателя",
       "remove_watcher": "Снять наблюдателя",
-      "time_prefix": "к"
+      "time_prefix": "к",
+      "mark_done": "Отметить выполненной",
+      "completed_toast": "Задача отмечена выполненной"
     },
     "module": {
       "general": "Общее",

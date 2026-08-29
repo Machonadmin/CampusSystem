@@ -7,6 +7,7 @@ import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface PersonDetail {
   id: string
@@ -103,7 +104,14 @@ export default function PersonDetailClient({
           {/* Info card */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Info label={t('fields.email')} value={data.email} />
-            <Info label={t('fields.phone')} value={phoneList(data.phones).join(', ') || null} />
+            {phoneList(data.phones).length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('fields.phone')}</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', marginTop: 3, display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
+                  {phoneList(data.phones).map((p, i) => <PhoneLink key={i} phone={p} />)}
+                </div>
+              </div>
+            )}
             <Info label={t('fields.department')} value={data.department} />
             <Info
               label={t('fields.roles')}

@@ -71,7 +71,9 @@
     "optional_note": "Note / reason (optional)",
     "note_placeholder": "Short explanation or reason…",
     "export_csv": "Export CSV",
-    "load_error": "Loading error"
+    "load_error": "Loading error",
+    "call": "Call",
+    "whatsapp": "WhatsApp"
   },
   "jewishness": {
     "title": "Jewishness Verification",
@@ -2075,7 +2077,9 @@
       "decline_placeholder": "Describe the reason...",
       "watcher_placeholder": "Select a watcher",
       "remove_watcher": "Remove watcher",
-      "time_prefix": "at"
+      "time_prefix": "at",
+      "mark_done": "Mark as done",
+      "completed_toast": "Task marked as done"
     },
     "module": {
       "general": "General",

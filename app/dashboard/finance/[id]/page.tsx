@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
+import { phoneList } from '@/lib/persons/phone'
 import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { canViewStudentFinance, canManageStudentFinance } from '@/lib/finance/access'
@@ -30,7 +31,7 @@ export default async function FinanceStudentPage({ params }: Props) {
     .from('education_journeys')
     .select(`
       id, person_id, education_status,
-      person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, photo_url)
+      person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, photo_url, phones)
     `)
     .eq('id', params.id)
     .maybeSingle()
@@ -46,6 +47,7 @@ export default async function FinanceStudentPage({ params }: Props) {
       full_name: string | null
       hebrew_name: string | null
       photo_url: string | null
+      phones: unknown
     } | null
   }
 
@@ -60,6 +62,7 @@ export default async function FinanceStudentPage({ params }: Props) {
       fullName={j.person?.full_name ?? ''}
       hebrewName={j.person?.hebrew_name ?? null}
       photoUrl={j.person?.photo_url ?? null}
+      phones={phoneList(j.person?.phones)}
       canCreateInvoice={canCreateInvoice}
       canApprove={canApprove}
     />
