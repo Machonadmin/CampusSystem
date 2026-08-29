@@ -389,22 +389,48 @@ export default function RecruitmentTab() {
                     ) : lead.active_stages_with_tasks.length === 0 ? (
                       <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('leads.no_stages')}</span>
                     ) : (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {lead.active_stages_with_tasks.map((stage, i) => (
-                          <span key={`${stage.stage_code ?? stage.stage_name}-${i}`}
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600,
-                              color: 'var(--accent-strong)', background: 'var(--accent-tint)',
-                              border: '1px solid var(--accent)', borderRadius: 999, padding: '3px 10px',
-                            }}>
-                            {t(`process.stages.${stage.stage_code}`, stage.stage_name)}
-                            {stage.tasks.length > 0 && (
-                              <span style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'var(--accent)', borderRadius: 999, padding: '0 6px', minWidth: 16, textAlign: 'center' }}>
-                                {stage.tasks.length}
-                              </span>
-                            )}
-                          </span>
-                        ))}
+                      /* «Что делать дальше» вместо голых чипов: первая открытая
+                         задача — главная строка, этап — подпись; на этапе
+                         «החלטה» — прямая ссылка на передачу в приёмку. */
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        {lead.active_stages_with_tasks.map((stage, i) => {
+                          const nextTask = stage.tasks[0] ?? null
+                          const isDecision = stage.stage_code === 'decision'
+                          return (
+                            <div key={`${stage.stage_code ?? stage.stage_name}-${i}`} style={{ display: 'grid', gap: 1 }}>
+                              {nextTask ? (
+                                <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>
+                                  {nextTask}
+                                  {stage.tasks.length > 1 && (
+                                    <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--accent-strong)', marginInlineStart: 5 }}>
+                                      +{stage.tasks.length - 1}
+                                    </span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)' }}>
+                                  {t(`process.stages.${stage.stage_code}`, stage.stage_name)}
+                                </span>
+                              )}
+                              {nextTask && (
+                                <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                                  {t(`process.stages.${stage.stage_code}`, stage.stage_name)}
+                                </span>
+                              )}
+                              {isDecision && (
+                                <button
+                                  onClick={e => { e.stopPropagation(); router.push(`/dashboard/education/leads/${lead.profile_id}`) }}
+                                  style={{
+                                    justifySelf: 'start', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                                    color: 'var(--violet)', background: 'transparent', border: 'none', padding: 0,
+                                  }}
+                                >
+                                  {t('leads.to_handoff')} ‹
+                                </button>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </td>

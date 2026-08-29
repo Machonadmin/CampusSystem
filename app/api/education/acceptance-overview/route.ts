@@ -91,12 +91,12 @@ export async function GET(request: NextRequest) {
     const { data: stagesRaw } = await sb
       .from('stage_instances')
       .select(`
-        id, process_instance_id, status, final_code, notes,
+        id, process_instance_id, status, final_code, notes, activated_at,
         stage_template:stage_templates!inner(id, code, name_ru, sort_order, required_role_code)
       `)
       .in('process_instance_id', instanceIds)
     const stages = (stagesRaw ?? []) as unknown as Array<{
-      id: string; process_instance_id: string; status: string; final_code: string | null; notes: string | null
+      id: string; process_instance_id: string; status: string; final_code: string | null; notes: string | null; activated_at: string | null
       stage_template: { id: string; code: string; name_ru: string; sort_order: number; required_role_code: string | null } | null
     }>
 
@@ -154,6 +154,7 @@ export async function GET(request: NextRequest) {
             status: s.status,
             final_code: s.final_code,
             note: s.notes ?? null,
+            activated_at: s.activated_at ?? null,
             signer_name: signerByStage.get(s.id) ?? null,
             can_sign: signable,
             finals: signable ? (finalsByTemplate.get(templateId) ?? []) : [],

@@ -159,7 +159,9 @@ function StalledApplicantsWidget({ onData }: { onData: () => void }) {
 
   if (!loaded || items.length === 0) return null
   return (
-    <Card title={t('stalled')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education/recruitment')}>
+    // Застрявшие — это АБИТУРИЕНТКИ в приёмке, ведём на доску קבלה (раньше
+    // вело в список лидов, где их структурно нет).
+    <Card title={t('stalled')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education/admission')}>
       <div style={{ display: 'grid', gap: 5 }}>
         {items.slice(0, 4).map(s => (
           <Row key={s.journey_id}

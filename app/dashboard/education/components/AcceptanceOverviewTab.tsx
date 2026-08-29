@@ -8,6 +8,7 @@ import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@
 import StageSignatures from '@/components/workflow/StageSignatures'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface Final { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }
 interface StageCell {
@@ -18,9 +19,16 @@ interface StageCell {
   status: string
   final_code: string | null
   note: string | null
+  activated_at: string | null
   signer_name: string | null
   can_sign: boolean
   finals: Final[]
+}
+
+interface StalledItem {
+  journey_id: string
+  applicant: { full_name: string; hebrew_name: string | null }
+  max_days: number
 }
 interface Applicant {
   journey_id: string
@@ -55,6 +63,20 @@ export default function AcceptanceOverviewTab() {
   const [filter, setFilter] = useState<StatusFilter>('active')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // «Застрявшие» — прямо на доске приёмки (раньше только на главной, и виджет
+  // вёл в список лидов, где абитуриенток нет). Тихо: ошибка → пустая полоса.
+  const [stalled, setStalled] = useState<StalledItem[]>([])
+  const [stalledDays, setStalledDays] = useState(7)
+  useEffect(() => {
+    fetch('/api/education/stalled-applicants')
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => {
+        if (b?.applicants) setStalled(b.applicants)
+        if (b?.days) setStalledDays(b.days)
+      })
+      .catch(() => {})
+  }, [])
 
   // Sign modal
   const [modal, setModal] = useState<SignModal | null>(null)
@@ -153,6 +175,32 @@ export default function AcceptanceOverviewTab() {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      {/* Застрявшие: кто ждёт дольше {stalledDays} дней — сразу видно и кликается. */}
+      {stalled.length > 0 && (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 10px',
+          background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 10,
+          padding: '8px 12px', fontSize: 12.5,
+        }}>
+          <span style={{ fontWeight: 700, color: 'var(--warn)' }}>
+            {t('overview.stalled_title').replace('{n}', String(stalledDays))}
+          </span>
+          {stalled.slice(0, 8).map(s => (
+            <button
+              key={s.journey_id}
+              onClick={() => router.push(`/dashboard/education/leads/${s.journey_id}`)}
+              style={{
+                fontSize: 12, fontWeight: 600, padding: '2px 10px', borderRadius: 999, cursor: 'pointer',
+                background: 'var(--surface)', border: '1px solid var(--warn)', color: 'var(--text)',
+              }}
+            >
+              {(s.applicant.hebrew_name || s.applicant.full_name || '—')} · {s.max_days}
+            </button>
+          ))}
+          {stalled.length > 8 && <span style={{ color: 'var(--warn)', fontWeight: 600 }}>+{stalled.length - 8}</span>}
+        </div>
+      )}
+
       {/* Filter */}
       <div style={{ display: 'flex', gap: 6 }}>
         {FILTERS.map(f => (
@@ -194,13 +242,35 @@ export default function AcceptanceOverviewTab() {
                 const name = app.applicant.hebrew_name || app.applicant.full_name || '—'
                 return (
                   <tr key={app.process_instance_id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
-                    <td style={{ ...td, minWidth: 160 }}>
-                      <button
-                        onClick={() => router.push(`/dashboard/education/leads/${app.journey_id}`)}
-                        style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'start' }}
-                      >
-                        {name}
-                      </button>
+                    <td style={{ ...td, minWidth: 180 }}>
+                      {/* Фото + телефон: раньше данные приходили с API и не
+                          рендерились — двух похожих девушек было не различить,
+                          а позвонить = копировать номер вручную. */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                          background: 'var(--accent-tint)', color: 'var(--accent-strong)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700,
+                        }}>
+                          {app.applicant.photo_url
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={app.applicant.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            : (name.trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '—')}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <button
+                            onClick={() => router.push(`/dashboard/education/leads/${app.journey_id}`)}
+                            style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'start' }}
+                          >
+                            {name}
+                          </button>
+                          {app.applicant.phones[0] && (
+                            <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                              <PhoneLink phone={app.applicant.phones[0]} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     {visibleStages.map(code => {
                       const cell = byCode.get(code)
@@ -213,7 +283,8 @@ export default function AcceptanceOverviewTab() {
                             <Cell cell={cell} onSign={() => openSign(name, app.journey_id, cell, medicalPending)}
                               pendingLabel={t('overview.pending')} signLabel={t('overview.sign')}
                               moduleLabel={t('overview.handle_in_module', 'לטיפול במודול')}
-                              finalLabel={c => t(`acceptance_finals.${c}`, c)} />
+                              finalLabel={c => t(`acceptance_finals.${c}`, c)}
+                              daysLabel={n => t('overview.days_short').replace('{n}', String(n))} />
                           )}
                         </td>
                       )
@@ -313,8 +384,17 @@ const STAGE_MODULE_HREF: Record<string, string> = {
   medical_psych: '/dashboard/psychologist',
 }
 
+// Дней с активации этапа (для бейджа «ממתין · X»). null — нет данных / <1 дня.
+function daysInStage(activatedAt: string | null): number | null {
+  if (!activatedAt) return null
+  const ms = Date.now() - Date.parse(activatedAt)
+  if (!Number.isFinite(ms)) return null
+  const d = Math.floor(ms / 86400000)
+  return d >= 1 ? d : null
+}
+
 function Cell({
-  cell, onSign, pendingLabel, signLabel, moduleLabel, finalLabel,
+  cell, onSign, pendingLabel, signLabel, moduleLabel, finalLabel, daysLabel,
 }: {
   cell: StageCell
   onSign: () => void
@@ -322,6 +402,7 @@ function Cell({
   signLabel: string
   moduleLabel: string
   finalLabel: (code: string) => string
+  daysLabel: (n: number) => string
 }) {
   const done = cell.status === 'completed' && cell.final_code
   const moduleHref = STAGE_MODULE_HREF[cell.stage_code]
@@ -335,6 +416,8 @@ function Cell({
       ) : cell.status === 'active' ? (
         <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999, justifySelf: 'start', background: 'var(--warn-tint)', color: 'var(--warn)' }}>
           {pendingLabel}
+          {/* Сколько дней этап ждёт — «выдержка» видна прямо в ячейке. */}
+          {daysInStage(cell.activated_at) != null && ` · ${daysLabel(daysInStage(cell.activated_at)!)}`}
         </span>
       ) : (
         <span style={{ fontSize: 12, color: 'var(--border-strong)' }}>—</span>

@@ -427,7 +427,8 @@
         "cancel": "ביטול"
       },
       "my_leads": "הלידים שלי",
-      "all_leads": "כל הלידים"
+      "all_leads": "כל הלידים",
+      "to_handoff": "מוכנה להעברה לוועדת קבלה"
     },
     "recruitment_stage": {
       "interested": "מתעניינת",
@@ -588,8 +589,11 @@
         "academic": "בדיקה לימודית",
         "dormitory": "פנימייה",
         "jewishness": "בירור יהדות",
-        "medical": "חוות דעת רפואית",
-        "final_approval": "אישור סופי"
+        "medical": "חוות דעת רופא",
+        "final_approval": "אישור סופי",
+        "medical_psych": "חוות דעת פסיכולוג",
+        "admission_decision": "החלטת קבלה",
+        "waitlist": "רשימת המתנה"
       },
       "stage_status": {
         "waiting": "ממתין",
@@ -621,8 +625,8 @@
       "finals": {
         "done_event_yes": "רשום לאירוע",
         "done_event_skip": "ללא אירוע",
-        "rejected": "סירוב",
-        "postponed": "הקבלה נדחתה למועד אחר",
+        "rejected": "נדחה",
+        "postponed": "קבלה נדחית",
         "all_collected": "הכל נאסף",
         "partial": "נאסף חלקית",
         "not_provided": "לא סופק",
@@ -636,7 +640,8 @@
         "exam_required": "נדרשים מבחני קבלה",
         "external_studies": "לימודים חיצוניים",
         "admitted": "התקבלה",
-        "admitted_conditional": "התקבלה על תנאי"
+        "admitted_conditional": "התקבלה על תנאי",
+        "waitlisted": "לרשימת המתנה"
       },
       "modals": {
         "activate_title": "להפעיל תת-שלב שדולג?",
@@ -1298,7 +1303,9 @@
       "jewishness": "בירור יהדות",
       "medical": "חוות דעת רופא",
       "medical_psych": "חוות דעת פסיכולוג",
-      "final_approval": "אישור סופי"
+      "final_approval": "אישור סופי",
+      "admission_decision": "החלטת קבלה",
+      "waitlist": "רשימת המתנה"
     },
     "acceptance_finals": {
       "approved": "אושר",
@@ -1310,7 +1317,8 @@
       "partial": "אישור חלקי",
       "exam_required": "נדרשים מבחני קבלה",
       "external_studies": "לימודים חיצוניים",
-      "postponed": "קבלה נדחית"
+      "postponed": "קבלה נדחית",
+      "waitlisted": "לרשימת המתנה"
     },
     "signatures": {
       "title": "חתימות ואישורים",
@@ -1344,7 +1352,9 @@
       "track_label": "מסלול חול",
       "track_later": "אבחר מאוחר יותר",
       "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו — אי אפשר לאשר עדיין (אפשר לדחות).",
-      "handle_in_module": "לטיפול במודול"
+      "handle_in_module": "לטיפול במודול",
+      "stalled_title": "ממתינות מעל {n} ימים:",
+      "days_short": "{n} ימ׳"
     },
     "study_track": {
       "title": "מסלול לימוד",
