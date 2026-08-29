@@ -2011,7 +2011,7 @@
     },
     "filters": {
       "all": "All",
-      "active": "Active",
+      "active": "Open",
       "my": "My",
       "department": "Department",
       "assigned": "Assigned to me",
@@ -2049,7 +2049,8 @@
       "cancel": "Cancel",
       "assign": "Assign",
       "cancel_series": "Cancel Series...",
-      "delete": "Delete"
+      "delete": "Delete",
+      "mark_done": "Mark as done"
     },
     "card": {
       "watchers": "Watchers",
@@ -4131,7 +4132,8 @@
     "task_status": {
       "pending": "Pending",
       "in_progress": "In progress",
-      "review": "In review"
+      "review": "In review",
+      "unassigned": "Unassigned"
     },
     "legend": {
       "title": "Legend",

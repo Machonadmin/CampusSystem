@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 
 type Sb = ReturnType<typeof createServerClient>
 
@@ -61,7 +62,7 @@ export async function getActiveStagesWithTasks(
       .from('tasks')
       .select('title, stage_instance_id')
       .in('stage_instance_id', [...siToEntry.keys()])
-      .in('status', ['unassigned', 'pending', 'in_progress'])
+      .in('status', [...OPEN_TASK_STATUSES])
 
     for (const t of tasks ?? []) {
       siToEntry.get(t.stage_instance_id as string)?.tasks.push(t.title as string)

@@ -147,7 +147,7 @@ export function TaskDetail({
     .format(new Date(`${task.due_date}T00:00:00Z`))
   const time = task.due_all_day ? '' : toHHmm(task.due_time)
   // Известные статусы задачи переводим; иначе показываем сырое значение.
-  const knownStatus = ['pending', 'in_progress', 'review'].includes(task.status)
+  const knownStatus = ['unassigned', 'pending', 'in_progress', 'review'].includes(task.status)
   const statusLabel = knownStatus ? t(`task_status.${task.status}`) : task.status
 
   return (

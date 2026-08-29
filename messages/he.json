@@ -2011,7 +2011,7 @@
     },
     "filters": {
       "all": "הכל",
-      "active": "פעילות",
+      "active": "פתוחות",
       "my": "שלי",
       "department": "מחלקה",
       "assigned": "שהוקצו לי",
@@ -2049,7 +2049,8 @@
       "cancel": "ביטול",
       "assign": "הקצאה",
       "cancel_series": "ביטול סדרה…",
-      "delete": "מחיקה"
+      "delete": "מחיקה",
+      "mark_done": "סמן כבוצע"
     },
     "card": {
       "watchers": "עוקבים",
@@ -4131,7 +4132,8 @@
     "task_status": {
       "pending": "ממתינה",
       "in_progress": "בביצוע",
-      "review": "בבדיקה"
+      "review": "בבדיקה",
+      "unassigned": "לא מוקצית"
     },
     "legend": {
       "title": "מקרא",

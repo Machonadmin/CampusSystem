@@ -2,6 +2,7 @@
 
 import type { TaskRow } from '@/types/database'
 import { todayISO } from '@/lib/dates'
+import { isOpenTaskStatus } from '@/lib/tasks/status'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
@@ -51,7 +52,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuick
   const isOverdue =
     !!task.due_date &&
     task.due_date < todayISO() &&
-    !['completed', 'cancelled', 'declined'].includes(task.status)
+    isOpenTaskStatus(task.status)
 
   return (
     <div
@@ -99,7 +100,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuick
             {t(`status.${task.status}`, task.status)}
           </span>
 
-          {onQuickComplete && ['pending', 'in_progress', 'review'].includes(task.status) && (
+          {onQuickComplete && isOpenTaskStatus(task.status) && (
             <button
               type="button"
               onClick={e => { e.stopPropagation(); if (!completing) onQuickComplete() }}
