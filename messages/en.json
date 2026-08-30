@@ -4601,7 +4601,10 @@
     "push_prompt": "Get notifications on your phone too (installed app)",
     "push_enable": "Enable",
     "push_enabled": "Phone notifications enabled for this device",
-    "push_failed": "Could not enable notifications on this device"
+    "push_failed": "Could not enable notifications on this device",
+    "push_ios_install": "To get notifications on iPhone, open the system from the Home Screen icon (not Safari).",
+    "push_denied": "Notifications are blocked. To enable: device Settings → the app/Safari → allow notifications.",
+    "push_unsupported": "This device or browser does not support push notifications. Try from the installed app."
   },
   "add_to_calendar": {
     "button": "Add to calendar",
