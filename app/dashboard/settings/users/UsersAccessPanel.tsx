@@ -16,14 +16,14 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
-interface Role {
+export interface Role {
   id: string
   name: string
   code: string
   category: string
 }
 
-interface UserRow {
+export interface UserRow {
   account_id: string
   person_id: string
   full_name: string
@@ -48,7 +48,7 @@ function Avatar({ name, photo }: { name: string; photo: string | null }) {
   )
 }
 
-function RoleBadge({ name }: { name: string }) {
+export function RoleBadge({ name }: { name: string }) {
   return (
     <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: 'var(--accent-tint)', color: 'var(--accent)', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
       {name}
@@ -66,7 +66,7 @@ interface RolesModalProps {
   onSaved: () => void
 }
 
-function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
+export function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
   const { t: lang } = useLang()
   const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
   const [saving, setSaving] = useState(false)
@@ -141,9 +141,9 @@ interface AddUserModalProps {
   initialPerson?: PersonResult | null
 }
 
-interface PersonResult { id: string; full_name: string; hebrew_name?: string | null; email: string | null }
+export interface PersonResult { id: string; full_name: string; hebrew_name?: string | null; email: string | null }
 
-function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
+export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
   const { t: lang } = useLang()
   // Person search
   const [query, setQuery] = useState('')
@@ -529,7 +529,7 @@ interface EditUserModalProps {
   onSaved: () => void
 }
 
-function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProps) {
+export function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProps) {
   const [fullName, setFullName] = useState(user.full_name)
   const [email, setEmail] = useState(user.login_email)
   const [saving, setSaving] = useState(false)

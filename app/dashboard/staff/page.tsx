@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
@@ -11,13 +10,18 @@ import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
-import { UsersAccessPanel } from '@/app/dashboard/settings/users/UsersAccessPanel'
+import {
+  RolesModal, AddUserModal, EditUserModal, RoleBadge,
+  type UserRow, type Role, type PersonResult,
+} from '@/app/dashboard/settings/users/UsersAccessPanel'
+import PersonPrivilegesModal from '@/app/dashboard/settings/users/PersonPrivilegesModal'
+import { roleLabel } from '@/lib/roles/role-label'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { toast } from '@/components/ui/toast'
-import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
+import { RowActionsMenu, type RowAction } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -510,7 +514,11 @@ function flattenDeptOptions(depts: Department[], lang: Lang): { id: string; labe
 function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; depts: Department[]; refreshSignal: number }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
-  const router = useRouter()
+  // Пространства имён «משתמשים וגישה» — переиспользуем её модалки прямо здесь,
+  // раз вкладки слиты в одну (запрос владельца).
+  const tUsers = useTranslations('settings.users')
+  const tCat = useTranslations('settings.categories')
+  const tPriv = useTranslations('settings.person_privileges')
   const me = useMe()
   const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -518,8 +526,16 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
-  const { lang } = useLang()
+  const { lang, t: langPack } = useLang()
   const deptOptions = flattenDeptOptions(depts, lang)
+
+  // Доступ/аккаунты (только superadmin — как и API /api/settings/users).
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [allRoles, setAllRoles] = useState<Role[]>([])
+  const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
+  const [editTarget, setEditTarget] = useState<UserRow | null>(null)
+  const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
+  const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
 
   function genderLabel(g: string | null): string | null {
     if (g === 'male') return t('gender.male')
@@ -541,6 +557,27 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
     return () => clearTimeout(handle)
   }, [search, deptFilter, refreshSignal, localRefresh, tCommon])
 
+  const loadUsers = useCallback(async () => {
+    if (!isSuperadmin) return
+    const [uRes, rRes] = await Promise.all([fetch('/api/settings/users'), fetch('/api/settings/roles')])
+    if (uRes.ok) setUsers(await uRes.json())
+    if (rRes.ok) setAllRoles(await rRes.json())
+  }, [isSuperadmin])
+
+  useEffect(() => { loadUsers() }, [loadUsers, refreshSignal, localRefresh])
+
+  const usersByPerson = new Map<string, UserRow>()
+  for (const u of users) usersByPerson.set(u.person_id, u)
+
+  // Люди с доступом, у которых НЕТ рабочего места (не «сотрудник») — их тоже
+  // показываем, чтобы после слияния вкладок никто не пропал.
+  const empPersonIds = new Set(employees.map(e => e.person_id))
+  const q = search.trim().toLowerCase()
+  const accessOnly = deptFilter ? [] : users.filter(u =>
+    !empPersonIds.has(u.person_id) &&
+    (!q || u.full_name.toLowerCase().includes(q) || u.login_email.toLowerCase().includes(q))
+  )
+
   async function handleDeleteEmployee(profileId: string, fullName: string) {
     if (!(await confirmDialog({ message: `${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`, tone: 'danger' }))) return
     try {
@@ -555,6 +592,27 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       toast(t('delete_employee_error'), 'error')
     }
   }
+
+  // Ячейка «доступ/роли» + действия по аккаунту (для superadmin).
+  function accessCell(user: UserRow | undefined) {
+    if (!user) return <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_none')}</span>
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 240 }}>
+        {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(langPack.roles, r.code, r.name)} />)}
+        {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
+        {user.roles.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_no_roles')}</span>}
+      </div>
+    )
+  }
+  function accessActions(user: UserRow): RowAction[] {
+    return [
+      { key: 'roles', label: tUsers('manage_roles_button'), onClick: () => setRolesTarget(user) },
+      { key: 'account', label: tUsers('edit_button'), onClick: () => setEditTarget(user) },
+      { key: 'priv', label: tPriv('button'), onClick: () => setPrivTarget(user) },
+    ]
+  }
+
+  const hasAny = employees.length > 0 || accessOnly.length > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -572,12 +630,19 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
           onClick={() => onAdd()}
           accentColor={getModuleColor('staff')}
         />
+        {isSuperadmin && (
+          <PageActionButton
+            label={tUsers('create_button')}
+            onClick={() => setAddPerson(null)}
+            accentColor={getModuleColor('staff')}
+          />
+        )}
       </div>
 
       <div className="anim-rise" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
-        ) : employees.length === 0 ? (
+        ) : !hasAny ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {search || deptFilter ? t('no_results') : t('no_employees')}
           </div>
@@ -585,8 +650,13 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
-                {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
+                {[
+                  t('table.full_name'), t('table.position'), t('table.department'),
+                  t('table.phone'), t('table.email'),
+                  ...(isSuperadmin ? [t('table.access')] : []),
+                  t('table.status'), '',
+                ].map((h, i) => (
+                  <th key={h || `blank${i}`} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -594,6 +664,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
               {employees.map(emp => {
                 const statusKey = emp.status ?? 'active'
                 const sc = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
+                const user = usersByPerson.get(emp.person_id)
                 return (
                   <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
@@ -626,7 +697,10 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                     </td>
                     <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
                     <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
-                    <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? '—'}</td>
+                    <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? user?.login_email ?? '—'}</td>
+                    {isSuperadmin && (
+                      <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
+                    )}
                     <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
                         {t(`status.${statusKey}`, statusKey)}
@@ -636,11 +710,13 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       <RowActionsMenu
                         accentColor={getModuleColor('staff')}
                         actions={[
+                          // Доступ есть → управление ролями/аккаунтом; нет → создать вход.
+                          ...(isSuperadmin && user ? accessActions(user) : []),
                           {
                             key: 'login',
                             label: t('create_login'),
-                            onClick: () => router.push(`/dashboard/settings/users?person=${emp.person_id}`),
-                            hidden: !isSuperadmin,
+                            onClick: () => setAddPerson({ id: emp.person_id, full_name: emp.full_name, hebrew_name: emp.hebrew_name, email: emp.email }),
+                            hidden: !isSuperadmin || !!user,
                           },
                           { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
                           {
@@ -656,10 +732,69 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                   </tr>
                 )
               })}
+
+              {/* Люди с доступом, но без рабочего места (только superadmin). */}
+              {accessOnly.map(user => (
+                <tr key={`au_${user.account_id}`} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
+                  <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {user.photo_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={user.photo_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(user.full_name)}</div>
+                      }
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
+                    </div>
+                  </td>
+                  <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{t('system_user')}</span>
+                  </td>
+                  <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
+                  <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
+                  <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{user.login_email}</td>
+                  <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
+                  <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
+                    <span style={{
+                      fontSize: 11, padding: '3px 10px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
+                      background: user.is_active ? 'var(--success-tint)' : 'var(--danger-tint)',
+                      color: user.is_active ? 'var(--success)' : 'var(--danger)',
+                    }}>
+                      {user.is_active ? tUsers('active') : tUsers('inactive')}
+                    </span>
+                  </td>
+                  <td data-label="" style={{ padding: '10px 14px' }}>
+                    <RowActionsMenu accentColor={getModuleColor('staff')} actions={accessActions(user)} />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {rolesTarget && (
+        <RolesModal user={rolesTarget} allRoles={allRoles} t={tUsers} tCat={tCat} tCommon={tCommon}
+          onClose={() => setRolesTarget(null)} onSaved={() => { setRolesTarget(null); setLocalRefresh(n => n + 1) }} />
+      )}
+      {editTarget && (
+        <EditUserModal user={editTarget} t={tUsers} tCommon={tCommon}
+          onClose={() => setEditTarget(null)} onSaved={() => { setEditTarget(null); setLocalRefresh(n => n + 1) }} />
+      )}
+      {privTarget && (
+        <PersonPrivilegesModal user={privTarget} t={tPriv} tCommon={tCommon} onClose={() => setPrivTarget(null)} />
+      )}
+      {addPerson !== undefined && (
+        <AddUserModal
+          key={addPerson?.id ?? 'new'}
+          allRoles={allRoles}
+          t={tUsers} tCat={tCat} tCommon={tCommon}
+          initialPerson={addPerson}
+          onClose={() => setAddPerson(undefined)}
+          onSaved={() => setLocalRefresh(n => n + 1)}
+        />
+      )}
     </div>
   )
 }
@@ -669,14 +804,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
-  const me = useMe()
-  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [activeTab, setActiveTab] = useState<string>('structure')
   // Глубокая ссылка ?tab= (напр. со старых маршрутов /settings/users →
   // редирект на объединённый хаб צוות с нужной вкладкой).
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get('tab')
-    if (q && ['structure', 'staff', 'positions', 'users'].includes(q)) setActiveTab(q)
+    // Старая вкладка «users» слита в «staff» — старые ссылки ?tab=users ведут туда.
+    if (q === 'users') setActiveTab('staff')
+    else if (q && ['structure', 'staff', 'positions'].includes(q)) setActiveTab(q)
   }, [])
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
@@ -721,10 +856,10 @@ export default function StaffPage() {
       <ModuleTabs
         tabs={[
           { key: 'structure', label: t('tabs.structure') },
+          // «צוות ומשתמשים» — сотрудники + доступ в ОДНОЙ вкладке (запрос владельца).
+          // Колонка «доступ» и управление аккаунтами внутри — только superadmin.
           { key: 'staff', label: t('tabs.staff') },
           { key: 'positions', label: t('tabs.positions') },
-          // «משתמשים וגישה» — управление аккаунтами: только superadmin (как и API).
-          { key: 'users', label: t('tabs.users'), visible: isSuperadmin },
         ]}
         active={activeTab}
         onChange={setActiveTab}
@@ -784,11 +919,8 @@ export default function StaffPage() {
         />
       )}
 
-      {/* Каталог должностей и управление доступом — вкладки объединённого хаба
-          «צוות ומשתמשים» (запрос владельца). Рендерятся embedded (без своей
-          шапки/крошек). users — только superadmin. */}
+      {/* Каталог должностей. Управление доступом слито в вкладку «staff». */}
       {activeTab === 'positions' && <PositionsPanel embedded />}
-      {activeTab === 'users' && isSuperadmin && <UsersAccessPanel embedded />}
 
       {modal?.type === 'add' && (
         <DeptAddModal depts={depts} parentId={modal.parentId} onClose={() => setModal(null)} onSaved={() => { setModal(null); load() }} />
