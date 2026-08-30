@@ -4647,7 +4647,14 @@
     "agenda_empty": "אין אירועים או פגישות בשבוע הקרוב",
     "agenda_today": "היום",
     "agenda_all_day": "כל היום",
-    "recent_leads": "לידים אחרונים"
+    "recent_leads": "לידים אחרונים",
+    "kpi": {
+      "debts": "חוב פתוח",
+      "debtors": "{n} חייבות",
+      "leads": "לידים פעילים",
+      "students": "תלמידות",
+      "collection": "אחוז גבייה"
+    }
   },
   "search": {
     "placeholder": "חיפוש אדם…",

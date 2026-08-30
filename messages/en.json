@@ -4647,7 +4647,14 @@
     "agenda_empty": "No meetings or events in the coming week",
     "agenda_today": "Today",
     "agenda_all_day": "All day",
-    "recent_leads": "Recent leads"
+    "recent_leads": "Recent leads",
+    "kpi": {
+      "debts": "Outstanding",
+      "debtors": "{n} debtors",
+      "leads": "Active leads",
+      "students": "Students",
+      "collection": "Collection"
+    }
   },
   "search": {
     "placeholder": "Search a person…",

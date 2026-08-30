@@ -4647,7 +4647,14 @@
     "agenda_empty": "Нет встреч и событий на ближайшую неделю",
     "agenda_today": "Сегодня",
     "agenda_all_day": "Весь день",
-    "recent_leads": "Недавние лиды"
+    "recent_leads": "Недавние лиды",
+    "kpi": {
+      "debts": "Открытый долг",
+      "debtors": "{n} должниц",
+      "leads": "Активные лиды",
+      "students": "Студентки",
+      "collection": "Собираемость"
+    }
   },
   "search": {
     "placeholder": "Поиск человека…",
