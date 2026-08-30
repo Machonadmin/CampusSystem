@@ -18,10 +18,10 @@ interface AgendaItem {
   title: string
   date: string           // YYYY-MM-DD
   time: string | null    // HH:MM | null (весь день)
-  kind: 'appointment' | 'event'
+  kind: 'appointment' | 'event' | 'task'
 }
 
-const KIND_ICON: Record<AgendaItem['kind'], string> = { appointment: '🤝', event: '📅' }
+const KIND_ICON: Record<AgendaItem['kind'], string> = { appointment: '🤝', event: '📅', task: '✓' }
 const DAYS_AHEAD = 7
 
 export default function HomeAgenda() {
@@ -37,13 +37,16 @@ export default function HomeAgenda() {
       const from = localISODate(now)
       const to = localISODate(new Date(now.getTime() + DAYS_AHEAD * 86400000))
 
-      const [apptRes, evRes] = await Promise.all([
+      const [apptRes, evRes, taskRes] = await Promise.all([
         fetch(`/api/calendar/appointments?from=${from}&to=${to}`).catch(() => null),
         fetch(`/api/calendar/events?from=${from}&to=${to}`).catch(() => null),
+        // Мои открытые задачи со сроком — «встречи + задачи в одном месте».
+        fetch('/api/tasks?view=assigned&status=active').catch(() => null),
       ])
 
-      // Нет доступа к календарю вовсе → секцию не показываем.
-      if ((!apptRes || !apptRes.ok) && (!evRes || !evRes.ok)) {
+      // Нет доступа к календарю вовсе → секцию не показываем (задачи есть у всех,
+      // но ежедневник — про календарь; при доступе к задачам всё равно покажем).
+      if ((!apptRes || !apptRes.ok) && (!evRes || !evRes.ok) && (!taskRes || !taskRes.ok)) {
         setVisible(false)
         return
       }
@@ -61,6 +64,14 @@ export default function HomeAgenda() {
         const b = await evRes.json() as { events?: Array<{ id: string; title: string; event_date: string; event_time: string | null; all_day: boolean }> }
         for (const e of b.events ?? []) {
           collected.push({ id: `e_${e.id}`, title: e.title, date: e.event_date, time: e.all_day ? null : (e.event_time?.slice(0, 5) ?? null), kind: 'event' })
+        }
+      }
+      if (taskRes?.ok) {
+        const b = await taskRes.json() as { tasks?: Array<{ id: string; title: string; due_date: string | null; due_time: string | null; due_all_day: boolean | null }> }
+        for (const tk of b.tasks ?? []) {
+          // Только задачи со сроком в окне ежедневника (7 дней).
+          if (!tk.due_date || tk.due_date < from || tk.due_date > to) continue
+          collected.push({ id: `t_${tk.id}`, title: tk.title, date: tk.due_date, time: tk.due_all_day ? null : (tk.due_time?.slice(0, 5) ?? null), kind: 'task' })
         }
       }
       collected.sort((x, y) => (x.date + (x.time ?? '99:99')).localeCompare(y.date + (y.time ?? '99:99')))

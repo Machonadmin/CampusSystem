@@ -6,12 +6,14 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
 import HomeWidgets from '@/components/dashboard/HomeWidgets'
 import HomeAgenda from '@/components/dashboard/HomeAgenda'
+import HomeKpis from '@/components/dashboard/HomeKpis'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
   full_name: string | null
   roles: string[]
   accessible_modules: string[]
+  position_title?: string | null
 }
 
 // ── Icons (Heroicons outline 24px) ───────────────────────────────────────────
@@ -173,11 +175,17 @@ export default function DashboardPage() {
         <h1 style={{ fontSize: 20, fontWeight: 600, color: '#fff', lineHeight: 1.3, margin: 0 }}>
           {greeting}
         </h1>
-        {user?.roles && user.roles.length > 0 && (
+        {/* Должность (напр. «מזכירת טורו») понятнее сырого кода роли; откат к роли. */}
+        {(user?.position_title || (user?.roles && user.roles.length > 0)) && (
           <span className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(6px)' }}>
-            {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
+            {user?.position_title || (t.roles[user!.roles[0] as keyof typeof t.roles] ?? user!.roles[0])}
           </span>
         )}
+      </div>
+
+      {/* KPI-полоса «командного центра»: ключевые числа по доступу (само-гейтинг). */}
+      <div className="anim-stagger" style={{ ['--i']: 1 } as React.CSSProperties}>
+        <HomeKpis />
       </div>
 
       {/* Ежедневник: календарь под рукой прямо на главной (всегда виден) */}
