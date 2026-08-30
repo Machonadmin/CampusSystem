@@ -6,7 +6,6 @@ import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
 import HomeWidgets from '@/components/dashboard/HomeWidgets'
 import HomeAgenda from '@/components/dashboard/HomeAgenda'
-import HomeKpis from '@/components/dashboard/HomeKpis'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
@@ -183,18 +182,13 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* KPI-полоса «командного центра»: ключевые числа по доступу (само-гейтинг). */}
-      <div className="anim-stagger" style={{ ['--i']: 1 } as React.CSSProperties}>
-        <HomeKpis />
-      </div>
-
       {/* Ежедневник: календарь под рукой прямо на главной (всегда виден) */}
-      <div className="anim-stagger" style={{ ['--i']: 2 } as React.CSSProperties}>
+      <div className="anim-stagger" style={{ ['--i']: 1 } as React.CSSProperties}>
         <HomeAgenda />
       </div>
 
       {/* Personal "what needs attention" widgets — hidden when everything is empty */}
-      <div className="anim-stagger" style={{ ['--i']: 3 } as React.CSSProperties}>
+      <div className="anim-stagger" style={{ ['--i']: 2 } as React.CSSProperties}>
         <HomeWidgets />
       </div>
 
