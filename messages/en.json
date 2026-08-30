@@ -507,12 +507,12 @@
       "comment": "Comment",
       "source_label": "Referral source",
       "source_not_specified": "— Not specified —",
-      "profile_readonly": "📋 Data loaded from profile · view only",
+      "profile_readonly": "Data loaded from profile · view only",
       "loading_data": "Loading data...",
       "loading": "Loading...",
       "upload_photo": "Upload photo",
       "photo_hint": "Optional · JPG, PNG",
-      "find_existing": "🔍 Find existing person",
+      "find_existing": "Find existing person",
       "searching": "Searching...",
       "add_phone": "+ Add phone",
       "person_label": "Person:",
@@ -707,7 +707,7 @@
         "applicant": "Applicant",
         "student": "Student",
         "graduated": "Graduate",
-        "expelled": "Expelled",
+        "expelled": "Studies discontinued",
         "on_leave": "Academic leave"
       },
       "card_type": {
@@ -801,7 +801,7 @@
         "action_on_leave": "Set academic leave",
         "action_return": "Return from leave",
         "action_graduate": "Graduate",
-        "action_expel": "Expel",
+        "action_expel": "Discontinue studies",
         "return_confirm": "Return the student from academic leave?",
         "terminal_note": "Final status — no transitions available.",
         "history_title": "Status history",
@@ -1194,7 +1194,7 @@
         "status_student": "Student",
         "status_on_leave": "On Leave",
         "status_graduated": "Graduate",
-        "status_expelled": "Expelled",
+        "status_expelled": "Studies discontinued",
         "all_tracks": "All tracks",
         "all_years": "All years"
       },
@@ -1458,7 +1458,7 @@
         "student": "Student",
         "on_leave": "On leave",
         "graduated": "Graduated",
-        "expelled": "Expelled",
+        "expelled": "Studies discontinued",
         "lost": "Not relevant"
       }
     },
@@ -2224,7 +2224,7 @@
       "active": "Active",
       "sick_leave": "Sick Leave",
       "vacation": "Vacation",
-      "fired": "Dismissed"
+      "fired": "Employment ended"
     },
     "employment": {
       "staff": "Staff",
@@ -2261,10 +2261,10 @@
       "contact_type_vk": "VK",
       "contact_type_other": "Other",
       "readonly_hint_loading": "Loading data...",
-      "readonly_hint": "📋 Data loaded from profile · view only",
+      "readonly_hint": "Data loaded from profile · view only",
       "upload_photo": "Upload photo",
       "photo_hint": "Optional · JPG, PNG",
-      "find_existing_person": "🔍 Find existing person",
+      "find_existing_person": "Find existing person",
       "search_placeholder": "Name or email...",
       "searching": "Searching...",
       "last_name": "Last name",
@@ -3710,7 +3710,7 @@
         "student": "Student",
         "on_leave": "On leave",
         "graduated": "Graduated",
-        "expelled": "Expelled",
+        "expelled": "Studies discontinued",
         "alumni": "Alumni",
         "lost": "Not relevant"
       },
@@ -4670,7 +4670,7 @@
       "student": "Student",
       "on_leave": "On leave",
       "graduated": "Graduated",
-      "expelled": "Expelled",
+      "expelled": "Studies discontinued",
       "staff": "Staff"
     }
   },
