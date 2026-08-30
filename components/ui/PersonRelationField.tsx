@@ -110,7 +110,7 @@ export default function PersonRelationField({
           type="button"
           onClick={onRemove}
           style={{
-            position: 'absolute', top: 8, right: 8,
+            position: 'absolute', top: 8, insetInlineEnd: 8,
             width: 22, height: 22, fontSize: 14,
             background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 4,
             cursor: 'pointer', color: 'var(--text-faint)',

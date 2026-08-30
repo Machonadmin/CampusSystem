@@ -155,7 +155,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
             <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>{tmpl.name}</p>
             {tmpl.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 0' }}>{tmpl.description}</p>}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1, padding: 0, marginLeft: 12 }}>×</button>
+          <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1, padding: 0, marginInlineStart: 12 }}>×</button>
         </div>
 
         {/* Toolbar (fixed) */}
@@ -360,7 +360,7 @@ function TemplateBuilder({
           <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>
             {isEdit ? t('templates.builder_edit_title') : t('templates.builder_create_title')}
           </p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1 }}>×</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>

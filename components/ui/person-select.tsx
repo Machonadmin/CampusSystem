@@ -243,16 +243,17 @@ export function PersonSelect({
         {selected ? (
           <button
             type="button"
+            aria-label={t('clear', 'ניקוי')}
             onClick={clearSelection}
             style={{
-              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', insetInlineEnd: 8, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
               color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0,
             }}
           >×</button>
         ) : (
           <span style={{
-            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+            position: 'absolute', insetInlineEnd: 8, top: '50%', transform: 'translateY(-50%)',
             color: 'var(--text-faint)', fontSize: 11, pointerEvents: 'none',
           }}>▾</span>
         )}

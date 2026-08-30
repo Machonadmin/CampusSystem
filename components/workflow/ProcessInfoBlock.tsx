@@ -899,6 +899,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               </span>
               <button
                 onClick={() => setReactivatingStage(null)}
+                aria-label={tCommon('close')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}
               >×</button>
             </div>

@@ -50,7 +50,7 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
   return (
     <Modal onClose={onClose} maxWidth={560} closeOnBackdrop panelStyle={{ padding: 24, position: 'relative' }}>
       <button onClick={onClose} aria-label={tCommon('close')} style={{
-        position: 'absolute', top: 16, right: 16,
+        position: 'absolute', top: 16, insetInlineEnd: 16,
         background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer',
         lineHeight: 1,
       }}>×</button>

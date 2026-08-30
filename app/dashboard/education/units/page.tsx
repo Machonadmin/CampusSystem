@@ -239,7 +239,7 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
     } finally { setSaving(false) }
   }
 
-  const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none' }
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }
 
   return (
     <Modal onClose={onClose} maxWidth={420} closeOnBackdrop panelStyle={{ padding: 20, display: 'grid', gap: 12 }}>

@@ -111,7 +111,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', fontSize: 13, padding: '7px 10px',
-    border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
+    border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)', marginBottom: 4 }
 
