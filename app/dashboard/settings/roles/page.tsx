@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { getModuleColor } from '@/lib/module-colors'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
@@ -325,7 +326,7 @@ export default function RolesPage() {
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('roles_panel_title')}</span>
             <button
               onClick={() => setAddOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}
             >
               <svg style={{ width: 11, height: 11 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

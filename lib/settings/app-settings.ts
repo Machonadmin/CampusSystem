@@ -29,8 +29,13 @@ export async function getSignatureMethod(): Promise<SignatureMethod> {
   return isSignatureMethod(v) ? v : 'both'
 }
 
-/** Записывает настройку (upsert). updatedBy — person_id администратора. */
-export async function setAppSetting(key: string, value: unknown, updatedBy: string): Promise<void> {
+/**
+ * Записывает настройку (upsert). updatedBy — person_id администратора ИЛИ null
+ * для системных записей (напр. авто-генерация VAPID-ключей пушей): столбец
+ * updated_by — UUID REFERENCES persons(id), поэтому передавать строку-не-UUID
+ * (напр. 'system') НЕЛЬЗЯ — это ломало вставку и валило генерацию ключей.
+ */
+export async function setAppSetting(key: string, value: unknown, updatedBy: string | null): Promise<void> {
   const sb = createServerClient()
   const { error } = await sb
     .from('app_settings')

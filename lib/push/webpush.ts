@@ -41,7 +41,10 @@ export async function getVapidKeys(): Promise<VapidKeys | null> {
       return existing
     }
     const generated = webpush.generateVAPIDKeys()
-    await setAppSetting(VAPID_SETTING, generated, 'system:webpush')
+    // updated_by — UUID REFERENCES persons(id); для системной записи только null
+    // (строка 'system:webpush' роняла вставку → ключи не сохранялись → пуши
+    //  не включались НИ НА ОДНОМ устройстве, включая Android).
+    await setAppSetting(VAPID_SETTING, generated, null)
     cachedVapid = generated
     return generated
   } catch (e) {

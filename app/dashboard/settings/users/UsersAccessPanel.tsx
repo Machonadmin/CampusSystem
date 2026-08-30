@@ -7,6 +7,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { personDisplayName } from '@/lib/persons/name'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
+import { getModuleColor } from '@/lib/module-colors'
 import PersonPrivilegesModal from './PersonPrivilegesModal'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -690,7 +691,7 @@ function UsersPageContent({ embedded = false }: { embedded?: boolean }) {
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
         >
           <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 export interface RowAction {
@@ -36,9 +36,49 @@ export function RowActionsMenu({
   const t = useTranslations('common')
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const accent = accentColor || 'var(--text)'
+  // Меню позиционируем через position:fixed по факт. координатам кнопки и
+  // ЗАЖИМАЕМ в границы окна — иначе на узком экране (мобильный, cards-sm)
+  // всплывашка «убегала за край» и обрезалась.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
   const items = actions.filter(a => !a.hidden)
+
+  // Пересчёт положения: под кнопкой, выровнено по нужному краю, но не вылезая
+  // за 8px-поля окна. Если снизу не помещается — раскрываем вверх.
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return }
+    const place = () => {
+      const btn = btnRef.current
+      if (!btn) return
+      const r = btn.getBoundingClientRect()
+      const menuW = menuRef.current?.offsetWidth || 160
+      const menuH = menuRef.current?.offsetHeight || 0
+      const M = 8
+      const vw = window.innerWidth, vh = window.innerHeight
+      let left = align === 'end' ? r.right - menuW : r.left
+      left = Math.min(Math.max(M, left), Math.max(M, vw - menuW - M))
+      let top = r.bottom + 4
+      if (menuH && top + menuH > vh - M) {
+        const above = r.top - 4 - menuH
+        if (above >= M) top = above
+        else top = Math.max(M, vh - menuH - M)
+      }
+      setPos({ top, left })
+    }
+    place()
+    // повторный расчёт после того как узнали реальную ширину/высоту меню
+    const raf = requestAnimationFrame(place)
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [open, align])
 
   useEffect(() => {
     if (!open) return
@@ -61,6 +101,7 @@ export function RowActionsMenu({
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
       <button
+        ref={btnRef}
         type="button"
         aria-label={ariaLabel || t('actions')}
         aria-haspopup="menu"
@@ -82,14 +123,15 @@ export function RowActionsMenu({
       </button>
       {open && (
         <div
+          ref={menuRef}
           role="menu"
           className="anim-pop"
           style={{
-            position: 'absolute',
-            zIndex: 40,
-            top: 'calc(100% + 4px)',
-            insetInlineEnd: align === 'end' ? 0 : 'auto',
-            insetInlineStart: align === 'start' ? 0 : 'auto',
+            position: 'fixed',
+            zIndex: 60,
+            top: pos?.top ?? -9999,
+            left: pos?.left ?? -9999,
+            visibility: pos ? 'visible' : 'hidden',
             minWidth: 160,
             background: 'var(--surface)',
             border: '1px solid var(--border)',
