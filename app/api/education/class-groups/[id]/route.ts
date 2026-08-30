@@ -64,19 +64,38 @@ export async function GET(
       .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
 
     const journeyIds = (enrollsRes.data ?? []).map(r => r.journey_id)
-    let students: { journey_id: string; person_id: string; full_name: string | null; hebrew_name: string | null }[] = []
+    // Форма ДОЛЖНА совпадать с тем, что читает UI (ClassGroupStudents → StudentMini):
+    //   id (= journey_id, на него ведёт ссылка карточки студентки и DELETE),
+    //   status, вложенный person {…}, main_group.
+    // Раньше отдавали плоско {journey_id, full_name} без id/person → ссылка вела
+    // на /students/undefined (404), а имя рендерилось как «—».
+    let students: {
+      id: string
+      journey_id: string
+      person_id: string
+      status: string | null
+      person: { id: string; full_name: string | null; hebrew_name: string | null; email: string | null } | null
+      main_group: { id: string; name: string } | null
+      full_name: string | null
+      hebrew_name: string | null
+    }[] = []
 
     if (journeyIds.length > 0) {
       const { data: jRows, error: jErr } = await sb
         .from('education_journeys')
-        .select('id, person_id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name)')
+        .select('id, person_id, education_status, main_group:study_groups(id, name), person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email)')
         .in('id', journeyIds)
       if (jErr) throw jErr
       students = (jRows ?? []).map(j => {
-        const p = (j.person as unknown) as { id: string; full_name: string | null; hebrew_name: string | null } | null
+        const p = (j.person as unknown) as { id: string; full_name: string | null; hebrew_name: string | null; email: string | null } | null
+        const mg = (j.main_group as unknown) as { id: string; name: string } | null
         return {
+          id: j.id,               // journey_id — ссылка карточки студентки ждёт именно его
           journey_id: j.id,
           person_id: j.person_id,
+          status: (j as { education_status?: string | null }).education_status ?? null,
+          person: p ? { id: p.id, full_name: p.full_name, hebrew_name: p.hebrew_name, email: p.email ?? null } : null,
+          main_group: mg ? { id: mg.id, name: mg.name } : null,
           full_name: p?.full_name ?? null,
           hebrew_name: p?.hebrew_name ?? null,
         }
