@@ -2207,7 +2207,7 @@
     "all_depts": "Все отделы",
     "tabs": {
       "structure": "Структура организации",
-      "staff": "Сотрудники",
+      "staff": "Сотрудники и доступ",
       "positions": "Должности",
       "users": "Пользователи и доступ"
     },
@@ -2217,7 +2217,8 @@
       "department": "Отдел",
       "email": "Email",
       "phone": "Телефон",
-      "status": "Статус"
+      "status": "Статус",
+      "access": "Доступ"
     },
     "status": {
       "active": "Активен",
@@ -2422,7 +2423,10 @@
     "seat_err_department": "Выберите подразделение",
     "seat_err_position": "Выберите должность",
     "seat_err_role": "Выберите роль",
-    "seat_err_generic": "Не удалось посадить на стул"
+    "seat_err_generic": "Не удалось посадить на стул",
+    "access_none": "Нет доступа",
+    "access_no_roles": "Без ролей",
+    "system_user": "Системный пользователь"
   },
   "quality": {
     "title": "Оценка преподавания",

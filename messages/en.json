@@ -2207,7 +2207,7 @@
     "all_depts": "All Departments",
     "tabs": {
       "structure": "Org Structure",
-      "staff": "Employees",
+      "staff": "Staff & access",
       "positions": "Positions",
       "users": "Users & Access"
     },
@@ -2217,7 +2217,8 @@
       "department": "Department",
       "email": "Email",
       "phone": "Phone",
-      "status": "Status"
+      "status": "Status",
+      "access": "Access"
     },
     "status": {
       "active": "Active",
@@ -2422,7 +2423,10 @@
     "seat_err_department": "Select a department",
     "seat_err_position": "Select a title",
     "seat_err_role": "Select a role",
-    "seat_err_generic": "Could not seat the person"
+    "seat_err_generic": "Could not seat the person",
+    "access_none": "No access",
+    "access_no_roles": "No roles",
+    "system_user": "System user"
   },
   "quality": {
     "title": "Teaching Evaluation",

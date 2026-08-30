@@ -2207,7 +2207,7 @@
     "all_depts": "כל המחלקות",
     "tabs": {
       "structure": "מבנה ארגוני",
-      "staff": "עובדים",
+      "staff": "צוות ומשתמשים",
       "positions": "תפקידים",
       "users": "משתמשים וגישה"
     },
@@ -2217,7 +2217,8 @@
       "department": "מחלקה",
       "email": "אימייל",
       "phone": "טלפון",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "access": "הרשאות"
     },
     "status": {
       "active": "פעיל",
@@ -2422,7 +2423,10 @@
     "seat_err_department": "נא לבחור מחלקה",
     "seat_err_position": "נא לבחור תווית תפקיד",
     "seat_err_role": "נא לבחור תפקיד",
-    "seat_err_generic": "שיבוץ נכשל"
+    "seat_err_generic": "שיבוץ נכשל",
+    "access_none": "אין גישה",
+    "access_no_roles": "ללא תפקידים",
+    "system_user": "משתמש מערכת"
   },
   "quality": {
     "title": "הערכת הוראה",
