@@ -75,7 +75,7 @@ export default function SemestersPage() {
     if (b.warning) toast(String(b.warning), 'error')
   }
 
-  const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
+  const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box' }
 
   return (
     <div className="p-6 space-y-5">

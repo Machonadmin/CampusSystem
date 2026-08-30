@@ -876,7 +876,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                   {isCard && (
                     <button onClick={() => setCommunities(prev => prev.filter((_, ci) => ci !== i))}
                       aria-label={tCommon('delete')}
-                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                      style={{ position: 'absolute', top: 10, insetInlineEnd: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0 }}>
                       ×
                     </button>
                   )}

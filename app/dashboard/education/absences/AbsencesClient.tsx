@@ -134,7 +134,7 @@ export default function AbsencesClient() {
           <div style={{ position: 'relative' }}>
             <input value={stu ? stu.full_name : stuSearch} onChange={e => { setStu(null); setStuSearch(e.target.value) }} placeholder={t('pick_student')} style={{ ...inp, width: '100%' }} />
             {!stu && stuSearch && stuOpts.length > 0 && (
-              <div style={{ position: 'absolute', zIndex: 10, top: '100%', insetInlineStart: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
+              <div style={{ position: 'absolute', zIndex: 10, top: '100%', insetInlineStart: 0, insetInlineEnd: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                 {stuOpts.map(o => (
                   <div key={o.journey_id} role="button" tabIndex={0} onClick={() => { setStu(o); setStuSearch('') }} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { if (e.key === ' ') e.preventDefault(); setStu(o); setStuSearch('') } }} style={{ padding: '8px 11px', fontSize: 13, cursor: 'pointer' }}>{o.full_name}</div>
                 ))}

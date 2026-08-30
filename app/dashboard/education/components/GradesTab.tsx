@@ -147,7 +147,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
     fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)',
   }
   const stickyLeft: React.CSSProperties = {
-    position: 'sticky', left: 0, background: 'var(--surface)', zIndex: 1,
+    position: 'sticky', insetInlineStart: 0, background: 'var(--surface)', zIndex: 1,
   }
 
   return (

@@ -500,7 +500,7 @@ export default function AddEmployeeModal({
                       </button>
                     </div>
                     {(searching || results.length > 0) && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', insetInlineEnd: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
                         {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}
@@ -534,7 +534,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="אברהם" dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
+              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('add_modal.hebrew_name_ph', 'אברהם')} dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.gender')}</label>
