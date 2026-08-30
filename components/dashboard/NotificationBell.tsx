@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { enablePush, getPushState, registerSW, type PushState } from '@/lib/push/client'
+import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Notification {
   id: string
@@ -29,6 +31,30 @@ export default function NotificationBell() {
   const [items, setItems] = useState<Notification[]>([])
   const [unread, setUnread] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
+
+  // Web Push: регистрируем service worker при монтировании шапки и выясняем,
+  // подписано ли ЭТО устройство — если нет, показываем кнопку включения.
+  const [pushState, setPushState] = useState<PushState>('unsupported')
+  const [pushBusy, setPushBusy] = useState(false)
+  useEffect(() => {
+    let alive = true
+    registerSW().then(() => getPushState()).then(s => { if (alive) setPushState(s) })
+    return () => { alive = false }
+  }, [])
+
+  async function onEnablePush() {
+    setPushBusy(true)
+    try {
+      const ok = await enablePush()
+      if (ok) { setPushState('subscribed'); toastSuccess(t('push_enabled')) }
+      else {
+        setPushState(await getPushState())
+        toastError(t('push_failed'))
+      }
+    } finally {
+      setPushBusy(false)
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -117,6 +143,21 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
+
+          {/* Включение пушей на телефон — пока это устройство не подписано. */}
+          {pushState === 'available' && (
+            <div className="px-4 py-2.5 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid var(--border)', background: 'var(--accent-tint)' }}>
+              <span className="text-xs leading-snug" style={{ color: 'var(--text)' }}>{t('push_prompt')}</span>
+              <button
+                onClick={onEnablePush}
+                disabled={pushBusy}
+                className="text-xs font-bold whitespace-nowrap px-3 py-1.5 rounded-lg"
+                style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: pushBusy ? 'default' : 'pointer', opacity: pushBusy ? 0.6 : 1 }}
+              >
+                {t('push_enable')}
+              </button>
+            </div>
+          )}
 
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (

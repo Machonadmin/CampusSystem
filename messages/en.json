@@ -4597,7 +4597,11 @@
   "notifications": {
     "title": "Notifications",
     "empty": "No new notifications",
-    "mark_all_read": "Mark all read"
+    "mark_all_read": "Mark all read",
+    "push_prompt": "Get notifications on your phone too (installed app)",
+    "push_enable": "Enable",
+    "push_enabled": "Phone notifications enabled for this device",
+    "push_failed": "Could not enable notifications on this device"
   },
   "add_to_calendar": {
     "button": "Add to calendar",
