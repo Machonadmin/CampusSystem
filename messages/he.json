@@ -4597,7 +4597,11 @@
   "notifications": {
     "title": "התראות",
     "empty": "אין התראות חדשות",
-    "mark_all_read": "סמן הכל כנקרא"
+    "mark_all_read": "סמן הכל כנקרא",
+    "push_prompt": "קבל התראות גם בטלפון (באפליקציה המותקנת)",
+    "push_enable": "הפעל",
+    "push_enabled": "התראות בטלפון הופעלו למכשיר זה",
+    "push_failed": "לא ניתן להפעיל התראות במכשיר זה"
   },
   "add_to_calendar": {
     "button": "הוסף ליומן",

@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { verifyFeedToken } from '@/lib/calendar/feed-token'
 import { buildICS, toFloating, type IcsEvent } from '@/lib/calendar/ics'
 import { todayISO } from '@/lib/dates'
+import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 
 /**
  * GET /api/public/calendar-feed?token=... — iCal (.ics) подписка на календарь
@@ -78,6 +79,29 @@ export async function GET(request: NextRequest) {
         description: a.reason ?? undefined,
         kind: 'utc', start: new Date(a.starts_at), end: new Date(a.ends_at),
       })
+    }
+  } catch { /* нет таблицы — пропускаем слой */ }
+
+  // Открытые ЗАДАЧИ пользователя со сроком — в календаре приложения они видны,
+  // и именно их владелец ожидал увидеть в Google («мוסיף משימות ליומן» — фид
+  // без задач выглядел ПУСТЫМ). Терминальные статусы не включаем.
+  try {
+    const { data } = await sb
+      .from('tasks')
+      .select('id, title, due_date, due_time, due_all_day, status')
+      .eq('assignee_id', personId)
+      .in('status', [...OPEN_TASK_STATUSES])
+      .gte('due_date', from).lte('due_date', to)
+      .order('due_date', { ascending: true })
+      .limit(2000)
+    type TaskRow = { id: string; title: string | null; due_date: string; due_time: string | null; due_all_day: boolean | null }
+    for (const tk of (data ?? []) as unknown as TaskRow[]) {
+      const summary = `✓ ${tk.title ?? ''}`.trim()
+      if (tk.due_all_day || !tk.due_time) {
+        events.push({ uid: `task-${tk.id}@campus`, summary, kind: 'allday', date: tk.due_date })
+      } else {
+        events.push({ uid: `task-${tk.id}@campus`, summary, kind: 'floating', start: toFloating(tk.due_date, tk.due_time) })
+      }
     }
   } catch { /* нет таблицы — пропускаем слой */ }
 
