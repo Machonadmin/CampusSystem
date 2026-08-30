@@ -102,7 +102,9 @@ export default function AbsencesClient() {
   }
 
   const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 14 }
-  const inp: React.CSSProperties = { padding: '8px 11px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }
+  // box-sizing:border-box + minWidth:0 обязательны: иначе input с width:100% плюс
+  // padding/border вылезал за край карточки на узком экране (форма «уезжала» влево).
+  const inp: React.CSSProperties = { padding: '8px 11px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', boxSizing: 'border-box', minWidth: 0, maxWidth: '100%' }
   const smallBtn = (primary?: boolean): React.CSSProperties => ({ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: primary ? 'none' : '1px solid var(--border)', cursor: 'pointer', background: primary ? 'var(--accent)' : 'var(--surface)', color: primary ? '#fff' : 'var(--text-muted)' })
 
   return (
