@@ -45,11 +45,13 @@ export default function NotificationBell() {
   async function onEnablePush() {
     setPushBusy(true)
     try {
-      const ok = await enablePush()
-      if (ok) { setPushState('subscribed'); toastSuccess(t('push_enabled')) }
+      const reason = await enablePush()
+      if (reason === 'ok') { setPushState('subscribed'); toastSuccess(t('push_enabled')) }
       else {
         setPushState(await getPushState())
-        toastError(t('push_failed'))
+        // Конкретная причина, а не общий провал: «денай» и «нужна установка»
+        // объясняем текстом в самой панели, для остальных — тост.
+        if (reason !== 'denied' && reason !== 'ios-needs-install') toastError(t('push_failed'))
       }
     } finally {
       setPushBusy(false)
@@ -144,18 +146,27 @@ export default function NotificationBell() {
             )}
           </div>
 
-          {/* Включение пушей на телефон — пока это устройство не подписано. */}
-          {pushState === 'available' && (
-            <div className="px-4 py-2.5 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid var(--border)', background: 'var(--accent-tint)' }}>
-              <span className="text-xs leading-snug" style={{ color: 'var(--text)' }}>{t('push_prompt')}</span>
-              <button
-                onClick={onEnablePush}
-                disabled={pushBusy}
-                className="text-xs font-bold whitespace-nowrap px-3 py-1.5 rounded-lg"
-                style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: pushBusy ? 'default' : 'pointer', opacity: pushBusy ? 0.6 : 1 }}
-              >
-                {t('push_enable')}
-              </button>
+          {/* Пуши на телефон. Показываем ВСЕГДА, кроме уже подписанного
+              устройства — со своим текстом на каждый случай, чтобы владелец
+              видел ПОЧЕМУ не включается (раньше панель просто исчезала). */}
+          {pushState !== 'subscribed' && (
+            <div className="px-4 py-2.5 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid var(--border)', background: pushState === 'available' ? 'var(--accent-tint)' : 'var(--warn-tint)' }}>
+              <span className="text-xs leading-snug" style={{ color: 'var(--text)' }}>
+                {pushState === 'available' ? t('push_prompt')
+                  : pushState === 'ios-needs-install' ? t('push_ios_install')
+                  : pushState === 'denied' ? t('push_denied')
+                  : t('push_unsupported')}
+              </span>
+              {pushState === 'available' && (
+                <button
+                  onClick={onEnablePush}
+                  disabled={pushBusy}
+                  className="text-xs font-bold whitespace-nowrap px-3 py-1.5 rounded-lg"
+                  style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: pushBusy ? 'default' : 'pointer', opacity: pushBusy ? 0.6 : 1 }}
+                >
+                  {t('push_enable')}
+                </button>
+              )}
             </div>
           )}
 
