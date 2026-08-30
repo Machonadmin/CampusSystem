@@ -288,7 +288,7 @@ function PersonRow({
       </div>
       <div style={{ textAlign: 'end', minWidth: 0, maxWidth: '46%', flexShrink: 0 }}>
         {row.email && <div style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(220px, 42vw)' }}>{row.email}</div>}
-        {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{phone}</div>}
+        {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', direction: 'ltr', unicodeBidi: 'plaintext' }}>{phone}</div>}
       </div>
     </div>
   )

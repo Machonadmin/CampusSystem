@@ -43,9 +43,9 @@ export function ModuleHeader({
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
         {icon}
         <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: compact ? 15.5 : 20, fontWeight: 600, margin: 0, lineHeight: 1.25 }}>{title}</h1>
+          <h1 style={{ fontSize: compact ? 15.5 : 20, fontWeight: 600, margin: 0, lineHeight: 1.25, minWidth: 0, overflowWrap: 'anywhere' }}>{title}</h1>
           {subtitle != null && subtitle !== '' && (
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>{subtitle}</div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2, overflowWrap: 'anywhere' }}>{subtitle}</div>
           )}
         </div>
       </div>
