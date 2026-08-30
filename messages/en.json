@@ -4643,7 +4643,7 @@
     "more": "more",
     "today": "Today",
     "no_date": "No date",
-    "stalled": "Stuck in process",
+    "stalled": "Waiting in process",
     "days_waiting": "{n} d",
     "my_lessons_today": "My lessons today",
     "agenda_title": "Coming days",
