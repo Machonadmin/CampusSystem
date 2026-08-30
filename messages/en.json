@@ -2058,7 +2058,7 @@
       "reopen": "Reopen",
       "cancel": "Cancel",
       "assign": "Assign",
-      "cancel_series": "Cancel Series...",
+      "cancel_series": "Cancel future tasks",
       "delete": "Delete",
       "mark_done": "Mark as done"
     },
