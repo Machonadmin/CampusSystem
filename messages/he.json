@@ -507,12 +507,12 @@
       "comment": "הערה",
       "source_label": "מקור הפנייה",
       "source_not_specified": "— לא צוין —",
-      "profile_readonly": "📋 הנתונים נטענו מהפרופיל · לצפייה בלבד",
+      "profile_readonly": "הנתונים נטענו מהפרופיל · לצפייה בלבד",
       "loading_data": "טוען נתונים…",
       "loading": "טוען…",
       "upload_photo": "העלאת תמונה",
       "photo_hint": "אופציונלי · JPG, PNG",
-      "find_existing": "🔍 חיפוש אדם קיים",
+      "find_existing": "חיפוש אדם קיים",
       "searching": "מחפש…",
       "add_phone": "+ הוספת טלפון",
       "person_label": "אדם:",
@@ -707,7 +707,7 @@
         "applicant": "מועמד",
         "student": "סטודנט",
         "graduated": "בוגר",
-        "expelled": "הורחק",
+        "expelled": "הופסקו לימודיה",
         "on_leave": "חופשת לימודים"
       },
       "card_type": {
@@ -801,7 +801,7 @@
         "action_on_leave": "רישום חופשה",
         "action_return": "חזרה מחופשה",
         "action_graduate": "סיום לימודים",
-        "action_expel": "הרחקה",
+        "action_expel": "הפסקת לימודים",
         "return_confirm": "להחזיר את הסטודנט מחופשת לימודים?",
         "terminal_note": "סטטוס סופי — אין מעברים זמינים.",
         "history_title": "היסטוריית סטטוסים",
@@ -1194,7 +1194,7 @@
         "status_student": "סטודנט",
         "status_on_leave": "חופשת לימודים",
         "status_graduated": "בוגר",
-        "status_expelled": "הורחק",
+        "status_expelled": "הופסקו לימודיה",
         "all_tracks": "כל המסלולים",
         "all_years": "כל השנים"
       },
@@ -1458,7 +1458,7 @@
         "student": "תלמידה",
         "on_leave": "בחופשה",
         "graduated": "בוגרת",
-        "expelled": "הורחקה",
+        "expelled": "הופסקו לימודיה",
         "lost": "לא רלוונטית"
       }
     },
@@ -2224,7 +2224,7 @@
       "active": "פעיל",
       "sick_leave": "בחופשת מחלה",
       "vacation": "בחופשה",
-      "fired": "פוטר"
+      "fired": "סיום העסקה"
     },
     "employment": {
       "staff": "קבוע",
@@ -2261,10 +2261,10 @@
       "contact_type_vk": "VK",
       "contact_type_other": "אחר",
       "readonly_hint_loading": "טוען נתונים…",
-      "readonly_hint": "📋 הנתונים נטענו מהפרופיל · לצפייה בלבד",
+      "readonly_hint": "הנתונים נטענו מהפרופיל · לצפייה בלבד",
       "upload_photo": "העלאת תמונה",
       "photo_hint": "אופציונלי · JPG, PNG",
-      "find_existing_person": "🔍 חיפוש אדם קיים",
+      "find_existing_person": "חיפוש אדם קיים",
       "search_placeholder": "שם או אימייל…",
       "searching": "מחפש…",
       "last_name": "שם משפחה",
@@ -3710,7 +3710,7 @@
         "student": "סטודנט",
         "on_leave": "חופשת לימודים",
         "graduated": "בוגר",
-        "expelled": "הורחק",
+        "expelled": "הופסקו לימודיה",
         "alumni": "בוגר בארכיון",
         "lost": "לא רלוונטית"
       },
@@ -4670,7 +4670,7 @@
       "student": "תלמידה",
       "on_leave": "בחופשה",
       "graduated": "בוגרת",
-      "expelled": "הורחקה",
+      "expelled": "הופסקו לימודיה",
       "staff": "צוות"
     }
   },

@@ -507,12 +507,12 @@
       "comment": "Комментарий",
       "source_label": "Источник обращения",
       "source_not_specified": "— Не указан —",
-      "profile_readonly": "📋 Данные загружены из профиля · только для просмотра",
+      "profile_readonly": "Данные загружены из профиля · только для просмотра",
       "loading_data": "Загрузка данных...",
       "loading": "Загрузка...",
       "upload_photo": "Загрузить фото",
       "photo_hint": "Необязательно · JPG, PNG",
-      "find_existing": "🔍 Найти существующего человека",
+      "find_existing": "Найти существующего человека",
       "searching": "Поиск...",
       "add_phone": "+ Добавить телефон",
       "person_label": "Человек:",
@@ -707,7 +707,7 @@
         "applicant": "Абитуриент",
         "student": "Студент",
         "graduated": "Выпускник",
-        "expelled": "Отчислен",
+        "expelled": "Учёба прекращена",
         "on_leave": "Академический отпуск"
       },
       "card_type": {
@@ -801,7 +801,7 @@
         "action_on_leave": "Оформить отпуск",
         "action_return": "Вернуть из отпуска",
         "action_graduate": "Выпустить",
-        "action_expel": "Отчислить",
+        "action_expel": "Прекратить учёбу",
         "return_confirm": "Вернуть студента из академического отпуска?",
         "terminal_note": "Завершающий статус — переходы недоступны.",
         "history_title": "История статусов",
@@ -1194,7 +1194,7 @@
         "status_student": "Студент",
         "status_on_leave": "Академотпуск",
         "status_graduated": "Выпускник",
-        "status_expelled": "Отчислен",
+        "status_expelled": "Учёба прекращена",
         "all_tracks": "Все маршруты",
         "all_years": "Все годы"
       },
@@ -1458,7 +1458,7 @@
         "student": "Студентка",
         "on_leave": "В отпуске",
         "graduated": "Выпускница",
-        "expelled": "Отчислена",
+        "expelled": "Учёба прекращена",
         "lost": "Не актуальна"
       }
     },
@@ -2224,7 +2224,7 @@
       "active": "Активен",
       "sick_leave": "На больничном",
       "vacation": "В отпуске",
-      "fired": "Уволен"
+      "fired": "Окончание трудоустройства"
     },
     "employment": {
       "staff": "Штат",
@@ -2261,10 +2261,10 @@
       "contact_type_vk": "VK",
       "contact_type_other": "Другое",
       "readonly_hint_loading": "Загрузка данных...",
-      "readonly_hint": "📋 Данные загружены из профиля · только для просмотра",
+      "readonly_hint": "Данные загружены из профиля · только для просмотра",
       "upload_photo": "Загрузить фото",
       "photo_hint": "Необязательно · JPG, PNG",
-      "find_existing_person": "🔍 Найти существующего человека",
+      "find_existing_person": "Найти существующего человека",
       "search_placeholder": "Имя или email...",
       "searching": "Поиск...",
       "last_name": "Фамилия",
@@ -3710,7 +3710,7 @@
         "student": "Студент",
         "on_leave": "В отпуске",
         "graduated": "Выпускник",
-        "expelled": "Отчислен",
+        "expelled": "Учёба прекращена",
         "alumni": "Выпускник архив",
         "lost": "Не актуальна"
       },
@@ -4670,7 +4670,7 @@
       "student": "Студентка",
       "on_leave": "В отпуске",
       "graduated": "Выпускница",
-      "expelled": "Отчислена",
+      "expelled": "Учёба прекращена",
       "staff": "Сотрудник"
     }
   },
