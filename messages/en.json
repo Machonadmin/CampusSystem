@@ -1737,7 +1737,10 @@
       "personal_delete": "Delete",
       "personal_none": "No personal events on this day",
       "prev_month": "Previous month",
-      "next_month": "Next month"
+      "next_month": "Next month",
+      "today": "Today",
+      "no_lessons_today": "No lessons today",
+      "attended_of": "Present at {n} of {m} lessons"
     },
     "student_dashboard": {
       "title": "Dashboard",

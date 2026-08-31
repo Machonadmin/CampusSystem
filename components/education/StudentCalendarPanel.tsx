@@ -31,6 +31,8 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
   const [personalEvents, setPersonalEvents] = useState<PersonalEvent[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const todayISO = toISODate(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  const [todayLessons, setTodayLessons] = useState<Lesson[]>([])
 
   // Форма добавления личного события (только в портале, personal=true).
   const [peTitle, setPeTitle] = useState('')
@@ -63,6 +65,17 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
     } finally { setLoading(false) }
   }, [journeyId, from, to, loadPersonal])
   useEffect(() => { load() }, [load])
+
+  // «Сегодня» вверху панели — грузим отдельно, чтобы блок оставался стабильным
+  // при листании месяцев (иначе он ушёл бы из диапазона видимого месяца).
+  useEffect(() => {
+    let alive = true
+    fetch(`/api/education/journeys/${journeyId}/calendar?from=${todayISO}&to=${todayISO}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => { if (alive && b) setTodayLessons(b.lessons ?? []) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [journeyId, todayISO])
 
   async function addPersonal() {
     const title = peTitle.trim()
@@ -116,7 +129,6 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
       return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(loc, { month: 'long', year: 'numeric', timeZone: 'UTC' })
     } catch { return `${month}/${year}` }
   })()
-  const todayISO = toISODate(now.getFullYear(), now.getMonth() + 1, now.getDate())
 
   const selectedLessons = selected ? (byDay.get(selected) ?? []) : []
 
@@ -140,6 +152,28 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
     return chips
   }
 
+  // Сводка посещаемости за день (правило владельца): всё присутствовала → зелёный;
+  // пропустила/опоздала на часть, но НЕ на всё → оранжевый; отсутствовала на ВСЕХ
+  // уроках дня → красный. Отменённые/непроставленные уроки не считаем; нет
+  // проставленных — нет точки (будущее/непроверенное).
+  function dayAttendance(dateISO: string): { color: string; present: number; marked: number } | null {
+    let present = 0, late = 0, absent = 0
+    for (const l of byDay.get(dateISO) ?? []) {
+      if (l.is_cancelled || !l.status) continue
+      if (l.status === 'present') present++
+      else if (l.status === 'late') late++
+      else if (l.status === 'absent') absent++
+    }
+    const marked = present + late + absent
+    if (marked === 0) return null
+    const color = absent === marked ? 'var(--danger)'
+      : (absent > 0 || late > 0) ? 'var(--warn)'
+      : 'var(--success)'
+    return { color, present, marked }
+  }
+  const selSum = selected ? dayAttendance(selected) : null
+  const todayForList = [...todayLessons].sort((a, b) => (a.time ?? '99').localeCompare(b.time ?? '99'))
+
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
@@ -149,6 +183,29 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
           <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', minWidth: 110, textAlign: 'center' }}>{monthLabel}</span>
           <button type="button" onClick={() => shiftMonth(1)} aria-label={t('next_month')} style={navBtn}>›</button>
         </div>
+      </div>
+
+      {/* «Сегодня» — самое важное сразу под шапкой, без клика по дню. */}
+      <div style={{ marginBottom: 10, padding: '10px 12px', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent-strong)', marginBottom: todayForList.length ? 6 : 0 }}>{t('today')}</div>
+        {todayForList.length === 0 ? (
+          <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('no_lessons_today')}</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 6 }}>
+            {todayForList.map(l => {
+              const st = l.status ? TINT[l.status] : null
+              return (
+                <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: l.is_cancelled ? 0.55 : 1 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--accent-strong)', minWidth: 42 }}>{l.time ? l.time.slice(0, 5) : '—'}</div>
+                  <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {l.subject || l.group_name}{l.is_cancelled ? ` · ${t('cancelled')}` : ''}
+                  </div>
+                  {st && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: st.bg, color: st.fg, border: `1px solid ${st.fg}`, whiteSpace: 'nowrap' }}>{t(l.status!)}</span>}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Легенда */}
@@ -172,16 +229,23 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
           const isSel = cell.dateISO === selected
           const dayNum = Number(cell.dateISO.slice(8, 10))
           const chips = dayChips(cell.dateISO)
+          const daySum = dayAttendance(cell.dateISO)
           return (
             <button key={cell.dateISO} onClick={() => setSelected(isSel ? null : cell.dateISO)}
               style={{
-                minHeight: 56, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2,
+                position: 'relative', minHeight: 56, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2,
                 padding: '3px 3px 2px', fontSize: 12, borderRadius: 7, cursor: 'pointer', overflow: 'hidden',
                 border: `1px solid ${isSel ? 'var(--accent)' : isToday ? 'var(--border-strong)' : 'transparent'}`,
                 background: isToday ? 'var(--surface)' : 'var(--surface-2)',
                 color: cell.inMonth ? 'var(--text)' : 'var(--text-faint)',
                 opacity: cell.inMonth ? 1 : 0.4,
               }}>
+              {daySum && (
+                <span
+                  title={t('attended_of').replace('{n}', String(daySum.present)).replace('{m}', String(daySum.marked))}
+                  style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 7, height: 7, borderRadius: '50%', background: daySum.color }}
+                />
+              )}
               <div style={{ fontSize: 11, fontWeight: isToday ? 800 : 500, textAlign: 'center', flexShrink: 0 }}>{dayNum}</div>
               <div style={{ display: 'grid', gap: 1, minWidth: 0 }}>
                 {chips.slice(0, 2).map(ch => (
@@ -200,7 +264,12 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
       {/* Детализация дня */}
       {selected && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{formatDateLong(selected, lang)}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: selSum ? 2 : 8 }}>{formatDateLong(selected, lang)}</div>
+          {selSum && (
+            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>
+              {t('attended_of').replace('{n}', String(selSum.present)).replace('{m}', String(selSum.marked))}
+            </div>
+          )}
 
           {/* Личные события — только в портале (personal). Приватность на уровне API. */}
           {personal && (
