@@ -405,7 +405,7 @@ export default function CalendarClient() {
               <div
                 role="menu"
                 style={{
-                  position: 'absolute', zIndex: 46, top: 'calc(100% + 4px)', insetInlineEnd: 0, minWidth: 220,
+                  position: 'absolute', zIndex: 46, top: 'calc(100% + 4px)', insetInlineEnd: 0, minWidth: 220, maxWidth: 'calc(100vw - 16px)',
                   background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
                   boxShadow: 'var(--shadow)', padding: 4, display: 'grid', gap: 1,
                 }}

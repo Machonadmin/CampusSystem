@@ -89,7 +89,7 @@ function PersonAutocomplete({
       )}
       {open && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 50,
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
           boxShadow: 'var(--shadow)', marginTop: 2,
         }}>
