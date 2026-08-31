@@ -77,7 +77,9 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
     fetch('/api/settings/roles').then(r => r.ok ? r.json() : []).then(d => setRoles(arr(d))).catch(() => {})
     fetch('/api/settings/role-privileges').then(r => r.ok ? r.json() : null).then(d => { if (d) setCatalog(arr(d.modulePrivileges)) }).catch(() => {})
     fetch('/api/settings/departments').then(r => r.ok ? r.json() : []).then(d => setDepts(arr(d))).catch(() => {})
-    fetch('/api/settings/positions?active_only=true').then(r => r.ok ? r.json() : []).then(d => setPositions(arr(d))).catch(() => {})
+    // ВНИМАНИЕ: этот эндпоинт возвращает { positions: [...] } (обёртку), а не
+    // голый массив — как и AddEmployeeModal, разворачиваем d.positions.
+    fetch('/api/settings/positions?active_only=true').then(r => r.ok ? r.json() : null).then(d => setPositions(arr((d as { positions?: unknown } | null)?.positions))).catch(() => {})
   }, [])
 
   // person search (debounced)
