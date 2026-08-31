@@ -128,10 +128,12 @@ export default function AbsencesClient() {
         </>}
       />
 
-      {/* Создание */}
+      {/* Создание — единый столбец minmax(0,1fr): grid-трек может сжиматься до 0,
+          поэтому min-content широких контролов (date/select) НЕ распирает страницу
+          вправо на узком экране. Все поля во всю ширину. */}
       {showForm && canManage && (
-        <div style={{ ...card, display: 'grid', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
+        <div style={{ ...card, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10 }}>
+          <div style={{ position: 'relative', minWidth: 0 }}>
             <input value={stu ? stu.full_name : stuSearch} onChange={e => { setStu(null); setStuSearch(e.target.value) }} placeholder={t('pick_student')} style={{ ...inp, width: '100%' }} />
             {!stu && stuSearch && stuOpts.length > 0 && (
               <div style={{ position: 'absolute', zIndex: 10, top: '100%', insetInlineStart: 0, insetInlineEnd: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
@@ -141,14 +143,12 @@ export default function AbsencesClient() {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inp} />
-            <select value={formDept} onChange={e => setFormDept(e.target.value)} style={{ ...inp, minWidth: 200 }}>
-              <option value="">{t('no_transfer')}</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{t('transfer_to')}: {localizedDeptName(d, lang)}</option>)}
-            </select>
-          </div>
-          <textarea value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, resize: 'vertical' }} />
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...inp, width: '100%' }} />
+          <select value={formDept} onChange={e => setFormDept(e.target.value)} style={{ ...inp, width: '100%' }}>
+            <option value="">{t('no_transfer')}</option>
+            {departments.map(d => <option key={d.id} value={d.id}>{t('transfer_to')}: {localizedDeptName(d, lang)}</option>)}
+          </select>
+          <textarea value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, width: '100%', resize: 'vertical' }} />
           <SubmitButton onClick={create} loading={busy === 'create'} disabled={!stu || busy === 'create'} style={{ ...smallBtn(true), justifySelf: 'start', padding: '8px 18px' }}>{t('open_case')}</SubmitButton>
         </div>
       )}
@@ -186,7 +186,7 @@ export default function AbsencesClient() {
 
               {transferFor === c.id && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <select id={`t-${c.id}`} defaultValue="" style={{ ...inp, minWidth: 200 }}>
+                  <select id={`t-${c.id}`} defaultValue="" style={{ ...inp, flex: '1 1 200px' }}>
                     <option value="" disabled>{t('choose_dept')}</option>
                     {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
                   </select>
