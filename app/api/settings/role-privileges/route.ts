@@ -41,20 +41,22 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await guard()
     const sb = createServerClient()
+    type Scope = 'all' | 'department' | 'own'
     const { role_id, privileges } = await request.json() as {
       role_id: string
-      privileges: { module: string; privilege_code: string }[]
+      // scope опционален: если передан — используем его (напр. мастер «роль+посадка»
+      // задаёт department для не-access привилегий); иначе сохраняем прежний scope.
+      privileges: { module: string; privilege_code: string; scope?: Scope }[]
     }
 
     // Сохраняем существующий scope каждой привилегии: колонка role_privileges.scope
-    // имеет DEFAULT 'all', а UI шлёт только {module, privilege_code} без scope.
+    // имеет DEFAULT 'all', а старый UI шлёт только {module, privilege_code} без scope.
     // Без этого delete+insert молча повышал бы scope='department' → 'all' (доступ
     // ко всему кампусу) при любом сохранении роли — тихая эскалация прав.
     const { data: existing } = await sb
       .from('role_privileges')
       .select('module, privilege_code, scope')
       .eq('role_id', role_id)
-    type Scope = 'all' | 'department' | 'own'
     const scopeByKey = new Map<string, Scope>(
       (existing ?? []).map(r => [`${r.module}::${r.privilege_code}`, r.scope as Scope]),
     )
@@ -69,8 +71,8 @@ export async function PUT(request: NextRequest) {
           module: p.module as PrivilegeModule,
           privilege_code: p.privilege_code,
           granted_by: session.person_id,
-          // существующим привилегиям — их прежний scope; новым — 'all' (как раньше).
-          scope: scopeByKey.get(`${p.module}::${p.privilege_code}`) ?? ('all' as Scope),
+          // явный scope из запроса → прежний scope → 'all'.
+          scope: p.scope ?? scopeByKey.get(`${p.module}::${p.privilege_code}`) ?? ('all' as Scope),
         }))
       )
       if (error) throw error
