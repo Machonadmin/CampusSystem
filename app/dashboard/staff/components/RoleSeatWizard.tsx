@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError } from '@/components/ui/toast'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { roleLabel } from '@/lib/roles/role-label'
 import { getModuleColor } from '@/lib/module-colors'
 
 /**
@@ -96,6 +97,15 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
     return m
   }, [catalog])
   const categories = useMemo(() => Array.from(new Set(['campus_management', ...roles.map(r => r.category)])), [roles])
+  // Показываем локализованное имя роли (как в карточке сотрудника), а не сырое
+  // name из БД — иначе системные роли выглядели по-английски и владелец не мог
+  // найти в списке ту же роль, что видит на карточке (напр. «ראש תוכנית»).
+  const rolesPack = useMemo(() => (pack.roles as Record<string, string>) ?? {}, [pack.roles])
+  const roleLbl = (r: Role) => roleLabel(rolesPack, r.code, r.name)
+  const rolesSorted = useMemo(
+    () => [...roles].sort((a, b) => roleLabel(rolesPack, a.code, a.name).localeCompare(roleLabel(rolesPack, b.code, b.name))),
+    [roles, rolesPack],
+  )
 
   function toggleAccess(mod: string) {
     const key = `${mod}::access`
@@ -229,7 +239,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
             <div style={{ fontSize: 40 }}>✅</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>{t('done_title')}</div>
             <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 6 }}>
-              {t('done_body').replace('{name}', person?.full_name ?? '').replace('{role}', roleMode === 'new' ? roleName : (roles.find(r => r.id === existingRoleId)?.name ?? ''))}
+              {t('done_body').replace('{name}', person?.full_name ?? '').replace('{role}', roleMode === 'new' ? roleName : (() => { const r = roles.find(x => x.id === existingRoleId); return r ? roleLbl(r) : '' })())}
             </div>
             {genPassword && (
               <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'var(--accent-tint)', border: '1px solid var(--accent)' }}>
@@ -264,7 +274,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
                 <label style={label}>{t('pick_existing_role')} *</label>
                 <select value={existingRoleId} onChange={e => setExistingRoleId(e.target.value)} style={inp}>
                   <option value="">—</option>
-                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  {rolesSorted.map(r => <option key={r.id} value={r.id}>{roleLbl(r)}</option>)}
                 </select>
                 <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 8 }}>{t('existing_hint')}</div>
               </div>
@@ -385,7 +395,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
             )}
             <div style={{ marginTop: 4, padding: '12px 14px', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
               <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{t('summary')}</div>
-              {t('sum_role')}: <b>{roleMode === 'new' ? (roleName || '—') : (roles.find(r => r.id === existingRoleId)?.name ?? '—')}</b><br />
+              {t('sum_role')}: <b>{roleMode === 'new' ? (roleName || '—') : (() => { const r = roles.find(x => x.id === existingRoleId); return r ? roleLbl(r) : '—' })()}</b><br />
               {t('sum_person')}: <b>{person?.full_name ?? '—'}</b><br />
               {t('sum_dept')}: <b>{depts.find(d => d.id === deptId) ? localizedDeptName(depts.find(d => d.id === deptId)!, lang) : '—'}</b>{isHead ? ` · ${t('is_head')}` : ''}
             </div>
