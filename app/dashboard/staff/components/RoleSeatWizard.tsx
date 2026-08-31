@@ -372,6 +372,9 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
                 <option value="">—</option>
                 {depts.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
               </select>
+              {depts.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--warn)', marginTop: 6, fontWeight: 600 }}>{t('empty_list_hint')}</div>
+              )}
             </div>
             <div>
               <label style={label}>{t('title_position')} *</label>
@@ -379,6 +382,10 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
                 <option value="">—</option>
                 {positions.map(p => <option key={p.id} value={p.id}>{(lang === 'he' ? p.name_he : p.name_ru) || p.name_he || p.name_ru}</option>)}
               </select>
+              {/* Пустой список — тупик (position_id обязателен): показываем причину, а не молчим. */}
+              {positions.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--warn)', marginTop: 6, fontWeight: 600 }}>{t('empty_list_hint')}</div>
+              )}
               <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>{t('title_hint')}</div>
             </div>
             <div>
