@@ -7,6 +7,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError } from '@/components/ui/toast'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { getModuleColor } from '@/lib/module-colors'
 
 /**
@@ -70,10 +71,13 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    fetch('/api/settings/roles').then(r => r.ok ? r.json() : []).then(setRoles).catch(() => {})
-    fetch('/api/settings/role-privileges').then(r => r.ok ? r.json() : null).then(d => { if (d) setCatalog(d.modulePrivileges ?? []) }).catch(() => {})
-    fetch('/api/settings/departments').then(r => r.ok ? r.json() : []).then(setDepts).catch(() => {})
-    fetch('/api/settings/positions?active_only=true').then(r => r.ok ? r.json() : []).then(setPositions).catch(() => {})
+    // Array.isArray-защита: если эндпоинт вернёт объект-ошибку (не массив),
+    // [...roles].sort()/.map() уронили бы весь экран (error boundary).
+    const arr = (d: unknown) => (Array.isArray(d) ? d : [])
+    fetch('/api/settings/roles').then(r => r.ok ? r.json() : []).then(d => setRoles(arr(d))).catch(() => {})
+    fetch('/api/settings/role-privileges').then(r => r.ok ? r.json() : null).then(d => { if (d) setCatalog(arr(d.modulePrivileges)) }).catch(() => {})
+    fetch('/api/settings/departments').then(r => r.ok ? r.json() : []).then(d => setDepts(arr(d))).catch(() => {})
+    fetch('/api/settings/positions?active_only=true').then(r => r.ok ? r.json() : []).then(d => setPositions(arr(d))).catch(() => {})
   }, [])
 
   // person search (debounced)
@@ -84,7 +88,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
     if (personQ.trim().length < 2) { setPersonHits([]); return }
     timer.current = setTimeout(async () => {
       const r = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(personQ)}`)
-      if (r.ok) setPersonHits(await r.json())
+      if (r.ok) { const d = await r.json(); setPersonHits(Array.isArray(d) ? d : []) }
     }, 250)
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [personQ, person])
@@ -102,8 +106,13 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
   // найти в списке ту же роль, что видит на карточке (напр. «ראש תוכנית»).
   const rolesPack = useMemo(() => (pack.roles as Record<string, string>) ?? {}, [pack.roles])
   const roleLbl = (r: Role) => roleLabel(rolesPack, r.code, r.name)
+  // Показываем только актуальные роли (как экран управления ролями): legacy-роли
+  // с русскими именами и без ивритского перевода скрыты — иначе список был кашей
+  // из русских названий. Кастомные роли владельца остаются (они не deprecated).
   const rolesSorted = useMemo(
-    () => [...roles].sort((a, b) => roleLabel(rolesPack, a.code, a.name).localeCompare(roleLabel(rolesPack, b.code, b.name))),
+    () => (Array.isArray(roles) ? roles : [])
+      .filter(r => !isDeprecatedRole(r.code))
+      .sort((a, b) => roleLabel(rolesPack, a.code, a.name).localeCompare(roleLabel(rolesPack, b.code, b.name), 'he')),
     [roles, rolesPack],
   )
 
