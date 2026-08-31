@@ -1737,7 +1737,10 @@
       "personal_delete": "Удалить",
       "personal_none": "Нет личных событий в этот день",
       "prev_month": "Предыдущий месяц",
-      "next_month": "Следующий месяц"
+      "next_month": "Следующий месяц",
+      "today": "Сегодня",
+      "no_lessons_today": "Сегодня нет уроков",
+      "attended_of": "Присутствовала на {n} из {m} уроков"
     },
     "student_dashboard": {
       "title": "Дашборд",

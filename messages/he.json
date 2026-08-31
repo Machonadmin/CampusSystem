@@ -1737,7 +1737,10 @@
       "personal_delete": "מחיקה",
       "personal_none": "אין אירועים אישיים ביום זה",
       "prev_month": "חודש קודם",
-      "next_month": "חודש הבא"
+      "next_month": "חודש הבא",
+      "today": "היום",
+      "no_lessons_today": "אין שיעורים היום",
+      "attended_of": "נכחת ב-{n} מתוך {m} שיעורים"
     },
     "student_dashboard": {
       "title": "דשבורד",
