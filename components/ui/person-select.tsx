@@ -267,7 +267,7 @@ export function PersonSelect({
 
       {isOpen && !disabled && (
         <div className="anim-pop" style={{
-          position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0, zIndex: 300,
+          position: 'absolute', top: 'calc(100% + 2px)', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 300,
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
           boxShadow: 'var(--shadow)', overflow: 'hidden',
         }}>

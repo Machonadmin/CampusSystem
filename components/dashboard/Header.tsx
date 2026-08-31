@@ -165,7 +165,7 @@ export default function Header({ userName, roles }: HeaderProps) {
 
           {userMenuOpen && (
             <div
-              className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-1.5 w-52 rounded-xl py-1 z-50`}
+              className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-1.5 w-52 max-w-[calc(100vw-1rem)] rounded-xl py-1 z-50`}
               style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
             >
               <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>

@@ -224,7 +224,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
             <div style={{ position: 'relative' }}>
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('plan.search_student')} style={inp(320)} />
               {hits.length > 0 && (
-                <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, width: 320, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
+                <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, insetInlineStart: 0, insetInlineEnd: 0, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                   {hits.map(h => (
                     <div
                       key={h.journey_id}

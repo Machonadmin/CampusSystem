@@ -303,7 +303,7 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
                 style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
               {(results.length > 0 || searching || query.length >= 2) && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: 'var(--shadow)', marginTop: 4, overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 100, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: 'var(--shadow)', marginTop: 4, overflow: 'hidden' }}>
                   {searching && (
                     <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
                   )}
