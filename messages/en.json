@@ -2488,7 +2488,8 @@
       "err_role": "Failed to create the role",
       "err_privs": "Role created but saving permissions failed",
       "err_seat": "Seating failed",
-      "err_login": "Failed to create the login"
+      "err_login": "Failed to create the login",
+      "empty_list_hint": "The list did not load — refresh the page and try again."
     }
   },
   "quality": {
