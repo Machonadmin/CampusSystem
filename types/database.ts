@@ -2123,6 +2123,20 @@ export interface Database {
           department_id: string
         }
       }
+      merge_persons: {
+        Args: {
+          p_keep: string
+          p_remove: string
+          p_keep_fields?: Record<string, unknown>
+          p_actor?: string
+        }
+        Returns: {
+          kept: string
+          removed: string
+          refs_moved: number
+          refs_dropped: number
+        }
+      }
       reactivate_stage: {
         Args: { p_stage_instance_id: string; p_actor_id: string }
         Returns: { stage_instance_id: string }

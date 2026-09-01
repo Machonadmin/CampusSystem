@@ -6227,6 +6227,15 @@ export type Database = {
       }
       create_application: { Args: { payload: Json }; Returns: Json }
       create_staff_member: { Args: { payload: Json }; Returns: Json }
+      merge_persons: {
+        Args: {
+          p_keep: string
+          p_remove: string
+          p_keep_fields?: Json
+          p_actor?: string
+        }
+        Returns: Json
+      }
       handle_task_completion: {
         Args: { p_actor_id: string; p_task_id: string }
         Returns: Json
