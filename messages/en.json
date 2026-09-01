@@ -2203,7 +2203,7 @@
     }
   },
   "staff": {
-    "title": "Staff",
+    "title": "Employee management",
     "add_employee": "Add Employee",
     "add_dept": "Add Department",
     "search_by": "Search by name, position...",
@@ -2587,7 +2587,17 @@
       "l_tasks": "Tasks"
     },
     "view_as": "View as user",
-    "view_as_error": "Could not switch to view mode"
+    "view_as_error": "Could not switch to view mode",
+    "card": {
+      "sec_seats": "Positions & seats",
+      "sec_contact": "Contact",
+      "sec_access": "Access & permissions",
+      "no_seats": "No seat — the person exists without a position.",
+      "no_login": "No login account — the person cannot sign in.",
+      "login_active": "Active",
+      "login_inactive": "Disabled",
+      "edit_details": "Edit all details"
+    }
   },
   "quality": {
     "title": "Teaching Evaluation",

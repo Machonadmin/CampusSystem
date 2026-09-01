@@ -11,6 +11,7 @@ import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import RoleSeatWizard from './components/RoleSeatWizard'
 import MergeDuplicatesModal from './components/MergeDuplicatesModal'
+import EmployeeCard from './components/EmployeeCard'
 import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
 import {
   RolesModal, AddUserModal, EditUserModal, RoleBadge,
@@ -540,6 +541,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
   const [wizardOpen, setWizardOpen] = useState(false)
   const [mergeOpen, setMergeOpen] = useState(false)
+  // «Карточка сотрудника» — всё об одном человеке в одном месте; открывается
+  // кликом по строке (запрос владельца: «ניהול עובדים» вместо скрытого меню).
+  const [cardTarget, setCardTarget] = useState<Employee | null>(null)
 
   function genderLabel(g: string | null): string | null {
     if (g === 'male') return t('gender.male')
@@ -705,7 +709,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                 const sc = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
                 const user = usersByPerson.get(emp.person_id)
                 return (
-                  <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                  <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
+                    onClick={() => setCardTarget(emp)}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
                     <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
@@ -735,7 +740,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       )}
                     </td>
                     <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
-                    <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
+                    <td data-label={t('table.phone')} onClick={e => e.stopPropagation()} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
                     <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? user?.login_email ?? '—'}</td>
                     {isSuperadmin && (
                       <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
@@ -745,7 +750,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                         {t(`status.${statusKey}`, statusKey)}
                       </span>
                     </td>
-                    <td data-label="" style={{ padding: '10px 14px' }}>
+                    <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '10px 14px' }}>
                       <RowActionsMenu
                         accentColor={getModuleColor('staff')}
                         actions={[
@@ -780,7 +785,13 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 
               {/* Люди с доступом, но без рабочего места (только superadmin). */}
               {accessOnly.map(user => (
-                <tr key={`au_${user.account_id}`} style={{ borderBottom: '1px solid var(--surface-2)' }}
+                <tr key={`au_${user.account_id}`} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
+                  onClick={() => setCardTarget({
+                    position_id: `au_${user.account_id}`, profile_id: null, person_id: user.person_id,
+                    full_name: user.full_name, hebrew_name: user.hebrew_name, photo_url: user.photo_url,
+                    gender: null, phone: null, email: user.login_email, position: '', is_head: false,
+                    department_id: '', department_name: null, hire_date: null, employment_type: null, status: 'active',
+                  })}
                   onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
                   <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
@@ -809,7 +820,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       {user.is_active ? tUsers('active') : tUsers('inactive')}
                     </span>
                   </td>
-                  <td data-label="" style={{ padding: '10px 14px' }}>
+                  <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '10px 14px' }}>
                     <RowActionsMenu accentColor={getModuleColor('staff')} actions={accessActions(user)} />
                   </td>
                 </tr>
@@ -846,6 +857,27 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       {mergeOpen && (
         <MergeDuplicatesModal onClose={() => setMergeOpen(false)} onDone={() => setLocalRefresh(n => n + 1)} />
       )}
+      {cardTarget && (() => {
+        const cardUser = usersByPerson.get(cardTarget.person_id) ?? null
+        const seats = employees.filter(e => e.person_id === cardTarget.person_id)
+        const editable = seats.find(s => s.profile_id) ?? null
+        return (
+          <EmployeeCard
+            person={cardTarget}
+            seats={seats}
+            user={cardUser}
+            isSuperadmin={isSuperadmin}
+            onClose={() => setCardTarget(null)}
+            onEditDetails={editable ? () => { setCardTarget(null); onAdd(editable) } : null}
+            onManageRoles={cardUser ? () => { setCardTarget(null); setRolesTarget(cardUser) } : null}
+            onEditAccount={cardUser ? () => { setCardTarget(null); setEditTarget(cardUser) } : null}
+            onPersonalPrivs={cardUser ? () => { setCardTarget(null); setPrivTarget(cardUser) } : null}
+            onCreateLogin={!cardUser ? () => { setCardTarget(null); setAddPerson({ id: cardTarget.person_id, full_name: cardTarget.full_name, hebrew_name: cardTarget.hebrew_name, email: cardTarget.email }) } : null}
+            onViewAs={() => viewAsUser(cardTarget.person_id)}
+            onDelete={editable?.profile_id ? () => { setCardTarget(null); handleDeleteEmployee(editable.profile_id!, cardTarget.full_name) } : null}
+          />
+        )
+      })()}
     </div>
   )
 }
