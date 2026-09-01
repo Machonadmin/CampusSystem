@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { getEducationContainerDeptFilter } from '@/lib/education/permissions'
+import { getEducationStructureContainerFilter } from '@/lib/education/permissions'
 
 /**
  * GET /api/education/institutions
@@ -18,8 +18,8 @@ export async function GET() {
 
     // Видимость по юниту: менеджер со scope='department' видит только заведения
     // своей вертикали (юнит + под-единицы + заведение-контейнер над ним), а не
-    // все колледжи института (см. getEducationContainerDeptFilter).
-    const myDepts = await getEducationContainerDeptFilter(session)
+    // все колледжи института (см. getEducationStructureContainerFilter).
+    const myDepts = await getEducationStructureContainerFilter(session)
     if (myDepts && myDepts.length === 0) return NextResponse.json({ institutions: [] })
 
     const sb = createServerClient()

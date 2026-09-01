@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege, getEducationDeptFilter } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { StudyGroupInsert } from '@/types/database'
 
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = params.get('active_only') !== 'false'
 
     // Видимость по юниту (scope='department' → только свои подразделения).
-    const myDepts = await getEducationDeptFilter(session)
+    const myDepts = await getEducationStructureDeptFilter(session)
     if (myDepts && myDepts.length === 0) return NextResponse.json({ study_groups: [] })
 
     const sb = createServerClient()

@@ -2,34 +2,32 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { getEducationStructureDeptFilter, canDoEducationInAny } from '@/lib/education/permissions'
 
 /**
  * GET /api/education/study-tracks — справочник маршрутов второй половины дня.
- * Право: view_students (или superadmin).
+ * Право: любое просмотровое/управляющее education-право (иначе 403).
  *
- * Видимость по подразделению: scope='all' (напр. head_of_studies, суперадмин,
- * главный секретариат в корневом подразделении) — все маршруты; scope='department'
- * (управляющий/секретарь юнита) — только маршруты своих подразделений
- * (study_tracks.department_id ∈ его дерево подразделений). Маршруты без
- * department_id видны только полному доступу.
- * Защищено к отсутствию таблицы/колонок (42P01/42703).
+ * Видимость по подразделению: структурный фильтр — по тому, чем человек
+ * УПРАВЛЯЕТ (manage_*), а не по view_students. Иначе «אחראית יהדות» с
+ * view_students='all' (нужным для списка студенток) видела бы все מסלולי חול.
+ * scope='all' (head_of_studies/суперадмин) — все маршруты; 'department'
+ * (менеджер юнита / кодеша) — только маршруты своих подразделений. См.
+ * getEducationStructureDeptFilter. Защищено к отсутствию таблицы/колонок.
  */
 export async function GET() {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: serverT('unauthorized') }, { status: 401 })
 
-    const scope = session.roles.includes('superadmin')
-      ? 'all'
-      : await getEducationPrivilegeScope(session, 'view_students')
-    if (!scope) return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
+    const allowed =
+      (await canDoEducationInAny(session, 'view_students')) ||
+      (await canDoEducationInAny(session, 'manage_class_groups')) ||
+      (await canDoEducationInAny(session, 'manage_subjects'))
+    if (!allowed) return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
 
-    let myDepts: string[] | null = null
-    if (scope === 'department') {
-      myDepts = await getUserDepartmentIds(session.person_id)
-      if (myDepts.length === 0) return NextResponse.json({ tracks: [] })
-    }
+    const myDepts = await getEducationStructureDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ tracks: [] })
 
     const sb = createServerClient()
     const cols = 'id, code, name_he, name_ru, name_en, department_id, years_count, sort_order'
