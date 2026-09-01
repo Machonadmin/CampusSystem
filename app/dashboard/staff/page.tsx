@@ -10,6 +10,7 @@ import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import RoleSeatWizard from './components/RoleSeatWizard'
+import MergeDuplicatesModal from './components/MergeDuplicatesModal'
 import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
 import {
   RolesModal, AddUserModal, EditUserModal, RoleBadge,
@@ -538,6 +539,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
   const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [mergeOpen, setMergeOpen] = useState(false)
 
   function genderLabel(g: string | null): string | null {
     if (g === 'male') return t('gender.male')
@@ -649,6 +651,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
           >
             {tUsers('create_button')}
+          </button>
+        )}
+        {isSuperadmin && (
+          <button
+            onClick={() => setMergeOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-strong)' }}
+          >
+            {t('merge.launch')}
           </button>
         )}
       </div>
@@ -811,6 +821,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       )}
       {wizardOpen && (
         <RoleSeatWizard onClose={() => setWizardOpen(false)} onDone={() => setLocalRefresh(n => n + 1)} />
+      )}
+      {mergeOpen && (
+        <MergeDuplicatesModal onClose={() => setMergeOpen(false)} onDone={() => setLocalRefresh(n => n + 1)} />
       )}
     </div>
   )
