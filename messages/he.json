@@ -2585,7 +2585,9 @@
       "l_relatives": "קרובי משפחה",
       "l_notifications": "התראות",
       "l_tasks": "משימות"
-    }
+    },
+    "view_as": "צפה כמשתמש",
+    "view_as_error": "המעבר לצפייה נכשל"
   },
   "quality": {
     "title": "הערכת הוראה",
@@ -4937,5 +4939,10 @@
     "open_teacher_journal": "פתחי יומן מפגשי חברותא",
     "forbidden_hub": "אין לך הרשאה לנהל חברותות",
     "error": "אירעה שגיאה"
+  },
+  "impersonation": {
+    "viewing_as": "אתה צופה כ־{name}",
+    "read_only": "מצב צפייה בלבד",
+    "exit": "חזור לחשבון שלי"
   }
 }

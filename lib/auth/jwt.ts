@@ -11,6 +11,12 @@ export interface SessionPayload extends JosePayload {
   // student_journey_id, а roles:[] — она никогда не имеет ролей сотрудника.
   principal?: 'staff' | 'student'
   student_journey_id?: string
+  // Режим «просмотр как пользователь» (только superadmin): токен несёт личность
+  // ЦЕЛЕВОГО пользователя (person_id/roles — его), а imp_by/imp_by_name хранят,
+  // кто именно смотрит. Пока поле задано — сессия помечена как имперсонация:
+  // middleware переводит её в режим ТОЛЬКО ЧТЕНИЕ, а баннер даёт вернуться.
+  imp_by?: string
+  imp_by_name?: string | null
 }
 
 function getSecret(): Uint8Array {

@@ -82,6 +82,16 @@ export async function middleware(request: NextRequest) {
   const session = await verifyToken(token)
   if (!session) return unauthorized(request)
 
+  // Режим «צפייה כמשתמש» (imp_by задан) — ТОЛЬКО ЧТЕНИЕ: любой изменяющий вызов
+  // API блокируется, чтобы владелец, глядя глазами сотрудника, ничего случайно
+  // не менял от его имени. Выход из режима — /api/auth/stop-impersonate — уже
+  // пропущен выше как публичный префикс (/api/auth/).
+  if (session.imp_by && pathname.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+    const loc = request.cookies.get('campus_locale')?.value
+    const lang = loc === 'he' || loc === 'en' ? loc : 'ru'
+    return NextResponse.json({ error: READONLY_MSG[lang], code: 'impersonation_readonly' }, { status: 403 })
+  }
+
   // ── Портал студентки (/portal/**; /portal/login публичен и обработан выше) ──
   // Только principal:'student' допускается в /portal. Сотрудников держим ВНЕ
   // портала (→ /dashboard). Это чистая проверка токена, без обращений к БД.
@@ -131,6 +141,14 @@ const UNAUTHORIZED_MSG: Record<string, string> = {
   ru: 'Не авторизован',
   he: 'לא מורשה',
   en: 'Not authorized',
+}
+
+// Сообщение режима «צפייה כמשתמש» (read-only). Держим здесь, а не в messages/*,
+// т.к. middleware работает в Edge-runtime (см. UNAUTHORIZED_MSG выше).
+const READONLY_MSG: Record<string, string> = {
+  ru: 'Режим просмотра — изменения недоступны',
+  he: 'מצב צפייה בלבד — לא ניתן לבצע שינויים',
+  en: 'View-only mode — changes are disabled',
 }
 
 function unauthorized(request: NextRequest): NextResponse {
