@@ -124,3 +124,28 @@ export function expandDepartmentTree(rootIds: string[], edges: DepartmentEdge[])
   }
   return Array.from(result)
 }
+
+/**
+ * Добавляет к набору узлов их ПРЕДКОВ (вверх по дереву `parent_id`). В отличие от
+ * expandDepartmentTree (вниз, к потомкам), это движение ВВЕРХ — нужно только для
+ * списков-контейнеров верхнего уровня (учебные заведения): менеджер, посаженный
+ * на под-узел, должен видеть само заведение-контейнер (предка), чтобы дойти до
+ * своего юнита. НЕ добавляет ничего «вбок» (соседние заведения) — только прямую
+ * вертикаль вверх. Циклобезопасно (guard на каждую цепочку). Возвращает
+ * уникальный набор (исходные узлы включены).
+ */
+export function expandWithAncestors(nodeIds: string[], edges: DepartmentEdge[]): string[] {
+  const parentOf = new Map<string, string | null>()
+  for (const e of edges) parentOf.set(e.id, e.parent_id)
+  const result = new Set<string>(nodeIds)
+  for (const start of nodeIds) {
+    let cur = parentOf.get(start) ?? null
+    const guard = new Set<string>([start])
+    while (cur && !guard.has(cur)) {
+      guard.add(cur)
+      result.add(cur)
+      cur = parentOf.get(cur) ?? null
+    }
+  }
+  return Array.from(result)
+}

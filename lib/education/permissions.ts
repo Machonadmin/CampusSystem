@@ -4,7 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
@@ -320,6 +320,61 @@ export async function getEducationPrivilegeScope(
   if (session.principal !== 'student' && session.roles.includes('superadmin')) return 'all'
   const access = await getUserAccess(session)
   return access.privileges[privilege] ?? null
+}
+
+// ─── Фильтры видимости списков «Учёбы» по подразделениям ──────────────────────
+//
+// Единый механизм для GET-списков модуля «Учёба», чтобы менеджер, ограниченный
+// юнитом (scope='department'), видел ТОЛЬКО объекты своего юнита во ВСЕХ экранах,
+// а не только в части. Симметрично уже работающему фильтру в /api/education/subjects.
+//
+// Возвращаемое значение (единая семантика для всех вызовов):
+//   • null   → фильтровать НЕ нужно. Так для superadmin и для scope='all', а также
+//              когда у пользователя нет education-права вовсе (scope=null) — тогда
+//              прежнее поведение справочных дропдаунов в других модулях (всё) не
+//              ломается.
+//   • []     → у пользователя scope='department', но нет назначений → показать
+//              ПУСТОЙ список (он не видит ничего чужого).
+//   • [...]  → показать только объекты этих department_id.
+
+/**
+ * Фильтр по подразделениям для КОНТЕНТНЫХ списков (предметы, специальности,
+ * базовые/учебные группы) — вниз по дереву (юнит + под-единицы), как в subjects.
+ */
+export async function getEducationDeptFilter(
+  session: SessionPayload,
+  privilege: EducationPrivilege = 'view_students',
+): Promise<string[] | null> {
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return null
+  const scope = await getEducationPrivilegeScope(session, privilege)
+  if (scope !== 'department') return null
+  return await getUserDepartmentIds(session.person_id)
+}
+
+/**
+ * Фильтр для списков-КОНТЕЙНЕРОВ верхнего уровня (учебные заведения / направления
+ * заведения). Помимо юнита и под-единиц включает ПРЕДКОВ (вверх по дереву), чтобы
+ * менеджер, посаженный на под-узел, видел само заведение-контейнер и мог дойти до
+ * своего юнита. «Вбок» (соседние заведения) не добавляется — только прямая
+ * вертикаль. См. getEducationDeptFilter про семантику null/[]/[...].
+ */
+export async function getEducationContainerDeptFilter(
+  session: SessionPayload,
+  privilege: EducationPrivilege = 'view_students',
+): Promise<string[] | null> {
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return null
+  const scope = await getEducationPrivilegeScope(session, privilege)
+  if (scope !== 'department') return null
+  const deptIds = await getUserDepartmentIds(session.person_id)
+  if (deptIds.length === 0) return []
+  try {
+    const sb = createServerClient()
+    const { data: depts, error } = await sb.from('departments').select('id, parent_id')
+    if (error || !depts) return deptIds
+    return expandWithAncestors(deptIds, depts as DepartmentEdge[])
+  } catch {
+    return deptIds
+  }
 }
 
 // ─── Версии с throw — для использования в API endpoints ───────────────────────
