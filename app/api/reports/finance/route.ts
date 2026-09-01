@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { toCents } from '@/lib/finance/money'
@@ -29,6 +29,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/
 export async function GET(request: Request) {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('finance')
     const sb = createServerClient()
 
     // Опциональный период: charged — по дате создания начисления (created_at),

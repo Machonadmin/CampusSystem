@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 
@@ -28,6 +28,7 @@ function pct(part: number, whole: number): number {
 export async function GET() {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('education')
     const sb = createServerClient()
 
     // 1. Срез по education_status (постранично).

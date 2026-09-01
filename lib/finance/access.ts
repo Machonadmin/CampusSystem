@@ -51,6 +51,9 @@ export async function canViewStudentFinance(session: SessionPayload | null, jour
   if (!session) return false
   if (session.roles.includes('superadmin')) return true
   if (await hasFinancePrivilege(session, 'view')) return true
+  // Узкое ролевое право «итоги студентки» (начислено/оплачено/долг) — даёт
+  // просмотр её баланса в карточке БЕЗ доступа к финансовому модулю.
+  if (await hasFinancePrivilege(session, 'view_student_balance')) return true
   return hasFinanceGrant(session.person_id, journeyId)
 }
 

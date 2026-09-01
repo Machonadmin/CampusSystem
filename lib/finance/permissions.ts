@@ -5,12 +5,15 @@ import type { Scope } from '@/lib/permissions/scope'
 // (см. lib/permissions/module-factory.ts). Публичный API (имена функций и
 // сигнатуры) сохранён 1:1, поэтому вызывающий код не меняется.
 
-export type FinancePrivilege = 
+export type FinancePrivilege =
   | 'view'
   | 'create_invoice'
   | 'approve_payment'
   | 'manage_budget'
   | 'export_reports'
+  // Узкое право «итоги студентки» (начислено/оплачено/долг) БЕЗ доступа к
+  // финмодулю — для ролей вроде «אחראית יהדות» (решение владельца).
+  | 'view_student_balance'
 export type { Scope }
 
 const perms = makeModulePermissions<FinancePrivilege>('finance')

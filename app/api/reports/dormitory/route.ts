@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { isActiveOn, type Assignment } from '@/lib/dormitory/occupancy'
@@ -26,6 +26,7 @@ import { occupancySummary } from '@/lib/reports/summaries'
 export async function GET() {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('dormitory')
     const sb = createServerClient()
 
     // Комнаты: ёмкость (сумма) + их число — за один постраничный проход.

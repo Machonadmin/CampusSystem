@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { studentStatusSummary } from '@/lib/reports/summaries'
@@ -20,6 +20,7 @@ import { studentStatusSummary } from '@/lib/reports/summaries'
 export async function GET() {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('education')
     const sb = createServerClient()
 
     const journeys = await pageAll<{ education_status: string }>((from, to) =>
