@@ -23,7 +23,7 @@ import { getModuleColor } from '@/lib/module-colors'
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null; parent_id?: string | null }
 interface Position { id: string; name_ru: string | null; name_he: string | null; category: string }
 interface Role { id: string; name: string; code: string; category: string }
-interface ModulePriv { id: string; module: string; privilege_code: string; name: string; sort_order: number }
+interface ModulePriv { id: string; module: string; privilege_code: string; privilege_name: string; sort_order: number }
 interface PersonHit { id: string; full_name: string; hebrew_name?: string | null; email: string | null }
 
 const MODULES = ['persons', 'education', 'finance', 'dormitory', 'food', 'security', 'alumni', 'sponsors', 'tasks', 'documents', 'reports', 'contacts', 'doctor', 'psychologist', 'maintenance', 'settings'] as const
@@ -338,7 +338,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
                             return (
                               <label key={mp.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--text)', cursor: 'pointer' }}>
                                 <input type="checkbox" checked={granted.has(k)} onChange={() => togglePriv(mod, mp.privilege_code)} style={{ accentColor: accent }} />
-                                {mp.name}
+                                {mp.privilege_name || mp.privilege_code}
                               </label>
                             )
                           })}

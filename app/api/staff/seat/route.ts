@@ -56,6 +56,22 @@ export async function POST(request: NextRequest) {
       ? String(body.hire_date).trim()
       : todayISO()
 
+    // 2.5) staff_profiles — гарантируем строку профиля. Без неё в списке кадров
+    // у «посаженного» человека profile_id=null, и кнопки «редактировать/удалить»
+    // в UI заблокированы. Создаём, если ещё нет (person_id — единственное NOT NULL).
+    const { data: prof } = await sb
+      .from('staff_profiles')
+      .select('id')
+      .eq('person_id', body.person_id)
+      .maybeSingle()
+    if (!prof) {
+      const { error: pErr } = await sb
+        .from('staff_profiles')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert({ person_id: body.person_id, hire_date: hireDate, employment_type: 'staff' } as any)
+      if (pErr) throw pErr
+    }
+
     // 3) staff_positions — обновить активную в этом подразделении или создать.
     const { data: existing } = await sb
       .from('staff_positions')

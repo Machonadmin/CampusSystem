@@ -61,6 +61,13 @@ export async function hasPrivilege(
   target?: PrivilegeTarget,
 ): Promise<boolean> {
   if (!session) return false
+  // superadmin (кадровый principal, НЕ студенческий портал) — всегда всё, БЕЗ
+  // зависимости от строк role_privileges. Иначе суперадмин мог потерять права
+  // на persons.edit/create/delete, если роль superadmin пересохранили в
+  // редакторе ролей без этих привилегий (или миграция-сидер не выполнялась) —
+  // и тогда правка/удаление сотрудника отдавали 403. Симметрично с
+  // lib/permissions/module-factory.ts и lib/education/permissions.ts.
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
   const scope = await loadScope(session, module, code)
   if (!scope) return false
   if (scope === 'all') return true
