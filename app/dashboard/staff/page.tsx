@@ -597,6 +597,21 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
     }
   }
 
+  // «צפייה כמשתמש»: superadmin переключается в сессию сотрудника (read-only) и
+  // видит систему его глазами. Возврат — через плашку внизу.
+  async function viewAsUser(personId: string) {
+    try {
+      const res = await fetch('/api/auth/impersonate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person_id: personId }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error || t('view_as_error'), 'error'); return }
+      window.location.href = '/dashboard'
+    } catch {
+      toast(t('view_as_error'), 'error')
+    }
+  }
+
   // Ячейка «доступ/роли» + действия по аккаунту (для superadmin).
   function accessCell(user: UserRow | undefined) {
     if (!user) return <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_none')}</span>
@@ -736,6 +751,12 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                         actions={[
                           // Доступ есть → управление ролями/аккаунтом; нет → создать вход.
                           ...(isSuperadmin && user ? accessActions(user) : []),
+                          {
+                            key: 'view_as',
+                            label: t('view_as'),
+                            onClick: () => viewAsUser(emp.person_id),
+                            hidden: !isSuperadmin,
+                          },
                           {
                             key: 'login',
                             label: t('create_login'),

@@ -2585,7 +2585,9 @@
       "l_relatives": "Relatives",
       "l_notifications": "Notifications",
       "l_tasks": "Tasks"
-    }
+    },
+    "view_as": "View as user",
+    "view_as_error": "Could not switch to view mode"
   },
   "quality": {
     "title": "Teaching Evaluation",
@@ -4937,5 +4939,10 @@
     "open_teacher_journal": "Open chavruta session journal",
     "forbidden_hub": "You do not have permission to manage chavrutas",
     "error": "An error occurred"
+  },
+  "impersonation": {
+    "viewing_as": "Viewing as {name}",
+    "read_only": "View-only",
+    "exit": "Back to my account"
   }
 }

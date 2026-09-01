@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/toast'
 import { ConfirmRoot } from '@/components/ui/ConfirmDialog'
 import TopProgressBar from '@/components/ui/TopProgressBar'
 import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
+import ImpersonationBanner from '@/components/auth/ImpersonationBanner'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -22,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {children}
       </DashboardShell>
       <ForcePasswordChangeGate />
+      {session.imp_by && <ImpersonationBanner targetName={session.full_name} />}
       <Toaster />
       <ConfirmRoot />
     </LanguageProvider>
