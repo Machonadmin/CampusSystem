@@ -626,25 +626,29 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        {/* «посадить на стул» слит в «Добавить сотрудника» (роль — на вкладке должности). */}
-        <PageActionButton
-          label={t('add_employee')}
-          onClick={() => onAdd()}
-          accentColor={getModuleColor('staff')}
-        />
+        {/* Основной путь (superadmin): единый экран «הוספת בעל תפקיד» — человек +
+            должность + подразделение + права + вход в одном действии. */}
         {isSuperadmin && (
           <PageActionButton
-            label={tUsers('create_button')}
-            onClick={() => setAddPerson(null)}
+            label={t('wizard.launch')}
+            onClick={() => setWizardOpen(true)}
             accentColor={getModuleColor('staff')}
           />
         )}
+        {/* «Добавить сотрудника» — детальная форма (6 вкладок); также режим
+            редактирования из строки. Для не-superadmin это основной способ добавить. */}
+        <button
+          onClick={() => onAdd()}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
+        >
+          {t('add_employee')}
+        </button>
         {isSuperadmin && (
           <button
-            onClick={() => setWizardOpen(true)}
+            onClick={() => setAddPerson(null)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
           >
-            ✨ {t('wizard.launch')}
+            {tUsers('create_button')}
           </button>
         )}
       </div>
