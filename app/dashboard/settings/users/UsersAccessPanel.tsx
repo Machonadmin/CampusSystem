@@ -1,18 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+// Полноэкранная панель «משתמשים וגישה» удалена — управление аккаунтами живёт
+// во вкладке «צוות ומשתמשים» хаба «ניהול עובדים» (запрос владельца: меньше
+// дублей). Здесь остались только переиспользуемые модалки и типы.
+import { useState, useRef } from 'react'
+import { useLang } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { personDisplayName } from '@/lib/persons/name'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
-import { getModuleColor } from '@/lib/module-colors'
-import PersonPrivilegesModal from './PersonPrivilegesModal'
-import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
-import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
-import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
@@ -38,15 +34,6 @@ export interface UserRow {
 
 type T = (key: string, fallback?: string) => string
 
-function Avatar({ name, photo }: { name: string; photo: string | null }) {
-  if (photo) return <img src={photo} alt={name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-  const initials = name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  return (
-    <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{initials}</span>
-    </div>
-  )
-}
 
 export function RoleBadge({ name }: { name: string }) {
   return (
@@ -592,215 +579,5 @@ export function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserMo
 
       {pwdOpen && <ResetPasswordModal user={user} t={t} tCommon={tCommon} onClose={() => setPwdOpen(false)} />}
     </>
-  )
-}
-
-function UsersPageContent({ embedded = false }: { embedded?: boolean }) {
-  const t = useTranslations('settings.users')
-  const tCat = useTranslations('settings.categories')
-  const tCommon = useTranslations('common')
-  const tNav = useTranslations('navigation')
-  const tPriv = useTranslations('settings.person_privileges')
-  const { t: lang } = useLang()
-
-  const [users, setUsers] = useState<UserRow[]>([])
-  const [allRoles, setAllRoles] = useState<Role[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
-  const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
-  const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
-  const [editTarget, setEditTarget] = useState<UserRow | null>(null)
-  const [addOpen, setAddOpen] = useState(false)
-  const [initialPerson, setInitialPerson] = useState<PersonResult | null>(null)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  // Task A: arriving from HR "create login" with ?person=<id> — preselect that
-  // person and auto-open the create-user modal. Clear the param so a refresh
-  // doesn't reopen it.
-  useEffect(() => {
-    const personId = searchParams.get('person')
-    if (!personId) return
-    router.replace('/dashboard/settings/users')
-    ;(async () => {
-      let person: PersonResult = { id: personId, full_name: '', email: null }
-      const res = await fetch(`/api/persons/${personId}`)
-      if (res.ok) {
-        const d = await res.json()
-        person = { id: d.id, full_name: d.full_name ?? '', email: d.email ?? null }
-      }
-      setInitialPerson(person)
-      setAddOpen(true)
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const [usersRes, rolesRes] = await Promise.all([
-      fetch('/api/settings/users'),
-      fetch('/api/settings/roles'),
-    ])
-    if (!usersRes.ok || !rolesRes.ok) { setError(tCommon('error')); setLoading(false); return }
-    const [usersData, rolesData] = await Promise.all([usersRes.json(), rolesRes.json()])
-    setUsers(usersData)
-    setAllRoles(rolesData)
-    setLoading(false)
-  }, [tCommon])
-
-  useEffect(() => { load() }, [load])
-
-  async function toggleActive(user: UserRow) {
-    const res = await fetch(`/api/settings/users/${user.account_id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_active: !user.is_active }),
-    })
-    if (res.ok) toastSuccess(tCommon('saved'))
-    else { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')) }
-    load()
-  }
-
-  const filtered = users.filter(u =>
-    u.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    u.login_email.toLowerCase().includes(search.toLowerCase())
-  )
-
-  return (
-    <div className={embedded ? '' : 'p-6 space-y-5'} style={embedded ? { display: 'flex', flexDirection: 'column', gap: 16 } : undefined}>
-      {!embedded && <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('settings'), href: '/dashboard/settings' },
-        { label: t('title') },
-      ]} />}
-
-      {!embedded && <ModuleHeader module="settings" title={t('title')} />}
-
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('search_placeholder')}
-            style={{ width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 8, paddingBottom: 8, borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, backgroundColor: 'var(--surface-2)', outline: 'none' }}
-          />
-        </div>
-        <button
-          onClick={() => setAddOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-        >
-          <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          {t('create_button')}
-        </button>
-      </div>
-
-      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
-        {loading ? (
-          <SkeletonRows avatar={false} rows={6} />
-        ) : error ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{error}</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('no_users')}</div>
-        ) : (
-          <div className="table-scroll">
-          <table className="cards-sm" style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {[t('full_name'), t('email'), t('table_roles'), t('table_status'), t('table_last_login'), t('table_actions')].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(user => (
-                <tr key={user.account_id} style={{ borderBottom: '1px solid var(--surface-2)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = 'var(--surface-2)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}
-                >
-                  <td data-label={t('full_name')} style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar name={personDisplayName(user)} photo={user.photo_url} />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
-                    </div>
-                  </td>
-                  <td data-label={t('email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-muted)' }}>{user.login_email}</td>
-                  <td data-label={t('table_roles')} style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 260 }}>
-                      {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(lang.roles, r.code, r.name)} />)}
-                      {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
-                    </div>
-                  </td>
-                  <td data-label={t('table_status')} style={{ padding: '10px 14px' }}>
-                    <span style={{
-                      display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-                      backgroundColor: user.is_active ? 'var(--success-tint)' : 'var(--danger-tint)',
-                      color: user.is_active ? 'var(--success)' : 'var(--danger)',
-                    }}>
-                      {user.is_active ? t('active') : t('inactive')}
-                    </span>
-                  </td>
-                  <td data-label={t('table_last_login')} style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
-                    {user.last_login ? new Date(user.last_login).toLocaleDateString() : t('never')}
-                  </td>
-                  <td data-label="" style={{ padding: '10px 14px' }}>
-                    <RowActionsMenu
-                      actions={[
-                        { key: 'edit', label: t('edit_button'), onClick: () => setEditTarget(user) },
-                        { key: 'roles', label: t('manage_roles_button'), onClick: () => setRolesTarget(user) },
-                        { key: 'priv', label: tPriv('button'), onClick: () => setPrivTarget(user) },
-                        {
-                          key: 'active',
-                          label: user.is_active ? t('deactivate_button') : t('activate_button'),
-                          onClick: () => toggleActive(user),
-                          danger: user.is_active,
-                          hidden: user.roles.some(r => r.code === 'superadmin'),
-                        },
-                      ]}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        )}
-      </div>
-
-      {editTarget && (
-        <EditUserModal user={editTarget} t={t} tCommon={tCommon} onClose={() => setEditTarget(null)} onSaved={load} />
-      )}
-      {rolesTarget && (
-        <RolesModal user={rolesTarget} allRoles={allRoles} t={t} tCat={tCat} tCommon={tCommon} onClose={() => setRolesTarget(null)} onSaved={load} />
-      )}
-      {privTarget && (
-        <PersonPrivilegesModal user={privTarget} t={tPriv} tCommon={tCommon} onClose={() => setPrivTarget(null)} />
-      )}
-      {addOpen && (
-        <AddUserModal
-          key={initialPerson?.id ?? 'new'}
-          allRoles={allRoles}
-          t={t}
-          tCat={tCat}
-          tCommon={tCommon}
-          initialPerson={initialPerson}
-          onClose={() => { setAddOpen(false); setInitialPerson(null) }}
-          onSaved={load}
-        />
-      )}
-    </div>
-  )
-}
-
-export function UsersAccessPanel({ embedded = false }: { embedded?: boolean }) {
-  return (
-    <Suspense fallback={null}>
-      <UsersPageContent embedded={embedded} />
-    </Suspense>
   )
 }

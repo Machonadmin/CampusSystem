@@ -1,9 +1,9 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { PositionsPanel } from './PositionsPanel'
-
-// «רשימת תפקידים» как самостоятельный маршрут (deep-link). Основной вход —
-// вкладка «תפקידים» в объединённом хабе «צוות». Логика — в PositionsPanel.
+// Дубль-поверхность убрана (запрос владельца: меньше дублей). Каталог
+// должностей живёт ТОЛЬКО во вкладке «תוארי משרה» хаба «ניהול עובדים»;
+// старые ссылки/закладки сюда продолжают работать через redirect.
+// PositionsPanel.tsx по-прежнему переиспользуется хабом (embedded).
 export default function PositionsPage() {
-  return <PositionsPanel />
+  redirect('/dashboard/staff?tab=positions')
 }
