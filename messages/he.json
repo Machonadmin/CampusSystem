@@ -2397,8 +2397,8 @@
     "no_staff_in_dept": "אין עובדים",
     "edit": "ערוך",
     "deactivate": "השבת",
-    "delete_employee_confirm_q1": "האם אתה בטוח שברצונך למחוק את העובד",
-    "delete_employee_confirm_q2": "לא ניתן לבטל פעולה זו.",
+    "delete_employee_confirm_q1": "לסיים את ההעסקה של",
+    "delete_employee_confirm_q2": "כל השיבוצים הפעילים ייסגרו והעובד יוסר מרשימת הצוות. האדם עצמו, חשבון ההתחברות וההרשאות לא נמחקים. אם מדובר בכפילות — השתמשו ב\"מיזוג כפילויות\" במקום.",
     "delete_error": "שגיאה במחיקה",
     "delete_employee_error": "שגיאה במחיקת העובד",
     "load_error": "שגיאה בטעינה",
@@ -2431,7 +2431,7 @@
     "access_no_roles": "ללא תפקידים",
     "system_user": "משתמש מערכת",
     "wizard": {
-      "launch": "הוספת בעל תפקיד",
+      "launch": "הוספת עובד",
       "title": "אשף תפקיד ושיבוץ",
       "step_of": "שלב {n} מתוך {total}",
       "step_role": "התפקיד",
@@ -2597,7 +2597,8 @@
       "login_active": "פעיל",
       "login_inactive": "מושבת",
       "edit_details": "עריכת כל הפרטים"
-    }
+    },
+    "end_employment": "סיום העסקה"
   },
   "quality": {
     "title": "הערכת הוראה",
