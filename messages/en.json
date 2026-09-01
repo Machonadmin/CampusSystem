@@ -2532,7 +2532,9 @@
       "sec_login": "System login",
       "done_created": "{name} was created and placed.",
       "err_person": "Failed to create the person",
-      "err_onboard": "Save failed — please try again."
+      "err_onboard": "Save failed — please try again.",
+      "dup_warn": "Wait — similar people already exist. If this is the same person, pick them instead of creating a duplicate:",
+      "dup_pick": "Pick existing"
     },
     "merge": {
       "launch": "Merge duplicates",
@@ -2598,7 +2600,18 @@
       "login_inactive": "Disabled",
       "edit_details": "Edit all details"
     },
-    "end_employment": "End employment"
+    "end_employment": "End employment",
+    "health": {
+      "title": "Self-check: {count} items need attention",
+      "show": "Show",
+      "hide": "Hide",
+      "blank_screen": "— has a login but no modules assigned: they will see an empty screen after signing in.",
+      "blank_screen_fix": "Open their card and press \"Roles\".",
+      "no_seat": "— has a login but no active seat: missing from the staff list.",
+      "no_seat_fix": "Press \"Add employee\" and pick them as an existing person.",
+      "duplicates": "Found {count} groups of records that look like the same person.",
+      "duplicates_fix": "Merge duplicates"
+    }
   },
   "quality": {
     "title": "Teaching Evaluation",

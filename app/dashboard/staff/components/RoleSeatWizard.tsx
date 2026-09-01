@@ -64,6 +64,9 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
   const [newFirst, setNewFirst] = useState('')
   const [newMiddle, setNewMiddle] = useState('')
   const [newPhone, setNewPhone] = useState('')
+  // Похожие существующие люди при наборе имени нового — защита от дублей у
+  // источника (запрос владельца: система сама следит, а не он вручную).
+  const [dupHits, setDupHits] = useState<PersonHit[]>([])
 
   // 2 — role label (position) + department
   const [depts, setDepts] = useState<Dept[]>([])
@@ -122,6 +125,22 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
     }, 250)
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [personQ, person, personMode])
+
+  // duplicate guard: в режиме «новый» ищем похожих по набранному имени
+  const dupTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (personMode !== 'new') { setDupHits([]); return }
+    const q = [newLast.trim(), newFirst.trim()].filter(Boolean).join(' ')
+    if (dupTimer.current) clearTimeout(dupTimer.current)
+    if (q.length < 2) { setDupHits([]); return }
+    dupTimer.current = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(q)}`)
+        if (r.ok) { const d = await r.json(); setDupHits(Array.isArray(d) ? d : []) }
+      } catch { /* подсказка, не блокер */ }
+    }, 350)
+    return () => { if (dupTimer.current) clearTimeout(dupTimer.current) }
+  }, [newLast, newFirst, personMode])
 
   // reset preview when department changes
   useEffect(() => { setPreviewOpen(false); setPreview(null) }, [deptId])
@@ -342,6 +361,27 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
                     <div><label style={label}>{t('fn_phone')}</label><input value={newPhone} onChange={e => setNewPhone(e.target.value)} style={inp} dir="ltr" inputMode="tel" /></div>
                   </div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{t('new_person_hint')}</div>
+                  {dupHits.length > 0 && (
+                    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--warn-tint)', border: '1px solid var(--warn)' }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--warn)', marginBottom: 6 }}>{t('dup_warn')}</div>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {dupHits.slice(0, 4).map(h => (
+                          <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text)' }}>
+                            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {h.full_name}{h.email ? ` · ${h.email}` : ''}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setPersonMode('existing'); setPerson(h); setPersonQ('')
+                                if (h.email && !loginEmail) setLoginEmail(h.email)
+                              }}
+                              style={{ flex: 'none', padding: '4px 12px', fontSize: 12, fontWeight: 600, borderRadius: 99, cursor: 'pointer', background: 'var(--surface)', color: accent, border: `1px solid ${accent}` }}
+                            >{t('dup_pick')}</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

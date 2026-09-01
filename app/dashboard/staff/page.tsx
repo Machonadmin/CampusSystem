@@ -12,6 +12,7 @@ import AddEmployeeModal from './components/AddEmployeeModal'
 import RoleSeatWizard from './components/RoleSeatWizard'
 import MergeDuplicatesModal from './components/MergeDuplicatesModal'
 import EmployeeCard from './components/EmployeeCard'
+import HealthPanel from './components/HealthPanel'
 import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
 import {
   RolesModal, AddUserModal, EditUserModal, RoleBadge,
@@ -639,6 +640,11 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Самопроверка: пустые экраны / логины без посадки / дубли. Рендерится
+          только когда есть что чинить. */}
+      {isSuperadmin && (
+        <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} />
+      )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
           style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
