@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SubjectInsert } from '@/types/database'
 
 
@@ -24,18 +24,13 @@ export async function GET(request: NextRequest) {
     const departmentId = params.get('department_id')
     const activeOnly = params.get('active_only') !== 'false'
 
-    // Видимость по подразделению: education-пользователь со scope='department'
-    // видит только предметы своих подразделений (subject.department_id выводится
-    // из маршрута). scope='all' — все. Не-education вызовы (справочник в других
-    // модулях, scope=null) — прежнее поведение (все), чтобы не ломать дропдауны.
-    const scope = session.roles.includes('superadmin')
-      ? 'all'
-      : await getEducationPrivilegeScope(session, 'view_students')
-    let myDepts: string[] | null = null
-    if (scope === 'department') {
-      myDepts = await getUserDepartmentIds(session.person_id)
-      if (myDepts.length === 0) return NextResponse.json({ subjects: [] })
-    }
+    // Видимость по подразделению: СТРУКТУРНЫЙ фильтр — по управлению (manage_*),
+    // а не по view_students. Иначе «אחראית יהדות» (view_students='all' для списка
+    // студенток) видела бы все предметы חול. scope='all' — все; 'department' —
+    // только предметы своих подразделений (кодеш). Не-education вызовы (дропдаун
+    // в других модулях) → null → прежнее поведение (все).
+    const myDepts = await getEducationStructureDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ subjects: [] })
 
     const sb = createServerClient()
     let qb = sb

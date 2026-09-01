@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { localizedRefName } from '@/lib/education/localized-ref'
-import { getEducationContainerDeptFilter } from '@/lib/education/permissions'
+import { getEducationStructureContainerFilter } from '@/lib/education/permissions'
 
 /**
  * GET /api/education/directions?department_id={uuid}
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Видимость по юниту: менеджер со scope='department' не может перечислять
     // направления чужого заведения — только те, что в его вертикали.
-    const myDepts = await getEducationContainerDeptFilter(session)
+    const myDepts = await getEducationStructureContainerFilter(session)
     if (myDepts && !myDepts.includes(departmentId)) {
       return NextResponse.json({ directions: [] })
     }

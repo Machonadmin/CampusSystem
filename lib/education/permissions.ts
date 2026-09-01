@@ -377,6 +377,64 @@ export async function getEducationContainerDeptFilter(
   }
 }
 
+/**
+ * Scope, с которым пользователь ВИДИТ учебные СТРУКТУРЫ (маршруты, заведения,
+ * специальности, предметы, базовые/семестровые группы). В отличие от списков
+ * СТУДЕНТОК, структуры видны по тому, чем человек УПРАВЛЯЕТ, а не по view_students.
+ *
+ * Зачем: «אחראית יהדות» (kodesh manager) имеет view_students='all' — чтобы видеть
+ * ВСЕХ студенток для иудаики (утром все учат кодеш). Но по СТРУКТУРАМ она отвечает
+ * ТОЛЬКО за кодеш (manage_* = 'department'). Раньше структурные списки ключевались
+ * по view_students, и её 'all' протекал: она видела все מסלולי חול. Теперь берём
+ * максимум по manage-правам структуры; view_students — только запасной путь для
+ * «чистых зрителей» без единого manage-права (их прежнее поведение не ломаем).
+ */
+async function getStructureScope(session: SessionPayload): Promise<Scope | null> {
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return 'all'
+  const access = await getUserAccess(session)
+  const p = access.privileges
+  const manageKeys: EducationPrivilege[] = [
+    'manage_class_groups', 'manage_subjects', 'manage_study_groups',
+    'manage_specialties', 'manage_enrollments',
+  ]
+  const scopes = manageKeys.map(k => p[k]).filter(Boolean) as Scope[]
+  if (scopes.includes('all')) return 'all'
+  if (scopes.includes('department')) return 'department'
+  // Нет ни одного manage-права структуры → запасной путь на view_students,
+  // чтобы «чистые зрители» (секретарь только с просмотром) не потеряли доступ.
+  return p['view_students'] ?? null
+}
+
+/**
+ * Фильтр по подразделениям для КОНТЕНТНЫХ структурных списков (предметы,
+ * специальности, маршруты, базовые/семестровые группы). Семантика null/[]/[...]
+ * как у getEducationDeptFilter, но scope берётся из управления структурой.
+ */
+export async function getEducationStructureDeptFilter(session: SessionPayload): Promise<string[] | null> {
+  const scope = await getStructureScope(session)
+  if (scope !== 'department') return null
+  return await getUserDepartmentIds(session.person_id)
+}
+
+/**
+ * Фильтр для структурных списков-КОНТЕЙНЕРОВ (учебные заведения / направления).
+ * Как getEducationContainerDeptFilter, но scope из управления структурой + предки.
+ */
+export async function getEducationStructureContainerFilter(session: SessionPayload): Promise<string[] | null> {
+  const scope = await getStructureScope(session)
+  if (scope !== 'department') return null
+  const deptIds = await getUserDepartmentIds(session.person_id)
+  if (deptIds.length === 0) return []
+  try {
+    const sb = createServerClient()
+    const { data: depts, error } = await sb.from('departments').select('id, parent_id')
+    if (error || !depts) return deptIds
+    return expandWithAncestors(deptIds, depts as DepartmentEdge[])
+  } catch {
+    return deptIds
+  }
+}
+
 // ─── Версии с throw — для использования в API endpoints ───────────────────────
 
 /**
