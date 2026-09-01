@@ -5,6 +5,9 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { CitySelect } from '@/components/ui/city-select'
+import { CountrySelect } from '@/components/ui/country-select'
+import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
 
 // Источники по бизнес-процессу v2 (как в EducationJourneyForm).
 const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
@@ -33,14 +36,29 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
   const [email, setEmail] = useState('')
   const [source, setSource] = useState('')
   const [comment, setComment] = useState('')
+  // Источник «община» → компактный блок общины: кто прислал лида и в какой
+  // роли (список ролей утверждён владельцем — CommunityRoleSelect).
+  const [commCountry, setCommCountry] = useState('')
+  const [commCity, setCommCity] = useState('')
+  const [commName, setCommName] = useState('')
+  const [repName, setRepName] = useState('')
+  const [repRole, setRepRole] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const isCommunity = source === 'event_community'
+  const communityTouched = !!(commName.trim() || repName.trim() || repRole.trim() || commCity.trim())
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!lastName.trim()) { setError(t('form.required_last_name')); return }
     if (!firstName.trim()) { setError(t('form.required_first_name')); return }
     if (!phone.trim()) { setError(t('form.required_phone_short')); return }
+    // Община сохраняется на сервере только с מדינה+עיר — не даём молча потерять.
+    if (isCommunity && communityTouched) {
+      if (!commCountry.trim()) { setError(t('communities.country_required')); return }
+      if (!commCity.trim()) { setError(t('communities.city_required')); return }
+    }
     setSaving(true); setError(null)
     try {
       // Тот же контракт, что и полный мастер (POST /api/applications).
@@ -54,6 +72,13 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
           referral_source: source || undefined,
           comment: comment.trim() || undefined,
           interests: [],
+          communities: (isCommunity && communityTouched && commCountry.trim() && commCity.trim()) ? [{
+            country: commCountry.trim(),
+            city: commCity.trim(),
+            name: commName.trim() || undefined,
+            contact_person: repName.trim() || undefined,
+            position: repRole.trim() || undefined,
+          }] : undefined,
         }),
       })
       if (!res.ok) {
@@ -109,6 +134,35 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
             {SOURCE_CODES.map(c => <option key={c} value={c}>{t(`card.source.${c}`, c)}</option>)}
           </select>
         </div>
+        {isCommunity && (
+          <div style={{ marginBottom: 12, padding: 12, borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'grid', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={lbl}>{t('form.community_country')}</label>
+                <CountrySelect value={commCountry} onChange={ct => { setCommCountry(ct); setCommCity('') }} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>{t('form.community_city')}</label>
+                <CitySelect country={commCountry} value={commCity} onChange={setCommCity} disabled={!commCountry}
+                  style={{ ...inp, ...(!commCountry ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }} />
+              </div>
+            </div>
+            <div>
+              <label style={lbl}>{t('form.community_name')}</label>
+              <input value={commName} onChange={e => setCommName(e.target.value)} style={inp} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={lbl}>{t('form.community_contact_person')}</label>
+                <input value={repName} onChange={e => setRepName(e.target.value)} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>{t('form.community_position')}</label>
+                <CommunityRoleSelect value={repRole} onChange={setRepRole} ariaLabel={t('form.community_position')} style={inp} />
+              </div>
+            </div>
+          </div>
+        )}
         <div style={{ marginBottom: 12 }}>
           <label style={lbl}>{t('card.labels.comment')}</label>
           <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
