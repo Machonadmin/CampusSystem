@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationDeptFilter } from '@/lib/education/permissions'
 import type { ClassGroupInsert } from '@/types/database'
 
 
@@ -74,12 +74,16 @@ async function buildTeachersAndCounts(
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const params = request.nextUrl.searchParams
     const departmentId = params.get('department_id')
     const subjectId = params.get('subject_id')
     const teacherId = params.get('teacher_id')
     const activeOnly = params.get('active_only') !== 'false'
+
+    // Видимость по юниту (scope='department' → только свои подразделения).
+    const myDepts = await getEducationDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ class_groups: [] })
 
     const sb = createServerClient()
 
@@ -97,6 +101,7 @@ export async function GET(request: NextRequest) {
     let qb = sb.from('class_groups').select(CLASS_GROUP_SELECT).order('name')
     if (departmentId) qb = qb.eq('department_id', departmentId)
     if (subjectId) qb = qb.eq('subject_id', subjectId)
+    if (myDepts) qb = qb.in('department_id', myDepts)
     if (activeOnly) qb = qb.eq('is_active', true)
     if (groupIdFilter) qb = qb.in('id', groupIdFilter)
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors } from './scope'
 import type { DepartmentEdge } from './scope'
 
 describe('applyPersonGrants', () => {
@@ -182,5 +182,49 @@ describe('expandDepartmentTree (иерархический scope)', () => {
 
   it('неизвестный корень возвращается как есть', () => {
     expect(expandDepartmentTree(['Z'], edges)).toEqual(['Z'])
+  })
+})
+
+describe('expandWithAncestors (видимость заведения-контейнера)', () => {
+  // Дерево:  A(заведение) → B → D,  A → C,  E (отдельный корень)
+  const edges: DepartmentEdge[] = [
+    { id: 'A', parent_id: null },
+    { id: 'B', parent_id: 'A' },
+    { id: 'C', parent_id: 'A' },
+    { id: 'D', parent_id: 'B' },
+    { id: 'E', parent_id: null },
+  ]
+  const set = (ids: string[]) => new Set(ids)
+
+  it('под-узел тянет ВСЕХ предков (D → B → A)', () => {
+    expect(set(expandWithAncestors(['D'], edges))).toEqual(set(['D', 'B', 'A']))
+  })
+
+  it('НЕ добавляет ничего вбок/вниз: D не тянет C', () => {
+    expect(expandWithAncestors(['D'], edges)).not.toContain('C')
+  })
+
+  it('корень возвращается как есть (нет предков)', () => {
+    expect(expandWithAncestors(['A'], edges)).toEqual(['A'])
+  })
+
+  it('несколько узлов объединяют свои вертикали без дублей', () => {
+    expect(set(expandWithAncestors(['C', 'D'], edges))).toEqual(set(['C', 'D', 'B', 'A']))
+  })
+
+  it('пустой вход → пусто', () => {
+    expect(expandWithAncestors([], edges)).toEqual([])
+  })
+
+  it('циклобезопасно (A↔B цикл не зацикливает)', () => {
+    const cyclic: DepartmentEdge[] = [
+      { id: 'A', parent_id: 'B' },
+      { id: 'B', parent_id: 'A' },
+    ]
+    expect(set(expandWithAncestors(['A'], cyclic))).toEqual(set(['A', 'B']))
+  })
+
+  it('неизвестный узел возвращается как есть', () => {
+    expect(expandWithAncestors(['Z'], edges)).toEqual(['Z'])
   })
 })
