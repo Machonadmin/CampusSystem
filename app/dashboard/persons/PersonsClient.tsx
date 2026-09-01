@@ -263,6 +263,7 @@ function PersonRow({
       onClick={onClick}
       role="button"
       tabIndex={0}
+      className="person-row"
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
@@ -272,7 +273,7 @@ function PersonRow({
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
     >
       <Avatar name={row.full_name} photoUrl={row.photo_url} light={light} primary={primary} />
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="person-main" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {row.full_name}
         </div>
@@ -286,7 +287,7 @@ function PersonRow({
           )}
         </div>
       </div>
-      <div style={{ textAlign: 'end', minWidth: 0, maxWidth: '46%', flexShrink: 0 }}>
+      <div className="person-contact" style={{ textAlign: 'end', minWidth: 0, maxWidth: '46%', flexShrink: 0 }}>
         {row.email && <div style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(220px, 42vw)' }}>{row.email}</div>}
         {phone && <div style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', direction: 'ltr', unicodeBidi: 'plaintext' }}>{phone}</div>}
       </div>
