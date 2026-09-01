@@ -3927,7 +3927,8 @@
         "medical": "Medical",
         "final_approval": "Final approval"
       }
-    }
+    },
+    "none_available": "No reports are available for your permissions."
   },
   "documents": {
     "title": "Documents",

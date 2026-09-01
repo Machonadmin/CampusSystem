@@ -915,7 +915,8 @@ export default function StaffPage() {
     const res = await fetch('/api/settings/departments')
     if (!res.ok) { setError(t('load_error')); setLoading(false); return }
     setDepts(await res.json()); setLoading(false)
-  }, [])
+    // t стабилен в рамках языка; включаем в deps ради корректности хука.
+  }, [t])
 
   useEffect(() => { load() }, [load])
 

@@ -203,7 +203,8 @@ export default function AddEmployeeModal({
       .then(r => r.ok ? r.json() : [])
       .then((d: { id: string; code: string; name: string }[]) => setRolesList(Array.isArray(d) ? d.filter(x => !isDeprecatedRole(x.code)) : []))
       .catch(() => {})
-  }, [])
+    // lang в deps: имена подразделений локализуются при загрузке (flattenTree).
+  }, [lang])
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return }

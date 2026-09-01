@@ -157,7 +157,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
       .catch(e => { if (!cancelled) setError((e as Error).message) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [processInstanceId])
+  }, [processInstanceId, t])
 
   // Регистрация глобального коллбэка клика по узлу (Mermaid securityLevel: 'loose').
   // stage_instance_id передаётся напрямую из click-директивы в Mermaid markup.
@@ -196,7 +196,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     })()
 
     return () => { cancelled = true }
-  }, [data])
+  }, [data, t])
 
   const showGraph = !loading && !error && !renderError && !!data && data.nodes.length > 0
 

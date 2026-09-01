@@ -493,7 +493,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
                             <span style={{ fontSize: 15, fontWeight: 800, color: accent, fontVariantNumeric: 'tabular-nums' }}>{preview.students.count}</span>
                           </div>
                           {preview.students.all ? (
-                            <div style={{ fontSize: 11.5, color: '#1E874B', fontWeight: 600, marginTop: 3 }}>{t('preview_students_all')}</div>
+                            <div style={{ fontSize: 11.5, color: 'var(--success)', fontWeight: 600, marginTop: 3 }}>{t('preview_students_all')}</div>
                           ) : preview.students_total > preview.students.count ? (
                             <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 3 }}>{t('preview_hidden').replace('{n}', String(preview.students_total - preview.students.count))}</div>
                           ) : null}

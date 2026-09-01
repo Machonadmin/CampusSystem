@@ -205,6 +205,9 @@ export default function ReportsClient() {
     return () => { alive = false }
   }, [])
   const can = (m: string) => accessibleModules !== null && accessibleModules.includes(m)
+  // Модули всех карточек ниже — для пустого состояния «отчётов для вас нет».
+  const REPORT_MODULES = ['education', 'finance', 'dormitory', 'food', 'maintenance', 'doctor', 'psychologist', 'documents', 'sponsors', 'security']
+  const nothingVisible = accessibleModules !== null && !REPORT_MODULES.some(m => accessibleModules.includes(m))
 
   // Период (влияет только на денежные карточки: финансы и спонсоры).
   const [preset, setPreset] = useState<'all' | 'month' | 'year' | 'custom'>('all')
@@ -252,6 +255,14 @@ export default function ReportsClient() {
         )}
         <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{t('period.hint')}</span>
       </div>
+
+      {/* Пустое состояние: право reports.view есть, но ни один модуль отчётов
+          пользователю не доступен — говорим это явно, а не показываем пустоту. */}
+      {nothingVisible && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '36px 20px', textAlign: 'center', fontSize: 13.5, color: 'var(--text-faint)' }}>
+          {t('none_available')}
+        </div>
+      )}
 
       {/* Сетка карточек — каждая грузится независимо */}
       <div style={{
