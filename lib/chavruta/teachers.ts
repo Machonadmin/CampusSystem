@@ -4,7 +4,10 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 /**
  * «Моры хавруты» — кому по средам приходит напоминание и кто может записывать
  * хавруту. Список = преподаватели КОДЕША (class_teachers групп кафедры кодеша)
- * ∪ вручную добавленные менеджером (таблица chavruta_teachers).
+ * ∪ вручную добавленные менеджером (таблица chavruta_teachers),
+ * скорректированный персональными оверрайдами person_privileges
+ * (module='chavruta', privilege_code='access'): grant добавляет, deny убирает —
+ * deny сильнее автоправила «кодеш-учитель», иначе его никак не выключить.
  * Деплой-безопасно: нет chavruta_teachers (42P01) → только кодеш-учителя.
  */
 type SB = ReturnType<typeof createServerClient>
@@ -39,10 +42,38 @@ async function manualChavrutaTeacherIds(sb: SB): Promise<string[]> {
   }
 }
 
-/** Итоговое множество мор хавруты (кодеш ∪ ручные). */
+/** Персональные оверрайды доступа к хавруте (не истёкшие). */
+async function chavrutaOverrides(sb: SB): Promise<{ granted: string[]; denied: string[] }> {
+  try {
+    const { data, error } = await sb
+      .from('person_privileges')
+      .select('person_id, is_granted, expires_at')
+      .eq('module', 'chavruta')
+      .eq('privilege_code', 'access')
+    if (error) throw error
+    const nowMs = Date.now()
+    const granted: string[] = []
+    const denied: string[] = []
+    for (const r of (data ?? []) as Array<{ person_id: string; is_granted: boolean; expires_at: string | null }>) {
+      if (r.expires_at && new Date(r.expires_at).getTime() <= nowMs) continue
+      if (r.is_granted) granted.push(r.person_id)
+      else denied.push(r.person_id)
+    }
+    return { granted, denied }
+  } catch (e) {
+    if ((e as { code?: string }).code === '42P01') return { granted: [], denied: [] }
+    throw e
+  }
+}
+
+/** Итоговое множество мор хавруты ((кодеш ∪ ручные ∪ grant) − deny). */
 export async function effectiveChavrutaTeacherIds(sb: SB): Promise<Set<string>> {
-  const [kodesh, manual] = await Promise.all([kodeshTeacherIds(sb), manualChavrutaTeacherIds(sb)])
-  return new Set([...kodesh, ...manual])
+  const [kodesh, manual, overrides] = await Promise.all([
+    kodeshTeacherIds(sb), manualChavrutaTeacherIds(sb), chavrutaOverrides(sb),
+  ])
+  const set = new Set([...kodesh, ...manual, ...overrides.granted])
+  for (const id of overrides.denied) set.delete(id)
+  return set
 }
 
 /** Является ли person морой хавруты (для гейта записи сессии). */

@@ -76,7 +76,7 @@ export type PrivilegeModule =
   | 'persons' | 'applicants' | 'education' | 'jewishness' | 'finance'
   | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
   | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
-  | 'contacts'
+  | 'contacts' | 'chavruta'
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 
