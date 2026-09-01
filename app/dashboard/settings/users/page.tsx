@@ -1,10 +1,9 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { UsersAccessPanel } from './UsersAccessPanel'
-
-// «משתמשים וגישה» как самостоятельный маршрут (deep-link, напр. со строки
-// сотрудника ?person=). Основной вход — вкладка «משתמשים וגישה» в объединённом
-// хабе «צוות» (только superadmin). Логика — в UsersAccessPanel.
+// Дубль-поверхность убрана (запрос владельца: меньше дублей). Управление
+// пользователями живёт ТОЛЬКО во вкладке «צוות ומשתמשים» хаба «ניהול עובדים»;
+// старые ссылки/закладки сюда продолжают работать через redirect.
+// Модалки/типы из UsersAccessPanel.tsx по-прежнему переиспользуются хабом.
 export default function UsersPage() {
-  return <UsersAccessPanel />
+  redirect('/dashboard/staff?tab=users')
 }

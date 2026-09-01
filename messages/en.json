@@ -2362,7 +2362,7 @@
       "edit_title": "Employee details",
       "edit_save_disabled_note": "Editing employee data here isn't available yet (view only).",
       "role_none": "No system role",
-      "role_assign_failed": "Employee saved, but role assignment failed — assign it in user settings"
+      "role_assign_failed": "Employee saved, but role assignment failed — open their card in the staff list and press \"Roles\""
     },
     "name_required": "Name is required",
     "error": "Error",
