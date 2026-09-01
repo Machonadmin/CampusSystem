@@ -3275,7 +3275,9 @@
       "open_card": "Open finance card",
       "portal_visible": "Visible to student in portal",
       "portal_toggle_failed": "Failed to update visibility",
-      "portal_migration_missing": "Feature unavailable — apply the database migration"
+      "portal_migration_missing": "Feature unavailable — apply the database migration",
+      "charged_total": "Charged",
+      "paid_total": "Paid"
     },
     "staff": {
       "title": "Staff payslips",

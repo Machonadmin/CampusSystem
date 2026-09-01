@@ -3275,7 +3275,9 @@
       "open_card": "פתיחת כרטיס כספי",
       "portal_visible": "נראה לתלמידה בפורטל",
       "portal_toggle_failed": "לא ניתן לעדכן את הנראות",
-      "portal_migration_missing": "התכונה אינה זמינה — יש להחיל את מיגרציית מסד הנתונים"
+      "portal_migration_missing": "התכונה אינה זמינה — יש להחיל את מיגרציית מסד הנתונים",
+      "charged_total": "נדרש",
+      "paid_total": "שולם"
     },
     "staff": {
       "title": "תלושי שכר",

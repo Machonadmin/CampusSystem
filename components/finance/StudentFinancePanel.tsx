@@ -13,8 +13,11 @@ interface Access {
   can_view: boolean
   can_manage: boolean
   can_manage_access: boolean
+  can_open_card?: boolean
   portal_visible: boolean
 }
+
+interface LedgerTotals { charges_active: number; payments_approved: number; balance: number }
 
 /**
  * Финансовая панель в карточке студентки. Доступ к финансам ОТДЕЛЬНЫЙ от доступа
@@ -24,7 +27,7 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
   const t = useTranslations('finance.access')
   const [access, setAccess] = useState<Access | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [balance, setBalance] = useState<number | null>(null)
+  const [totals, setTotals] = useState<LedgerTotals | null>(null)
   const [portalVisible, setPortalVisible] = useState(false)
   const [personId, setPersonId] = useState<string | null>(null)
   const [granting, setGranting] = useState(false)
@@ -44,13 +47,13 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
     return () => { alive = false }
   }, [journeyId])
 
-  // Загрузить баланс, если есть право просмотра.
+  // Загрузить итоги (начислено/оплачено/долг), если есть право просмотра.
   useEffect(() => {
     if (!access?.can_view) return
     let alive = true
     fetch(`/api/finance/journeys/${journeyId}/ledger`)
       .then(r => (r.ok ? r.json() : null))
-      .then(b => { if (alive) setBalance(b?.totals?.balance ?? null) })
+      .then(b => { if (alive && b?.totals) setTotals(b.totals as LedgerTotals) })
       .catch(() => {/* ignore */})
     return () => { alive = false }
   }, [access?.can_view, journeyId])
@@ -104,28 +107,45 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
     }
   }
 
+  const balance = totals?.balance ?? null
   const owes = balance !== null && balance > 0.005
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>{t('panel_title')}</h3>
 
-      {/* Баланс + ссылка на полную карточку */}
+      {/* Итоги (начислено / оплачено / долг) + ссылка на полную карточку */}
       {access.can_view && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('balance')}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: balance === null ? 'var(--text-faint)' : (owes ? 'var(--danger)' : 'var(--success)'), fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-              {balance === null ? '—' : formatMoney(balance)}
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('charged_total')}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                {totals === null ? '—' : formatMoney(totals.charges_active)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('paid_total')}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                {totals === null ? '—' : formatMoney(totals.payments_approved)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('balance')}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: balance === null ? 'var(--text-faint)' : (owes ? 'var(--danger)' : 'var(--success)'), fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                {balance === null ? '—' : formatMoney(balance)}
+              </div>
             </div>
           </div>
-          <a
-            href={`/dashboard/finance/${journeyId}`}
-            className="no-underline"
-            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, background: 'var(--surface-2)', color: primary, border: '1px solid var(--border-strong)' }}
-          >
-            {t('open_card')}
-          </a>
+          {access.can_open_card !== false && (
+            <a
+              href={`/dashboard/finance/${journeyId}`}
+              className="no-underline"
+              style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, background: 'var(--surface-2)', color: primary, border: '1px solid var(--border-strong)' }}
+            >
+              {t('open_card')}
+            </a>
+          )}
         </div>
       )}
 

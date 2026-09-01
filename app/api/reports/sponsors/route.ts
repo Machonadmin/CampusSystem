@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { sponsorsSummary } from '@/lib/reports/summaries'
@@ -22,6 +22,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/
 export async function GET(request: Request) {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('sponsors')
     const sb = createServerClient()
 
     // Опциональный период по дате пожертвования (donation_date). Число доноров —

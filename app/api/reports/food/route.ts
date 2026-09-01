@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireReportsPrivilege } from '@/lib/reports/permissions'
+import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
 import { foodSummary } from '@/lib/reports/summaries'
@@ -25,6 +25,7 @@ import { foodSummary } from '@/lib/reports/summaries'
 export async function GET() {
   try {
     await requireReportsPrivilege('view')
+    await requireReportModule('food')
     const sb = createServerClient()
 
     // Всего студентов — точный COUNT (HEAD, без строк).

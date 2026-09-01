@@ -191,6 +191,21 @@ export default function ReportsClient() {
   // Мягкая привязка t для вложенных ключей с фолбэком на сам ключ.
   const label = (key: string, fallback: string) => t(key, fallback)
 
+  // Отчёты фильтруются по РОЛИ (решение владельца): пользователь видит только
+  // карточки модулей, к которым у него есть доступ. superadmin получает из
+  // /api/auth/me полный список. null = ещё грузим (fail-closed, без мигания
+  // чужих карточек). Серверная сторона дублирует это в requireReportModule.
+  const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
+  useEffect(() => {
+    let alive = true
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (alive && d?.accessible_modules) setAccessibleModules(d.accessible_modules) })
+      .catch(() => { /* тихо: карточки просто не покажутся */ })
+    return () => { alive = false }
+  }, [])
+  const can = (m: string) => accessibleModules !== null && accessibleModules.includes(m)
+
   // Период (влияет только на денежные карточки: финансы и спонсоры).
   const [preset, setPreset] = useState<'all' | 'month' | 'year' | 'custom'>('all')
   const [cFrom, setCFrom] = useState('')
@@ -245,189 +260,211 @@ export default function ReportsClient() {
         gap: 16,
       }}>
         {/* Воронка приёма */}
-        <ReportCard<AdmissionFunnel>
-          title={t('cards.admission_funnel')}
-          colorKey="education"
-          endpoint="/api/reports/admission-funnel"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.leads')} value={fmt(d.funnel.leads)} />
-              <Metric label={t('metrics.applicants')} value={fmt(d.funnel.applicants)} />
-              <Metric label={t('metrics.students')} value={fmt(d.funnel.students)} strong accent={getModuleColor('education', 'primary')} />
-              <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
-                <Metric label={t('metrics.lead_to_applicant')} value={`${d.conversion.lead_to_applicant}%`} accent={getModuleColor('education', 'primary')} />
-                <Metric label={t('metrics.applicant_to_student')} value={`${d.conversion.applicant_to_student}%`} accent={getModuleColor('education', 'primary')} />
-              </div>
-              {d.stages.length > 0 && (
+        {can('education') && (
+          <ReportCard<AdmissionFunnel>
+            title={t('cards.admission_funnel')}
+            colorKey="education"
+            endpoint="/api/reports/admission-funnel"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.leads')} value={fmt(d.funnel.leads)} />
+                <Metric label={t('metrics.applicants')} value={fmt(d.funnel.applicants)} />
+                <Metric label={t('metrics.students')} value={fmt(d.funnel.students)} strong accent={getModuleColor('education', 'primary')} />
                 <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
-                  {d.stages.map(s => (
-                    <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? 'var(--warn)' : undefined} />
-                  ))}
+                  <Metric label={t('metrics.lead_to_applicant')} value={`${d.conversion.lead_to_applicant}%`} accent={getModuleColor('education', 'primary')} />
+                  <Metric label={t('metrics.applicant_to_student')} value={`${d.conversion.applicant_to_student}%`} accent={getModuleColor('education', 'primary')} />
                 </div>
-              )}
-            </>
-          )}
-        />
+                {d.stages.length > 0 && (
+                  <div style={{ marginTop: 6, borderTop: '1px dashed var(--border)', paddingTop: 6 }}>
+                    {d.stages.map(s => (
+                      <Metric key={s.code} label={`${t('metrics.stage_pending')}: ${label(`metrics.stage.${s.code}`, s.code)}`} value={fmt(s.active)} accent={s.active > 0 ? 'var(--warn)' : undefined} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          />
+        )}
 
         {/* Студенты */}
-        <ReportCard<StudentsSummary>
-          title={t('cards.students')}
-          colorKey="education"
-          endpoint="/api/reports/students"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('education', 'primary')} />
-              <Breakdown
-                entries={orderedEntries(d.by_status, STATUS_ORDER)}
-                labelFor={(k) => label(`metrics.status.${k}`, k)}
-              />
-            </>
-          )}
-        />
+        {can('education') && (
+          <ReportCard<StudentsSummary>
+            title={t('cards.students')}
+            colorKey="education"
+            endpoint="/api/reports/students"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('education', 'primary')} />
+                <Breakdown
+                  entries={orderedEntries(d.by_status, STATUS_ORDER)}
+                  labelFor={(k) => label(`metrics.status.${k}`, k)}
+                />
+              </>
+            )}
+          />
+        )}
 
         {/* Финансы */}
-        <ReportCard<FinanceSummary>
-          title={t('cards.finance')}
-          colorKey="finance"
-          endpoint={`/api/reports/finance${periodQs}`}
-          periodBadge={periodBadge}
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
-              {(d.discounts ?? 0) > 0.005 && <Metric label={t('metrics.discounts')} value={`−${fmt(d.discounts ?? 0)}`} accent="var(--violet)" />}
-              <Metric label={t('metrics.collected')} value={fmt(d.collected)} accent={getModuleColor('finance', 'primary')} />
-              <Metric label={t('metrics.outstanding')} value={fmt(d.outstanding)} accent="var(--danger)" />
-              <Metric label={t('metrics.collection_rate')} value={`${d.collection_rate}%`} strong accent={getModuleColor('finance', 'primary')} />
-              <Metric label={t('metrics.debtor_count')} value={fmt(d.debtor_count)} />
-            </>
-          )}
-        />
+        {can('finance') && (
+          <ReportCard<FinanceSummary>
+            title={t('cards.finance')}
+            colorKey="finance"
+            endpoint={`/api/reports/finance${periodQs}`}
+            periodBadge={periodBadge}
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.charged')} value={fmt(d.charged)} />
+                {(d.discounts ?? 0) > 0.005 && <Metric label={t('metrics.discounts')} value={`−${fmt(d.discounts ?? 0)}`} accent="var(--violet)" />}
+                <Metric label={t('metrics.collected')} value={fmt(d.collected)} accent={getModuleColor('finance', 'primary')} />
+                <Metric label={t('metrics.outstanding')} value={fmt(d.outstanding)} accent="var(--danger)" />
+                <Metric label={t('metrics.collection_rate')} value={`${d.collection_rate}%`} strong accent={getModuleColor('finance', 'primary')} />
+                <Metric label={t('metrics.debtor_count')} value={fmt(d.debtor_count)} />
+              </>
+            )}
+          />
+        )}
 
         {/* Общежитие */}
-        <ReportCard<DormitorySummary>
-          title={t('cards.dormitory')}
-          colorKey="dormitory"
-          endpoint="/api/reports/dormitory"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.occupancy_percent')} value={`${d.occupancy_percent}%`} strong accent={getModuleColor('dormitory', 'primary')} />
-              <Metric label={t('metrics.occupied')} value={`${fmt(d.occupied)} / ${fmt(d.capacity)}`} />
-              <Metric label={t('metrics.free')} value={fmt(d.free)} />
-              <Metric label={t('metrics.building_count')} value={fmt(d.building_count)} />
-              <Metric label={t('metrics.room_count')} value={fmt(d.room_count)} />
-            </>
-          )}
-        />
+        {can('dormitory') && (
+          <ReportCard<DormitorySummary>
+            title={t('cards.dormitory')}
+            colorKey="dormitory"
+            endpoint="/api/reports/dormitory"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.occupancy_percent')} value={`${d.occupancy_percent}%`} strong accent={getModuleColor('dormitory', 'primary')} />
+                <Metric label={t('metrics.occupied')} value={`${fmt(d.occupied)} / ${fmt(d.capacity)}`} />
+                <Metric label={t('metrics.free')} value={fmt(d.free)} />
+                <Metric label={t('metrics.building_count')} value={fmt(d.building_count)} />
+                <Metric label={t('metrics.room_count')} value={fmt(d.room_count)} />
+              </>
+            )}
+          />
+        )}
 
         {/* Питание */}
-        <ReportCard<FoodSummary>
-          title={t('cards.food')}
-          colorKey="food"
-          endpoint="/api/reports/food"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.enrolled')} value={fmt(d.enrolled)} strong accent={getModuleColor('food', 'primary')} />
-              <Metric label={t('metrics.unenrolled')} value={fmt(d.unenrolled)} />
-            </>
-          )}
-        />
+        {can('food') && (
+          <ReportCard<FoodSummary>
+            title={t('cards.food')}
+            colorKey="food"
+            endpoint="/api/reports/food"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.enrolled')} value={fmt(d.enrolled)} strong accent={getModuleColor('food', 'primary')} />
+                <Metric label={t('metrics.unenrolled')} value={fmt(d.unenrolled)} />
+              </>
+            )}
+          />
+        )}
 
         {/* Эксплуатация */}
-        <ReportCard<MaintenanceSummary>
-          title={t('cards.maintenance')}
-          colorKey="maintenance"
-          endpoint="/api/reports/maintenance"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.open')} value={fmt(d.open)} />
-              <Metric label={t('metrics.in_progress')} value={fmt(d.in_progress)} />
-              <Metric label={t('metrics.overdue')} value={fmt(d.overdue)} strong accent={d.overdue > 0 ? 'var(--danger)' : undefined} />
-              <Breakdown
-                entries={orderedEntries(d.by_priority, PRIORITY_ORDER)}
-                labelFor={(k) => label(`metrics.priority.${k}`, k)}
-              />
-            </>
-          )}
-        />
+        {can('maintenance') && (
+          <ReportCard<MaintenanceSummary>
+            title={t('cards.maintenance')}
+            colorKey="maintenance"
+            endpoint="/api/reports/maintenance"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.open')} value={fmt(d.open)} />
+                <Metric label={t('metrics.in_progress')} value={fmt(d.in_progress)} />
+                <Metric label={t('metrics.overdue')} value={fmt(d.overdue)} strong accent={d.overdue > 0 ? 'var(--danger)' : undefined} />
+                <Breakdown
+                  entries={orderedEntries(d.by_priority, PRIORITY_ORDER)}
+                  labelFor={(k) => label(`metrics.priority.${k}`, k)}
+                />
+              </>
+            )}
+          />
+        )}
 
         {/* Медпункт */}
-        <ReportCard<ClinicSummary>
-          title={t('cards.clinic')}
-          colorKey="doctor"
-          endpoint="/api/reports/clinic"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.open_visits')} value={fmt(d.open_visits)} strong accent={getModuleColor('doctor', 'primary')} />
-              <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
-              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
-            </>
-          )}
-        />
+        {can('doctor') && (
+          <ReportCard<ClinicSummary>
+            title={t('cards.clinic')}
+            colorKey="doctor"
+            endpoint="/api/reports/clinic"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.open_visits')} value={fmt(d.open_visits)} strong accent={getModuleColor('doctor', 'primary')} />
+                <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
+                <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
+              </>
+            )}
+          />
+        )}
 
         {/* Психолог */}
-        <ReportCard<CounselingSummary>
-          title={t('cards.counseling')}
-          colorKey="psychologist"
-          endpoint="/api/reports/counseling"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.open_sessions')} value={fmt(d.open_sessions)} strong accent={getModuleColor('psychologist', 'primary')} />
-              <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
-              <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
-              <Breakdown
-                entries={orderedEntries(d.by_risk, RISK_ORDER)}
-                labelFor={(k) => label(`metrics.risk.${k}`, k)}
-              />
-            </>
-          )}
-        />
+        {can('psychologist') && (
+          <ReportCard<CounselingSummary>
+            title={t('cards.counseling')}
+            colorKey="psychologist"
+            endpoint="/api/reports/counseling"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.open_sessions')} value={fmt(d.open_sessions)} strong accent={getModuleColor('psychologist', 'primary')} />
+                <Metric label={t('metrics.upcoming_followups')} value={fmt(d.upcoming_followups)} />
+                <Metric label={t('metrics.overdue_followups')} value={fmt(d.overdue_followups)} accent={d.overdue_followups > 0 ? 'var(--danger)' : undefined} />
+                <Breakdown
+                  entries={orderedEntries(d.by_risk, RISK_ORDER)}
+                  labelFor={(k) => label(`metrics.risk.${k}`, k)}
+                />
+              </>
+            )}
+          />
+        )}
 
         {/* Документы */}
-        <ReportCard<DocumentsSummary>
-          title={t('cards.documents')}
-          colorKey="documents"
-          endpoint="/api/reports/documents"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('documents', 'primary')} />
-              <Metric label={t('metrics.expiring_soon')} value={fmt(d.expiring_soon)} accent={d.expiring_soon > 0 ? 'var(--warn)' : undefined} />
-              <Metric label={t('metrics.expired')} value={fmt(d.expired)} accent={d.expired > 0 ? 'var(--danger)' : undefined} />
-            </>
-          )}
-        />
+        {can('documents') && (
+          <ReportCard<DocumentsSummary>
+            title={t('cards.documents')}
+            colorKey="documents"
+            endpoint="/api/reports/documents"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.total')} value={fmt(d.total)} strong accent={getModuleColor('documents', 'primary')} />
+                <Metric label={t('metrics.expiring_soon')} value={fmt(d.expiring_soon)} accent={d.expiring_soon > 0 ? 'var(--warn)' : undefined} />
+                <Metric label={t('metrics.expired')} value={fmt(d.expired)} accent={d.expired > 0 ? 'var(--danger)' : undefined} />
+              </>
+            )}
+          />
+        )}
 
         {/* Спонсоры */}
-        <ReportCard<SponsorsSummary>
-          title={t('cards.sponsors')}
-          colorKey="sponsors"
-          endpoint={`/api/reports/sponsors${periodQs}`}
-          periodBadge={periodBadge}
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.sponsor_count')} value={fmt(d.sponsor_count)} />
-              <Metric label={t('metrics.total_received')} value={fmt(d.total_received)} strong accent={getModuleColor('sponsors', 'primary')} />
-              <Metric label={t('metrics.total_pledged')} value={fmt(d.total_pledged)} />
-            </>
-          )}
-        />
+        {can('sponsors') && (
+          <ReportCard<SponsorsSummary>
+            title={t('cards.sponsors')}
+            colorKey="sponsors"
+            endpoint={`/api/reports/sponsors${periodQs}`}
+            periodBadge={periodBadge}
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.sponsor_count')} value={fmt(d.sponsor_count)} />
+                <Metric label={t('metrics.total_received')} value={fmt(d.total_received)} strong accent={getModuleColor('sponsors', 'primary')} />
+                <Metric label={t('metrics.total_pledged')} value={fmt(d.total_pledged)} />
+              </>
+            )}
+          />
+        )}
 
         {/* Безопасность */}
-        <ReportCard<SecuritySummary>
-          title={t('cards.security')}
-          colorKey="security"
-          endpoint="/api/reports/security"
-          render={(d) => (
-            <>
-              <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? 'var(--danger)' : getModuleColor('security', 'primary')} />
-              <Metric label={t('metrics.open')} value={fmt(d.open)} />
-              <Metric label={t('metrics.investigating')} value={fmt(d.investigating)} />
-              <Breakdown
-                entries={orderedEntries(d.by_severity, SEVERITY_ORDER)}
-                labelFor={(k) => label(`metrics.severity.${k}`, k)}
-              />
-            </>
-          )}
-        />
+        {can('security') && (
+          <ReportCard<SecuritySummary>
+            title={t('cards.security')}
+            colorKey="security"
+            endpoint="/api/reports/security"
+            render={(d) => (
+              <>
+                <Metric label={t('metrics.active_incidents')} value={fmt(d.active)} strong accent={d.active > 0 ? 'var(--danger)' : getModuleColor('security', 'primary')} />
+                <Metric label={t('metrics.open')} value={fmt(d.open)} />
+                <Metric label={t('metrics.investigating')} value={fmt(d.investigating)} />
+                <Breakdown
+                  entries={orderedEntries(d.by_severity, SEVERITY_ORDER)}
+                  labelFor={(k) => label(`metrics.severity.${k}`, k)}
+                />
+              </>
+            )}
+          />
+        )}
       </div>
     </div>
   )
