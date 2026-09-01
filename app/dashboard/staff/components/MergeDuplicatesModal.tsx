@@ -275,7 +275,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
 
           {/* confirm */}
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'grid', gap: 10 }}>
-            <div style={{ fontSize: 12, color: 'var(--danger, #C0392B)', fontWeight: 600 }}>⚠ {t('confirm_warn').replace('{name}', nameOf(otherId))}</div>
+            <div style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600 }}>⚠ {t('confirm_warn').replace('{name}', nameOf(otherId))}</div>
             <SubmitButton onClick={doMerge} loading={busy} disabled={busy}
               style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
               {t('confirm_btn').replace('{keep}', nameOf(survivorId))}
@@ -283,7 +283,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
           </div>
         </>
       ) : (
-        <div style={{ fontSize: 13, color: 'var(--danger, #C0392B)' }}>{t('err_generic')}</div>
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{t('err_generic')}</div>
       )}
     </div>
   )

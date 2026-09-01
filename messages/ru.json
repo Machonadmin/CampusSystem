@@ -3927,7 +3927,8 @@
         "medical": "Врач",
         "final_approval": "Финал"
       }
-    }
+    },
+    "none_available": "Для ваших прав нет доступных отчётов."
   },
   "documents": {
     "title": "Документы",

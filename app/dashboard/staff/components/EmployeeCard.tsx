@@ -127,7 +127,7 @@ export default function EmployeeCard({
             <div style={{ display: 'grid', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13.5, color: 'var(--text)', direction: 'ltr', unicodeBidi: 'isolate' }}>{user.login_email}</span>
-                <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, fontWeight: 600, background: user.is_active ? 'var(--success-tint, #E5F3EA)' : 'var(--surface-2)', color: user.is_active ? 'var(--success, #1E874B)' : 'var(--text-faint)' }}>
+                <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, fontWeight: 600, background: user.is_active ? 'var(--success-tint)' : 'var(--surface-2)', color: user.is_active ? 'var(--success)' : 'var(--text-faint)' }}>
                   {user.is_active ? t('card.login_active') : t('card.login_inactive')}
                 </span>
               </div>

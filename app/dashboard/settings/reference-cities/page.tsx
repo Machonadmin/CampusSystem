@@ -48,7 +48,11 @@ export default function ReferenceCitiesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [country])
+  useEffect(() => {
+    load()
+    // load — обычная функция (не useCallback); эффект намеренно перезапускается по country.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country])
 
   async function addCity() {
     const trimmed = newCity.trim()
