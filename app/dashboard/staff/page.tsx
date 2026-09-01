@@ -647,29 +647,24 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        {/* Основной путь (superadmin): единый экран «הוספת בעל תפקיד» — человек +
-            должность + подразделение + права + вход в одном действии. */}
-        {isSuperadmin && (
+        {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
+            «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
+            они отличаются). Единый экран делает всё: человек + должность +
+            подразделение + права + вход. Детальная форма осталась только как
+            «עריכת כל הפרטים» из карточки, логин — «צור התחברות» там же. */}
+        {isSuperadmin ? (
           <PageActionButton
             label={t('wizard.launch')}
             onClick={() => setWizardOpen(true)}
             accentColor={getModuleColor('staff')}
           />
-        )}
-        {/* «Добавить сотрудника» — детальная форма (6 вкладок); также режим
-            редактирования из строки. Для не-superadmin это основной способ добавить. */}
-        <button
-          onClick={() => onAdd()}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
-        >
-          {t('add_employee')}
-        </button>
-        {isSuperadmin && (
+        ) : (
+          /* Не-superadmin не может звать /api/staff/onboard — ему детальная форма. */
           <button
-            onClick={() => setAddPerson(null)}
+            onClick={() => onAdd()}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
           >
-            {tUsers('create_button')}
+            {t('add_employee')}
           </button>
         )}
         {isSuperadmin && (
@@ -770,8 +765,10 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                           },
                           { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
                           {
+                            // Честный ярлык: API закрывает посадки (end_date), человек и
+                            // логин остаются — «מחיקה» вводила владельца в заблуждение.
                             key: 'delete',
-                            label: tCommon('delete'),
+                            label: t('end_employment'),
                             onClick: () => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name),
                             disabled: !emp.profile_id,
                             danger: true,
@@ -887,6 +884,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
+  const me = useMe()
+  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [activeTab, setActiveTab] = useState<string>('structure')
   // Глубокая ссылка ?tab= (напр. со старых маршрутов /settings/users →
   // редирект на объединённый хаб צוות с нужной вкладкой).
@@ -909,6 +908,8 @@ export default function StaffPage() {
   const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  // «+ עובד» из дерева оргструктуры — тот же единый экран, юнит уже выбран.
+  const [structWizardDept, setStructWizardDept] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -983,7 +984,12 @@ export default function StaffPage() {
                       onAddChild={id => setModal({ type: 'add', parentId: id })}
                       onRename={n => setModal({ type: 'rename', node: n })}
                       onDelete={handleDelete}
-                      onAddStaff={id => { setEditingEmployee(null); setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
+                      onAddStaff={id => {
+                        // Один путь добавления: superadmin → единый экран (юнит преднабран);
+                        // остальным — детальная форма (onboard-API им недоступен).
+                        if (isSuperadmin) setStructWizardDept(id)
+                        else { setEditingEmployee(null); setAddEmployeeDept(id); setAddEmployeeOpen(true) }
+                      }}
                       refreshSignal={refreshSignal}
                     />
                   ))}
@@ -1011,6 +1017,13 @@ export default function StaffPage() {
       )}
       {modal?.type === 'rename' && (
         <DeptRenameModal node={modal.node} onClose={() => setModal(null)} onSaved={() => { setModal(null); load() }} />
+      )}
+      {structWizardDept && (
+        <RoleSeatWizard
+          defaultDepartmentId={structWizardDept}
+          onClose={() => setStructWizardDept(null)}
+          onDone={() => { load(); setRefreshSignal(s => s + 1) }}
+        />
       )}
       {addEmployeeOpen && (
         <AddEmployeeModal

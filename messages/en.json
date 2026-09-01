@@ -2397,8 +2397,8 @@
     "no_staff_in_dept": "No employees",
     "edit": "Edit",
     "deactivate": "Deactivate",
-    "delete_employee_confirm_q1": "Are you sure you want to delete employee",
-    "delete_employee_confirm_q2": "This action cannot be undone.",
+    "delete_employee_confirm_q1": "End employment for",
+    "delete_employee_confirm_q2": "All active seats will be closed and the employee will disappear from the staff list. The person, their login and permissions are not deleted. If this is a duplicate, use \"Merge duplicates\" instead.",
     "delete_error": "Error while deleting",
     "delete_employee_error": "Error while deleting the employee",
     "load_error": "Loading error",
@@ -2431,7 +2431,7 @@
     "access_no_roles": "No roles",
     "system_user": "System user",
     "wizard": {
-      "launch": "Add role-holder",
+      "launch": "Add employee",
       "title": "Role & seat wizard",
       "step_of": "Step {n} of {total}",
       "step_role": "Role",
@@ -2597,7 +2597,8 @@
       "login_active": "Active",
       "login_inactive": "Disabled",
       "edit_details": "Edit all details"
-    }
+    },
+    "end_employment": "End employment"
   },
   "quality": {
     "title": "Teaching Evaluation",

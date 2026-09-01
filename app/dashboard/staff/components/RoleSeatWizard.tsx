@@ -42,7 +42,12 @@ interface ScopePreview {
 
 const MODULES = ['persons', 'education', 'finance', 'dormitory', 'food', 'security', 'alumni', 'sponsors', 'tasks', 'documents', 'reports', 'contacts', 'doctor', 'psychologist', 'maintenance', 'settings'] as const
 
-export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }: {
+  onClose: () => void
+  onDone: () => void
+  /** Открытие из дерева оргструктуры («+ עובד» у подразделения) — юнит уже выбран. */
+  defaultDepartmentId?: string
+}) {
   const t = useTranslations('staff.wizard')
   const tCommon = useTranslations('common')
   const tCat = useTranslations('settings.categories')
@@ -64,7 +69,7 @@ export default function RoleSeatWizard({ onClose, onDone }: { onClose: () => voi
   const [depts, setDepts] = useState<Dept[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [positionInput, setPositionInput] = useState('')
-  const [deptId, setDeptId] = useState('')
+  const [deptId, setDeptId] = useState(defaultDepartmentId ?? '')
   const [isHead, setIsHead] = useState(false)
 
   // 3 — employment (optional)

@@ -167,8 +167,9 @@ export default function EmployeeCard({
       {/* footer */}
       <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
         {onDelete ? (
+          /* Не «удаление»: API закрывает посадки, человек и логин остаются. */
           <button onClick={onDelete} style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer', background: 'none', color: 'var(--danger)', border: '1px solid var(--danger)' }}>
-            {tCommon('delete')}
+            {t('end_employment')}
           </button>
         ) : <span />}
         <button onClick={onClose} style={{ fontSize: 13.5, fontWeight: 600, padding: '8px 18px', borderRadius: 8, cursor: 'pointer', background: accent, color: '#fff', border: 'none' }}>
