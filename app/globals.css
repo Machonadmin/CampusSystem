@@ -215,6 +215,26 @@ body { transition: background-color .25s ease, color .25s ease; }
   table.cards-sm td[data-label=""] { justify-content: flex-start; }
 }
 
+/* Карточка человека (список מאגר אנשים). На десктопе — одна строка:
+   [аватар] [имя/должность] [почта/телефон справа]. На телефоне блок контактов
+   с фикс. долей (46%) сжимал ИМЯ почти в ноль (жалоба владельца: «имена
+   обрезаются»), поэтому на узком экране контакты переносятся ПОД имя во всю
+   ширину, а имя получает всё место. Так же исключаем горизонтальное
+   переполнение (из-за которого телефон отдалял всю страницу). */
+.person-row { min-width: 0; }
+.person-row .person-main { min-width: 0; }
+@media (max-width: 640px) {
+  .person-row { flex-wrap: wrap; }
+  .person-row .person-main { flex: 1 1 100% !important; }
+  .person-row .person-contact {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    text-align: start !important;
+    padding-inline-start: 52px; /* под аватаром (40 + gap 12) */
+  }
+  .person-row .person-contact > div { max-width: 100% !important; }
+}
+
 /* Месячная сетка календаря. На десктопе ячейка высокая и показывает полные
    чипы-события (.cal-full). На телефоне 7 колонок нечитаемы подписями, поэтому
    ячейка низкая и события показываются цветными точками (.cal-dots); тап по дню
