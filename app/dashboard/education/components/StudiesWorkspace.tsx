@@ -76,6 +76,9 @@ export default function StudiesWorkspace() {
   const [tracks, setTracks] = useState<TrackRef[]>([])
   const [kodeshLevels, setKodeshLevels] = useState<KodeshLevel[]>([])
   const [kodeshAvailable, setKodeshAvailable] = useState(false)
+  // Ответственная за кодеш (view всех студенток, но управление только кодешем):
+  // раздел «לימודי חול» ей не показываем — она отвечает только за кодеш.
+  const [restrictToKodesh, setRestrictToKodesh] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,14 +94,19 @@ export default function StudiesWorkspace() {
   const loadData = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const [gResp, dResp, tResp, kResp] = await Promise.all([
+      const [gResp, dResp, tResp, kResp, laResp] = await Promise.all([
         fetch('/api/education/semester-groups'),
         fetch('/api/settings/departments'),
         fetch('/api/education/study-tracks'),
         // Кодеш: уровни + распределение. 403 (нет доступа к кафедре иудаики) →
         // раздел «קודש» просто не показываем (разделение прав кодеш/חול).
         fetch('/api/education/kodesh/assignment'),
+        // Флаг «только кодеш» — чтобы скрыть раздел «לимудей חол» ответственной за кодеш.
+        fetch('/api/education/launcher-access'),
       ])
+      try {
+        if (laResp.ok) { const la = await laResp.json(); setRestrictToKodesh(!!la?.restrict_to_kodesh) }
+      } catch { /* некритично: по умолчанию показываем חול */ }
       if (!gResp.ok) throw new Error(t('common.error_generic'))
       const gJson = await gResp.json()
       const dJson = dResp.ok ? await dResp.json() : []
@@ -284,22 +292,26 @@ export default function StudiesWorkspace() {
           {/* Уровень 1: два раздела — לימודי חול (маршруты) и לימודי קודש (уровни) */}
           {structId == null && (
             <>
-              {/* ─── לימודי חול ─── */}
-              <SectionHeader
-                label={t('workspace.section_chol')}
-                actionNode={<PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} style={{ padding: '7px 14px' }} />}
-              />
-              {structures.length === 0
-                ? <EmptyState text={t('semester_groups.empty_none')} />
-                : <>
-                    <p style={hint}>{t('workspace.structures_hint')}</p>
-                    <Grid>
-                      {structures.map(s => (
-                        <Card key={s.id} title={structLabel(s.id)} sub={t('workspace.count_semesters').replace('{n}', String(s.count))}
-                          icon={ICON_STRUCT} onClick={() => { setStructId(s.id); setYearLevel(null); setCohort(null) }} />
-                      ))}
-                    </Grid>
-                  </>}
+              {/* ─── לימודי חול ─── (не показываем ответственной ТОЛЬКО за кодеш) */}
+              {!restrictToKodesh && (
+                <>
+                  <SectionHeader
+                    label={t('workspace.section_chol')}
+                    actionNode={<PageActionButton label={t('semester_groups.add_button')} onClick={openCreate} accentColor={accent} style={{ padding: '7px 14px' }} />}
+                  />
+                  {structures.length === 0
+                    ? <EmptyState text={t('semester_groups.empty_none')} />
+                    : <>
+                        <p style={hint}>{t('workspace.structures_hint')}</p>
+                        <Grid>
+                          {structures.map(s => (
+                            <Card key={s.id} title={structLabel(s.id)} sub={t('workspace.count_semesters').replace('{n}', String(s.count))}
+                              icon={ICON_STRUCT} onClick={() => { setStructId(s.id); setYearLevel(null); setCohort(null) }} />
+                          ))}
+                        </Grid>
+                      </>}
+                </>
+              )}
 
               {/* ─── לימודי קודש ─── (только при наличии доступа к кафедре иудаики) */}
               {kodeshAvailable && (

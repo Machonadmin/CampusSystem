@@ -61,11 +61,17 @@ const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {
  */
 interface GraphColors {
   accentStrong: string; surface2: string; borderStrong: string; textFaint: string; border: string; textMuted: string
+  success: string; info: string
 }
 const DEFAULT_GRAPH_COLORS: GraphColors = {
   accentStrong: '#2563EB', surface2: '#F3F4F6', borderStrong: '#D1D5DB',
   textFaint: '#9CA3AF', border: '#E5E7EB', textMuted: '#6B7280',
+  success: '#2f9e6b', info: '#2563eb',
 }
+// Заливка «завершён»/«активен» — фиксированный светлый HEX, НЕ токен-tint:
+// tint'ы заданы как rgba(...), а парсер mermaid ломается на `(` и `,` в classDef.
+const COMPLETED_FILL = '#e6f5ee'
+const ACTIVE_FILL = '#e8f0fe'
 function resolveGraphColors(): GraphColors {
   try {
     const cs = getComputedStyle(document.documentElement)
@@ -77,6 +83,8 @@ function resolveGraphColors(): GraphColors {
       textFaint: v('--text-faint', DEFAULT_GRAPH_COLORS.textFaint),
       border: v('--border', DEFAULT_GRAPH_COLORS.border),
       textMuted: v('--text-muted', DEFAULT_GRAPH_COLORS.textMuted),
+      success: v('--success', DEFAULT_GRAPH_COLORS.success),
+      info: v('--info', DEFAULT_GRAPH_COLORS.info),
     }
   } catch { return DEFAULT_GRAPH_COLORS }
 }
@@ -108,8 +116,8 @@ function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): s
   }
 
   // Классы статусов
-  lines.push('  classDef completed fill:var(--success-tint),stroke:var(--success),color:var(--success);')
-  lines.push(`  classDef active fill:var(--info-tint),stroke:${c.accentStrong},color:var(--info),stroke-width:2px;`)
+  lines.push(`  classDef completed fill:${COMPLETED_FILL},stroke:${c.success},color:${c.success};`)
+  lines.push(`  classDef active fill:${ACTIVE_FILL},stroke:${c.accentStrong},color:${c.info},stroke-width:2px;`)
   lines.push(`  classDef waiting fill:${c.surface2},stroke:${c.borderStrong},color:${c.textFaint};`)
   lines.push(`  classDef skipped fill:${c.surface2},stroke:${c.border},color:${c.textFaint};`)
   lines.push(`  classDef pending fill:#FFFFFF,stroke:${c.borderStrong},color:${c.textMuted};`)
