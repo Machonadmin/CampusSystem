@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStudentFinance } from '@/lib/finance/access'
+import { canViewStudentFinanceFull } from '@/lib/finance/access'
 import ReceiptClient from './ReceiptClient'
 
 interface Props {
@@ -59,7 +59,9 @@ export default async function ReceiptPage({ params }: Props) {
   }
 
   // Доступ — по journey платежа (глобальный финотдел ИЛИ персональный грант).
-  if (!(await canViewStudentFinance(session, p.journey_id))) redirect('/dashboard')
+  // Квитанция = детализация платежа (метод/реквизиты) → только ПОЛНЫЙ доступ,
+  // не «итоги студентки».
+  if (!(await canViewStudentFinanceFull(session, p.journey_id))) redirect('/dashboard')
 
   const { data: journey } = await sb
     .from('education_journeys')

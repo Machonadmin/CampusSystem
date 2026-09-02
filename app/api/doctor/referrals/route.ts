@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 /**
@@ -24,7 +25,6 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  * доступ к лидам, только к своей очереди.
  */
 
-const MEDICAL_SIGNER_ROLES = ['doctor', 'superadmin']
 
 
 export async function GET() {
@@ -33,7 +33,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: serverT('unauthorized') }, { status: 401 })
     }
-    if (!MEDICAL_SIGNER_ROLES.some(r => session.roles.includes(r))) {
+    if (!(await hasDoctorPrivilege(session, 'view'))) {
       return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
     }
 

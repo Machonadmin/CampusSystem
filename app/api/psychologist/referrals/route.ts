@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { hasPsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 /**
@@ -28,7 +29,6 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  * блок деградирует до пустых значений, а не роняет ответ.
  */
 
-const PSYCH_SIGNER_ROLES = ['psychologist', 'superadmin']
 
 
 export async function GET() {
@@ -37,7 +37,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: serverT('unauthorized') }, { status: 401 })
     }
-    if (!PSYCH_SIGNER_ROLES.some(r => session.roles.includes(r))) {
+    if (!(await hasPsychologistPrivilege(session, 'view'))) {
       return NextResponse.json({ error: serverT('forbidden') }, { status: 403 })
     }
 

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, status, journey_id,
         process_template:process_templates!inner(code),
-        journey:education_journeys!inner(id, education_status, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url, phones))
+        journey:education_journeys!inner(id, education_status, primary_department_id, desired_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url, phones))
       `)
       .in('process_template.code', ACCEPTANCE_PROCESS_CODES)
       .order('started_at', { ascending: false })
@@ -61,13 +61,15 @@ export async function GET(request: NextRequest) {
 
     let pis = (pisRaw ?? []) as unknown as Array<{
       id: string; status: string; journey_id: string
-      journey: { id: string; education_status: string | null; primary_department_id: string | null; person: unknown } | null
+      journey: { id: string; education_status: string | null; primary_department_id: string | null; desired_department_id: string | null; person: unknown } | null
     }>
 
-    // department-scope: только journey своих подразделений.
+    // department-scope: только journey своих подразделений. У абитуриенток
+    // primary_department_id ещё NULL (заполняется при зачислении) — подразделение
+    // берём из desired_department_id, иначе весь приёмный список был бы пуст.
     if (scope === 'department') {
       pis = pis.filter(p => {
-        const jd = p.journey?.primary_department_id ?? null
+        const jd = p.journey?.desired_department_id ?? p.journey?.primary_department_id ?? null
         return jd != null && myDepts.includes(jd)
       })
     }

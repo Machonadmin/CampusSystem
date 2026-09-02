@@ -86,14 +86,15 @@ export async function GET(request: NextRequest) {
 
     const { data: journeys } = await sb
       .from('education_journeys')
-      .select('id, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url)')
+      .select('id, primary_department_id, desired_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, photo_url)')
       .in('id', journeyIds)
 
     const personByJourney = new Map<string, { full_name?: string | null; hebrew_name?: string | null; photo_url?: string | null }>()
     const deptByJourney = new Map<string, string | null>()
-    for (const j of (journeys ?? []) as unknown as Array<{ id: string; primary_department_id: string | null; person: unknown }>) {
+    for (const j of (journeys ?? []) as unknown as Array<{ id: string; primary_department_id: string | null; desired_department_id: string | null; person: unknown }>) {
       personByJourney.set(j.id, (j.person as never) ?? {})
-      deptByJourney.set(j.id, j.primary_department_id ?? null)
+      // Абитуриентки ещё без primary_department_id → берём desired (иначе список пуст).
+      deptByJourney.set(j.id, j.desired_department_id ?? j.primary_department_id ?? null)
     }
 
     const byJourney = new Map<string, StalledApplicant>()

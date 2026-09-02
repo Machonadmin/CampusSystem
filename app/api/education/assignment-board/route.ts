@@ -86,16 +86,23 @@ export async function GET() {
       }
     }
 
-    // 4. Пул учениц: student journeys → person.
-    const { data: journeysRaw } = await sb.from('education_journeys')
+    // 4. Пул учениц: student journeys → person. При scope='department' — только
+    // ученицы своих подразделений (иначе секретарь одного колледжа видел бы имена
+    // ВСЕХ учениц института — утечка PII между подразделениями).
+    let journeysQ = sb.from('education_journeys')
       .select('id, person_id').eq('education_status', 'student')
+    if (myDepts) journeysQ = journeysQ.in('primary_department_id', myDepts)
+    const { data: journeysRaw } = await journeysQ
     const studentJourneys = (journeysRaw ?? []) as Array<{ id: string; person_id: string }>
     const personByJourney = new Map(studentJourneys.map(j => [j.id, j.person_id]))
 
-    // 5. Пул персонала: активные staff_positions → person_id.
+    // 5. Пул персонала: активные staff_positions → person_id. При scope='department'
+    // — только сотрудники своих подразделений.
     const staffPersonIds = new Set<string>()
     {
-      const { data } = await sb.from('staff_positions').select('person_id').is('end_date', null)
+      let staffQ = sb.from('staff_positions').select('person_id').is('end_date', null)
+      if (myDepts) staffQ = staffQ.in('department_id', myDepts)
+      const { data } = await staffQ
       for (const r of (data ?? []) as Array<{ person_id: string }>) staffPersonIds.add(r.person_id)
     }
 

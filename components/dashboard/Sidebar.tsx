@@ -186,6 +186,8 @@ export default function Sidebar() {
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
   const [isChavrutaTeacher, setIsChavrutaTeacher] = useState(false)
+  // Менеджер, которому доступен управляющий хаб «מרכז חברותא» (не журнал).
+  const [canViewChavrutaHub, setCanViewChavrutaHub] = useState(false)
   // Есть ли у меня открытые задачи (для точки на пункте «Задачи»).
   const [hasOpenTasks, setHasOpenTasks] = useState(false)
   // Доступ к вкладкам «Образования» (набор/приём/учёба) — гейтит три пункта.
@@ -202,6 +204,7 @@ export default function Sidebar() {
         if (!alive) return
         if (data?.accessible_modules) setAccessibleModules(data.accessible_modules)
         if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
+        if (data?.can_view_chavruta) setCanViewChavrutaHub(true)
       })
       .catch(() => { /* тихо: сеть упала — навигация остаётся с дефолтами */ })
     return () => { alive = false }
@@ -264,7 +267,7 @@ export default function Sidebar() {
   // Хеврута — динамический доступ (мора хавруты), не обычная привилегия модуля.
   const canAccess = (key: string) => {
     if (accessibleModules === null) return false
-    if (key === 'chavruta') return isChavrutaTeacher || accessibleModules.includes('chavruta')
+    if (key === 'chavruta') return isChavrutaTeacher || canViewChavrutaHub || accessibleModules.includes('chavruta')
     return accessibleModules.includes(key)
   }
   const sections = [

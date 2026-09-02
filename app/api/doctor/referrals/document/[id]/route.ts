@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { getSignedUrl } from '@/lib/documents/storage'
 
 /**
@@ -16,7 +17,6 @@ import { getSignedUrl } from '@/lib/documents/storage'
  * входит — у него отдельная очередь /api/psychologist/referrals/document.
  */
 
-const MEDICAL_SIGNER_ROLES = ['doctor', 'superadmin']
 
 export async function GET(
   _request: NextRequest,
@@ -25,7 +25,7 @@ export async function GET(
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!MEDICAL_SIGNER_ROLES.some(r => session.roles.includes(r))) {
+    if (!(await hasDoctorPrivilege(session, 'view'))) {
       return apiError('forbidden', 403)
     }
 
