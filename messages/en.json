@@ -888,7 +888,9 @@
         "no_roster": "No students in the semester — enroll them into the semester first",
         "open": "Open course",
         "back": "Back to semesters",
-        "count_teachers": "{n} teachers"
+        "count_teachers": "{n} teachers",
+        "delete": "Delete",
+        "delete_confirm": "Delete the course \"{name}\"? This cannot be undone."
       },
       "buildings": {
         "title": "Buildings & rooms",
