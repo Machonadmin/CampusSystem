@@ -5,6 +5,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { localISODate, localTodayISO } from '@/lib/dates'
 
 interface PersonOption { id: string; full_name: string }
 interface TemplateOption { id: string; name: string }
@@ -194,7 +195,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({
           template_id: templateId || null,
           class_group_id: classGroupId || null,
-          lesson_date: lessonDate ? lessonDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          lesson_date: lessonDate ? localISODate(lessonDate) : localTodayISO(),
           lesson_time: lessonTime,
           observer_person_id: observer.id,
           teacher_person_id: teacher.id,

@@ -56,7 +56,7 @@ export function Legend({ t, primary }: { t: (k: string, f?: string) => string; p
       )}
       {item(
         <span style={{
-          ...box, background: '#FAFAF9', border: '1px solid var(--border)',
+          ...box, background: 'var(--surface-2)', border: '1px solid var(--border)',
           backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(107,114,128,0.25) 3px, rgba(107,114,128,0.25) 6px)',
         }} />,
         t('legend.day_off'),

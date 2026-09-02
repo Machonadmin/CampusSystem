@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { todayISO } from '@/lib/dates'
+import { todayISO, localISODate } from '@/lib/dates'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
@@ -453,7 +453,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           middle_name: middleName.trim() || null,
           hebrew_name: hebrewName.trim() || null,
           gender: gender || null,
-          birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+          birth_date: birthDate ? localISODate(birthDate) : null,
           marital_status: maritalStatus || null,
           citizenship: citizenship || null,
           passport_number: passportNumber.trim() || null,
@@ -513,7 +513,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           if (validPhones.length > 1) body.phones = validPhones
           if (email) body.email = email.trim()
           if (gender) body.gender = gender
-          if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
+          if (birthDate) body.birth_date = localISODate(birthDate)
           if (hebrewName) body.hebrew_name = hebrewName.trim()
           if (maritalStatus) body.marital_status = maritalStatus
           if (citizenship) body.citizenship = citizenship.trim()
@@ -571,7 +571,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             middle_name: middleName.trim() || null,
             hebrew_name: hebrewName.trim() || null,
             gender: gender || null,
-            birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+            birth_date: birthDate ? localISODate(birthDate) : null,
             email: email.trim() || null,
             phones: validPhones,
           }

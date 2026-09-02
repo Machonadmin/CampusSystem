@@ -80,7 +80,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('class_groups.students_section_title')}
-          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginInlineStart: 6, fontSize: 13 }}>
             ({students.length} {plural(students.length, t('class_groups.people_one'), t('class_groups.people_few'), t('class_groups.people_many'))})
           </span>
         </h2>
@@ -116,7 +116,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
                     {s.person?.full_name ?? '—'}
                   </Link>
                   {s.main_group && (
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', marginInlineStart: 8 }}>
                       {s.main_group.name}
                     </span>
                   )}

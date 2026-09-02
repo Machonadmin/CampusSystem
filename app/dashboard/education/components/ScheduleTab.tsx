@@ -123,7 +123,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
         <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('section_title')}
-          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginInlineStart: 6, fontSize: 13 }}>
             ({slots.length})
           </span>
         </h2>

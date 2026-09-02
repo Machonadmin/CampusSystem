@@ -7,6 +7,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatDate } from '@/lib/i18n/format-date'
 import { Modal } from '@/components/ui/Modal'
+import { localISODate } from '@/lib/dates'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
     if (!date) { setError(t('error_date_required')); return }
     await runTransition(modalTarget, {
       reason: reason.trim(),
-      effective_date: date.toISOString().slice(0, 10),
+      effective_date: localISODate(date),
     })
   }
 

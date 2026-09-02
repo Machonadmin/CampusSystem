@@ -279,10 +279,8 @@ export function PersonSelect({
               {errMsg && (
                 <div style={{
                   padding: '6px 10px', marginBottom: 8, fontSize: 11,
-                  color: errMsg.startsWith('Человек создан') ? 'var(--warn)' : 'var(--danger)',
-                  background: errMsg.startsWith('Человек создан') ? 'var(--warn-tint)' : 'var(--danger-tint)',
-                  border: `1px solid ${errMsg.startsWith('Человек создан') ? '#FDE68A' : 'var(--danger)'}`,
-                  borderRadius: 5,
+                  color: 'var(--danger)', background: 'var(--danger-tint)',
+                  border: '1px solid var(--danger)', borderRadius: 5,
                 }}>{errMsg}</div>
               )}
               <input
