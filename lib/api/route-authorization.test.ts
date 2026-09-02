@@ -51,7 +51,7 @@ const isPublic = (r: string) => PUBLIC_PREFIXES.some(p => r.startsWith(p))
 const SENSITIVE_MODULES = new Set([
   'doctor', 'psychologist', 'finance', 'jewishness', 'sponsors', 'documents',
   'persons', 'dormitory', 'food', 'security', 'maintenance', 'reports',
-  'contacts', 'staff', 'quality-control', 'settings', 'alumni', 'education',
+  'contacts', 'staff', 'staff-comp', 'quality-control', 'settings', 'alumni', 'education',
   'applicants',
 ])
 
