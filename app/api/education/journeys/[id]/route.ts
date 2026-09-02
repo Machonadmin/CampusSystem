@@ -55,7 +55,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const sb = createServerClient()
 
     const { data: journey, error } = await sb
@@ -79,7 +79,24 @@ export async function GET(
       : j.desired_department_id
 
     const priv = pickPrivilege(j.education_status, 'view')
-    await requireEducationPrivilege(priv, { department_id: checkDept ?? undefined })
+    // scope='own' (преподаватель): карточка доступна, только если студентка
+    // учится в ОДНОЙ ИЗ ЕГО групп (class_teachers → class_enrollments). Раньше
+    // 'own' не обрабатывался → преподаватель получал 403 на карточке своей же
+    // ученицы (список её показывал, а открыть нельзя).
+    const scope = session.roles.includes('superadmin') ? 'all' : await getEducationPrivilegeScope(session, priv)
+    if (scope === 'own') {
+      const { data: ct } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', session.person_id)
+      const groupIds = [...new Set((ct ?? []).map((r: { class_group_id: string }) => r.class_group_id))]
+      let allowed = false
+      if (groupIds.length > 0) {
+        const { data: enr } = await sb.from('class_enrollments')
+          .select('journey_id').eq('journey_id', j.id).in('class_group_id', groupIds).limit(1)
+        allowed = (enr ?? []).length > 0
+      }
+      if (!allowed) return apiError('forbidden', 403)
+    } else {
+      await requireEducationPrivilege(priv, { department_id: checkDept ?? undefined })
+    }
 
     // Extra data for edit form
     const [{ data: leadInterests }, { data: jCommunities }] = await Promise.all([

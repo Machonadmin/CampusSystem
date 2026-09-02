@@ -3,7 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { phoneList } from '@/lib/persons/phone'
 import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
-import { canViewStudentFinance, canManageStudentFinance } from '@/lib/finance/access'
+import { canViewStudentFinanceFull, canManageStudentFinance } from '@/lib/finance/access'
 import FinanceLedgerClient from './FinanceLedgerClient'
 
 interface Props {
@@ -21,8 +21,9 @@ export default async function FinanceStudentPage({ params }: Props) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  // Доступ к финансам ЭТОЙ студентки (глобальный финотдел ИЛИ персональный грант).
-  const canView = await canViewStudentFinance(session, params.id)
+  // Полная карточка ПНК = детализация → нужен ПОЛНЫЙ доступ (финотдел/грант),
+  // не узкое «итоги студентки» (та видит только сумму в панели, без карточки).
+  const canView = await canViewStudentFinanceFull(session, params.id)
   if (!canView) redirect('/dashboard')
 
   const sb = createServerClient()

@@ -4,6 +4,7 @@ import { getCookieLocale } from '@/lib/i18n/locale'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
+import { canViewChavruta } from '@/lib/chavruta/access'
 import type { RoleCode } from '@/types/database'
 
 const ALL_MODULE_CODES = [
@@ -126,6 +127,13 @@ export async function GET() {
     }
   } catch { /* deploy-безопасно */ }
 
+  // «מרכז חברותא» — управляющий хаб (не журнал преподавателя). Доступ у
+  // менеджера (staff-comp / manage_students), даже если он НЕ мора хавруты и у
+  // роли нет модуля 'chavruta'. Отдаём флагом, чтобы сайдбар/главная показали
+  // ссылку (иначе хаб навигационно недостижим).
+  let can_view_chavruta = false
+  try { can_view_chavruta = await canViewChavruta(session) } catch { /* deploy-безопасно */ }
+
   return NextResponse.json({
     person_id: session.person_id,
     login_email: session.login_email,
@@ -135,5 +143,6 @@ export async function GET() {
     accessible_modules,
     feature_access,
     is_chavruta_teacher,
+    can_view_chavruta,
   })
 }

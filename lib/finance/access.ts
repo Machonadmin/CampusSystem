@@ -46,15 +46,31 @@ async function hasFinanceGrant(personId: string, journeyId: string): Promise<boo
   }
 }
 
-/** Может ли пользователь ВИДЕТЬ финансы этой студентки. */
-export async function canViewStudentFinance(session: SessionPayload | null, journeyId: string): Promise<boolean> {
+/**
+ * ПОЛНЫЙ доступ к финансам студентки — итоги + ПОДРОБНОСТИ (каждый счёт/платёж,
+ * метод, реквизиты, банковские счета, квитанции, полная карточка). НЕ включает
+ * узкое право «итоги студентки»: держатель view_student_balance видит только
+ * сумму (начислено/оплачено/долг), но НЕ детализацию платежей.
+ */
+export async function canViewStudentFinanceFull(session: SessionPayload | null, journeyId: string): Promise<boolean> {
   if (!session) return false
   if (session.roles.includes('superadmin')) return true
   if (await hasFinancePrivilege(session, 'view')) return true
-  // Узкое ролевое право «итоги студентки» (начислено/оплачено/долг) — даёт
-  // просмотр её баланса в карточке БЕЗ доступа к финансовому модулю.
-  if (await hasFinancePrivilege(session, 'view_student_balance')) return true
   return hasFinanceGrant(session.person_id, journeyId)
+}
+
+/**
+ * Может ли пользователь ВИДЕТЬ хоть что-то по финансам студентки (итоги ИЛИ
+ * полную карточку). Полный доступ ИЛИ узкое право «итоги студентки». Для гейта
+ * панели баланса; для ДЕТАЛИЗАЦИИ используйте canViewStudentFinanceFull.
+ */
+export async function canViewStudentFinance(session: SessionPayload | null, journeyId: string): Promise<boolean> {
+  if (!session) return false
+  if (await canViewStudentFinanceFull(session, journeyId)) return true
+  // Узкое ролевое право «итоги студентки» (начислено/оплачено/долг) — даёт
+  // просмотр её баланса в карточке БЕЗ доступа к финансовому модулю и БЕЗ
+  // детализации (см. canViewStudentFinanceFull).
+  return hasFinancePrivilege(session, 'view_student_balance')
 }
 
 /** Может ли пользователь ИЗМЕНЯТЬ финансы этой студентки (счета/платежи/скидки). */

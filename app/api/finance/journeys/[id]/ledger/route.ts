@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStudentFinance } from '@/lib/finance/access'
+import { canViewStudentFinance, canViewStudentFinanceFull } from '@/lib/finance/access'
 import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 import { getActiveContract } from '@/lib/admission/benefits'
@@ -38,6 +38,10 @@ export async function GET(
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canViewStudentFinance(session, params.id))) return apiError('forbidden', 403)
+    // Полный доступ = детализация; узкое «итоги студентки» = ТОЛЬКО суммы.
+    // Держатель view_student_balance не должен видеть отдельные платежи, методы,
+    // реквизиты и банковские счета — только начислено/оплачено/долг.
+    const full = await canViewStudentFinanceFull(session, params.id)
 
     const sb = createServerClient()
 
@@ -161,6 +165,23 @@ export async function GET(
       if ((e as { code?: string }).code !== '42703') throw e
     }
 
+    const totals = computeLedgerTotals(chargeRows, paymentRows, activeDiscounts)
+
+    // «Итоги студентки» (view_student_balance без полного доступа): отдаём ТОЛЬКО
+    // суммы + минимум по журнею (имя), без детализации/реквизитов/договора.
+    if (!full) {
+      const j = journey as { id: string; person_id: string; education_status: string; person: unknown }
+      const p = (j.person ?? {}) as { full_name?: string | null; hebrew_name?: string | null }
+      return NextResponse.json({
+        journey: {
+          id: j.id, person_id: j.person_id, education_status: j.education_status,
+          person: { full_name: p.full_name ?? null, hebrew_name: p.hebrew_name ?? null },
+        },
+        totals,
+        balance_only: true,
+      })
+    }
+
     // Действующий договор приёма (חוזה) — показываем сводку льгот. Деплой-безопасно.
     const contract = await getActiveContract(sb, params.id)
 
@@ -168,7 +189,7 @@ export async function GET(
       journey,
       charges,
       payments: paymentRows,
-      totals: computeLedgerTotals(chargeRows, paymentRows, activeDiscounts),
+      totals,
       suggested_discount_percent: suggestedDiscount,
       contract,
     })
