@@ -34,6 +34,7 @@ export async function GET() {
         teacher_attendance: true, absences: true, teaching_surveys: true,
         chavruta: true, semesters: true, structure: true, units: true, reports: true,
         teacher_home: false, students_view_all: true, students_manage_all: true,
+        restrict_to_kodesh: false,
       })
     }
 
@@ -99,6 +100,7 @@ export async function GET() {
       teacher_home,
       students_view_all,
       students_manage_all,
+      restrict_to_kodesh: restrictToKodesh,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
