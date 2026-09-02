@@ -3,8 +3,8 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
-import type { LessonInsert } from '@/types/database'
-import { MS_PER_DAY, parseDateUTC, fmtDateUTC, isoWeekday } from '@/lib/education/schedule-dates'
+import { generateLessonsForGroup } from '@/lib/education/lesson-generation'
+import { MS_PER_DAY, parseDateUTC } from '@/lib/education/schedule-dates'
 
 const MAX_RANGE_DAYS = 366
 
@@ -71,67 +71,13 @@ export async function POST(
       return NextResponse.json({ error: `Слишком большой период: ${days} дн. (максимум ${MAX_RANGE_DAYS})` }, { status: 400 })
     }
 
-    // Слоты группы, сгруппированные по дню недели. select('*') — деплой-
-    // безопасно: колонка approval_status может отсутствовать до применения
-    // миграции (тогда undefined → считаем 'active').
-    const { data: slots, error: sErr } = await sb
-      .from('class_schedule_slots')
-      .select('*')
-      .eq('class_group_id', params.id)
-    if (sErr) throw sErr
-
-    // Уроки порождаем ТОЛЬКО из утверждённых слотов: 'pending' (ждёт אישור
-    // מנהל) и 'rejected' пропускаем.
-    const activeSlots = (slots ?? []).filter(
-      (s: { approval_status?: string }) => (s.approval_status ?? 'active') === 'active',
+    // Делегируем общей логике порождения (единый источник: активные слоты +
+    // ПРОПУСК дней без уроков, spec §4.5). Строго добавляющее (ON CONFLICT DO
+    // NOTHING). Возвращает created / skipped(=уже существовали) / skippedNoLessonDays.
+    const { created, skipped, skippedNoLessonDays } = await generateLessonsForGroup(
+      sb, params.id, fromMs, toMs, session.person_id,
     )
-
-    const byDay = new Map<number, { start_time: string; room: string | null }[]>()
-    for (const s of activeSlots) {
-      const arr = byDay.get(s.day_of_week) ?? []
-      arr.push({ start_time: s.start_time, room: s.room })
-      byDay.set(s.day_of_week, arr)
-    }
-
-    // Кандидаты-уроки: для каждой даты периода — слоты её дня недели.
-    const candidates: LessonInsert[] = []
-    for (let ms = fromMs; ms <= toMs; ms += MS_PER_DAY) {
-      const daySlots = byDay.get(isoWeekday(ms))
-      if (!daySlots) continue
-      const dateStr = fmtDateUTC(ms)
-      for (const s of daySlots) {
-        candidates.push({
-          class_group_id: params.id,
-          scheduled_date: dateStr,
-          scheduled_time: s.start_time,
-          location: s.room,
-          created_by: session.person_id,
-        })
-      }
-    }
-
-    if (candidates.length === 0) {
-      return NextResponse.json({ created: 0, skipped: 0 })
-    }
-
-    // Строго INSERT: ON CONFLICT DO NOTHING по UNIQUE(class_group_id, date, time).
-    // .select() при ignoreDuplicates возвращает ТОЛЬКО реально вставленные строки.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: inserted, error: insErr } = await sb
-      .from('lessons')
-      .upsert(candidates as any, {
-        onConflict: 'class_group_id,scheduled_date,scheduled_time',
-        ignoreDuplicates: true,
-      })
-      .select('id')
-    if (insErr) {
-      const m = mapDbError(insErr)
-      return NextResponse.json({ error: m.message }, { status: m.status })
-    }
-
-    const created = inserted?.length ?? 0
-    const skipped = candidates.length - created
-    return NextResponse.json({ created, skipped })
+    return NextResponse.json({ created, skipped, skippedNoLessonDays })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

@@ -53,18 +53,28 @@ export async function GET(_request: NextRequest) {
     }>
     if (journeys.length === 0) return NextResponse.json({ students: [] })
 
-    // Кто уже с маршрутом (track_id не пуст). Деплой-безопасно: нет таблицы → никто.
+    // Кто уже с ГЛАВНЫМ маршрутом (primary). Студентка только с дополнительным
+    // (напр. Туро) без primary остаётся в очереди שיבוץ (spec §3.2). Деплой-
+    // безопасно: нет таблицы (42P01) → никто; нет колонки role (42703, до
+    // миграции) → откат к «любой track_id не пуст».
     const assigned = new Set<string>()
     try {
       const journeyIds = journeys.map(j => j.id)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: jt, error: jtErr } = await (sb as any)
+      let { data: jt, error: jtErr } = await (sb as any)
         .from('journey_study_tracks')
-        .select('journey_id, track_id')
+        .select('journey_id, track_id, role')
         .in('journey_id', journeyIds)
+      if (jtErr && jtErr.code === '42703') {
+        const base = await (sb as unknown as { from: (t: string) => { select: (c: string) => { in: (col: string, v: string[]) => Promise<{ data: unknown; error: { code?: string } | null }> } } })
+          .from('journey_study_tracks').select('journey_id, track_id').in('journey_id', journeyIds)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        jt = ((base.data ?? []) as any[]).map(r => ({ ...r, role: 'primary' }))
+        jtErr = base.error
+      }
       if (jtErr) throw jtErr
-      for (const r of (jt ?? []) as Array<{ journey_id: string; track_id: string | null }>) {
-        if (r.track_id) assigned.add(r.journey_id)
+      for (const r of (jt ?? []) as Array<{ journey_id: string; track_id: string | null; role?: string | null }>) {
+        if (r.track_id && (r.role ?? 'primary') === 'primary') assigned.add(r.journey_id)
       }
     } catch (e) {
       if ((e as { code?: string }).code !== '42P01') throw e

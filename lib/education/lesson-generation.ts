@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import type { LessonInsert } from '@/types/database'
 import { MS_PER_DAY, parseDateUTC, fmtDateUTC, isoWeekday } from '@/lib/education/schedule-dates'
+import { loadNoLessonDateSet, partitionByNoLessonDays } from '@/lib/education/no-lesson-days'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -22,7 +23,7 @@ export async function generateLessonsForGroup(
   toMs: number,
   createdBy: string | null,
   opts?: { onlySlotIds?: string[] },
-): Promise<{ created: number; skipped: number }> {
+): Promise<{ created: number; skipped: number; skippedNoLessonDays: number }> {
   // select('*') — деплой-безопасно: approval_status может отсутствовать до
   // применения миграции (undefined → считаем 'active').
   let q = sb.from('class_schedule_slots').select('*').eq('class_group_id', groupId)
@@ -33,7 +34,7 @@ export async function generateLessonsForGroup(
   const activeSlots = (slots ?? []).filter(
     (s: { approval_status?: string }) => (s.approval_status ?? 'active') === 'active',
   )
-  if (activeSlots.length === 0) return { created: 0, skipped: 0 }
+  if (activeSlots.length === 0) return { created: 0, skipped: 0, skippedNoLessonDays: 0 }
 
   const byDay = new Map<number, { start_time: string; room: string | null }[]>()
   for (const s of activeSlots) {
@@ -42,13 +43,13 @@ export async function generateLessonsForGroup(
     byDay.set(s.day_of_week, arr)
   }
 
-  const candidates: LessonInsert[] = []
+  const rawCandidates: LessonInsert[] = []
   for (let ms = fromMs; ms <= toMs; ms += MS_PER_DAY) {
     const daySlots = byDay.get(isoWeekday(ms))
     if (!daySlots) continue
     const dateStr = fmtDateUTC(ms)
     for (const s of daySlots) {
-      candidates.push({
+      rawCandidates.push({
         class_group_id: groupId,
         scheduled_date: dateStr,
         scheduled_time: s.start_time,
@@ -57,7 +58,15 @@ export async function generateLessonsForGroup(
       })
     }
   }
-  if (candidates.length === 0) return { created: 0, skipped: 0 }
+  if (rawCandidates.length === 0) return { created: 0, skipped: 0, skippedNoLessonDays: 0 }
+
+  // Пропуск дней без уроков (spec §4.5): грузим множество дат для подразделения
+  // группы и отбрасываем кандидатов в эти даты. Deploy-safe (нет таблицы → пусто).
+  const { data: grp } = await sb.from('class_groups').select('department_id').eq('id', groupId).maybeSingle()
+  const deptId = (grp as { department_id?: string | null } | null)?.department_id ?? null
+  const noLessonSet = await loadNoLessonDateSet(sb, deptId, fmtDateUTC(fromMs), fmtDateUTC(toMs))
+  const { kept: candidates, skipped: skippedNoLessonDays } = partitionByNoLessonDays(rawCandidates, noLessonSet)
+  if (candidates.length === 0) return { created: 0, skipped: 0, skippedNoLessonDays }
 
   // .select() при ignoreDuplicates возвращает ТОЛЬКО реально вставленные строки.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,7 +80,7 @@ export async function generateLessonsForGroup(
   if (insErr) throw insErr
 
   const created = inserted?.length ?? 0
-  return { created, skipped: candidates.length - created }
+  return { created, skipped: candidates.length - created, skippedNoLessonDays }
 }
 
 /**

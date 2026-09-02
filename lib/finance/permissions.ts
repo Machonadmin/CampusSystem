@@ -14,6 +14,11 @@ export type FinancePrivilege =
   // Узкое право «итоги студентки» (начислено/оплачено/долг) БЕЗ доступа к
   // финмодулю — для ролей вроде «אחראית יהדות» (решение владельца).
   | 'view_student_balance'
+  // Judaism module Phase 3 (spec §3.9 / §2.3) — governance of the manual tuition-
+  // discount approval + payment confirmation. NOT auto-granted: the owner assigns
+  // the finance role later (§6.2 open). See 20260903130000_tuition_settings_and_discounts.
+  | 'approve_discount'
+  | 'confirm_payment'
 export type { Scope }
 
 const perms = makeModulePermissions<FinancePrivilege>('finance')

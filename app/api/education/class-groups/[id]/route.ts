@@ -136,6 +136,7 @@ export async function PATCH(
       period_end?: string | null
       notes?: string | null
       is_active?: boolean
+      hours?: number | null
     }
 
     const sb = createServerClient()
@@ -183,7 +184,8 @@ export async function PATCH(
     if (body.is_active !== undefined) update.is_active = body.is_active
 
     const hasTranslations = body.name_he !== undefined || body.name_en !== undefined
-    if (Object.keys(update).length === 0 && !hasTranslations) {
+    const hasHours = body.hours !== undefined
+    if (Object.keys(update).length === 0 && !hasTranslations && !hasHours) {
       return apiError('no_changes', 400)
     }
 
@@ -208,6 +210,14 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: trErr } = await (sb as any).from('class_groups').update(tr).eq('id', params.id)
       if (trErr && trErr.code !== '42703') { /* столбца нет — ок */ }
+    }
+
+    // Часы курса (spec §3.6) — deploy-safe апдейт (нет столбца hours → тихо ок).
+    if (hasHours) {
+      const hrs = typeof body.hours === 'number' && body.hours >= 0 ? Math.round(body.hours) : null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: hErr } = await (sb as any).from('class_groups').update({ hours: hrs }).eq('id', params.id)
+      if (hErr && hErr.code !== '42703') throw hErr
     }
 
     const { data, error: reErr } = await sb

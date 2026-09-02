@@ -30,6 +30,22 @@ export type EducationPrivilege =
   | 'set_lesson_topics'
   | 'manage_communities'
   | 'write_evaluation'
+  // Institute-level study-track catalog CRUD (spec §3.2). NOT granted to kodesh/
+  // Chana — tracks are an institute concern (see 20260903100500_manage_tracks_privilege).
+  | 'manage_tracks'
+  // Judaism module Phase 2 (spec §2.1) — Rav Moshe's kodesh authorities
+  // (see 20260903110000_jewish_studies_rav_role).
+  | 'create_kodesh_course'
+  | 'approve_kodesh_teacher'
+  | 'set_teacher_quota'
+  | 'jewishness_initial_check'
+  // Final jewishness approval (Chana) — the two-step gate (spec §3.3,
+  // see 20260903140000_jewishness_two_step).
+  | 'jewishness_final_approve'
+  // Judaism module Phase 3 (spec §3.8/§4.4) — per-student alerts
+  // (see 20260903120000_student_alerts).
+  | 'manage_alerts'
+  | 'view_sensitive_alerts'
 
 export type { Scope }
 

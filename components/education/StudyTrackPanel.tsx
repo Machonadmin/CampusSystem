@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
 
 interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string; sort_order: number; years_count?: number }
+interface TrackRow { track_id: string; role?: string; notes?: string | null; year_level?: number; completed_at?: string | null }
 
 function trackName(tr: Track | undefined, lang: string): string {
   if (!tr) return ''
@@ -14,15 +16,16 @@ function trackName(tr: Track | undefined, lang: string): string {
 
 /**
  * Панель учебного маршрута на карточке студентки. Первая половина дня —
- * иудаизм для всех (инфо), вторая — выбираемый маршрут (Туро/Школа/Колледж) +
- * заметка для исключений. Editable под canEdit (manage_students). Не рендерит
- * ошибку, если таблиц ещё нет — просто «не задан».
+ * иудаизм для всех (кодеш). Вторая — ГЛАВНЫЙ маршрут (primary) + опциональные
+ * ДОПОЛНИТЕЛЬНЫЕ (additional, напр. Туро) — spec §3.2. Editable под canEdit
+ * (manage_students). Не рендерит ошибку, если таблиц ещё нет — просто «не задан».
  */
 export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: string; canEdit: boolean }) {
   const t = useTranslations('education')
   const { lang } = useLang()
 
   const [tracks, setTracks] = useState<Track[]>([])
+  const [rows, setRows] = useState<TrackRow[]>([])
   const [trackId, setTrackId] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
   const [yearLevel, setYearLevel] = useState(1)
@@ -30,6 +33,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
   const [reactivate, setReactivate] = useState(false)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [addTrackId, setAddTrackId] = useState('')
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
 
@@ -42,6 +46,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
       if (tr.ok) { const b = await tr.json(); setTracks(b.tracks ?? []) }
       if (cur.ok) {
         const b = await cur.json()
+        setRows(b.tracks ?? [])
         setTrackId(b.track?.track_id ?? null)
         setNotes(b.track?.notes ?? '')
         setYearLevel(b.track?.year_level ?? 1)
@@ -59,7 +64,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
       const res = await fetch(`/api/education/journeys/${journeyId}/track`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track_id: trackId, notes: notes.trim() || null, year_level: yearLevel, reactivate }),
+        body: JSON.stringify({ track_id: trackId, role: 'primary', notes: notes.trim() || null, year_level: yearLevel, reactivate }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('study_track.save_error')); return }
       setEditing(false)
@@ -70,11 +75,38 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
     }
   }
 
+  async function addAdditional() {
+    if (!addTrackId) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/education/journeys/${journeyId}/track`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ track_id: addTrackId, role: 'additional' }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; toast(d.error ?? t('study_track.save_error'), 'error'); return }
+      setAddTrackId('')
+      load()
+    } finally { setSaving(false) }
+  }
+
+  async function removeTrack(id: string) {
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/education/journeys/${journeyId}/track?track_id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; toast(d.error ?? t('study_track.save_error'), 'error'); return }
+      load()
+    } finally { setSaving(false) }
+  }
+
   if (!loaded) return null
 
   const current = tracks.find(x => x.id === trackId)
   const maxYears = Math.min(4, Math.max(1, current?.years_count ?? 4))
   const yearName = (n: number) => t(`study.subjects.year_${n}`)
+  const additional = rows.filter(r => (r.role ?? 'primary') === 'additional')
+  const additionalIds = new Set(additional.map(r => r.track_id))
+  const addable = tracks.filter(tr => tr.id !== trackId && !additionalIds.has(tr.id))
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
@@ -106,6 +138,22 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
               </span>
             )}
           </div>
+          {additional.length > 0 && (
+            <div style={{ fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--text-faint)' }}>{t('study_track.additional_label')}: </span>
+              {additional.map(r => {
+                const tr = tracks.find(x => x.id === r.track_id)
+                return (
+                  <span key={r.track_id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 999, padding: '2px 10px' }}>
+                    {trackName(tr, lang) || r.track_id}
+                    {canEdit && (
+                      <button onClick={() => removeTrack(r.track_id)} disabled={saving} aria-label={t('study_track.remove_additional')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+          )}
           {notes && (
             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               <span style={{ color: 'var(--text-faint)' }}>{t('study_track.notes_label')}: </span>{notes}
@@ -160,6 +208,34 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
               style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit' }}
             />
           </label>
+
+          {/* Дополнительные маршруты */}
+          <div style={{ display: 'grid', gap: 6, borderTop: '1px solid var(--surface-2)', paddingTop: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{t('study_track.additional_label')}</span>
+            {additional.map(r => {
+              const tr = tracks.find(x => x.id === r.track_id)
+              return (
+                <div key={r.track_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--text)' }}>{trackName(tr, lang) || r.track_id}</span>
+                  <button onClick={() => removeTrack(r.track_id)} disabled={saving} style={{ fontSize: 12, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {t('study_track.remove_additional')}
+                  </button>
+                </div>
+              )
+            })}
+            {addable.length > 0 && (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <select value={addTrackId} onChange={e => setAddTrackId(e.target.value)} style={{ flex: 1, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)' }}>
+                  <option value="">{t('study_track.add_additional_choose')}</option>
+                  {addable.map(tr => <option key={tr.id} value={tr.id}>{trackName(tr, lang)}</option>)}
+                </select>
+                <button onClick={addAdditional} disabled={saving || !addTrackId} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '7px 14px', cursor: addTrackId ? 'pointer' : 'default' }}>
+                  {t('study_track.add')}
+                </button>
+              </div>
+            )}
+          </div>
+
           {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={save} disabled={saving} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: saving ? 'default' : 'pointer' }}>

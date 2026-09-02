@@ -3,6 +3,8 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { isJewishnessStatus, setJewishnessStatus } from '@/lib/jewishness/status'
+import { canSetJewishnessStatus } from '@/lib/jewishness/two-step'
+import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefits'
 
 /**
@@ -23,6 +25,17 @@ export async function POST(request: NextRequest, { params }: { params: { journey
 
     const body = await request.json().catch(() => ({})) as { status?: string; note?: string }
     if (!isJewishnessStatus(body.status)) return apiError('invalid_reference', 400)
+
+    // Разделение полномочий משה⇄חנה (spec §3.3): initial_checked — только Moshe
+    // (jewishness_initial_check); verified (финал) — только Chana
+    // (jewishness_final_approve); rejected — любой из двух. Суперадмин — всегда.
+    const caps = {
+      isSuperadmin: session.principal !== 'student' && session.roles.includes('superadmin'),
+      hasAccess: true, // requireJewishnessAccess() уже прошёл
+      canInitialCheck: await hasEducationPrivilege(session, 'jewishness_initial_check'),
+      canFinalApprove: await hasEducationPrivilege(session, 'jewishness_final_approve'),
+    }
+    if (!canSetJewishnessStatus(body.status, caps)) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 

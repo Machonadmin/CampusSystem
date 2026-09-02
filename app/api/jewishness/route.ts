@@ -15,7 +15,7 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  */
 
 
-const STATUSES = ['pending', 'verified', 'rejected', 'needs_review', 'partial'] as const
+const STATUSES = ['pending', 'initial_checked', 'verified', 'rejected', 'needs_review', 'partial'] as const
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       if (jid) activeStage.add(jid)
     }
 
-    const counts: Record<string, number> = { pending: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 }
+    const counts: Record<string, number> = { pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 }
     let students = journeys.map(j => {
       const status = (STATUSES as readonly string[]).includes(j.jewishness_status as string)
         ? (j.jewishness_status as string) : 'pending'

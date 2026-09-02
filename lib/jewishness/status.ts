@@ -15,7 +15,9 @@ import { isMissingRelation } from '@/lib/supabase/errors'
  * функция тихо возвращает false (42703 undefined_column / 42P01 undefined_table).
  */
 
-export const JEWISHNESS_STATUSES = ['pending', 'verified', 'rejected', 'needs_review', 'partial'] as const
+// 'initial_checked' — промежуточный статус двухшаговой проверки (Moshe сделал
+// первичную проверку сканов, ждём финального одобрения Chana). См. spec §3.3.
+export const JEWISHNESS_STATUSES = ['pending', 'initial_checked', 'verified', 'rejected', 'needs_review', 'partial'] as const
 export type JewishnessStatus = (typeof JEWISHNESS_STATUSES)[number]
 
 export function isJewishnessStatus(s: unknown): s is JewishnessStatus {
@@ -50,18 +52,31 @@ export async function setJewishnessStatus(
 ): Promise<boolean> {
   const { journeyId, status, changedBy, source } = opts
   const note = opts.note?.trim() ? opts.note.trim().slice(0, 2000) : null
-  // 'partial' (אישור חלקי) — тоже решение офицера: фиксируем кто/когда.
+  const nowIso = new Date().toISOString()
+  // 'verified' (финал Chana), 'rejected', 'partial' — решение: фиксируем
+  // verified_by/at. 'initial_checked' (первичная проверка Moshe) — фиксируем
+  // ОТДЕЛЬНЫЕ actor-колонки, не трогая финальные.
   const decided = status === 'verified' || status === 'rejected' || status === 'partial'
+
+  // Базовый апдейт БЕЗ новых колонок (deploy-safe для старых статусов).
+  const update: Record<string, unknown> = {
+    jewishness_status: status,
+    jewishness_notes: note,
+  }
+  if (status === 'initial_checked') {
+    // Новые колонки нужны только для нового статуса (он и так требует миграцию).
+    update.jewishness_initial_checked_by = changedBy
+    update.jewishness_initial_checked_at = nowIso
+  } else {
+    update.jewishness_verified_by = decided ? changedBy : null
+    update.jewishness_verified_at = decided ? nowIso : null
+  }
 
   try {
     const { error } = await sb
       .from('education_journeys')
-      .update({
-        jewishness_status: status,
-        jewishness_verified_by: decided ? changedBy : null,
-        jewishness_verified_at: decided ? new Date().toISOString() : null,
-        jewishness_notes: note,
-      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(update as any)
       .eq('id', journeyId)
     if (error) {
       if (isMissingRelation(error)) return false

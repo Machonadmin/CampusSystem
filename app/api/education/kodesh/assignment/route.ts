@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
 
 /**
  * Доступ к управлению кодешем: глава кафедры (canManageUnit) ИЛИ менеджер с
@@ -40,32 +41,45 @@ export async function GET(_request: NextRequest) {
 
     const sb = createServerClient()
 
-    // Группы кодеша: активные class_groups кафедры иудаики (6 уровней).
-    let groups: Array<{ id: string; name: string; name_he: string | null; name_en: string | null }> = []
+    // Группы кодеша: активные class_groups кафедры иудаики (8 групп = 6 уровней,
+    // уровни 1–2 делятся на потоки school/university — spec §3.1). Сортируем по
+    // уровню, затем по потоку. Deploy-safe: нет колонок kodesh_level/kodesh_stream
+    // (42703, до миграции) → откат к сортировке по name_he.
+    type KGroup = { id: string; name: string; name_he: string | null; name_en: string | null; kodesh_level?: number | null; kodesh_stream?: string | null }
+    let groups: KGroup[] = []
     try {
-      const { data, error } = await sb
+      // Только УРОВНИ (רמות), а не курсы внутри них: курс — class_group с
+      // parent_semester_id ≠ NULL. Без этого новые курсы кодеша показались бы
+      // как уровни в дропдауне שיבוץ (и студентку можно было бы «шибуцнуть» в курс).
+      const baseFilter = (sel: string) => sb
         .from('class_groups')
-        .select('id, name, name_he, name_en')
+        .select(sel)
         .eq('department_id', KODESH_DEPT_ID)
         .eq('is_active', true)
-        // Только УРОВНИ (רמות), а не курсы внутри них: курс — class_group с
-        // parent_semester_id ≠ NULL. Без этого новые курсы кодеша показались бы
-        // как уровни в дропдауне שיבוץ (и студентку можно было бы «шибуцнуть» в курс).
         .is('parent_semester_id', null)
+      let { data, error } = await baseFilter('id, name, name_he, name_en, kodesh_level, kodesh_stream')
+        .order('kodesh_level', { nullsFirst: false })
+        .order('kodesh_stream', { nullsFirst: true })
         .order('name_he', { nullsFirst: false })
-        .order('name')
+      if (error && error.code === '42703') {
+        const fb = await baseFilter('id, name, name_he, name_en').order('name_he', { nullsFirst: false }).order('name')
+        data = fb.data; error = fb.error
+      }
       if (error) throw error
-      groups = (data ?? []) as Array<{ id: string; name: string; name_he: string | null; name_en: string | null }>
+      groups = (data ?? []) as unknown as KGroup[]
     } catch (e) {
       if ((e as { code?: string }).code !== '42P01') throw e
     }
     const kodeshGroupIds = new Set(groups.map(g => g.id))
 
-    // Все студентки (education_status='student').
+    // Ворота (spec §3.3): в список шибуца кодеша попадают ТОЛЬКО студентки с
+    // финально одобренным еврейством (jewishness_status='verified') И завершённым
+    // приёмом (education_status='student').
     const { data: journeysRaw, error: jErr } = await sb
       .from('education_journeys')
       .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name), department:departments!education_journeys_primary_department_id_fkey(id, name)')
       .eq('education_status', 'student')
+      .eq('jewishness_status', JEWISHNESS_FINAL_APPROVED)
     if (jErr) throw jErr
     const journeys = (journeysRaw ?? []) as unknown as Array<{
       id: string
@@ -154,15 +168,30 @@ export async function PUT(request: NextRequest) {
       if (delErr) throw delErr
     }
 
-    // Назначить новую группу (идемпотентно).
+    // Назначить новую группу (идемпотентно). Ручное назначение = подтверждено
+    // Ханой (spec §3.5): assignment_status='active' + approved_by/at. Deploy-safe:
+    // нет колонок (42703, до миграции) → повторяем upsert без них.
     if (groupId !== null) {
-      const { error: insErr } = await sb
-        .from('class_enrollments')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .upsert({ journey_id: journeyId, class_group_id: groupId } as any, {
-          onConflict: 'journey_id,class_group_id',
-          ignoreDuplicates: true,
-        })
+      const nowIso = new Date().toISOString()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let { error: insErr } = await (sb.from('class_enrollments') as any)
+        .upsert({
+          journey_id: journeyId,
+          class_group_id: groupId,
+          assignment_status: 'active',
+          approved_by: session.person_id,
+          approved_at: nowIso,
+        }, { onConflict: 'journey_id,class_group_id', ignoreDuplicates: false })
+      if (insErr && insErr.code === '42703') {
+        const retry = await sb
+          .from('class_enrollments')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .upsert({ journey_id: journeyId, class_group_id: groupId } as any, {
+            onConflict: 'journey_id,class_group_id',
+            ignoreDuplicates: true,
+          })
+        insErr = retry.error
+      }
       if (insErr) {
         if (insErr.code === '23503') return apiError('invalid_reference', 400)
         throw insErr

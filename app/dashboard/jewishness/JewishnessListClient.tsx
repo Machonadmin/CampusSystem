@@ -10,7 +10,7 @@ import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 
-type Status = 'pending' | 'verified' | 'rejected' | 'needs_review' | 'partial'
+type Status = 'pending' | 'initial_checked' | 'verified' | 'rejected' | 'needs_review' | 'partial'
 
 interface ListStudent {
   journey_id: string
@@ -23,7 +23,7 @@ interface ListStudent {
   doc_count: number
   has_active_stage: boolean
 }
-interface Counts { pending: number; verified: number; rejected: number; needs_review: number; partial: number }
+interface Counts { pending: number; initial_checked: number; verified: number; rejected: number; needs_review: number; partial: number }
 
 interface DetailDoc { id: string; doc_type: string; title: string | null; file_name: string | null; created_at: string }
 interface HistoryItem { status: string; note: string | null; source: string | null; created_at: string; changed_by_name: string | null }
@@ -35,6 +35,10 @@ interface Detail {
   notes: string | null
   verified_by_name: string | null
   verified_at: string | null
+  can_initial_check: boolean
+  can_final_approve: boolean
+  initial_checked_by_name: string | null
+  initial_checked_at: string | null
   history: HistoryItem[]
   documents: DetailDoc[]
   active_stage_instance_id: string | null
@@ -46,6 +50,7 @@ interface Detail {
 function statusColors(s: string): { bg: string; fg: string } {
   switch (s) {
     case 'verified': return { bg: 'var(--success-tint)', fg: 'var(--success)' }
+    case 'initial_checked': return { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' }
     case 'partial': return { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' }
     case 'rejected': return { bg: 'var(--danger-tint)', fg: 'var(--danger)' }
     case 'needs_review': return { bg: 'var(--warn-tint)', fg: 'var(--warn)' }
@@ -76,7 +81,7 @@ export default function JewishnessListClient() {
   const primary = getModuleColor('jewishness', 'primary')
 
   const [students, setStudents] = useState<ListStudent[]>([])
-  const [counts, setCounts] = useState<Counts>({ pending: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
+  const [counts, setCounts] = useState<Counts>({ pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
   const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -103,7 +108,7 @@ export default function JewishnessListClient() {
       if (!res.ok) { setError(t('load_error')); setStudents([]); return }
       const b = await res.json()
       setStudents(b.students ?? [])
-      setCounts(b.counts ?? { pending: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
+      setCounts(b.counts ?? { pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
       setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
     } catch {
       setError(t('load_error'))
@@ -114,13 +119,14 @@ export default function JewishnessListClient() {
 
   useEffect(() => { load() }, [load])
 
-  const total = counts.pending + counts.verified + counts.partial + counts.rejected + counts.needs_review
+  const total = counts.pending + counts.initial_checked + counts.verified + counts.partial + counts.rejected + counts.needs_review
   // Owner: чип с нулём — шум, скрываем (кроме «всех» и активного фильтра, чтобы
   // с него можно было сойти). «partial» больше не назначается решениями — чип
   // показываем только если такие записи ещё остались.
   const chips: Array<{ key: Status | 'all'; label: string; count: number }> = ([
     { key: 'all' as const, label: t('filter_all'), count: total },
     { key: 'pending' as const, label: t('status_pending'), count: counts.pending },
+    { key: 'initial_checked' as const, label: t('status_initial_checked'), count: counts.initial_checked },
     { key: 'verified' as const, label: t('status_verified'), count: counts.verified },
     { key: 'partial' as const, label: t('status_partial'), count: counts.partial },
     { key: 'rejected' as const, label: t('status_rejected'), count: counts.rejected },
@@ -350,10 +356,13 @@ function DetailBody({
           <StatusBadge status={detail.status} label={t(`status_${detail.status}`)} />
         </div>
         <div style={{ marginTop: 8, display: 'grid', gap: 4 }}>
-          {detail.verified_by_name && <Field label={t('decided_by')} value={detail.verified_by_name} />}
+          {detail.initial_checked_by_name && <Field label={t('initial_checked_by')} value={detail.initial_checked_by_name} />}
+          {detail.initial_checked_at && <Field label={t('initial_checked_at')} value={fmtDateTime(detail.initial_checked_at)} />}
+          {detail.verified_by_name && <Field label={t('final_decided_by')} value={detail.verified_by_name} />}
           {detail.verified_at && <Field label={t('decided_at')} value={fmtDateTime(detail.verified_at)} />}
           {detail.notes && <Field label={t('notes_label')} value={detail.notes} />}
         </div>
+        <TwoStepActions detail={detail} primary={primary} reload={reload} />
       </Section>
 
       {/* Документы + загрузка */}
@@ -627,6 +636,57 @@ function AcceptanceDecisionSection({
         </div>
       )}
     </Section>
+  )
+}
+
+/**
+ * Двухшаговые действия (spec §3.3): Moshe — «первичная проверка» (→ initial_checked),
+ * Chana — «финальное одобрение» (→ verified). Кнопки показываются по полномочиям,
+ * присланным сервером (can_initial_check / can_final_approve). Сервер повторно
+ * проверяет разделение полномочий.
+ */
+function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: string; reload: () => Promise<void> }) {
+  const t = useTranslations('jewishness')
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+
+  const setStatus = async (status: string) => {
+    setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/jewishness/journeys/${detail.journey_id}/status`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, note: note.trim() || undefined }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('action_failed')); return }
+      setNote(''); await reload()
+    } finally { setBusy(false) }
+  }
+
+  const s = detail.status
+  const showInitial = detail.can_initial_check && s !== 'verified' && s !== 'initial_checked' && s !== 'rejected'
+  const showFinal = detail.can_final_approve && s !== 'verified'
+  const showReject = (detail.can_initial_check || detail.can_final_approve) && s !== 'verified' && s !== 'rejected'
+  if (!showInitial && !showFinal && !showReject) return null
+
+  const btn = (bg: string, outline = false): React.CSSProperties => ({
+    fontSize: 13, fontWeight: 600, borderRadius: 8, padding: '8px 16px', cursor: busy ? 'default' : 'pointer',
+    color: outline ? bg : '#fff', background: outline ? 'var(--surface)' : bg,
+    border: outline ? `1px solid ${bg}` : 'none', opacity: busy ? 0.6 : 1,
+  })
+
+  return (
+    <div style={{ marginTop: 12, display: 'grid', gap: 8, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('two_step_help')}</div>
+      <input value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
+        style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {showInitial && <button onClick={() => setStatus('initial_checked')} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
+        {showFinal && <button onClick={() => setStatus('verified')} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
+        {showReject && <button onClick={() => setStatus('rejected')} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
+      </div>
+      {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
+    </div>
   )
 }
 

@@ -1750,6 +1750,7 @@ export interface StudyTrackRow {
   name_ru:       string
   name_en:       string
   department_id: string | null
+  category:      string | null
   years_count:   number
   sort_order:    number
   is_active:     boolean
@@ -1758,18 +1759,24 @@ export interface StudyTrackRow {
 export type StudyTrackInsert = Omit<StudyTrackRow, 'id' | 'created_at'>
 export type StudyTrackUpdate = Partial<StudyTrackInsert>
 
+export type StudyTrackRole = 'primary' | 'additional'
 export interface JourneyStudyTrackRow {
-  journey_id: string
-  track_id:   string | null
-  notes:      string | null
-  updated_by: string | null
-  updated_at: string
+  journey_id:   string
+  track_id:     string
+  role:         StudyTrackRole
+  notes:        string | null
+  year_level:   number
+  completed_at: string | null
+  updated_by:   string | null
+  updated_at:   string
 }
 export interface JourneyStudyTrackInsert {
-  journey_id: string
-  track_id?:  string | null
-  notes?:     string | null
-  updated_by?: string | null
+  journey_id:   string
+  track_id:     string
+  role?:        StudyTrackRole
+  notes?:       string | null
+  year_level?:  number
+  updated_by?:  string | null
 }
 export type JourneyStudyTrackUpdate = Partial<Omit<JourneyStudyTrackInsert, 'journey_id'>>
 

@@ -7,12 +7,13 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import PeriodSelector from '@/components/education/PeriodSelector'
 
 // Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
 // расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
 const GEN_ALL_FROZEN = true
 
-interface Group { id: string; name: string; name_he?: string | null; name_en?: string | null }
+interface Group { id: string; name: string; name_he?: string | null; name_en?: string | null; kodesh_level?: number | null; kodesh_stream?: string | null }
 interface Student {
   journey_id: string
   name: string
@@ -40,6 +41,17 @@ export default function KodeshAssignmentPage() {
   const [levelFilter, setLevelFilter] = useState<string>(() => searchParams.get('level') ?? '')
   const [genBusy, setGenBusy] = useState(false)
   const [genMsg, setGenMsg] = useState<string | null>(null)
+  // Инлайн-переименование уровней/групп кодеша (spec §3.1 — имена редактируемы).
+  const [manageLevels, setManageLevels] = useState(false)
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  // Read-only при выборе ПРОШЕДШЕГО периода (spec §4.11).
+  const [periodReadOnly, setPeriodReadOnly] = useState(false)
+  // Предложения шибуца (spec §3.5): journey_id → предлагаемая группа.
+  const [suggestMode, setSuggestMode] = useState<'continue_semester' | 'advance_year' | null>(null)
+  const [suggestBusy, setSuggestBusy] = useState(false)
+  const [suggestions, setSuggestions] = useState<Map<string, { group_id: string | null; group_name: string | null; reason: string }>>(new Map())
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null); setNoAccess(false)
@@ -110,6 +122,43 @@ export default function KodeshAssignmentPage() {
       .replace('{created}', String(created)).replace('{skipped}', String(skipped)).replace('{failed}', String(failed)))
   }
 
+  const loadSuggestions = async (mode: 'continue_semester' | 'advance_year') => {
+    setSuggestBusy(true); setErr(null)
+    try {
+      const res = await fetch(`/api/education/kodesh/suggest?mode=${mode}`)
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
+      const b = await res.json()
+      const m = new Map<string, { group_id: string | null; group_name: string | null; reason: string }>()
+      for (const s of (b.suggestions ?? []) as Array<{ journey_id: string; suggested_group_id: string | null; suggested_group_name: string | null; reason: string }>) {
+        m.set(s.journey_id, { group_id: s.suggested_group_id, group_name: s.suggested_group_name, reason: s.reason })
+      }
+      setSuggestions(m); setSuggestMode(mode)
+    } finally { setSuggestBusy(false) }
+  }
+
+  const renameGroup = async (g: Group) => {
+    const name = editName.trim()
+    if (!name) { setEditingGroupId(null); return }
+    setSavingName(true); setErr(null)
+    try {
+      const res = await fetch(`/api/education/class-groups/${g.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name_he: name }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
+      setGroups(list => list.map(x => x.id === g.id ? { ...x, name_he: name } : x))
+      setEditingGroupId(null)
+    } catch { setErr(t('save_failed')) }
+    finally { setSavingName(false) }
+  }
+
+  const suggestBtn = (active: boolean): React.CSSProperties => ({
+    fontSize: 12, fontWeight: active ? 700 : 600, padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+    border: `1px solid ${active ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+    background: active ? 'var(--accent-tint)' : 'var(--surface)',
+    color: active ? 'var(--accent-strong)' : 'var(--text-muted)',
+  })
+
   if (noAccess) {
     return (
       <div className="p-6 space-y-5">
@@ -133,7 +182,55 @@ export default function KodeshAssignmentPage() {
 
       <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
+      <PeriodSelector onChange={s => setPeriodReadOnly(s.readOnly)} />
+
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
+
+      {!loading && groups.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => { setManageLevels(v => !v); setEditingGroupId(null) }}
+            style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
+            {manageLevels ? t('levels_hide') : t('levels_manage')}
+          </button>
+          {manageLevels && (
+            <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
+              {groups.map((g, i) => (
+                <div key={g.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '9px 12px', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                  {editingGroupId === g.id ? (
+                    <>
+                      <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        dir="rtl"
+                        autoFocus
+                        onKeyDown={e => { if (e.key === 'Enter') renameGroup(g); if (e.key === 'Escape') setEditingGroupId(null) }}
+                        style={{ flex: 1, fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}
+                      />
+                      <button onClick={() => renameGroup(g)} disabled={savingName} style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('levels_save')}</button>
+                      <button onClick={() => setEditingGroupId(null)} disabled={savingName} style={{ fontSize: 14, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{gname(g)}</span>
+                      {!periodReadOnly && (
+                        <button
+                          onClick={() => { setEditingGroupId(g.id); setEditName(g.name_he || g.name) }}
+                          style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                          {t('levels_rename')}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <SkeletonRows rows={6} />
@@ -194,6 +291,18 @@ export default function KodeshAssignmentPage() {
             <div style={{ padding: '9px 13px', background: 'var(--surface-2)', borderRadius: 8, fontSize: 13, color: 'var(--text)' }}>{genMsg}</div>
           )}
 
+          {/* Предложения шибуца (spec §3.5) — система предлагает, Chana подтверждает. */}
+          {!periodReadOnly && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 12.5 }}>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{t('suggest_label')}</span>
+              <button disabled={suggestBusy} onClick={() => loadSuggestions('continue_semester')} style={suggestBtn(suggestMode === 'continue_semester')}>{t('suggest_continue')}</button>
+              <button disabled={suggestBusy} onClick={() => loadSuggestions('advance_year')} style={suggestBtn(suggestMode === 'advance_year')}>{t('suggest_advance')}</button>
+              {suggestMode && (
+                <button onClick={() => { setSuggestMode(null); setSuggestions(new Map()) }} style={{ fontSize: 12, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>{t('suggest_clear')}</button>
+              )}
+            </div>
+          )}
+
           <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>
               <div style={{ flex: 1, minWidth: 160 }}>{t('student_col')}</div>
@@ -211,7 +320,7 @@ export default function KodeshAssignmentPage() {
                   </div>
                   <select
                     value={s.kodesh_group_id ?? ''}
-                    disabled={busyId === s.journey_id}
+                    disabled={busyId === s.journey_id || periodReadOnly}
                     onChange={e => assign(s.journey_id, e.target.value)}
                     style={{
                       minWidth: 180, padding: '7px 10px', fontSize: 13, borderRadius: 8,
@@ -223,6 +332,20 @@ export default function KodeshAssignmentPage() {
                     <option value="">{t('unassigned_option')}</option>
                     {groups.map(g => <option key={g.id} value={g.id}>{gname(g)}</option>)}
                   </select>
+                  {(() => {
+                    const sug = suggestions.get(s.journey_id)
+                    if (!sug || periodReadOnly) return null
+                    if (sug.reason === 'graduated') {
+                      return <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--success)', background: 'var(--success-tint)', borderRadius: 999, padding: '2px 10px' }}>{t('suggest_graduated')}</span>
+                    }
+                    if (!sug.group_id || sug.group_id === s.kodesh_group_id) return null
+                    return (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11.5, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 999, padding: '2px 10px' }}>{t('suggest_chip')}: {sug.group_name}</span>
+                        <button disabled={busyId === s.journey_id} onClick={() => assign(s.journey_id, sug.group_id!)} style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none', borderRadius: 7, padding: '4px 12px', cursor: 'pointer' }}>{t('suggest_approve')}</button>
+                      </span>
+                    )
+                  })()}
                 </div>
               )
             })}

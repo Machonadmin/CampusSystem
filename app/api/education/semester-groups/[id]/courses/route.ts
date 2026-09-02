@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 /**
  * Курсы внутри семестра. Курс = class_groups, у которого parent_semester_id
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       subject_id?: string | null
       teacher_ids?: string[]
       student_journey_ids?: string[]
+      hours?: number | null
     }
     const name = body.name?.trim()
     if (!name) return apiError('title_required', 400)
@@ -90,7 +92,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const dept = await semesterDept(sb, params.id)
     if (!dept) return apiError('not_found', 404)
 
-    const session = await requireEducationPrivilege('manage_class_groups', { department_id: dept })
+    // Создание КУРСА КОДЕША ограничено ролью משה (create_kodesh_course, spec §4.6);
+    // курсы других подразделений — как раньше, по manage_class_groups.
+    const session = dept === KODESH_DEPT_ID
+      ? await requireEducationPrivilege('create_kodesh_course', { department_id: dept })
+      : await requireEducationPrivilege('manage_class_groups', { department_id: dept })
+
+    // Часы курса (spec §3.6) — deploy-safe: если колонки hours ещё нет, апдейт
+    // ниже это проглотит.
+    const hours = typeof body.hours === 'number' && body.hours >= 0 ? Math.round(body.hours) : null
 
     // Вставка курса (class_groups с parent_semester_id). Деплой-безопасно: без
     // колонки → 503 «примените миграцию».
@@ -111,6 +121,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       throw ins.error
     }
     const courseId = ins.data.id as string
+
+    // Часы курса — отдельным deploy-safe апдейтом (колонка hours могла ещё не
+    // мигрировать → 42703 тихо игнорируется).
+    if (hours !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: hErr } = await (sb as any).from('class_groups').update({ hours }).eq('id', courseId)
+      if (hErr && hErr.code !== '42703') throw hErr
+    }
 
     // Преподаватели.
     const teacherIds = Array.from(new Set((body.teacher_ids ?? []).filter(Boolean)))

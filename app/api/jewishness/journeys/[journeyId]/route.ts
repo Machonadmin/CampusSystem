@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
+import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
 /**
@@ -16,7 +17,7 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  */
 export async function GET(_request: NextRequest, { params }: { params: { journeyId: string } }) {
   try {
-    await requireJewishnessAccess()
+    const session = await requireJewishnessAccess()
     const sb = createServerClient()
 
     const { data: journey, error: jErr } = await sb
@@ -31,13 +32,22 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
       person: { id?: string; full_name?: string | null; hebrew_name?: string | null; email?: string | null; phones?: unknown; photo_url?: string | null } | null
     }
 
-    // Имя того, кто решил.
+    // Имя того, кто решил (финал — Chana).
     let verifiedByName: string | null = null
     const verifiedBy = (j.jewishness_verified_by as string | null) ?? null
     if (verifiedBy) {
       const { data: p } = await sb.from('persons').select('full_name, hebrew_name').eq('id', verifiedBy).maybeSingle()
       const pp = p as { full_name: string | null; hebrew_name: string | null } | null
       verifiedByName = (pp?.hebrew_name || pp?.full_name || '').trim() || null
+    }
+    // Имя того, кто сделал первичную проверку (Moshe) — spec §3.3. Колонка может
+    // ещё не быть мигрирована → просто null.
+    let initialCheckedByName: string | null = null
+    const initialCheckedBy = (j.jewishness_initial_checked_by as string | null) ?? null
+    if (initialCheckedBy) {
+      const { data: p } = await sb.from('persons').select('full_name, hebrew_name').eq('id', initialCheckedBy).maybeSingle()
+      const pp = p as { full_name: string | null; hebrew_name: string | null } | null
+      initialCheckedByName = (pp?.hebrew_name || pp?.full_name || '').trim() || null
     }
 
     // История (append-only). Деплой-безопасно к отсутствию таблицы.
@@ -100,8 +110,17 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
 
     const signature_method = await getSignatureMethod()
 
+    // Полномочия текущего пользователя для двухшаговой проверки (spec §3.3).
+    const isSuper = session.principal !== 'student' && session.roles.includes('superadmin')
+    const can_initial_check = isSuper || await hasEducationPrivilege(session, 'jewishness_initial_check')
+    const can_final_approve = isSuper || await hasEducationPrivilege(session, 'jewishness_final_approve')
+
     return NextResponse.json({
       journey_id: params.journeyId,
+      can_initial_check,
+      can_final_approve,
+      initial_checked_by_name: initialCheckedByName,
+      initial_checked_at: (j.jewishness_initial_checked_at as string | null) ?? null,
       applicant: {
         person_id: j.person?.id ?? null,
         full_name: j.person?.full_name ?? '',

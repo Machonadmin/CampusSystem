@@ -416,6 +416,15 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
     // который появляется ровно тогда, когда есть кого распределять.
     { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
+    // Модуль иудаики (Phase 1/2/3). Экраны сами гейтят действия на API (fail-closed),
+    // поэтому карточки без acc (структурные пункты рельса) — всегда видны.
+    { key: 'launch_kodesh_home', fb: 'בית מחלקת יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home' },
+    { key: 'launch_kodesh_courses', fb: 'קורסי קודש', icon: LIC.cap, href: '/dashboard/education/kodesh-courses' },
+    { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav' },
+    { key: 'launch_track_catalog', fb: 'מסלולי לימוד', icon: LIC.map, href: '/dashboard/education/tracks' },
+    { key: 'launch_no_lesson_days', fb: 'ימים ללא לימודים', icon: LIC.cal, href: '/dashboard/education/no-lesson-days' },
+    { key: 'launch_student_alerts', fb: 'התראות ומשימות', icon: LIC.alert, href: '/dashboard/education/alerts' },
+    { key: 'launch_finance_admin', fb: 'כספים והנחות', icon: LIC.cog, href: '/dashboard/education/finance-admin' },
     // Объединённая «מורים» (часы + посещаемость) вместо двух карточек.
     { key: 'launch_teachers', fb: 'מורים', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
     { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
