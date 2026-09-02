@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
     const session = await requireAuth()
     const ok = await canDoEducationInAny(session, 'view_leads')
     if (!ok) return apiError('forbidden', 403)
+    // Область: лиды НЕ фильтруются по подразделению — намеренно (решение владельца).
+    // Лид ещё не привязан к מחלקה; распределение/сегментация происходит только
+    // когда он становится студенткой (там уже действует scope по подразделению).
     const sb = createServerClient()
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
