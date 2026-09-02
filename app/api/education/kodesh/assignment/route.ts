@@ -34,6 +34,10 @@ export async function GET(_request: NextRequest) {
         .select('id, name, name_he, name_en')
         .eq('department_id', KODESH_DEPT_ID)
         .eq('is_active', true)
+        // Только УРОВНИ (רמות), а не курсы внутри них: курс — class_group с
+        // parent_semester_id ≠ NULL. Без этого новые курсы кодеша показались бы
+        // как уровни в дропдауне שיבוץ (и студентку можно было бы «шибуцнуть» в курс).
+        .is('parent_semester_id', null)
         .order('name_he', { nullsFirst: false })
         .order('name')
       if (error) throw error
@@ -112,11 +116,13 @@ export async function PUT(request: NextRequest) {
 
     const sb = createServerClient()
 
-    // Все активные группы кодеша (для валидации целевой и для очистки).
+    // Все активные УРОВНИ кодеша (для валидации целевой и для очистки). Только
+    // уровни (parent_semester_id NULL) — курсы внутри уровня не являются целью шибуца.
     const { data: kgRaw, error: kgErr } = await sb
       .from('class_groups')
       .select('id')
       .eq('department_id', KODESH_DEPT_ID)
+      .is('parent_semester_id', null)
     if (kgErr) throw kgErr
     const kodeshGroupIds = (kgRaw ?? []).map(g => g.id)
 

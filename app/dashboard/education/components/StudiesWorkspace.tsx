@@ -327,7 +327,7 @@ export default function StudiesWorkspace() {
                         {kodeshLevels.map(l => (
                           <Card key={l.id} title={levelLabel(l, lang)}
                             sub={t('workspace.count_students').replace('{n}', String(l.count))}
-                            icon={ICON_KODESH} onClick={() => router.push(`/dashboard/education/kodesh?level=${l.id}`)} />
+                            icon={ICON_KODESH} onClick={() => setOpenSem({ id: l.id, name: levelLabel(l, lang) })} />
                         ))}
                       </Grid>}
                 </div>

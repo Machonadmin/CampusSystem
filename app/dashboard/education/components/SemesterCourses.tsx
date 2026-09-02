@@ -7,6 +7,8 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import CourseModal from './CourseModal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { toastError } from '@/components/ui/toast'
 
 // Курсы внутри семестра. Курс = class_group (parent_semester_id = семестр);
 // его уроки/расписание/оценки живут на существующей карточке класс-группы.
@@ -50,6 +52,18 @@ export default function SemesterCourses({ semesterId, semesterName }: { semester
 
   useEffect(() => { load() }, [load])
 
+  async function deleteCourse(c: Course) {
+    if (!(await confirmDialog({ message: t('courses.delete_confirm').replace('{name}', c.name), tone: 'danger' }))) return
+    try {
+      const res = await fetch(`/api/education/class-groups/${c.id}`, { method: 'DELETE' })
+      if (res.ok) { load(); return }
+      const b = await res.json().catch(() => ({}))
+      toastError(b.error ?? t('courses.delete')) // 409: «есть записанные студенты» приходит текстом
+    } catch {
+      toastError(t('courses.delete'))
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
@@ -79,13 +93,22 @@ export default function SemesterCourses({ semesterId, semesterName }: { semester
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => router.push(`/dashboard/education/class-groups/${c.id}`)}
-                style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
-                {t('courses.open')}
-              </button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/dashboard/education/class-groups/${c.id}`)}
+                  style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {t('courses.open')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteCourse(c)}
+                  style={{ padding: '6px 12px', fontSize: 12.5, fontWeight: 600, color: 'var(--danger)', background: 'none', border: '1px solid var(--danger)', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {t('courses.delete')}
+                </button>
+              </div>
             </div>
           ))}
         </div>
