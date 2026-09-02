@@ -295,7 +295,7 @@ export default function RecruitmentTab() {
                   >
                     {label}
                     {key && sortBy === key && (
-                      <span style={{ marginLeft: 4 }}>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                      <span style={{ marginInlineStart: 4 }}>{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </th>
                 ))}

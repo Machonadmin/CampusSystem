@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
@@ -143,7 +143,12 @@ export default function CalendarClient() {
 
   // ─── Загрузка данных ────────────────────────────────────────────────────────
 
+  // Защита от гонки: при быстрой навигации (нед./мес.) медленный ранний ответ
+  // не должен перезаписать более свежий диапазон. Коммитим только последний load.
+  const loadGenRef = useRef(0)
   const load = useCallback(async () => {
+    const myGen = ++loadGenRef.current
+    const stale = () => loadGenRef.current !== myGen
     setLoading(true); setError(null)
     try {
       const qs = `from=${range.from}&to=${range.to}`
@@ -155,12 +160,15 @@ export default function CalendarClient() {
         fetch(`/api/calendar/schedule?${qs}`),
         fetch(`/api/calendar/events?${qs}`),
       ])
+      if (stale()) return
       if (!aRes.ok) {
         const b = await aRes.json().catch(() => ({}))
+        if (stale()) return
         setError(b.error ?? t('load_error'))
         setAppointments([]); setBlocks([]); setLessons([]); setTasks([]); setSlots([]); return
       }
       const aBody = await aRes.json()
+      if (stale()) return
       setAppointments(aBody.appointments ?? [])
       if (bRes.ok) {
         const bBody = await bRes.json()
@@ -193,9 +201,9 @@ export default function CalendarClient() {
         setCalEvents([])
       }
     } catch {
-      setError(t('load_error'))
+      if (!stale()) setError(t('load_error'))
     } finally {
-      setLoading(false)
+      if (!stale()) setLoading(false)
     }
   }, [range.from, range.to, t])
 

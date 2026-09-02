@@ -241,7 +241,10 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role_id: roleId, privileges }),
           })
-          if (!pr.ok) { const b = await pr.json().catch(() => ({})); toastError(b.error ?? t('err_privs')) }
+          // Права не сохранились → останавливаем мастер: иначе создалась бы роль
+          // без прав, а мастер отрапортовал бы «готово» (пользователь не поймёт,
+          // что новый сотрудник вошёл бы в пустой экран).
+          if (!pr.ok) { const b = await pr.json().catch(() => ({})); toastError(b.error ?? t('err_privs')); setBusy(false); return }
         }
       }
 

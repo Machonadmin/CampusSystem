@@ -24,6 +24,7 @@ interface StudentOpt { journey_id: string; full_name: string }
 export default function AbsencesClient() {
   const t = useTranslations('education.absences')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [items, setItems] = useState<Case[]>([])
@@ -31,6 +32,7 @@ export default function AbsencesClient() {
   const [canManage, setCanManage] = useState(false)
   const [filter, setFilter] = useState<StatusFilter>('open')
   const [loaded, setLoaded] = useState(false)
+  const [loadErr, setLoadErr] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
 
   // Форма создания
@@ -49,8 +51,12 @@ export default function AbsencesClient() {
 
   const load = useCallback(async () => {
     const qs = filter === 'all' ? '' : `?status=${filter}`
+    setLoadErr(false)
     const d = await fetch(`/api/education/absences${qs}`).then(r => r.ok ? r.json() : null).catch(() => null)
+    // null = сеть/HTTP упали: показываем «ошибка загрузки», а не пустой список
+    // (иначе «сломано» неотличимо от «нет пропусков»).
     if (d) { setItems(d.items ?? []); setDepartments(d.departments ?? []); setCanManage(!!d.can_manage) }
+    else setLoadErr(true)
     setLoaded(true)
   }, [filter])
   useEffect(() => { load() }, [load])
@@ -164,6 +170,10 @@ export default function AbsencesClient() {
 
       {!loaded ? (
         <SkeletonRows />
+      ) : loadErr ? (
+        <div style={{ padding: '14px 16px', background: 'var(--danger-tint)', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 10, fontSize: 13, textAlign: 'center' }}>
+          {tCommon('load_error')}
+        </div>
       ) : items.length === 0 ? (
         <EmptyState text={t('empty')} />
       ) : (

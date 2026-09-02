@@ -136,7 +136,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('section_title')}
-          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginInlineStart: 6, fontSize: 13 }}>
             ({lessons.length})
           </span>
         </h2>
@@ -190,7 +190,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
                         <span>{lesson.topic || '—'}</span>
                         {lesson.is_cancelled && (
                           <span style={{
-                            marginLeft: 8, fontSize: 11, padding: '2px 7px', borderRadius: 99,
+                            marginInlineStart: 8, fontSize: 11, padding: '2px 7px', borderRadius: 99,
                             fontWeight: 500, background: 'var(--surface-2)', color: 'var(--text-muted)',
                           }}>
                             {t('cancelled_badge')}

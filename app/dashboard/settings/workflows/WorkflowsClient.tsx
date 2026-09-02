@@ -291,7 +291,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.is_positive ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }} />
                                 <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{f.name_ru}</span>
                                 <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{f.code}</span>
-                                {f.closes_process && <span style={{ fontSize: 10.5, fontWeight: 600, color: '#9A3412', background: '#FFF7ED', padding: '1px 6px', borderRadius: 5 }}>{t('f_closes_process')}{f.process_finish_reason ? `: ${f.process_finish_reason}` : ''}</span>}
+                                {f.closes_process && <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', padding: '1px 6px', borderRadius: 5 }}>{t('f_closes_process')}{f.process_finish_reason ? `: ${f.process_finish_reason}` : ''}</span>}
                                 {canEdit && (
                                   <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                                     <button onClick={() => setFinalModal({ stageId: s.id, final: f })} style={{ ...btnGhost, padding: '2px 8px', fontSize: 11.5 }}>{tCommon('edit')}</button>

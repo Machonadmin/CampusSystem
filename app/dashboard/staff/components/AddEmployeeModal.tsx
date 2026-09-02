@@ -12,6 +12,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { Lang } from '@/lib/i18n/translations'
+import { localISODate } from '@/lib/dates'
 
 interface Department {
   id: string
@@ -195,6 +196,7 @@ export default function AddEmployeeModal({
     fetch('/api/settings/departments')
       .then(r => r.ok ? r.json() : [])
       .then((d: Department[]) => setDepartments(flattenTree(d, lang)))
+      .catch(() => {})
     fetch('/api/settings/positions?active_only=true')
       .then(r => r.ok ? r.json() : { positions: [] })
       .then((d: { positions?: PositionOption[] }) => setPositions(d.positions ?? []))
@@ -210,12 +212,15 @@ export default function AddEmployeeModal({
     if (query.length < 2) { setResults([]); return }
     clearTimeout(timerRef.current)
     setSearching(true)
+    let alive = true // защита от гонки: медленный ранний ответ не перезапишет свежий
     timerRef.current = setTimeout(async () => {
-      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(query)}`)
-      if (res.ok) setResults(await res.json())
-      setSearching(false)
+      try {
+        const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(query)}`)
+        if (alive && res.ok) setResults(await res.json())
+      } catch { /* сеть упала — оставляем прежние результаты */ }
+      finally { if (alive) setSearching(false) }
     }, 300)
-    return () => clearTimeout(timerRef.current)
+    return () => { alive = false; clearTimeout(timerRef.current) }
   }, [query])
 
   function resetFields() {
@@ -317,7 +322,7 @@ export default function AddEmployeeModal({
         gender: gender || null,
         email: email.trim() || null,
         phones: validPhones,
-        birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+        birth_date: birthDate ? localISODate(birthDate) : null,
         marital_status: maritalStatus || null,
         citizenship: citizenship.trim() || null,
         address: { country, city, street, house, apartment, postal_code: postalCode },
@@ -354,7 +359,7 @@ export default function AddEmployeeModal({
       const body: Record<string, unknown> = {
         department_id: departmentId,
         position_id: positionId,
-        hire_date: hireDate ? hireDate.toISOString().split('T')[0] : '',
+        hire_date: hireDate ? localISODate(hireDate) : '',
         employment_type: employmentType,
       }
 
@@ -372,7 +377,7 @@ export default function AddEmployeeModal({
         if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
         if (gender) body.gender = gender
-        if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
+        if (birthDate) body.birth_date = localISODate(birthDate)
         if (hebrewName) body.hebrew_name = hebrewName.trim()
         if (maritalStatus) body.marital_status = maritalStatus
         if (citizenship) body.citizenship = citizenship.trim()
@@ -387,7 +392,7 @@ export default function AddEmployeeModal({
         body.passport = {
           series: passportSeries || undefined,
           number: passportNumber || undefined,
-          issue_date: passportIssueDate ? passportIssueDate.toISOString().split('T')[0] : undefined,
+          issue_date: passportIssueDate ? localISODate(passportIssueDate) : undefined,
           issued_by: passportIssuedBy || undefined,
         }
       }
@@ -402,7 +407,7 @@ export default function AddEmployeeModal({
       if (contractNumber || contractDate || salary) {
         body.contract = {
           number: contractNumber || undefined,
-          date: contractDate ? contractDate.toISOString().split('T')[0] : undefined,
+          date: contractDate ? localISODate(contractDate) : undefined,
           salary: salary ? Number(salary) : undefined,
           currency: currency || undefined,
           file_name: contractFile?.name,
@@ -432,7 +437,7 @@ export default function AddEmployeeModal({
             body: JSON.stringify({
               person_id: personId, department_id: departmentId, position_id: positionId,
               role_id: roleId, is_head: isHead,
-              hire_date: hireDate ? hireDate.toISOString().split('T')[0] : null,
+              hire_date: hireDate ? localISODate(hireDate) : null,
             }),
           })
           if (!seatRes.ok) toast(t('add_modal.role_assign_failed'), 'error')
