@@ -3,6 +3,8 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { verifyPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
+import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
+import type { SessionPayload } from '@/lib/auth/jwt'
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,6 +78,18 @@ export async function POST(request: NextRequest) {
       roles,
     })
 
+    // Посадка §10: управляющая кафедрой иудаики открывается сразу на дом иудаики.
+    // Сигнал по данным (глава/делегат единицы иудаики и не более широкий админ),
+    // НЕ по строке роли. Fail-safe: любая ошибка → обычная посадка на /dashboard.
+    let kodeshHome = false
+    try {
+      kodeshHome = await isKodeshDepartmentWorkspace({
+        person_id: account.person_id,
+        roles,
+        principal: 'staff',
+      } as SessionPayload)
+    } catch { /* тихо: посадка на общий /dashboard */ }
+
     // Record login timestamp (fire-and-forget)
     supabase
       .from('person_accounts')
@@ -88,6 +102,7 @@ export async function POST(request: NextRequest) {
       login_email: account.login_email,
       full_name: person?.full_name ?? null,
       roles,
+      kodesh_home: kodeshHome,
     })
   } catch (err) {
     console.error('[login] unhandled exception:', err)

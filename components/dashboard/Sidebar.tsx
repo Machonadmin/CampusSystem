@@ -17,6 +17,23 @@ const EDU_SECTIONS = [
   { key: 'study',       labelKey: 'tabs.students',   href: '/dashboard/education/studies' },
 ] as const
 
+// §10: сфокусированный сайдбар управляющей кафедрой иудаики. Каждый пункт ведёт
+// на УЖЕ существующий маршрут (перекладка, не новые экраны). «Дом» (בית) — это
+// верхний пункт home, переведённый на дом иудаики. Видимость каждого пункта
+// приходит с сервера (/api/education/workspace-nav, fail-closed по правам).
+const KODESH_NAV = [
+  { key: 'prep',       gate: 'prep',       href: '/dashboard/education/kodesh',               iconKey: 'education' as const },
+  { key: 'alerts',     gate: 'alerts',     href: '/dashboard/education/alerts',               iconKey: 'tasks' as const },
+  { key: 'calendar',   gate: 'calendar',   href: '/dashboard/education/timetable',            iconKey: 'calendar' as const },
+  { key: 'courses',    gate: 'courses',    href: '/dashboard/education/kodesh-courses',       iconKey: 'education' as const },
+  { key: 'teachers',   gate: 'teachers',   href: '/dashboard/education/teachers',             iconKey: 'persons' as const },
+  { key: 'students',   gate: 'students',   href: '/dashboard/education/studies?sec=students', iconKey: 'persons' as const },
+  { key: 'jewishness', gate: 'jewishness', href: '/dashboard/jewishness',                     iconKey: 'jewishness' as const },
+  { key: 'contacts',   gate: 'contacts',   href: '/dashboard/contacts',                       iconKey: 'contacts' as const },
+] as const
+// Модули, которые §10-пункты уже покрывают (чтобы не дублировать их в блоке «ещё»).
+const KODESH_COVERED_MODULES = new Set(['education', 'jewishness', 'contacts'])
+
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
   home: 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25',
@@ -192,6 +209,9 @@ export default function Sidebar() {
   const [hasOpenTasks, setHasOpenTasks] = useState(false)
   // Доступ к вкладкам «Образования» (набор/приём/учёба) — гейтит три пункта.
   const [eduTabAccess, setEduTabAccess] = useState<Record<string, boolean> | null>(null)
+  // §10: сфокусированное пространство кафедры иудаики. null = ещё грузим (пока
+  // показываем обычный сайдбар — fail-safe, ничего не сужаем).
+  const [kodeshNav, setKodeshNav] = useState<{ workspace: boolean; items: Record<string, boolean> } | null>(null)
   // Свёрнутые группы: открыта только та, где активный маршрут; остальные скрыты
   // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
@@ -233,6 +253,23 @@ export default function Sidebar() {
     return () => { alive = false }
   }, [])
 
+  // §10: рабочее пространство кафедры иудаики + видимость её пунктов (fail-safe:
+  // ошибка → обычный сайдбар).
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/workspace-nav')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!alive) return
+        setKodeshNav({
+          workspace: d?.kodesh_workspace === true,
+          items: (d?.items && typeof d.items === 'object' ? d.items : {}) as Record<string, boolean>,
+        })
+      })
+      .catch(() => { if (alive) setKodeshNav({ workspace: false, items: {} }) })
+    return () => { alive = false }
+  }, [])
+
   // Какой из трёх разделов сейчас активен (для подсветки пункта).
   function activeEduSection(): string | null {
     // Старый хаб /dashboard/education теперь редиректит на recruitment.
@@ -259,6 +296,15 @@ export default function Sidebar() {
   function isActive(href: string) {
     return href === '/dashboard' ? pathname === href : pathname.startsWith(href)
   }
+
+  // Активность для §10-пунктов: по СЕГМЕНТУ, чтобы соседние маршруты с общим
+  // префиксом не подсвечивались вместе (kodesh / kodesh-home / kodesh-courses).
+  function focusedActive(href: string) {
+    const base = href.split('?')[0]
+    return pathname === base || pathname.startsWith(base + '/')
+  }
+
+  const isKodeshWorkspace = kodeshNav?.workspace === true
 
   // While access is still loading (null) show NOTHING (only the top personal items),
   // so a user never briefly sees modules they can't access. Once loaded, a module the
@@ -293,6 +339,17 @@ export default function Sidebar() {
       return { ...group, items: rebuilt }
     })
     .filter(section => section.items.length > 0)
+
+  // §10 «ещё»: всё, что пользователь может открыть, но что НЕ покрыто пунктами
+  // сфокусированного пространства иудаики — чтобы у неё НИЧЕГО не пропало из
+  // доступного (перекладка навигации, не удаление доступа).
+  const kodeshMoreItems = sections
+    .flatMap(s => s.items)
+    .filter(m => !KODESH_COVERED_MODULES.has(m.key))
+  // Разделы «Образования», которые §10 НЕ покрывает (набор/приём): если у неё
+  // есть к ним доступ — держим их в «ещё», чтобы ничего не пропало. «Учёба»
+  // покрыта пунктом «תלמידות», поэтому её сюда не добавляем.
+  const kodeshMoreEdu = EDU_SECTIONS.filter(s => s.key !== 'study' && eduTabAccess?.[s.key] === true)
 
   // Группа активного маршрута — открывается по умолчанию; при смене маршрута
   // раскрываем её (и сворачиваем прочие). Ручной клик по заголовку это не трогает.
@@ -382,24 +439,108 @@ export default function Sidebar() {
 
       {/* ── Nav ── */}
       <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
-        {TOP_ITEMS.map(item => (
-          <SidebarNavLink
-            key={item.key}
-            href={item.href}
-            iconPath={item.icon}
-            label={t.nav[item.key]}
-            active={isActive(item.href)}
-            isOpen={isOpen}
-            isRTL={isRTL}
-            moduleKey={item.key}
+        {TOP_ITEMS.map(item => {
+          // §10: «בית» (home) ведёт на дом иудаики, а не на общий /dashboard.
+          const kodeshHome = isKodeshWorkspace && item.key === 'home'
+          const href = kodeshHome ? '/dashboard/education/kodesh-home' : item.href
+          return (
+            <SidebarNavLink
+              key={item.key}
+              href={href}
+              iconPath={item.icon}
+              label={t.nav[item.key]}
+              active={kodeshHome ? focusedActive(href) : isActive(item.href)}
+              isOpen={isOpen}
+              isRTL={isRTL}
+              moduleKey={item.key}
               soonLabel={t.soon}
-            dot={item.key === 'tasks' && hasOpenTasks}
-          />
-        ))}
+              dot={item.key === 'tasks' && hasOpenTasks}
+            />
+          )
+        })}
+
+        {/* §10: сфокусированный сайдбар кафедры иудаики (перекладка ссылок на уже
+            существующие экраны; каждый пункт скрыт при отсутствии права). */}
+        {isKodeshWorkspace && (
+          <>
+            <div>
+              {isOpen && (
+                <div style={{ padding: '14px 16px 5px' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    {tEdu('kodesh_nav.section')}
+                  </span>
+                </div>
+              )}
+              {!isOpen && <div style={{ padding: '12px 6px 4px' }}><div style={{ height: 1, backgroundColor: 'var(--border)' }} /></div>}
+              <div className="anim-expand">
+                {KODESH_NAV.filter(it => kodeshNav?.items?.[it.gate] === true).map(it => (
+                  <SidebarNavLink
+                    key={`kodesh-${it.key}`}
+                    href={it.href}
+                    iconPath={I[it.iconKey]}
+                    label={tEdu(`kodesh_nav.${it.key}`)}
+                    active={focusedActive(it.href)}
+                    isOpen={isOpen}
+                    isRTL={isRTL}
+                    moduleKey="education"
+                    soonLabel={t.soon}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* «Ещё» — прочие доступные модули и разделы, не покрытые §10 (ничего не теряется). */}
+            {(kodeshMoreItems.length > 0 || kodeshMoreEdu.length > 0) && (
+              <div>
+                {isOpen && (
+                  <div style={{ padding: '14px 16px 5px' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                      {tEdu('kodesh_nav.more')}
+                    </span>
+                  </div>
+                )}
+                {!isOpen && <div style={{ padding: '12px 6px 4px' }}><div style={{ height: 1, backgroundColor: 'var(--border)' }} /></div>}
+                <div className="anim-expand">
+                  {kodeshMoreEdu.map(s => (
+                    <SidebarNavLink
+                      key={`more-edu-${s.key}`}
+                      href={s.href}
+                      iconPath={s.key === 'recruitment' ? I.persons : I.quality_control}
+                      label={tEdu(s.labelKey)}
+                      active={isActive(s.href)}
+                      isOpen={isOpen}
+                      isRTL={isRTL}
+                      moduleKey="education"
+                      soonLabel={t.soon}
+                    />
+                  ))}
+                  {kodeshMoreItems.map(item => {
+                    const active = (item.key as string) === 'health'
+                      ? ['/dashboard/health', '/dashboard/doctor', '/dashboard/psychologist'].some(p => pathname.startsWith(p))
+                      : isActive(item.href)
+                    return (
+                      <SidebarNavLink
+                        key={`more-${item.key}`}
+                        href={item.href}
+                        iconPath={item.icon}
+                        label={t.nav[item.key]}
+                        active={active}
+                        isOpen={isOpen}
+                        isRTL={isRTL}
+                        moduleKey={item.key}
+                        soonLabel={t.soon}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Module sections — сворачиваемые группы (в развёрнутом сайдбаре).
             В icon-режиме (!isOpen) заголовков нет — показываем все пункты. */}
-        {sections.map(section => {
+        {!isKodeshWorkspace && sections.map(section => {
           // У пользователя с 1-4 ссылками (например, только гиюс) группы всегда
           // раскрыты: на телефоне ящик открывается с закрытыми группами, и его
           // единственный раздел был спрятан за заголовком — «пустое» приложение.
