@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleHeaderGradient } from '@/lib/module-colors'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import DoctorListClient from '../doctor/DoctorListClient'
 import PsychologistListClient from '../psychologist/PsychologistListClient'
 
@@ -20,7 +20,9 @@ export default function HealthClient({ canManageDoctor, canManagePsych }: {
   const tDoctor = useTranslations('doctor')
   const tPsych = useTranslations('psychologist')
   const tNav = useTranslations('navigation')
-  const [tab, setTab] = useState<'doctor' | 'psychologist'>('doctor')
+  // Вкладка «מרפאה/פסיכולוג» — навигация: держим в URL (?tab=), чтобы «назад»
+  // возвращал на прежнюю вкладку, а ссылка/обновление открывали ту же.
+  const [tab, setTab] = useUrlTab({ allowed: ['doctor', 'psychologist'] as const, fallback: 'doctor' })
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '7px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',

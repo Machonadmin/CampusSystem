@@ -2258,6 +2258,13 @@
       "approve": "Approve",
       "reject": "Reject",
       "approve_forbidden": "Approving requires a finance role"
+    },
+    "hub": {
+      "title": "Education",
+      "subtitle": "Choose a section",
+      "desc_recruitment": "Leads, forms and recruitment reports",
+      "desc_admission": "Applicants, admission committees and approvals",
+      "desc_studies": "Semesters, courses, attendance and grades"
     }
   },
   "tasks": {

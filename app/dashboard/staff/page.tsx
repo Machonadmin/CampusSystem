@@ -8,6 +8,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { personDisplayName } from '@/lib/persons/name'
 import type { Lang } from '@/lib/i18n/translations'
 import { useMe } from '@/lib/hooks/useMe'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import AddEmployeeModal from './components/AddEmployeeModal'
 import RoleSeatWizard from './components/RoleSeatWizard'
 import MergeDuplicatesModal from './components/MergeDuplicatesModal'
@@ -892,15 +893,14 @@ export default function StaffPage() {
   const tNav = useTranslations('navigation')
   const me = useMe()
   const isSuperadmin = !!me?.roles.includes('superadmin')
-  const [activeTab, setActiveTab] = useState<string>('structure')
-  // Глубокая ссылка ?tab= (напр. со старых маршрутов /settings/users →
-  // редирект на объединённый хаб צוות с нужной вкладкой).
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get('tab')
-    // Старая вкладка «users» слита в «staff» — старые ссылки ?tab=users ведут туда.
-    if (q === 'users') setActiveTab('staff')
-    else if (q && ['structure', 'staff', 'positions'].includes(q)) setActiveTab(q)
-  }, [])
+  // Активная вкладка (מבנה/צוות/תפקידים) — навигация: держим в URL (?tab=), чтобы
+  // «назад» возвращал на прежнюю вкладку, а deep-link/обновление открывали ту же.
+  // Старая ссылка ?tab=users (маршрут /settings/users) ведёт на слитую «staff».
+  const [activeTab, setActiveTab] = useUrlTab({
+    allowed: ['structure', 'staff', 'positions'] as const,
+    fallback: 'structure',
+    aliases: { users: 'staff' },
+  })
   const [depts, setDepts] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -953,7 +953,7 @@ export default function StaffPage() {
           { key: 'positions', label: t('tabs.positions') },
         ]}
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={key => setActiveTab(key as 'structure' | 'staff' | 'positions')}
         accentColor={getModuleColor('staff')}
       />
 

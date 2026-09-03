@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { parseStudiesNav, applyStudiesNav, type StudiesNav } from '@/lib/education/studies-nav'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import EmptyState from '@/components/ui/EmptyState'
@@ -70,6 +71,8 @@ export default function StudiesWorkspace() {
   const t = useTranslations('education.study')
   const { lang } = useLang()
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [groups, setGroups] = useState<SemesterGroup[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -82,14 +85,23 @@ export default function StudiesWorkspace() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Уровень навигации.
-  const [structId, setStructId] = useState<string | null>(null)     // department id (или NO_STRUCT)
-  const [yearLevel, setYearLevel] = useState<number | 'none' | null>(null)
-  const [cohort, setCohort] = useState<string | 'none' | null>(null) // year_label
+  // Уровень навигации живёт в URL (?struct=&ylevel=&cohort=&sem=) — каждый шаг
+  // это router.push (запись истории), поэтому браузерный «назад» шагает по
+  // уровням, а deep-link/обновление восстанавливают ту же позицию.
+  const nav = useMemo<StudiesNav>(() => parseStudiesNav(k => searchParams.get(k)), [searchParams])
+  const structId = nav.structId      // study_track id или NO_STRUCT
+  const yearLevel = nav.yearLevel
+  const cohort = nav.cohort
+
+  // Переход на новый уровень drill: сохраняем прочие параметры (sec рельса).
+  const go = useCallback((next: StudiesNav) => {
+    const params = applyStudiesNav(new URLSearchParams(searchParams.toString()), next)
+    const qs = params.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
+  }, [router, pathname, searchParams])
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingInitial, setEditingInitial] = useState<SemesterGroupInitial | null>(null)
-  const [openSem, setOpenSem] = useState<{ id: string; name: string } | null>(null)  // открытый семестр → его курсы
 
   const loadData = useCallback(async () => {
     setLoading(true); setError(null)
@@ -212,6 +224,18 @@ export default function StudiesWorkspace() {
     cohort == null ? [] : inYear.filter(g => (g.year_label ?? 'none') === cohort),
   [inYear, cohort])
 
+  // Открытый семестр / уровень кодеша (?sem=). Имя достаём из загруженных данных
+  // (семестры חול или уровни קодеш); пока данные не подъехали — пустое имя,
+  // SemesterCourses всё равно грузит курсы по id.
+  const openSem = useMemo<{ id: string; name: string } | null>(() => {
+    if (!nav.sem) return null
+    const g = groups.find(x => x.id === nav.sem)
+    if (g) return { id: g.id, name: g.name }
+    const kl = kodeshLevels.find(x => x.id === nav.sem)
+    if (kl) return { id: kl.id, name: levelLabel(kl, lang) }
+    return { id: nav.sem, name: '' }
+  }, [nav.sem, groups, kodeshLevels, lang])
+
   // ── Действия ─────────────────────────────────────────────────────────────
   const openCreate = () => { setEditingInitial(null); setModalMode('create') }
 
@@ -242,11 +266,11 @@ export default function StudiesWorkspace() {
 
   // ── Хлебные крошки drill ──────────────────────────────────────────────────
   const crumbs: { label: string; onClick: () => void }[] = [
-    { label: t('workspace.all_structures'), onClick: () => { setStructId(null); setYearLevel(null); setCohort(null) } },
+    { label: t('workspace.all_structures'), onClick: () => go({ structId: null, yearLevel: null, cohort: null, sem: null }) },
   ]
-  if (structId != null) crumbs.push({ label: structLabel(structId), onClick: () => { setYearLevel(null); setCohort(null); setOpenSem(null) } })
-  if (yearLevel != null) crumbs.push({ label: yearLevel === 'none' ? t('workspace.no_year') : yearLevelTitle(yearLevel, lang), onClick: () => { setCohort(null); setOpenSem(null) } })
-  if (cohort != null) crumbs.push({ label: cohort === 'none' ? t('workspace.no_cohort') : cohort, onClick: () => setOpenSem(null) })
+  if (structId != null) crumbs.push({ label: structLabel(structId), onClick: () => go({ structId, yearLevel: null, cohort: null, sem: null }) })
+  if (yearLevel != null) crumbs.push({ label: yearLevel === 'none' ? t('workspace.no_year') : yearLevelTitle(yearLevel, lang), onClick: () => go({ structId, yearLevel, cohort: null, sem: null }) })
+  if (cohort != null) crumbs.push({ label: cohort === 'none' ? t('workspace.no_cohort') : cohort, onClick: () => go({ structId, yearLevel, cohort, sem: null }) })
   if (openSem != null) crumbs.push({ label: openSem.name, onClick: () => {} })
 
   return (
@@ -306,7 +330,7 @@ export default function StudiesWorkspace() {
                         <Grid>
                           {structures.map(s => (
                             <Card key={s.id} title={structLabel(s.id)} sub={t('workspace.count_semesters').replace('{n}', String(s.count))}
-                              icon={ICON_STRUCT} onClick={() => { setStructId(s.id); setYearLevel(null); setCohort(null) }} />
+                              icon={ICON_STRUCT} onClick={() => go({ structId: s.id, yearLevel: null, cohort: null, sem: null })} />
                           ))}
                         </Grid>
                       </>}
@@ -327,7 +351,7 @@ export default function StudiesWorkspace() {
                         {kodeshLevels.map(l => (
                           <Card key={l.id} title={levelLabel(l, lang)}
                             sub={t('workspace.count_students').replace('{n}', String(l.count))}
-                            icon={ICON_KODESH} onClick={() => setOpenSem({ id: l.id, name: levelLabel(l, lang) })} />
+                            icon={ICON_KODESH} onClick={() => go({ structId: null, yearLevel: null, cohort: null, sem: l.id })} />
                         ))}
                       </Grid>}
                 </div>
@@ -341,7 +365,7 @@ export default function StudiesWorkspace() {
               {years.map(y => (
                 <Card key={String(y.k)} title={y.k === 'none' ? t('workspace.no_year') : yearLevelTitle(y.k, lang)}
                   sub={t('workspace.count_semesters').replace('{n}', String(y.count))}
-                  icon={ICON_YEAR} onClick={() => { setYearLevel(y.k); setCohort(null) }} />
+                  icon={ICON_YEAR} onClick={() => go({ structId, yearLevel: y.k, cohort: null, sem: null })} />
               ))}
             </Grid>
           )}
@@ -354,7 +378,7 @@ export default function StudiesWorkspace() {
                   {cohorts.map(c => (
                     <Card key={String(c.k)} title={c.k === 'none' ? t('workspace.no_cohort') : c.k}
                       sub={t('workspace.count_semesters').replace('{n}', String(c.count))}
-                      icon={ICON_COHORT} onClick={() => setCohort(c.k)} />
+                      icon={ICON_COHORT} onClick={() => go({ structId, yearLevel, cohort: c.k, sem: null })} />
                   ))}
                 </Grid>
           )}
@@ -367,7 +391,7 @@ export default function StudiesWorkspace() {
                   {semesters.map(g => (
                     <SemesterCard key={g.id} g={g} students={t('workspace.count_students').replace('{n}', String(g.counts.students))}
                       manageLabel={t('workspace.manage')} onManage={() => openEdit(g.id)}
-                      onOpen={() => setOpenSem({ id: g.id, name: g.name })} />
+                      onOpen={() => go({ structId, yearLevel, cohort, sem: g.id })} />
                   ))}
                 </Grid>
           )}

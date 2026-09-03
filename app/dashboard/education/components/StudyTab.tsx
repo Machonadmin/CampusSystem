@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { parseStudySection, STUDIES_NAV_KEYS, type StudySection } from '@/lib/education/studies-nav'
 import StudentsTab from './StudentsTab'
 import StudiesWorkspace from './StudiesWorkspace'
 import StudiesSettings from './StudiesSettings'
@@ -18,7 +20,7 @@ import TeacherDashboard from './TeacherDashboard'
  * сворачивается в иконки; состояние запоминается.
  */
 
-type Section = 'dashboard' | 'actions' | 'semester_groups' | 'students' | 'settings'
+type Section = StudySection
 
 const RAIL: { key: Section; labelKey: string }[] = [
   { key: 'actions', labelKey: 'study.tabs.actions' },
@@ -41,7 +43,21 @@ const STORE_KEY = 'edu_study_rail_collapsed'
 export default function StudyTab() {
   const t = useTranslations('education')
   const { isRTL } = useLang()
-  const [active, setActive] = useState<Section>('dashboard')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Раздел рельса — в URL (?sec=), чтобы «назад» шагал по разделам, а deep-link/
+  // обновление восстанавливали ту же вкладку. Смена раздела чистит drill-параметры
+  // мастерской (как прежний ремоунт сбрасывал её на верхний уровень).
+  const active = parseStudySection(searchParams.get('sec'))
+  const setActive = useCallback((key: Section) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('sec', key)
+    for (const k of STUDIES_NAV_KEYS) params.delete(k)
+    const qs = params.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
+  }, [router, pathname, searchParams])
 
   // Преподаватель (scope='own') видит СВОЙ домашний экран, без управленческого
   // рельса (семестры/студентки/настройки — управленческие). Признак приходит из
@@ -93,6 +109,7 @@ export default function StudyTab() {
         )}
         <button
           type="button"
+          data-testid={`study-rail-${key}`}
           onClick={() => setActive(key)}
           title={railCollapsed ? label : undefined}
           style={{
