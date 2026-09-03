@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentMessagesPanel from '@/components/education/StudentMessagesPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
@@ -9,6 +10,10 @@ import MeetingsPanel from '@/components/education/MeetingsPanel'
 
 export default function StudentViewClient({ journeyId, name }: { journeyId: string; name: string }) {
   const t = useTranslations('education.student_view')
+  // «Назад» = реальная история (вернуться на карточку/список, откуда открыли
+  // предпросмотр), а не жёсткий переход на /dashboard/education (который к тому же
+  // редиректит и может увести на главную). Запасной родитель — раздел «Учёба».
+  const goBack = useSafeBack('/dashboard/education')
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '16px' }}>
@@ -23,7 +28,7 @@ export default function StudentViewClient({ journeyId, name }: { journeyId: stri
             <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--violet)' }}>{t('preview_banner')}</div>
             <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('preview_hint')}</div>
           </div>
-          <a href="/dashboard/education" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'none', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '5px 12px' }}>{t('back')}</a>
+          <button onClick={goBack} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', textDecoration: 'none', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '5px 12px', cursor: 'pointer' }}>{t('back')}</button>
         </div>
 
         {/* Приветствие */}

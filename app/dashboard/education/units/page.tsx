@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
@@ -92,9 +93,9 @@ export default function UnitTeamPage() {
         subtitle={t('units.subtitle')}
         actions={<>
           {/* «מבנה יחידות» живёт здесь (в настройках учёбы одна карточка на юниты). */}
-          <a href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <Link href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             {t('study.dashboard.launch_structure')}
-          </a>
+          </Link>
         </>}
       />
 

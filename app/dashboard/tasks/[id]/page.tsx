@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { useTaskDetail } from '../components/useTaskDetail'
@@ -26,6 +27,9 @@ export default function TaskPage() {
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
   const accent = getModuleColor('tasks')
+  // «Назад» = реальная история (вернуться на ТОТ экран, откуда пришли), с
+  // запасным родителем — списком задач, если истории нет.
+  const goBack = useSafeBack('/dashboard/tasks')
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   useEffect(() => {
@@ -60,7 +64,7 @@ export default function TaskPage() {
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <button
-          onClick={() => router.push('/dashboard/tasks')}
+          onClick={goBack}
           style={{
             background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
             color: '#fff', padding: '4px 10px', cursor: 'pointer', fontSize: 13,

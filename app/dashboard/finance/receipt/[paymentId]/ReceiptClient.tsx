@@ -3,6 +3,7 @@
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { formatMoney } from '@/lib/finance/money'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 
 interface Payment {
   id: string
@@ -54,6 +55,8 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
   const signer = p.signer_name || p.typed_name || null
   // Короткий человекочитаемый номер квитанции из UUID платежа.
   const receiptNo = p.id.slice(0, 8).toUpperCase()
+  // «Назад» = реальная история; запасной родитель — счёт студентки.
+  const goBack = useSafeBack(`/dashboard/finance/${journeyId}`)
 
   const row: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', gap: 16, padding: '10px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }
   const rowLabel: React.CSSProperties = { color: 'var(--text-muted)', fontWeight: 600 }
@@ -63,9 +66,9 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Панель действий — не печатается */}
       <div className="receipt-actions" style={{ width: '100%', maxWidth: 620, display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <a href={`/dashboard/finance/${journeyId}`} style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}>
+        <button type="button" onClick={goBack} style={{ fontSize: 13, color: 'var(--text-muted)', background: 'none', border: 'none', textDecoration: 'none', cursor: 'pointer', padding: 0 }}>
           ← {t('back')}
-        </a>
+        </button>
         <button
           type="button"
           onClick={() => window.print()}

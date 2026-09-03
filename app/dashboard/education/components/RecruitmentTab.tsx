@@ -2,6 +2,7 @@
 import { personDisplayName } from '@/lib/persons/name'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -169,14 +170,14 @@ export default function RecruitmentTab() {
           { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
           { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
         ].map(l => (
-          <a key={l.href} href={l.href}
+          <Link key={l.href} href={l.href}
             style={{
               fontSize: 12.5, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--surface-2)',
               padding: '6px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
               border: '1px solid var(--border)',
             }}>
             {l.label}
-          </a>
+          </Link>
         ))}
       </div>
 

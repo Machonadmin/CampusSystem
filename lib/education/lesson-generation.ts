@@ -1,7 +1,8 @@
 import { createServerClient } from '@/lib/supabase/server'
 import type { LessonInsert } from '@/types/database'
 import { MS_PER_DAY, parseDateUTC, fmtDateUTC, isoWeekday } from '@/lib/education/schedule-dates'
-import { loadNoLessonDateSet, partitionByNoLessonDays } from '@/lib/education/no-lesson-days'
+import { loadCalendarByDate, partitionByCalendar, type GroupKind } from '@/lib/education/no-lesson-days'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -60,12 +61,15 @@ export async function generateLessonsForGroup(
   }
   if (rawCandidates.length === 0) return { created: 0, skipped: 0, skippedNoLessonDays: 0 }
 
-  // Пропуск дней без уроков (spec §4.5): грузим множество дат для подразделения
-  // группы и отбрасываем кандидатов в эти даты. Deploy-safe (нет таблицы → пусто).
+  // Пропуск особых дней (spec §3.4/§4.5) ПО ВИДУ ГРУППЫ: кодеш-группа
+  // (department = KODESH_DEPT_ID) пропускает дни, чей тип blocks_kodesh; светская
+  // — blocks_secular; укороченные дни (shortened) генерируются. Deploy-safe: до
+  // миграции типов откатывается к «любой особый день = full_off».
   const { data: grp } = await sb.from('class_groups').select('department_id').eq('id', groupId).maybeSingle()
   const deptId = (grp as { department_id?: string | null } | null)?.department_id ?? null
-  const noLessonSet = await loadNoLessonDateSet(sb, deptId, fmtDateUTC(fromMs), fmtDateUTC(toMs))
-  const { kept: candidates, skipped: skippedNoLessonDays } = partitionByNoLessonDays(rawCandidates, noLessonSet)
+  const kind: GroupKind = deptId === KODESH_DEPT_ID ? 'kodesh' : 'secular'
+  const calendar = await loadCalendarByDate(sb, deptId, fmtDateUTC(fromMs), fmtDateUTC(toMs))
+  const { kept: candidates, skipped: skippedNoLessonDays } = partitionByCalendar(rawCandidates, calendar, kind)
   if (candidates.length === 0) return { created: 0, skipped: 0, skippedNoLessonDays }
 
   // .select() при ignoreDuplicates возвращает ТОЛЬКО реально вставленные строки.

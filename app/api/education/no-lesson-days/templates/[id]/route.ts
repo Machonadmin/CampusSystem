@@ -16,6 +16,7 @@ const dayShape = z.object({
   month: z.number().int().min(1).max(12),
   day: z.number().int().min(1).max(31),
   reason: z.string().trim().max(200).nullish(),
+  day_type_code: z.string().trim().max(40).optional(),
 })
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -53,9 +54,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       const { error: delErr } = await sb.from('no_lesson_day_template_days').delete().eq('template_id', params.id)
       if (delErr) throw delErr
       if (body.days.length > 0) {
-        const rows = body.days.map((d, i) => ({ template_id: params.id, month: d.month, day: d.day, reason: d.reason ?? null, sort_order: i }))
+        const rows = body.days.map((d, i) => ({ template_id: params.id, month: d.month, day: d.day, reason: d.reason ?? null, day_type_code: d.day_type_code ?? 'full_off', sort_order: i }))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: insErr } = await (sb.from('no_lesson_day_template_days') as any).insert(rows)
+        let { error: insErr } = await (sb.from('no_lesson_day_template_days') as any).insert(rows)
+        // Колонка day_type_code ещё не мигрирована → повторяем без неё.
+        if (insErr && insErr.code === '42703') {
+          const legacy = rows.map(({ day_type_code: _omit, ...r }) => r)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const retry = await (sb.from('no_lesson_day_template_days') as any).insert(legacy)
+          insErr = retry.error
+        }
         if (insErr) throw insErr
       }
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -196,7 +197,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                     return (
                     <div key={s.journey_id}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)' }}>
-                      <a href={`/dashboard/education/leads/${s.journey_id}`}
+                      <Link href={`/dashboard/education/leads/${s.journey_id}`}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                           {(s.name || '?').split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
@@ -215,7 +216,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                             </div>
                           )}
                         </div>
-                      </a>
+                      </Link>
                       {canOpenCase && (
                         <button
                           type="button"
@@ -250,7 +251,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                   {stalled.slice(0, 5).map(a => {
                     const name = a.applicant?.hebrew_name || a.applicant?.full_name || '—'
                     return (
-                      <a key={a.journey_id} href={`/dashboard/education/leads/${a.journey_id}`}
+                      <Link key={a.journey_id} href={`/dashboard/education/leads/${a.journey_id}`}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)', textDecoration: 'none' }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--warn-tint, rgba(217,119,6,0.12))', color: 'var(--warn)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                           {name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}
@@ -258,7 +259,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{name}</div>
                         </div>
-                      </a>
+                      </Link>
                     )
                   })}
                 </div>
@@ -275,7 +276,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         <div style={card}>
           <h5 style={cardHead}>
             {t('today_schedule')}
-            <a href="/dashboard/education/timetable" style={moreLink}>{t('view_all')}</a>
+            <Link href="/dashboard/education/timetable" style={moreLink}>{t('view_all')}</Link>
           </h5>
           {loading ? (
             <SkeletonRows rows={4} />
@@ -307,7 +308,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         <div style={card}>
           <h5 style={cardHead}>
             {t('pending_title')}
-            <a href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</a>
+            <Link href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</Link>
           </h5>
           {loading ? (
             <SkeletonRows rows={4} />
@@ -363,8 +364,8 @@ function Kpi({ value, num, label, tone, href, onClick }: {
   )
   if (href) {
     return (
-      <a href={href} style={base}
-        onMouseEnter={e => enter(e.currentTarget)} onMouseLeave={e => leave(e.currentTarget)}>{inner}</a>
+      <Link href={href} style={base}
+        onMouseEnter={e => enter(e.currentTarget)} onMouseLeave={e => leave(e.currentTarget)}>{inner}</Link>
     )
   }
   if (onClick) {
@@ -482,12 +483,12 @@ function LaunchCard({ it, label }: { it: LItem; label: string }) {
     textAlign: 'start', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none',
   }
   return (
-    <a className="home-card" href={it.href} style={style}>
+    <Link className="home-card" href={it.href} style={style}>
       <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-strong)', display: 'grid', placeItems: 'center' }}>
         <svg style={{ width: 19, height: 19 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={it.icon} /></svg>
       </span>
       <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
-    </a>
+    </Link>
   )
 }
 

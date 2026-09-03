@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { useRouter } from 'next/navigation'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupTeachers'
@@ -66,7 +66,8 @@ function formatPeriod(lang: string, start: string | null, end: string | null): s
 }
 
 export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canMarkAttendance, canViewGrades, canSetGrades }: Props) {
-  const router = useRouter()
+  // «Назад» = реальная история; запасной родитель — раздел «Учёба».
+  const goBack = useSafeBack('/dashboard/education')
   const t = useTranslations('education.study')
   const tJournal = useTranslations('education.journal')
   const tGrades = useTranslations('education.grades')
@@ -129,7 +130,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
           {error ?? t('class_groups.group_not_found_short')}
         </div>
         <button
-          onClick={() => router.push('/dashboard/education')}
+          onClick={goBack}
           style={{
             padding: '8px 16px', fontSize: 13, color: 'var(--text)',
             background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',

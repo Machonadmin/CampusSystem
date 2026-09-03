@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { todayISO } from '@/lib/dates'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -139,7 +140,7 @@ export default function TeacherDashboard() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
             {groups.map(g => (
-              <a key={g.id} href={`/dashboard/education/class-groups/${g.id}`}
+              <Link key={g.id} href={`/dashboard/education/class-groups/${g.id}`}
                 style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'block', textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
@@ -155,7 +156,7 @@ export default function TeacherDashboard() {
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
                   {t('teacher.students_count').replace('{n}', String(g.student_count))}
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         )}

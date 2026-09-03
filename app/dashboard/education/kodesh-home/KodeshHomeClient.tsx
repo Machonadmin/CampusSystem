@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -118,7 +119,7 @@ function Kpi({ label, value, tone, href }: { label: string; value: string | numb
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
     </div>
   )
-  return href ? <a href={href} style={{ textDecoration: 'none' }}>{body}</a> : body
+  return href ? <Link href={href} style={{ textDecoration: 'none' }}>{body}</Link> : body
 }
 
 function ChecklistItem({ ok, label }: { ok: boolean; label: string }) {

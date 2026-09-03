@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
@@ -428,10 +429,10 @@ function Cell({
         moduleHref ? (
           /* Этап со своим модулем: доска даёт ссылку, подписывают в модуле
              (там же документы). Одна поверхность подписи вместо двух. */
-          <a href={moduleHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}>
+          <Link href={moduleHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none' }}>
             {moduleLabel}
             <span style={{ fontSize: 12, opacity: 0.7 }}>‹</span>
-          </a>
+          </Link>
         ) : (
           <button onClick={onSign} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, justifySelf: 'start', fontSize: 12, fontWeight: 700, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">

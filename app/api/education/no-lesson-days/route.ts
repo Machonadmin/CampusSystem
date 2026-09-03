@@ -30,11 +30,21 @@ export async function GET(request: NextRequest) {
 
     const year = new URL(request.url).searchParams.get('year')?.trim()
     const sb = createServerClient()
-    let q = sb.from('academic_no_lesson_days').select('id, year_label, date, reason, scope').order('date', { ascending: true })
-    if (year) q = q.eq('year_label', year)
-    const { data, error } = await q
+    const build = (cols: string) => {
+      let q = sb.from('academic_no_lesson_days').select(cols).order('date', { ascending: true })
+      if (year) q = q.eq('year_label', year)
+      return q
+    }
+    const { data, error } = await build('id, year_label, date, reason, scope, day_type_code')
     if (error) {
       if (error.code === '42P01') return NextResponse.json({ days: [] })
+      // Колонка day_type_code ещё не мигрирована → отдаём без неё (default full_off).
+      if (error.code === '42703') {
+        const fb = await build('id, year_label, date, reason, scope')
+        if (fb.error) throw fb.error
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return NextResponse.json({ days: ((fb.data ?? []) as any[]).map(d => ({ ...d, day_type_code: 'full_off' })) })
+      }
       throw error
     }
     return NextResponse.json({ days: data ?? [] })
@@ -49,6 +59,7 @@ const createSchema = z.object({
   reason: z.string().trim().max(200).nullish(),
   // 'all' или department_id (uuid).
   scope: z.string().trim().min(1).max(64).optional(),
+  day_type_code: z.string().trim().max(40).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -62,17 +73,28 @@ export async function POST(request: NextRequest) {
       : await requireEducationPrivilege('manage_class_groups', { department_id: scope })
 
     const sb = createServerClient()
+    const row: Record<string, unknown> = {
+      year_label: body.year_label,
+      date: body.date,
+      reason: body.reason ?? null,
+      scope,
+      day_type_code: body.day_type_code ?? 'full_off',
+      created_by: session.person_id,
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (sb.from('academic_no_lesson_days') as any)
-      .upsert({
-        year_label: body.year_label,
-        date: body.date,
-        reason: body.reason ?? null,
-        scope,
-        created_by: session.person_id,
-      }, { onConflict: 'year_label,date,scope', ignoreDuplicates: false })
+    let { data, error } = await (sb.from('academic_no_lesson_days') as any)
+      .upsert(row, { onConflict: 'year_label,date,scope', ignoreDuplicates: false })
       .select('id')
       .single()
+    // day_type_code ещё не мигрирован → повторяем без него.
+    if (error && error.code === '42703') {
+      const { day_type_code: _omit, ...legacy } = row
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const retry = await (sb.from('academic_no_lesson_days') as any)
+        .upsert(legacy, { onConflict: 'year_label,date,scope', ignoreDuplicates: false })
+        .select('id').single()
+      data = retry.data; error = retry.error
+    }
     if (error) throw error
     return NextResponse.json({ id: data.id }, { status: 201 })
   } catch (err: unknown) {

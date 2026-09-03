@@ -37,28 +37,43 @@ export async function POST(request: NextRequest) {
       : await requireEducationPrivilege('manage_class_groups', { department_id: scope })
 
     const sb = createServerClient()
-    const { data: days, error: dErr } = await sb
+    // day_type_code переносится из шаблона; до миграции колонки — грузим без него.
+    const loadTplDays = (cols: string) => sb
       .from('no_lesson_day_template_days')
-      .select('month, day, reason')
+      .select(cols)
       .eq('template_id', body.template_id)
+    let { data: days, error: dErr } = await loadTplDays('month, day, reason, day_type_code')
+    if (dErr && dErr.code === '42703') {
+      const fb = await loadTplDays('month, day, reason')
+      days = fb.data; dErr = fb.error
+    }
     if (dErr) throw dErr
 
-    const rows = ((days ?? []) as Array<{ month: number; day: number; reason: string | null }>)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows = ((days ?? []) as any[])
       .filter(d => isRealDate(body.gregorian_year, d.month, d.day))
       .map(d => ({
         year_label: body.year_label,
         date: `${body.gregorian_year}-${pad(d.month)}-${pad(d.day)}`,
         reason: d.reason,
         scope,
+        day_type_code: d.day_type_code ?? 'full_off',
         created_by: session.person_id,
       }))
     if (rows.length === 0) return NextResponse.json({ inserted: 0 })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: inserted, error } = await sb
+    const upsert = (payload: Record<string, unknown>[]) => sb
       .from('academic_no_lesson_days')
-      .upsert(rows as any, { onConflict: 'year_label,date,scope', ignoreDuplicates: true })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .upsert(payload as any, { onConflict: 'year_label,date,scope', ignoreDuplicates: true })
       .select('id')
+    let { data: inserted, error } = await upsert(rows)
+    // Колонка day_type_code ещё не мигрирована → повторяем без неё.
+    if (error && error.code === '42703') {
+      const legacy = rows.map(({ day_type_code: _omit, ...r }) => r)
+      const retry = await upsert(legacy)
+      inserted = retry.data; error = retry.error
+    }
     if (error) throw error
     return NextResponse.json({ inserted: inserted?.length ?? 0 })
   } catch (err: unknown) {

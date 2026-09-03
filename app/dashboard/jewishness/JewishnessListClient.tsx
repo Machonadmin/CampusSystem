@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -226,11 +227,11 @@ function StudentRow({ student, primary, onOpen }: { student: ListStudent; primar
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {/* Имя ведёт в карточку человека — раньше список был тупиком. */}
-          <a href={`/dashboard/education/leads/${student.journey_id}`}
+          <Link href={`/dashboard/education/leads/${student.journey_id}`}
             style={{ fontWeight: 600, color: 'var(--text)', textDecoration: 'none' }}
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline' }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none' }}
-          >{name}</a>
+          >{name}</Link>
           {student.hebrew_name && student.full_name && student.hebrew_name !== student.full_name && (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{student.hebrew_name}</span>
           )}
