@@ -2265,6 +2265,18 @@
       "desc_recruitment": "לידים, טפסים ודוחות גיוס",
       "desc_admission": "מועמדות, ועדות קבלה ואישורים",
       "desc_studies": "סמסטרים, קורסים, נוכחות וציונים"
+    },
+    "kodesh_nav": {
+      "section": "מרחב הקודש",
+      "more": "עוד",
+      "prep": "הכנת הסמסטר",
+      "alerts": "התראות ומשימות",
+      "calendar": "לוח שנה ומערכת שעות",
+      "courses": "קורסים",
+      "teachers": "מורות",
+      "students": "תלמידות",
+      "jewishness": "בירור יהדות",
+      "contacts": "אנשי קשר"
     }
   },
   "tasks": {

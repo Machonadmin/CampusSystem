@@ -2265,6 +2265,18 @@
       "desc_recruitment": "Leads, forms and recruitment reports",
       "desc_admission": "Applicants, admission committees and approvals",
       "desc_studies": "Semesters, courses, attendance and grades"
+    },
+    "kodesh_nav": {
+      "section": "Judaism workspace",
+      "more": "More",
+      "prep": "Semester prep",
+      "alerts": "Alerts & tasks",
+      "calendar": "Calendar & timetable",
+      "courses": "Courses",
+      "teachers": "Teachers",
+      "students": "Students",
+      "jewishness": "Jewishness check",
+      "contacts": "Contacts"
     }
   },
   "tasks": {
