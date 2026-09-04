@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
+import { kodeshNavItemVisibility } from '@/lib/education/kodesh-nav'
 import { canDoEducationInAny, canManageEducationInAny } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
@@ -38,17 +39,9 @@ export async function GET() {
 
     return NextResponse.json({
       kodesh_workspace: true,
-      items: {
-        home: true,             // /dashboard/education/kodesh-home
-        prep: kodesh,           // /dashboard/education/kodesh (шибуц/подготовка)
-        alerts: viewStudents,   // /dashboard/education/alerts (§4.4)
-        calendar: manageClassGroups, // /dashboard/education/timetable + לוח שנה
-        courses: kodesh,        // /dashboard/education/kodesh-courses
-        teachers: viewStudents, // /dashboard/education/teachers
-        students: viewStudents, // /dashboard/education/studies?sec=students
-        jewishness,             // /dashboard/jewishness
-        contacts,               // /dashboard/contacts
-      },
+      // Видимость пунктов — чистая функция (lib/education/kodesh-nav), покрыта
+      // тестами. fail-closed: нет права → пункт скрыт; «дом» виден всегда.
+      items: kodeshNavItemVisibility({ viewStudents, manageClassGroups, kodesh, jewishness, contacts }),
     })
   } catch {
     // Fail-safe: не смогли решить — отдаём обычный сайдбар (kodesh_workspace:false).

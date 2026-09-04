@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { isModuleImplemented } from '@/lib/module-colors'
+import { KODESH_COVERED_MODULES, kodeshMoreModuleItems, kodeshMoreEduSections } from '@/lib/education/kodesh-nav'
 
 // Три раздела «Образования» как ОТДЕЛЬНЫЕ модули-маршруты (запрос владельца:
 // גיוс / קבלה / לимудим — раздельные, без «התנגשויות»). У каждого свой маршрут,
@@ -31,8 +32,6 @@ const KODESH_NAV = [
   { key: 'jewishness', gate: 'jewishness', href: '/dashboard/jewishness',                     iconKey: 'jewishness' as const },
   { key: 'contacts',   gate: 'contacts',   href: '/dashboard/contacts',                       iconKey: 'contacts' as const },
 ] as const
-// Модули, которые §10-пункты уже покрывают (чтобы не дублировать их в блоке «ещё»).
-const KODESH_COVERED_MODULES = new Set(['education', 'jewishness', 'contacts'])
 
 // ── Icon paths (Heroicons outline 24px) ────────────────────────────────────
 const I = {
@@ -343,13 +342,9 @@ export default function Sidebar() {
   // §10 «ещё»: всё, что пользователь может открыть, но что НЕ покрыто пунктами
   // сфокусированного пространства иудаики — чтобы у неё НИЧЕГО не пропало из
   // доступного (перекладка навигации, не удаление доступа).
-  const kodeshMoreItems = sections
-    .flatMap(s => s.items)
-    .filter(m => !KODESH_COVERED_MODULES.has(m.key))
-  // Разделы «Образования», которые §10 НЕ покрывает (набор/приём): если у неё
-  // есть к ним доступ — держим их в «ещё», чтобы ничего не пропало. «Учёба»
-  // покрыта пунктом «תלמידות», поэтому её сюда не добавляем.
-  const kodeshMoreEdu = EDU_SECTIONS.filter(s => s.key !== 'study' && eduTabAccess?.[s.key] === true)
+  // Чистые помощники (lib/education/kodesh-nav), покрыты тестами.
+  const kodeshMoreItems = kodeshMoreModuleItems(sections.flatMap(s => s.items), KODESH_COVERED_MODULES)
+  const kodeshMoreEdu = kodeshMoreEduSections(EDU_SECTIONS, eduTabAccess)
 
   // Группа активного маршрута — открывается по умолчанию; при смене маршрута
   // раскрываем её (и сворачиваем прочие). Ручной клик по заголовку это не трогает.
