@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import type { StudyGroupUpdate } from '@/types/database'
 
 /**
@@ -98,7 +99,7 @@ export async function PATCH(
  * DELETE /api/education/study-groups/[id]
  * Право: manage_study_groups в подразделении группы.
  * Отказывает (409) если есть активные студенты — нужно сначала перевести их.
- * (students.main_group_id имеет ON DELETE SET NULL, но молчаливое обнуление нежелательно.)
+ * (education_journeys.main_group_id имеет ON DELETE SET NULL, но молчаливое обнуление нежелательно.)
  */
 export async function DELETE(
   _request: NextRequest,
@@ -117,11 +118,13 @@ export async function DELETE(
 
     await requireEducationPrivilege('manage_study_groups', { department_id: current.department_id })
 
+    // Считаем по education_journeys (legacy `students` больше не пишется — защита
+    // от удаления группы с живыми студентками фактически не работала).
     const { count: studentsCount, error: cntErr } = await sb
-      .from('students')
+      .from('education_journeys')
       .select('id', { count: 'exact', head: true })
       .eq('main_group_id', params.id)
-      .eq('status', 'active')
+      .in('education_status', ACTIVE_STUDENT_STATUSES)
 
     if (cntErr) throw cntErr
 
