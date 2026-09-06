@@ -1011,7 +1011,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 | `JWT_SECRET` | **בפרודקשן האפליקציה קורסת בכוונה** אם חסר או חלש (fail-closed, `lib/auth/config.ts`) |
 | הפרדת כניסות | תלמידה ב-`student_credentials` — טבלה נפרדת לגמרי מ-`person_accounts`. כניסת צוות **פיזית לא יכולה** לאמת תלמידה ולהפך |
 | `/api/dev-login` | חסום ב-403 כשלא `NODE_ENV=development` |
-| cron | מוגן ב-`CRON_SECRET` (אם לא מוגדר — ה-endpoint פתוח ⚠) |
+| cron | **fail-closed** (`lib/cron/auth.ts`): בלי `CRON_SECRET` מוגדר ה-endpoint מחזיר 503 ולא מריץ כלום; כשהוא מוגדר — נדרש `Authorization: Bearer <CRON_SECRET>` בהשוואה בזמן קבוע |
 | קבצים | בקט פרטי + signed URLs בלבד; נתיב חתימות מוגן מפני IDOR |
 | חיפוש | סניטציה של קלט (`lib/search/sanitize.ts`) |
 | טופס ציבורי | honeypot + rate limit |
@@ -1058,7 +1058,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 | **ניטור** | Sentry (קוד מוכן, DSN טרם הוגדר) |
 | **i18n** | מערכת עצמית: `messages/{he,en,ru}.json` — 4,649 מפתחות בכל שפה. שגיאות שרת מתורגמות דרך `serverT()` לפי cookie `campus_locale`. טסט זהות מפתחות אוטומטי |
 | **PWA** | `manifest.webmanifest` + `public/sw.js` + אייקונים 192/512 |
-| **משתני סביבה** | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET` (חובה); `CRON_SECRET` (מומלץ); Sentry (אופציונלי). בדיקה: `scripts/check-env.mjs` |
+| **משתני סביבה** | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET` (חובה); `CRON_SECRET` (**חובה לפרודקשן** — בלעדיו ה-cron לא רץ כלל); Sentry (אופציונלי). בדיקה: `scripts/check-env.mjs` |
 | **כלים תפעוליים** | `scripts/verify-migrations.mjs` (מוודא שכל המיגרציות הוחלו), `scripts/build-staging-bootstrap.sh`, `scripts/create-admin.ts` |
 
 ---
@@ -1396,7 +1396,11 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 
 7. **Sentry** — הקוד מוכן ומחכה ל-DSN. 15 דקות עבודה. **מתי מפעילים?**
 
-8. **`CRON_SECRET`** — אם לא מוגדר, ה-endpoints של ה-cron **פתוחים לכל העולם**. האם הוגדר?
+8. ✅ **`CRON_SECRET`** — טופל: ה-endpoints של ה-cron הם עכשיו fail-closed (בלי סוד מוגדר
+   הם מחזירים 503 ולא מריצים כלום; עם סוד — נדרשת כותרת `Authorization: Bearer`).
+   **פעולה נדרשת לפני מיזוג: להגדיר `CRON_SECRET` ב-Vercel → Settings → Environment
+   Variables (Production), אחרת המשימות הלילתיות (יצירת שיעורים 03:00, תזכורות 06:00)
+   יפסיקו לרוץ.** בדיקה מקומית: `npm run check-env`.
 
 9. **מסך למסלול הביקורת** — הנתונים נאספים ב-8 טבלאות אבל אין ממשק. מה העלות של מסך בסיסי?
 

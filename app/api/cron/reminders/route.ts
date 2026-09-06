@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { materializeAllDueReminders, materializeAllTaskDeadlines } from '@/lib/notifications/reminders'
 import { materializeChavrutaReminders } from '@/lib/chavruta/reminder'
 import { materializeAbsenceThresholdAlerts } from '@/lib/education/absence-alerts'
+import { cronAuthGuard } from '@/lib/cron/auth'
 
 /**
  * GET /api/cron/reminders — планировщик напоминаний (Vercel Cron).
@@ -12,23 +13,19 @@ import { materializeAbsenceThresholdAlerts } from '@/lib/education/absence-alert
  * колокольчик. Ленивая материализация в GET /api/notifications остаётся для
  * внутридневной свежести, когда пользователи активны.
  *
- * Защита: если задан env CRON_SECRET, требуем заголовок
- * `Authorization: Bearer <CRON_SECRET>` (Vercel Cron присылает его
- * автоматически, когда переменная задана). Если CRON_SECRET не задан — маршрут
- * открыт (создаёт лишь легитимные уведомления, без утечки/разрушения данных);
- * задать CRON_SECRET рекомендуется. Маршрут внесён в PUBLIC_API_PREFIXES, т.к.
- * у cron нет пользовательской сессии.
+ * Защита (fail-closed, lib/cron/auth): CRON_SECRET ОБЯЗАТЕЛЕН. Если он не задан
+ * на сервере — маршрут отвечает 503 и НИЧЕГО не делает (раньше он был открыт
+ * всему интернету). Если задан — требуем `Authorization: Bearer <CRON_SECRET>`
+ * (Vercel Cron присылает его автоматически). Маршрут внесён в
+ * PUBLIC_API_PREFIXES, т.к. у cron нет пользовательской сессии.
  */
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = request.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    }
-  }
+  // FAIL-CLOSED: без настроенного CRON_SECRET маршрут не выполняется вовсе (503),
+  // с настроенным — требует Authorization: Bearer <CRON_SECRET>. См. lib/cron/auth.
+  const denied = cronAuthGuard(request)
+  if (denied) return denied
 
   const sb = createServerClient()
   const remindersCreated = await materializeAllDueReminders(sb)

@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/lesson-generation'
+import { cronAuthGuard } from '@/lib/cron/auth'
 
 /**
  * GET /api/cron/generate-lessons — ежедневная материализация уроков (Vercel Cron).
@@ -16,7 +17,8 @@ import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/l
  * Идемпотентно (ON CONFLICT DO NOTHING) — повторные запуски ничего не дублируют,
  * отменённые/ручные уроки не трогаются, pending-слоты (кодеш) пропускаются.
  *
- * Защита: как /api/cron/reminders — если задан CRON_SECRET, требуем
+ * Защита (fail-closed, lib/cron/auth): CRON_SECRET ОБЯЗАТЕЛЕН. Не задан на
+ * сервере → 503 и задача не выполняется; задан → требуем
  * Authorization: Bearer <CRON_SECRET>. Маршрут под PUBLIC_API_PREFIXES.
  */
 export const dynamic = 'force-dynamic'
@@ -25,13 +27,10 @@ const HORIZON_DAYS = 14
 const PAGE = 1000
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = request.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    }
-  }
+  // FAIL-CLOSED: без настроенного CRON_SECRET маршрут не выполняется вовсе (503),
+  // с настроенным — требует Authorization: Bearer <CRON_SECRET>. См. lib/cron/auth.
+  const denied = cronAuthGuard(request)
+  if (denied) return denied
 
   const sb = createServerClient()
   const todayStr = todayISO()

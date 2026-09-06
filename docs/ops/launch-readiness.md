@@ -36,7 +36,7 @@ node scripts/check-env.mjs
 | `NEXT_PUBLIC_SUPABASE_URL` | **חובה** | כתובת פרויקט Supabase |
 | `SUPABASE_SECRET_KEY` | **חובה** | service_role key (השרת חייב לרוץ תחתיו) |
 | `JWT_SECRET` | **חובה** | ≥32 תווים; בפרודקשן האפליקציה **קורסת בכוונה** אם חסר/חלש (fail-closed) |
-| `CRON_SECRET` | מומלץ | מגן על `/api/cron/*` — בלעדיו ה-endpoint פתוח |
+| `CRON_SECRET` | **חובה לפרודקשן** | מגן על `/api/cron/*` (fail-closed). **בלעדיו המשימות הלילתיות לא ירוצו כלל** (503): יצירת שיעורים 03:00, תזכורות 06:00. Vercel Cron שולח את הסוד אוטומטית ברגע שהוא מוגדר |
 | `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN` | אופציונלי | ניטור שגיאות (ראה סעיף 3) |
 
 **יצירת JWT_SECRET חזק:**

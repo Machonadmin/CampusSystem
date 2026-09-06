@@ -132,13 +132,28 @@ describe('API route authorization coverage', () => {
     ).toEqual([])
   })
 
-  it('every cron route enforces the CRON_SECRET bearer check', () => {
+  // Проверка cron перенесена в общий fail-closed хелпер lib/cron/auth
+  // (cronAuthGuard): без настроенного CRON_SECRET маршрут отвечает 503 и не
+  // выполняется, с настроенным — требует Bearer. Поэтому засчитываем и прямую
+  // ссылку на CRON_SECRET, и вызов хелпера (он покрыт своими юнит-тестами).
+  it('every cron route enforces the fail-closed CRON_SECRET check', () => {
     const bad: string[] = []
     for (const [r, src] of sources) {
       if (!r.startsWith('cron/')) continue
-      if (!/CRON_SECRET/.test(src)) bad.push(r)
+      if (!/CRON_SECRET/.test(src) && !/cronAuthGuard/.test(src)) bad.push(r)
     }
     expect(bad, `cron routes not checking CRON_SECRET:\n${bad.join('\n')}`).toEqual([])
+  })
+
+  // Страховка от возврата к старому «открыт, если переменная не задана»:
+  // в cron-маршрутах не должно быть условной проверки вида `if (secret)`.
+  it('no cron route gates its auth check behind "if (secret)" (fail-open)', () => {
+    const bad: string[] = []
+    for (const [r, src] of sources) {
+      if (!r.startsWith('cron/')) continue
+      if (/if\s*\(\s*secret\s*\)/.test(src)) bad.push(r)
+    }
+    expect(bad, `cron routes still fail-open when CRON_SECRET is unset:\n${bad.join('\n')}`).toEqual([])
   })
 
   it('no stale EXCEPTIONS: every documented exception still points to a real route', () => {

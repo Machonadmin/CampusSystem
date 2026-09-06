@@ -42,7 +42,15 @@ console.log('ОБЯЗАТЕЛЬНЫЕ:')
 
 // ── Рекомендуемые ──
 console.log('\nРЕКОМЕНДУЕМЫЕ:')
-line(process.env.CRON_SECRET ? '✅' : '⚠️ ', 'CRON_SECRET', process.env.CRON_SECRET ? 'set' : 'не задан — cron-эндпоинт открыт (в PUBLIC_API_PREFIXES)')
+{
+  // Cron теперь FAIL-CLOSED: без CRON_SECRET маршруты /api/cron/* отвечают 503 и
+  // ночные задачи (порождение уроков 03:00, напоминания 06:00) НЕ отрабатывают.
+  // В проде это ошибка развёртывания → hard fail; вне прода — предупреждение.
+  const s = process.env.CRON_SECRET
+  if (s) line('✅', 'CRON_SECRET', 'set — cron отработает')
+  else if (isProd) { line('❌', 'CRON_SECRET', 'MISSING — cron-задачи НЕ будут выполняться (503, fail-closed)'); hardFail = true }
+  else line('⚠️ ', 'CRON_SECRET', 'не задан — cron-эндпоинты вернут 503 (fail-closed), задачи не отработают')
+}
 
 // ── Опциональные (мониторинг) ──
 console.log('\nОПЦИОНАЛЬНЫЕ (Sentry — без них мониторинг выключен):')
