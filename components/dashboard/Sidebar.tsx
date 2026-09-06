@@ -198,12 +198,15 @@ export default function Sidebar() {
   const pathname = usePathname()
   const { t, isRTL } = useLang()
   const tEdu = useTranslations('education')
+  const tFin = useTranslations('finance')
   const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
   const [isChavrutaTeacher, setIsChavrutaTeacher] = useState(false)
   // Менеджер, которому доступен управляющий хаб «מרכז חברותא» (не журнал).
   const [canViewChavrutaHub, setCanViewChavrutaHub] = useState(false)
+  // «שכר צוות»: экраны /dashboard/finance/staff есть, но в меню их не было.
+  const [canViewStaffComp, setCanViewStaffComp] = useState(false)
   // Есть ли у меня открытые задачи (для точки на пункте «Задачи»).
   const [hasOpenTasks, setHasOpenTasks] = useState(false)
   // Доступ к вкладкам «Образования» (набор/приём/учёба) — гейтит три пункта.
@@ -224,6 +227,7 @@ export default function Sidebar() {
         if (data?.accessible_modules) setAccessibleModules(data.accessible_modules)
         if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
         if (data?.can_view_chavruta) setCanViewChavrutaHub(true)
+        if (data?.can_view_staff_comp) setCanViewStaffComp(true)
       })
       .catch(() => { /* тихо: сеть упала — навигация остаётся с дефолтами */ })
     return () => { alive = false }
@@ -593,6 +597,40 @@ export default function Sidebar() {
                         soonLabel={t.soon}
                       />
                     ))
+                }
+                // «Финансы» разворачиваются в два пункта: сам модуль и «שכר צוות»
+                // (расчётные листы). Экраны существовали, но были навигационно
+                // недостижимы (аудит §22.2). fail-closed: пункт только при === true.
+                if (item.key === 'finance') {
+                  const links = [(
+                    <SidebarNavLink
+                      key="finance"
+                      href={item.href}
+                      iconPath={item.icon}
+                      label={t.nav.finance}
+                      active={pathname === '/dashboard/finance' || (pathname.startsWith('/dashboard/finance/') && !pathname.startsWith('/dashboard/finance/staff'))}
+                      isOpen={isOpen}
+                      isRTL={isRTL}
+                      moduleKey="finance"
+                      soonLabel={t.soon}
+                    />
+                  )]
+                  if (canViewStaffComp) {
+                    links.push(
+                      <SidebarNavLink
+                        key="finance-staff"
+                        href="/dashboard/finance/staff"
+                        iconPath={I.staff}
+                        label={tFin('staff.link_label')}
+                        active={pathname.startsWith('/dashboard/finance/staff')}
+                        isOpen={isOpen}
+                        isRTL={isRTL}
+                        moduleKey="finance"
+                        soonLabel={t.soon}
+                      />
+                    )
+                  }
+                  return links
                 }
                 // «Хеврута»: преподаватель хавруты → его журнал; менеджер (не
                 // преподаватель) → управляющий хаб (иначе он попадал на страницу

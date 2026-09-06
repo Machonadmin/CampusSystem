@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewChavruta } from '@/lib/chavruta/access'
+import { canViewStaffComp } from '@/lib/finance/staff-comp'
 import type { RoleCode } from '@/types/database'
 
 const ALL_MODULE_CODES = [
@@ -134,6 +135,13 @@ export async function GET() {
   let can_view_chavruta = false
   try { can_view_chavruta = await canViewChavruta(session) } catch { /* deploy-безопасно */ }
 
+  // «שכר צוות» (расчётные листы) — экраны /dashboard/finance/staff гейтятся
+  // canViewStaffComp (superadmin | finance.view), но в меню их не было вовсе.
+  // Отдаём флагом, чтобы сайдбар показал пункт тем, у кого доступ есть.
+  // Fail-closed: любая ошибка → false (пункт скрыт).
+  let can_view_staff_comp = false
+  try { can_view_staff_comp = await canViewStaffComp(session) } catch { /* fail-closed */ }
+
   return NextResponse.json({
     person_id: session.person_id,
     login_email: session.login_email,
@@ -144,5 +152,6 @@ export async function GET() {
     feature_access,
     is_chavruta_teacher,
     can_view_chavruta,
+    can_view_staff_comp,
   })
 }
