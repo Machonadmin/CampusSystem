@@ -1384,8 +1384,12 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 3. **שני מנגנוני מסמכים במקביל** — `document_records` (המודול הרשמי) ו-`journey_documents`
    (בשימוש בכרטיס התלמידה). האם לאחד?
 
-4. **`campus_admin`** — התפקיד מוזכר ב-`lib/auth/landing.ts` כ"אדמין רחב", אבל מיגרציה `002`
-   מבצעת `TRUNCATE roles` ולא מזריעה אותו מחדש. האם הוא קיים בפועל?
+4. ✅ **`campus_admin`** — טופל: אף מיגרציה אינה מזריעה אותו אחרי ה-`TRUNCATE` שב-`002`,
+   הוא אינו קיים באיחוד `RoleCode`, ואף הרשאה אינה קשורה אליו. לכן הוסר מבדיקת
+   "אדמין רחב" (`lib/auth/landing.ts` — נשאר רק `superadmin`). **הערה:** קוד תפקיד הוא
+   טקסט חופשי, כך ש-superadmin יכול ליצור `campus_admin` ידנית; אחרי השינוי תפקיד כזה
+   כבר לא מקבל התנהגות מיוחדת. לאימות בפרודקשן (SQL Editor):
+   `SELECT r.code, count(pr.person_id) FROM roles r LEFT JOIN person_roles pr ON pr.role_id = r.id WHERE r.code IN ('campus_admin','campus_doctor','admin') GROUP BY r.code;`
 
 5. **RPCים ב-PL/pgSQL ללא כיסוי בדיקות** — `complete_stage` (~300 שורות), `start_process`,
    `merge_persons`, `advance_academic_year`, `create_staff_member`, `transition_education_status`.

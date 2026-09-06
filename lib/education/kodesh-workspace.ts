@@ -7,7 +7,7 @@ import { hasBroaderAdminRole } from '@/lib/auth/landing'
  * Рабочее пространство «кафедра иудаики» (§10). Признак НЕ по строке роли, а по
  * данным: пользователь УПРАВЛЯЕТ единицей иудаики (staff_positions.is_head на
  * KODESH_DEPT_ID или делегат — это canManageUnit) И НЕ является более широким
- * админом кампуса (superadmin/campus_admin — им остаётся общий /dashboard).
+ * админом кампуса (superadmin — ему остаётся общий /dashboard).
  *
  * Используется и для посадки (Part A), и для сфокусированного сайдбара (Part B),
  * чтобы обе части опирались на ОДИН сигнал. Fail-safe: студентка/ошибка → false
