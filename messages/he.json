@@ -3033,7 +3033,8 @@
       "roles": "תפקידים והרשאות",
       "reference_cities": "רשימת ערים",
       "reference_positions": "תוארי משרה",
-      "workflows": "תבניות תהליכים"
+      "workflows": "תבניות תהליכים",
+      "audit": "יומן שינויים"
     },
     "users": {
       "create_button": "הוספת משתמש",
@@ -3309,6 +3310,41 @@
       "empty": "אין הרשאות זמינות",
       "hint": "החרגות מעל התפקידים. ירושה = לפי התפקידים.",
       "loading": "טוען…"
+    },
+    "audit": {
+      "title": "יומן שינויים",
+      "desc": "מי שינה מה ומתי — לקריאה בלבד",
+      "subtitle": "רישום אוטומטי של כל שינוי בטבלאות רגישות",
+      "filters": "סינון",
+      "entity_type": "טבלה",
+      "entity_id": "מזהה רשומה",
+      "changed_by": "מי שינה",
+      "action": "פעולה",
+      "date_from": "מתאריך",
+      "date_to": "עד תאריך",
+      "all": "הכול",
+      "apply": "סנן",
+      "reset": "נקה",
+      "action_create": "יצירה",
+      "action_update": "עדכון",
+      "action_delete": "מחיקה",
+      "col_when": "מתי",
+      "col_who": "מי",
+      "col_what": "מה",
+      "col_action": "פעולה",
+      "unknown_actor": "לא נרשם",
+      "unknown_actor_hint": "בשינויים מסוימים (כתיבה ישירה) המערכת לא רשמה מי ביצע — הרשומה נשמרת, בלי זהות",
+      "expand": "פירוט",
+      "collapse": "סגור",
+      "field": "שדה",
+      "before": "לפני",
+      "after": "אחרי",
+      "empty": "לא נמצאו שינויים",
+      "load_error": "שגיאה בטעינת היומן",
+      "not_migrated": "טבלת היומן עדיין לא הותקנה",
+      "showing": "מוצג {n} מתוך {total}",
+      "load_more": "טען עוד",
+      "read_only": "תצוגה בלבד — אין עריכה ואין ביטול"
     }
   },
   "events": {

@@ -3033,7 +3033,8 @@
       "roles": "Roles & Permissions",
       "reference_cities": "Cities Reference",
       "reference_positions": "Positions Reference",
-      "workflows": "Process Templates"
+      "workflows": "Process Templates",
+      "audit": "Change log"
     },
     "users": {
       "create_button": "Add User",
@@ -3309,6 +3310,41 @@
       "empty": "No privileges available",
       "hint": "Overrides on top of roles. Inherit = follows roles.",
       "loading": "Loading…"
+    },
+    "audit": {
+      "title": "Change log",
+      "desc": "Who changed what and when — read-only",
+      "subtitle": "Automatic record of every change in sensitive tables",
+      "filters": "Filters",
+      "entity_type": "Table",
+      "entity_id": "Record ID",
+      "changed_by": "Changed by",
+      "action": "Action",
+      "date_from": "From date",
+      "date_to": "To date",
+      "all": "All",
+      "apply": "Filter",
+      "reset": "Reset",
+      "action_create": "Create",
+      "action_update": "Update",
+      "action_delete": "Delete",
+      "col_when": "When",
+      "col_who": "Who",
+      "col_what": "What",
+      "col_action": "Action",
+      "unknown_actor": "Not recorded",
+      "unknown_actor_hint": "For some changes (direct writes) the system did not record the author — the row is kept, without an identity",
+      "expand": "Details",
+      "collapse": "Collapse",
+      "field": "Field",
+      "before": "Before",
+      "after": "After",
+      "empty": "No changes found",
+      "load_error": "Failed to load the log",
+      "not_migrated": "The log table is not installed yet",
+      "showing": "Showing {n} of {total}",
+      "load_more": "Load more",
+      "read_only": "Read-only — no editing, no undo"
     }
   },
   "events": {
