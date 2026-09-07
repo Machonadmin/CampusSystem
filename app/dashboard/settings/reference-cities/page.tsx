@@ -22,7 +22,7 @@ export default function ReferenceCitiesPage() {
   const tNav = useTranslations('navigation')
   const [country, setCountry] = useState('Израиль')
   const [cities, setCities] = useState<CityRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newCity, setNewCity] = useState('')
   const [busy, setBusy] = useState(false)

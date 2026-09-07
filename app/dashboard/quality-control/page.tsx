@@ -71,7 +71,7 @@ export default function QualityControlPage() {
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
   const [tab, setTab] = useState<Tab>('planned')
   const [checks, setChecks] = useState<CheckRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [refresh, setRefresh] = useState(0)

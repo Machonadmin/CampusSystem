@@ -127,7 +127,7 @@ export default function StructurePage() {
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
-      {loading ? (
+      {(loadingUnits || loading) ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : !root ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>

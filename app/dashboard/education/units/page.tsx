@@ -59,11 +59,18 @@ export default function UnitTeamPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const [membersLoading, setMembersLoading] = useState(false)
   const loadMembers = useCallback(async (uid: string) => {
     if (!uid) { setMembers([]); return }
-    const res = await fetch(`/api/education/units/${uid}/members`)
-    if (res.ok) { const b = await res.json(); setMembers(b.members ?? []) }
-  }, [])
+    setMembersLoading(true)
+    try {
+      const res = await fetch(`/api/education/units/${uid}/members`)
+      if (res.ok) { const b = await res.json(); setMembers(b.members ?? []) }
+      else { setMembers([]); toastError(tCommon('load_error')) }
+    } catch {
+      setMembers([]); toastError(tCommon('load_error'))
+    } finally { setMembersLoading(false) }
+  }, [tCommon])
   useEffect(() => { if (unitId) loadMembers(unitId) }, [unitId, loadMembers])
 
   async function togglePriv(personId: string, code: string, on: boolean) {
@@ -122,7 +129,9 @@ export default function UnitTeamPage() {
           </div>
 
           {/* Members */}
-          {members.length === 0 ? (
+          {membersLoading ? (
+            <SkeletonRows rows={3} />
+          ) : members.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('units.empty')}</div>
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>

@@ -208,10 +208,15 @@ export default function RolesPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [addPrivModule, setAddPrivModule] = useState<string | null>(null)
 
+  const [rolesLoaded, setRolesLoaded] = useState(false)
   const loadRoles = useCallback(async () => {
-    const res = await fetch('/api/settings/roles')
-    if (res.ok) setRoles(await res.json())
-    else toastError(tCommon('load_error'))
+    try {
+      const res = await fetch('/api/settings/roles')
+      if (res.ok) setRoles(await res.json())
+      else toastError(tCommon('load_error'))
+    } catch {
+      toastError(tCommon('load_error'))
+    } finally { setRolesLoaded(true) }
   }, [tCommon])
 
   useEffect(() => { loadRoles() }, [loadRoles])
@@ -335,6 +340,7 @@ export default function RolesPage() {
             </button>
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
+            {!rolesLoaded && <div style={{ padding: 16, fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>}
             {Object.entries(groupedRoles).map(([cat, catRoles]) => {
               const catBg = CAT_COLORS[cat] ?? 'var(--surface-2)'
               const catTxt = CAT_TEXT[cat] ?? 'var(--text-muted)'
