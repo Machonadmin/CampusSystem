@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
+import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import type { StudyGroupInsert } from '@/types/database'
 
 
@@ -47,16 +48,19 @@ export async function GET(request: NextRequest) {
     if (!groups || groups.length === 0) return NextResponse.json({ study_groups: [] })
 
     const groupIds = groups.map(g => g.id)
+    // Считаем по education_journeys (таблица, заменившая legacy `students`, куда
+    // давно никто не пишет — счётчик показывал ноль). Активная студентка =
+    // education_status='student' (см. lib/education/journey-status).
     const { data: studentRows, error: cntErr } = await sb
-      .from('students')
+      .from('education_journeys')
       .select('main_group_id')
       .in('main_group_id', groupIds)
-      .eq('status', 'active')
+      .in('education_status', ACTIVE_STUDENT_STATUSES)
 
     if (cntErr) throw cntErr
 
     const countsByGroup = new Map<string, number>()
-    for (const row of studentRows ?? []) {
+    for (const row of (studentRows ?? []) as Array<{ main_group_id: string | null }>) {
       if (row.main_group_id) {
         countsByGroup.set(row.main_group_id, (countsByGroup.get(row.main_group_id) ?? 0) + 1)
       }

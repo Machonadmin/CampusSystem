@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { expandDepartmentTree, type DepartmentEdge } from '@/lib/permissions/scope'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 
 /**
  * GET /api/staff/scope-preview?department_id={uuid}
@@ -51,12 +52,13 @@ export async function GET(request: NextRequest) {
     ])
 
     // Студенты, которых человек увидит. Кодеш → все; иначе — только поддерева.
-    // Двумя запросами (без встроенного join students→persons — его нет в
+    // Источник — education_journeys (legacy `students` больше не пишется, превью
+    // показывало ноль). Двумя запросами (встроенного join journeys→persons нет в
     // сгенерированных типах, tsc его не пропускает).
     let studentsQuery = sb
-      .from('students')
+      .from('education_journeys')
       .select('person_id', { count: 'exact' })
-      .eq('status', 'active')
+      .in('education_status', ACTIVE_STUDENT_STATUSES)
       .limit(8)
     if (!isKodesh) studentsQuery = studentsQuery.in('primary_department_id', subtree)
     const studentsRes = await studentsQuery
@@ -67,9 +69,9 @@ export async function GET(request: NextRequest) {
 
     // Общее число активных студентов — для контекста «сколько СКРЫТО».
     const { count: studentsTotal } = await sb
-      .from('students')
+      .from('education_journeys')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'active')
+      .in('education_status', ACTIVE_STUDENT_STATUSES)
 
     const trackName = (t: { name_he: string | null; name_ru: string | null; name_en: string | null }) =>
       t.name_he || t.name_ru || t.name_en || '—'
