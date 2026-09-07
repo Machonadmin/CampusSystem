@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
@@ -181,10 +181,7 @@ export async function POST(
         return apiError('entry_journey_id_required', 400)
       }
       if (!entry.status || !VALID_STATUSES.includes(entry.status as AttendanceStatus)) {
-        return NextResponse.json(
-          { error: `Недопустимый статус: ${entry.status ?? '(пусто)'}. Разрешено: ${VALID_STATUSES.join(', ')}` },
-          { status: 400 }
-        )
+        return apiErrorWith('attendance_status_invalid', 400, { status: entry.status ?? '—', allowed: VALID_STATUSES.join(', ') })
       }
     }
 
@@ -243,10 +240,7 @@ export async function POST(
     const notAllowed = Array.from(new Set(entries.map(e => e.journey_id!)))
       .filter(id => !allowedIds.has(id))
     if (notAllowed.length > 0) {
-      return NextResponse.json(
-        { error: `Не записаны в группу урока: ${notAllowed.join(', ')}` },
-        { status: 400 }
-      )
+      return apiErrorWith('not_enrolled_in_lesson_group', 400, { ids: notAllowed.join(', ') })
     }
 
     // חריגות קודש: освобождённой студентке не пишем посещаемость на урок кодеша

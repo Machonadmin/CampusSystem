@@ -59,3 +59,21 @@ export function apiError(
 ): NextResponse {
   return NextResponse.json({ error: serverT(code), code, ...(extra ?? {}) }, { status })
 }
+
+/**
+ * apiError с подстановкой значений в `{placeholder}` сообщения (например,
+ * «Переход {from} → {to} запрещён»). Значения приводятся к строке; неизвестные
+ * плейсхолдеры остаются как есть. Форма ответа та же: { error, code, ...extra }.
+ */
+export function apiErrorWith(
+  code: string,
+  status: number,
+  vars: Record<string, string | number | null | undefined>,
+  extra?: Record<string, unknown>,
+): NextResponse {
+  const message = Object.entries(vars).reduce(
+    (msg, [k, v]) => msg.split(`{${k}}`).join(String(v ?? '')),
+    serverT(code),
+  )
+  return NextResponse.json({ error: message, code, ...(extra ?? {}) }, { status })
+}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
@@ -157,10 +157,7 @@ export async function PATCH(
       const currentStatus = task.status as TaskStatus
       const allowed = ALLOWED_TRANSITIONS[currentStatus] ?? []
       if (!allowed.includes(body.status)) {
-        return NextResponse.json(
-          { error: `Переход ${currentStatus} → ${body.status} запрещён` },
-          { status: 400 }
-        )
+        return apiErrorWith('task_transition_forbidden', 400, { from: currentStatus, to: body.status })
       }
       if (body.status === 'declined' && !access.isAssignee && !access.isSuperadmin) {
         return apiError('only_assignee_can_release', 403)

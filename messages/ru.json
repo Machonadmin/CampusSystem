@@ -5040,7 +5040,22 @@
     "role_required": "Выберите роль",
     "role_not_found": "Роль не найдена",
     "bad_request": "Некорректный запрос",
-    "track_in_use": "Маршрут используется (есть студентки) — деактивируйте вместо удаления"
+    "track_in_use": "Маршрут используется (есть студентки) — деактивируйте вместо удаления",
+    "task_transition_forbidden": "Переход {from} → {to} запрещён",
+    "attendance_status_invalid": "Недопустимый статус: {status}. Разрешено: {allowed}",
+    "not_enrolled_in_lesson_group": "Не записаны в группу урока: {ids}",
+    "person_create_failed_reason": "Создание person: {message}",
+    "max_score_below_existing_grades": "Нельзя установить max_score={max}: {count} оценок превышают это значение. Сначала исправьте их.",
+    "grade_score_number_required": "У каждой записи должен быть числовой score (journey {journey})",
+    "grade_score_negative": "score не может быть отрицательным (journey {journey})",
+    "grade_score_exceeds_max": "score {score} превышает максимум {max} (journey {journey})",
+    "not_enrolled_in_assessment_group": "Не записаны в группу задания: {ids}",
+    "journeys_not_found_list": "Journey не найдены: {ids}",
+    "class_group_delete_has_enrollments": "Нельзя удалить группу — в ней {count} записанных студентов. Сначала снимите студентов с группы.",
+    "schedule_range_too_large": "Слишком большой период: {days} дн. (максимум {max})",
+    "study_group_delete_has_students": "Нельзя удалить группу — в ней {count} активных студентов. Переведите их в другую группу или деактивируйте группу (is_active=false).",
+    "payment_approve_only_pending": "Подтвердить можно только платёж в статусе 'pending' (текущий: '{status}')",
+    "quality_template_in_use": "Шаблон используется в {count} проверках и не может быть удалён"
   },
   "workflow": {
     "error": "Ошибка"

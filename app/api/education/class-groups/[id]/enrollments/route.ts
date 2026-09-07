@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
@@ -98,10 +98,7 @@ export async function POST(
     const foundIds = new Set((journeys ?? []).map(j => j.id))
     const missing = uniqueIds.filter(id => !foundIds.has(id))
     if (missing.length > 0) {
-      return NextResponse.json(
-        { error: `Journey не найдены: ${missing.join(', ')}` },
-        { status: 400 }
-      )
+      return apiErrorWith('journeys_not_found_list', 400, { ids: missing.join(', ') })
     }
 
     const nonStudents = (journeys ?? []).filter(j => j.education_status !== 'student')

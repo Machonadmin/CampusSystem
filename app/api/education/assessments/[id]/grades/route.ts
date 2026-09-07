@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
@@ -129,16 +129,10 @@ export async function POST(
       }
       const score = Number(entry.score)
       if (entry.score === undefined || entry.score === null || !Number.isFinite(score)) {
-        return NextResponse.json(
-          { error: `У каждой записи должен быть числовой score (journey ${entry.journey_id})` },
-          { status: 400 }
-        )
+        return apiErrorWith('grade_score_number_required', 400, { journey: entry.journey_id })
       }
       if (score < 0) {
-        return NextResponse.json(
-          { error: `score не может быть отрицательным (journey ${entry.journey_id})` },
-          { status: 400 }
-        )
+        return apiErrorWith('grade_score_negative', 400, { journey: entry.journey_id })
       }
     }
 
@@ -154,10 +148,7 @@ export async function POST(
     for (const entry of entries) {
       const score = Number(entry.score)
       if (score > maxScore) {
-        return NextResponse.json(
-          { error: `score ${score} превышает максимум ${maxScore} (journey ${entry.journey_id})` },
-          { status: 400 }
-        )
+        return apiErrorWith('grade_score_exceeds_max', 400, { score, max: maxScore, journey: entry.journey_id })
       }
     }
 
@@ -166,10 +157,7 @@ export async function POST(
     const notEnrolled = Array.from(new Set(entries.map(e => e.journey_id!)))
       .filter(id => !enrolledIds.has(id))
     if (notEnrolled.length > 0) {
-      return NextResponse.json(
-        { error: `Не записаны в группу задания: ${notEnrolled.join(', ')}` },
-        { status: 400 }
-      )
+      return apiErrorWith('not_enrolled_in_assessment_group', 400, { ids: notEnrolled.join(', ') })
     }
 
     const gradedAt = new Date().toISOString()

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
@@ -68,7 +68,7 @@ export async function POST(
     }
     const days = Math.round((toMs - fromMs) / MS_PER_DAY) + 1
     if (days > MAX_RANGE_DAYS) {
-      return NextResponse.json({ error: `Слишком большой период: ${days} дн. (максимум ${MAX_RANGE_DAYS})` }, { status: 400 })
+      return apiErrorWith('schedule_range_too_large', 400, { days, max: MAX_RANGE_DAYS })
     }
 
     // Делегируем общей логике порождения (единый источник: активные слоты +

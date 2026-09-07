@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -395,7 +395,7 @@ export async function POST(request: NextRequest) {
         .single()
       if (createErr || !newP) {
         const m = mapDbError(createErr ?? { message: serverT('person_create_failed') })
-        return NextResponse.json({ error: `Создание person: ${m.message}` }, { status: m.status })
+        return apiErrorWith('person_create_failed_reason', m.status, { message: m.message })
       }
       personId = newP.id
       createdPersonId = newP.id

@@ -5040,7 +5040,22 @@
     "role_required": "נא לבחור תפקיד",
     "role_not_found": "התפקיד לא נמצא",
     "bad_request": "בקשה לא תקינה",
-    "track_in_use": "המסלול בשימוש (משובצות בו תלמידות) — השבת אותו במקום למחוק"
+    "track_in_use": "המסלול בשימוש (משובצות בו תלמידות) — השבת אותו במקום למחוק",
+    "task_transition_forbidden": "מעבר {from} ← {to} אינו מותר",
+    "attendance_status_invalid": "סטטוס לא חוקי: {status}. מותר: {allowed}",
+    "not_enrolled_in_lesson_group": "לא רשומות בקבוצת השיעור: {ids}",
+    "person_create_failed_reason": "יצירת האדם נכשלה: {message}",
+    "max_score_below_existing_grades": "לא ניתן להגדיר max_score={max}: {count} ציונים גבוהים מערך זה. יש לתקן אותם קודם.",
+    "grade_score_number_required": "לכל רשומה נדרש score מספרי (journey {journey})",
+    "grade_score_negative": "score לא יכול להיות שלילי (journey {journey})",
+    "grade_score_exceeds_max": "score {score} עולה על המקסימום {max} (journey {journey})",
+    "not_enrolled_in_assessment_group": "לא רשומות בקבוצת המטלה: {ids}",
+    "journeys_not_found_list": "Journey לא נמצאו: {ids}",
+    "class_group_delete_has_enrollments": "לא ניתן למחוק את הקבוצה — רשומות בה {count} תלמידות. יש להסיר אותן מהקבוצה קודם.",
+    "schedule_range_too_large": "תקופה גדולה מדי: {days} ימים (מקסימום {max})",
+    "study_group_delete_has_students": "לא ניתן למחוק את הקבוצה — יש בה {count} תלמידות פעילות. יש להעביר אותן לקבוצה אחרת או להשבית את הקבוצה (is_active=false).",
+    "payment_approve_only_pending": "ניתן לאשר רק תשלום בסטטוס 'pending' (נוכחי: '{status}')",
+    "quality_template_in_use": "התבנית בשימוש ב-{count} בדיקות ולא ניתן למחוק אותה"
   },
   "workflow": {
     "error": "שגיאה"

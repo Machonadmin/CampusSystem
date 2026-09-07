@@ -5040,7 +5040,22 @@
     "role_required": "Select a role",
     "role_not_found": "Role not found",
     "bad_request": "Bad request",
-    "track_in_use": "Track is in use (students assigned) — deactivate instead of deleting"
+    "track_in_use": "Track is in use (students assigned) — deactivate instead of deleting",
+    "task_transition_forbidden": "Transition {from} → {to} is not allowed",
+    "attendance_status_invalid": "Invalid status: {status}. Allowed: {allowed}",
+    "not_enrolled_in_lesson_group": "Not enrolled in the lesson's group: {ids}",
+    "person_create_failed_reason": "Person creation failed: {message}",
+    "max_score_below_existing_grades": "Cannot set max_score={max}: {count} grades exceed it. Fix them first.",
+    "grade_score_number_required": "Each entry needs a numeric score (journey {journey})",
+    "grade_score_negative": "score cannot be negative (journey {journey})",
+    "grade_score_exceeds_max": "score {score} exceeds the maximum {max} (journey {journey})",
+    "not_enrolled_in_assessment_group": "Not enrolled in the assignment's group: {ids}",
+    "journeys_not_found_list": "Journeys not found: {ids}",
+    "class_group_delete_has_enrollments": "Cannot delete the group — {count} students are enrolled in it. Remove them from the group first.",
+    "schedule_range_too_large": "Period too large: {days} days (maximum {max})",
+    "study_group_delete_has_students": "Cannot delete the group — it has {count} active students. Move them to another group or deactivate the group (is_active=false).",
+    "payment_approve_only_pending": "Only a payment in status 'pending' can be approved (current: '{status}')",
+    "quality_template_in_use": "The template is used in {count} checks and cannot be deleted"
   },
   "workflow": {
     "error": "Error"

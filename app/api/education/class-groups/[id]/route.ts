@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import type { ClassGroupUpdate } from '@/types/database'
@@ -264,10 +264,7 @@ export async function DELETE(
     if (cntErr) throw cntErr
 
     if (enrollCount && enrollCount > 0) {
-      return NextResponse.json(
-        { error: `Нельзя удалить группу — в ней ${enrollCount} записанных студентов. Сначала снимите студентов с группы.` },
-        { status: 409 }
-      )
+      return apiErrorWith('class_group_delete_has_enrollments', 409, { count: enrollCount })
     }
 
     const { error } = await sb.from('class_groups').delete().eq('id', params.id)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
@@ -71,10 +71,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       .eq('template_id', params.id)
 
     if ((count ?? 0) > 0) {
-      return NextResponse.json(
-        { error: `Шаблон используется в ${count} проверках и не может быть удалён` },
-        { status: 409 }
-      )
+      return apiErrorWith('quality_template_in_use', 409, { count })
     }
 
     const { error } = await sb
