@@ -88,9 +88,10 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       const code = (error as { code?: string }).code
       if (code === '42P01') return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
-        const { data: re } = await sb.from('chavruta_plus_assignments')
+        const { data: re, error: reErr } = await sb.from('chavruta_plus_assignments')
           .update({ is_active: true }).eq('teacher_person_id', params.personId).eq('student_journey_id', journeyId)
           .select('id, student_journey_id, is_active').single()
+        if (reErr) throw reErr
         return NextResponse.json({ assignment: re }, { status: 200 })
       }
       if (code === '23503') return apiError('invalid_reference', 400)

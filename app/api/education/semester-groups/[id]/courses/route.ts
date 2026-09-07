@@ -137,7 +137,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         class_group_id: courseId, teacher_id, is_primary: idx === 0, added_by: session.person_id,
       }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('class_teachers').insert(rows as any)
+      const { error: tErr } = await sb.from('class_teachers').insert(rows as any)
+      if (tErr) throw tErr
     }
 
     // Студентки курса — только те, кто уже в ростере СЕМЕСТРА.

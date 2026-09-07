@@ -189,13 +189,14 @@ export async function PATCH(
     if (uErr) { const m = mapDbError(uErr); return NextResponse.json({ error: m.message }, { status: m.status }) }
 
     if (statusChange) {
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: params.id,
         actor_id: session.person_id,
         from_status: statusChange.from,
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+      if (histErr) console.error('[tasks PATCH] status history insert:', histErr)
 
       // Уведомляем «другую сторону» о смене статуса (best-effort).
       const creatorId = (task as { creator_id: string | null }).creator_id

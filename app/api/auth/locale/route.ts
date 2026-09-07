@@ -5,7 +5,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 // логина (app/(auth)/layout.tsx), до аутентификации. Меняет только cookie
 // UI-предпочтения, не данные.
 export async function POST(req: Request) {
-  const body = await req.json() as { locale?: unknown }
+  const body = await req.json().catch(() => ({})) as { locale?: unknown }
   const locale = body.locale
   if (locale !== 'ru' && locale !== 'he' && locale !== 'en') {
     return apiError('invalid_locale', 400)

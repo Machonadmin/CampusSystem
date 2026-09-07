@@ -84,13 +84,14 @@ export async function POST(
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    await sb.from('task_status_history').insert({
+    const { error: histErr } = await sb.from('task_status_history').insert({
       task_id: params.id,
       actor_id: personId,
       from_status: 'unassigned',
       to_status: 'in_progress',
       note: statusNote || 'Задача взята из пула',
     })
+    if (histErr) console.error('[tasks claim] status history insert:', histErr)
 
     // Если указан комментарий — продублировать его в ленту task_comments,
     // чтобы он был виден в обсуждении, а не только в истории статусов.

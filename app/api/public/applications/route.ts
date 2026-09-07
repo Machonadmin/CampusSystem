@@ -146,7 +146,8 @@ export async function POST(request: NextRequest) {
         ? { ...base, assignee_type: 'department' as const, department_id: dept.id, status: 'unassigned' as const }
         : { ...base, assignee_type: 'unassigned' as const, status: 'unassigned' as const }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('tasks').insert(insert as any)
+      const { error: taskErr } = await sb.from('tasks').insert(insert as any)
+      if (taskErr) console.error('[public/applications] staff notification:', taskErr)
     } catch (notifyErr) {
       console.error('[public/applications] staff notification:', notifyErr)
     }

@@ -184,19 +184,22 @@ export async function PATCH(
     }
     if (Object.keys(journeyUpdate).length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('education_journeys').update(journeyUpdate as any).eq('id', params.id)
+      const { error: journeyErr } = await sb.from('education_journeys').update(journeyUpdate as any).eq('id', params.id)
+      if (journeyErr) throw journeyErr
     }
 
     // 3. Interests: B1 — DELETE + INSERT
     if (body.interests !== undefined) {
-      await sb.from('lead_interests').delete().eq('person_id', personId)
+      const { error: delIntErr } = await sb.from('lead_interests').delete().eq('person_id', personId)
+      if (delIntErr) throw delIntErr
       const validInterests = (body.interests ?? []).filter(i => i.direction_id || i.free_text?.trim())
       if (validInterests.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await sb.from('lead_interests').insert(validInterests.map(i => i.direction_id
+        const { error: intErr } = await sb.from('lead_interests').insert(validInterests.map(i => i.direction_id
           ? { person_id: personId, direction_id: i.direction_id, level_id: i.level_id ?? null, free_text: null }
           : { person_id: personId, direction_id: null, level_id: null, free_text: i.free_text?.trim() || null }
         ) as any)
+        if (intErr) throw intErr
       }
     }
 

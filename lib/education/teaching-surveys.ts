@@ -100,8 +100,10 @@ export async function submitResponse(
   let responseId: string
   if (existing) {
     responseId = (existing as { id: string }).id
-    await sb.from('teaching_survey_answers').delete().eq('response_id', responseId)
-    await sb.from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
+    const { error: dErr } = await sb.from('teaching_survey_answers').delete().eq('response_id', responseId)
+    if (dErr) throw dErr
+    const { error: uErr } = await sb.from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
+    if (uErr) throw uErr
   } else {
     const { data: created, error } = await sb.from('teaching_survey_responses')
       .insert({ survey_id: args.surveyId, teacher_person_id: args.teacherPersonId, respondent_person_id: args.respondentPersonId, respondent_role: args.role })
@@ -120,7 +122,10 @@ export async function submitResponse(
       }
       return { response_id: responseId, question_id: a.question_id, rating: null, text_value: (a.text_value ?? '').trim() || null }
     })
-  if (rows.length) await sb.from('teaching_survey_answers').insert(rows)
+  if (rows.length) {
+    const { error: aErr } = await sb.from('teaching_survey_answers').insert(rows)
+    if (aErr) throw aErr
+  }
   return { ok: true }
 }
 

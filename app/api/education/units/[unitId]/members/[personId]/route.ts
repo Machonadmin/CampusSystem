@@ -33,7 +33,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { unitId: 
     if (error) throw error
 
     // Снять персональные education-права в этой единице.
-    await sb.from('person_privileges').delete().eq('person_id', params.personId).eq('module', 'education')
+    const { error: privErr } = await sb.from('person_privileges').delete().eq('person_id', params.personId).eq('module', 'education')
+    if (privErr) throw privErr
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {

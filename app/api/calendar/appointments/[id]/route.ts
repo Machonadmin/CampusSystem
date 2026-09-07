@@ -123,11 +123,13 @@ export async function PATCH(
             requires_approval: above.has(pid), status: above.has(pid) ? 'pending_approval' : 'invited',
           }))
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (sb as any).from('appointment_attendees').insert(rows)
+          const { error: addErr } = await (sb as any).from('appointment_attendees').insert(rows)
+          if (addErr) throw addErr
         }
         if (toRemove.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (sb as any).from('appointment_attendees').delete().eq('appointment_id', params.id).in('person_id', toRemove)
+          const { error: rmErr } = await (sb as any).from('appointment_attendees').delete().eq('appointment_id', params.id).in('person_id', toRemove)
+          if (rmErr) throw rmErr
         }
         attendeesChanged = toAdd.length > 0 || toRemove.length > 0
       }

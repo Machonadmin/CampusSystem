@@ -30,7 +30,8 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
     // Re-parent children to this dept's parent before deleting
     const { data: dept } = await sb.from('departments').select('parent_id').eq('id', params.id).maybeSingle()
-    await sb.from('departments').update({ parent_id: dept?.parent_id ?? null }).eq('parent_id', params.id)
+    const { error: reparentErr } = await sb.from('departments').update({ parent_id: dept?.parent_id ?? null }).eq('parent_id', params.id)
+    if (reparentErr) throw reparentErr
 
     const { error } = await sb.from('departments').delete().eq('id', params.id)
     if (error) throw error
