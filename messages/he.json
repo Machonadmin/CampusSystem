@@ -4896,6 +4896,8 @@
     "study_group_not_found": "קבוצת הלימוד לא נמצאה",
     "base_group_exists": "קבוצת בסיס בשם זה כבר קיימת",
     "role_code_exists": "קוד התפקיד כבר קיים",
+    "role_code_reserved": "קוד התפקיד שמור למערכת — לא ניתן ליצור תפקיד או לשנות שם לקוד זה",
+    "role_code_locked": "קוד של תפקיד שמור למערכת אינו ניתן לשינוי",
     "template_code_exists": "תבנית עם קוד זה כבר קיימת",
     "final_code_exists_substage": "סיום עם קוד זה כבר קיים בתת-שלב זה",
     "task_code_exists_substage": "משימה עם קוד זה כבר קיימת בתת-שלב זה",

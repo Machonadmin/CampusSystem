@@ -4896,6 +4896,8 @@
     "study_group_not_found": "Study group not found",
     "base_group_exists": "A base group with this name already exists",
     "role_code_exists": "Role code already exists",
+    "role_code_reserved": "This role code is reserved by the system — a role cannot be created or renamed to it",
+    "role_code_locked": "The code of a system-reserved role cannot be changed",
     "template_code_exists": "A template with this code already exists",
     "final_code_exists_substage": "A final with this code already exists in this sub-stage",
     "task_code_exists_substage": "A task with this code already exists in this sub-stage",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { normalizeRoleCode, roleCodeChangeError } from '@/lib/auth/reserved-roles'
 import type { RoleCode, RoleCategory } from '@/types/database'
 
 async function guard() {
@@ -31,6 +32,12 @@ export async function POST(request: NextRequest) {
 
     if (!body.name || !body.code || !body.category)
       return apiError('required_fields_missing', 400)
+
+    // Reserved codes (the ones the application hardcodes in permission/behaviour
+    // checks) can never be created from here — otherwise a new role with that
+    // code would silently inherit the hardcoded behaviour. See lib/auth/reserved-roles.
+    const reserved = roleCodeChangeError(body.code)
+    if (reserved) return apiError(reserved, 409, { reserved_code: normalizeRoleCode(body.code) })
 
     const { data, error } = await sb.from('roles')
       .insert({ name: body.name, code: body.code as RoleCode, category: body.category as RoleCategory, description: body.description ?? null, is_system: false })
