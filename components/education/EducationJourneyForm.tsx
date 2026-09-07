@@ -78,7 +78,7 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
       <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-        placeholder={placeholder ?? '+7...'}
+        placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
   )

@@ -55,7 +55,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
   return (
     <>
       {/* Заголовок с приоритет-баром */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 4, ...(reserveCloseSpace ? { paddingRight: 32 } : null) }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 4, ...(reserveCloseSpace ? { paddingInlineEnd: 32 } : null) }}>
         <div style={{ width: 4, background: priorityColor, borderRadius: 2 }} />
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: 'var(--text)' }}>

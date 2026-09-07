@@ -211,7 +211,7 @@ export function PersonSelect({
       {label && (
         <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
           {label}
-          {required && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
+          {required && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
         </label>
       )}
 

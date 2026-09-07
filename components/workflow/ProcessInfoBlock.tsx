@@ -416,7 +416,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 onClick={() => setGraphProcessId(proc.id)}
                 title={t('process.actions.view_graph')}
                 style={{
-                  marginLeft: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
+                  marginInlineStart: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
                   color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)',
                   borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
@@ -452,7 +452,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                           : '—'}
                       </span>
                       {stage.final_code && stage.status === 'completed' && (
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 'auto' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 'auto' }}>
                           {t(`process.finals.${stage.final_code}`,
                             stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code)}
                         </span>

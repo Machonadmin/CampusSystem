@@ -131,7 +131,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
         <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5, flex: 1 }}>
           {q.text}
-          {q.required && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
+          {q.required && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
         </span>
         {!disabled && (
           <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
@@ -470,7 +470,7 @@ export default function FillCheckPage() {
                 <div key={f.key}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                     {f.label}
-                    {f.req && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
+                    {f.req && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
                   </label>
                   <textarea value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
                     onChange={e => f.set(e.target.value)}
@@ -501,14 +501,14 @@ export default function FillCheckPage() {
       {/* ── Sticky footer ── */}
       <div style={{
         position: 'fixed', bottom: 0,
-        left: footerLeft, right: 0, zIndex: 50,
+        insetInlineStart: footerLeft, insetInlineEnd: 0, zIndex: 50,
         backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)',
         padding: '12px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
-        transition: 'left 0.2s ease',
+        transition: 'inset-inline-start 0.2s ease',
       }}>
         {saveError && (
-          <span style={{ fontSize: 12, color: 'var(--danger)', flex: 1, marginRight: 8 }}>{saveError}</span>
+          <span style={{ fontSize: 12, color: 'var(--danger)', flex: 1, marginInlineEnd: 8 }}>{saveError}</span>
         )}
         <Link href="/dashboard/quality-control"
           style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text)', textDecoration: 'none', backgroundColor: 'var(--surface)' }}>

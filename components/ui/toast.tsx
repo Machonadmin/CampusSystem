@@ -65,7 +65,7 @@ export function Toaster() {
     <div
       style={{
         position: 'fixed', bottom: 20, insetInlineEnd: 20, zIndex: 9999,
-        display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 400,
+        display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 'min(400px, calc(100vw - 40px))',
         pointerEvents: 'none',
       }}
     >

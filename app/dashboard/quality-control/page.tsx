@@ -56,7 +56,7 @@ function RatingStars({ rating }: { rating: number | null }) {
   return (
     <span style={{ fontSize: 13, color: '#F59E0B', fontWeight: 700 }}>
       {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
-      <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 11, marginLeft: 4 }}>{rating}/5</span>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 11, marginInlineStart: 4 }}>{rating}/5</span>
     </span>
   )
 }

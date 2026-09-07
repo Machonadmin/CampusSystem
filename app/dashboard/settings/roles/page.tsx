@@ -312,7 +312,7 @@ export default function RolesPage() {
 
       {/* Banner */}
       <div
-        style={{ backgroundColor: '#4BAED4', borderLeft: '4px solid rgba(255,255,255,0.35)', padding: '16px 24px', borderRadius: 14, flexShrink: 0 }}
+        style={{ backgroundColor: '#4BAED4', borderInlineStart: '4px solid rgba(255,255,255,0.35)', padding: '16px 24px', borderRadius: 14, flexShrink: 0 }}
       >
         <h1 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: 0 }}>{t('title')}</h1>
       </div>
@@ -361,27 +361,27 @@ export default function RolesPage() {
                         key={role.id}
                         onClick={() => selectRole(role)}
                         style={{
-                          padding: '8px 12px 8px 20px',
+                          padding: '8px 12px', paddingInlineStart: 20,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           backgroundColor: isActive ? 'var(--accent-tint)' : 'transparent',
-                          borderLeft: `2px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
-                          transition: 'background-color 0.1s, border-left-color 0.1s',
+                          borderInlineStart: `2px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
+                          transition: 'background-color 0.1s, border-inline-start-color 0.1s',
                         }}
                         onMouseEnter={e => {
                           if (!isActive) {
                             const el = e.currentTarget as HTMLDivElement
                             el.style.backgroundColor = 'var(--surface-2)'
-                            el.style.borderLeftColor = 'var(--accent)'
+                            el.style.borderInlineStartColor = 'var(--accent)'
                           }
                         }}
                         onMouseLeave={e => {
                           if (!isActive) {
                             const el = e.currentTarget as HTMLDivElement
                             el.style.backgroundColor = 'transparent'
-                            el.style.borderLeftColor = 'transparent'
+                            el.style.borderInlineStartColor = 'transparent'
                           }
                         }}
                       >
@@ -389,7 +389,7 @@ export default function RolesPage() {
                           <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{roleLabel(tModules.roles, role.code, role.name)}</p>
                           <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: 0, fontFamily: 'monospace' }}>{role.code}</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginInlineStart: 6 }}>
                           {role.is_system && (
                             <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid ${catTxt}22` }}>
                               {t('is_system')}
@@ -474,7 +474,7 @@ export default function RolesPage() {
                               width: 34, height: 18, borderRadius: 9, position: 'relative',
                               border: 'none', cursor: selectedRole.is_system ? 'default' : 'pointer',
                               backgroundColor: isOn ? 'var(--success)' : 'var(--border-strong)',
-                              transition: 'background-color 0.2s', flexShrink: 0, marginLeft: 8,
+                              transition: 'background-color 0.2s', flexShrink: 0, marginInlineStart: 8,
                             }}
                           >
                             <span style={{

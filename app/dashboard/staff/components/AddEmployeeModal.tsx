@@ -51,7 +51,7 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
       <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-        placeholder={placeholder ?? '+7...'}
+        placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
   )
@@ -524,7 +524,7 @@ export default function AddEmployeeModal({
                 )}
               </div>
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('add_modal.last_name')} *</label>
                 <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
