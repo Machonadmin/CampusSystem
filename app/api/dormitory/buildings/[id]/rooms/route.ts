@@ -110,10 +110,8 @@ export async function POST(
     if (error) {
       const m = mapDbError(error)
       // 23505 → 409: дубль номера комнаты в пределах здания.
-      const message = error.code === '23505'
-        ? 'Комната с таким номером уже есть в этом здании'
-        : m.message
-      return NextResponse.json({ error: message }, { status: m.status })
+      if (error.code === '23505') return apiError('dorm_room_number_exists', m.status)
+      return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
     return NextResponse.json(data, { status: 201 })

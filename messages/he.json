@@ -76,7 +76,10 @@
     "whatsapp": "וואטסאפ",
     "saving": "שומר…",
     "create": "יצירה",
-    "confirm": "אישור"
+    "confirm": "אישור",
+    "not_found_title": "הדף לא נמצא",
+    "not_found_body": "הכתובת שביקשת אינה קיימת או הועברה.",
+    "back_home": "חזרה לדף הבית"
   },
   "jewishness": {
     "title": "בירור יהדות",
@@ -906,7 +909,8 @@
         "back": "חזרה לרשימת הסמסטרים",
         "count_teachers": "{n} מורים",
         "delete": "מחיקה",
-        "delete_confirm": "למחוק את הקורס \"{name}\"? לא ניתן לבטל."
+        "delete_confirm": "למחוק את הקורס \"{name}\"? לא ניתן לבטל.",
+        "delete_error": "לא ניתן למחוק את הקורס"
       },
       "buildings": {
         "title": "בניינים וכיתות",
@@ -5055,7 +5059,12 @@
     "schedule_range_too_large": "תקופה גדולה מדי: {days} ימים (מקסימום {max})",
     "study_group_delete_has_students": "לא ניתן למחוק את הקבוצה — יש בה {count} תלמידות פעילות. יש להעביר אותן לקבוצה אחרת או להשבית את הקבוצה (is_active=false).",
     "payment_approve_only_pending": "ניתן לאשר רק תשלום בסטטוס 'pending' (נוכחי: '{status}')",
-    "quality_template_in_use": "התבנית בשימוש ב-{count} בדיקות ולא ניתן למחוק אותה"
+    "quality_template_in_use": "התבנית בשימוש ב-{count} בדיקות ולא ניתן למחוק אותה",
+    "dorm_room_full": "החדר מלא בתאריכים שנבחרו",
+    "dorm_student_overlap": "לתלמידה כבר יש שיבוץ שחופף בתאריכים",
+    "dorm_room_number_exists": "חדר עם מספר זה כבר קיים בבניין",
+    "series_max_repeats": "מקסימום {n} חזרות בסדרה",
+    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות"
   },
   "workflow": {
     "error": "שגיאה"

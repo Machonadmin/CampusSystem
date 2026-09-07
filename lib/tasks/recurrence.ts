@@ -63,7 +63,7 @@ export function validateRecurrenceRule(rule: RecurrenceRule): void {
       throw Object.assign(new Error(serverT('recurrence_end_after_count_positive')), { status: 400 })
     }
     if (rule.end_after_count! > SERIES_LIMIT) {
-      throw Object.assign(new Error(`Максимум ${SERIES_LIMIT} повторений в серии`), { status: 400 })
+      throw Object.assign(new Error(serverT('series_max_repeats').replace('{n}', String(SERIES_LIMIT))), { status: 400 })
     }
   }
 }
@@ -169,7 +169,7 @@ export function generateSeriesDates(
   }
   if (dates.length > SERIES_LIMIT) {
     throw Object.assign(
-      new Error(`Серия превышает лимит в ${SERIES_LIMIT} задач`),
+      new Error(serverT('series_over_limit').replace('{n}', String(SERIES_LIMIT))),
       { status: 400 }
     )
   }

@@ -76,7 +76,10 @@
     "whatsapp": "WhatsApp",
     "saving": "Saving…",
     "create": "Create",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "not_found_title": "Page not found",
+    "not_found_body": "The address you requested does not exist or has moved.",
+    "back_home": "Back to home"
   },
   "jewishness": {
     "title": "Jewishness Verification",
@@ -906,7 +909,8 @@
         "back": "Back to semesters",
         "count_teachers": "{n} teachers",
         "delete": "Delete",
-        "delete_confirm": "Delete the course \"{name}\"? This cannot be undone."
+        "delete_confirm": "Delete the course \"{name}\"? This cannot be undone.",
+        "delete_error": "Could not delete the course"
       },
       "buildings": {
         "title": "Buildings & rooms",
@@ -5055,7 +5059,12 @@
     "schedule_range_too_large": "Period too large: {days} days (maximum {max})",
     "study_group_delete_has_students": "Cannot delete the group — it has {count} active students. Move them to another group or deactivate the group (is_active=false).",
     "payment_approve_only_pending": "Only a payment in status 'pending' can be approved (current: '{status}')",
-    "quality_template_in_use": "The template is used in {count} checks and cannot be deleted"
+    "quality_template_in_use": "The template is used in {count} checks and cannot be deleted",
+    "dorm_room_full": "The room is full for the selected dates",
+    "dorm_student_overlap": "The student already has an assignment overlapping these dates",
+    "dorm_room_number_exists": "A room with this number already exists in this building",
+    "series_max_repeats": "Maximum {n} repetitions in a series",
+    "series_over_limit": "The series exceeds the limit of {n} tasks"
   },
   "workflow": {
     "error": "Error"
