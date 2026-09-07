@@ -911,6 +911,11 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 `studies_manager`, `studies_secretary`, `unit_manager`, `unit_secretary`,
 `jewish_studies_manager`, `jewish_studies_rav`.
 
+**קודים שמורים** — קוד תפקיד הוא טקסט חופשי במסך "תפקידים והרשאות", אבל האפליקציה מקודדת
+קודים מסוימים בבדיקות הרשאה/התנהגות. `lib/auth/reserved-roles.ts` מרכז אותם (עם הסיבה לכל קוד),
+ה-API מסרב ליצור/לשנות שם לקוד שמור, ו-`lib/auth/reserved-roles.test.ts` סורק את הקוד סטטית
+כדי שבדיקה מקודדת חדשה בלי שריון תיכשל בטסטים.
+
 **Modules** (19): `persons`, `applicants`, `education`, `jewishness`, `finance`, `dormitory`,
 `food`, `maintenance`, `security`, `doctor`, `psychologist`, `alumni`, `sponsors`, `tasks`,
 `documents`, `reports`, `settings`, `contacts`, `chavruta`
@@ -1012,6 +1017,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 | הפרדת כניסות | תלמידה ב-`student_credentials` — טבלה נפרדת לגמרי מ-`person_accounts`. כניסת צוות **פיזית לא יכולה** לאמת תלמידה ולהפך |
 | `/api/dev-login` | חסום ב-403 כשלא `NODE_ENV=development` |
 | cron | מוגן ב-`CRON_SECRET` (אם לא מוגדר — ה-endpoint פתוח ⚠) |
+| קודי תפקיד שמורים | קוד תפקיד הוא טקסט חופשי, אבל האפליקציה מקודדת קודים מסוימים בבדיקות הרשאה/התנהגות (`superadmin`, `admin`, `hr_director`…). `lib/auth/reserved-roles.ts` הוא מקור האמת היחיד; יצירה/שינוי-שם לקוד שמור (וגם שינוי הקוד של תפקיד שמור) נדחים ב-409. טסט סטטי סורק את הקוד ונכשל אם נוספה בדיקה מקודדת בלי לשריין את הקוד |
 | קבצים | בקט פרטי + signed URLs בלבד; נתיב חתימות מוגן מפני IDOR |
 | חיפוש | סניטציה של קלט (`lib/search/sanitize.ts`) |
 | טופס ציבורי | honeypot + rate limit |
