@@ -75,7 +75,8 @@
     "call": "Call",
     "whatsapp": "WhatsApp",
     "saving": "Saving…",
-    "create": "Create"
+    "create": "Create",
+    "confirm": "Confirm"
   },
   "jewishness": {
     "title": "Jewishness Verification",
@@ -398,7 +399,8 @@
       "generate_result": "Created {created}, skipped {skipped}",
       "generate_run": "Generate",
       "generating": "Generating…",
-      "close": "Close"
+      "close": "Close",
+      "forbidden": "No permission"
     },
     "tabs": {
       "leads": "Recruitment",
@@ -696,7 +698,9 @@
         "acceptance_v2": "Acceptance",
         "admission": "Admission"
       },
-      "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then."
+      "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then.",
+      "history_curtain": "Process start",
+      "past_processes": "Previous processes"
     },
     "card": {
       "tabs": {
@@ -2633,7 +2637,8 @@
       "edit_title": "Employee details",
       "edit_save_disabled_note": "Editing employee data here isn't available yet (view only).",
       "role_none": "No system role",
-      "role_assign_failed": "Employee saved, but role assignment failed — open their card in the staff list and press \"Roles\""
+      "role_assign_failed": "Employee saved, but role assignment failed — open their card in the staff list and press \"Roles\"",
+      "hebrew_name_ph": "Name in Hebrew"
     },
     "name_required": "Name is required",
     "error": "Error",
@@ -3023,7 +3028,9 @@
       "error_teacher_required": "Specify a teacher",
       "error_network": "Network error",
       "submit_button": "Create Check"
-    }
+    },
+    "clear": "Clear",
+    "close": "Close"
   },
   "settings": {
     "title": "Settings",
@@ -3177,7 +3184,8 @@
       "add_confirm_button": "Add",
       "saving": "Saving…",
       "name_required": "Name is required",
-      "save_error": "Save error"
+      "save_error": "Save error",
+      "close": "Close"
     },
     "categories": {
       "system": "System",
@@ -4554,7 +4562,8 @@
     "relation_guardian": "Guardian",
     "relation_community_contact": "Community contact",
     "relation_emergency_contact": "Emergency contact",
-    "relation_other": "Other"
+    "relation_other": "Other",
+    "clear": "Clear"
   },
   "calendar": {
     "form_invitees": "Participants",
@@ -5198,7 +5207,9 @@
       "answered": "Done",
       "submit": "Submit",
       "save_failed": "Submit failed, please try again"
-    }
+    },
+    "error_login_failed": "Sign-in failed",
+    "error_connection": "Connection error. Please try again"
   },
   "force_password": {
     "title": "Update your password",

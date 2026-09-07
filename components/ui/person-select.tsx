@@ -243,7 +243,7 @@ export function PersonSelect({
         {selected ? (
           <button
             type="button"
-            aria-label={t('clear', 'ניקוי')}
+            aria-label={t('clear')}
             onClick={clearSelection}
             style={{
               position: 'absolute', insetInlineEnd: 8, top: '50%', transform: 'translateY(-50%)',

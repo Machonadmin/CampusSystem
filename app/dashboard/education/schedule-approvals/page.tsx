@@ -87,7 +87,7 @@ export default function ScheduleApprovalsPage() {
       {loading ? (
         <SkeletonRows avatar={false} rows={4} />
       ) : forbidden ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('list.forbidden', 'אין הרשאה')}</div>
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('forbidden')}</div>
       ) : requests.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>
           {t('approvals_empty')}

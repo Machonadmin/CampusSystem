@@ -75,7 +75,8 @@
     "call": "התקשר",
     "whatsapp": "וואטסאפ",
     "saving": "שומר…",
-    "create": "יצירה"
+    "create": "יצירה",
+    "confirm": "אישור"
   },
   "jewishness": {
     "title": "בירור יהדות",
@@ -398,7 +399,8 @@
       "generate_result": "נוצרו {created}, דולגו {skipped}",
       "generate_run": "יצירה",
       "generating": "יוצר…",
-      "close": "סגירה"
+      "close": "סגירה",
+      "forbidden": "אין הרשאה"
     },
     "tabs": {
       "leads": "גיוס",
@@ -696,7 +698,9 @@
         "acceptance_v2": "קבלה",
         "admission": "קבלה"
       },
-      "stage_waiting_hint": "השלב הזה יופעל אוטומטית לאחר סיום השלב הקודם — ואז תיווצר המשימה המתאימה (למשל \"בקשת מסמכים\")."
+      "stage_waiting_hint": "השלב הזה יופעל אוטומטית לאחר סיום השלב הקודם — ואז תיווצר המשימה המתאימה (למשל \"בקשת מסמכים\").",
+      "history_curtain": "תחילת התהליך",
+      "past_processes": "תהליכים קודמים"
     },
     "card": {
       "tabs": {
@@ -2633,7 +2637,8 @@
       "edit_title": "פרטי עובד",
       "edit_save_disabled_note": "עריכת פרטי עובד אינה זמינה כאן עדיין (צפייה בלבד).",
       "role_none": "ללא תפקיד במערכת",
-      "role_assign_failed": "העובד נשמר, אך שיוך התפקיד נכשל — פתח את הכרטיס שלו ברשימת הצוות ולחץ \"תפקידים\""
+      "role_assign_failed": "העובד נשמר, אך שיוך התפקיד נכשל — פתח את הכרטיס שלו ברשימת הצוות ולחץ \"תפקידים\"",
+      "hebrew_name_ph": "שם בעברית"
     },
     "name_required": "שם הוא שדה חובה",
     "error": "שגיאה",
@@ -3023,7 +3028,9 @@
       "error_teacher_required": "יש לציין מורה",
       "error_network": "שגיאת רשת",
       "submit_button": "יצירת בדיקה"
-    }
+    },
+    "clear": "ניקוי",
+    "close": "סגירה"
   },
   "settings": {
     "title": "הגדרות",
@@ -3177,7 +3184,8 @@
       "add_confirm_button": "הוספה",
       "saving": "שומר…",
       "name_required": "יש להזין שם",
-      "save_error": "השמירה נכשלה"
+      "save_error": "השמירה נכשלה",
+      "close": "סגירה"
     },
     "categories": {
       "system": "מערכת",
@@ -4554,7 +4562,8 @@
     "relation_guardian": "אפוטרופוס",
     "relation_community_contact": "איש קשר בקהילה",
     "relation_emergency_contact": "איש קשר לחירום",
-    "relation_other": "אחר"
+    "relation_other": "אחר",
+    "clear": "ניקוי"
   },
   "calendar": {
     "form_invitees": "משתתפים",
@@ -5198,7 +5207,9 @@
       "answered": "מולא",
       "submit": "שליחה",
       "save_failed": "השליחה נכשלה, נסו שוב"
-    }
+    },
+    "error_login_failed": "הכניסה נכשלה",
+    "error_connection": "שגיאה בהתחברות לשרת. נסי שוב"
   },
   "force_password": {
     "title": "עדכון סיסמה",
