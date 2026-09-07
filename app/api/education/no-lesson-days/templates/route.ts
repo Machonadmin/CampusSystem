@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageEducationInAny } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * Шаблоны дней без уроков (no_lesson_day_templates, spec §3.4). Редактируемый
@@ -85,7 +86,10 @@ export async function POST(request: NextRequest) {
       .insert({ name: body.name, created_by: session.person_id })
       .select('id')
       .single()
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
 
     if (body.days && body.days.length > 0) {
       const rows = body.days.map((d, i) => ({ template_id: tpl.id, month: d.month, day: d.day, reason: d.reason ?? null, day_type_code: d.day_type_code ?? 'full_off', sort_order: i }))

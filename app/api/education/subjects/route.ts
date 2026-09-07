@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SubjectInsert } from '@/types/database'
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
       const m = mapDbError(error)
       return NextResponse.json({ error: m.message }, { status: m.status })
     }

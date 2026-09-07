@@ -77,7 +77,9 @@ export async function loadCalendarByDate(
     return map
   } catch (e) {
     const code = (e as { code?: string }).code
-    if (code === '42P01' || code === '42703') {
+    // 42P01/42703 — таблица/колонка ещё не мигрированы; PGRST200 — PostgREST не
+    // может разрешить embed calendar_day_types (FK ещё нет) — та же ситуация.
+    if (code === '42P01' || code === '42703' || code === 'PGRST200') {
       // Календарь типов ещё не мигрирован → прежняя модель (all = full_off).
       const set = await loadNoLessonDateSet(sb, departmentId, fromDateStr, toDateStr)
       const map = new Map<string, DayTypeFlags>()

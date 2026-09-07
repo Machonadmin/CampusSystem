@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * PUT/DELETE /api/education/calendar-day-types/[code] — правка/удаление типа дня.
@@ -33,7 +34,10 @@ export async function PUT(request: NextRequest, { params }: { params: { code: st
     if (Object.keys(patch).length === 0) return apiError('no_fields_to_update', 400)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (sb.from('calendar_day_types') as any).update(patch).eq('code', params.code).select('code').maybeSingle()
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     if (!data) return apiError('record_not_found', 404)
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
@@ -47,6 +51,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { code
     const sb = createServerClient()
     const { error } = await sb.from('calendar_day_types').delete().eq('code', params.code)
     if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23503') return apiError('record_in_use', 409)
       throw error
     }

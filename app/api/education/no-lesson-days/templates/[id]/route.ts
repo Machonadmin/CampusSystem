@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageEducationInAny } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * PUT    /api/education/no-lesson-days/templates/[id] — обновить шаблон (имя,
@@ -45,7 +46,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (Object.keys(patch).length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (sb.from('no_lesson_day_templates') as any).update(patch).eq('id', params.id).select('id').maybeSingle()
-      if (error) throw error
+      if (error) {
+        if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+        throw error
+      }
       if (!data) return apiError('record_not_found', 404)
     }
 
@@ -78,7 +82,10 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     await gate()
     const sb = createServerClient()
     const { error } = await sb.from('no_lesson_day_templates').delete().eq('id', params.id)
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     return jsonError(err)

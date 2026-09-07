@@ -8,6 +8,7 @@ import {
 } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * Дни без уроков (ימים ללא לימודים, spec §3.4 / §4.5).
@@ -95,7 +96,10 @@ export async function POST(request: NextRequest) {
         .select('id').single()
       data = retry.data; error = retry.error
     }
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     return NextResponse.json({ id: data.id }, { status: 201 })
   } catch (err: unknown) {
     return jsonError(err)

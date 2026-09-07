@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * PUT    /api/education/study-tracks/[id] — обновить маршрут. Право: manage_tracks.
@@ -46,7 +47,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .eq('id', params.id)
       .select('id')
       .maybeSingle()
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     if (!data) return apiError('record_not_found', 404)
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {

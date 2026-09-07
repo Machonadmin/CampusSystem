@@ -95,6 +95,8 @@ export async function POST(request: NextRequest) {
       const code = (error as { code?: string }).code
       if (code === 'P0002') return apiError('person_not_found', 404)
       if (code === '22023') return apiError('bad_request', 400)
+      // Функция merge_persons ещё не мигрирована: PostgREST → PGRST202, Postgres → 42883.
+      if (code === 'PGRST202' || code === '42883') return apiError('feature_not_migrated', 503)
       throw error
     }
 

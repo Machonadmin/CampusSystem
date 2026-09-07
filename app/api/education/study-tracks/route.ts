@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { serverT } from '@/lib/i18n/api-errors'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
@@ -116,7 +117,10 @@ export async function POST(request: NextRequest) {
       } as any)
       .select('id')
       .single()
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     return NextResponse.json({ id: data.id }, { status: 201 })
   } catch (err: unknown) {
     return jsonError(err)
