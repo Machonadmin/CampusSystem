@@ -991,7 +991,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 
 ### 17.7 האם האכיפה בצד השרת? — **כן, וזה מאומת בטסט אוטומטי**
 
-1. **RLS מכובה בכוונה** בכל הפרויקט — השרת עובד עם service key. **כל האכיפה היא בשכבת ה-API.**
+1. **RLS מודלק על כל טבלאות `public`** (מיגרציה `20260908120000`, deny-all, ללא policies) — סוגר גישה ציבורית ישירה ל-DB. השרת עובד עם service key ש**עוקף RLS**, ולכן **כל האכיפה נשארת בשכבת ה-API** והאפליקציה לא מושפעת.
 2. **`middleware.ts`** (170 שורות) — רץ לפני כל בקשה:
    - חוסם דפי מודול לפי `role_privileges.access` **וגם** לפי `person_privileges` (דריסות אישיות)
    - מפריד לחלוטין בין פורטל תלמידה (`principal='student'`) לבין דשבורד צוות
@@ -1029,7 +1029,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 
 | שירות | סטטוס | פרטים |
 |---|---|---|
-| **Supabase (PostgreSQL)** | ✅ פעיל | בסיס הנתונים הראשי. RLS מכובה — גישה דרך service key |
+| **Supabase (PostgreSQL)** | ✅ פעיל | בסיס הנתונים הראשי. RLS **מודלק** על כל טבלאות public (deny-all, ללא policies); הגישה דרך service key שעוקף RLS |
 | **Supabase Storage** | ✅ פעיל | בקט פרטי `documents` למסמכים ולחתימות |
 | **Vercel** | ✅ פעיל | אירוח + פריסה אוטומטית מ-`main` |
 | **Vercel Cron** | ✅ פעיל | 2 עבודות: תזכורות (06:00), ייצור שיעורים (03:00) |
@@ -1053,7 +1053,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 |---|---|
 | **Framework** | Next.js 14.2.35, App Router, React 18.3, TypeScript 5.6.3 |
 | **עיצוב** | Tailwind CSS 4 + CSS variables (תמיכה מלאה ב-dark mode) + RTL |
-| **בסיס נתונים** | Supabase PostgreSQL. **RLS מכובה בכוונה** — service key בשרת |
+| **בסיס נתונים** | Supabase PostgreSQL. **RLS מודלק על כל טבלאות public** (deny-all; service key עוקף) — הגישה נאכפת בשכבת ה-API |
 | **הרצת מיגרציות** | **ידנית** ב-Supabase SQL Editor, לפי סדר שם הקובץ. אין הרצה אוטומטית. טסט `lib/migrations/hygiene.test.ts` מוודא שאין שתי מיגרציות עם אותו prefix |
 | **אימות** | JWT מותאם אישית (`jose` HS256) + `bcryptjs`. **לא** Supabase Auth |
 | **אחסון קבצים** | Supabase Storage, בקט פרטי `documents`, גישה דרך signed URLs |
