@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import type { StudyGroupInsert } from '@/types/database'
@@ -51,13 +52,13 @@ export async function GET(request: NextRequest) {
     // Считаем по education_journeys (таблица, заменившая legacy `students`, куда
     // давно никто не пишет — счётчик показывал ноль). Активная студентка =
     // education_status='student' (см. lib/education/journey-status).
-    const { data: studentRows, error: cntErr } = await sb
+    const studentRows = await fetchAllPages<{ main_group_id: string | null }>((from, to) => sb
       .from('education_journeys')
-      .select('main_group_id')
+      .select('main_group_id, id')
       .in('main_group_id', groupIds)
       .in('education_status', ACTIVE_STUDENT_STATUSES)
-
-    if (cntErr) throw cntErr
+      .order('id', { ascending: true })
+      .range(from, to))
 
     const countsByGroup = new Map<string, number>()
     for (const row of (studentRows ?? []) as Array<{ main_group_id: string | null }>) {

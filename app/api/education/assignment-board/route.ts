@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
@@ -89,11 +90,12 @@ export async function GET() {
     // 4. Пул учениц: student journeys → person. При scope='department' — только
     // ученицы своих подразделений (иначе секретарь одного колледжа видел бы имена
     // ВСЕХ учениц института — утечка PII между подразделениями).
-    let journeysQ = sb.from('education_journeys')
-      .select('id, person_id').eq('education_status', 'student')
-    if (myDepts) journeysQ = journeysQ.in('primary_department_id', myDepts)
-    const { data: journeysRaw } = await journeysQ
-    const studentJourneys = (journeysRaw ?? []) as Array<{ id: string; person_id: string }>
+    const studentJourneys = await fetchAllPages<{ id: string; person_id: string }>((from, to) => {
+      let journeysQ = sb.from('education_journeys')
+        .select('id, person_id').eq('education_status', 'student')
+      if (myDepts) journeysQ = journeysQ.in('primary_department_id', myDepts)
+      return journeysQ.order('id', { ascending: true }).range(from, to)
+    })
     const personByJourney = new Map(studentJourneys.map(j => [j.id, j.person_id]))
 
     // 5. Пул персонала: активные staff_positions → person_id. При scope='department'

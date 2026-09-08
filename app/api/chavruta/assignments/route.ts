@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
@@ -47,11 +48,13 @@ export async function GET() {
     // Активные ученицы (для пикера шиюх). Имя берём из связанного person.
     const students: Array<{ journey_id: string; name: string }> = []
     {
-      const { data } = await sb
+      const data = await fetchAllPages<unknown>((from, to) => sb
         .from('education_journeys')
         .select('id, education_status, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
         .in('education_status', STUDENT_LIFECYCLE)
-      for (const j of (data ?? []) as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
+        .order('id', { ascending: true })
+        .range(from, to))
+      for (const j of data as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
         students.push({ journey_id: j.id, name: (j.person?.hebrew_name || j.person?.full_name || '').trim() })
       }
       students.sort((a, b) => a.name.localeCompare(b.name, 'he'))

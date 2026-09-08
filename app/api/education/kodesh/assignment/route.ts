@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -76,13 +77,14 @@ export async function GET(_request: NextRequest) {
     // Ворота (spec §3.3): в список шибуца кодеша попадают ТОЛЬКО студентки с
     // финально одобренным еврейством (jewishness_status='verified') И завершённым
     // приёмом (education_status='student').
-    const { data: journeysRaw, error: jErr } = await sb
+    const journeysRaw = await fetchAllPages<unknown>((from, to) => sb
       .from('education_journeys')
       .select('id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name), department:departments!education_journeys_primary_department_id_fkey(id, name)')
       .eq('education_status', 'student')
       .eq('jewishness_status', JEWISHNESS_FINAL_APPROVED)
-    if (jErr) throw jErr
-    const journeys = (journeysRaw ?? []) as unknown as Array<{
+      .order('id', { ascending: true })
+      .range(from, to))
+    const journeys = journeysRaw as unknown as Array<{
       id: string
       person: { full_name: string | null; hebrew_name: string | null } | null
       department: { id: string; name: string } | null

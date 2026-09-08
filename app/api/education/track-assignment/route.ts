@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
@@ -41,13 +42,15 @@ export async function GET(_request: NextRequest) {
       if (myDepts.length === 0) return NextResponse.json({ students: [] })
     }
 
-    let q = sb.from('education_journeys')
-      .select('id, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name), department:departments!education_journeys_primary_department_id_fkey(id, name)')
-      .eq('education_status', 'student')
-    if (myDepts) q = q.in('primary_department_id', myDepts)
-    const { data: journeysRaw, error } = await q
-    if (error) throw error
-    const journeys = (journeysRaw ?? []) as unknown as Array<{
+    // Постранично: без этого рабочий список молча обрывался бы на 1000 студентках.
+    const journeysRaw = await fetchAllPages<unknown>((from, to) => {
+      let q = sb.from('education_journeys')
+        .select('id, primary_department_id, person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name), department:departments!education_journeys_primary_department_id_fkey(id, name)')
+        .eq('education_status', 'student')
+      if (myDepts) q = q.in('primary_department_id', myDepts)
+      return q.order('id', { ascending: true }).range(from, to)
+    })
+    const journeys = journeysRaw as unknown as Array<{
       id: string
       person: { full_name: string | null; hebrew_name: string | null } | null
       department: { id: string; name: string } | null

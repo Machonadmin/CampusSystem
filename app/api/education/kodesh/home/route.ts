@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -73,13 +74,14 @@ export async function GET(_request: NextRequest) {
     } catch (e) { if (!isMissingTable(e)) throw e }
 
     // Students — ворота (spec §3.3): только финально одобренные по еврейству.
-    const { data: journeysRaw, error: jErr } = await sb
+    const journeysRaw = await fetchAllPages<unknown>((from, to) => sb
       .from('education_journeys')
       .select('id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, photo_url)')
       .eq('education_status', 'student')
       .eq('jewishness_status', JEWISHNESS_FINAL_APPROVED)
-    if (jErr) throw jErr
-    const journeys = (journeysRaw ?? []) as unknown as Array<{ id: string; person: { id: string; full_name: string | null; hebrew_name: string | null; photo_url: string | null } | null }>
+      .order('id', { ascending: true })
+      .range(from, to))
+    const journeys = journeysRaw as unknown as Array<{ id: string; person: { id: string; full_name: string | null; hebrew_name: string | null; photo_url: string | null } | null }>
 
     const journeyIds = journeys.map(j => j.id)
     // Kodesh group per journey.

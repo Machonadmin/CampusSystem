@@ -132,27 +132,29 @@ export async function materializeAllDueReminders(sb: SB): Promise<number> {
       .limit(1000)
     if (error || !due || due.length === 0) return 0
 
-    for (const ev of due as Array<{ id: string; title: string; link: string | null; owner_id: string }>) {
-      const { error: nErr } = await sb
-        .from('notifications')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: ev.owner_id,
-          type: 'reminder',
-          title: ev.title,
-          link: ev.link ?? '/dashboard/calendar',
-          metadata: { calendar_event_id: ev.id },
-        } as any)
-      if (!nErr) {
-        await sb.from('calendar_events')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .update({ reminded_at: nowIso } as any)
-          .eq('id', ev.id)
-        created++
-      } else if (isMissingTable(nErr)) {
-        return created // таблицы ещё нет
-      }
+    // Одной пачкой: раньше на каждое созревшее напоминание уходило 2 запроса
+    // (insert + update), т.е. до 2000 запросов за один прогон cron.
+    const events = due as Array<{ id: string; title: string; link: string | null; owner_id: string }>
+    const { error: nErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(events.map(ev => ({
+        person_id: ev.owner_id,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      })) as any)
+    if (nErr) {
+      if (isMissingTable(nErr)) return created // таблицы ещё нет
+      return created
     }
+    // Помечаем сработавшими только после успешной вставки уведомлений.
+    await sb.from('calendar_events')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ reminded_at: nowIso } as any)
+      .in('id', events.map(ev => ev.id))
+    created = events.length
   } catch {
     /* тихо */
   }
@@ -172,24 +174,25 @@ export async function materializeDueReminders(sb: SB, personId: string): Promise
       .limit(50)
     if (error || !due || due.length === 0) return
 
-    for (const ev of due as Array<{ id: string; title: string; link: string | null }>) {
-      const { error: nErr } = await sb
-        .from('notifications')
+    // Одной пачкой: этот путь выполняется на КАЖДОМ опросе колокольчика
+    // уведомлений, а раньше делал 2 запроса на каждое созревшее напоминание.
+    const events = due as Array<{ id: string; title: string; link: string | null }>
+    const { error: nErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(events.map(ev => ({
+        person_id: personId,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      })) as any)
+    // Помечаем сработавшими только если уведомления реально созданы.
+    if (!nErr) {
+      await sb.from('calendar_events')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: personId,
-          type: 'reminder',
-          title: ev.title,
-          link: ev.link ?? '/dashboard/calendar',
-          metadata: { calendar_event_id: ev.id },
-        } as any)
-      // Помечаем сработавшим только если уведомление реально создано.
-      if (!nErr) {
-        await sb.from('calendar_events')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .update({ reminded_at: nowIso } as any)
-          .eq('id', ev.id)
-      }
+        .update({ reminded_at: nowIso } as any)
+        .in('id', events.map(ev => ev.id))
     }
   } catch {
     /* тихо — напоминания не критичны для отдачи уведомлений */

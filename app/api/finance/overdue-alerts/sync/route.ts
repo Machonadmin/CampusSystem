@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -31,10 +32,18 @@ export async function POST(_request: NextRequest) {
     const today = todayISO()
 
     // Активные начисления.
-    const { data: chargesRaw, error: cErr } = await sb
-      .from('finance_charges').select('id, journey_id, amount, status, due_date')
-    if (cErr) { if (isMissingTable(cErr)) return NextResponse.json({ created: 0, overdue: 0 }); throw cErr }
-    const charges = (chargesRaw ?? []) as Array<{ id: string; journey_id: string; amount: number | string; status: string; due_date: string | null }>
+    // Начисления копятся бессрочно — на 1000 строках выборка молча обрывалась,
+    // и просроченные счета за пределами первой страницы не порождали алертов.
+    let charges: Array<{ id: string; journey_id: string; amount: number | string; status: string; due_date: string | null }>
+    try {
+      charges = await fetchAllPages<{ id: string; journey_id: string; amount: number | string; status: string; due_date: string | null }>((from, to) => sb
+        .from('finance_charges').select('id, journey_id, amount, status, due_date')
+        .order('id', { ascending: true })
+        .range(from, to))
+    } catch (cErr) {
+      if (isMissingTable(cErr)) return NextResponse.json({ created: 0, overdue: 0 })
+      throw cErr
+    }
     if (charges.length === 0) return NextResponse.json({ created: 0, overdue: 0 })
 
     const journeyIds = [...new Set(charges.map(c => c.journey_id))]

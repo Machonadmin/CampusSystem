@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
+import { fetchAllPages, requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
@@ -70,12 +70,16 @@ export async function GET(request: NextRequest) {
       return processStatus === 'deleted' ? q.eq('is_deleted', true) : q.eq('is_deleted', false)
     }
 
-    let jRes = await buildQuery(`${baseCols}, recruitment_stage`)
-    if (jRes.error && isMissingColumn(jRes.error)) {
-      jRes = await buildQuery(baseCols)
+    // Постранично + стабильный ключ сортировки (updated_at не уникален).
+    const pageOf = (cols: string) => (from: number, to: number) =>
+      buildQuery(cols).order('id', { ascending: true }).range(from, to)
+    let journeys: JourneyRow[]
+    try {
+      journeys = await fetchAllPages<JourneyRow>(pageOf(`${baseCols}, recruitment_stage`))
+    } catch (e) {
+      if (!isMissingColumn(e)) throw e
+      journeys = await fetchAllPages<JourneyRow>(pageOf(baseCols))
     }
-    if (jRes.error) throw jRes.error
-    const journeys = (jRes.data ?? []) as unknown as JourneyRow[]
     if (!journeys || journeys.length === 0) return NextResponse.json([])
 
     const journeyIds = journeys.map(j => j.id)

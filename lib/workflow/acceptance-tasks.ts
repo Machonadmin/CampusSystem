@@ -110,18 +110,26 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
   const existing = (existingRaw ?? []) as unknown as TaskRow[]
 
   // 4. Закрываем задачи этапов, которые больше не активны.
-  for (const task of existing) {
+  // Одной пачкой вместо 2 запросов на задачу.
+  const toClose = existing.filter(task => {
     const sid = task.metadata?.stage_instance_id
-    if (sid && !activeStageIds.has(sid) && OPEN_STATUSES.includes(task.status)) {
-      await sb.from('tasks')
+    return !!sid && !activeStageIds.has(sid) && OPEN_STATUSES.includes(task.status)
+  })
+  if (toClose.length > 0) {
+    const { error: closeErr } = await sb.from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ status: 'completed', completed_at: new Date().toISOString() } as any)
+      .in('id', toClose.map(t => t.id))
+    if (closeErr) console.error('[acceptance-tasks] close stale tasks:', closeErr)
+    else {
+      const { error: histErr } = await sb.from('task_status_history').insert(
+        toClose.map(task => ({
+          task_id: task.id, actor_id: actorId, from_status: task.status, to_status: 'completed',
+          note: 'Этап приёма завершён',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update({ status: 'completed', completed_at: new Date().toISOString() } as any)
-        .eq('id', task.id)
-      await sb.from('task_status_history').insert({
-        task_id: task.id, actor_id: actorId, from_status: task.status, to_status: 'completed',
-        note: 'Этап приёма завершён',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
+        })) as any,
+      )
+      if (histErr) console.error('[acceptance-tasks] status history:', histErr)
     }
   }
 

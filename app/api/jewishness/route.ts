@@ -2,6 +2,7 @@ import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { fetchAllPages } from '@/lib/api/handler'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
@@ -28,11 +29,14 @@ export async function GET(request: NextRequest) {
 
     // Все journey в фазе приёма/учёбы. '*' — чтобы подхватить jewishness_status
     // после миграции и не падать до неё (без явного select колонки).
-    const { data: rows, error } = await sb
+    // Постранично: список растёт с годами и на 1000 строках PostgREST молча
+    // обрезал бы выборку (часть студенток исчезала бы из бирур-яхадут).
+    const rows = await fetchAllPages<Record<string, unknown>>((from, to) => sb
       .from('education_journeys')
       .select('*, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url)')
       .in('education_status', ['applicant', 'student'])
-    if (error) throw error
+      .order('id', { ascending: true })
+      .range(from, to))
 
     type Row = Record<string, unknown> & {
       id: string

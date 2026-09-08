@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
 import { isMissingRelation } from '@/lib/supabase/errors'
+import { fetchAllPages } from '@/lib/api/handler'
 
 /**
  * GET /api/education/recruitment-report — READ-ONLY.
@@ -110,14 +111,20 @@ export async function GET() {
     // ─── 1. Все journeys (срез по статусу для воронки) ────────────────────
     // Читаем один раз id+status, живые (не soft-deleted). При отсутствии
     // таблицы/колонки — пустая воронка.
-    const statusRes = await sb
-      .from('education_journeys')
-      .select('education_status, is_deleted')
-      .eq('is_deleted', false)
-    if (statusRes.error && !isSoft(statusRes.error)) throw statusRes.error
+    let statusRows: Array<{ education_status: string | null }> = []
+    try {
+      statusRows = await fetchAllPages<{ education_status: string | null }>((from, to) => sb
+        .from('education_journeys')
+        .select('education_status, is_deleted, id')
+        .eq('is_deleted', false)
+        .order('id', { ascending: true })
+        .range(from, to))
+    } catch (e) {
+      if (!isSoft(e)) throw e
+    }
 
     const byStatus: Record<string, number> = {}
-    for (const r of (statusRes.data ?? []) as Array<{ education_status: string | null }>) {
+    for (const r of statusRows) {
       const s = r.education_status ?? 'unknown'
       byStatus[s] = (byStatus[s] ?? 0) + 1
     }
@@ -142,12 +149,14 @@ export async function GET() {
       .select(cols)
       .eq('education_status', 'lead')
       .eq('is_deleted', false)
-    const leadRes = await buildLeadQuery(baseCols)
-    if (leadRes.error) {
-      if (isSoft(leadRes.error)) return NextResponse.json({ ...empty, conversion })
-      throw leadRes.error
+    let leadRows: LeadJourney[]
+    try {
+      leadRows = await fetchAllPages<LeadJourney>((from, to) =>
+        buildLeadQuery(baseCols).order('id', { ascending: true }).range(from, to))
+    } catch (e) {
+      if (isSoft(e)) return NextResponse.json({ ...empty, conversion })
+      throw e
     }
-    const leadRows = (leadRes.data ?? []) as unknown as LeadJourney[]
 
     // ─── by_source ────────────────────────────────────────────────────────
     const sourceMap = new Map<string, number>()

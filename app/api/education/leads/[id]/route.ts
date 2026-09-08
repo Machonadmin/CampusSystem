@@ -220,18 +220,19 @@ export async function PATCH(
       if (idsToRemove.length > 0) {
         await sb.from('person_relatives').delete().in('id', idsToRemove)
       }
-      for (const rel of body.relatives ?? []) {
-        if (!rel.relative_id) continue
-        if (!existingSet.has(`${rel.relative_id}:${rel.relation_type}`)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error: _e1 } = await sb.from('person_relatives').insert({
-            person_id: personId,
-            relative_id: rel.relative_id,
-            relation_type: rel.relation_type,
-            notes: rel.notes ?? null,
-          } as any)
-          void _e1
-        }
+      // Одной вставкой вместо запроса на каждого родственника.
+      const relsToAdd = (body.relatives ?? [])
+        .filter(rel => rel.relative_id && !existingSet.has(`${rel.relative_id}:${rel.relation_type}`))
+        .map(rel => ({
+          person_id: personId,
+          relative_id: rel.relative_id,
+          relation_type: rel.relation_type,
+          notes: rel.notes ?? null,
+        }))
+      if (relsToAdd.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: _e1 } = await sb.from('person_relatives').insert(relsToAdd as any)
+        void _e1
       }
     }
 
