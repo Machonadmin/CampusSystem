@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
@@ -214,8 +215,7 @@ export default function ApplyPage() {
       <header className="ap-topbar">
         <div className="ap-topbar-in">
           <div className="ap-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="ap-logo" width={44} height={38} />
+            <Image src="/logo.png" alt="" className="ap-logo" width={44} height={38} priority />
             <div>
               <div className="ap-brand-name">{g.campusNameShort}</div>
               <div className="ap-brand-sub">{t('campus_title')}</div>
@@ -453,8 +453,7 @@ export default function ApplyPage() {
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="ap-foot">
         <div className="ap-foot-in">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="ap-foot-logo" width={52} height={44} />
+          <Image src="/logo.png" alt="" className="ap-foot-logo" width={52} height={44} />
           <div className="fname">{t('campus_title')}</div>
           <div className="fnote"><span className="ap-dot" /> © {t('footer_note')}</div>
         </div>

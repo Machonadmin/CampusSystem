@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
@@ -86,8 +87,8 @@ export default function Header({ userName, roles }: HeaderProps) {
         className="flex items-center gap-3 flex-shrink-0"
         style={{ borderInlineStart: '3px solid #4BAED4', paddingInlineStart: 12 }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt={tNav('logo_alt')} style={{ height: 40, objectFit: 'contain', flexShrink: 0 }} />
+        <Image src="/logo.png" alt={tNav('logo_alt')} width={47} height={40} priority
+          style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
         <span
           className="hidden lg:block"
           style={{ color: 'var(--accent-strong)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -390,8 +391,8 @@ export default function Sidebar() {
       >
         {isOpen && (
           <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Logo" style={{ height: 26, objectFit: 'contain', flexShrink: 0 }} />
+            <Image src="/logo.png" alt="" width={30} height={26} priority
+              style={{ height: 26, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t.campusNameShort}
             </span>
