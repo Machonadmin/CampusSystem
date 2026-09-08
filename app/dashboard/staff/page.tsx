@@ -527,7 +527,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const me = useMe()
   const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
@@ -556,13 +556,16 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   useEffect(() => {
     const handle = setTimeout(async () => {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (search) params.set('search', search)
-      if (deptFilter) params.set('department', deptFilter)
-      const res = await fetch(`/api/staff?${params}`)
-      if (res.ok) setEmployees(await res.json())
-      else toast(tCommon('load_error'), 'error')
-      setLoading(false)
+      try {
+        const params = new URLSearchParams()
+        if (search) params.set('search', search)
+        if (deptFilter) params.set('department', deptFilter)
+        const res = await fetch(`/api/staff?${params}`)
+        if (res.ok) setEmployees(await res.json())
+        else toast(tCommon('load_error'), 'error')
+      } catch {
+        toast(tCommon('load_error'), 'error')
+      } finally { setLoading(false) }
     }, search ? 250 : 0)
     return () => clearTimeout(handle)
   }, [search, deptFilter, refreshSignal, localRefresh, tCommon])
@@ -919,9 +922,13 @@ export default function StaffPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/settings/departments')
-    if (!res.ok) { setError(t('load_error')); setLoading(false); return }
-    setDepts(await res.json()); setLoading(false)
+    try {
+      const res = await fetch('/api/settings/departments')
+      if (!res.ok) { setError(t('load_error')); return }
+      setDepts(await res.json())
+    } catch {
+      setError(t('load_error'))
+    } finally { setLoading(false) }
     // t стабилен в рамках языка; включаем в deps ради корректности хука.
   }, [t])
 

@@ -8,6 +8,7 @@ import { mapDbError } from '@/lib/documents/http'
 import { isDocType, isIsoDate, isDocCategory } from '@/lib/documents/validation'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
 import type { DocumentRecordInsert } from '@/types/database'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * POST /api/documents/journeys/[id]/upload — загрузка РЕАЛЬНОГО файла (multipart)
@@ -120,9 +121,9 @@ export async function POST(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .update({ category: rawCategory } as any)
           .eq('id', (data as { id: string }).id)
-        if (catErr && catErr.code !== '42703') console.error('[upload] category set:', catErr)
+        if (catErr && !isMissingColumn(catErr)) console.error('[upload] category set:', catErr)
       } catch (catCatch) {
-        if ((catCatch as { code?: string }).code !== '42703') console.error('[upload] category set:', catCatch)
+        if (!isMissingColumn(catCatch)) console.error('[upload] category set:', catCatch)
       }
     }
 

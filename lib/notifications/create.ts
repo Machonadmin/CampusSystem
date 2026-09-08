@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import type { NotificationInsert } from '@/types/database'
 import { sendPushToPerson } from '@/lib/push/webpush'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -20,7 +21,7 @@ export async function createNotifications(sb: SB, rows: NotificationInsert[]): P
       .from('notifications')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(rows as any)
-    if (error && error.code !== '42P01') {
+    if (error && !isMissingTable(error)) {
       console.error('[notifications] insert:', error)
     }
   } catch (e) {

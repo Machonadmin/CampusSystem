@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { generatePassword, hashPassword } from '@/lib/auth/password'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — обращаемся к ней через нетипизированный клиент.
@@ -64,7 +65,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .eq('journey_id', params.id)
       .maybeSingle()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ exists: false })
+      if (isMissingTable(error)) return NextResponse.json({ exists: false })
       throw error
     }
 
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .eq('journey_id', params.id)
       .maybeSingle()
     if (selErr) {
-      if ((selErr as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+      if (isMissingTable(selErr)) return apiError('feature_unavailable', 503)
       throw selErr
     }
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           is_active: true,
         })
       if (insErr) {
-        if ((insErr as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+        if (isMissingTable(insErr)) return apiError('feature_unavailable', 503)
         if ((insErr as { code?: string }).code === '23505') return apiError('email_in_use', 409)
         throw insErr
       }
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Best-effort: до миграции колонки может не быть (42703) — не роняем выдачу.
     try {
       const { error: flagErr } = await creds(sb).update({ must_change_password: true }).eq('journey_id', params.id)
-      if (flagErr && (flagErr as { code?: string }).code !== '42703') { /* прочие ошибки не критичны для выдачи */ }
+      if (flagErr && !isMissingColumn(flagErr)) { /* прочие ошибки не критичны для выдачи */ }
     } catch { /* колонки нет до миграции — игнорируем */ }
 
     // Возвращаем открытый пароль ОДИН раз — сотрудник передаёт его студентке.

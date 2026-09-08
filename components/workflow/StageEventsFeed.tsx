@@ -126,11 +126,11 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 13, color: isSystem ? 'var(--text-muted)' : 'var(--text)', lineHeight: 1.4, marginLeft: isSystem ? 0 : 22 }}>
+                <div style={{ fontSize: 13, color: isSystem ? 'var(--text-muted)' : 'var(--text)', lineHeight: 1.4, marginInlineStart: isSystem ? 0 : 22 }}>
                   {isSystem ? translateSystemEvent(ev.content, t) : ev.content}
                 </div>
                 {!isSystem && (
-                  <div style={{ marginLeft: 22, marginTop: 4 }}>
+                  <div style={{ marginInlineStart: 22, marginTop: 4 }}>
                     <AddToCalendar variant="link" defaultTitle={ev.content.slice(0, 90)} sourceType="note" sourceId={ev.id} />
                   </div>
                 )}

@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/recruitment-report — READ-ONLY.
@@ -18,10 +19,9 @@ import { canDoEducationInAny } from '@/lib/education/permissions'
  * (undefined_column) возвращаем пустые структуры, а не 500.
  */
 
-// Коды PostgREST, при которых мягко деградируем до пустого результата.
-const SOFT_CODES = new Set(['42P01', '42703'])
+// «Таблица/колонка ещё не мигрированы» → мягко деградируем до пустого результата.
 function isSoft(err: unknown): boolean {
-  return !!err && SOFT_CODES.has((err as { code?: string }).code ?? '')
+  return isMissingRelation(err)
 }
 
 // education_status, которые «дошли» дальше лида (статус кумулятивен: студентка

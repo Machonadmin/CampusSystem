@@ -155,7 +155,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
             <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>{tmpl.name}</p>
             {tmpl.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 0' }}>{tmpl.description}</p>}
           </div>
-          <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1, padding: 0, marginInlineStart: 12 }}>×</button>
+          <button onClick={onClose} aria-label={t('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1, padding: 0, marginInlineStart: 12 }}>×</button>
         </div>
 
         {/* Toolbar (fixed) */}
@@ -197,7 +197,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                       {blockTypeLabel(t, block.type)}
                     </span>
                   )}
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 'auto' }}>{block.questions.length} {t('templates.questions_suffix')}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 'auto' }}>{block.questions.length} {t('templates.questions_suffix')}</span>
                   <svg
                     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round"
                     style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}
@@ -220,7 +220,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.4 }}>
                             {q.text}
-                            {q.required && <span style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}
+                            {q.required && <span style={{ color: 'var(--danger)', marginInlineStart: 4 }}>*</span>}
                           </div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
                             <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: 'var(--surface-2)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
@@ -360,7 +360,7 @@ function TemplateBuilder({
           <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', margin: 0 }}>
             {isEdit ? t('templates.builder_edit_title') : t('templates.builder_create_title')}
           </p>
-          <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={t('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1 }}>×</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>

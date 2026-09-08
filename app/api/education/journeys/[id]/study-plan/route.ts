@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Учебный план студентки: קבוצת כניסה (entry_group) + משך לימודים
@@ -32,7 +33,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .eq('journey_id', params.id)
       .maybeSingle()
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ plan: null })
+      if (isMissingTable(error)) return NextResponse.json({ plan: null })
       throw error
     }
     return NextResponse.json({ plan: data ?? null })
@@ -74,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         updated_at: new Date().toISOString(),
       } as any, { onConflict: 'journey_id' })
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ ok: true }) // таблицы ещё нет
+      if (isMissingTable(error)) return NextResponse.json({ ok: true }) // таблицы ещё нет
       throw error
     }
     return NextResponse.json({ ok: true })

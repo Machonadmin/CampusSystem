@@ -63,7 +63,7 @@ export default function PersonRelationField({
     <div style={{
       position: 'relative',
       display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap',
-      padding: 10, paddingRight: showRemove && onRemove ? 32 : 10,
+      padding: 10, paddingInlineEnd: showRemove && onRemove ? 32 : 10,
       background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)',
     }}>
       {!fixedRelationType && (

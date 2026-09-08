@@ -197,7 +197,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
                     return (
                     <div key={s.journey_id}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--surface-2)' }}>
-                      <Link href={`/dashboard/education/leads/${s.journey_id}`}
+                      <Link href={`/dashboard/education/students/${s.journey_id}`}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--danger-tint, rgba(220,38,38,0.12))', color: 'var(--danger)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                           {(s.name || '?').split(' ').slice(0, 2).map(w => w[0] ?? '').join('')}

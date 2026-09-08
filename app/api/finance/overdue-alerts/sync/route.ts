@@ -8,6 +8,7 @@ import { isJourneyOverdue } from '@/lib/finance/overdue'
 import { todayISO } from '@/lib/dates'
 import { jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * POST /api/finance/overdue-alerts/sync — просроченный платёж → student_alert
@@ -32,7 +33,7 @@ export async function POST(_request: NextRequest) {
     // Активные начисления.
     const { data: chargesRaw, error: cErr } = await sb
       .from('finance_charges').select('id, journey_id, amount, status, due_date')
-    if (cErr) { if (cErr.code === '42P01') return NextResponse.json({ created: 0, overdue: 0 }); throw cErr }
+    if (cErr) { if (isMissingTable(cErr)) return NextResponse.json({ created: 0, overdue: 0 }); throw cErr }
     const charges = (chargesRaw ?? []) as Array<{ id: string; journey_id: string; amount: number | string; status: string; due_date: string | null }>
     if (charges.length === 0) return NextResponse.json({ created: 0, overdue: 0 })
 
@@ -52,7 +53,7 @@ export async function POST(_request: NextRequest) {
         const jid = chargeToJourney.get(d.charge_id); if (!jid) continue
         const arr = discByJourney.get(jid) ?? []; arr.push({ amount: d.amount }); discByJourney.set(jid, arr)
       }
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     const chargesByJourney = new Map<string, typeof charges>()
     for (const c of charges) { const a = chargesByJourney.get(c.journey_id) ?? []; a.push(c); chargesByJourney.set(c.journey_id, a) }
@@ -80,9 +81,9 @@ export async function POST(_request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: existing, error } = await (sb.from('student_alerts') as any)
         .select('student_id').eq('type_code', 'financial_debt').neq('state', 'closed').in('student_id', personIds)
-      if (error) { if (error.code === '42P01') return apiError('feature_not_migrated', 503); throw error }
+      if (error) { if (isMissingTable(error)) return apiError('feature_not_migrated', 503); throw error }
       for (const r of (existing ?? []) as Array<{ student_id: string }>) hasOpen.add(r.student_id)
-    } catch (e) { if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503); throw e }
+    } catch (e) { if (isMissingTable(e)) return apiError('feature_not_migrated', 503); throw e }
 
     const toCreate = personIds.filter(pid => !hasOpen.has(pid))
       .map(pid => ({ student_id: pid, type_code: 'financial_debt', severity: 'warning', source_module: 'finance', state: 'new', reported_by: session.person_id, is_sensitive: false }))

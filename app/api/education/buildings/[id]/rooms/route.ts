@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /** Создание аудитории в здании. Деплой-безопасно (нет таблицы → 503). */
 
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       building_id: params.id, name, capacity: body.capacity ?? null,
     } as any).select('id').single() as any)
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

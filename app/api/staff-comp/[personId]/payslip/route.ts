@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canApprovePayslip, monthRange, sumEntries } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Расчётный лист сотрудника за месяц.
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
     const sb = createServerClient()
     let entries: Array<{ entry_type: string; hours: number | string | null; amount: number | string | null }> = []
     try { entries = await loadEntries(sb, params.personId, from, to) }
-    catch (e) { if ((e as { code?: string }).code === '42P01') return NextResponse.json({ period: { year, month }, groups: [], total: 0, payslip: null }); throw e }
+    catch (e) { if (isMissingTable(e)) return NextResponse.json({ period: { year, month }, groups: [], total: 0, payslip: null }); throw e }
 
     const byType = new Map<string, { count: number; hours: number; amount_entries: Array<{ amount: number | string | null }> }>()
     for (const e of entries) {
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
       const { data } = await sb.from('staff_payslips')
         .select('status, total_amount, approved_at').eq('person_id', params.personId).eq('year', year).eq('month', month).maybeSingle()
       payslip = data as typeof payslip
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     return NextResponse.json({ period: { year, month }, groups, total, payslip })
   } catch (err: unknown) {
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     const sb = createServerClient()
     let total = 0
     try { total = sumEntries(await loadEntries(sb, params.personId, from, to)) }
-    catch (e) { if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503); throw e }
+    catch (e) { if (isMissingTable(e)) return apiError('feature_not_migrated', 503); throw e }
 
     const { data, error } = await sb.from('staff_payslips')
       .upsert({
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       }, { onConflict: 'person_id,year,month' })
       .select('status, total_amount, approved_at').single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ payslip: data })

@@ -145,10 +145,7 @@ export async function POST(
       studentHasActiveOverlap: studentOverlap,
     })
     if (!decision.ok) {
-      const message = decision.reason === 'room_full'
-        ? 'Комната заполнена на выбранные даты'
-        : 'У студента уже есть назначение, пересекающееся по датам'
-      return NextResponse.json({ error: message, reason: decision.reason }, { status: 409 })
+      return apiError(decision.reason === 'room_full' ? 'dorm_room_full' : 'dorm_student_overlap', 409, { reason: decision.reason })
     }
 
     const insert: DormAssignmentInsert = {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ins = await (sb.from('class_groups').insert(insert as any).select('id').single() as any)
     if (ins.error) {
-      if (ins.error.code === '42703') return apiError('feature_not_migrated', 503)
+      if (isMissingColumn(ins.error)) return apiError('feature_not_migrated', 503)
       if (ins.error.code === '23505') return apiError('study_group_name_exists', 409)
       if (ins.error.code === '23503') return apiError('invalid_reference', 400)
       throw ins.error
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (hours !== null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: hErr } = await (sb as any).from('class_groups').update({ hours }).eq('id', courseId)
-      if (hErr && hErr.code !== '42703') throw hErr
+      if (hErr && !isMissingColumn(hErr)) throw hErr
     }
 
     // Преподаватели.
@@ -137,7 +137,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         class_group_id: courseId, teacher_id, is_primary: idx === 0, added_by: session.person_id,
       }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('class_teachers').insert(rows as any)
+      const { error: tErr } = await sb.from('class_teachers').insert(rows as any)
+      if (tErr) throw tErr
     }
 
     // Студентки курса — только те, кто уже в ростере СЕМЕСТРА.

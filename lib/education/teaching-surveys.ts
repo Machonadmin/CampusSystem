@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 // ─── Доступ к сущностям «הערכת הוראה» (таблиц нет в сгенерированных типах) ─────
 
@@ -15,7 +16,7 @@ export async function getSurveyWithQuestions(
   let s: any = null
   const primary = await (sb.from('teaching_surveys')
     .select('id, title, is_open, created_at, department_id').eq('id', id).maybeSingle() as any)
-  if (primary.error && primary.error.code === '42703') {
+  if (primary.error && isMissingColumn(primary.error)) {
     const base = await sb.from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
     s = base.data
   } else {
@@ -36,7 +37,7 @@ export async function surveyDepartment(
 ): Promise<{ found: boolean; department_id: string | null }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const res = await (sb.from('teaching_surveys').select('id, department_id').eq('id', id).maybeSingle() as any)
-  if (res.error && res.error.code === '42703') {
+  if (res.error && isMissingColumn(res.error)) {
     const base = await sb.from('teaching_surveys').select('id').eq('id', id).maybeSingle()
     return { found: !!base.data, department_id: null }
   }
@@ -100,8 +101,10 @@ export async function submitResponse(
   let responseId: string
   if (existing) {
     responseId = (existing as { id: string }).id
-    await sb.from('teaching_survey_answers').delete().eq('response_id', responseId)
-    await sb.from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
+    const { error: dErr } = await sb.from('teaching_survey_answers').delete().eq('response_id', responseId)
+    if (dErr) throw dErr
+    const { error: uErr } = await sb.from('teaching_survey_responses').update({ respondent_role: args.role, submitted_at: new Date().toISOString() }).eq('id', responseId)
+    if (uErr) throw uErr
   } else {
     const { data: created, error } = await sb.from('teaching_survey_responses')
       .insert({ survey_id: args.surveyId, teacher_person_id: args.teacherPersonId, respondent_person_id: args.respondentPersonId, respondent_role: args.role })
@@ -120,7 +123,10 @@ export async function submitResponse(
       }
       return { response_id: responseId, question_id: a.question_id, rating: null, text_value: (a.text_value ?? '').trim() || null }
     })
-  if (rows.length) await sb.from('teaching_survey_answers').insert(rows)
+  if (rows.length) {
+    const { error: aErr } = await sb.from('teaching_survey_answers').insert(rows)
+    if (aErr) throw aErr
+  }
   return { ok: true }
 }
 

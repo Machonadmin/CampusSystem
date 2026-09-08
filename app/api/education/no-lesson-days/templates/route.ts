@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageEducationInAny } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingColumn, isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Шаблоны дней без уроков (no_lesson_day_templates, spec §3.4). Редактируемый
@@ -38,7 +39,7 @@ export async function GET() {
       .select('id, name, is_active')
       .order('name', { ascending: true })
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ templates: [] })
+      if (isMissingTable(error)) return NextResponse.json({ templates: [] })
       throw error
     }
     const templates = (tpls ?? []) as Array<{ id: string; name: string; is_active: boolean }>
@@ -53,11 +54,11 @@ export async function GET() {
         .order('month', { ascending: true }).order('day', { ascending: true })
       let { data: days, error: dErr } = await loadDays('id, template_id, month, day, reason, day_type_code')
       // Колонка day_type_code ещё не мигрирована → грузим без неё (default full_off).
-      if (dErr && dErr.code === '42703') {
+      if (dErr && isMissingColumn(dErr)) {
         const fb = await loadDays('id, template_id, month, day, reason')
         days = fb.data; dErr = fb.error
       }
-      if (dErr && dErr.code !== '42P01') throw dErr
+      if (dErr && !isMissingTable(dErr)) throw dErr
       daysByTpl = new Map()
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const d of (days ?? []) as any[]) {
@@ -85,14 +86,17 @@ export async function POST(request: NextRequest) {
       .insert({ name: body.name, created_by: session.person_id })
       .select('id')
       .single()
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
 
     if (body.days && body.days.length > 0) {
       const rows = body.days.map((d, i) => ({ template_id: tpl.id, month: d.month, day: d.day, reason: d.reason ?? null, day_type_code: d.day_type_code ?? 'full_off', sort_order: i }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let { error: dErr } = await (sb.from('no_lesson_day_template_days') as any).insert(rows)
       // Колонка day_type_code ещё не мигрирована → повторяем без неё.
-      if (dErr && dErr.code === '42703') {
+      if (dErr && isMissingColumn(dErr)) {
         const legacy = rows.map(({ day_type_code: _omit, ...r }) => r)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const retry = await (sb.from('no_lesson_day_template_days') as any).insert(legacy)

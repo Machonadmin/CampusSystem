@@ -4,6 +4,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PATCH / DELETE рабочей записи. Право: manage staff-comp. Деплой-безопасно.
@@ -35,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { data, error } = await ent(sb).update(patch).eq('id', params.id)
       .select('id, entry_type, entry_date, hours, amount, student_journey_id, title, summary, private_notes, created_at').maybeSingle()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     if (!data) return apiError('not_found', 404)
@@ -55,7 +56,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     const sb = createServerClient()
     const { error } = await ent(sb).delete().eq('id', params.id)
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       throw error
     }
     return NextResponse.json({ ok: true })

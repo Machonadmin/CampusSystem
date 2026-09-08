@@ -83,7 +83,7 @@ function PersonAutocomplete({
       {value && (
         <button
           type="button"
-          aria-label={t('clear', 'ניקוי')}
+          aria-label={t('clear')}
           onClick={() => { onChange(null); setQuery(''); setOptions([]); setOpen(false) }}
           style={{ position: 'absolute', insetInlineEnd: 8, top: 28, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16, lineHeight: 1 }}
         >×</button>
@@ -229,7 +229,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--surface-2)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('create_modal.title')}</h2>
-          <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
+          <button onClick={onClose} aria-label={t('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
         </div>
 
         {/* Form */}

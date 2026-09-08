@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { SubjectUpdate } from '@/types/database'
@@ -85,6 +86,7 @@ export async function PATCH(
     if (error) {
       if (error.code === '23505') return apiError('subject_exists', 409)
       if (error.code === '23503') return apiError('department_id_invalid', 400)
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
 

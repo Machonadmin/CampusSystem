@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
@@ -129,10 +129,7 @@ export async function DELETE(
     if (cntErr) throw cntErr
 
     if (studentsCount && studentsCount > 0) {
-      return NextResponse.json(
-        { error: `Нельзя удалить группу — в ней ${studentsCount} активных студентов. Переведите их в другую группу или деактивируйте группу (is_active=false).` },
-        { status: 409 }
-      )
+      return apiErrorWith('study_group_delete_has_students', 409, { count: studentsCount })
     }
 
     const { error } = await sb.from('study_groups').delete().eq('id', params.id)

@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Разовый ростер урока: гости (journeys вне группы), добавленные ТОЛЬКО на этот
@@ -16,7 +17,7 @@ import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-a
  */
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '42P01') return { status: 503, message: serverT('feature_unavailable') }
+  if (isMissingTable(error)) return { status: 503, message: serverT('feature_unavailable') }
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
   if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
   return { status: 500, message: error.message ?? serverT('db_error') }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess } from '@/lib/education/lesson-access'
@@ -100,10 +100,7 @@ export async function PATCH(
         .gt('score', update.max_score)
       if (overErr) throw overErr
       if (overCount && overCount > 0) {
-        return NextResponse.json(
-          { error: `Нельзя установить max_score=${update.max_score}: ${overCount} оценок превышают это значение. Сначала исправьте их.` },
-          { status: 400 }
-        )
+        return apiErrorWith('max_score_below_existing_grades', 400, { max: update.max_score, count: overCount })
       }
     }
 

@@ -6,6 +6,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { getCookieLocale } from '@/lib/i18n/locale'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/journeys/[id]/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       .order('scheduled_date', { ascending: true })
       .order('scheduled_time', { ascending: true, nullsFirst: true })
     if (lErr) {
-      if ((lErr as { code?: string }).code === '42P01') return NextResponse.json({ lessons: [] })
+      if (isMissingTable(lErr)) return NextResponse.json({ lessons: [] })
       throw lErr
     }
     let lessons = (lessonsRaw ?? []) as unknown as Array<{
@@ -121,7 +122,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         })
         .filter(m => (!from || m.date >= from) && (!to || m.date <= to))
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
 
     return NextResponse.json({ lessons: out, meetings })

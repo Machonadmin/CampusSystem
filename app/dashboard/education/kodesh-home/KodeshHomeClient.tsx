@@ -16,9 +16,11 @@ interface Student {
 
 export default function KodeshHomeClient() {
   const t = useTranslations('education.kodesh_home')
+  const tCommon = useTranslations('common')
   const [prep, setPrep] = useState<Prep | null>(null)
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [view, setView] = useState<'prep' | 'semester' | null>(null)
 
   useEffect(() => {
@@ -38,11 +40,17 @@ export default function KodeshHomeClient() {
           // иначе (перед открытием) → экран подготовки. Пользователь может
           // переключить вручную.
           setView(currentActive ? 'semester' : 'prep')
+        } else {
+          setError(true)
         }
+      } catch {
+        setError(true)
       } finally { setLoading(false) }
     })()
   }, [])
 
+  // Ошибка загрузки → сообщение, а не вечный скелетон (данные не пришли — view остаётся null).
+  if (error) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 14 }}>{tCommon('load_error')}</div>
   if (loading || view === null) return <SkeletonRows rows={6} />
 
   const yearName = (n: number | null) => n ? t('year_n').replace('{n}', String(n)) : ''

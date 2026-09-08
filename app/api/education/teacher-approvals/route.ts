@@ -9,6 +9,7 @@ import {
 } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Утверждение преподавателя на курс (teacher_course_approvals, spec §3.6 / §4.7-4.8).
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       if (error) throw error
       rows = (data ?? []) as Array<Record<string, unknown>>
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ approvals: [] })
+      if (isMissingTable(e)) return NextResponse.json({ approvals: [] })
       throw e
     }
     return NextResponse.json({ approvals: rows })
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single()
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

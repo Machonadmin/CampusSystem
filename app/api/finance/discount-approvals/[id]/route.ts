@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PATCH /api/finance/discount-approvals/[id] — решение по запросу скидки. Право:
@@ -30,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .update({ status: body.status, note: body.note ?? null, decided_by: session.person_id, decided_at: new Date().toISOString() })
       .eq('id', params.id).select('id').maybeSingle()
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     if (!data) return apiError('record_not_found', 404)

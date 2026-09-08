@@ -62,7 +62,7 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor, varian
           <button key={t.key} onClick={() => onChange(t.key)} style={style}>
             {t.label}
             {t.badge !== undefined && t.badge > 0 && (
-              <span style={{ marginLeft: 6, opacity: 0.7 }}>({t.badge})</span>
+              <span style={{ marginInlineStart: 6, opacity: 0.7 }}>({t.badge})</span>
             )}
           </button>
         )

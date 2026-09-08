@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { round1 } from '@/lib/education/metrics'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 // PostgREST обрезает выдачу на db-max-rows (~1000). Оценок над группой
 // (студенты × задания) может быть больше — читаем постранично.
@@ -127,7 +128,7 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') {
+    if (isMissingTable(e)) {
       return NextResponse.json({ class_group_id: params.id, assessments: [], students: [] })
     }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

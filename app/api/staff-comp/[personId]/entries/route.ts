@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Рабочие записи сотрудника за месяц.
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
       if (error) throw error
       return NextResponse.json({ entries: data ?? [] })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ entries: [] })
+      if (isMissingTable(e)) return NextResponse.json({ entries: [] })
       throw e
     }
   } catch (err: unknown) {
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       .select('id, entry_type, entry_date, hours, amount, student_journey_id, title, summary, private_notes, created_at')
       .single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if ((error as { code?: string }).code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

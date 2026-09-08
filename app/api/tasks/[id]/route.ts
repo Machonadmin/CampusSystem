@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
@@ -157,10 +157,7 @@ export async function PATCH(
       const currentStatus = task.status as TaskStatus
       const allowed = ALLOWED_TRANSITIONS[currentStatus] ?? []
       if (!allowed.includes(body.status)) {
-        return NextResponse.json(
-          { error: `Переход ${currentStatus} → ${body.status} запрещён` },
-          { status: 400 }
-        )
+        return apiErrorWith('task_transition_forbidden', 400, { from: currentStatus, to: body.status })
       }
       if (body.status === 'declined' && !access.isAssignee && !access.isSuperadmin) {
         return apiError('only_assignee_can_release', 403)
@@ -192,13 +189,14 @@ export async function PATCH(
     if (uErr) { const m = mapDbError(uErr); return NextResponse.json({ error: m.message }, { status: m.status }) }
 
     if (statusChange) {
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: params.id,
         actor_id: session.person_id,
         from_status: statusChange.from,
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+      if (histErr) console.error('[tasks PATCH] status history insert:', histErr)
 
       // Уведомляем «другую сторону» о смене статуса (best-effort).
       const creatorId = (task as { creator_id: string | null }).creator_id

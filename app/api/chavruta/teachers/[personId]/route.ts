@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageChavruta } from '@/lib/chavruta/access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * DELETE /api/chavruta/teachers/[personId] — убрать РУЧНОГО мору хавруты.
@@ -26,7 +27,7 @@ export async function DELETE(
       .from('chavruta_teachers').delete().eq('person_id', personId)
     if (error) {
       const code = (error as { code?: string }).code
-      if (code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true })

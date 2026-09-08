@@ -416,7 +416,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                 onClick={() => setGraphProcessId(proc.id)}
                 title={t('process.actions.view_graph')}
                 style={{
-                  marginLeft: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
+                  marginInlineStart: 'auto', padding: '3px 10px', fontSize: 11, fontWeight: 500,
                   color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)',
                   borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
@@ -452,7 +452,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                           : '—'}
                       </span>
                       {stage.final_code && stage.status === 'completed' && (
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 'auto' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 'auto' }}>
                           {t(`process.finals.${stage.final_code}`,
                             stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code)}
                         </span>
@@ -508,7 +508,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', width: '100%', textAlign: 'start' }}
                     >
                       <span style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
-                      <span>{t('process.history_curtain', 'תחילת התהליך')}</span>
+                      <span>{t('process.history_curtain')}</span>
                       <span style={{ color: 'var(--text-faint)', fontWeight: 500 }}>· {history.length}</span>
                     </button>
                     {open && (
@@ -551,7 +551,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
             <button type="button" onClick={() => setPastOpen(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start' }}>
               <svg style={{ width: 15, height: 15, color: 'var(--text-faint)', flexShrink: 0, transform: pastOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6l6 6-6 6" /></svg>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('process.past_processes', 'תהליכים קודמים')}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('process.past_processes')}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 999, padding: '1px 8px', marginInlineStart: 4 }}>{pastProcs.length}</span>
             </button>
             {pastOpen && (

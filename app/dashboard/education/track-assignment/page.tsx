@@ -12,6 +12,7 @@ interface Student { journey_id: string; name: string; department: { id: string; 
 export default function TrackAssignmentPage() {
   const t = useTranslations('education.track_assign')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [tracks, setTracks] = useState<Track[]>([])
@@ -31,9 +32,12 @@ export default function TrackAssignmentPage() {
         fetch('/api/education/study-tracks'),
       ])
       if (wl.ok) { const b = await wl.json(); setStudents(b.students ?? []) }
+      else setErr(tCommon('load_error'))
       if (tk.ok) { const b = await tk.json(); setTracks(b.tracks ?? []) }
+    } catch {
+      setErr(tCommon('load_error'))
     } finally { setLoading(false) }
-  }, [])
+  }, [tCommon])
   useEffect(() => { load() }, [load])
 
   const assign = async (journeyId: string) => {

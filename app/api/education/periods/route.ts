@@ -6,6 +6,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { jsonError } from '@/lib/api/handler'
 import { todayISO } from '@/lib/dates'
 import { currentPeriodKey, isPeriodPast, periodContainsToday, type DatedPeriod } from '@/lib/education/period-lock'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/periods — учебные периоды (year_label [+ term]) с диапазоном
@@ -34,7 +35,7 @@ export async function GET() {
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01' && (e as { code?: string }).code !== '42703') throw e
+      if (!isMissingRelation(e)) throw e
     }
 
     // Агрегируем по (year_label, term): min(start) / max(end).

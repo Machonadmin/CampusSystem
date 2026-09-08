@@ -32,6 +32,7 @@ const PENDING_TINT = 'rgba(202,138,4,0.13)'
 export default function TimetablePage() {
   const t = useTranslations('education.timetable')
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
   const { lang } = useLang()
 
   const [slots, setSlots] = useState<Slot[]>([])
@@ -55,8 +56,11 @@ export default function TimetablePage() {
     try {
       const res = await fetch(`/api/education/timetable${u ? `?unit=${u}` : ''}`)
       if (res.ok) { const b = await res.json(); setSlots(b.slots ?? []); setConflicts(b.conflicts ?? []); if (b.units) setUnits(b.units); setCanEdit(!!b.can_edit) }
+      else toast(tCommon('load_error'), 'error')
+    } catch {
+      toast(tCommon('load_error'), 'error')
     } finally { setLoading(false) }
-  }, [])
+  }, [tCommon])
   useEffect(() => { load(unit) }, [unit, load])
 
   // Перетаскивание слота в другой день недели → PATCH day_of_week (время/комната

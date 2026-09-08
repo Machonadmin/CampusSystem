@@ -201,20 +201,24 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── История статуса (создание) ────────────────────────────────────────────
-    await sb.from('task_status_history').insert({
+    const { error: histErr } = await sb.from('task_status_history').insert({
       task_id: task.id,
       actor_id: personId,
       from_status: null,
       to_status: status,
       note: 'Задача создана',
     })
+    if (histErr) console.error('[tasks POST] status history insert:', histErr)
 
     // ─── Watchers ──────────────────────────────────────────────────────────────
     if (body.watchers && body.watchers.length > 0) {
       const rows = body.watchers
         .filter(w => w !== personId)
         .map(person_id => ({ task_id: task.id, person_id, added_by: personId }))
-      if (rows.length > 0) await sb.from('task_watchers').insert(rows)
+      if (rows.length > 0) {
+        const { error: wErr } = await sb.from('task_watchers').insert(rows)
+        if (wErr) console.error('[tasks POST] watchers insert:', wErr)
+      }
     }
 
     // ─── Уведомление исполнителю (если назначено другому человеку) ───────────────

@@ -75,7 +75,11 @@
     "call": "Call",
     "whatsapp": "WhatsApp",
     "saving": "Saving…",
-    "create": "Create"
+    "create": "Create",
+    "confirm": "Confirm",
+    "not_found_title": "Page not found",
+    "not_found_body": "The address you requested does not exist or has moved.",
+    "back_home": "Back to home"
   },
   "jewishness": {
     "title": "Jewishness Verification",
@@ -398,7 +402,8 @@
       "generate_result": "Created {created}, skipped {skipped}",
       "generate_run": "Generate",
       "generating": "Generating…",
-      "close": "Close"
+      "close": "Close",
+      "forbidden": "No permission"
     },
     "tabs": {
       "leads": "Recruitment",
@@ -696,7 +701,9 @@
         "acceptance_v2": "Acceptance",
         "admission": "Admission"
       },
-      "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then."
+      "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then.",
+      "history_curtain": "Process start",
+      "past_processes": "Previous processes"
     },
     "card": {
       "tabs": {
@@ -902,7 +909,8 @@
         "back": "Back to semesters",
         "count_teachers": "{n} teachers",
         "delete": "Delete",
-        "delete_confirm": "Delete the course \"{name}\"? This cannot be undone."
+        "delete_confirm": "Delete the course \"{name}\"? This cannot be undone.",
+        "delete_error": "Could not delete the course"
       },
       "buildings": {
         "title": "Buildings & rooms",
@@ -2633,7 +2641,8 @@
       "edit_title": "Employee details",
       "edit_save_disabled_note": "Editing employee data here isn't available yet (view only).",
       "role_none": "No system role",
-      "role_assign_failed": "Employee saved, but role assignment failed — open their card in the staff list and press \"Roles\""
+      "role_assign_failed": "Employee saved, but role assignment failed — open their card in the staff list and press \"Roles\"",
+      "hebrew_name_ph": "Name in Hebrew"
     },
     "name_required": "Name is required",
     "error": "Error",
@@ -3023,7 +3032,9 @@
       "error_teacher_required": "Specify a teacher",
       "error_network": "Network error",
       "submit_button": "Create Check"
-    }
+    },
+    "clear": "Clear",
+    "close": "Close"
   },
   "settings": {
     "title": "Settings",
@@ -3177,7 +3188,8 @@
       "add_confirm_button": "Add",
       "saving": "Saving…",
       "name_required": "Name is required",
-      "save_error": "Save error"
+      "save_error": "Save error",
+      "close": "Close"
     },
     "categories": {
       "system": "System",
@@ -4554,7 +4566,8 @@
     "relation_guardian": "Guardian",
     "relation_community_contact": "Community contact",
     "relation_emergency_contact": "Emergency contact",
-    "relation_other": "Other"
+    "relation_other": "Other",
+    "clear": "Clear"
   },
   "calendar": {
     "form_invitees": "Participants",
@@ -5031,7 +5044,27 @@
     "role_required": "Select a role",
     "role_not_found": "Role not found",
     "bad_request": "Bad request",
-    "track_in_use": "Track is in use (students assigned) — deactivate instead of deleting"
+    "track_in_use": "Track is in use (students assigned) — deactivate instead of deleting",
+    "task_transition_forbidden": "Transition {from} → {to} is not allowed",
+    "attendance_status_invalid": "Invalid status: {status}. Allowed: {allowed}",
+    "not_enrolled_in_lesson_group": "Not enrolled in the lesson's group: {ids}",
+    "person_create_failed_reason": "Person creation failed: {message}",
+    "max_score_below_existing_grades": "Cannot set max_score={max}: {count} grades exceed it. Fix them first.",
+    "grade_score_number_required": "Each entry needs a numeric score (journey {journey})",
+    "grade_score_negative": "score cannot be negative (journey {journey})",
+    "grade_score_exceeds_max": "score {score} exceeds the maximum {max} (journey {journey})",
+    "not_enrolled_in_assessment_group": "Not enrolled in the assignment's group: {ids}",
+    "journeys_not_found_list": "Journeys not found: {ids}",
+    "class_group_delete_has_enrollments": "Cannot delete the group — {count} students are enrolled in it. Remove them from the group first.",
+    "schedule_range_too_large": "Period too large: {days} days (maximum {max})",
+    "study_group_delete_has_students": "Cannot delete the group — it has {count} active students. Move them to another group or deactivate the group (is_active=false).",
+    "payment_approve_only_pending": "Only a payment in status 'pending' can be approved (current: '{status}')",
+    "quality_template_in_use": "The template is used in {count} checks and cannot be deleted",
+    "dorm_room_full": "The room is full for the selected dates",
+    "dorm_student_overlap": "The student already has an assignment overlapping these dates",
+    "dorm_room_number_exists": "A room with this number already exists in this building",
+    "series_max_repeats": "Maximum {n} repetitions in a series",
+    "series_over_limit": "The series exceeds the limit of {n} tasks"
   },
   "workflow": {
     "error": "Error"
@@ -5198,7 +5231,9 @@
       "answered": "Done",
       "submit": "Submit",
       "save_failed": "Submit failed, please try again"
-    }
+    },
+    "error_login_failed": "Sign-in failed",
+    "error_connection": "Connection error. Please try again"
   },
   "force_password": {
     "title": "Update your password",

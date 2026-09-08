@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Многоструктурное членство студентки (journey_structures).
@@ -40,13 +41,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .select('department_id, added_at, department:departments(id, name, name_he, name_en)')
       .eq('journey_id', params.id) as any)
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ structures: [] })
+      if (isMissingTable(error)) return NextResponse.json({ structures: [] })
       throw error
     }
     return NextResponse.json({ structures: data ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ structures: [] })
+    if (isMissingTable(e)) return NextResponse.json({ structures: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       journey_id: params.id, department_id: deptId, added_by: session.person_id,
     } as any)
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23505') return NextResponse.json({ ok: true }) // уже состоит — идемпотентно
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
@@ -93,7 +94,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (sb.from('journey_structures').delete().eq('journey_id', params.id).eq('department_id', deptId) as any)
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       throw error
     }
     return NextResponse.json({ ok: true })

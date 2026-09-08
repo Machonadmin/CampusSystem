@@ -168,13 +168,14 @@ export async function POST(request: NextRequest) {
 
     // ─── История (только первая задача серии) ───
     if (created && created.length > 0) {
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: created[0].id,
         actor_id: personId,
         from_status: null,
         to_status: status,
         note: `Серия создана (${created.length} задач)`,
       })
+      if (histErr) console.error('[tasks series POST] status history insert:', histErr)
     }
 
     // ─── Watchers ───

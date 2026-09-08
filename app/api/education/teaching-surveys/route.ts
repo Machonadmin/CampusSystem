@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds, hasEducationPrivilege } from '@/lib/education/permissions'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * הערכת הוראה — сборы обратной связи о преподавании.
@@ -36,7 +37,7 @@ export async function GET() {
       let raw = await (sb.from('teaching_surveys')
         .select('id, title, is_open, created_at, department_id').order('created_at', { ascending: false }) as any)
       let hasDept = true
-      if (raw.error && raw.error.code === '42703') {
+      if (raw.error && isMissingColumn(raw.error)) {
         hasDept = false
         raw = await sb.from('teaching_surveys').select('id, title, is_open, created_at').order('created_at', { ascending: false })
       }
@@ -73,7 +74,7 @@ export async function GET() {
         department: r.department_id ? deptById.get(r.department_id) ?? null : null,
       })) })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ items: [] })
+      if (isMissingTable(e)) return NextResponse.json({ items: [] })
       throw e
     }
   } catch (err: unknown) {
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
       let ins = await (sb.from('teaching_surveys')
         .insert({ title, is_open: false, created_by: session.person_id, department_id: deptId } as any)
         .select('id, title, is_open, created_at, department_id').single() as any)
-      if (ins.error && ins.error.code === '42703') {
+      if (ins.error && isMissingColumn(ins.error)) {
         // Колонки ещё нет (деплой до миграции) — создаём legacy-сбор без неё.
         ins = await sb.from('teaching_surveys')
           .insert({ title, is_open: false, created_by: session.person_id })
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       if (ins.error) throw ins.error
       return NextResponse.json({ survey: ins.data }, { status: 201 })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+      if (isMissingTable(e)) return apiError('feature_unavailable', 503)
       throw e
     }
   } catch (err: unknown) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp, monthRange, lessonHours } from '@/lib/finance/staff-comp'
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
     try {
       const { data: rate } = await sb.from('staff_compensation').select('hourly_rate').eq('person_id', params.personId).maybeSingle()
       hourly = Number((rate as { hourly_rate?: number } | null)?.hourly_rate ?? 0)
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     // Группы, которые ведёт сотрудник.
     const { data: ct, error: ctErr } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', params.personId)

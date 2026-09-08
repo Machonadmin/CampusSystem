@@ -8,6 +8,7 @@ import {
 } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingColumn, isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Дни без уроков (ימים ללא לימודים, spec §3.4 / §4.5).
@@ -37,9 +38,9 @@ export async function GET(request: NextRequest) {
     }
     const { data, error } = await build('id, year_label, date, reason, scope, day_type_code')
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ days: [] })
+      if (isMissingTable(error)) return NextResponse.json({ days: [] })
       // Колонка day_type_code ещё не мигрирована → отдаём без неё (default full_off).
-      if (error.code === '42703') {
+      if (isMissingColumn(error)) {
         const fb = await build('id, year_label, date, reason, scope')
         if (fb.error) throw fb.error
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single()
     // day_type_code ещё не мигрирован → повторяем без него.
-    if (error && error.code === '42703') {
+    if (error && isMissingColumn(error)) {
       const { day_type_code: _omit, ...legacy } = row
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const retry = await (sb.from('academic_no_lesson_days') as any)
@@ -95,7 +96,10 @@ export async function POST(request: NextRequest) {
         .select('id').single()
       data = retry.data; error = retry.error
     }
-    if (error) throw error
+    if (error) {
+      if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
     return NextResponse.json({ id: data.id }, { status: 201 })
   } catch (err: unknown) {
     return jsonError(err)

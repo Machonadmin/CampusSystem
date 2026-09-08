@@ -75,7 +75,11 @@
     "call": "Позвонить",
     "whatsapp": "WhatsApp",
     "saving": "Сохранение…",
-    "create": "Создать"
+    "create": "Создать",
+    "confirm": "Подтвердить",
+    "not_found_title": "Страница не найдена",
+    "not_found_body": "Запрошенный адрес не существует или был перемещён.",
+    "back_home": "На главную"
   },
   "jewishness": {
     "title": "Проверка еврейства",
@@ -398,7 +402,8 @@
       "generate_result": "Создано {created}, пропущено {skipped}",
       "generate_run": "Сгенерировать",
       "generating": "Генерация…",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "forbidden": "Нет доступа"
     },
     "tabs": {
       "leads": "Набор",
@@ -696,7 +701,9 @@
         "acceptance_v2": "Приёмная комиссия",
         "admission": "Приём"
       },
-      "stage_waiting_hint": "Этот этап активируется автоматически после завершения предыдущего — тогда будет создана соответствующая задача (например, «Запросить документы»)."
+      "stage_waiting_hint": "Этот этап активируется автоматически после завершения предыдущего — тогда будет создана соответствующая задача (например, «Запросить документы»).",
+      "history_curtain": "Начало процесса",
+      "past_processes": "Предыдущие процессы"
     },
     "card": {
       "tabs": {
@@ -902,7 +909,8 @@
         "back": "Назад к списку семестров",
         "count_teachers": "Преподавателей: {n}",
         "delete": "Удалить",
-        "delete_confirm": "Удалить курс «{name}»? Действие необратимо."
+        "delete_confirm": "Удалить курс «{name}»? Действие необратимо.",
+        "delete_error": "Не удалось удалить курс"
       },
       "buildings": {
         "title": "Здания и аудитории",
@@ -2633,7 +2641,8 @@
       "edit_title": "Данные сотрудника",
       "edit_save_disabled_note": "Редактирование данных сотрудника здесь пока недоступно (только просмотр).",
       "role_none": "Без роли в системе",
-      "role_assign_failed": "Сотрудник сохранён, но привязка роли не удалась — откройте его карточку в списке команды и нажмите «Роли»"
+      "role_assign_failed": "Сотрудник сохранён, но привязка роли не удалась — откройте его карточку в списке команды и нажмите «Роли»",
+      "hebrew_name_ph": "Имя на иврите"
     },
     "name_required": "Название обязательно",
     "error": "Ошибка",
@@ -3023,7 +3032,9 @@
       "error_teacher_required": "Укажите преподавателя",
       "error_network": "Ошибка сети",
       "submit_button": "Создать проверку"
-    }
+    },
+    "clear": "Очистить",
+    "close": "Закрыть"
   },
   "settings": {
     "title": "Настройки",
@@ -3177,7 +3188,8 @@
       "add_confirm_button": "Добавить",
       "saving": "Сохранение…",
       "name_required": "Название обязательно",
-      "save_error": "Ошибка сохранения"
+      "save_error": "Ошибка сохранения",
+      "close": "Закрыть"
     },
     "categories": {
       "system": "Системные",
@@ -4554,7 +4566,8 @@
     "relation_guardian": "Опекун",
     "relation_community_contact": "Контакт общины",
     "relation_emergency_contact": "Экстренный контакт",
-    "relation_other": "Другое"
+    "relation_other": "Другое",
+    "clear": "Очистить"
   },
   "calendar": {
     "form_invitees": "Участники",
@@ -5031,7 +5044,27 @@
     "role_required": "Выберите роль",
     "role_not_found": "Роль не найдена",
     "bad_request": "Некорректный запрос",
-    "track_in_use": "Маршрут используется (есть студентки) — деактивируйте вместо удаления"
+    "track_in_use": "Маршрут используется (есть студентки) — деактивируйте вместо удаления",
+    "task_transition_forbidden": "Переход {from} → {to} запрещён",
+    "attendance_status_invalid": "Недопустимый статус: {status}. Разрешено: {allowed}",
+    "not_enrolled_in_lesson_group": "Не записаны в группу урока: {ids}",
+    "person_create_failed_reason": "Создание person: {message}",
+    "max_score_below_existing_grades": "Нельзя установить max_score={max}: {count} оценок превышают это значение. Сначала исправьте их.",
+    "grade_score_number_required": "У каждой записи должен быть числовой score (journey {journey})",
+    "grade_score_negative": "score не может быть отрицательным (journey {journey})",
+    "grade_score_exceeds_max": "score {score} превышает максимум {max} (journey {journey})",
+    "not_enrolled_in_assessment_group": "Не записаны в группу задания: {ids}",
+    "journeys_not_found_list": "Journey не найдены: {ids}",
+    "class_group_delete_has_enrollments": "Нельзя удалить группу — в ней {count} записанных студентов. Сначала снимите студентов с группы.",
+    "schedule_range_too_large": "Слишком большой период: {days} дн. (максимум {max})",
+    "study_group_delete_has_students": "Нельзя удалить группу — в ней {count} активных студентов. Переведите их в другую группу или деактивируйте группу (is_active=false).",
+    "payment_approve_only_pending": "Подтвердить можно только платёж в статусе 'pending' (текущий: '{status}')",
+    "quality_template_in_use": "Шаблон используется в {count} проверках и не может быть удалён",
+    "dorm_room_full": "Комната заполнена на выбранные даты",
+    "dorm_student_overlap": "У студента уже есть назначение, пересекающееся по датам",
+    "dorm_room_number_exists": "Комната с таким номером уже есть в этом здании",
+    "series_max_repeats": "Максимум {n} повторений в серии",
+    "series_over_limit": "Серия превышает лимит в {n} задач"
   },
   "workflow": {
     "error": "Ошибка"
@@ -5198,7 +5231,9 @@
       "answered": "Готово",
       "submit": "Отправить",
       "save_failed": "Не удалось отправить, попробуйте ещё раз"
-    }
+    },
+    "error_login_failed": "Ошибка входа",
+    "error_connection": "Ошибка соединения с сервером. Попробуйте ещё раз"
   },
   "force_password": {
     "title": "Обновите пароль",

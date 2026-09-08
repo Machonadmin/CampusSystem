@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { isIsoDate } from '@/lib/calendar/validation'
 import type { CalendarEventInsert } from '@/types/database'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Личные события календаря пользователя.
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await q
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ events: [] })
+      if (isMissingTable(error)) return NextResponse.json({ events: [] })
       throw error
     }
     return NextResponse.json({ events: data ?? [] })
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single()
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ error: serverT('generic_error') }, { status: 503 })
+      if (isMissingTable(error)) return NextResponse.json({ error: serverT('generic_error') }, { status: 503 })
       if (error.code === '23505') return NextResponse.json({ ok: true, duplicate: true }) // уже в календаре
       throw error
     }

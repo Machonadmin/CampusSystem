@@ -4,6 +4,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/lesson-generation'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * POST /api/education/schedule/slots/[slotId]/decision
@@ -43,7 +44,7 @@ export async function POST(
       .maybeSingle()
 
     if (error) {
-      if ((error as { code?: string }).code === '42703') {
+      if (isMissingColumn(error)) {
         return apiError('approval_migration_missing', 400)
       }
       throw error

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * «Моры хавруты»: список (кодеш авто ∪ ручные) + управление ручными.
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { error } = await ct(sb).insert({ person_id: personId, added_by: session.person_id })
     if (error) {
       const code = (error as { code?: string }).code
-      if (code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
       if (code === '23505') return NextResponse.json({ ok: true }) // уже в списке
       if (code === '23503') return apiError('invalid_reference', 400)
       throw error

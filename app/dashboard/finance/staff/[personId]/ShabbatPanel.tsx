@@ -241,7 +241,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+      <div className="resp-grid-3" style={{ gap: 12 }}>
         <div>
           <label style={lbl}>{t('sh_type')}</label>
           <select value={entryType} onChange={e => setEntryType(e.target.value as ShabbatType)} style={inp}>

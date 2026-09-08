@@ -4,7 +4,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
+import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
 /**
  * Учебные маршруты студентки (spec §3.2): один ГЛАВНЫЙ (primary) + опциональные
  * дополнительные (additional, напр. Туро). Первая половина дня — иудаизм для всех
@@ -53,7 +55,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .select('journey_id, track_id, role, notes, year_level, completed_at, updated_at')
       .eq('journey_id', params.id)
       .order('role', { ascending: true }) as any)
-    if (error && error.code === '42703') {
+    if (error && isMissingColumn(error)) {
       const base = await sb
         .from('journey_study_tracks')
         .select('journey_id, track_id, notes, updated_at')
@@ -64,7 +66,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       error = base.error
     }
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ track: null, tracks: [] })
+      if (isMissingTable(error)) return NextResponse.json({ track: null, tracks: [] })
       throw error
     }
     const rows = (data ?? []) as Array<Record<string, unknown> & { role?: string; track_id?: string | null }>
@@ -98,18 +100,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       if (role !== 'primary') return apiError('invalid_reference', 400)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (sb.from('journey_study_tracks').delete().eq('journey_id', params.id).eq('role', 'primary') as any)
-      if (error && error.code === '42703') {
+      if (error && isMissingColumn(error)) {
         // до миграции: legacy — снять весь маршрут (обнулить track_id).
         const legacy = await sb.from('journey_study_tracks')
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .upsert({ journey_id: params.id, track_id: null, updated_by: session.person_id, updated_at: new Date().toISOString() } as any, { onConflict: 'journey_id' })
-        if (legacy.error && legacy.error.code !== '42P01') throw legacy.error
+        if (legacy.error && !isMissingTable(legacy.error)) throw legacy.error
         return NextResponse.json({ ok: true })
       }
-      if (error && error.code !== '42P01') throw error
+      if (error && !isMissingTable(error)) throw error
       return NextResponse.json({ ok: true })
     }
 
+    // Главный маршрут — через общий помощник (тот же код, что и завершение этапа
+    // приёма): снять ДРУГИЕ primary-строки → upsert по (journey_id, track_id) →
+    // legacy-откат до миграции → no-op без таблицы. См. lib/education/journey-primary-track.
+    if (role === 'primary') {
+      const r = await setPrimaryStudyTrack(sb, {
+        journeyId: params.id, trackId, updatedBy: session.person_id, notes,
+        yearLevel: body.year_level, reactivate: body.reactivate,
+      })
+      if (!r.ok) {
+        if (r.error.code === '23503') return apiError('invalid_reference', 400)
+        throw r.error
+      }
+      return NextResponse.json({ ok: true })
+    }
+
+    // Дополнительный маршрут (additional).
     const payload: Record<string, unknown> = {
       journey_id: params.id,
       track_id: trackId,
@@ -123,18 +141,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
     if (body.reactivate) payload.completed_at = null
 
-    // Ставим primary → сперва снимаем ДРУГИЕ primary-строки этой journey (не более
-    // одного главного маршрута; partial-unique в БД это тоже гарантирует).
-    if (role === 'primary') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: delErr } = await (sb.from('journey_study_tracks').delete()
-        .eq('journey_id', params.id).eq('role', 'primary').neq('track_id', trackId) as any)
-      if (delErr && delErr.code !== '42703' && delErr.code !== '42P01') throw delErr
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let { error } = await (sb.from('journey_study_tracks').upsert(payload as any, { onConflict: 'journey_id,track_id' }) as any)
-    if (error && error.code === '42703') {
+    if (error && isMissingColumn(error)) {
       // до миграции: legacy 1:1 upsert по journey_id.
       const legacy: Record<string, unknown> = {
         journey_id: params.id, track_id: trackId, notes, updated_by: session.person_id, updated_at: new Date().toISOString(),
@@ -145,7 +154,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       error = retry.error
     }
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
     }
@@ -165,7 +174,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (sb.from('journey_study_tracks').delete()
       .eq('journey_id', params.id).eq('track_id', trackId) as any)
-    if (error && error.code !== '42P01') throw error
+    if (error && !isMissingTable(error)) throw error
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

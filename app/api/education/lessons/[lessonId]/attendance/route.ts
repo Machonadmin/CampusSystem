@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
@@ -135,7 +136,7 @@ export async function GET(
       }
     } catch (e) {
       const code = (e as { code?: string }).code
-      if (code !== '42P01') throw e
+      if (!isMissingTable(code)) throw e
     }
 
     return NextResponse.json({
@@ -181,10 +182,7 @@ export async function POST(
         return apiError('entry_journey_id_required', 400)
       }
       if (!entry.status || !VALID_STATUSES.includes(entry.status as AttendanceStatus)) {
-        return NextResponse.json(
-          { error: `Недопустимый статус: ${entry.status ?? '(пусто)'}. Разрешено: ${VALID_STATUSES.join(', ')}` },
-          { status: 400 }
-        )
+        return apiErrorWith('attendance_status_invalid', 400, { status: entry.status ?? '—', allowed: VALID_STATUSES.join(', ') })
       }
     }
 
@@ -238,15 +236,12 @@ export async function POST(
       if (ovrErr) throw ovrErr
       for (const r of (ovr ?? []) as Array<{ journey_id: string }>) allowedIds.add(r.journey_id)
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
     const notAllowed = Array.from(new Set(entries.map(e => e.journey_id!)))
       .filter(id => !allowedIds.has(id))
     if (notAllowed.length > 0) {
-      return NextResponse.json(
-        { error: `Не записаны в группу урока: ${notAllowed.join(', ')}` },
-        { status: 400 }
-      )
+      return apiErrorWith('not_enrolled_in_lesson_group', 400, { ids: notAllowed.join(', ') })
     }
 
     // חריגות קודש: освобождённой студентке не пишем посещаемость на урок кодеша

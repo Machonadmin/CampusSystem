@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Исключения кодеша (חריגות קודש) для journey (id = journey_id).
@@ -49,7 +50,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') {
+      if (isMissingTable(e)) {
         return NextResponse.json({ exceptions: [], can_manage: canManage })
       }
       throw e
@@ -75,7 +76,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ exceptions, can_manage: canManage })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ exceptions: [], can_manage: false })
+    if (isMissingTable(e)) return NextResponse.json({ exceptions: [], can_manage: false })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .select('id, reason, effective_from, effective_to, approved_by, created_at')
       .single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if ((error as { code?: string }).code === '23503') return apiError('invalid_reference', 400)
       throw error
     }
@@ -135,7 +136,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       .eq('id', exceptionId)
       .eq('journey_id', params.id)
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       throw error
     }
     return NextResponse.json({ ok: true })

@@ -132,7 +132,7 @@ function SidebarNavLink({
     <div className="relative">
       {active && (
         <span
-          className="absolute top-0 bottom-0 w-[3px] rounded-r"
+          className="absolute top-0 bottom-0 w-[3px] rounded-e"
           style={{ [isRTL ? 'right' : 'left']: 0, backgroundColor: 'var(--accent)' }}
         />
       )}

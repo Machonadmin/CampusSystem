@@ -7,6 +7,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { courseIssues } from '@/lib/education/course-checks'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/kodesh/home — агрегат для двух домашних экранов (spec §4.2):
@@ -41,9 +42,9 @@ export async function GET(_request: NextRequest) {
       const { data, error } = await (sb.from('class_groups') as any)
         .select('id, name, name_he, parent_semester_id, hours, is_active')
         .eq('department_id', KODESH_DEPT_ID).eq('is_active', true)
-      if (error) { if (error.code !== '42703' && error.code !== '42P01') throw error }
+      if (error) { if (!isMissingRelation(error)) throw error }
       else kgroups = (data ?? []) as KG[]
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     const levels = kgroups.filter(g => !g.parent_semester_id)
     const courses = kgroups.filter(g => g.parent_semester_id)
@@ -67,9 +68,9 @@ export async function GET(_request: NextRequest) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (sb.from('teacher_course_approvals') as any).select('id').eq('status', 'proposed')
-      if (error) { if (error.code !== '42P01') throw error }
+      if (error) { if (!isMissingTable(error)) throw error }
       else pendingApprovals = (data ?? []).length
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     // Students — ворота (spec §3.3): только финально одобренные по еврейству.
     const { data: journeysRaw, error: jErr } = await sb
@@ -93,11 +94,11 @@ export async function GET(_request: NextRequest) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (sb.from('journey_study_tracks') as any).select('journey_id, track_id, role, year_level').in('journey_id', journeyIds)
-        if (error) { if (error.code !== '42703' && error.code !== '42P01') throw error }
+        if (error) { if (!isMissingRelation(error)) throw error }
         else for (const r of (data ?? []) as Array<{ journey_id: string; track_id: string; role?: string; year_level?: number }>) {
           if ((r.role ?? 'primary') === 'primary') primaryByJourney.set(r.journey_id, { track_id: r.track_id, year_level: r.year_level ?? 1 })
         }
-      } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+      } catch (e) { if (!isMissingTable(e)) throw e }
     }
     // Track names.
     const trackIds = [...new Set([...primaryByJourney.values()].map(v => v.track_id))]
@@ -115,9 +116,9 @@ export async function GET(_request: NextRequest) {
         let q = (sb.from('student_alerts') as any).select('student_id, is_sensitive').neq('state', 'closed').in('student_id', personIds)
         if (!seeSensitive) q = q.eq('is_sensitive', false)
         const { data, error } = await q
-        if (error) { if (error.code !== '42P01') throw error }
+        if (error) { if (!isMissingTable(error)) throw error }
         else for (const r of (data ?? []) as Array<{ student_id: string }>) alertsByPerson.set(r.student_id, (alertsByPerson.get(r.student_id) ?? 0) + 1)
-      } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+      } catch (e) { if (!isMissingTable(e)) throw e }
     }
 
     const students = journeys.map(j => {
@@ -151,7 +152,7 @@ export async function GET(_request: NextRequest) {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ prep: null, students: [] })
+    if (isMissingTable(e)) return NextResponse.json({ prep: null, students: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

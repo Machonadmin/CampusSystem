@@ -6,6 +6,7 @@ import { canManageJourneyDocs } from '@/lib/documents/journey-access'
 import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { mapDbError } from '@/lib/documents/http'
 import { isReviewStatus } from '@/lib/documents/validation'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * PATCH /api/documents/[id]/review — статус проверки документа (בדיקת מסמך).
@@ -54,12 +55,12 @@ export async function PATCH(
         } as any)
         .eq('id', params.id)
       if (error) {
-        if ((error as { code?: string }).code === '42703') return apiError('feature_not_migrated', 503)
+        if (isMissingColumn(error)) return apiError('feature_not_migrated', 503)
         const m = mapDbError(error)
         return NextResponse.json({ error: m.message }, { status: m.status })
       }
     } catch (e) {
-      if ((e as { code?: string }).code === '42703') return apiError('feature_not_migrated', 503)
+      if (isMissingColumn(e)) return apiError('feature_not_migrated', 503)
       throw e
     }
 

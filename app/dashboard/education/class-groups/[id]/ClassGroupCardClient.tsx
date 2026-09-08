@@ -181,7 +181,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
               {group.subject?.name && <span>{group.subject.name}</span>}
               {group.department?.name && <span> · {group.department.name}</span>}
               {!group.is_active && (
-                <span style={{ marginLeft: 8, padding: '2px 8px', background: 'rgba(255,255,255,0.2)', borderRadius: 6, fontSize: 11 }}>
+                <span style={{ marginInlineStart: 8, padding: '2px 8px', background: 'rgba(255,255,255,0.2)', borderRadius: 6, fontSize: 11 }}>
                   {t('class_groups.inactive_badge')}
                 </span>
               )}
@@ -234,7 +234,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
               background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 10,
               padding: '12px 16px', fontSize: 13, color: 'var(--warn)',
             }}>
-              <strong style={{ marginRight: 6 }}>{t('class_groups.notes_prefix')}</strong>{group.notes}
+              <strong style={{ marginInlineEnd: 6 }}>{t('class_groups.notes_prefix')}</strong>{group.notes}
             </div>
           )}
 

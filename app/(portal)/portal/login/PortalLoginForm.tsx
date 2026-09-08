@@ -27,13 +27,13 @@ export default function PortalLoginForm() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? t('error'))
+        setError(data.error ?? t('error_login_failed'))
         return
       }
       router.push('/portal')
       router.refresh()
     } catch {
-      setError(t('error'))
+      setError(t('error_connection'))
     } finally {
       setLoading(false)
     }

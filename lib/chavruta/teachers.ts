@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * «Моры хавруты» — кому по средам приходит напоминание и кто может записывать
@@ -25,7 +26,7 @@ async function kodeshTeacherIds(sb: SB): Promise<string[]> {
     if (cErr) throw cErr
     return [...new Set((ct ?? []).map(r => r.teacher_id as string))]
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return []
+    if (isMissingTable(e)) return []
     throw e
   }
 }
@@ -37,7 +38,7 @@ async function manualChavrutaTeacherIds(sb: SB): Promise<string[]> {
     if (error) throw error
     return (data ?? []).map((r: { person_id: string }) => r.person_id)
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return []
+    if (isMissingTable(e)) return []
     throw e
   }
 }
@@ -61,7 +62,7 @@ async function chavrutaOverrides(sb: SB): Promise<{ granted: string[]; denied: s
     }
     return { granted, denied }
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return { granted: [], denied: [] }
+    if (isMissingTable(e)) return { granted: [], denied: [] }
     throw e
   }
 }

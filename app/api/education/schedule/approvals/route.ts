@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAuth, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/schedule/approvals
@@ -24,7 +25,7 @@ export async function GET() {
       .order('created_at', { ascending: true })
 
     if (error) {
-      if ((error as { code?: string }).code === '42703') return NextResponse.json({ requests: [] })
+      if (isMissingColumn(error)) return NextResponse.json({ requests: [] })
       throw error
     }
 

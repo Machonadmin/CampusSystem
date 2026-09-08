@@ -325,7 +325,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
   return (
     <Modal onClose={onClose} maxWidth={440} closeOnBackdrop panelStyle={{ padding: 24, maxHeight: 'none', overflowY: 'visible', position: 'relative' }}>
-        <button onClick={onClose} aria-label={t('close', 'סגירה')} style={{
+        <button onClick={onClose} aria-label={t('close')} style={{
           position: 'absolute', top: 14, insetInlineEnd: 16,
           background: 'none', border: 'none', fontSize: 22, color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1,
         }}>×</button>

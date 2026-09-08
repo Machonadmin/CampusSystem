@@ -130,7 +130,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {(loadingUnits || loading) ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : !report ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_units')}</div>

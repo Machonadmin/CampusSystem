@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, hasEducationPrivilege, requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Оповещения по студенткам (student_alerts, spec §3.8/§4.4).
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
         for (const r of (data ?? []) as Array<{ student_id: string }>) counts[r.student_id] = (counts[r.student_id] ?? 0) + 1
         return NextResponse.json({ counts })
       } catch (e) {
-        if ((e as { code?: string }).code === '42P01') return NextResponse.json({ counts: {} })
+        if (isMissingTable(e)) return NextResponse.json({ counts: {} })
         throw e
       }
     }
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       if (error) throw error
       return NextResponse.json({ alerts: data ?? [], can_see_sensitive: seeSensitive })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ alerts: [], can_see_sensitive: seeSensitive })
+      if (isMissingTable(e)) return NextResponse.json({ alerts: [], can_see_sensitive: seeSensitive })
       throw e
     }
   } catch (err: unknown) {
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
       is_sensitive: isSensitive ?? false,
     }).select('id').single()
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

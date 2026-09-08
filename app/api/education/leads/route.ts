@@ -13,6 +13,7 @@ import type {
   JourneyCommunityInsert,
 } from '@/types/database'
 
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/leads
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     }
 
     let jRes = await buildQuery(`${baseCols}, recruitment_stage`)
-    if (jRes.error && (jRes.error as { code?: string }).code === '42703') {
+    if (jRes.error && isMissingColumn(jRes.error)) {
       jRes = await buildQuery(baseCols)
     }
     if (jRes.error) throw jRes.error
@@ -391,17 +392,19 @@ export async function POST(request: NextRequest) {
       }
       // PRIMARY KEY (journey_id, community_id) — игнорим дубль (23505)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('journey_communities').insert(jcInsert as any)
+      const { error: jcErr } = await sb.from('journey_communities').insert(jcInsert as any)
+      if (jcErr && jcErr.code !== '23505') console.error('[leads POST] journey_communities insert:', jcErr)
     }
 
     // person_status_history
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await sb.from('person_status_history').insert({
+    const { error: histErr } = await sb.from('person_status_history').insert({
       person_id: personId,
       from_status: null,
       to_status: 'lead',
       changed_by: session.person_id,
     } as any)
+    if (histErr) console.error('[leads POST] person_status_history insert:', histErr)
 
     // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание лида.
     // Атомарно через RPC start_process (см. migrations/20260702210000_*.sql).

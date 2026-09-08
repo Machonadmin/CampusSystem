@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { ClassGroupInsert } from '@/types/database'
 
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '23505') return { status: 409, message: serverT('study_group_name_exists') }
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
       const { error: trErr } = await (sb as any).from('class_groups')
         .update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null })
         .eq('id', group.id)
-      if (trErr && trErr.code !== '42703') { /* столбца нет — ок; иная ошибка не критична для создания */ }
+      if (trErr && !isMissingColumn(trErr)) { /* столбца нет — ок; иная ошибка не критична для создания */ }
     }
 
     let teachers: TeacherEntry[] = []

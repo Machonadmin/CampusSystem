@@ -188,7 +188,8 @@ export async function POST(request: NextRequest) {
       }
       // PRIMARY KEY (journey_id, community_id) — игнорируем дубль (23505)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('journey_communities').insert(jcInsert as any)
+      const { error: jcErr } = await sb.from('journey_communities').insert(jcInsert as any)
+      if (jcErr && jcErr.code !== '23505') console.error('[applications POST] journey_communities insert:', jcErr)
     }
 
     // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание заявки.

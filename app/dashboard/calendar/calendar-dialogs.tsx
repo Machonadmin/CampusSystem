@@ -408,7 +408,7 @@ export function AppointmentForm({
           <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('invitees_hint')}</div>
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <div className="resp-grid-3" style={{ gap: 10 }}>
           <Field label={t('form_date')}>
             <input type="date" value={date} onChange={e => setDate(e.target.value)} style={input} />
           </Field>

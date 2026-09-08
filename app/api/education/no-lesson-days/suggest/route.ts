@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * POST /api/education/no-lesson-days/suggest — материализовать шаблон в дни без
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
       .select(cols)
       .eq('template_id', body.template_id)
     let { data: days, error: dErr } = await loadTplDays('month, day, reason, day_type_code')
-    if (dErr && dErr.code === '42703') {
+    if (dErr && isMissingColumn(dErr)) {
       const fb = await loadTplDays('month, day, reason')
       days = fb.data; dErr = fb.error
     }
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       .select('id')
     let { data: inserted, error } = await upsert(rows)
     // Колонка day_type_code ещё не мигрирована → повторяем без неё.
-    if (error && error.code === '42703') {
+    if (error && isMissingColumn(error)) {
       const legacy = rows.map(({ day_type_code: _omit, ...r }) => r)
       const retry = await upsert(legacy)
       inserted = retry.data; error = retry.error

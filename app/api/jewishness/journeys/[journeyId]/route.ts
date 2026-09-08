@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/jewishness/journeys/[journeyId] — карточка проверки еврейства:
@@ -74,7 +75,7 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
         changed_by_name: r.changed_by ? nameById.get(r.changed_by) ?? null : null,
       }))
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
 
     // Документы студентки (общая таблица document_records).

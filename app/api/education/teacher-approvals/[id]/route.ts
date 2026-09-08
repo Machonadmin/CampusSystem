@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PATCH /api/education/teacher-approvals/[id] — решение Moshe по предложенному
@@ -30,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .eq('id', params.id)
       .maybeSingle()
     if (rErr) {
-      if (rErr.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(rErr)) return apiError('feature_not_migrated', 503)
       throw rErr
     }
     if (!row) return apiError('record_not_found', 404)

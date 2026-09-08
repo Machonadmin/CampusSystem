@@ -361,7 +361,7 @@ export default function ApplyPage() {
               <div className={fld('email').visible ? 'ap-grid2' : undefined}>
                 <div className="ap-field">
                   <label>{t('label_phone')} <span className="ap-req">*</span></label>
-                  <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} required />
+                  <input type="tel" dir="ltr" value={form.phone} onChange={e => set('phone', e.target.value)} required />
                 </div>
                 {fld('email').visible && (
                   <div className="ap-field">

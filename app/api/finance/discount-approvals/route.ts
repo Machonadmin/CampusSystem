@@ -6,6 +6,7 @@ import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { canManageEducationInAny } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Утверждение скидок платы за обучение (tuition_discount_approvals, spec §3.9).
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       if (error) throw error
       return NextResponse.json({ approvals: data ?? [] })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ approvals: [] })
+      if (isMissingTable(e)) return NextResponse.json({ approvals: [] })
       throw e
     }
   } catch (err: unknown) {
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       .insert({ journey_id: body.journey_id, requested_percent: pct, status: 'pending', requested_by: session.person_id, note: body.note ?? null })
       .select('id').single()
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23505') return apiError('record_exists', 409)  // pending already exists
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error

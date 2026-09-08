@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { getCookieLocale } from '@/lib/i18n/locale'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/journeys/[id]/grades
@@ -40,7 +41,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .select('assessment_id, score, assessment:assessments(id, title, max_score, assessment_date, class_group:class_groups(name, subject:subjects(name, name_he)))')
       .eq('journey_id', params.id)
     if (gErr) {
-      if ((gErr as { code?: string }).code === '42P01') return NextResponse.json({ grades: [] })
+      if (isMissingTable(gErr)) return NextResponse.json({ grades: [] })
       throw gErr
     }
 

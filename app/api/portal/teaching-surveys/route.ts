@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { resolveStudentTeachers, getSurveyWithQuestions } from '@/lib/education/teaching-surveys'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/portal/teaching-surveys
@@ -41,7 +42,7 @@ export async function GET() {
       }
       return NextResponse.json({ surveys })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ surveys: [] })
+      if (isMissingTable(e)) return NextResponse.json({ surveys: [] })
       throw e
     }
   } catch (err: unknown) {

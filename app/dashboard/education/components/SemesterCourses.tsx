@@ -58,9 +58,9 @@ export default function SemesterCourses({ semesterId, semesterName }: { semester
       const res = await fetch(`/api/education/class-groups/${c.id}`, { method: 'DELETE' })
       if (res.ok) { load(); return }
       const b = await res.json().catch(() => ({}))
-      toastError(b.error ?? t('courses.delete')) // 409: «есть записанные студенты» приходит текстом
+      toastError(b.error ?? t('courses.delete_error')) // 409: «есть записанные студенты» приходит текстом
     } catch {
-      toastError(t('courses.delete'))
+      toastError(t('courses.delete_error'))
     }
   }
 
