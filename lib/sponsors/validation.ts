@@ -28,11 +28,16 @@ export { isIsoDate } from '@/lib/dates'
 
 /**
  * amount пожертвования должен быть конечным числом ≥ 0. Отсекает null/undefined/
- * пустую строку/boolean и NaN/Infinity ДО записи в NUMERIC(12,2) — возвращаем
- * 400, а не даём улететь в CHECK (amount >= 0) → 23514/22003.
+ * пустую строку/boolean/массив/объект и NaN/Infinity ДО записи в NUMERIC(12,2) —
+ * возвращаем 400, а не даём улететь в CHECK (amount >= 0) → 23514/22003.
+ *
+ * Принимаем ТОЛЬКО number и строку (форма шлёт строки): иначе Number([]) === 0
+ * и Number([7]) === 7 — пустой массив прошёл бы как сумма 0, а массив из одного
+ * числа как это число.
  */
 export function isValidAmount(v: unknown): boolean {
-  if (v === null || v === undefined || v === '' || typeof v === 'boolean') return false
+  if (typeof v !== 'number' && typeof v !== 'string') return false
+  if (typeof v === 'string' && v.trim() === '') return false
   const n = Number(v)
   return Number.isFinite(n) && n >= 0
 }

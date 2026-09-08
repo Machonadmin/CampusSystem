@@ -3,10 +3,14 @@
 
 const HE_LETTERS = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו']
 
-/** Короткая метка года: he → буква (א/ב/ג), прочие языки → число. */
+/**
+ * Короткая метка года: he → буква (א/ב/ג), прочие языки → число.
+ * `||`, а НЕ `??`: HE_LETTERS[0] — пустая строка (заполнитель, чтобы индекс
+ * совпадал с номером года), и с `??` год 0 отрисовался бы пустым местом.
+ */
 export function yearLevelLabel(level: number | null | undefined, lang: string): string {
   if (level == null) return '—'
-  if (lang === 'he') return HE_LETTERS[level] ?? String(level)
+  if (lang === 'he') return HE_LETTERS[level] || String(level)
   return String(level)
 }
 
