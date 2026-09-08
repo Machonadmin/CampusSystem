@@ -3,8 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
-import { canManageUnit } from '@/lib/education/unit-access'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { canManageKodesh } from '@/lib/education/kodesh-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { suggestKodeshPlacement, type SuggestMode } from '@/lib/education/assignment-suggestions'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
@@ -21,12 +20,6 @@ import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
  * Deploy-safe: нет колонок kodesh_level/kodesh_stream (42703) → предложений нет.
  */
 
-async function canManageKodesh(session: Parameters<typeof canManageUnit>[0]): Promise<boolean> {
-  if (await canManageUnit(session, KODESH_DEPT_ID)) return true
-  const target = { department_id: KODESH_DEPT_ID }
-  return (await hasEducationPrivilege(session, 'manage_enrollments', target))
-    || (await hasEducationPrivilege(session, 'manage_class_groups', target))
-}
 
 export async function GET(request: NextRequest) {
   try {

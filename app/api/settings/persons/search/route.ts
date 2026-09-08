@@ -7,7 +7,7 @@ import { sanitizeOrSearch } from '@/lib/search/sanitize'
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
 export async function GET(request: NextRequest) {

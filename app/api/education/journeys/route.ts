@@ -106,8 +106,9 @@ export async function GET(request: NextRequest) {
     const yearLevelRaw = params.get('year_level')
     const yearLevelFilter = yearLevelRaw && Number.isFinite(Number(yearLevelRaw)) ? Number(yearLevelRaw) : null
 
-    // Маршрут хранится в journey_study_tracks (1 строка на journey) — переводим
-    // фильтр по маршруту в набор journey_id. Пусто → сразу пустой список.
+    // Маршрут хранится в journey_study_tracks. С миграции 20260903100200 строк
+    // может быть НЕСКОЛЬКО на journey (primary + additional), поэтому фильтр по
+    // маршруту даёт набор journey_id с дедупликацией. Пусто → сразу пустой список.
     let trackJourneyIds: string[] | null = null
     if (trackFilter) {
       const { data: tjRows, error: tjErr } = await sb

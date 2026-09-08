@@ -7,7 +7,7 @@ import { hashPassword, generatePassword } from '@/lib/auth/password'
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
 async function handlePasswordReset(request: NextRequest, params: { id: string }) {

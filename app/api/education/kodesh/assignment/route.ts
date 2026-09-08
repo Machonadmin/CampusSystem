@@ -3,8 +3,8 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
-import { canManageUnit } from '@/lib/education/unit-access'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { canManageKodesh } from '@/lib/education/kodesh-access'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
@@ -14,12 +14,6 @@ import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
  * manage_class_groups scope='department' на кодеш) — ей is_head не проставляют,
  * но она отвечает за кодеш и должна видеть/распределять уровни.
  */
-async function canManageKodesh(session: Parameters<typeof canManageUnit>[0]): Promise<boolean> {
-  if (await canManageUnit(session, KODESH_DEPT_ID)) return true
-  const target = { department_id: KODESH_DEPT_ID }
-  return (await hasEducationPrivilege(session, 'manage_enrollments', target))
-    || (await hasEducationPrivilege(session, 'manage_class_groups', target))
-}
 
 /**
  * Кафедра иудаики (לימודי קודש). В кодеше КАЖДАЯ студентка должна быть
@@ -33,7 +27,6 @@ async function canManageKodesh(session: Parameters<typeof canManageUnit>[0]): Pr
  * или её делегат. Студентка/посторонний не проходит. Деплой-безопасно к
  * отсутствию таблиц (42P01 → пусто).
  */
-const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 
 export async function GET(_request: NextRequest) {
   try {
