@@ -1016,7 +1016,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 | `JWT_SECRET` | **בפרודקשן האפליקציה קורסת בכוונה** אם חסר או חלש (fail-closed, `lib/auth/config.ts`) |
 | הפרדת כניסות | תלמידה ב-`student_credentials` — טבלה נפרדת לגמרי מ-`person_accounts`. כניסת צוות **פיזית לא יכולה** לאמת תלמידה ולהפך |
 | `/api/dev-login` | חסום ב-403 כשלא `NODE_ENV=development` |
-| cron | מוגן ב-`CRON_SECRET` (אם לא מוגדר — ה-endpoint פתוח ⚠) |
+| cron | **fail-closed** (`lib/cron/auth.ts`): בלי `CRON_SECRET` מוגדר ה-endpoint מחזיר 503 ולא מריץ כלום; כשהוא מוגדר — נדרש `Authorization: Bearer <CRON_SECRET>` בהשוואה בזמן קבוע |
 | קודי תפקיד שמורים | קוד תפקיד הוא טקסט חופשי, אבל האפליקציה מקודדת קודים מסוימים בבדיקות הרשאה/התנהגות (`superadmin`, `admin`, `hr_director`…). `lib/auth/reserved-roles.ts` הוא מקור האמת היחיד; יצירה/שינוי-שם לקוד שמור (וגם שינוי הקוד של תפקיד שמור) נדחים ב-409. טסט סטטי סורק את הקוד ונכשל אם נוספה בדיקה מקודדת בלי לשריין את הקוד |
 | קבצים | בקט פרטי + signed URLs בלבד; נתיב חתימות מוגן מפני IDOR |
 | חיפוש | סניטציה של קלט (`lib/search/sanitize.ts`) |
@@ -1064,7 +1064,7 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 | **ניטור** | Sentry (קוד מוכן, DSN טרם הוגדר) |
 | **i18n** | מערכת עצמית: `messages/{he,en,ru}.json` — 4,649 מפתחות בכל שפה. שגיאות שרת מתורגמות דרך `serverT()` לפי cookie `campus_locale`. טסט זהות מפתחות אוטומטי |
 | **PWA** | `manifest.webmanifest` + `public/sw.js` + אייקונים 192/512 |
-| **משתני סביבה** | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET` (חובה); `CRON_SECRET` (מומלץ); Sentry (אופציונלי). בדיקה: `scripts/check-env.mjs` |
+| **משתני סביבה** | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET` (חובה); `CRON_SECRET` (**חובה לפרודקשן** — בלעדיו ה-cron לא רץ כלל); Sentry (אופציונלי). בדיקה: `scripts/check-env.mjs` |
 | **כלים תפעוליים** | `scripts/verify-migrations.mjs` (מוודא שכל המיגרציות הוחלו), `scripts/build-staging-bootstrap.sh`, `scripts/create-admin.ts` |
 
 ---
@@ -1390,8 +1390,12 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 3. **שני מנגנוני מסמכים במקביל** — `document_records` (המודול הרשמי) ו-`journey_documents`
    (בשימוש בכרטיס התלמידה). האם לאחד?
 
-4. **`campus_admin`** — התפקיד מוזכר ב-`lib/auth/landing.ts` כ"אדמין רחב", אבל מיגרציה `002`
-   מבצעת `TRUNCATE roles` ולא מזריעה אותו מחדש. האם הוא קיים בפועל?
+4. ✅ **`campus_admin`** — טופל: אף מיגרציה אינה מזריעה אותו אחרי ה-`TRUNCATE` שב-`002`,
+   הוא אינו קיים באיחוד `RoleCode`, ואף הרשאה אינה קשורה אליו. לכן הוסר מבדיקת
+   "אדמין רחב" (`lib/auth/landing.ts` — נשאר רק `superadmin`). **הערה:** קוד תפקיד הוא
+   טקסט חופשי, כך ש-superadmin יכול ליצור `campus_admin` ידנית; אחרי השינוי תפקיד כזה
+   כבר לא מקבל התנהגות מיוחדת. לאימות בפרודקשן (SQL Editor):
+   `SELECT r.code, count(pr.person_id) FROM roles r LEFT JOIN person_roles pr ON pr.role_id = r.id WHERE r.code IN ('campus_admin','campus_doctor','admin') GROUP BY r.code;`
 
 5. **RPCים ב-PL/pgSQL ללא כיסוי בדיקות** — `complete_stage` (~300 שורות), `start_process`,
    `merge_persons`, `advance_academic_year`, `create_staff_member`, `transition_education_status`.
@@ -1402,7 +1406,11 @@ module_privileges = הקטלוג של כל ההרשאות האפשריות (modu
 
 7. **Sentry** — הקוד מוכן ומחכה ל-DSN. 15 דקות עבודה. **מתי מפעילים?**
 
-8. **`CRON_SECRET`** — אם לא מוגדר, ה-endpoints של ה-cron **פתוחים לכל העולם**. האם הוגדר?
+8. ✅ **`CRON_SECRET`** — טופל: ה-endpoints של ה-cron הם עכשיו fail-closed (בלי סוד מוגדר
+   הם מחזירים 503 ולא מריצים כלום; עם סוד — נדרשת כותרת `Authorization: Bearer`).
+   **פעולה נדרשת לפני מיזוג: להגדיר `CRON_SECRET` ב-Vercel → Settings → Environment
+   Variables (Production), אחרת המשימות הלילתיות (יצירת שיעורים 03:00, תזכורות 06:00)
+   יפסיקו לרוץ.** בדיקה מקומית: `npm run check-env`.
 
 9. **מסך למסלול הביקורת** — הנתונים נאספים ב-8 טבלאות אבל אין ממשק. מה העלות של מסך בסיסי?
 
