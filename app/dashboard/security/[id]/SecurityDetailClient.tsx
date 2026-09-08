@@ -238,7 +238,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
               {/* Resolution editor */}
               <div>
                 <div style={fieldLabelStyle}>{t('detail.resolution')}</div>
-                <textarea
+                <textarea aria-label={t('detail.resolution_placeholder')}
                   value={resolutionDraft}
                   onChange={e => setResolutionDraft(e.target.value)}
                   rows={3}

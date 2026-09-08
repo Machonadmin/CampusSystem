@@ -251,7 +251,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
           <div style={{ marginTop: 10, padding: 10, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)' }}>
             <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 6 }}>{t('att_guest_hint')}</div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <input
+              <input aria-label={t('att_guest_search_ph')}
                 value={guestQuery}
                 onChange={e => setGuestQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchGuests() } }}

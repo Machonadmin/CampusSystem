@@ -96,7 +96,7 @@ export default function PersonRelationField({
       </div>
 
       <div style={{ width: '100%' }}>
-        <input
+        <input aria-label={t('notes_placeholder')}
           type="text"
           value={value.notes ?? ''}
           onChange={(e) => onChange({ ...value, notes: e.target.value || null })}

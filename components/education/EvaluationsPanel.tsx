@@ -56,7 +56,7 @@ export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
 
       {canWrite && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: items.length ? 12 : 0 }}>
-          <textarea value={body} onChange={e => setBody(e.target.value)} rows={2} placeholder={t('placeholder')}
+          <textarea aria-label={t('placeholder')} value={body} onChange={e => setBody(e.target.value)} rows={2} placeholder={t('placeholder')}
             style={{ flex: 1, padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', resize: 'vertical' }} />
           <button onClick={add} disabled={saving || !body.trim()}
             style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '9px 14px', cursor: body.trim() ? 'pointer' : 'default', opacity: body.trim() && !saving ? 1 : 0.6, whiteSpace: 'nowrap' }}>

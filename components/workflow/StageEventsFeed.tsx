@@ -157,7 +157,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
               ))}
             </select>
           </div>
-          <textarea
+          <textarea aria-label={t('content_placeholder')}
             value={newContent}
             onChange={e => setNewContent(e.target.value)}
             placeholder={t('content_placeholder')}

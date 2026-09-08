@@ -81,13 +81,13 @@ export default function MeetingsPanel({ journeyId, canEdit = true }: { journeyId
 
       {adding && (
         <div style={{ display: 'grid', gap: 8, marginBottom: 12, padding: 10, borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-          <input style={inp} placeholder={t('subject_ph')} value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
+          <input aria-label={t('subject_ph')} style={inp} placeholder={t('subject_ph')} value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <input style={{ ...inp, flex: 1 }} type="date" value={f.date} onChange={e => setF({ ...f, date: e.target.value })} />
             <input style={{ ...inp, width: 110 }} type="time" value={f.time} onChange={e => setF({ ...f, time: e.target.value })} />
             <input style={{ ...inp, width: 74 }} type="number" min={5} step={5} value={f.dur} onChange={e => setF({ ...f, dur: e.target.value })} title={t('duration')} />
           </div>
-          <input style={inp} placeholder={t('reason_ph')} value={f.reason} onChange={e => setF({ ...f, reason: e.target.value })} />
+          <input aria-label={t('reason_ph')} style={inp} placeholder={t('reason_ph')} value={f.reason} onChange={e => setF({ ...f, reason: e.target.value })} />
           {err && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{err}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={schedule} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }}>{t('save')}</button>

@@ -216,7 +216,7 @@ export function PersonSelect({
       )}
 
       <div style={{ position: 'relative' }}>
-        <input
+        <input aria-label={placeholder ?? t('select_or_add_placeholder')}
           value={displayValue}
           onChange={e => {
             const v = e.target.value
@@ -283,7 +283,7 @@ export function PersonSelect({
                   border: '1px solid var(--danger)', borderRadius: 5,
                 }}>{errMsg}</div>
               )}
-              <input
+              <input aria-label={t('last_name_placeholder')}
                 autoFocus
                 value={newLastName}
                 onChange={e => setNewLastName(e.target.value)}
@@ -291,26 +291,26 @@ export function PersonSelect({
                 onKeyDown={e => { if (e.key === 'Escape') setShowAdd(false) }}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('first_name_placeholder')}
                 value={newFirstName}
                 onChange={e => setNewFirstName(e.target.value)}
                 placeholder={t('first_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowAdd(false) }}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('middle_name_placeholder')}
                 value={newMiddleName}
                 onChange={e => setNewMiddleName(e.target.value)}
                 placeholder={t('middle_name_placeholder')}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('phone_placeholder')}
                 value={newPhone}
                 onChange={e => setNewPhone(e.target.value)}
                 placeholder={t('phone_placeholder')}
                 style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('email_placeholder')}
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder={t('email_placeholder')}

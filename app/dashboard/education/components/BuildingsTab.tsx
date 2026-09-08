@@ -70,8 +70,8 @@ export default function BuildingsTab() {
 
       {addingBuilding && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '10px 0 16px', flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
-          <input value={bName} onChange={e => setBName(e.target.value)} placeholder={t('buildings.building_name')} style={{ ...inp, flex: '1 1 200px' }} autoFocus />
-          <input value={bCode} onChange={e => setBCode(e.target.value)} placeholder={t('buildings.building_code')} style={{ ...inp, width: 120 }} />
+          <input aria-label={t('buildings.building_name')} value={bName} onChange={e => setBName(e.target.value)} placeholder={t('buildings.building_name')} style={{ ...inp, flex: '1 1 200px' }} autoFocus />
+          <input aria-label={t('buildings.building_code')} value={bCode} onChange={e => setBCode(e.target.value)} placeholder={t('buildings.building_code')} style={{ ...inp, width: 120 }} />
           <SubmitButton onClick={createBuilding} loading={busy} disabled={busy || !bName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !bName.trim() ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
         </div>
       )}
@@ -93,8 +93,8 @@ export default function BuildingsTab() {
 
               {roomFor === b.id && (
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
-                  <input value={rName} onChange={e => setRName(e.target.value)} placeholder={t('buildings.room_name')} style={{ ...inp, flex: '1 1 160px' }} autoFocus />
-                  <input value={rCap} onChange={e => setRCap(e.target.value)} type="number" min={0} placeholder={t('buildings.capacity')} style={{ ...inp, width: 110 }} />
+                  <input aria-label={t('buildings.room_name')} value={rName} onChange={e => setRName(e.target.value)} placeholder={t('buildings.room_name')} style={{ ...inp, flex: '1 1 160px' }} autoFocus />
+                  <input aria-label={t('buildings.capacity')} value={rCap} onChange={e => setRCap(e.target.value)} type="number" min={0} placeholder={t('buildings.capacity')} style={{ ...inp, width: 110 }} />
                   <SubmitButton onClick={() => createRoom(b.id)} loading={busy} disabled={busy || !rName.trim()} style={{ ...smallBtn, color: '#fff', background: accent, border: 'none', opacity: busy || !rName.trim() ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
                 </div>
               )}

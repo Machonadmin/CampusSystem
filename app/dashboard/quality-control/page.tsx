@@ -167,7 +167,7 @@ export default function QualityControlPage() {
               padding: '12px 16px', borderBottom: '1px solid var(--surface-2)', backgroundColor: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <input
+              <input aria-label={t('list.search_placeholder')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('list.search_placeholder')}

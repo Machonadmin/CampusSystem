@@ -401,7 +401,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
         )}
 
         <div style={{ marginTop: 12, padding: 10, background: 'var(--surface-2)', borderRadius: 8 }}>
-          <textarea
+          <textarea aria-label={t('card.write_comment')}
             value={d.newCommentText}
             onChange={e => d.setNewCommentText(e.target.value)}
             placeholder={t('card.write_comment')}

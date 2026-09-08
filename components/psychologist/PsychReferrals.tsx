@@ -315,7 +315,7 @@ function ReferralCard({
             {selectedFinal && (
               <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('referrals.sign_title')}</div>
-                <textarea
+                <textarea aria-label={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}

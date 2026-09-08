@@ -229,7 +229,7 @@ export default function FinancePage() {
 
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <input
+        <input aria-label={t('list.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}

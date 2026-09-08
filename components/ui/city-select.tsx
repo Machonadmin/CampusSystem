@@ -46,7 +46,7 @@ export function CitySelect({ country, value, onChange, className, style, disable
 
   if (!hasCities && !loading) {
     return (
-      <input
+      <input aria-label={t('city_input_placeholder')}
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -61,7 +61,7 @@ export function CitySelect({ country, value, onChange, className, style, disable
   if (showCustomInput) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <input
+        <input aria-label={t('city_input_placeholder')}
           type="text"
           value={value}
           onChange={e => onChange(e.target.value)}

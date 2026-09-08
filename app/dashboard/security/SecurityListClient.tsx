@@ -254,8 +254,8 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
       {/* Create form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
+          <input aria-label={`${t('form.title')} *`} value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
+          <textarea aria-label={t('form.description')} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
               {t('form.occurred_at')}
@@ -267,7 +267,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
               <option value="">{t('form.select_building')}</option>
               {buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
-            <input value={locationText} onChange={e => setLocationText(e.target.value)} placeholder={t('form.location_text')} style={inp(200)} />
+            <input aria-label={t('form.location_text')} value={locationText} onChange={e => setLocationText(e.target.value)} placeholder={t('form.location_text')} style={inp(200)} />
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <select value={category} onChange={e => setCategory(e.target.value)} style={sel(170)}>

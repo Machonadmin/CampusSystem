@@ -311,12 +311,12 @@ function DayTypesModal({ onClose, onChanged, t }: { onClose: () => void; onChang
       {/* Новый тип */}
       <div style={{ display: 'grid', gap: 6, padding: 12, borderRadius: 10, background: 'var(--surface-2)', marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('type_code_placeholder')} dir="ltr" style={{ ...inp, width: 130 }} />
-          <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('type_name_he')} dir="rtl" style={{ ...inp, flex: 1, minWidth: 110 }} />
+          <input aria-label={t('type_code_placeholder')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('type_code_placeholder')} dir="ltr" style={{ ...inp, width: 130 }} />
+          <input aria-label={t('type_name_he')} value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('type_name_he')} dir="rtl" style={{ ...inp, flex: 1, minWidth: 110 }} />
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <input value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder={t('type_name_ru')} style={{ ...inp, flex: 1, minWidth: 110 }} />
-          <input value={nameEn} onChange={e => setNameEn(e.target.value)} placeholder={t('type_name_en')} dir="ltr" style={{ ...inp, flex: 1, minWidth: 110 }} />
+          <input aria-label={t('type_name_ru')} value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder={t('type_name_ru')} style={{ ...inp, flex: 1, minWidth: 110 }} />
+          <input aria-label={t('type_name_en')} value={nameEn} onChange={e => setNameEn(e.target.value)} placeholder={t('type_name_en')} dir="ltr" style={{ ...inp, flex: 1, minWidth: 110 }} />
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           {chk(sec, () => setSec(v => !v), t('blocks_secular'))}

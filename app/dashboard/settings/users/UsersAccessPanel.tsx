@@ -282,7 +282,7 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
 
           {!personChosen && (
             <div style={{ position: 'relative' }}>
-              <input
+              <input aria-label={t('search_name_email_placeholder')}
                 value={query}
                 onChange={e => handleSearch(e.target.value)}
                 placeholder={t('search_name_email_placeholder')}

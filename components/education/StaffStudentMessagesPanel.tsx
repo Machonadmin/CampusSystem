@@ -77,14 +77,14 @@ export default function StaffStudentMessagesPanel({ journeyId, canManage }: { jo
 
       {canManage && (
         <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
-          <input
+          <input aria-label={t('subject_ph')}
             value={subject}
             onChange={e => setSubject(e.target.value)}
             placeholder={t('subject_ph')}
             maxLength={300}
             style={{ fontSize: 13, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)' }}
           />
-          <textarea
+          <textarea aria-label={t('body_ph')}
             value={body}
             onChange={e => setBody(e.target.value)}
             placeholder={t('body_ph')}

@@ -106,7 +106,7 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
               </button>
             ))}
           </div>
-          <textarea
+          <textarea aria-label={t('content_placeholder')}
             value={newContent}
             onChange={e => setNewContent(e.target.value)}
             placeholder={t('content_placeholder')}

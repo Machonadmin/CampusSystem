@@ -111,14 +111,14 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
         )
       case 'text_short':
         return (
-          <input type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
+          <input aria-label={t('fill.answer_placeholder_short')} type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
             placeholder={t('fill.answer_placeholder_short')}
             onChange={e => updateVal(e.target.value)}
             style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
         )
       case 'text_long':
         return (
-          <textarea value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
+          <textarea aria-label={t('fill.answer_placeholder_long')} value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
             placeholder={t('fill.answer_placeholder_long')}
             onChange={e => updateVal(e.target.value)}
             style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
@@ -146,7 +146,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
       {err && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{t('fill.required_field')}</p>}
 
       {(commentOpen || (disabled && entry.comment)) && (
-        <textarea value={comment} disabled={disabled} rows={2}
+        <textarea aria-label={t('fill.comment_placeholder')} value={comment} disabled={disabled} rows={2}
           placeholder={t('fill.comment_placeholder')}
           onChange={e => updateComment(e.target.value)}
           style={{ marginTop: 8, width: '100%', padding: '7px 10px', fontSize: 12, color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 6, outline: 'none', resize: 'vertical', backgroundColor: 'var(--surface-2)', boxSizing: 'border-box' }} />

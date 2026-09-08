@@ -140,6 +140,7 @@ function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): s
 
 export default function ProcessGraphModal({ processInstanceId, onClose, onStageClick }: Props) {
   const t = useTranslations('education')
+  const tCommon = useTranslations('common')
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -254,7 +255,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
               </span>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
+          <button type="button" aria-label={tCommon('close')} onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
             ×
           </button>
         </div>

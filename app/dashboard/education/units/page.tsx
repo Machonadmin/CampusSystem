@@ -278,9 +278,9 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
 
         {mode === 'create' ? (
           <>
-            <input style={inp} placeholder={t('units.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} />
-            <input style={inp} placeholder={t('units.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} />
-            <input style={inp} placeholder={t('units.email')} value={email} onChange={e => setEmail(e.target.value)} />
+            <input aria-label={t('units.first_name')} style={inp} placeholder={t('units.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} />
+            <input aria-label={t('units.last_name')} style={inp} placeholder={t('units.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} />
+            <input aria-label={t('units.email')} style={inp} placeholder={t('units.email')} value={email} onChange={e => setEmail(e.target.value)} />
           </>
         ) : (
           <PersonSelect

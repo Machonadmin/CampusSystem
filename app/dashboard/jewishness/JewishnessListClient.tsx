@@ -173,7 +173,7 @@ export default function JewishnessListClient() {
       </div>
 
       {/* Поиск */}
-      <input
+      <input aria-label={t('search_placeholder')}
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder={t('search_placeholder')}
@@ -488,7 +488,7 @@ function DocumentsSection({
 
       <div style={{ background: light, borderRadius: 8, padding: 12, display: 'grid', gap: 8 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--warn)' }}>{t('upload_title')}</div>
-        <input
+        <input aria-label={t('doc_name_placeholder')}
           value={docTitle}
           onChange={e => setDocTitle(e.target.value)}
           placeholder={t('doc_name_placeholder')}
@@ -613,7 +613,7 @@ function AcceptanceDecisionSection({
       {selectedFinal && (
         <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('sign_title')}</div>
-          <textarea
+          <textarea aria-label={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
             value={note}
             onChange={e => setNote(e.target.value)}
             placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
@@ -679,7 +679,7 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
   return (
     <div style={{ marginTop: 12, display: 'grid', gap: 8, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
       <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('two_step_help')}</div>
-      <input value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
+      <input aria-label={t('note_optional')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
         style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {showInitial && <button onClick={() => setStatus('initial_checked')} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}

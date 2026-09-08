@@ -253,7 +253,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
           <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
-        <input
+        <input aria-label={t('class_groups.search_by_name_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('class_groups.search_by_name_placeholder')}

@@ -116,14 +116,14 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
       {/* Add form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(120)} />
+          <input aria-label={`${t('form.name')} *`} value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
+          <input aria-label={t('form.code')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(120)} />
           <select value={gender} onChange={e => setGender(e.target.value as 'male' | 'female' | 'mixed')} style={inp(140)}>
             <option value="mixed">{t('gender.mixed')}</option>
             <option value="male">{t('gender.male')}</option>
             <option value="female">{t('gender.female')}</option>
           </select>
-          <input value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
+          <input aria-label={t('form.address')} value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
           <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
           {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>

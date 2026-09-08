@@ -157,7 +157,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
 
       {/* Search */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        <input aria-label={t('list.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}

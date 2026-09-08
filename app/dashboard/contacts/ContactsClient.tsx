@@ -252,7 +252,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
 
       {/* Search + category filter */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input
+        <input aria-label={t('list.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('list.search_placeholder')}

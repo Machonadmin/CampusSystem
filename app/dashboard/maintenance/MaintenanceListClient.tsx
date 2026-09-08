@@ -230,8 +230,8 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       {/* Create form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
+          <input aria-label={`${t('form.title')} *`} value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
+          <textarea aria-label={t('form.description')} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <select value={buildingId} onChange={e => { setBuildingId(e.target.value); setRoomId('') }} style={sel(190)}>
               <option value="">{t('form.select_building')}</option>
@@ -241,7 +241,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
               <option value="">{t('form.select_room')}</option>
               {(selectedBuilding?.rooms ?? []).map(r => <option key={r.id} value={r.id}>{r.room_number}</option>)}
             </select>
-            <input value={locationText} onChange={e => setLocationText(e.target.value)} placeholder={t('form.location_text')} style={inp(200)} />
+            <input aria-label={t('form.location_text')} value={locationText} onChange={e => setLocationText(e.target.value)} placeholder={t('form.location_text')} style={inp(200)} />
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <select value={category} onChange={e => setCategory(e.target.value)} style={sel(160)}>

@@ -208,7 +208,7 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
                     />
                     <span style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>/ {formatScore(maxScore)}</span>
                   </div>
-                  <input
+                  <input aria-label={t('comment_placeholder')}
                     value={comments.get(s.journey_id) ?? ''}
                     onChange={e => setComment(s.journey_id, e.target.value)}
                     disabled={!canSetGrades}

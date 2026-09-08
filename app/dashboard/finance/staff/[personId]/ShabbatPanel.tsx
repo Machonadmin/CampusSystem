@@ -271,7 +271,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
             ))}
           </div>
         )}
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('sh_search_student')} style={inp} />
+        <input aria-label={t('sh_search_student')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('sh_search_student')} style={inp} />
         {search.trim() !== '' && (
           <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', display: 'grid', gap: 4 }}>
             {filtered.length === 0 ? (

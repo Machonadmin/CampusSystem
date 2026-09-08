@@ -129,10 +129,10 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
       {/* Add form */}
       {showForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(110)} />
-          <input value={price} onChange={e => setPrice(e.target.value)} placeholder={t('form.price')} type="number" min="0" step="0.01" style={inp(110)} />
-          <input value={period} onChange={e => setPeriod(e.target.value)} placeholder={t('form.period')} style={inp(160)} />
+          <input aria-label={`${t('form.name')} *`} value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
+          <input aria-label={t('form.code')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(110)} />
+          <input aria-label={t('form.price')} value={price} onChange={e => setPrice(e.target.value)} placeholder={t('form.price')} type="number" min="0" step="0.01" style={inp(110)} />
+          <input aria-label={t('form.period')} value={period} onChange={e => setPeriod(e.target.value)} placeholder={t('form.period')} style={inp(160)} />
           <label style={chk}><input type="checkbox" checked={breakfast} onChange={e => setBreakfast(e.target.checked)} /> {t('meal.breakfast')}</label>
           <label style={chk}><input type="checkbox" checked={lunch} onChange={e => setLunch(e.target.checked)} /> {t('meal.lunch')}</label>
           <label style={chk}><input type="checkbox" checked={dinner} onChange={e => setDinner(e.target.checked)} /> {t('meal.dinner')}</label>

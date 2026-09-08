@@ -6,6 +6,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { Modal } from '@/components/ui/Modal'
 
 interface Assessment { id: string; title: string; max_score: number; assessment_date: string | null; graded_count: number; average: number | null }
 interface Student { journey_id: string; name: string; scores: Record<string, number | null>; average: number | null }
@@ -57,11 +58,16 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
     downloadCsv(`${group.name}-${t('gb_title')}.csv`, rows)
   }
 
+  // Общий Modal: Escape, ловушка фокуса, aria-modal, блокировка прокрутки фона и
+  // возврат фокуса на триггер. Панель сохраняет прежний вид (фон/рамка/ширина).
   return (
-    <div onClick={onClose} className="anim-fade"
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '5vh 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} className="anim-pop"
-        style={{ background: 'var(--bg)', border: '1px solid var(--border-strong)', borderRadius: 14, width: 'min(1000px, 100%)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }}>
+    <Modal
+      onClose={onClose}
+      closeOnBackdrop
+      maxWidth="min(1000px, 100%)"
+      ariaLabel={`${t('gb_title')} · ${group.name}`}
+      panelStyle={{ background: 'var(--bg)', border: '1px solid var(--border-strong)', maxHeight: 'none', overflow: 'hidden' }}
+    >
         {/* Заголовок */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ flex: 1 }}>
@@ -127,7 +133,6 @@ export default function GradebookModal({ group, from, to, onClose }: { group: { 
             </table>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -269,9 +269,9 @@ export default function RecruitmentFormSettingsPage() {
                   <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{def}</span>
                     {long ? (
-                      <textarea value={val} placeholder={def} onChange={e => setText(key, e.target.value)} rows={2} style={textInput} />
+                      <textarea aria-label={def} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} rows={2} style={textInput} />
                     ) : (
-                      <input value={val} placeholder={def} onChange={e => setText(key, e.target.value)} style={textInput} />
+                      <input aria-label={def} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} style={textInput} />
                     )}
                   </div>
                 )
@@ -295,7 +295,7 @@ export default function RecruitmentFormSettingsPage() {
                 {cfg.customFields.map(f => (
                   <div key={f.key} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <input value={(f.label as Record<string, string>)[lang] ?? ''} placeholder={t('custom_label')}
+                      <input aria-label={t('custom_label')} value={(f.label as Record<string, string>)[lang] ?? ''} placeholder={t('custom_label')}
                         onChange={e => setCustomLabel(f.key, e.target.value)} style={{ ...textInput, flex: '1 1 220px' }} />
                       <select value={f.type} onChange={e => updateCustom(f.key, { type: e.target.value as CustomFieldType })} style={{ ...textInput, width: 'auto' }}>
                         <option value="text">{t('type_text')}</option>
@@ -311,7 +311,7 @@ export default function RecruitmentFormSettingsPage() {
                       </button>
                     </div>
                     {f.type === 'select' && (
-                      <input value={f.options.join(', ')} placeholder={t('custom_options')}
+                      <input aria-label={t('custom_options')} value={f.options.join(', ')} placeholder={t('custom_options')}
                         onChange={e => updateCustom(f.key, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                         style={textInput} />
                     )}

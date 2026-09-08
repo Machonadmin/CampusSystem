@@ -112,6 +112,10 @@ html{overflow-x:hidden;max-width:100%;}
 @media (prefers-reduced-motion:reduce){.ap-root *{transition:none!important;}}
 `
 
+// Полные названия языков для доступного имени кнопок-переключателей (в самой
+// кнопке — одна буква: «ע» / «EN» / «RU», её скринридер прочитать не может).
+const LANG_NAMES: Record<Lang, string> = { he: 'עברית', ru: 'Русский', en: 'English' }
+
 export default function ApplyPage() {
   const router = useRouter()
   const { lang, setLang, isRTL, t: g } = useLang()
@@ -220,6 +224,7 @@ export default function ApplyPage() {
           <nav className="ap-lang" aria-label="language">
             {(['he', 'en', 'ru'] as Lang[]).map(l => (
               <button key={l} type="button" className={lang === l ? 'on' : ''}
+                aria-label={LANG_NAMES[l]} aria-current={lang === l ? 'true' : undefined}
                 onClick={() => { setLang(l); router.refresh() }}>
                 {l === 'he' ? 'ע' : l.toUpperCase()}
               </button>

@@ -121,7 +121,7 @@ export default function AssignmentBoardClient() {
                 </button>
               ))}
             </div>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search')}
+            <input aria-label={t('search')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search')}
               style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, marginBottom: 10 }} />
             <div style={{ fontSize: 11, color: selected ? 'var(--accent-strong)' : 'var(--text-faint)', fontWeight: selected ? 600 : 400, marginBottom: 8 }}>
               {selected ? t('click_target_hint').replace('{name}', selected.name) : t('drag_hint')}

@@ -124,7 +124,7 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
       )}
 
       {mode === 'typed' ? (
-        <input
+        <input aria-label={t('process.signature.typed_placeholder')}
           value={typedName}
           onChange={e => setTypedName(e.target.value)}
           placeholder={t('process.signature.typed_placeholder')}

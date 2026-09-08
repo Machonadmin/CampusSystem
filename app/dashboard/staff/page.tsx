@@ -650,7 +650,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} />
       )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
+        <input aria-label={t('search_by')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
           style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
         <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
           style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>

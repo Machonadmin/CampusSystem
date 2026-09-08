@@ -50,7 +50,7 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+      <input aria-label={placeholder ?? '+7...'} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
         placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
@@ -497,7 +497,7 @@ export default function AddEmployeeModal({
                 ) : (
                   <div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                      <input aria-label={t('add_modal.search_placeholder')} autoFocus value={query} onChange={e => setQuery(e.target.value)}
                         placeholder={t('add_modal.search_placeholder')} style={{ ...inp, width: 220 }} />
                       <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
                         aria-label={tCommon('close')}
@@ -646,7 +646,7 @@ export default function AddEmployeeModal({
                     disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
                     {CONTACT_TYPES.map(ct => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
                   </select>
-                  <input value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
+                  <input aria-label={t('add_modal.contact_value_placeholder')} value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
                     placeholder={t('add_modal.contact_value_placeholder')} disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
                   {!ro && <button onClick={() => setExtraContacts(prev => prev.filter((_, xi) => xi !== i))}
                     aria-label={tCommon('delete')}

@@ -171,7 +171,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
             <input value={editName} autoFocus onChange={e => setEditName(e.target.value)}
               onKeyDown={async e => { if (e.key === 'Enter' && editName.trim()) { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) } if (e.key === 'Escape') setEditing(false) }}
               style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
-            <input value={editTier} onChange={e => setEditTier(e.target.value)} placeholder={t('tier_ph')}
+            <input aria-label={t('tier_ph')} value={editTier} onChange={e => setEditTier(e.target.value)} placeholder={t('tier_ph')}
               style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
             <SubmitButton loading={busy} disabled={busy || !editName.trim()} onClick={async () => { if (await onRename(node.id, editName.trim(), editTier.trim())) setEditing(false) }} style={miniBtn('accent')}>{t('save')}</SubmitButton>
             <button onClick={() => { setEditing(false); setEditName(node.name); setEditTier(node.tier ?? '') }} style={miniBtn()}>{t('cancel')}</button>
@@ -237,10 +237,10 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
 
       {adding && (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>
-          <input value={addName} autoFocus onChange={e => setAddName(e.target.value)} placeholder={t('new_child_ph')}
+          <input aria-label={t('new_child_ph')} value={addName} autoFocus onChange={e => setAddName(e.target.value)} placeholder={t('new_child_ph')}
             onKeyDown={async e => { if (e.key === 'Enter' && addName.trim()) { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } } if (e.key === 'Escape') setAdding(false) }}
             style={{ padding: '5px 9px', fontSize: 13, border: '1px solid var(--accent)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)', minWidth: 180 }} />
-          <input value={addTier} onChange={e => setAddTier(e.target.value)} placeholder={t('tier_ph')}
+          <input aria-label={t('tier_ph')} value={addTier} onChange={e => setAddTier(e.target.value)} placeholder={t('tier_ph')}
             style={{ padding: '5px 9px', fontSize: 12.5, width: 96, border: '1px solid var(--border-strong)', borderRadius: 7, background: 'var(--surface)', color: 'var(--text)' }} />
           <SubmitButton loading={busy} disabled={busy || !addName.trim()} onClick={async () => { if (await onAdd(node.id, addName.trim(), addTier.trim())) { setAddName(''); setAddTier(''); setAdding(false) } }} style={miniBtn('accent')}>{t('add')}</SubmitButton>
           <button onClick={() => setAdding(false)} style={miniBtn()}>{t('cancel')}</button>

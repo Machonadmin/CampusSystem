@@ -457,7 +457,7 @@ function TemplateBuilder({
 
                           <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0, width: 14, marginTop: 6 }}>{qi + 1}.</span>
 
-                          <input value={q.text} onChange={e => updateQuestion(block._key, q._key, { text: e.target.value })}
+                          <input aria-label={t('templates.question_placeholder')} value={q.text} onChange={e => updateQuestion(block._key, q._key, { text: e.target.value })}
                             placeholder={t('templates.question_placeholder')} style={{ flex: 1, padding: '5px 8px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none' }} />
 
                           <select value={q.type} onChange={e => updateQuestion(block._key, q._key, { type: e.target.value as QuestionType })}

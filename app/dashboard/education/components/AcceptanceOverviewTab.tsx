@@ -350,7 +350,7 @@ export default function AcceptanceOverviewTab() {
 
             {selectedFinal && (
               <>
-                <textarea
+                <textarea aria-label={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}

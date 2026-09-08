@@ -136,7 +136,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
             <div style={{ display: 'grid', gap: 8 }}>
               {drafts.map((d, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input value={d.text} disabled={hasResponses} placeholder={t('question_placeholder')}
+                  <input aria-label={t('question_placeholder')} value={d.text} disabled={hasResponses} placeholder={t('question_placeholder')}
                     onChange={e => setDrafts(ds => ds.map((x, j) => j === i ? { ...x, text: e.target.value } : x))}
                     style={{ ...inp, flex: 1, minWidth: 200 }} />
                   <select value={d.kind} disabled={hasResponses}

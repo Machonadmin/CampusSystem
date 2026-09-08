@@ -98,7 +98,7 @@ export default function StaffCompIndexClient() {
 
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <input
+        <input aria-label={t('search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('search_placeholder')}

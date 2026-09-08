@@ -242,9 +242,9 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
 
       {showRoomForm && canManage && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-          <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={t('form.room_number')} style={inp(120)} />
-          <input value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
-          <input value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
+          <input aria-label={t('form.room_number')} value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={t('form.room_number')} style={inp(120)} />
+          <input aria-label={t('form.floor')} value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
+          <input aria-label={t('form.capacity')} value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
           <SubmitButton onClick={addRoom} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
           {roomError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{roomError}</span>}
         </div>
@@ -304,12 +304,12 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                     <button type="button" onClick={() => setPicked(null)} aria-label={tCommon('clear_selection')} style={{ background: 'none', border: 'none', color: primary, cursor: 'pointer', marginInlineStart: 6 }}>✕</button>
                   </span>
                   <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
-                  <input type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
+                  <input aria-label={t('form.to')} type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
                   <SubmitButton onClick={assign} loading={busy} style={btn(primary)}>{t('room.assign')}</SubmitButton>
                 </div>
               ) : (
                 <div style={{ position: 'relative' }}>
-                  <input
+                  <input aria-label={t('room.search_student')}
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder={t('room.search_student')}

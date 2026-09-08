@@ -94,7 +94,7 @@ export default function TeachingSurveysClient() {
       <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
       <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('survey_title_placeholder')}
+        <input aria-label={t('survey_title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('survey_title_placeholder')}
           onKeyDown={e => { if (e.key === 'Enter') create() }}
           style={{ flex: 1, minWidth: 220, padding: '9px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }} />
         {needsDeptChoice && (

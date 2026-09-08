@@ -112,7 +112,7 @@ export default function KodeshExceptionsPanel({ journeyId }: { journeyId: string
 
       {canManage && (
         <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
-          <input
+          <input aria-label={t('reason_ph')}
             value={reason}
             onChange={e => setReason(e.target.value)}
             placeholder={t('reason_ph')}

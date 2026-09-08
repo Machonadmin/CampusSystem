@@ -150,7 +150,7 @@ export default function ChavrutaPlusPanel({ personId, canManage, year, month, on
 
       {adding && (
         <div style={{ marginBottom: 14, padding: 12, background: 'var(--surface-2)', borderRadius: 10 }}>
-          <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder={t('cp_search_placeholder')}
+          <input aria-label={t('cp_search_placeholder')} autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder={t('cp_search_placeholder')}
             style={{ width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)', boxSizing: 'border-box', outline: 'none' }} />
           <div style={{ marginTop: 8, maxHeight: 220, overflowY: 'auto', display: 'grid', gap: 4 }}>
             {filtered.length === 0 ? (

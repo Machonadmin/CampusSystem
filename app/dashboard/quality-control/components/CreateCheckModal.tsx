@@ -293,7 +293,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               </div>
 
               {freeInput ? (
-                <input
+                <input aria-label={t('create_modal.group_name_placeholder')}
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
                   placeholder={t('create_modal.group_name_placeholder')}

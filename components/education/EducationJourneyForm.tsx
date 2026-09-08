@@ -77,7 +77,7 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+      <input aria-label={placeholder ?? '+7...'} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
         placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
@@ -660,7 +660,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                   ) : (
                     <div>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                        <input aria-label={t('form.ph.search')} autoFocus value={query} onChange={e => setQuery(e.target.value)}
                           placeholder={t('form.ph.search')} style={{ ...inp, width: 220 }} />
                         <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
                           aria-label={tCommon('close')}
@@ -936,7 +936,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                           style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
                           {communityContactTypes}
                         </select>
-                        <input value={cc.value}
+                        <input aria-label={t('form.ph.contact_value')} value={cc.value}
                           onChange={e => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : c))}
                           placeholder={t('form.ph.contact_value')} style={{ ...inp, flex: 1 }} />
                         <button

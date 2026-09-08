@@ -183,7 +183,7 @@ export default function RecruitmentTab() {
 
       {/* Toolbar — только поиск, «Фильтры», создать, экспорт всегда видимы */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        <input aria-label={t('leads.search_placeholder')}
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder={t('leads.search_placeholder')}
           style={{ flex: '1 1 220px', padding: '10px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}

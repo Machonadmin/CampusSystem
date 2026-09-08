@@ -140,7 +140,7 @@ export default function AbsencesClient() {
       {showForm && canManage && (
         <div style={{ ...card, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10 }}>
           <div style={{ position: 'relative', minWidth: 0 }}>
-            <input value={stu ? stu.full_name : stuSearch} onChange={e => { setStu(null); setStuSearch(e.target.value) }} placeholder={t('pick_student')} style={{ ...inp, width: '100%' }} />
+            <input aria-label={t('pick_student')} value={stu ? stu.full_name : stuSearch} onChange={e => { setStu(null); setStuSearch(e.target.value) }} placeholder={t('pick_student')} style={{ ...inp, width: '100%' }} />
             {!stu && stuSearch && stuOpts.length > 0 && (
               <div style={{ position: 'absolute', zIndex: 10, top: '100%', insetInlineStart: 0, insetInlineEnd: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                 {stuOpts.map(o => (
@@ -154,7 +154,7 @@ export default function AbsencesClient() {
             <option value="">{t('no_transfer')}</option>
             {departments.map(d => <option key={d.id} value={d.id}>{t('transfer_to')}: {localizedDeptName(d, lang)}</option>)}
           </select>
-          <textarea value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, width: '100%', resize: 'vertical' }} />
+          <textarea aria-label={t('note_ph')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_ph')} rows={2} style={{ ...inp, width: '100%', resize: 'vertical' }} />
           <SubmitButton onClick={create} loading={busy === 'create'} disabled={!stu || busy === 'create'} style={{ ...smallBtn(true), justifySelf: 'start', padding: '8px 18px' }}>{t('open_case')}</SubmitButton>
         </div>
       )}
@@ -205,7 +205,7 @@ export default function AbsencesClient() {
               )}
               {resolveFor === c.id && (
                 <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-                  <textarea value={resolution} onChange={e => setResolution(e.target.value)} placeholder={t('resolution_ph')} rows={2} style={{ ...inp, resize: 'vertical' }} />
+                  <textarea aria-label={t('resolution_ph')} value={resolution} onChange={e => setResolution(e.target.value)} placeholder={t('resolution_ph')} rows={2} style={{ ...inp, resize: 'vertical' }} />
                   <button onClick={() => patch(c.id, { status: 'resolved', resolution })} style={{ ...smallBtn(true), justifySelf: 'start' }}>{t('do_resolve')}</button>
                 </div>
               )}

@@ -326,7 +326,7 @@ export default function StudentsTab() {
     <div>
       {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + экспорт. */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: filtersOpen ? 10 : 16, flexWrap: 'wrap' }}>
-        <input
+        <input aria-label={t('students.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('students.search_placeholder')}

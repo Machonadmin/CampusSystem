@@ -240,7 +240,7 @@ export default function ChavrutaTeacherClient() {
 
             <div>
               <span style={label}>{t('what_we_learned')}</span>
-              <textarea
+              <textarea aria-label={t('what_we_learned_placeholder')}
                 value={formSummary}
                 onChange={e => setFormSummary(e.target.value)}
                 placeholder={t('what_we_learned_placeholder')}
@@ -252,7 +252,7 @@ export default function ChavrutaTeacherClient() {
             <div>
               <span style={label}>{t('private_notes')}</span>
               <div style={{ fontSize: 11, color: 'var(--danger, #B91C1C)', marginBottom: 4 }}>{t('private_notes_hint')}</div>
-              <textarea
+              <textarea aria-label={t('private_notes_placeholder')}
                 value={formPrivate}
                 onChange={e => setFormPrivate(e.target.value)}
                 placeholder={t('private_notes_placeholder')}

@@ -217,12 +217,12 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
                 <button type="button" onClick={() => setPicked(null)} aria-label={tCommon('clear_selection')} style={{ background: 'none', border: 'none', color: primary, cursor: 'pointer', marginInlineStart: 6 }}>✕</button>
               </span>
               <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
-              <input type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
+              <input aria-label={t('form.to')} type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
               <SubmitButton onClick={enroll} loading={busy} style={btn(primary)}>{t('plan.enroll')}</SubmitButton>
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('plan.search_student')} style={inp(320)} />
+              <input aria-label={t('plan.search_student')} value={query} onChange={e => setQuery(e.target.value)} placeholder={t('plan.search_student')} style={inp(320)} />
               {hits.length > 0 && (
                 <div style={{ position: 'absolute', zIndex: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, insetInlineStart: 0, insetInlineEnd: 0, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                   {hits.map(h => (

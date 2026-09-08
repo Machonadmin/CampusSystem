@@ -593,7 +593,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   </span>
                 )}
               </div>
-              <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
+              <button type="button" aria-label={tCommon('close')} onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
                 ×
               </button>
             </div>
@@ -781,7 +781,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 14 }}
         >
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{t('process.signature.title')}</div>
-            <textarea
+            <textarea aria-label={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
               value={sigNote}
               onChange={e => setSigNote(e.target.value)}
               placeholder={`${tCommon('optional_note')} — ${tCommon('note_placeholder')}`}
@@ -823,7 +823,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                 {t('process.modals.close_early_title')}
               </span>
-              <button onClick={closeCloseEarly} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
+              <button type="button" aria-label={tCommon('close')} onClick={closeCloseEarly} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
                 ×
               </button>
             </div>

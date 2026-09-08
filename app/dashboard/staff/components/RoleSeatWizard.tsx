@@ -342,7 +342,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               </div>
               {personMode === 'existing' ? (
                 <div style={{ position: 'relative' }}>
-                  <input value={person ? person.full_name : personQ} onChange={e => { setPerson(null); setPersonQ(e.target.value) }} placeholder={t('person_ph')} style={inp} />
+                  <input aria-label={t('person_ph')} value={person ? person.full_name : personQ} onChange={e => { setPerson(null); setPersonQ(e.target.value) }} placeholder={t('person_ph')} style={inp} />
                   {!person && personQ.trim().length >= 2 && personHits.length > 0 && (
                     <div style={{ position: 'absolute', zIndex: 20, insetInlineStart: 0, insetInlineEnd: 0, top: '100%', marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 200, overflowY: 'auto', boxShadow: 'var(--shadow)' }}>
                       {personHits.map(h => (
