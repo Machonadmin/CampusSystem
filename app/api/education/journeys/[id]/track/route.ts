@@ -4,8 +4,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
-import { isMissingRelation, isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
+import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
 /**
  * Учебные маршруты студентки (spec §3.2): один ГЛАВНЫЙ (primary) + опциональные
  * дополнительные (additional, напр. Туро). Первая половина дня — иудаизм для всех
@@ -111,6 +112,22 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ ok: true })
     }
 
+    // Главный маршрут — через общий помощник (тот же код, что и завершение этапа
+    // приёма): снять ДРУГИЕ primary-строки → upsert по (journey_id, track_id) →
+    // legacy-откат до миграции → no-op без таблицы. См. lib/education/journey-primary-track.
+    if (role === 'primary') {
+      const r = await setPrimaryStudyTrack(sb, {
+        journeyId: params.id, trackId, updatedBy: session.person_id, notes,
+        yearLevel: body.year_level, reactivate: body.reactivate,
+      })
+      if (!r.ok) {
+        if (r.error.code === '23503') return apiError('invalid_reference', 400)
+        throw r.error
+      }
+      return NextResponse.json({ ok: true })
+    }
+
+    // Дополнительный маршрут (additional).
     const payload: Record<string, unknown> = {
       journey_id: params.id,
       track_id: trackId,
@@ -123,15 +140,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       payload.year_level = body.year_level
     }
     if (body.reactivate) payload.completed_at = null
-
-    // Ставим primary → сперва снимаем ДРУГИЕ primary-строки этой journey (не более
-    // одного главного маршрута; partial-unique в БД это тоже гарантирует).
-    if (role === 'primary') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: delErr } = await (sb.from('journey_study_tracks').delete()
-        .eq('journey_id', params.id).eq('role', 'primary').neq('track_id', trackId) as any)
-      if (delErr && !isMissingRelation(delErr)) throw delErr
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let { error } = await (sb.from('journey_study_tracks').upsert(payload as any, { onConflict: 'journey_id,track_id' }) as any)

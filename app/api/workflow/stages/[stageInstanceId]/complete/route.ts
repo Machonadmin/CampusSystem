@@ -12,8 +12,8 @@ import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
 import { signatureImageExists } from '@/lib/workflow/signature-storage'
-import { isMissingTable } from '@/lib/supabase/errors'
 
+import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
 interface CompleteStageResult {
   stage_instance_id: string
   activated_stage_ids: string[]
@@ -171,22 +171,23 @@ export async function POST(
       }
     }
 
-    // Маршрут חול: сохраняем journey_study_tracks, если track_id передан на ЛЮБОМ
-    // этапе. Так «אחראי לימודים» выбирает маршрут уже на учебном этапе (academic),
-    // а директор при финале может подтвердить/сменить. Best-effort и деплой-
-    // безопасно (нет таблицы → пропускаем), никогда не роняет завершение этапа.
+    // Маршрут חול: сохраняем ГЛАВНЫЙ маршрут (journey_study_tracks, role='primary'),
+    // если track_id передан на ЛЮБОМ этапе. Так «אחראי לימודים» выбирает маршрут уже
+    // на учебном этапе (academic), а директор при финале может подтвердить/сменить
+    // (= заменить главный маршрут — та же семантика, что у панели маршрута).
+    // Пишем тем же помощником, что и PUT /journeys/[id]/track: прежний upsert
+    // по onConflict:'journey_id' после миграции 20260903100200 (PK стал
+    // (journey_id, track_id) + partial-unique на primary) падал, и выбранный
+    // маршрут молча терялся. Best-effort и деплой-безопасно (нет таблицы →
+    // пропускаем), никогда не роняет завершение этапа.
     {
       const trackId = (body.result_data?.track_id ?? null) as string | null
       if (ctx.journeyId && trackId) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error: trErr } = await (sb as any)
-            .from('journey_study_tracks')
-            .upsert({ journey_id: ctx.journeyId, track_id: trackId, updated_by: session.person_id, updated_at: new Date().toISOString() },
-              { onConflict: 'journey_id' })
-          if (trErr && !isMissingTable(trErr)) console.error('[complete] track upsert:', trErr)
+          const r = await setPrimaryStudyTrack(sb, { journeyId: ctx.journeyId, trackId, updatedBy: session.person_id })
+          if (!r.ok) console.error('[complete] primary track:', r.error)
         } catch (trCatch) {
-          console.error('[complete] track upsert:', trCatch)
+          console.error('[complete] primary track:', trCatch)
         }
       }
     }
