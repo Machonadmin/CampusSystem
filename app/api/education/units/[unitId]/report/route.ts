@@ -6,7 +6,7 @@ import { canManageUnit } from '@/lib/education/unit-access'
 import { round1, attendancePercent } from '@/lib/education/metrics'
 import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isMissingTable } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/units/[unitId]/report
@@ -244,24 +244,42 @@ export async function GET(
     for (const [, jids] of journeysByGroup) for (const jid of jids)
       groupsPerJourney.set(jid, (groupsPerJourney.get(jid) ?? 0) + 1)
 
-    // Маршрут חол по студенту (journey_study_tracks → study_tracks.name_he).
-    // Деплой-безопасно: таблиц может ещё не быть (42P01) → без маршрутов.
+    // ГЛАВНЫЙ маршрут חול по студенту (journey_study_tracks → study_tracks.name_he).
+    // С миграции 20260903100200 у студентки может быть несколько строк
+    // (role='primary' + 'additional', напр. Туро), поэтому берём именно primary —
+    // раньше в отчёт попадала «последняя пришедшая» строка, т.е. иногда
+    // дополнительный маршрут вместо главного.
+    // Деплой-safe: нет таблицы → без маршрутов; нет колонки role (до миграции) →
+    // прежняя модель 1:1, где единственная строка и есть главный маршрут.
     const trackByJourney = new Map<string, string>()
     try {
       const jids = [...journeyIdSet]
+      type JT = { journey_id: string; track_id: string | null; role?: string | null }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: jt } = await (sb as any)
-        .from('journey_study_tracks').select('journey_id, track_id').in('journey_id', jids)
-      const trackIds = [...new Set(((jt ?? []) as Array<{ track_id: string | null }>).map(r => r.track_id).filter(Boolean))] as string[]
+      let { data: jt, error: jtErr } = await (sb as any)
+        .from('journey_study_tracks').select('journey_id, track_id, role').in('journey_id', jids)
+      if (jtErr && isMissingColumn(jtErr)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const base = await (sb as any)
+          .from('journey_study_tracks').select('journey_id, track_id').in('journey_id', jids)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        jt = ((base.data ?? []) as any[]).map(r => ({ ...r, role: 'primary' }))
+        jtErr = base.error
+      }
+      if (jtErr) throw jtErr
+      const primaries = ((jt ?? []) as JT[]).filter(r => r.track_id && (r.role ?? 'primary') === 'primary')
+      const trackIds = [...new Set(primaries.map(r => r.track_id))] as string[]
       if (trackIds.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: tr } = await (sb as any).from('study_tracks').select('id, name_he').in('id', trackIds)
         const nameById = new Map<string, string>(((tr ?? []) as Array<{ id: string; name_he: string }>).map(t => [t.id, t.name_he]))
-        for (const r of (jt ?? []) as Array<{ journey_id: string; track_id: string | null }>) {
+        for (const r of primaries) {
           if (r.track_id && nameById.has(r.track_id)) trackByJourney.set(r.journey_id, nameById.get(r.track_id)!)
         }
       }
-    } catch { /* нет таблиц — без маршрутов */ }
+    } catch (e) {
+      if (!isMissingTable(e)) throw e   // нет таблиц — без маршрутов
+    }
 
     const studentsOut = [...journeyIdSet].map(jid => {
       const a = attByJourney.get(jid) ?? emptyAtt()
