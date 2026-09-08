@@ -1,5 +1,6 @@
 import type { createServerClient } from '@/lib/supabase/server'
 import { toCents } from '@/lib/finance/money'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Суммирует finance_discounts.amount (в копейках) по journey, для НАБОРА счетов,
@@ -50,7 +51,7 @@ export async function sumDiscountCentsForCharges(
     }
   } catch (e) {
     // Таблицы скидок ещё нет (до миграции) → считаем, что скидок нет.
-    if ((e as { code?: string }).code !== '42P01') throw e
+    if (!isMissingTable(e)) throw e
   }
   return acc
 }

@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Персональные тарифы сотрудника.
@@ -31,7 +32,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
       if (error) throw error
       return NextResponse.json({ rate: data ?? { person_id: params.personId, ...DEFAULT_RATE } })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ rate: { person_id: params.personId, ...DEFAULT_RATE } })
+      if (isMissingTable(e)) return NextResponse.json({ rate: { person_id: params.personId, ...DEFAULT_RATE } })
       throw e
     }
   } catch (err: unknown) {
@@ -66,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: { personId
       .select('person_id, hourly_rate, chavruta_rate, chavruta_plus_rate, chavruta_plus_basis, updated_at')
       .single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ rate: data })

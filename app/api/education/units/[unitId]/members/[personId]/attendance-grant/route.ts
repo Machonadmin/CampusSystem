@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PUT /api/education/units/[unitId]/members/[personId]/attendance-grant
@@ -34,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { unitId: 
     const g = (sb as any).from('teacher_attendance_grants')
     const del = await g.delete().eq('teacher_id', params.personId).is('lesson_id', null)
     if (del.error) {
-      if ((del.error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(del.error)) return apiError('feature_not_migrated', 503)
       throw del.error
     }
     if (minutes > 0) {

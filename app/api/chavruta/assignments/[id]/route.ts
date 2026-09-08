@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageChavruta } from '@/lib/chavruta/access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * DELETE /api/chavruta/assignments/[id]
@@ -23,7 +24,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
         .update({ is_active: false }).eq('id', params.id)
       if (error) throw error
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(e)) return apiError('feature_not_migrated', 503)
       throw e
     }
     return NextResponse.json({ ok: true })

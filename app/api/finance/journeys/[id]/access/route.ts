@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinance, canManageStudentFinance, canManageFinanceAccess } from '@/lib/finance/access'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * Финансовый доступ к КОНКРЕТНОЙ студентке (для панели в карточке).
@@ -35,7 +36,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       portalVisible = !!(data as { student_finance_visible?: boolean } | null)?.student_finance_visible
     } catch (e) {
-      if ((e as { code?: string }).code !== '42703') throw e
+      if (!isMissingColumn(e)) throw e
     }
 
     return NextResponse.json({ can_view: canView, can_manage: canManage, can_manage_access: canManageAccess, can_open_card: canOpenCard, portal_visible: portalVisible })
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { error } = await (sb)
       .from('education_journeys').update({ student_finance_visible: visible }).eq('id', params.id)
     if (error) {
-      if ((error as { code?: string }).code === '42703') return apiError('feature_not_migrated', 503)
+      if (isMissingColumn(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true, portal_visible: visible })

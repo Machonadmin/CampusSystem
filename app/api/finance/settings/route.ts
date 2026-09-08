@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Настройки финансов (spec §3.9): редактируемые дефолты платы за обучение
@@ -34,7 +35,7 @@ export async function GET() {
       if (error) throw error
       return NextResponse.json({ settings: data ?? DEFAULTS })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ settings: DEFAULTS })
+      if (isMissingTable(e)) return NextResponse.json({ settings: DEFAULTS })
       throw e
     }
   } catch (err: unknown) {
@@ -66,7 +67,7 @@ export async function PUT(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (sb.from('finance_settings') as any).upsert({ id: true, ...patch }, { onConflict: 'id' })
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true })

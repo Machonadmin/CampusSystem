@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -79,7 +80,7 @@ export async function loadCalendarByDate(
     const code = (e as { code?: string }).code
     // 42P01/42703 — таблица/колонка ещё не мигрированы; PGRST200 — PostgREST не
     // может разрешить embed calendar_day_types (FK ещё нет) — та же ситуация.
-    if (code === '42P01' || code === '42703' || code === 'PGRST200') {
+    if (isMissingRelation(code) || code === 'PGRST200') {
       // Календарь типов ещё не мигрирован → прежняя модель (all = full_off).
       const set = await loadNoLessonDateSet(sb, departmentId, fromDateStr, toDateStr)
       const map = new Map<string, DayTypeFlags>()
@@ -132,12 +133,12 @@ export async function loadNoLessonDateSet(
       .gte('date', fromDateStr)
       .lte('date', toDateStr)
     if (error) {
-      if (error.code === '42P01' || error.code === '42703') return new Set()
+      if (isMissingRelation(error)) return new Set()
       throw error
     }
     return new Set((data ?? []).map((r: { date: string }) => r.date))
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01' || (e as { code?: string }).code === '42703') return new Set()
+    if (isMissingRelation(e)) return new Set()
     throw e
   }
 }

@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * Льготы приёма (Stage 2): скидка на שכר לимуд (%) + сумма поддержки (תמיכה) +
@@ -11,7 +12,6 @@ import { createServerClient } from '@/lib/supabase/server'
  */
 
 type SB = ReturnType<typeof createServerClient>
-const MISSING = new Set(['42703', '42P01']) // undefined_column / undefined_table
 
 export interface BenefitsInput {
   discountPercent?: number | null
@@ -77,12 +77,12 @@ export async function setAdmissionBenefits(
   try {
     const { error } = await sb.from('education_journeys').update(patch).eq('id', journeyId)
     if (error) {
-      if (MISSING.has((error as { code?: string }).code ?? '')) return false
+      if (isMissingRelation(error)) return false
       throw error
     }
     return true
   } catch (e) {
-    if (MISSING.has((e as { code?: string }).code ?? '')) return false
+    if (isMissingRelation(e)) return false
     throw e
   }
 }
@@ -119,12 +119,12 @@ export async function getActiveContract(
       .eq('status', 'active')
       .maybeSingle()
     if (error) {
-      if (MISSING.has((error as { code?: string }).code ?? '')) return null
+      if (isMissingRelation(error)) return null
       throw error
     }
     return (data as AdmissionContract | null) ?? null
   } catch (e) {
-    if (MISSING.has((e as { code?: string }).code ?? '')) return null
+    if (isMissingRelation(e)) return null
     throw e
   }
 }
@@ -144,7 +144,7 @@ export async function createAdmissionContract(
       .eq('status', 'active')
       .maybeSingle()
     if (exErr) {
-      if (MISSING.has((exErr as { code?: string }).code ?? '')) return 'skipped'
+      if (isMissingRelation(exErr)) return 'skipped'
       throw exErr
     }
     if (existing) return 'exists'
@@ -156,7 +156,7 @@ export async function createAdmissionContract(
       .eq('id', journeyId)
       .maybeSingle()
     if (jErr) {
-      if (MISSING.has((jErr as { code?: string }).code ?? '')) return 'skipped'
+      if (isMissingRelation(jErr)) return 'skipped'
       throw jErr
     }
     const j = (journey ?? {}) as Record<string, unknown>
@@ -170,14 +170,14 @@ export async function createAdmissionContract(
       created_by: createdBy,
     })
     if (insErr) {
-      if (MISSING.has((insErr as { code?: string }).code ?? '')) return 'skipped'
+      if (isMissingRelation(insErr)) return 'skipped'
       // Гонка: параллельно создан действующий договор → uq_violation (23505).
       if ((insErr as { code?: string }).code === '23505') return 'exists'
       throw insErr
     }
     return 'created'
   } catch (e) {
-    if (MISSING.has((e as { code?: string }).code ?? '')) return 'skipped'
+    if (isMissingRelation(e)) return 'skipped'
     if ((e as { code?: string }).code === '23505') return 'exists'
     throw e
   }

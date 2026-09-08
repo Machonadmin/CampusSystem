@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { createNotifications } from '@/lib/notifications/create'
 import { fetchAllByIn, loadAbsenceCounts } from '@/lib/education/absence-counts'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -56,7 +57,7 @@ export async function materializeAbsenceThresholdAlerts(sb: SB): Promise<number>
         .select('metadata')
         .eq('type', 'absence_threshold')
         .gte('created_at', cutoffTs)
-      if (error && error.code !== '42P01') throw error
+      if (error && !isMissingTable(error)) throw error
       for (const r of (data ?? []) as Array<{ metadata: { journey_id?: string } | null }>) {
         const jid = r.metadata?.journey_id
         if (jid) alreadyNotified.add(jid)
@@ -100,7 +101,7 @@ export async function materializeAbsenceThresholdAlerts(sb: SB): Promise<number>
     }
     return created
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return 0
+    if (isMissingTable(e)) return 0
     console.error('[absence-alerts]', e)
     return 0
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       const c = data as { chavruta_plus_rate?: number; chavruta_plus_basis?: string } | null
       rate = Number(c?.chavruta_plus_rate ?? 0)
       basis = c?.chavruta_plus_basis ?? 'per_student_month'
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     if (basis === 'per_hour') {
       return NextResponse.json({ created: 0, skipped: 0, basis: 'per_hour' })
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       if (error) throw error
       assignments = (data ?? []) as typeof assignments
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(e)) return apiError('feature_not_migrated', 503)
       throw e
     }
     if (assignments.length === 0) return NextResponse.json({ created: 0, skipped: 0, basis })
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       for (const r of (data ?? []) as Array<{ student_journey_id: string | null }>) {
         if (r.student_journey_id) already.add(r.student_journey_id)
       }
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     let created = 0, skipped = 0
     for (const a of assignments) {

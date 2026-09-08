@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import type { ClassGroupUpdate } from '@/types/database'
 
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 const CLASS_GROUP_SELECT = `
   *,
@@ -209,7 +210,7 @@ export async function PATCH(
       if (body.name_en !== undefined) tr.name_en = body.name_en?.trim() || null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: trErr } = await (sb as any).from('class_groups').update(tr).eq('id', params.id)
-      if (trErr && trErr.code !== '42703') { /* столбца нет — ок */ }
+      if (trErr && !isMissingColumn(trErr)) { /* столбца нет — ок */ }
     }
 
     // Часы курса (spec §3.6) — deploy-safe апдейт (нет столбца hours → тихо ок).
@@ -217,7 +218,7 @@ export async function PATCH(
       const hrs = typeof body.hours === 'number' && body.hours >= 0 ? Math.round(body.hours) : null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: hErr } = await (sb as any).from('class_groups').update({ hours: hrs }).eq('id', params.id)
-      if (hErr && hErr.code !== '42703') throw hErr
+      if (hErr && !isMissingColumn(hErr)) throw hErr
     }
 
     const { data, error: reErr } = await sb

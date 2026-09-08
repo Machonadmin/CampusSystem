@@ -8,6 +8,7 @@ import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { createNotifications } from '@/lib/notifications/create'
 import type { ScheduleSlotUpdate } from '@/types/database'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * Уведомляет преподавателей и учениц группы о переносе кабинета урока.
@@ -169,7 +170,7 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: locErr } = await (sb as any).from('class_schedule_slots')
         .update({ room_id: body.room_id ?? null, building_id: body.building_id ?? null }).eq('id', params.slotId)
-      if (locErr && (locErr as { code?: string }).code !== '42703') throw locErr
+      if (locErr && !isMissingColumn(locErr)) throw locErr
     }
 
     // Пересчёт утверждения при изменении дня/времени — чтобы правку нельзя было

@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { isOwnStudentJourney } from '@/lib/education/portal-access'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Сообщения студентке от сотрудника (staff → student).
@@ -46,7 +47,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .eq('journey_id', params.id)
       .order('created_at', { ascending: false })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ messages: [] })
+      if (isMissingTable(error)) return NextResponse.json({ messages: [] })
       throw error
     }
 
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .select('id, subject, body, from_person_id, created_at, read_at')
       .single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ message: data }, { status: 201 })
@@ -133,7 +134,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .eq('id', messageId)
       .eq('journey_id', params.id)
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       throw error
     }
     return NextResponse.json({ ok: true })

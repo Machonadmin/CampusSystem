@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import {
   requireEducationPrivilege,
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ins = await (sb.from('class_groups').insert(fullInsert as any).select('id, department_id').single() as any)
     if (ins.error) {
-      if (ins.error.code === '42703') {
+      if (isMissingColumn(ins.error)) {
         const baseInsert: Record<string, unknown> = {
           name,
           department_id: body.department_id,
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
     if (body.year_level != null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: ylErr } = await (sb.from('class_groups').update({ year_level: body.year_level } as any).eq('id', groupId) as any)
-      if (ylErr && ylErr.code === '42703') {
+      if (ylErr && isMissingColumn(ylErr)) {
         warning = (warning ? warning + ' ' : '') + 'Год (year_level) не сохранён: миграция studies_drilldown ещё не применена.'
       }
     }
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
     if ((body.name_he && body.name_he.trim()) || (body.name_en && body.name_en.trim())) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: trErr } = await (sb.from('class_groups').update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null } as any).eq('id', groupId) as any)
-      if (trErr && trErr.code === '42703') {
+      if (trErr && isMissingColumn(trErr)) {
         warning = (warning ? warning + ' ' : '') + 'Переводы имени не сохранены: миграция class_groups_multilang ещё не применена.'
       }
     }
@@ -292,7 +292,7 @@ export async function POST(request: NextRequest) {
       const { error: ctErr } = await sb.from('class_teachers').insert(teacherRows as any)
       if (ctErr) {
         // monthly_rate может отсутствовать (миграция не применена) — пробуем без него.
-        if (ctErr.code === '42703') {
+        if (isMissingColumn(ctErr)) {
           const baseRows = teacherRows.map(({ monthly_rate: _mr, ...rest }) => rest)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { error: ctBaseErr } = await sb.from('class_teachers').insert(baseRows as any)

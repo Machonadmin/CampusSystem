@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { effectiveChavrutaTeacherIds } from './teachers'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -42,7 +43,7 @@ export async function materializeChavrutaReminders(sb: SB): Promise<number> {
           link: '/dashboard/chavruta',
           metadata: { date: today },
         } as any)
-      if (error) { if (error.code === '42P01') return created; continue }
+      if (error) { if (isMissingTable(error)) return created; continue }
       created++
     }
     return created

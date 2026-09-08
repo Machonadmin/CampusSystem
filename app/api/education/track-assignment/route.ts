@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/track-assignment
@@ -65,7 +66,7 @@ export async function GET(_request: NextRequest) {
         .from('journey_study_tracks')
         .select('journey_id, track_id, role')
         .in('journey_id', journeyIds)
-      if (jtErr && jtErr.code === '42703') {
+      if (jtErr && isMissingColumn(jtErr)) {
         const base = await (sb as unknown as { from: (t: string) => { select: (c: string) => { in: (col: string, v: string[]) => Promise<{ data: unknown; error: { code?: string } | null }> } } })
           .from('journey_study_tracks').select('journey_id, track_id').in('journey_id', journeyIds)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +78,7 @@ export async function GET(_request: NextRequest) {
         if (r.track_id && (r.role ?? 'primary') === 'primary') assigned.add(r.journey_id)
       }
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
 
     const students = journeys
@@ -92,7 +93,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ students })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ students: [] })
+    if (isMissingTable(e)) return NextResponse.json({ students: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

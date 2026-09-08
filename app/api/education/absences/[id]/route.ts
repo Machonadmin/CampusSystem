@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
 import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PATCH /api/education/absences/[id]
@@ -63,7 +64,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       }
       return NextResponse.json({ ok: true })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+      if (isMissingTable(e)) return apiError('feature_unavailable', 503)
       throw e
     }
   } catch (err: unknown) {

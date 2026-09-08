@@ -13,6 +13,7 @@ import type {
   JourneyCommunityInsert,
 } from '@/types/database'
 
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/leads
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     }
 
     let jRes = await buildQuery(`${baseCols}, recruitment_stage`)
-    if (jRes.error && (jRes.error as { code?: string }).code === '42703') {
+    if (jRes.error && isMissingColumn(jRes.error)) {
       jRes = await buildQuery(baseCols)
     }
     if (jRes.error) throw jRes.error

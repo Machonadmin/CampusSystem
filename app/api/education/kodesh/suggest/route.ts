@@ -7,6 +7,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { suggestKodeshPlacement, type SuggestMode } from '@/lib/education/assignment-suggestions'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/kodesh/suggest?mode=continue_semester|advance_year
@@ -48,12 +49,12 @@ export async function GET(request: NextRequest) {
         .eq('is_active', true)
         .is('parent_semester_id', null)
       if (error) {
-        if (error.code === '42703' || error.code === '42P01') return NextResponse.json({ mode, suggestions: [] })
+        if (isMissingRelation(error)) return NextResponse.json({ mode, suggestions: [] })
         throw error
       }
       groups = (data ?? []) as KGroup[]
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ mode, suggestions: [] })
+      if (isMissingTable(e)) return NextResponse.json({ mode, suggestions: [] })
       throw e
     }
     const groupById = new Map(groups.map(g => [g.id, g]))
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ mode, suggestions })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ mode: 'continue_semester', suggestions: [] })
+    if (isMissingTable(e)) return NextResponse.json({ mode: 'continue_semester', suggestions: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

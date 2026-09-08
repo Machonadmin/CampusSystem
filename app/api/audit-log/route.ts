@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { parseAuditQuery } from '@/lib/audit/query'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/audit-log — ЧТЕНИЕ журнала изменений (`audit_log`), который ведут
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error, count } = await qb
     if (error) {
-      if (error.code === '42P01') {
+      if (isMissingTable(error)) {
         return NextResponse.json({ entries: [], total: 0, not_migrated: true })
       }
       throw error

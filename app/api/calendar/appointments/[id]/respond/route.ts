@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Ответ приглашённого участника на встречу: принять / отклонить.
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .eq('person_id', session.person_id)
       .select('appointment_id') as any)
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     if (!data || (data as unknown[]).length === 0) return apiError('forbidden', 403) // я не участник этой встречи

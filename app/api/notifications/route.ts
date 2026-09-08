@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { materializeDueReminders, materializeTaskDeadlines } from '@/lib/notifications/reminders'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/notifications — мои последние уведомления + число непрочитанных.
@@ -34,7 +35,7 @@ export async function GET() {
 
     // Таблицы ещё нет (миграция не применена) — тихо отдаём пусто.
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ notifications: [], unread: 0 })
+      if (isMissingTable(error)) return NextResponse.json({ notifications: [], unread: 0 })
       throw error
     }
 

@@ -6,6 +6,7 @@ import { canViewStudentFinance, canViewStudentFinanceFull } from '@/lib/finance/
 import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 import { getActiveContract } from '@/lib/admission/benefits'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/finance/journeys/[id]/ledger
@@ -95,7 +96,7 @@ export async function GET(
     let payCols = PAY_FULL
     {
       const probe = await sb.from('finance_payments').select(PAY_FULL).limit(1)
-      if (probe.error && (probe.error as { code?: string }).code === '42703') payCols = PAY_BASE
+      if (probe.error && isMissingColumn(probe.error)) payCols = PAY_BASE
     }
     const paymentRows: PaymentRow[] = []
     let pFrom = 0
@@ -137,7 +138,7 @@ export async function GET(
           arr.push(d); discountsByCharge.set(d.charge_id, arr)
         }
       } catch (e) {
-        if ((e as { code?: string }).code !== '42P01') throw e
+        if (!isMissingTable(e)) throw e
       }
     }
 
@@ -159,10 +160,10 @@ export async function GET(
         .select('tuition_discount_percent')
         .eq('id', params.id)
         .maybeSingle()
-      if (bErr) { if ((bErr as { code?: string }).code !== '42703') throw bErr }
+      if (bErr) { if (!isMissingColumn(bErr)) throw bErr }
       else suggestedDiscount = (b?.tuition_discount_percent as number | null) ?? null
     } catch (e) {
-      if ((e as { code?: string }).code !== '42703') throw e
+      if (!isMissingColumn(e)) throw e
     }
 
     const totals = computeLedgerTotals(chargeRows, paymentRows, activeDiscounts)

@@ -12,6 +12,7 @@ import { createNotifications } from '@/lib/notifications/create'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
 import { signatureImageExists } from '@/lib/workflow/signature-storage'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 interface CompleteStageResult {
   stage_instance_id: string
@@ -183,7 +184,7 @@ export async function POST(
             .from('journey_study_tracks')
             .upsert({ journey_id: ctx.journeyId, track_id: trackId, updated_by: session.person_id, updated_at: new Date().toISOString() },
               { onConflict: 'journey_id' })
-          if (trErr && trErr.code !== '42P01') console.error('[complete] track upsert:', trErr)
+          if (trErr && !isMissingTable(trErr)) console.error('[complete] track upsert:', trErr)
         } catch (trCatch) {
           console.error('[complete] track upsert:', trCatch)
         }

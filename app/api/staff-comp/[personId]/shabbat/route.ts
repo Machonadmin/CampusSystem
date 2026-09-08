@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Шаббат-приёмы сотрудника (событие = оплата за событие + отмеченные ученицы).
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
       if (error) throw error
       events = (data ?? []) as typeof events
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ events: [] })
+      if (isMissingTable(e)) return NextResponse.json({ events: [] })
       throw e
     }
     if (events.length === 0) return NextResponse.json({ events: [] })
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest, { params }: { params: { personId
         const arr = attByEvent.get(r.work_entry_id) ?? []
         arr.push(r.student_journey_id); attByEvent.set(r.work_entry_id, arr)
       }
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     const nameById = await namesByJourney(sb, [...attByEvent.values()].flat())
     const out = events.map(e => ({
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       .select('id, entry_type, entry_date, amount, summary, private_notes')
       .single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     const eventId = (entry as { id: string }).id
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       if (aErr) {
         const code = (aErr as { code?: string }).code
         // Таблица участниц ещё не мигрирована — событие/оплата уже созданы; сообщим 503.
-        if (code === '42P01') return apiError('feature_not_migrated', 503)
+        if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
         if (code !== '23505' && code !== '23503') throw aErr
       }
     }

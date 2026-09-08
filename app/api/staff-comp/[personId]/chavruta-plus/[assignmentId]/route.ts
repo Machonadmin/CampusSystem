@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * DELETE /api/staff-comp/[personId]/chavruta-plus/[assignmentId]
@@ -23,7 +24,7 @@ export async function DELETE(
       .from('chavruta_plus_assignments').update({ is_active: false })
       .eq('id', params.assignmentId).eq('teacher_person_id', params.personId)
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true })

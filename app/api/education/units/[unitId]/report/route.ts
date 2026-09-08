@@ -6,6 +6,7 @@ import { canManageUnit } from '@/lib/education/unit-access'
 import { round1, attendancePercent } from '@/lib/education/metrics'
 import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/units/[unitId]/report
@@ -312,7 +313,7 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') {
+    if (isMissingTable(e)) {
       // Таблица ещё не создана — деплой-безопасно вернуть пустой отчёт.
       return NextResponse.json({ unit: { id: params.unitId, name: '' }, groups: [], students: [], summary: emptySummary() })
     }

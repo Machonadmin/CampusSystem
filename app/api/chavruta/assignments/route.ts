@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Управляющая сводка пар хавруты (шиюх) для «мרכз חברותא» в модуле лимудим.
@@ -66,7 +67,7 @@ export async function GET() {
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ assignments: [], students })
+      if (isMissingTable(e)) return NextResponse.json({ assignments: [], students })
       throw e
     }
 
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       .single()
     if (error) {
       const code = (error as { code?: string }).code
-      if (code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
         const { data: re, error: reErr } = await sb.from('chavruta_pairs')
           .update({ is_active: true }).eq('teacher_person_id', teacherId).eq('student_journey_id', journeyId)

@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Хеврута-плюс: постоянные пары мора↔ученица (менторство).
@@ -29,7 +30,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
       const c = data as { chavruta_plus_rate?: number; chavruta_plus_basis?: string } | null
       rate = Number(c?.chavruta_plus_rate ?? 0)
       basis = c?.chavruta_plus_basis ?? 'per_student_month'
-    } catch (e) { if ((e as { code?: string }).code !== '42P01') throw e }
+    } catch (e) { if (!isMissingTable(e)) throw e }
 
     // Пары.
     let rows: Array<{ id: string; student_journey_id: string; is_active: boolean }> = []
@@ -40,7 +41,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ assignments: [], rate, basis })
+      if (isMissingTable(e)) return NextResponse.json({ assignments: [], rate, basis })
       throw e
     }
 
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       .single()
     if (error) {
       const code = (error as { code?: string }).code
-      if (code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
       if (code === '23505') { // пара уже есть — реактивируем
         const { data: re, error: reErr } = await sb.from('chavruta_plus_assignments')
           .update({ is_active: true }).eq('teacher_person_id', params.personId).eq('student_journey_id', journeyId)

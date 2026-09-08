@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: upErr } = await (sb.from('class_groups').update({ tuition_amount: amount } as any).eq('id', params.id) as any)
     if (upErr) {
-      if (upErr.code === '42703') return apiError('feature_not_migrated', 503)
+      if (isMissingColumn(upErr)) return apiError('feature_not_migrated', 503)
       throw upErr
     }
 

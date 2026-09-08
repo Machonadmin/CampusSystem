@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Справочник типов оповещений (student_alert_types, spec §3.8/§4.4) — редактируемый,
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (activeOnly) q = q.eq('is_active', true)
     const { data, error } = await q
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ types: [] })
+      if (isMissingTable(error)) return NextResponse.json({ types: [] })
       throw error
     }
     return NextResponse.json({ types: data ?? [] })
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       sort_order: body.sort_order ?? 0,
     })
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23505') return apiError('record_exists', 409)
       throw error
     }

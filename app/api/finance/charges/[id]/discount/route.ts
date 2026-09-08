@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStudentFinance } from '@/lib/finance/access'
 import { toCents, centsToNumber } from '@/lib/finance/money'
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       for (const d of (existing ?? []) as Array<{ amount: number | string }>) existingCents += toCents(d.amount)
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(e)) return apiError('feature_not_migrated', 503)
       throw e
     }
 

@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
 import { todayISO } from '@/lib/dates'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Хавруты, которые мора записывает сама (кто с кем сидел сегодня).
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       const sessions = rows.map(r => ({ ...r, student_name: names.get(r.student_journey_id ?? '') ?? '' }))
       return NextResponse.json({ sessions })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ sessions: [] })
+      if (isMissingTable(e)) return NextResponse.json({ sessions: [] })
       throw e
     }
   } catch (err: unknown) {
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       .single()
     if (error) {
       const code = (error as { code?: string }).code
-      if (code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
       if (code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

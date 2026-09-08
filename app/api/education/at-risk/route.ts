@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds, canDoEducationInAny } from '@/lib/education/permissions'
 import { fetchAllByIn, loadAbsenceCounts } from '@/lib/education/absence-counts'
 import { todayISO } from '@/lib/dates'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/at-risk?days=30&min=3
@@ -103,7 +104,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ students, days, min, can_open_case: canOpenCase })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ students: [] })
+    if (isMissingTable(e)) return NextResponse.json({ students: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }

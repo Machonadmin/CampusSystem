@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { shapeEventForViewer } from '@/lib/staff-comp/event-view'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/journeys/[id]/shabbat
@@ -44,7 +45,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       entryIds = [...new Set(((data ?? []) as Array<{ work_entry_id: string }>).map(r => r.work_entry_id))]
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ events: [] })
+      if (isMissingTable(e)) return NextResponse.json({ events: [] })
       throw e
     }
     if (entryIds.length === 0) return NextResponse.json({ events: [] })
@@ -58,7 +59,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ events: [] })
+      if (isMissingTable(e)) return NextResponse.json({ events: [] })
       throw e
     }
 

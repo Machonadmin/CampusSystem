@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 
@@ -61,7 +61,7 @@ export async function GET(
       .select('teacher_id, is_primary, monthly_rate, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
       .eq('class_group_id', params.id) as any)
     if (tRes.error) {
-      if (tRes.error.code === '42703') {
+      if (isMissingColumn(tRes.error)) {
         const tBase = await sb
           .from('class_teachers')
           .select('teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
@@ -213,7 +213,7 @@ export async function PATCH(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: upErr } = await sb.from('class_groups').update(fullUpdate as any).eq('id', params.id)
       if (upErr) {
-        if (upErr.code === '42703') {
+        if (isMissingColumn(upErr)) {
           // Оставляем только базовые колонки (name, department_id, period_*).
           const baseUpdate: Record<string, unknown> = {}
           if (fullUpdate.name !== undefined) baseUpdate.name = fullUpdate.name
@@ -244,7 +244,7 @@ export async function PATCH(
     if (body.year_level !== undefined) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: ylErr } = await (sb.from('class_groups').update({ year_level: body.year_level ?? null } as any).eq('id', params.id) as any)
-      if (ylErr && ylErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Год (year_level) не обновлён: миграция studies_drilldown не применена.'
+      if (ylErr && isMissingColumn(ylErr)) warning = (warning ? warning + ' ' : '') + 'Год (year_level) не обновлён: миграция studies_drilldown не применена.'
     }
 
     // Переводы имени — отдельным деплой-безопасным UPDATE.
@@ -254,7 +254,7 @@ export async function PATCH(
       if (body.name_en !== undefined) tr.name_en = body.name_en?.trim() || null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: trErr } = await (sb.from('class_groups').update(tr as any).eq('id', params.id) as any)
-      if (trErr && trErr.code === '42703') warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
+      if (trErr && isMissingColumn(trErr)) warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
     }
 
     // ── Синхронизация преподавателей ──────────────────────────────────────
@@ -298,7 +298,7 @@ export async function PATCH(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: addErr } = await sb.from('class_teachers').insert(addRows as any)
         if (addErr) {
-          if (addErr.code === '42703') {
+          if (isMissingColumn(addErr)) {
             const baseRows = addRows.map(({ monthly_rate: _mr, ...rest }) => rest)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { error: addBaseErr } = await sb.from('class_teachers').insert(baseRows as any)
@@ -323,7 +323,7 @@ export async function PATCH(
           .eq('class_group_id', params.id)
           .eq('teacher_id', id)
         if (uErr) {
-          if (uErr.code === '42703') {
+          if (isMissingColumn(uErr)) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { error: uBaseErr } = await sb
               .from('class_teachers')

@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Нокхут морим (נוכחות מורים).
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
         }
         return NextResponse.json({ items: rows.map(r => ({ ...r, teacher_name: names.get(r.teacher_person_id) ?? '', lesson: info.get(r.lesson_id) ?? null })) })
       } catch (e) {
-        if ((e as { code?: string }).code === '42P01') return NextResponse.json({ items: [] })
+        if (isMissingTable(e)) return NextResponse.json({ items: [] })
         throw e
       }
     }
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
           .select('id, lesson_id, status').eq('teacher_person_id', session.person_id).in('lesson_id', lrows.map(l => l.id))
         for (const a of (att ?? []) as Array<{ id: string; lesson_id: string; status: string }>) statusByLesson.set(a.lesson_id, { id: a.id, status: a.status })
       } catch (e) {
-        if ((e as { code?: string }).code !== '42P01') throw e
+        if (!isMissingTable(e)) throw e
       }
       return NextResponse.json({ items: lrows.filter(l => !l.is_cancelled).map(l => {
         const a = statusByLesson.get(l.id)
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
       const info = await lessonInfo(sb, rows.map(r => r.lesson_id))
       return NextResponse.json({ items: rows.map(r => ({ ...r, lesson: info.get(r.lesson_id) ?? null })) })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ items: [] })
+      if (isMissingTable(e)) return NextResponse.json({ items: [] })
       throw e
     }
   } catch (err: unknown) {
@@ -178,7 +179,7 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ ok: true }, { status: 201 })
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+      if (isMissingTable(e)) return apiError('feature_unavailable', 503)
       throw e
     }
   } catch (err: unknown) {

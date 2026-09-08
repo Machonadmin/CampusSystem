@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * Доступ к управлению кодешем: глава кафедры (canManageUnit) ИЛИ менеджер с
@@ -61,14 +62,14 @@ export async function GET(_request: NextRequest) {
         .order('kodesh_level', { nullsFirst: false })
         .order('kodesh_stream', { nullsFirst: true })
         .order('name_he', { nullsFirst: false })
-      if (error && error.code === '42703') {
+      if (error && isMissingColumn(error)) {
         const fb = await baseFilter('id, name, name_he, name_en').order('name_he', { nullsFirst: false }).order('name')
         data = fb.data; error = fb.error
       }
       if (error) throw error
       groups = (data ?? []) as unknown as KGroup[]
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
     const kodeshGroupIds = new Set(groups.map(g => g.id))
 
@@ -101,7 +102,7 @@ export async function GET(_request: NextRequest) {
           assignedMap.set(r.journey_id, r.class_group_id)
         }
       } catch (e) {
-        if ((e as { code?: string }).code !== '42P01') throw e
+        if (!isMissingTable(e)) throw e
       }
     }
 
@@ -117,7 +118,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ groups, students })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ groups: [], students: [] })
+    if (isMissingTable(e)) return NextResponse.json({ groups: [], students: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
@@ -182,7 +183,7 @@ export async function PUT(request: NextRequest) {
           approved_by: session.person_id,
           approved_at: nowIso,
         }, { onConflict: 'journey_id,class_group_id', ignoreDuplicates: false })
-      if (insErr && insErr.code === '42703') {
+      if (insErr && isMissingColumn(insErr)) {
         const retry = await sb
           .from('class_enrollments')
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

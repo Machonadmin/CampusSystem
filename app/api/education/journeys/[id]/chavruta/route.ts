@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { shapeChavrutaSessionForViewer } from '@/lib/chavruta/view'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/journeys/[id]/chavruta
@@ -50,7 +51,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (error) throw error
       rows = (data ?? []) as typeof rows
     } catch (e) {
-      if ((e as { code?: string }).code === '42P01') return NextResponse.json({ sessions: [] })
+      if (isMissingTable(e)) return NextResponse.json({ sessions: [] })
       throw e
     }
 

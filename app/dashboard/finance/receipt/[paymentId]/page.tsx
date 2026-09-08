@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinanceFull } from '@/lib/finance/access'
+import { isMissingColumn } from '@/lib/supabase/errors'
 import ReceiptClient from './ReceiptClient'
 
 interface Props {
@@ -30,7 +31,7 @@ export default async function ReceiptPage({ params }: Props) {
   let cols = FULL
   {
     const probe = await sb.from('finance_payments').select(FULL).limit(1)
-    if (probe.error && (probe.error as { code?: string }).code === '42703') cols = BASE
+    if (probe.error && isMissingColumn(probe.error)) cols = BASE
   }
 
   const { data: payment } = await sb

@@ -6,6 +6,7 @@ import { canManageStudentFinance } from '@/lib/finance/access'
 import { mapDbError } from '@/lib/finance/http'
 import { isIsoDate } from '@/lib/finance/validation'
 import type { FinancePaymentInsert } from '@/types/database'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * POST /api/finance/journeys/[id]/payments
@@ -92,7 +93,7 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let { data, error } = await sb.from('finance_payments').insert(full as any).select('*').single()
     // Деплой-безопасно: колонок реквизитов/подписи ещё нет → базовый платёж.
-    if (error && (error as { code?: string }).code === '42703') {
+    if (error && isMissingColumn(error)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;({ data, error } = await sb.from('finance_payments').insert(base as unknown as FinancePaymentInsert as any).select('*').single())
     }

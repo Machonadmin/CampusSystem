@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * PATCH  /api/education/no-lesson-days/[id] — правка типа дня / причины на месте.
@@ -21,7 +22,7 @@ async function gateByRowScope(sb: ReturnType<typeof createServerClient>, id: str
   const { data: row, error: rErr } = await sb
     .from('academic_no_lesson_days').select('scope').eq('id', id).maybeSingle()
   if (rErr) {
-    if (rErr.code === '42P01') return false
+    if (isMissingTable(rErr)) return false
     throw rErr
   }
   if (!row) return false
@@ -45,7 +46,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let { error } = await (sb.from('academic_no_lesson_days') as any).update(patch).eq('id', params.id)
     // Колонка day_type_code ещё не мигрирована → повторяем без неё.
-    if (error && error.code === '42703') {
+    if (error && isMissingColumn(error)) {
       const { day_type_code: _omit, ...legacy } = patch
       if (Object.keys(legacy).length === 0) return apiError('feature_not_migrated', 503)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

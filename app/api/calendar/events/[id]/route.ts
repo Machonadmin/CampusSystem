@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * DELETE /api/calendar/events/[id] — удалить своё событие календаря
@@ -16,7 +17,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
       .delete()
       .eq('id', params.id)
       .eq('owner_id', session.person_id)
-    if (error && error.code !== '42P01') throw error
+    if (error && !isMissingTable(error)) throw error
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

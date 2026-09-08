@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import {
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
         sb.from('study_tracks').select(select).order('sort_order', { ascending: true })
       const { data, error } = await build(cols)
       if (error) {
-        if (error.code === '42P01') return NextResponse.json({ tracks: [] })
-        if (error.code === '42703') {
+        if (isMissingTable(error)) return NextResponse.json({ tracks: [] })
+        if (isMissingColumn(error)) {
           const fb = await build('id, code, name_he, name_ru, name_en, department_id, sort_order, is_active')
           if (fb.error) throw fb.error
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await build(cols)
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ tracks: [] })
+      if (isMissingTable(error)) return NextResponse.json({ tracks: [] })
       // Колонки years_count/category ещё не мигрированы — отдаём без них.
-      if (error.code === '42703') {
+      if (isMissingColumn(error)) {
         const fb = await build('id, code, name_he, name_ru, name_en, department_id, sort_order')
         if (fb.error) throw fb.error
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canManageEducationInAny } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
-import { isMissingRelation } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 
 /**
  * PUT    /api/education/no-lesson-days/templates/[id] — обновить шаблон (имя,
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let { error: insErr } = await (sb.from('no_lesson_day_template_days') as any).insert(rows)
         // Колонка day_type_code ещё не мигрирована → повторяем без неё.
-        if (insErr && insErr.code === '42703') {
+        if (insErr && isMissingColumn(insErr)) {
           const legacy = rows.map(({ day_type_code: _omit, ...r }) => r)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const retry = await (sb.from('no_lesson_day_template_days') as any).insert(legacy)

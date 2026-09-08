@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess } from '@/lib/education/lesson-access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Заметки к уроку (журнал, append-only).
@@ -32,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: { lessonId: s
       .eq('lesson_id', params.lessonId)
       .order('created_at', { ascending: false })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ notes: [] })
+      if (isMissingTable(error)) return NextResponse.json({ notes: [] })
       throw error
     }
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest, { params }: { params: { lessonI
       lesson_id: params.lessonId, author_id: session.person_id, body: text.slice(0, 4000),
     })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true }, { status: 201 })

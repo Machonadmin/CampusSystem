@@ -3,6 +3,7 @@ import { serverT, apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageFinanceAccess } from '@/lib/finance/access'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * DELETE /api/finance/access/[id] — снять финансовый доступ (грант).
@@ -18,7 +19,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     const { error } = await (sb)
       .from('finance_access_grants').delete().eq('id', params.id)
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ ok: true })
+      if (isMissingTable(error)) return NextResponse.json({ ok: true })
       throw error
     }
     return NextResponse.json({ ok: true })

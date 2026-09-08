@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 // ─── Доступ к сущностям «הערכת הוראה» (таблиц нет в сгенерированных типах) ─────
 
@@ -15,7 +16,7 @@ export async function getSurveyWithQuestions(
   let s: any = null
   const primary = await (sb.from('teaching_surveys')
     .select('id, title, is_open, created_at, department_id').eq('id', id).maybeSingle() as any)
-  if (primary.error && primary.error.code === '42703') {
+  if (primary.error && isMissingColumn(primary.error)) {
     const base = await sb.from('teaching_surveys').select('id, title, is_open, created_at').eq('id', id).maybeSingle()
     s = base.data
   } else {
@@ -36,7 +37,7 @@ export async function surveyDepartment(
 ): Promise<{ found: boolean; department_id: string | null }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const res = await (sb.from('teaching_surveys').select('id, department_id').eq('id', id).maybeSingle() as any)
-  if (res.error && res.error.code === '42703') {
+  if (res.error && isMissingColumn(res.error)) {
     const base = await sb.from('teaching_surveys').select('id').eq('id', id).maybeSingle()
     return { found: !!base.data, department_id: null }
   }

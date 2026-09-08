@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Отзывы (חוות דעת) на ученицу.
@@ -34,7 +35,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .eq('journey_id', params.id)
       .order('created_at', { ascending: false })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ evaluations: [], can_write: canWrite })
+      if (isMissingTable(error)) return NextResponse.json({ evaluations: [], can_write: canWrite })
       throw error
     }
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       journey_id: params.id, author_id: session.person_id, body: text.slice(0, 6000),
     })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ ok: true }, { status: 201 })

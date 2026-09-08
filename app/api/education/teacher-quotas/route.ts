@@ -11,6 +11,7 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { sumAssignedHoursByTeacher, computeRemaining, isOverQuota, type CourseHours } from '@/lib/education/teacher-quota'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Часовые квоты преподавателей кодеша (spec §3.6). GET отдаёт по каждому
@@ -33,7 +34,7 @@ async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Pro
       .eq('is_active', true)
       .not('parent_semester_id', 'is', null)
     if (error) {
-      if (error.code === '42703' || error.code === '42P01') return new Map()
+      if (isMissingRelation(error)) return new Map()
       throw error
     }
     const rows = (courses ?? []) as Array<{ id: string; hours: number | null }>
@@ -50,7 +51,7 @@ async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Pro
     const courseHours: CourseHours[] = rows.map(r => ({ hours: r.hours, teacherIds: teachersByCourse.get(r.id) ?? [] }))
     return sumAssignedHoursByTeacher(courseHours)
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01' || (e as { code?: string }).code === '42703') return new Map()
+    if (isMissingRelation(e)) return new Map()
     throw e
   }
 }
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
       if (error) throw error
       quotas = (data ?? []) as typeof quotas
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
 
     // Множество преподавателей: с квотой ∪ с назначенными часами.
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
     const existing = await (sb.from('teacher_hour_quotas') as any)
       .select('id, term_number').eq('teacher_id', body.teacher_id).eq('year_label', body.year_label)
     if (existing.error) {
-      if (existing.error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(existing.error)) return apiError('feature_not_migrated', 503)
       throw existing.error
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (sb.from('teacher_hour_quotas') as any).insert(payload).select('id').single()
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       if (error.code === '23503') return apiError('invalid_reference', 400)
       throw error
     }

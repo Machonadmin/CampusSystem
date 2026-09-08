@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Кодеш (לימודי קודש) обязателен для КАЖДОЙ студентки — «всегда кодеш, ЕСЛИ
@@ -42,7 +43,7 @@ export async function loadKodeshGroupIds(sb: SB): Promise<Set<string>> {
     if (error) throw error
     return new Set((data ?? []).map(g => g.id))
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return new Set()
+    if (isMissingTable(e)) return new Set()
     throw e
   }
 }
@@ -96,7 +97,7 @@ export async function loadKodeshExemptions(
       map.set(r.journey_id, arr)
     }
   } catch (e) {
-    if ((e as { code?: string }).code !== '42P01') throw e
+    if (!isMissingTable(e)) throw e
     // Таблицы ещё нет — исключений нет.
   }
   return {

@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Здания и аудитории кампуса (для расписания: здание + аудитория вместо
@@ -20,7 +21,7 @@ export async function GET() {
     const { data: buildings, error } = await (sb
       .from('buildings').select('id, name, code, is_active').order('sort_order').order('name') as any)
     if (error) {
-      if (error.code === '42P01') return NextResponse.json({ buildings: [] })
+      if (isMissingTable(error)) return NextResponse.json({ buildings: [] })
       throw error
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +40,7 @@ export async function GET() {
     return NextResponse.json({ buildings: result })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code === '42P01') return NextResponse.json({ buildings: [] })
+    if (isMissingTable(e)) return NextResponse.json({ buildings: [] })
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
   }
 }
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (sb.from('buildings').insert({ name, code: body.code?.trim() || null } as any).select('id').single() as any)
     if (error) {
-      if (error.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
       throw error
     }
     return NextResponse.json({ id: data.id }, { status: 201 })

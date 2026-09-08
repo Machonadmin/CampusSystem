@@ -6,6 +6,7 @@ import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-a
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
@@ -135,7 +136,7 @@ export async function GET(
       }
     } catch (e) {
       const code = (e as { code?: string }).code
-      if (code !== '42P01') throw e
+      if (!isMissingTable(code)) throw e
     }
 
     return NextResponse.json({
@@ -235,7 +236,7 @@ export async function POST(
       if (ovrErr) throw ovrErr
       for (const r of (ovr ?? []) as Array<{ journey_id: string }>) allowedIds.add(r.journey_id)
     } catch (e) {
-      if ((e as { code?: string }).code !== '42P01') throw e
+      if (!isMissingTable(e)) throw e
     }
     const notAllowed = Array.from(new Set(entries.map(e => e.journey_id!)))
       .filter(id => !allowedIds.has(id))

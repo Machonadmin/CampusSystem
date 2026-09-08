@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -54,7 +55,7 @@ export async function materializeTaskDeadlines(sb: SB, personId: string): Promis
           link: `/dashboard/tasks/${tk.id}`,
           metadata: { task_id: tk.id, due_date: tk.due_date },
         } as any)
-      if (nErr && nErr.code === '42P01') return // таблицы ещё нет
+      if (nErr && isMissingTable(nErr)) return // таблицы ещё нет
     }
   } catch {
     /* тихо */
@@ -108,7 +109,7 @@ export async function materializeAllTaskDeadlines(sb: SB): Promise<number> {
           link: `/dashboard/tasks/${tk.id}`,
           metadata: { task_id: tk.id, due_date: tk.due_date },
         } as any)
-      if (nErr && nErr.code === '42P01') return created // таблицы ещё нет
+      if (nErr && isMissingTable(nErr)) return created // таблицы ещё нет
       if (!nErr) created++
     }
   } catch {
@@ -148,7 +149,7 @@ export async function materializeAllDueReminders(sb: SB): Promise<number> {
           .update({ reminded_at: nowIso } as any)
           .eq('id', ev.id)
         created++
-      } else if (nErr.code === '42P01') {
+      } else if (isMissingTable(nErr)) {
         return created // таблицы ещё нет
       }
     }

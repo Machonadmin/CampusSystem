@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Встречи студентки (§5): преподаватель назначает встречу после урока →
@@ -47,7 +48,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .eq('journey_id', params.id)
       .order('starts_at', { ascending: false })
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return NextResponse.json({ meetings: [] })
+      if (isMissingTable(error)) return NextResponse.json({ meetings: [] })
       throw error
     }
     return NextResponse.json({ meetings: data ?? [] })
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         status: 'scheduled', created_by: g.session!.person_id,
       } as any).select('id').single()
     if (error) {
-      if ((error as { code?: string }).code === '42P01') return apiError('feature_unavailable', 503)
+      if (isMissingTable(error)) return apiError('feature_unavailable', 503)
       throw error
     }
     return NextResponse.json({ ok: true, id: (data as { id: string }).id }, { status: 201 })

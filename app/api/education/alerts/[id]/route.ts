@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * PATCH /api/education/alerts/[id] — изменить состояние оповещения (и, при
@@ -26,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { data: row, error: rErr } = await (sb.from('student_alerts') as any)
       .select('id, is_sensitive').eq('id', params.id).maybeSingle()
     if (rErr) {
-      if (rErr.code === '42P01') return apiError('feature_not_migrated', 503)
+      if (isMissingTable(rErr)) return apiError('feature_not_migrated', 503)
       throw rErr
     }
     if (!row) return apiError('record_not_found', 404)

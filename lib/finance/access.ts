@@ -1,6 +1,7 @@
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { createServerClient } from '@/lib/supabase/server'
 import { hasFinancePrivilege } from './permissions'
+import { isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Доступ к финансам КОНКРЕТНОЙ студентки — ОТДЕЛЬНЫЙ от доступа к её делу.
@@ -41,7 +42,7 @@ async function hasFinanceGrant(personId: string, journeyId: string): Promise<boo
     }
     return false
   } catch (e) {
-    if ((e as { code?: string }).code === '42P01') return false
+    if (isMissingTable(e)) return false
     throw e
   }
 }
