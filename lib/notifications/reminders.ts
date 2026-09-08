@@ -118,6 +118,41 @@ export async function materializeAllTaskDeadlines(sb: SB): Promise<number> {
   return created
 }
 
+/**
+ * Запасной путь для materializeAllDueReminders: вставляем по одному, чтобы
+ * единственная сбойная строка не отменяла всю пачку. Событие помечается
+ * сработавшим только если его уведомление реально создано.
+ */
+async function insertRemindersOneByOne(
+  sb: SB,
+  events: Array<{ id: string; title: string; link: string | null; owner_id: string }>,
+  nowIso: string,
+): Promise<number> {
+  let created = 0
+  for (const ev of events) {
+    const { error: rowErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert({
+        person_id: ev.owner_id,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      } as any)
+    if (rowErr) {
+      if (isMissingTable(rowErr)) return created
+      continue // конкретное событие пропускаем, остальные обрабатываем
+    }
+    await sb.from('calendar_events')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ reminded_at: nowIso } as any)
+      .eq('id', ev.id)
+    created++
+  }
+  return created
+}
+
 /** Созревшие напоминания календаря по ВСЕМ владельцам. Возвращает число созданных. */
 export async function materializeAllDueReminders(sb: SB): Promise<number> {
   let created = 0
@@ -147,7 +182,10 @@ export async function materializeAllDueReminders(sb: SB): Promise<number> {
       })) as any)
     if (nErr) {
       if (isMissingTable(nErr)) return created // таблицы ещё нет
-      return created
+      // Пачка неделима: одна плохая строка (напр. удалённый owner_id → 23503)
+      // заблокировала бы ВСЕ напоминания и повторялась бы каждый прогон.
+      // Откатываемся на построчную вставку — медленнее, но живучее.
+      return insertRemindersOneByOne(sb, events, nowIso)
     }
     // Помечаем сработавшими только после успешной вставки уведомлений.
     await sb.from('calendar_events')
