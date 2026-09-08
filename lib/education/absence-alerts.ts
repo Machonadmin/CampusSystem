@@ -94,7 +94,9 @@ export async function materializeAbsenceThresholdAlerts(sb: SB): Promise<number>
         type: 'absence_threshold',
         title: 'התראת היעדרויות',
         body: `${name} — ${absent} היעדרויות ב-${ABSENCE_ALERT_DAYS} הימים האחרונים`,
-        link: '/dashboard/education/at-risk',
+        // Страница «Случаи пропусков» — доступна всему персоналу отделения
+        // (прежняя ссылка вела на несуществующий /at-risk → 404 у всех получателей).
+        link: '/dashboard/education/absences',
         metadata: { journey_id: j.id, absent_count: absent, threshold: ABSENCE_ALERT_MIN, days: ABSENCE_ALERT_DAYS },
       })))
       created += recipients.length
