@@ -44,6 +44,7 @@ export default function PersonPrivilegesModal({ user, t, tCommon, onClose }: Per
       setLoading(true)
       const res = await fetch(`/api/settings/person-privileges?person_id=${user.person_id}`)
       if (!alive) return
+      if (!res.ok) { toastError(tCommon('load_error')); setLoading(false); return }
       if (res.ok) {
         const data = await res.json()
         const catalogue: ModulePrivilege[] = data.modulePrivileges ?? []

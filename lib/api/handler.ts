@@ -106,8 +106,13 @@ export async function parseBody<T>(request: NextRequest, schema: ZodType<T>): Pr
   const json = await request.json().catch(() => null)
   const parsed = schema.safeParse(json)
   if (!parsed.success) {
+    // Сообщения zod задаются в схемах КОДОМ ошибки из неймспейса `errors`
+    // (например 'name_required'), а не готовым текстом: иначе пользователь
+    // получал бы русскую строку независимо от своего языка. serverT возвращает
+    // сам код, если перевода нет, — тогда сообщение zod показывается как есть
+    // (обратная совместимость со схемами, где текст написан вручную).
     const details = parsed.error.issues
-      .map(i => `${i.path.join('.') || 'body'}: ${i.message}`)
+      .map(i => `${i.path.join('.') || 'body'}: ${serverT(i.message)}`)
       .join('; ')
     throw Object.assign(new Error(`${serverT('validation_error')}: ${details}`), {
       status: 400,

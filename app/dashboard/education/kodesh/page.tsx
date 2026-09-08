@@ -27,6 +27,7 @@ export default function KodeshAssignmentPage() {
   // Имя уровня кодеша на языке интерфейса (name=RU / name_he=HE / name_en=EN).
   const gname = (g: Group) => (lang === 'he' ? (g.name_he || g.name) : lang === 'en' ? (g.name_en || g.name) : g.name)
   const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
 
   const [groups, setGroups] = useState<Group[]>([])
   const [students, setStudents] = useState<Student[]>([])
@@ -62,7 +63,11 @@ export default function KodeshAssignmentPage() {
         const b = await res.json()
         setGroups(b.groups ?? [])
         setStudents(b.students ?? [])
+      } else {
+        setErr(tCommon('load_error'))
       }
+    } catch {
+      setErr(tCommon('load_error'))
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { load() }, [load])

@@ -137,7 +137,7 @@ export default function KodeshRavClient() {
           <div style={{ flex: 1 }} />
           <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--text-muted)' }}>
             {t('year_label')}
-            <input value={year} onChange={e => setYear(e.target.value)} placeholder="תשפ״ז" dir="rtl" style={{ ...inp, width: 120 }} />
+            <input value={year} onChange={e => setYear(e.target.value)} placeholder={t('year_placeholder')} dir="rtl" style={{ ...inp, width: 120 }} />
           </label>
         </div>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('quotas_hint')}</p>

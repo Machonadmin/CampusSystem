@@ -26,10 +26,10 @@ const SYSTEM_PERSON_ID = 'ffffffff-0000-4000-8000-000000000001'
  * (уже под своим аккаунтом). Это также фильтр для спама, проскочившего honeypot.
  */
 const publicApplicationSchema = z.object({
-  first_name: z.string().trim().min(1, 'Имя обязательно').max(100),
+  first_name: z.string().trim().min(1, 'name_required').max(100),
   last_name: z.string().trim().max(100).optional(),
-  phone: z.string().trim().min(3, 'Телефон обязателен').max(40),
-  email: z.string().trim().email('Некорректный email').max(200).optional().or(z.literal('')),
+  phone: z.string().trim().min(3, 'phone_required').max(40),
+  email: z.string().trim().email('invalid_email').max(200).optional().or(z.literal('')),
   birth_date: z.string().trim().max(20).optional().or(z.literal('')),
   city: z.string().trim().max(120).optional().or(z.literal('')),
   direction_id: z.string().uuid().optional().or(z.literal('')),

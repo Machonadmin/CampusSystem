@@ -139,7 +139,7 @@ const staffSchema = z.object({
   department_id: z.string().uuid(),
   position: z.string().trim().optional(),
   position_id: z.string().uuid().optional(),
-  hire_date: z.string().min(1, 'Дата приёма обязательна'),
+  hire_date: z.string().min(1, 'hire_date_required'),
   employment_type: z.string().optional(),
   work_schedule: z.string().optional(),
   passport: z.object({

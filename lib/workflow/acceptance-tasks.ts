@@ -185,11 +185,12 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
         .select('id')
         .single()
       if (error || !task) continue
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: task.id, actor_id: actorId, from_status: null, to_status: 'pending',
         note: 'Автозадача этапа приёма',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
+      if (histErr) console.error('[acceptance-tasks] status history:', histErr)
     }
   }
 
