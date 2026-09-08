@@ -158,23 +158,23 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
           {/* Название (RU обяз. + he/en опц.) */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.name_label')} *</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('class_groups.name_placeholder')} />
+            <input aria-label={t('common.name_label')} type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('class_groups.name_placeholder')} />
           </div>
           <div style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <label style={lbl}>{t('name_he_optional')}</label>
-              <input type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+              <input aria-label={t('name_he_optional')} type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('name_en_optional')}</label>
-              <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+              <input aria-label={t('name_en_optional')} type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
             </div>
           </div>
 
           {/* Подразделение */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.department_label')} *</label>
-            <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
+            <select aria-label={t('common.department_label')} value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
               <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
             </select>

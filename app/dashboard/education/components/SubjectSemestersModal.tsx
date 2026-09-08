@@ -109,7 +109,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div style={{ flex: 2, minWidth: 140 }}>
                 <label style={lbl}>{t('subjects.semester_price_label')}</label>
-                <input
+                <input aria-label={t('subjects.semester_price_label')}
                   type="number" min={0} style={inp}
                   value={row.tuition_amount ?? ''}
                   onChange={e => patchRow(row.id, { tuition_amount: e.target.value === '' ? null : Number(e.target.value) })}
@@ -117,7 +117,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
               </div>
               <div style={{ flex: 1, minWidth: 110 }}>
                 <label style={lbl}>{t('subjects.sem_status_label')}</label>
-                <select
+                <select aria-label={t('subjects.sem_status_label')}
                   style={inp}
                   value={row.sem_status ?? 'open'}
                   onChange={e => patchRow(row.id, { sem_status: e.target.value })}

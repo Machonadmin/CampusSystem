@@ -133,26 +133,26 @@ function EntryForm({ initial, editing, onSubmit, onCancel, busy }: {
         </div>
         <div>
           <label style={lbl}>{t('entry_date')}</label>
-          <input type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} style={inp} />
+          <input aria-label={t('entry_date')} type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} style={inp} />
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
           <label style={lbl}>{t('hours')}</label>
-          <input type="number" step="0.01" min="0" value={hours} onChange={e => setHours(e.target.value)} style={inp} />
+          <input aria-label={t('hours')} type="number" step="0.01" min="0" value={hours} onChange={e => setHours(e.target.value)} style={inp} />
         </div>
         <div>
           <label style={lbl}>{t('amount')}</label>
-          <input type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)} style={inp} />
+          <input aria-label={t('amount')} type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)} style={inp} />
         </div>
       </div>
       <div>
         <label style={lbl}>{t('entry_title')}</label>
-        <input value={title} onChange={e => setTitle(e.target.value)} style={inp} />
+        <input aria-label={t('entry_title')} value={title} onChange={e => setTitle(e.target.value)} style={inp} />
       </div>
       <div>
         <label style={lbl}>{t('summary')}</label>
-        <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical' }} />
+        <textarea aria-label={t('summary')} value={summary} onChange={e => setSummary(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical' }} />
       </div>
       <div>
         <label style={lbl}>
@@ -425,25 +425,25 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' }}>
             <div>
               <label style={lbl}>{t('hourly_rate')}</label>
-              <input type="number" step="0.01" min="0" disabled={!canManage}
+              <input aria-label={t('hourly_rate')} type="number" step="0.01" min="0" disabled={!canManage}
                 value={rateDraft.hourly_rate ?? ''}
                 onChange={e => setRateDraft({ ...rateDraft, hourly_rate: e.target.value })} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('chavruta_rate')}</label>
-              <input type="number" step="0.01" min="0" disabled={!canManage}
+              <input aria-label={t('chavruta_rate')} type="number" step="0.01" min="0" disabled={!canManage}
                 value={rateDraft.chavruta_rate ?? ''}
                 onChange={e => setRateDraft({ ...rateDraft, chavruta_rate: e.target.value })} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('chavruta_plus_rate')}</label>
-              <input type="number" step="0.01" min="0" disabled={!canManage}
+              <input aria-label={t('chavruta_plus_rate')} type="number" step="0.01" min="0" disabled={!canManage}
                 value={rateDraft.chavruta_plus_rate ?? ''}
                 onChange={e => setRateDraft({ ...rateDraft, chavruta_plus_rate: e.target.value })} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('basis')}</label>
-              <select disabled={!canManage} value={rateDraft.chavruta_plus_basis ?? 'per_hour'}
+              <select aria-label={t('basis')} disabled={!canManage} value={rateDraft.chavruta_plus_basis ?? 'per_hour'}
                 onChange={e => setRateDraft({ ...rateDraft, chavruta_plus_basis: e.target.value })} style={inp}>
                 <option value="per_student_month">{t('basis_per_student_month')}</option>
                 <option value="per_hour">{t('basis_per_hour')}</option>

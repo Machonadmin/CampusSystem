@@ -114,7 +114,7 @@ export default function SemestersPage() {
                 <div style={{ marginTop: 12 }}>
                   <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('f_price')}</label>
                   {canManage ? (
-                    <input
+                    <input aria-label={t('f_price')}
                       defaultValue={s.tuition_amount != null ? String(s.tuition_amount) : ''} type="number" min="0" step="0.01"
                       placeholder="0.00"
                       onBlur={e => updatePrice(s, e.target.value)}

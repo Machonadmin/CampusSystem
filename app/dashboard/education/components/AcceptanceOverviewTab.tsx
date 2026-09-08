@@ -340,7 +340,7 @@ export default function AcceptanceOverviewTab() {
             {showTrackPicker && tracks.length > 0 && (
               <div style={{ display: 'grid', gap: 4, padding: '10px 12px', border: '1px solid var(--accent)', background: 'var(--accent-tint)', borderRadius: 8 }}>
                 <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)' }}>{t('overview.track_label')}</label>
-                <select value={trackId} onChange={e => setTrackId(e.target.value)}
+                <select aria-label={t('overview.track_label')} value={trackId} onChange={e => setTrackId(e.target.value)}
                   style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
                   <option value="">{t('overview.track_later')}</option>
                   {tracks.map(tr => <option key={tr.id} value={tr.id}>{trackName(tr)}</option>)}

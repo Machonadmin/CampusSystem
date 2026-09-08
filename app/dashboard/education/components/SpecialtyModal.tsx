@@ -102,7 +102,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.name_label')} *</label>
-            <input
+            <input aria-label={t('common.name_label')}
               type="text" value={name} onChange={e => setName(e.target.value)}
               style={inp} autoFocus placeholder={t('specialties.name_placeholder')}
             />
@@ -119,7 +119,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
 
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.department_label')} *</label>
-            <select
+            <select aria-label={t('common.department_label')}
               value={departmentId}
               onChange={e => setDepartmentId(e.target.value)}
               style={inp}
@@ -134,7 +134,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('common.sort_order_label')}</label>
-              <input
+              <input aria-label={t('common.sort_order_label')}
                 type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)}
                 style={inp} min={0}
               />

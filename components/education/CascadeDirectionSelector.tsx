@@ -115,7 +115,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
         {/* Учреждение */}
         <div>
           <label style={lbl}>{t('cascade.institution_label')}</label>
-          <select
+          <select aria-label={t('cascade.institution_label')}
             value={value.department_id ?? ''}
             onChange={e => handleInstitution(e.target.value)}
             disabled={disabled}
@@ -132,7 +132,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
         ) : showDirections ? (
           <div>
             <label style={lbl}>{t('cascade.direction_label')}</label>
-            <select
+            <select aria-label={t('cascade.direction_label')}
               value={value.direction_id ?? ''}
               onChange={e => handleDirection(e.target.value)}
               disabled={disabled}
@@ -148,7 +148,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
         {showLevels ? (
           <div>
             <label style={lbl}>{t('cascade.level_label')}</label>
-            <select
+            <select aria-label={t('cascade.level_label')}
               value={value.level_id ?? ''}
               onChange={e => handleLevel(e.target.value)}
               disabled={disabled}
@@ -165,7 +165,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
       {showFreeText && (
         <div>
           <label style={lbl}>{t('cascade.free_text_label')}</label>
-          <textarea
+          <textarea aria-label={t('cascade.free_text_label')}
             value={value.free_text ?? ''}
             onChange={e => handleFreeText(e.target.value)}
             disabled={disabled}

@@ -109,13 +109,13 @@ export default function YearRolloverTab() {
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
             <label style={lbl}>{t('rollover.month')}</label>
-            <select style={inp} value={settings.rollover_month} onChange={e => setSettings({ ...settings, rollover_month: Number(e.target.value) })}>
+            <select aria-label={t('rollover.month')} style={inp} value={settings.rollover_month} onChange={e => setSettings({ ...settings, rollover_month: Number(e.target.value) })}>
               {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
             <label style={lbl}>{t('rollover.day')}</label>
-            <select style={inp} value={settings.rollover_day} onChange={e => setSettings({ ...settings, rollover_day: Number(e.target.value) })}>
+            <select aria-label={t('rollover.day')} style={inp} value={settings.rollover_day} onChange={e => setSettings({ ...settings, rollover_day: Number(e.target.value) })}>
               {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>

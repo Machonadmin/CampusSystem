@@ -314,7 +314,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           {/* Title */}
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
-            <input
+            <input aria-label={t('create_modal.name_label')}
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder={t('create_modal.name_placeholder')}
@@ -326,7 +326,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           {/* Description */}
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
-            <textarea
+            <textarea aria-label={t('create_modal.description_label')}
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder={t('create_modal.description_placeholder')}
@@ -395,13 +395,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Start date */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
-                <input type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
+                <input aria-label={t('create_modal.start_from_label')} type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
               </div>
 
               {/* Frequency */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
-                <select
+                <select aria-label={t('create_modal.frequency_label')}
                   value={frequency}
                   onChange={e => setFrequency(e.target.value as RecurrenceFrequency)}
                   style={{ ...inp, maxWidth: 260 }}
@@ -444,7 +444,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {frequency === 'monthly' && (
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
-                  <input
+                  <input aria-label={t('create_modal.month_day_label')}
                     type="number" min={1} max={31} value={monthDay}
                     onChange={e => setMonthDay(e.target.value)}
                     placeholder={t('create_modal.month_day_placeholder')}
@@ -458,13 +458,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
-                    <select value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
+                    <select aria-label={t('create_modal.month_label')} value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthLabel(lang, m)}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
-                    <input
+                    <input aria-label={t('create_modal.day_label')}
                       type="number" min={1} max={31} value={yearDay}
                       onChange={e => setYearDay(e.target.value)}
                       placeholder={t('create_modal.day_placeholder')}
@@ -489,7 +489,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Series end */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
-                <select
+                <select aria-label={t('create_modal.series_end_label')}
                   value={seriesEnd}
                   onChange={e => setSeriesEnd(e.target.value as SeriesEnd)}
                   style={{ ...inp, maxWidth: 260, marginBottom: 8 }}

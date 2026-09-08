@@ -239,7 +239,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Template */}
             <div>
               <label style={labelStyle}>{t('create_modal.template_label')}</label>
-              <select
+              <select aria-label={t('create_modal.template_label')}
                 value={templateId}
                 onChange={e => setTemplateId(e.target.value)}
                 style={{ ...inputStyle, backgroundColor: 'var(--surface)' }}
@@ -319,7 +319,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Course / Subject */}
             <div>
               <label style={labelStyle}>{t('create_modal.course_subject_label')}</label>
-              <input
+              <input aria-label={t('create_modal.course_subject_label')}
                 value={courseName}
                 onChange={e => setCourseName(e.target.value)}
                 placeholder={t('create_modal.course_name_placeholder')}

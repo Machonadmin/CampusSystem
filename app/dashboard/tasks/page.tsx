@@ -361,7 +361,7 @@ export default function TasksPage() {
           padding: '10px 16px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
         }}>
           <label style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('filter_labels.priority')}</label>
-          <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
+          <select aria-label={t('filter_labels.priority')} value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as PriorityFilter)} style={inp}>
             <option value="all">{t('filters.all')}</option>
             <option value="urgent">{t('priority.urgent')}</option>
             <option value="high">{t('priority.high')}</option>

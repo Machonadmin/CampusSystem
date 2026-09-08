@@ -337,12 +337,12 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={lbl}>{t('name_ru_label')} *</label>
-            <input value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder={t('name_ru_placeholder')} style={inp} />
+            <input aria-label={t('name_ru_label')} value={nameRu} onChange={e => setNameRu(e.target.value)} placeholder={t('name_ru_placeholder')} style={inp} />
           </div>
 
           <div>
             <label style={lbl}>{t('name_he_label')}</label>
-            <input value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('name_he_placeholder')} dir="rtl" style={inp} />
+            <input aria-label={t('name_he_label')} value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('name_he_placeholder')} dir="rtl" style={inp} />
           </div>
 
           <div>
@@ -381,7 +381,7 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
 
           <div>
             <label style={lbl}>{t('sort_order_label')}</label>
-            <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inp, width: 100 }} />
+            <input aria-label={t('sort_order_label')} type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inp, width: 100 }} />
           </div>
         </div>
 

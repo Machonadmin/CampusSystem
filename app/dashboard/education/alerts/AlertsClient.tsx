@@ -162,18 +162,18 @@ function CreateAlertModal({ types, onClose, onSaved, t }: { types: AlertType[]; 
       <div style={{ display: 'grid', gap: 12 }}>
         <div><label style={lbl}>{t('student')} *</label><PersonSelect value={studentId} onChange={id => setStudentId(id)} allowAdd={false} accentColor={accent} placeholder={t('choose_student')} /></div>
         <div><label style={lbl}>{t('type')}</label>
-          <select value={typeCode} onChange={e => setTypeCode(e.target.value)} style={inp}>
+          <select aria-label={t('type')} value={typeCode} onChange={e => setTypeCode(e.target.value)} style={inp}>
             <option value="">—</option>
             {types.filter(x => x.is_active).map(ty => <option key={ty.code} value={ty.code}>{tn(ty)}</option>)}
           </select>
         </div>
         <div><label style={lbl}>{t('severity')}</label>
-          <select value={severity} onChange={e => setSeverity(e.target.value)} style={inp}>
+          <select aria-label={t('severity')} value={severity} onChange={e => setSeverity(e.target.value)} style={inp}>
             {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity_${s}`)}</option>)}
           </select>
         </div>
-        <div><label style={lbl}>{t('title_field')}</label><input value={title} onChange={e => setTitle(e.target.value)} style={inp} dir="rtl" /></div>
-        <div><label style={lbl}>{t('body_field')}</label><textarea value={body} onChange={e => setBody(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} dir="rtl" /></div>
+        <div><label style={lbl}>{t('title_field')}</label><input aria-label={t('title_field')} value={title} onChange={e => setTitle(e.target.value)} style={inp} dir="rtl" /></div>
+        <div><label style={lbl}>{t('body_field')}</label><textarea aria-label={t('body_field')} value={body} onChange={e => setBody(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} dir="rtl" /></div>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, cursor: 'pointer' }}>
           <input type="checkbox" checked={sensitive} onChange={e => setSensitive(e.target.checked)} />{t('mark_sensitive')}
         </label>

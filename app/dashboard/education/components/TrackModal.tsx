@@ -104,42 +104,42 @@ export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
           <label style={lbl}>{t('name_he_label')} *</label>
-          <input type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} style={inp} autoFocus dir="rtl" />
+          <input aria-label={t('name_he_label')} type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} style={inp} autoFocus dir="rtl" />
         </div>
 
         <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('name_ru_label')} *</label>
-            <input type="text" value={nameRu} onChange={e => setNameRu(e.target.value)} style={inp} />
+            <input aria-label={t('name_ru_label')} type="text" value={nameRu} onChange={e => setNameRu(e.target.value)} style={inp} />
           </div>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('name_en_label')} *</label>
-            <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} dir="ltr" />
+            <input aria-label={t('name_en_label')} type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} dir="ltr" />
           </div>
         </div>
 
         <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('code_label')} *</label>
-            <input type="text" value={code} onChange={e => setCode(e.target.value)} style={inp} dir="ltr" placeholder="univ_pr" />
+            <input aria-label={t('code_label')} type="text" value={code} onChange={e => setCode(e.target.value)} style={inp} dir="ltr" placeholder="univ_pr" />
             <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('code_hint')}</div>
           </div>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('category_label')}</label>
-            <input type="text" value={category} onChange={e => setCategory(e.target.value)} style={inp} dir="ltr" placeholder="university" />
+            <input aria-label={t('category_label')} type="text" value={category} onChange={e => setCategory(e.target.value)} style={inp} dir="ltr" placeholder="university" />
           </div>
         </div>
 
         <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('years_count_label')}</label>
-            <select value={yearsCount} onChange={e => setYearsCount(e.target.value)} style={inp}>
+            <select aria-label={t('years_count_label')} value={yearsCount} onChange={e => setYearsCount(e.target.value)} style={inp}>
               {[1, 2, 3, 4, 5, 6, 7, 8].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div style={{ flex: 1 }}>
             <label style={lbl}>{t('sort_order_label')}</label>
-            <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} min={0} />
+            <input aria-label={t('sort_order_label')} type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} min={0} />
           </div>
         </div>
 

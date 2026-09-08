@@ -110,26 +110,26 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <div>
             <label style={lbl}>{t('card.labels.last_name')} *</label>
-            <input value={lastName} onChange={e => setLastName(e.target.value)} style={inp} autoFocus />
+            <input aria-label={t('card.labels.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} style={inp} autoFocus />
           </div>
           <div>
             <label style={lbl}>{t('card.labels.first_name')} *</label>
-            <input value={firstName} onChange={e => setFirstName(e.target.value)} style={inp} />
+            <input aria-label={t('card.labels.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} style={inp} />
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <div>
             <label style={lbl}>{t('card.labels.phone')} *</label>
-            <input value={phone} onChange={e => setPhone(e.target.value)} style={inp} inputMode="tel" dir="ltr" />
+            <input aria-label={t('card.labels.phone')} value={phone} onChange={e => setPhone(e.target.value)} style={inp} inputMode="tel" dir="ltr" />
           </div>
           <div>
             <label style={lbl}>{t('card.labels.email')}</label>
-            <input value={email} onChange={e => setEmail(e.target.value)} style={inp} inputMode="email" dir="ltr" />
+            <input aria-label={t('card.labels.email')} value={email} onChange={e => setEmail(e.target.value)} style={inp} inputMode="email" dir="ltr" />
           </div>
         </div>
         <div style={{ marginBottom: 12 }}>
           <label style={lbl}>{t('card.labels.referral_source')}</label>
-          <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
+          <select aria-label={t('card.labels.referral_source')} value={source} onChange={e => setSource(e.target.value)} style={inp}>
             <option value="">—</option>
             {SOURCE_CODES.map(c => <option key={c} value={c}>{t(`card.source.${c}`, c)}</option>)}
           </select>
@@ -149,12 +149,12 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
             </div>
             <div>
               <label style={lbl}>{t('form.community_name')}</label>
-              <input value={commName} onChange={e => setCommName(e.target.value)} style={inp} />
+              <input aria-label={t('form.community_name')} value={commName} onChange={e => setCommName(e.target.value)} style={inp} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
                 <label style={lbl}>{t('form.community_contact_person')}</label>
-                <input value={repName} onChange={e => setRepName(e.target.value)} style={inp} />
+                <input aria-label={t('form.community_contact_person')} value={repName} onChange={e => setRepName(e.target.value)} style={inp} />
               </div>
               <div>
                 <label style={lbl}>{t('form.community_position')}</label>
@@ -165,7 +165,7 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
         )}
         <div style={{ marginBottom: 12 }}>
           <label style={lbl}>{t('card.labels.comment')}</label>
-          <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
+          <textarea aria-label={t('card.labels.comment')} value={comment} onChange={e => setComment(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
         </div>
 
         {error && <div style={{ padding: 10, marginBottom: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>}

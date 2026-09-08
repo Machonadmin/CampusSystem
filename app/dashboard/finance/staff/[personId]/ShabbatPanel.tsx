@@ -244,18 +244,18 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
       <div className="resp-grid-3" style={{ gap: 12 }}>
         <div>
           <label style={lbl}>{t('sh_type')}</label>
-          <select value={entryType} onChange={e => setEntryType(e.target.value as ShabbatType)} style={inp}>
+          <select aria-label={t('sh_type')} value={entryType} onChange={e => setEntryType(e.target.value as ShabbatType)} style={inp}>
             <option value="shabbat_host">{t('sh_type_host')}</option>
             <option value="shabbat_family">{t('sh_type_family')}</option>
           </select>
         </div>
         <div>
           <label style={lbl}>{t('sh_date')}</label>
-          <input type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} style={inp} />
+          <input aria-label={t('sh_date')} type="date" value={entryDate} onChange={e => setEntryDate(e.target.value)} style={inp} />
         </div>
         <div>
           <label style={lbl}>{t('sh_amount')}</label>
-          <input type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)} style={inp} />
+          <input aria-label={t('sh_amount')} type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)} style={inp} />
         </div>
       </div>
 
@@ -288,7 +288,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
 
       <div>
         <label style={lbl}>{t('sh_summary')}</label>
-        <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical' }} />
+        <textarea aria-label={t('sh_summary')} value={summary} onChange={e => setSummary(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical' }} />
       </div>
 
       <div>

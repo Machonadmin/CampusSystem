@@ -417,7 +417,7 @@ export default function FillCheckPage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.delay_reason_label')}</label>
-                <input type="text" value={delayReason} disabled={isRO} placeholder={t('fill.delay_reason_placeholder')}
+                <input aria-label={t('fill.delay_reason_label')} type="text" value={delayReason} disabled={isRO} placeholder={t('fill.delay_reason_placeholder')}
                   onChange={e => setDelayReason(e.target.value)}
                   style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
@@ -426,7 +426,7 @@ export default function FillCheckPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.tech_issues_label')}</label>
-            <textarea value={techIssues} disabled={isRO} rows={2}
+            <textarea aria-label={t('fill.tech_issues_label')} value={techIssues} disabled={isRO} rows={2}
               placeholder={t('fill.tech_issues_placeholder')}
               onChange={e => setTechIssues(e.target.value)}
               style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
@@ -488,7 +488,7 @@ export default function FillCheckPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.feedback_label')}</label>
-                <textarea value={feedback} disabled={isRO} rows={3}
+                <textarea aria-label={t('fill.feedback_label')} value={feedback} disabled={isRO} rows={3}
                   placeholder={t('fill.feedback_placeholder')}
                   onChange={e => setFeedback(e.target.value)}
                   style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />

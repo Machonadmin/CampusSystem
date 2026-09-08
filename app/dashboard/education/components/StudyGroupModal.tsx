@@ -128,7 +128,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.name_label')} *</label>
-            <input
+            <input aria-label={t('common.name_label')}
               type="text" value={name} onChange={e => setName(e.target.value)}
               style={inp} autoFocus placeholder={t('groups.name_placeholder')}
             />
@@ -136,7 +136,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
 
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.department_label')} *</label>
-            <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
+            <select aria-label={t('common.department_label')} value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
               <option value="">{t('common.select_placeholder')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
             </select>

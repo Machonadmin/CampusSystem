@@ -372,21 +372,21 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={labelStyle}>{t('title_label')} *</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('title_placeholder')} style={inputStyle} />
+            <input aria-label={t('title_label')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('title_placeholder')} style={inputStyle} />
           </div>
           <div className="resp-grid-2" style={{ gap: 12 }}>
             <div>
               <label style={labelStyle}>{t('max_score_label')} *</label>
-              <input type="number" min={0} step="0.01" value={maxScore} onChange={e => setMaxScore(e.target.value)} style={inputStyle} />
+              <input aria-label={t('max_score_label')} type="number" min={0} step="0.01" value={maxScore} onChange={e => setMaxScore(e.target.value)} style={inputStyle} />
             </div>
             <div>
               <label style={labelStyle}>{t('date_label')}</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+              <input aria-label={t('date_label')} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
             </div>
           </div>
           <div>
             <label style={labelStyle}>{t('description_label')}</label>
-            <textarea
+            <textarea aria-label={t('description_label')}
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={2}

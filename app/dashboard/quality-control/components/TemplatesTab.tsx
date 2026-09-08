@@ -368,11 +368,11 @@ function TemplateBuilder({
           <div style={{ display: 'flex', gap: 14 }}>
             <div style={{ flex: 2 }}>
               <label style={lbl}>{t('templates.name_label')} *</label>
-              <input value={name} onChange={e => setName(e.target.value)} style={inp} placeholder={t('templates.name_placeholder')} />
+              <input aria-label={t('templates.name_label')} value={name} onChange={e => setName(e.target.value)} style={inp} placeholder={t('templates.name_placeholder')} />
             </div>
             <div style={{ flex: 3 }}>
               <label style={lbl}>{t('templates.description_label')}</label>
-              <input value={description} onChange={e => setDescription(e.target.value)} style={inp} placeholder={t('templates.description_placeholder')} />
+              <input aria-label={t('templates.description_label')} value={description} onChange={e => setDescription(e.target.value)} style={inp} placeholder={t('templates.description_placeholder')} />
             </div>
           </div>
 

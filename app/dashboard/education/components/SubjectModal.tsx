@@ -127,7 +127,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('subjects.name_field_label')} *</label>
-            <input
+            <input aria-label={t('subjects.name_field_label')}
               type="text" value={nameHe} onChange={e => setNameHe(e.target.value)}
               style={inp} autoFocus placeholder={t('subjects.name_placeholder')} dir="rtl"
             />
@@ -136,14 +136,14 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('subjects.name_ru_label')}</label>
-              <input
+              <input aria-label={t('subjects.name_ru_label')}
                 type="text" value={nameRu} onChange={e => setNameRu(e.target.value)}
                 style={inp} placeholder={t('subjects.name_ru_label')}
               />
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('subjects.name_en_label')}</label>
-              <input
+              <input aria-label={t('subjects.name_en_label')}
                 type="text" value={nameEn} onChange={e => setNameEn(e.target.value)}
                 style={inp} placeholder={t('subjects.name_en_label')} dir="ltr"
               />
@@ -153,7 +153,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 2 }}>
               <label style={lbl}>{t('subjects.track_label')} *</label>
-              <select
+              <select aria-label={t('subjects.track_label')}
                 value={trackId}
                 onChange={e => {
                   const id = e.target.value
@@ -172,7 +172,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('subjects.year_label')} *</label>
-              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
+              <select aria-label={t('subjects.year_label')} value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
                 {YEARS.map(y => (
                   <option key={y} value={y}>{t(`subjects.year_${y}`)}</option>
                 ))}
@@ -183,7 +183,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
           {mode === 'create' && (
             <div style={{ marginBottom: 12 }}>
               <label style={lbl}>{t('subjects.semester_price_label')}</label>
-              <input
+              <input aria-label={t('subjects.semester_price_label')}
                 type="number" value={price} onChange={e => setPrice(e.target.value)}
                 style={inp} min={0}
               />

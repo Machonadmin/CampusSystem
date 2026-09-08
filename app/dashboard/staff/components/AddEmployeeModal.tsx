@@ -527,24 +527,24 @@ export default function AddEmployeeModal({
             <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('add_modal.last_name')} *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('add_modal.first_name')} *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('add_modal.first_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('add_modal.first_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('add_modal.middle_name')}</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('add_modal.middle_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.middle_name')} value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('add_modal.middle_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('add_modal.hebrew_name_ph')} dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.hebrew_name')} value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('add_modal.hebrew_name_ph')} dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.gender')}</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('add_modal.gender')} value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="male">{t('add_modal.gender_male')}</option>
                 <option value="female">{t('add_modal.gender_female')}</option>
@@ -556,7 +556,7 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.marital_status')}</label>
-              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('add_modal.marital_status')} value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="single">{t('add_modal.marital_single')}</option>
                 <option value="married">{t('add_modal.marital_married')}</option>
@@ -606,7 +606,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.email')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.email')} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.country')}</label>
@@ -618,19 +618,19 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.street')}</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('add_modal.street_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.street')} value={street} onChange={e => setStreet(e.target.value)} placeholder={t('add_modal.street_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.house')}</label>
-              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.house')} value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.apartment')}</label>
-              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.apartment')} value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.postal_code')}</label>
-              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.postal_code')} value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -662,14 +662,14 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.department')} *</label>
-              <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.department')} value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
                 <option value="">{t('add_modal.select_department')}</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.position')} *</label>
-              <select value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
+              <select aria-label={t('add_modal.position')} value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
                 <option value="">{t('add_modal.select_position')}</option>
                 {positions.filter(p => p.category === 'academic').length > 0 && (
                   <optgroup label={t('add_modal.category_academic')}>
@@ -700,7 +700,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('seat_role')}</label>
-              <select value={roleId} onChange={e => setRoleId(e.target.value)} style={inp}>
+              <select aria-label={t('seat_role')} value={roleId} onChange={e => setRoleId(e.target.value)} style={inp}>
                 <option value="">{t('add_modal.role_none')}</option>
                 {rolesList.map(r => <option key={r.id} value={r.id}>{roleLabel(langT.roles, r.code, r.name)}</option>)}
               </select>
@@ -713,7 +713,7 @@ export default function AddEmployeeModal({
             )}
             <div>
               <label style={lbl}>{t('add_modal.employment_type')}</label>
-              <select value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.employment_type')} value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>
                 <option value="staff">{t('add_modal.employment_staff')}</option>
                 <option value="part_time">{t('add_modal.employment_part_time')}</option>
                 <option value="hourly">{t('add_modal.employment_hourly')}</option>
@@ -722,7 +722,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.work_schedule')}</label>
-              <select value={workSchedule} onChange={e => setWorkSchedule(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.work_schedule')} value={workSchedule} onChange={e => setWorkSchedule(e.target.value)} style={inp}>
                 <option value="">—</option>
                 <option value="5_2">{t('add_modal.schedule_5_2')}</option>
                 <option value="shift">{t('add_modal.schedule_shift')}</option>
@@ -741,11 +741,11 @@ export default function AddEmployeeModal({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_series')}</label>
-                  <input value={passportSeries} onChange={e => setPassportSeries(e.target.value)} placeholder="1234" style={inp} />
+                  <input aria-label={t('add_modal.passport_series')} value={passportSeries} onChange={e => setPassportSeries(e.target.value)} placeholder="1234" style={inp} />
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_number')}</label>
-                  <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="567890" style={inp} />
+                  <input aria-label={t('add_modal.passport_number')} value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="567890" style={inp} />
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_issue_date')}</label>
@@ -753,7 +753,7 @@ export default function AddEmployeeModal({
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_issued_by')}</label>
-                  <input value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder={t('add_modal.passport_issued_by_placeholder')} style={inp} />
+                  <input aria-label={t('add_modal.passport_issued_by')} value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder={t('add_modal.passport_issued_by_placeholder')} style={inp} />
                 </div>
               </div>
             </div>
@@ -762,7 +762,7 @@ export default function AddEmployeeModal({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.education_level')}</label>
-                  <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} style={inp}>
+                  <select aria-label={t('add_modal.education_level')} value={educationLevel} onChange={e => setEducationLevel(e.target.value)} style={inp}>
                     <option value="">—</option>
                     <option value="higher">{t('add_modal.education_higher')}</option>
                     <option value="incomplete_higher">{t('add_modal.education_incomplete_higher')}</option>
@@ -772,15 +772,15 @@ export default function AddEmployeeModal({
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.graduation_year')}</label>
-                  <input type="number" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} placeholder="2020" style={inp} />
+                  <input aria-label={t('add_modal.graduation_year')} type="number" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} placeholder="2020" style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>{t('add_modal.specialty')}</label>
-                  <input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder={t('add_modal.specialty_placeholder')} style={inp} />
+                  <input aria-label={t('add_modal.specialty')} value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder={t('add_modal.specialty_placeholder')} style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>{t('add_modal.certificates')}</label>
-                  <textarea value={certificates} onChange={e => setCertificates(e.target.value)} rows={3}
+                  <textarea aria-label={t('add_modal.certificates')} value={certificates} onChange={e => setCertificates(e.target.value)} rows={3}
                     placeholder={t('add_modal.certificates_placeholder')} style={{ ...inp, resize: 'vertical' }} />
                 </div>
               </div>
@@ -793,7 +793,7 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.contract_number')}</label>
-              <input value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder={t('add_modal.contract_number_placeholder')} style={inp} />
+              <input aria-label={t('add_modal.contract_number')} value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder={t('add_modal.contract_number_placeholder')} style={inp} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.contract_date')}</label>
@@ -801,11 +801,11 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.salary')}</label>
-              <input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="10000" style={inp} />
+              <input aria-label={t('add_modal.salary')} type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="10000" style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.currency')}</label>
-              <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.currency')} value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
                 <option value="RUB">RUB (₽)</option>
                 <option value="ILS">ILS (₪)</option>
                 <option value="USD">USD ($)</option>
@@ -833,7 +833,7 @@ export default function AddEmployeeModal({
         return (
           <div>
             <label style={lbl}>{t('add_modal.comment')}</label>
-            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={6}
+            <textarea aria-label={t('add_modal.comment')} value={comment} onChange={e => setComment(e.target.value)} rows={6}
               style={{ ...inp, resize: 'vertical' }} placeholder={t('add_modal.comment_placeholder')} />
           </div>
         )

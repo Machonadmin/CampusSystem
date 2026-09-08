@@ -375,24 +375,24 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           <div className="resp-grid-2" style={{ gap: 12 }}>
             <div>
               <label style={labelStyle}>{t('date_label')} *</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+              <input aria-label={t('date_label')} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
             </div>
             <div>
               <label style={labelStyle}>{t('time_label')}</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={inputStyle} />
+              <input aria-label={t('time_label')} type="time" value={time} onChange={e => setTime(e.target.value)} style={inputStyle} />
             </div>
           </div>
           <div>
             <label style={labelStyle}>{t('topic_label')}</label>
-            <input value={topic} onChange={e => setTopic(e.target.value)} placeholder={t('topic_placeholder')} style={inputStyle} />
+            <input aria-label={t('topic_label')} value={topic} onChange={e => setTopic(e.target.value)} placeholder={t('topic_placeholder')} style={inputStyle} />
           </div>
           <div>
             <label style={labelStyle}>{t('location_label')}</label>
-            <input value={location} onChange={e => setLocation(e.target.value)} placeholder={t('location_placeholder')} style={inputStyle} />
+            <input aria-label={t('location_label')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('location_placeholder')} style={inputStyle} />
           </div>
           <div>
             <label style={labelStyle}>{t('description_label')}</label>
-            <textarea
+            <textarea aria-label={t('description_label')}
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}

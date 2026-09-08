@@ -691,24 +691,24 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('form.last_name')} *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('form.first_name')} *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('form.ph.first_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('form.ph.first_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('form.middle_name')}</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('form.ph.middle_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.middle_name')} value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('form.ph.middle_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('form.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('form.ph.hebrew_name')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.hebrew_name')} value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('form.ph.hebrew_name')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.gender')}</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('form.gender')} value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="female">{t('form.gender_female')}</option>
                 <option value="male">{t('form.gender_male')}</option>
@@ -720,7 +720,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.marital_status')}</label>
-              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('form.marital_status')} value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="single">{t('form.marital_single')}</option>
                 <option value="married">{t('form.marital_married')}</option>
@@ -734,7 +734,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.passport_number')}</label>
-              <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder={t('form.ph.passport')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.passport_number')} value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder={t('form.ph.passport')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -771,7 +771,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('form.email')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.email')} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.country')}</label>
@@ -790,19 +790,19 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.street')}</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('form.ph.street')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.street')} value={street} onChange={e => setStreet(e.target.value)} placeholder={t('form.ph.street')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.house')}</label>
-              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.house')} value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.apartment')}</label>
-              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.apartment')} value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.postal_code')}</label>
-              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.postal_code')} value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -897,7 +897,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={lbl}>{t('form.community_name')}</label>
-                      <input value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
+                      <input aria-label={t('form.community_name')} value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
                         placeholder={t('form.ph.community_name')} style={inp} />
                     </div>
                     <div>
@@ -926,7 +926,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     </div>
                     <div>
                       <label style={lbl}>{t('form.ct_email')}</label>
-                      <input type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
+                      <input aria-label={t('form.ct_email')} type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
                         placeholder={t('form.ph.community_email')} style={inp} />
                     </div>
                     {comm.contacts.map((cc, ci) => (
@@ -1001,14 +1001,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <label style={lbl}>{t('form.source_label')}</label>
-              <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
+              <select aria-label={t('form.source_label')} value={source} onChange={e => setSource(e.target.value)} style={inp}>
                 <option value="">{t('form.source_not_specified')}</option>
                 {SOURCE_CODES.map(code => <option key={code} value={code}>{t(`card.source.${code}`)}</option>)}
               </select>
             </div>
             <div>
               <label style={lbl}>{t('form.comment')}</label>
-              <textarea value={comment} onChange={e => setComment(e.target.value)} rows={5}
+              <textarea aria-label={t('form.comment')} value={comment} onChange={e => setComment(e.target.value)} rows={5}
                 style={{ ...inp, resize: 'vertical' }} placeholder={t('form.ph.comment')} />
             </div>
           </div>
@@ -1031,7 +1031,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_specialty')}</label>
-              <select
+              <select aria-label={t('form.academic_specialty')}
                 value={specialtyId ?? ''}
                 onChange={e => setSpecialtyId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
@@ -1043,7 +1043,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_base_group')}</label>
-              <select
+              <select aria-label={t('form.academic_base_group')}
                 value={mainGroupId ?? ''}
                 onChange={e => setMainGroupId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
@@ -1055,17 +1055,17 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_course_class')}</label>
-              <input type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
+              <input aria-label={t('form.academic_course_class')} type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
                 placeholder={t('form.ph.course_class')} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('form.academic_enrollment_year')}</label>
-              <input type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
+              <input aria-label={t('form.academic_enrollment_year')} type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
                 placeholder={t('form.ph.enrollment_year')} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('form.academic_enrollment_date')}</label>
-              <input type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
+              <input aria-label={t('form.academic_enrollment_date')} type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
                 style={inp} />
             </div>
           </div>

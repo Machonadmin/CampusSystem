@@ -69,7 +69,7 @@ export default function PersonRelationField({
       {!fixedRelationType && (
         <div style={{ minWidth: 140 }}>
           <label style={lbl}>{t('relation_type_label')}</label>
-          <select
+          <select aria-label={t('relation_type_label')}
             value={value.relation_type}
             onChange={(e) => onChange({ ...value, relation_type: e.target.value as RelationType })}
             style={ctrl}

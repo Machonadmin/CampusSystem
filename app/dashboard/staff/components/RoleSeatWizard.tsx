@@ -356,12 +356,12 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               ) : (
                 <div style={{ display: 'grid', gap: 10 }}>
                   <div style={row2}>
-                    <div><label style={label}>{t('fn_last')}</label><input value={newLast} onChange={e => setNewLast(e.target.value)} style={inp} dir="rtl" /></div>
-                    <div><label style={label}>{t('fn_first')}</label><input value={newFirst} onChange={e => setNewFirst(e.target.value)} style={inp} dir="rtl" /></div>
+                    <div><label style={label}>{t('fn_last')}</label><input aria-label={t('fn_last')} value={newLast} onChange={e => setNewLast(e.target.value)} style={inp} dir="rtl" /></div>
+                    <div><label style={label}>{t('fn_first')}</label><input aria-label={t('fn_first')} value={newFirst} onChange={e => setNewFirst(e.target.value)} style={inp} dir="rtl" /></div>
                   </div>
                   <div style={row2}>
-                    <div><label style={label}>{t('fn_middle')}</label><input value={newMiddle} onChange={e => setNewMiddle(e.target.value)} style={inp} dir="rtl" /></div>
-                    <div><label style={label}>{t('fn_phone')}</label><input value={newPhone} onChange={e => setNewPhone(e.target.value)} style={inp} dir="ltr" inputMode="tel" /></div>
+                    <div><label style={label}>{t('fn_middle')}</label><input aria-label={t('fn_middle')} value={newMiddle} onChange={e => setNewMiddle(e.target.value)} style={inp} dir="rtl" /></div>
+                    <div><label style={label}>{t('fn_phone')}</label><input aria-label={t('fn_phone')} value={newPhone} onChange={e => setNewPhone(e.target.value)} style={inp} dir="ltr" inputMode="tel" /></div>
                   </div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{t('new_person_hint')}</div>
                   {dupHits.length > 0 && (
@@ -395,7 +395,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               <div style={{ display: 'grid', gap: 12 }}>
                 <div>
                   <label style={label}>{t('position_combo')} *</label>
-                  <input value={positionInput} onChange={e => setPositionInput(e.target.value)} placeholder={t('position_combo_ph')} list="positions-list" style={inp} dir="rtl" />
+                  <input aria-label={t('position_combo')} value={positionInput} onChange={e => setPositionInput(e.target.value)} placeholder={t('position_combo_ph')} list="positions-list" style={inp} dir="rtl" />
                   <datalist id="positions-list">
                     {positions.map(p => <option key={p.id} value={posName(p)} />)}
                   </datalist>
@@ -403,7 +403,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
                 </div>
                 <div>
                   <label style={label}>{t('department')} *</label>
-                  <select value={deptId} onChange={e => setDeptId(e.target.value)} style={inp}>
+                  <select aria-label={t('department')} value={deptId} onChange={e => setDeptId(e.target.value)} style={inp}>
                     <option value="">—</option>
                     {depts.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
                   </select>
@@ -421,12 +421,12 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               <SectionHead n={3} title={t('sec_employment')} badge />
               <div style={{ display: 'grid', gap: 12 }}>
                 <div style={row2}>
-                  <div><label style={label}>{t('salary')}</label><input value={salary} onChange={e => setSalary(e.target.value.replace(/[^\d]/g, ''))} placeholder={t('salary_ph')} style={inp} inputMode="numeric" dir="ltr" /></div>
-                  <div><label style={label}>{t('hours')}</label><input value={hours} onChange={e => setHours(e.target.value.replace(/[^\d]/g, ''))} placeholder={t('hours_ph')} style={inp} inputMode="numeric" dir="ltr" /></div>
+                  <div><label style={label}>{t('salary')}</label><input aria-label={t('salary')} value={salary} onChange={e => setSalary(e.target.value.replace(/[^\d]/g, ''))} placeholder={t('salary_ph')} style={inp} inputMode="numeric" dir="ltr" /></div>
+                  <div><label style={label}>{t('hours')}</label><input aria-label={t('hours')} value={hours} onChange={e => setHours(e.target.value.replace(/[^\d]/g, ''))} placeholder={t('hours_ph')} style={inp} inputMode="numeric" dir="ltr" /></div>
                 </div>
                 <div>
                   <label style={label}>{t('hire_date')}</label>
-                  <input type="date" value={hireDate} onChange={e => setHireDate(e.target.value)} style={inp} />
+                  <input aria-label={t('hire_date')} type="date" value={hireDate} onChange={e => setHireDate(e.target.value)} style={inp} />
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>{t('hire_date_hint')}</div>
                 </div>
               </div>
@@ -446,7 +446,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               {roleMode === 'existing' && (
                 <div>
                   <label style={label}>{t('pick_existing_role')} *</label>
-                  <select value={existingRoleId} onChange={e => setExistingRoleId(e.target.value)} style={inp}>
+                  <select aria-label={t('pick_existing_role')} value={existingRoleId} onChange={e => setExistingRoleId(e.target.value)} style={inp}>
                     <option value="">—</option>
                     {rolesSorted.map(r => <option key={r.id} value={r.id}>{roleLbl(r)}</option>)}
                   </select>
@@ -456,8 +456,8 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               {roleMode === 'new' && (
                 <div style={{ display: 'grid', gap: 14 }}>
                   <div style={row2}>
-                    <div><label style={label}>{t('role_name')} *</label><input value={roleName} onChange={e => setRoleName(e.target.value)} placeholder={t('role_name_ph')} dir="rtl" style={inp} /></div>
-                    <div><label style={label}>{t('role_category')}</label><select value={roleCat} onChange={e => setRoleCat(e.target.value)} style={inp}>{categories.map(c => <option key={c} value={c}>{tCat(c, c)}</option>)}</select></div>
+                    <div><label style={label}>{t('role_name')} *</label><input aria-label={t('role_name')} value={roleName} onChange={e => setRoleName(e.target.value)} placeholder={t('role_name_ph')} dir="rtl" style={inp} /></div>
+                    <div><label style={label}>{t('role_category')}</label><select aria-label={t('role_category')} value={roleCat} onChange={e => setRoleCat(e.target.value)} style={inp}>{categories.map(c => <option key={c} value={c}>{tCat(c, c)}</option>)}</select></div>
                   </div>
                   <div>
                     <label style={label}>{t('scope')}</label>
@@ -579,7 +579,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
               {makeLogin && (
                 <div style={{ marginTop: 12 }}>
                   <label style={label}>{t('login_email')} *</label>
-                  <input value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="name@example.com" dir="ltr" style={{ ...inp, textAlign: 'start' }} />
+                  <input aria-label={t('login_email')} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="name@example.com" dir="ltr" style={{ ...inp, textAlign: 'start' }} />
                   <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>{t('password_auto')}</div>
                 </div>
               )}

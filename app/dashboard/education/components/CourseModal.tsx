@@ -86,7 +86,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
         <form onSubmit={submit}>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('courses.name_label')} *</label>
-            <input value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('courses.name_placeholder')} />
+            <input aria-label={t('courses.name_label')} value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('courses.name_placeholder')} />
           </div>
 
           <div style={{ marginBottom: 12 }}>

@@ -353,7 +353,7 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div>
           <label style={labelStyle}>{t('day_label')}</label>
-          <select value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)} style={inputStyle}>
+          <select aria-label={t('day_label')} value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)} style={inputStyle}>
             {[1, 2, 3, 4, 5, 6, 7].map(wd => (
               <option key={wd} value={wd}>{weekdayLabel(lang, wd, 'long')}</option>
             ))}
@@ -362,18 +362,18 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
         <div className="resp-grid-2" style={{ gap: 12 }}>
           <div>
             <label style={labelStyle}>{t('start_label')} *</label>
-            <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} style={inputStyle} />
+            <input aria-label={t('start_label')} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} style={inputStyle} />
           </div>
           <div>
             <label style={labelStyle}>{t('end_label')} *</label>
-            <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} style={inputStyle} />
+            <input aria-label={t('end_label')} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} style={inputStyle} />
           </div>
         </div>
         {buildings.length > 0 && (
           <div className="resp-grid-2" style={{ gap: 12 }}>
             <div>
               <label style={labelStyle}>{t('building_label')}</label>
-              <select
+              <select aria-label={t('building_label')}
                 value={buildingId}
                 onChange={e => { setBuildingId(e.target.value); setRoomId('') }}
                 style={inputStyle}
@@ -384,7 +384,7 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
             </div>
             <div>
               <label style={labelStyle}>{t('room_select_label')}</label>
-              <select
+              <select aria-label={t('room_select_label')}
                 value={roomId}
                 onChange={e => {
                   const rid = e.target.value
@@ -482,11 +482,11 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
       <div className="resp-grid-2" style={{ gap: 12 }}>
         <div>
           <label style={labelStyle}>{t('from_label')}</label>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inputStyle} />
+          <input aria-label={t('from_label')} type="date" value={from} onChange={e => setFrom(e.target.value)} style={inputStyle} />
         </div>
         <div>
           <label style={labelStyle}>{t('to_label')}</label>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} style={inputStyle} />
+          <input aria-label={t('to_label')} type="date" value={to} onChange={e => setTo(e.target.value)} style={inputStyle} />
         </div>
       </div>
 

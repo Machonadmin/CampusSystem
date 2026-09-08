@@ -212,16 +212,16 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           {/* 1. Название (RU обяз. + he/en опц.) */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.name_field_label')} *</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('semester_groups.name_placeholder')} />
+            <input aria-label={t('semester_groups.name_field_label')} type="text" value={name} onChange={e => setName(e.target.value)} style={inp} autoFocus placeholder={t('semester_groups.name_placeholder')} />
           </div>
           <div style={{ marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <label style={lbl}>{t('name_he_optional')}</label>
-              <input type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
+              <input aria-label={t('name_he_optional')} type="text" value={nameHe} onChange={e => setNameHe(e.target.value)} dir="rtl" style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('name_en_optional')}</label>
-              <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
+              <input aria-label={t('name_en_optional')} type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} style={inp} />
             </div>
           </div>
 
@@ -229,7 +229,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
               подразделение и число лет-ступеней. */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.track_label')} *</label>
-            <select
+            <select aria-label={t('semester_groups.track_label')}
               value={trackId}
               onChange={e => {
                 const v = e.target.value
@@ -249,7 +249,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.year_level_label')} *</label>
-              <select value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp} disabled={!trackId}>
+              <select aria-label={t('semester_groups.year_level_label')} value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp} disabled={!trackId}>
                 <option value="">—</option>
                 {Array.from({ length: maxYears }, (_, i) => i + 1).map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
               </select>

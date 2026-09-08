@@ -137,7 +137,7 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={lbl}>{t('name_ru_label')} *</label>
-            <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
+            <input aria-label={t('name_ru_label')} autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
               placeholder={t('dept_name_placeholder')} style={inp} />
           </div>
           <div className="resp-grid-2" style={{ gap: 12 }}>
@@ -153,19 +153,19 @@ function DeptAddModal({ depts, parentId, onClose, onSaved }: {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12 }}>
             <div>
               <label style={lbl}>{t('parent_dept')}</label>
-              <select value={selectedParent} onChange={e => setSelectedParent(e.target.value)} style={inp}>
+              <select aria-label={t('parent_dept')} value={selectedParent} onChange={e => setSelectedParent(e.target.value)} style={inp}>
                 <option value="">{t('no_parent_root')}</option>
                 {parentOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
               </select>
             </div>
             <div>
               <label style={lbl}>{t('sort_order')}</label>
-              <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} />
+              <input aria-label={t('sort_order')} type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} />
             </div>
           </div>
           <div>
             <label style={lbl}>{t('dept_description')}</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
+            <textarea aria-label={t('dept_description')} value={description} onChange={e => setDescription(e.target.value)} rows={3}
               style={{ ...inp, resize: 'vertical' }} placeholder={t('short_description_placeholder')} />
           </div>
           {err && <p style={{ fontSize: 12, color: 'var(--danger)', margin: 0 }}>{err}</p>}
@@ -210,7 +210,7 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={lbl}>{t('name_ru_label')}</label>
-            <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
+            <input aria-label={t('name_ru_label')} autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
           </div>
           <div>
             <label style={lbl}>{t('name_he_label')} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({t('optional')})</span></label>
@@ -271,11 +271,11 @@ function StaffPositionEditModal({ member, onClose, onSaved }: {
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={lbl}>{t('position_label')}</label>
-            <input autoFocus value={position} onChange={e => setPosition(e.target.value)} style={inp} />
+            <input aria-label={t('position_label')} autoFocus value={position} onChange={e => setPosition(e.target.value)} style={inp} />
           </div>
           <div>
             <label style={lbl}>{t('employment_type')}</label>
-            <select value={empType} onChange={e => setEmpType(e.target.value)} style={inp}>
+            <select aria-label={t('employment_type')} value={empType} onChange={e => setEmpType(e.target.value)} style={inp}>
               <option value="staff">{t('employment.staff')}</option>
               <option value="part_time">{t('employment.part_time')}</option>
               <option value="intern">{t('employment.intern')}</option>
