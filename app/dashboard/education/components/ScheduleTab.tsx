@@ -403,7 +403,7 @@ function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, o
         )}
         <div>
           <label style={labelStyle}>{t('room_label')} {buildings.length > 0 && <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>· {t('or_free_text')}</span>}</label>
-          <input value={room} onChange={e => setRoom(e.target.value)} placeholder={t('room_placeholder')} style={inputStyle} />
+          <input aria-label={t('room_placeholder')} value={room} onChange={e => setRoom(e.target.value)} placeholder={t('room_placeholder')} style={inputStyle} />
         </div>
       </div>
 

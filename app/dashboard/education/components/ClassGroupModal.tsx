@@ -200,7 +200,7 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
           {/* Уровень */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('class_groups.level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <input type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} list="cg-level-options" />
+            <input aria-label={t('class_groups.level_placeholder')} type="text" value={level} onChange={e => setLevel(e.target.value)} style={inp} placeholder={t('class_groups.level_placeholder')} list="cg-level-options" />
             <datalist id="cg-level-options">
               {levelOptions.map(lv => <option key={lv} value={lv} />)}
             </datalist>
@@ -248,7 +248,7 @@ export default function ClassGroupModal({ mode, initial, departments, onClose, o
           {/* Заметки */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder={t('common.notes_placeholder')} />
+            <textarea aria-label={t('common.notes_placeholder')} value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder={t('common.notes_placeholder')} />
           </div>
 
           {error && (

@@ -68,7 +68,7 @@ function PersonAutocomplete({
       <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
         {label} <span style={{ color: 'var(--danger)' }}>*</span>
       </label>
-      <input
+      <input aria-label={t('create_modal.observer_placeholder')}
         value={query}
         onChange={e => handleInput(e.target.value)}
         onFocus={() => { if (options.length > 0 && !value) setOpen(true) }}

@@ -256,11 +256,11 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('semester_groups.year_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-              <input type="text" value={yearLabel} onChange={e => setYearLabel(e.target.value)} style={inp} placeholder={t('semester_groups.year_placeholder')} />
+              <input aria-label={t('semester_groups.year_placeholder')} type="text" value={yearLabel} onChange={e => setYearLabel(e.target.value)} style={inp} placeholder={t('semester_groups.year_placeholder')} />
             </div>
             <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.term_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-              <input type="number" min={1} value={termNumber} onChange={e => setTermNumber(e.target.value)} style={inp} placeholder="1" />
+              <input aria-label="1" type="number" min={1} value={termNumber} onChange={e => setTermNumber(e.target.value)} style={inp} placeholder="1" />
             </div>
           </div>
 
@@ -296,7 +296,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           {/* 6. Студентки — мультивыбор */}
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('semester_groups.students_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>({selectedStudents.size})</span></label>
-            <input
+            <input aria-label={t('semester_groups.students_search_placeholder')}
               type="text" value={studentSearch} onChange={e => setStudentSearch(e.target.value)}
               style={{ ...inp, marginBottom: 6 }} placeholder={t('semester_groups.students_search_placeholder')}
             />

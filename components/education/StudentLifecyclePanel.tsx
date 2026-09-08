@@ -220,7 +220,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
               <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }}>
                 {t('reason_label')} *
               </label>
-              <textarea
+              <textarea aria-label={t('reason_placeholder')}
                 value={reason}
                 onChange={e => setReason(e.target.value)}
                 placeholder={t('reason_placeholder')}

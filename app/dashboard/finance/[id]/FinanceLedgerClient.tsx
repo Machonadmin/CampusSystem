@@ -336,9 +336,9 @@ export default function FinanceLedgerClient({
           >
             {showCharge && canCreateInvoice && (
               <FormRow>
-                <input type="number" step="0.01" min="0" value={cAmount} onChange={e => setCAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
-                <input value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
-                <input value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
+                <input aria-label={t('form.amount')} type="number" step="0.01" min="0" value={cAmount} onChange={e => setCAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
+                <input aria-label={t('form.description')} value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
+                <input aria-label={t('form.period')} value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
                 <input type="date" value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
                 <SubmitButton onClick={submitCharge} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
               </FormRow>
@@ -413,9 +413,9 @@ export default function FinanceLedgerClient({
                               color: dPercent === String(suggestedDiscount) ? '#fff' : 'var(--accent-strong)',
                             }} title={t('ledger.suggested_discount_hint')}>{t('ledger.suggested_discount')}: {suggestedDiscount}%</button>
                           )}
-                          <input type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
-                          <input value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
-                          <input value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
+                          <input aria-label={t('ledger.percent')} type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
+                          <input aria-label={t('ledger.reason_ph')} value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
+                          <input aria-label={t('ledger.signature')} value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
                           <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('var(--violet)'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
                           <button onClick={() => setDiscountChargeId(null)} disabled={busy} style={{ ...btn('var(--surface-2)'), color: 'var(--text)' }}>{tCommon('cancel')}</button>
                         </FormRow>
@@ -436,7 +436,7 @@ export default function FinanceLedgerClient({
           >
             {showPayment && canCreateInvoice && (
               <FormRow>
-                <input type="number" step="0.01" min="0" value={pAmount} onChange={e => setPAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
+                <input aria-label={t('form.amount')} type="number" step="0.01" min="0" value={pAmount} onChange={e => setPAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
                 <input type="date" value={pDate} onChange={e => setPDate(e.target.value)} style={inp(150)} />
                 <select value={pMethod} onChange={e => setPMethod(e.target.value)} style={inp(150)} aria-label={t('ledger.method')}>
                   <option value="cash">{t('ledger.method_cash')}</option>
@@ -445,14 +445,14 @@ export default function FinanceLedgerClient({
                 </select>
                 {isTransfer ? (
                   <>
-                    <input value={pFromAccount} onChange={e => setPFromAccount(e.target.value)} placeholder={t('ledger.from_account')} style={inp(160)} />
-                    <input value={pToAccount} onChange={e => setPToAccount(e.target.value)} placeholder={t('ledger.to_account')} style={inp(160)} />
+                    <input aria-label={t('ledger.from_account')} value={pFromAccount} onChange={e => setPFromAccount(e.target.value)} placeholder={t('ledger.from_account')} style={inp(160)} />
+                    <input aria-label={t('ledger.to_account')} value={pToAccount} onChange={e => setPToAccount(e.target.value)} placeholder={t('ledger.to_account')} style={inp(160)} />
                   </>
                 ) : (
-                  <input value={pDepositedTo} onChange={e => setPDepositedTo(e.target.value)} placeholder={t('ledger.deposited_to')} style={inp(200)} />
+                  <input aria-label={t('ledger.deposited_to')} value={pDepositedTo} onChange={e => setPDepositedTo(e.target.value)} placeholder={t('ledger.deposited_to')} style={inp(200)} />
                 )}
-                <input value={pRef} onChange={e => setPRef(e.target.value)} placeholder={t('form.reference')} style={inp(150)} />
-                <input value={pSignature} onChange={e => setPSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
+                <input aria-label={t('form.reference')} value={pRef} onChange={e => setPRef(e.target.value)} placeholder={t('form.reference')} style={inp(150)} />
+                <input aria-label={t('ledger.signature')} value={pSignature} onChange={e => setPSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
                 <SubmitButton onClick={submitPayment} loading={busy} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}

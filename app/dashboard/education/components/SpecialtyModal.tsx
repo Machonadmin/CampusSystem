@@ -110,7 +110,7 @@ export default function SpecialtyModal({ mode, initial, departments, onClose, on
 
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('specialties.code_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <input
+            <input aria-label={t('specialties.code_placeholder')}
               type="text" value={code} onChange={e => setCode(e.target.value)}
               style={inp} placeholder={t('specialties.code_placeholder')}
               maxLength={50}

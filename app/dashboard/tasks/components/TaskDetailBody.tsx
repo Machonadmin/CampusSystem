@@ -221,7 +221,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               <label style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 6, display: 'block' }}>
                 {t('card.decline_reason')}:
               </label>
-              <textarea
+              <textarea aria-label={t('card.decline_placeholder')}
                 value={d.declineReason}
                 onChange={e => d.setDeclineReason(e.target.value)}
                 placeholder={t('card.decline_placeholder')}

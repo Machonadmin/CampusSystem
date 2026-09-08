@@ -178,7 +178,7 @@ export default function ReferenceCitiesPage() {
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
               {t('city_name_in_country_label').replace('{country}', countryLabel(country, lang))}
             </label>
-            <input
+            <input aria-label={t('city_name_placeholder')}
               autoFocus
               value={newCity}
               onChange={e => setNewCity(e.target.value)}

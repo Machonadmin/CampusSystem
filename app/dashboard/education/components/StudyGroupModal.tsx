@@ -171,14 +171,14 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
           <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('groups.year_level_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-              <input
+              <input aria-label={t('groups.year_level_placeholder')}
                 type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
                 style={inp} placeholder={t('groups.year_level_placeholder')} min={1} max={99}
               />
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('groups.year_start_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-              <input
+              <input aria-label={t('groups.year_start_placeholder')}
                 type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
                 style={inp} placeholder={t('groups.year_start_placeholder')} min={2000} max={2100}
               />
@@ -187,7 +187,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
 
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>{t('common.notes_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
-            <textarea
+            <textarea aria-label={t('common.notes_placeholder')}
               value={notes} onChange={e => setNotes(e.target.value)}
               rows={3} style={{ ...inp, resize: 'vertical' }}
               placeholder={t('common.notes_placeholder')}

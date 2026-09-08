@@ -411,7 +411,7 @@ export default function ApplyPage() {
               {fld('comment').visible && (
                 <div className="ap-field">
                   <label>{t('label_comment')}{fld('comment').required && <span className="ap-req"> *</span>}</label>
-                  <textarea value={form.comment} onChange={e => set('comment', e.target.value)}
+                  <textarea aria-label={t('comment_placeholder')} value={form.comment} onChange={e => set('comment', e.target.value)}
                     placeholder={t('comment_placeholder')} rows={3} required={fld('comment').required} />
                 </div>
               )}

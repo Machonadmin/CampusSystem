@@ -472,7 +472,7 @@ export default function FillCheckPage() {
                     {f.label}
                     {f.req && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
                   </label>
-                  <textarea value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
+                  <textarea aria-label={`${f.label}...`} value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
                     onChange={e => f.set(e.target.value)}
                     style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${errs[f.key] ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
                 </div>
