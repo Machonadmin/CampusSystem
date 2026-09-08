@@ -4,6 +4,7 @@ import { join, sep } from 'node:path'
 import {
   RESERVED_ROLE_CODES,
   RESERVED_ROLE_CODE_REASONS,
+  RESERVED_WITHOUT_LIVE_CHECK,
   isReservedRoleCode,
   normalizeRoleCode,
   roleCodeChangeError,
@@ -168,7 +169,10 @@ describe('reserved role codes — static scan of hardcoded role checks', () => {
     // do not lower these floors.
     expect(sites.length).toBeGreaterThanOrEqual(150)
     const codes = new Set(sites.map(s => s.code))
-    for (const must of ['superadmin', 'admin', 'hr_director', 'campus_admin', 'teacher', 'jewishness_officer']) {
+    // NB: only codes that still have a LIVE hardcoded check belong here —
+    // RESERVED_WITHOUT_LIVE_CHECK members (e.g. campus_admin) are, by definition,
+    // no longer found by the scan.
+    for (const must of ['superadmin', 'admin', 'hr_director', 'teacher', 'jewishness_officer']) {
       expect(codes.has(must), `expected the scan to find a hardcoded check on '${must}'`).toBe(true)
     }
     const files = new Set(sites.map(s => s.file))
@@ -195,11 +199,24 @@ describe('reserved role codes — static scan of hardcoded role checks', () => {
     ).toEqual([])
   })
 
+  it('every RESERVED_WITHOUT_LIVE_CHECK code is genuinely reserved and documented', () => {
+    for (const code of RESERVED_WITHOUT_LIVE_CHECK) {
+      expect(RESERVED_ROLE_CODES.has(code), code).toBe(true)
+      expect(RESERVED_ROLE_CODE_REASONS[code] ?? '', code).toContain('HISTORICAL')
+    }
+  })
+
   it('every reserved code is still referenced by at least one check (no stale reservations)', () => {
     // Keeps the set honest in the other direction: a reservation whose check was
     // removed should be re-justified or dropped, not linger unexplained.
     const referenced = new Set(sites.map(s => s.code))
-    const stale = [...RESERVED_ROLE_CODES].filter(c => !referenced.has(c))
-    expect(stale, `reserved but no hardcoded check found: ${stale.join(', ')}`).toEqual([])
+    const stale = [...RESERVED_ROLE_CODES]
+      .filter(c => !referenced.has(c) && !RESERVED_WITHOUT_LIVE_CHECK.has(c))
+    expect(
+      stale,
+      `reserved but no hardcoded check found: ${stale.join(', ')}. Either the check ` +
+      'was removed on purpose — then add the code to RESERVED_WITHOUT_LIVE_CHECK ' +
+      'with a reason — or the reservation is stale and should be dropped.',
+    ).toEqual([])
   })
 })

@@ -45,9 +45,13 @@ export const RESERVED_ROLE_CODE_REASONS: Readonly<Record<string, string>> = {
     'isAdmin() in app/api/settings/positions/route.ts and [id]/route.ts grants ' +
     'positions CRUD.',
   campus_admin:
-    'hasBroaderAdminRole() in lib/auth/landing.ts treats it as a campus-wide admin ' +
-    'for post-login landing / the §10 kodesh workspace. Seeded only by migration ' +
-    '001 and wiped by the TRUNCATE in 002; nothing re-seeds it.',
+    'HISTORICAL (no live check — see RESERVED_WITHOUT_LIVE_CHECK): until the §25 Q4 ' +
+    'cleanup, hasBroaderAdminRole() in lib/auth/landing.ts treated it as a ' +
+    'campus-wide admin for post-login landing / the §10 kodesh workspace. Seeded ' +
+    'only by migration 001 and wiped by the TRUNCATE in 002; nothing re-seeds it. ' +
+    'Still reserved so the code cannot be re-created from the roles screen and ' +
+    'silently look like a campus admin (its display labels still exist in ' +
+    'lib/i18n/translations.ts).',
   school_director:
     'isManager in app/api/workflow/signatures/route.ts reveals private stage ' +
     'notes; also a legacy code hidden from pickers (lib/roles/deprecated.ts).',
@@ -81,6 +85,19 @@ export const RESERVED_ROLE_CODE_REASONS: Readonly<Record<string, string>> = {
   program_head: 'Legacy code hidden from pickers (lib/roles/deprecated.ts).',
   curator: 'Legacy code hidden from pickers (lib/roles/deprecated.ts).',
 }
+
+/**
+ * Codes reserved WITHOUT a live hardcoded check: the check they protected was
+ * deliberately removed, but the code stays reserved so it cannot be re-created
+ * from the roles screen and quietly regain its old meaning. Every entry must
+ * still carry a reason above, and it is exempt from the "no stale reservations"
+ * test — which otherwise requires each reserved code to be found by the static
+ * scan of hardcoded checks.
+ */
+export const RESERVED_WITHOUT_LIVE_CHECK: ReadonlySet<string> = new Set([
+  // §25 Q4 removed it from hasBroaderAdminRole() (lib/auth/landing.ts).
+  'campus_admin',
+])
 
 /** The reserved set itself (canonical form: trimmed, lowercase). */
 export const RESERVED_ROLE_CODES: ReadonlySet<string> = new Set(
