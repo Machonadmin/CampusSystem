@@ -218,7 +218,10 @@ export default function TasksPage() {
 
   const emptyIcon = (
     <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      {/* color через style + stroke="currentColor": var() НЕ подставляется в
+          SVG-атрибуте представления, из-за чего обводка падала в чёрный —
+          в тёмной теме невидимый. */}
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ color: accent }} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     </div>

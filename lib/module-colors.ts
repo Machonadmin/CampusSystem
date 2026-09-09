@@ -42,9 +42,21 @@ const KNOWN_MODULES = new Set([
 
 type Shade = 'primary' | 'light' | 'medium'
 
+/**
+ * Синонимы кодов. `studies` — это карточка «Учёба» на главной, но раздел за ней
+ * И ЕСТЬ модуль education, поэтому цвет у них обязан быть один.
+ *
+ * Без этой карты `studies` не попадал в KNOWN_MODULES и молча уезжал в серый
+ * fallback: на главной третий шаг конвейера рисовался серым, неотличимо от
+ * «Документов». Синоним, а не отдельный токен — чтобы раздел и его карточка не
+ * могли разъехаться при следующей правке палитры.
+ */
+const MODULE_ALIASES: Record<string, string> = { studies: 'education' }
+
 /** Имя CSS-переменной модуля; для неизвестного кода — нейтральный fallback. */
 function tokenBase(moduleCode: string): string {
-  return KNOWN_MODULES.has(moduleCode) ? moduleCode : 'fallback'
+  const code = MODULE_ALIASES[moduleCode] ?? moduleCode
+  return KNOWN_MODULES.has(code) ? code : 'fallback'
 }
 
 export function getModuleColor(moduleCode: string, shade: Shade = 'primary'): string {

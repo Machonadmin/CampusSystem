@@ -69,6 +69,56 @@ describe('getModuleHeaderGradient', () => {
  * ловило. Здесь читаем реальные значения из globals.css и требуем, чтобы
  * идентичность каждого модуля была уникальной.
  */
+/** CIEDE2000 — перцептивное расстояние. dE76 (простая евклидова в Lab)
+ *  переоценивает разницу насыщенных цветов и пропускает реальные коллизии. */
+function ciede2000(hexA: string, hexB: string): number {
+  const toLab = (hex: string): [number, number, number] => {
+    const h = hex.replace('#', '')
+    const srgb = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+    const [r, g, b] = srgb.map(c => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    const X = r * 0.4124 + g * 0.3576 + b * 0.1805
+    const Y = r * 0.2126 + g * 0.7152 + b * 0.0722
+    const Z = r * 0.0193 + g * 0.1192 + b * 0.9505
+    const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+    const [fx, fy, fz] = [f(X / 0.95047), f(Y / 1), f(Z / 1.08883)]
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)]
+  }
+  const [L1, a1, b1] = toLab(hexA)
+  const [L2, a2, b2] = toLab(hexB)
+  const rad = (d: number) => (d * Math.PI) / 180
+  const deg = (r: number) => (r * 180) / Math.PI
+  const C1 = Math.hypot(a1, b1), C2 = Math.hypot(a2, b2)
+  const Cb = (C1 + C2) / 2
+  const G = 0.5 * (1 - Math.sqrt(Cb ** 7 / (Cb ** 7 + 25 ** 7)) || 0)
+  const a1p = (1 + G) * a1, a2p = (1 + G) * a2
+  const C1p = Math.hypot(a1p, b1), C2p = Math.hypot(a2p, b2)
+  const h1 = (deg(Math.atan2(b1, a1p)) + 360) % 360
+  const h2 = (deg(Math.atan2(b2, a2p)) + 360) % 360
+  const dLp = L2 - L1, dCp = C2p - C1p
+  let dhp = 0
+  if (C1p * C2p !== 0) {
+    dhp = h2 - h1
+    if (dhp > 180) dhp -= 360
+    else if (dhp < -180) dhp += 360
+  }
+  const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(rad(dhp) / 2)
+  const Lb = (L1 + L2) / 2, Cbp = (C1p + C2p) / 2
+  let hbp = h1 + h2
+  if (C1p * C2p !== 0) {
+    if (Math.abs(h1 - h2) <= 180) hbp = (h1 + h2) / 2
+    else hbp = h1 + h2 < 360 ? (h1 + h2 + 360) / 2 : (h1 + h2 - 360) / 2
+  }
+  const T = 1 - 0.17 * Math.cos(rad(hbp - 30)) + 0.24 * Math.cos(rad(2 * hbp))
+    + 0.32 * Math.cos(rad(3 * hbp + 6)) - 0.2 * Math.cos(rad(4 * hbp - 63))
+  const Sl = 1 + (0.015 * (Lb - 50) ** 2) / Math.sqrt(20 + (Lb - 50) ** 2)
+  const Sc = 1 + 0.045 * Cbp
+  const Sh = 1 + 0.015 * Cbp * T
+  const Rt = -2 * Math.sqrt(Cbp ** 7 / (Cbp ** 7 + 25 ** 7))
+    * Math.sin(rad(60 * Math.exp(-(((hbp - 275) / 25) ** 2))))
+  return Math.sqrt((dLp / Sl) ** 2 + (dCp / Sc) ** 2 + (dHp / Sh) ** 2
+    + Rt * (dCp / Sc) * (dHp / Sh))
+}
+
 describe('палитра модулей: без коллизий', () => {
   const css = readFileSync(join(process.cwd(), 'app', 'globals.css'), 'utf8')
 
@@ -104,6 +154,36 @@ describe('палитра модулей: без коллизий', () => {
       .filter(([, mods]) => mods.length > 1)
       .map(([color, mods]) => `${color}: ${mods.join(' = ')}`)
     expect(collisions, `модули с одинаковым цветом:\n${collisions.join('\n')}`).toEqual([])
+  })
+
+  /**
+   * Байт-в-байт совпадений мало: цвета могут различаться числами и всё равно
+   * выглядеть одинаково. Первый заход на эту палитру был «проверен» простой
+   * евклидовой метрикой (dE76) и показал 16-18 — на глаз приличные значения.
+   * По CIEDE2000, которая соответствует восприятию, те же пары давали 6.6:
+   * admission практически совпадал с reports. Поэтому порог считаем ТОЛЬКО
+   * по CIEDE2000 и ТОЛЬКО между разными модулями (шаги одного конвейера
+   * набор→приём→учёба намеренно похожи — это одна семья).
+   */
+  it('разные модули различимы по CIEDE2000 (>= 12)', () => {
+    const p = lightPalette()
+    const FAMILY = new Set(['recruitment', 'admission', 'education'])
+    const TWINS = new Set([
+      'health',    // объединённый вход «медпункт+психолог» = doctor, намеренно
+      'dashboard', // не плитка модуля, а хром: приветственный баннер главной.
+                   // Рядом с плитками не появляется, сравнивать не с чем.
+    ])
+    const close: string[] = []
+    const names = [...p.keys()].filter(m => m !== 'fallback' && !TWINS.has(m))
+    for (let i = 0; i < names.length; i++) {
+      for (let j = i + 1; j < names.length; j++) {
+        const [a, b] = [names[i], names[j]]
+        if (FAMILY.has(a) && FAMILY.has(b)) continue // одна семья — см. коммент
+        const d = ciede2000(p.get(a)!, p.get(b)!)
+        if (d < 12) close.push(`${a} vs ${b}: dE2000 ${d.toFixed(1)}`)
+      }
+    }
+    expect(close, `модули слишком похожи по восприятию:\n${close.join('\n')}`).toEqual([])
   })
 
   it('цвет модуля не совпадает с семантическими токенами состояния', () => {

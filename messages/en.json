@@ -4714,6 +4714,7 @@
     "invalid_field_value": "Invalid field value",
     "invalid_field_value_status": "Invalid field value (possibly an unsupported status)",
     "internal_error": "Internal server error",
+    "hourly_rate_not_set": "Hourly rate is not set for this employee — set it before generating teaching pay",
     "too_many_attempts": "Too many attempts. Please try again later.",
     "record_exists": "Record already exists",
     "relation_exists": "This relation already exists",

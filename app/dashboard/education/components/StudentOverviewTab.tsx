@@ -29,10 +29,16 @@ function riskColor(level: string | null): string {
 }
 
 /** Куда ведёт панель модуля — страница этого студента в соответствующем модуле. */
+/**
+ * Разделы, у которых /dashboard/<module>/[id] принимает ИМЕННО journey_id.
+ *
+ * dormitory и food сюда НЕ входят намеренно: их [id] — это id корпуса
+ * (dorm_buildings) и id плана питания (meal_plans), поэтому переход с карточки
+ * студентки вёл на notFound() — гарантированный 404 с потерей сайдбара. Плитки
+ * этих разделов остаются и показывают данные, но без кнопки «открыть».
+ */
 const MODULE_HREF: Record<string, string> = {
   finance: 'finance',
-  dormitory: 'dormitory',
-  food: 'food',
   medical: 'doctor',
   counseling: 'psychologist',
   documents: 'documents',

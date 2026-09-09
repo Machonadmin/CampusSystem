@@ -33,6 +33,13 @@ export async function POST(request: NextRequest, { params }: { params: { personI
       hourly = Number((rate as { hourly_rate?: number } | null)?.hourly_rate ?? 0)
     } catch (e) { if (!isMissingTable(e)) throw e }
 
+    // Без ставки НЕ начисляем. Иначе весь месяц пишется по amount = 0 и ответ
+    // выглядит успешным, а исправить это потом НЕЛЬЗЯ: уникальный индекс
+    // uq_work_teaching_lesson (person_id, source_lesson_id) заставит повторный
+    // запуск отдать 23505, который ниже считается «уже начислено» (skipped), —
+    // нули остаются навсегда и убираются только руками из БД.
+    if (!(hourly > 0)) return apiError('hourly_rate_not_set', 400)
+
     // Группы, которые ведёт сотрудник.
     const { data: ct, error: ctErr } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', params.personId)
     if (ctErr) throw ctErr

@@ -200,8 +200,8 @@
   /* Учебный конвейер: набор → приём → учёба. Один зелёный тон, три ступени
      глубины — читается как ОДИН процесс, но шаги различимы. Раньше все три
      карточки главной брали цвет модуля education и были неотличимы. */
-  --mod-recruitment: #33993F;     --mod-recruitment-tint: #E3F7E5;
-  --mod-admission: #287731;       --mod-admission-tint: #DBF3DE;
+  --mod-recruitment: #409C11;     --mod-recruitment-tint: #E9F7DC;
+  --mod-admission: #109356;       --mod-admission-tint: #D8F5E7;
   --mod-education: #1C5423;       --mod-education-tint: #D3EFD7;
   --mod-finance: #00715B;         --mod-finance-tint: #D7F5EC;
   --mod-doctor: #00979A;          --mod-doctor-tint: #CBF7F7;
@@ -216,7 +216,7 @@
   --mod-alumni: #A02479;          --mod-alumni-tint: #FFDFF6;
   --mod-quality_control: #C8436B; --mod-quality_control-tint: #FFDFE7;
   --mod-documents: #636D77;       --mod-documents-tint: #EAEDF1;
-  --mod-settings: #395170;        --mod-settings-tint: #E5EEF9;
+  --mod-settings: #2D2F39;        --mod-settings-tint: #E7EAF0;
   --mod-fallback: #636D77;        --mod-fallback-tint: #EAEDF1;
 
   /* Фон шапки под белым текстом — один и тот же в светлой и тёмной теме. */
@@ -224,14 +224,14 @@
   --mod-maintenance-banner: #7B4B1B;     --mod-tasks-banner: #AA6700;
   --mod-jewishness-banner: #705D00;      --mod-sponsors-banner: #78853B;
   --mod-reports-banner: #327200;         --mod-education-banner: #1C5423;
-  --mod-recruitment-banner: #33993F;     --mod-admission-banner: #287731;
+  --mod-recruitment-banner: #409C11;     --mod-admission-banner: #109356;
   --mod-finance-banner: #00715B;         --mod-doctor-banner: #00979A;
   --mod-health-banner: #00979A;          --mod-dormitory-banner: #0082B9;
   --mod-chavruta-banner: #006678;        --mod-dashboard-banner: #127EDE;
   --mod-persons-banner: #3451CA;         --mod-psychologist-banner: #806DC3;
   --mod-staff-banner: #7E35B1;           --mod-contacts-banner: #A65FA4;
   --mod-alumni-banner: #A02479;          --mod-quality_control-banner: #C8436B;
-  --mod-documents-banner: #636D77;       --mod-settings-banner: #395170;
+  --mod-documents-banner: #636D77;       --mod-settings-banner: #2D2F39;
   --mod-fallback-banner: #636D77;
 }
 
@@ -246,8 +246,8 @@
     --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
     --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
     --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
-    --mod-recruitment: #9ADFA2;     --mod-recruitment-tint: #0B2D0F;
-    --mod-admission: #77D482;       --mod-admission-tint: #0C3110;
+    --mod-recruitment: #9DF471;     --mod-recruitment-tint: #16300A;
+    --mod-admission: #68F3B2;       --mod-admission-tint: #06331F;
     --mod-education: #54C962;       --mod-education-tint: #0C3511;
     --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
     --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
@@ -262,7 +262,7 @@
     --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
     --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
     --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
-    --mod-settings: #8097B5;        --mod-settings-tint: #252F3B;
+    --mod-settings: #7881A5;        --mod-settings-tint: #252833;
     --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
   }
 }
@@ -276,8 +276,8 @@
   --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
   --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
   --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
-  --mod-recruitment: #9ADFA2;     --mod-recruitment-tint: #0B2D0F;
-  --mod-admission: #77D482;       --mod-admission-tint: #0C3110;
+  --mod-recruitment: #9DF471;     --mod-recruitment-tint: #16300A;
+  --mod-admission: #68F3B2;       --mod-admission-tint: #06331F;
   --mod-education: #54C962;       --mod-education-tint: #0C3511;
   --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
   --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
@@ -292,7 +292,7 @@
   --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
   --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
   --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
-  --mod-settings: #8097B5;        --mod-settings-tint: #252F3B;
+  --mod-settings: #7881A5;        --mod-settings-tint: #252833;
   --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
 }
 

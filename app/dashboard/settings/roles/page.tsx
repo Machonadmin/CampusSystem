@@ -397,7 +397,7 @@ export default function RolesPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginInlineStart: 6 }}>
                           {role.is_system && (
-                            <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid ${catTxt}22` }}>
+                            <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, backgroundColor: catBg, color: catTxt, fontWeight: 600, border: `1px solid color-mix(in oklab, ${catTxt} 13%, transparent)` }}>
                               {t('is_system')}
                             </span>
                           )}

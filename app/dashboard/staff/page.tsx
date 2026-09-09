@@ -194,11 +194,20 @@ function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: 
   async function save() {
     if (!name.trim()) return
     setSaving(true)
-    await fetch(`/api/settings/departments/${node.id}`, {
+    const res = await fetch(`/api/settings/departments/${node.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name.trim(), name_he: nameHe.trim() || null, name_en: nameEn.trim() || null }),
     })
-    setSaving(false); onSaved()
+    setSaving(false)
+    // Переименование доступно только superadmin. Раньше ответ не проверялся:
+    // при 403 модалка просто закрывалась со старым именем на экране, и
+    // пользователь считал, что переименовал.
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast((d as { error?: string }).error || t('error'), 'error')
+      return
+    }
+    onSaved()
   }
 
   return (
@@ -944,7 +953,14 @@ export default function StaffPage() {
 
   async function handleDelete(node: TreeNode) {
     if (!(await confirmDialog({ message: t('delete_dept_confirm'), tone: 'danger' }))) return
-    await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
+    // То же самое, что и с переименованием: удаление разрешено только
+    // superadmin, а раньше при 403 не происходило НИЧЕГО и без единого слова.
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast((d as { error?: string }).error || t('error'), 'error')
+      return
+    }
     load()
   }
 

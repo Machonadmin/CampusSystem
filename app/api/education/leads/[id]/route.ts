@@ -218,7 +218,10 @@ export async function PATCH(
         .filter(rel => !submittedSet.has(`${rel.relative_id}:${rel.relation_type}`))
         .map(rel => rel.id)
       if (idsToRemove.length > 0) {
-        await sb.from('person_relatives').delete().in('id', idsToRemove)
+        // Ошибку удаления НЕЛЬЗЯ глотать: ниже мы отвечаем ok:true, и молчаливый
+        // сбой здесь выглядит для пользователя как успешное сохранение.
+        const { error: delErr } = await sb.from('person_relatives').delete().in('id', idsToRemove)
+        if (delErr) throw delErr
       }
       // Одной вставкой вместо запроса на каждого родственника.
       const relsToAdd = (body.relatives ?? [])
@@ -231,23 +234,33 @@ export async function PATCH(
         }))
       if (relsToAdd.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: _e1 } = await sb.from('person_relatives').insert(relsToAdd as any)
-        void _e1
+        const { error: insErr } = await sb.from('person_relatives').insert(relsToAdd as any)
+        // Раньше ошибка отбрасывалась (void), а ответ всё равно был ok:true:
+        // родственники оказывались удалены и не восстановлены, «сохранено».
+        if (insErr) throw insErr
       }
     }
 
     // 5. Communities: DELETE all for journey + re-insert
     if (body.communities !== undefined) {
-      await sb.from('journey_communities').delete().eq('journey_id', params.id)
+      const { error: cDelErr } = await sb.from('journey_communities').delete().eq('journey_id', params.id)
+      if (cDelErr) throw cDelErr
 
+      // ВАЖНО: условие обязано совпадать с клиентским фильтром
+      // (EducationJourneyForm: name || contact_person || phone). Раньше сервер
+      // дополнительно требовал country И city, а список сначала удаляется
+      // целиком — поэтому община без города пропадала при КАЖДОМ сохранении,
+      // молча, в обычной работе, а не только при сбое.
       const validCommunities = (body.communities ?? []).filter(c =>
-        (c.name?.trim() || c.contact_person?.trim() || c.phone?.trim()) &&
-        c.country?.trim() && c.city?.trim()
+        c.name?.trim() || c.contact_person?.trim() || c.phone?.trim()
       )
       for (const c of validCommunities) {
-        const name    = c.name?.trim() || `Без названия — ${c.city?.trim()}`
-        const country = c.country!.trim()
-        const city    = c.city!.trim()
+        // country/city больше не обязательны (фильтр выше совпадает с клиентским),
+        // поэтому НЕ форсим `!`: без подстраховки это был бы runtime-краш на
+        // общине, у которой заполнено только имя.
+        const country = c.country?.trim() || ''
+        const city    = c.city?.trim() || ''
+        const name    = c.name?.trim() || (city ? `Без названия — ${city}` : 'Без названия')
 
         const { data: existingComm } = await sb.from('communities')
           .select('id').eq('name', name).eq('city', city).eq('country', country).maybeSingle()
