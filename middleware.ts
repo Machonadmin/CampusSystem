@@ -17,7 +17,12 @@ const PROTECTED_MODULES = new Set([
 
 async function fetchAccessibleModules(roleCodes: string[], personId: string): Promise<string[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Fail-closed как в lib/supabase/server.ts: в проде НЕ откатываемся на
+  // публичный anon-ключ. При RLS=deny-all anon вернул бы пусто → ложное
+  // «нет доступа»; вне прода allow anon-fallback, чтобы локально не требовать
+  // секрет. Без ключа возвращаем [] (доступ к модулю закрыт — fail-safe).
+  const key = process.env.SUPABASE_SECRET_KEY
+    ?? (process.env.NODE_ENV === 'production' ? undefined : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   if (!url || !key) return []
 
   const headers = { apikey: key, Authorization: `Bearer ${key}` }

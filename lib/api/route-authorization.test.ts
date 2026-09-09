@@ -101,6 +101,39 @@ const EXCEPTIONS: Record<string, string> = {
 const routeFiles = walkRoutes(API_DIR)
 const sources = new Map(routeFiles.map(f => [relRoute(f), readFileSync(f, 'utf8')]))
 
+/**
+ * Убирает из исходника то, что НЕ является исполняемым кодом: блочные и
+ * строчные комментарии и импорты (в т.ч. многострочные). Иначе упоминание
+ * примитива авторизации в комментарии или в неиспользуемом импорте ложно
+ * засчиталось бы как реальная проверка. После вырезания остаётся только код,
+ * который действительно исполняется, — по нему и проверяем наличие guard-а.
+ * (Это по-прежнему статическая проверка «вызов присутствует», а не доказательство
+ * достижимости; но фальшивые срабатывания из комментариев/импортов исключены.)
+ */
+function stripNonCode(src: string): string {
+  const noBlock = src.replace(/\/\*[\s\S]*?\*\//g, '')
+  const out: string[] = []
+  let inImport = false
+  for (let line of noBlock.split('\n')) {
+    if (inImport) {
+      // многострочный импорт заканчивается на строке с `from '...'` или ';'
+      if (/from\s+['"]/.test(line) || /['"]\s*;?\s*$/.test(line)) inImport = false
+      continue
+    }
+    if (/^\s*import\b/.test(line)) {
+      const singleLine = /from\s+['"].*['"]/.test(line) || /^\s*import\s+['"]/.test(line)
+      if (!singleLine) inImport = true
+      continue
+    }
+    if (/^\s*\/\//.test(line)) continue // строка-комментарий целиком
+    line = line.replace(/([^:"'`\\])\/\/.*$/, '$1') // хвостовой // (не ломая http://)
+    out.push(line)
+  }
+  return out.join('\n')
+}
+
+const codeOnly = new Map([...sources].map(([r, src]) => [r, stripNonCode(src)]))
+
 describe('API route authorization coverage', () => {
   it('there are route files to check', () => {
     expect(routeFiles.length).toBeGreaterThan(100)
@@ -108,7 +141,7 @@ describe('API route authorization coverage', () => {
 
   it('every non-public route references an authorization primitive (Tier 1)', () => {
     const missing: string[] = []
-    for (const [r, src] of sources) {
+    for (const [r, src] of codeOnly) {
       if (isPublic(r) || EXCEPTIONS[r]) continue
       if (!ANY_GUARD.some(re => re.test(src))) missing.push(r)
     }
@@ -120,7 +153,7 @@ describe('API route authorization coverage', () => {
 
   it('every sensitive-module route checks a privilege/role beyond bare session (Tier 2)', () => {
     const weak: string[] = []
-    for (const [r, src] of sources) {
+    for (const [r, src] of codeOnly) {
       if (isPublic(r) || EXCEPTIONS[r]) continue
       const mod = r.split('/')[0]
       if (!SENSITIVE_MODULES.has(mod)) continue

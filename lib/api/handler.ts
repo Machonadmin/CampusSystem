@@ -62,12 +62,30 @@ export function jsonError(err: unknown): NextResponse {
   const e = err as ApiError
   if (e.code) {
     const mapped = mapPgError(e)
+    // 5xx (например db_error) НЕ отдаём сырым текстом БД клиенту — это утечка
+    // структуры/стека. Логируем на сервере, отвечаем общим кодом.
+    if (mapped.status >= 500) return internalError(e)
     return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status })
   }
+  const status = e.status ?? 500
+  if (status >= 500) return internalError(e)
   return NextResponse.json(
     { error: e.message ?? serverT('generic_error'), code: e.apiCode ?? 'generic_error' },
-    { status: e.status ?? 500 },
+    { status },
   )
+}
+
+/**
+ * Ответ 500 без утечки деталей. В проде клиент получает общий текст+код
+ * ('internal_error'), а настоящая ошибка уходит в серверный лог. В dev/test
+ * оставляем текст в ответе — так отладка не страдает.
+ */
+function internalError(e: ApiError): NextResponse {
+  console.error('[api] 500:', e?.message ?? e)
+  const message = process.env.NODE_ENV === 'production'
+    ? serverT('internal_error')
+    : (e?.message ?? serverT('internal_error'))
+  return NextResponse.json({ error: message, code: 'internal_error' }, { status: 500 })
 }
 
 /**

@@ -3,6 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { verifyPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
+import { throttleAuth } from '@/lib/auth/login-throttle'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — читаем/пишем её через нетипизированный клиент.
@@ -20,6 +21,9 @@ function creds(sb: ReturnType<typeof createServerClient>) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const throttled = throttleAuth(request, 'portal-login')
+    if (throttled) return throttled
+
     const body = await request.json().catch(() => ({}))
     const { email, password } = body as { email?: string; password?: string }
 

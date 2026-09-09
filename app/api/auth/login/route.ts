@@ -4,10 +4,14 @@ import { createServerClient } from '@/lib/supabase/server'
 import { verifyPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
 import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
+import { throttleAuth } from '@/lib/auth/login-throttle'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 export async function POST(request: NextRequest) {
   try {
+    const throttled = throttleAuth(request, 'auth-login')
+    if (throttled) return throttled
+
     const body = await request.json()
     const { email, password } = body as { email?: string; password?: string }
 

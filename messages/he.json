@@ -4713,6 +4713,7 @@
     "invalid_field_value": "ערך שדה שגוי",
     "invalid_field_value_status": "ערך שדה שגוי (ייתכן שהסטטוס אינו נתמך)",
     "internal_error": "שגיאת שרת פנימית",
+    "too_many_attempts": "יותר מדי ניסיונות. נסו שוב מאוחר יותר.",
     "record_exists": "הרשומה כבר קיימת",
     "relation_exists": "קשר כזה כבר קיים",
     "group_not_found": "הקבוצה לא נמצאה",

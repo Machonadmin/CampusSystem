@@ -3,9 +3,13 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { verifyPassword, hashPassword } from '@/lib/auth/password'
+import { throttleAuth } from '@/lib/auth/login-throttle'
 
 export async function PATCH(request: NextRequest) {
   try {
+    const throttled = throttleAuth(request, 'change-password')
+    if (throttled) return throttled
+
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
 

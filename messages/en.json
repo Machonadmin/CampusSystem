@@ -4713,6 +4713,7 @@
     "invalid_field_value": "Invalid field value",
     "invalid_field_value_status": "Invalid field value (possibly an unsupported status)",
     "internal_error": "Internal server error",
+    "too_many_attempts": "Too many attempts. Please try again later.",
     "record_exists": "Record already exists",
     "relation_exists": "This relation already exists",
     "group_not_found": "Group not found",
