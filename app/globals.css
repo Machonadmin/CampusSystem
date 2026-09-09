@@ -197,7 +197,12 @@
   --mod-jewishness: #705D00;      --mod-jewishness-tint: #F3EED3;
   --mod-sponsors: #78853B;        --mod-sponsors-tint: #EBF0DA;
   --mod-reports: #327200;         --mod-reports-tint: #DFF5D5;
-  --mod-education: #009353;       --mod-education-tint: #D6F6E0;
+  /* Учебный конвейер: набор → приём → учёба. Один зелёный тон, три ступени
+     глубины — читается как ОДИН процесс, но шаги различимы. Раньше все три
+     карточки главной брали цвет модуля education и были неотличимы. */
+  --mod-recruitment: #33993F;     --mod-recruitment-tint: #E3F7E5;
+  --mod-admission: #287731;       --mod-admission-tint: #DBF3DE;
+  --mod-education: #1C5423;       --mod-education-tint: #D3EFD7;
   --mod-finance: #00715B;         --mod-finance-tint: #D7F5EC;
   --mod-doctor: #00979A;          --mod-doctor-tint: #CBF7F7;
   --mod-health: #00979A;          --mod-health-tint: #CBF7F7;
@@ -218,7 +223,8 @@
   --mod-security-banner: #C51D28;        --mod-food-banner: #CA5500;
   --mod-maintenance-banner: #7B4B1B;     --mod-tasks-banner: #AA6700;
   --mod-jewishness-banner: #705D00;      --mod-sponsors-banner: #78853B;
-  --mod-reports-banner: #327200;         --mod-education-banner: #009353;
+  --mod-reports-banner: #327200;         --mod-education-banner: #1C5423;
+  --mod-recruitment-banner: #33993F;     --mod-admission-banner: #287731;
   --mod-finance-banner: #00715B;         --mod-doctor-banner: #00979A;
   --mod-health-banner: #00979A;          --mod-dormitory-banner: #0082B9;
   --mod-chavruta-banner: #006678;        --mod-dashboard-banner: #127EDE;
@@ -240,7 +246,9 @@
     --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
     --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
     --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
-    --mod-education: #72D69B;       --mod-education-tint: #06371F;
+    --mod-recruitment: #9ADFA2;     --mod-recruitment-tint: #0B2D0F;
+    --mod-admission: #77D482;       --mod-admission-tint: #0C3110;
+    --mod-education: #54C962;       --mod-education-tint: #0C3511;
     --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
     --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
     --mod-health: #37DADC;          --mod-health-tint: #003839;
@@ -268,7 +276,9 @@
   --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
   --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
   --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
-  --mod-education: #72D69B;       --mod-education-tint: #06371F;
+  --mod-recruitment: #9ADFA2;     --mod-recruitment-tint: #0B2D0F;
+  --mod-admission: #77D482;       --mod-admission-tint: #0C3110;
+  --mod-education: #54C962;       --mod-education-tint: #0C3511;
   --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
   --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
   --mod-health: #37DADC;          --mod-health-tint: #003839;

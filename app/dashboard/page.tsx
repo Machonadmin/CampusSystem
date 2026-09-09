@@ -75,9 +75,12 @@ const ALL_MODULE_CARDS = [
   'documents', 'reports', 'contacts', 'settings',
 ]
 
-function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boolean }) {
+// moduleKey выбирает РИСУНОК иконки, colorKey — ЦВЕТ. Обычно это одно и то же,
+// но у шагов учебного конвейера (набор/приём/учёба) общая иконка education и
+// РАЗНЫЕ цвета: иначе три карточки на главной выглядят одинаково.
+function ModuleIcon({ moduleKey, colorKey, disabled }: { moduleKey: string; colorKey?: string; disabled?: boolean }) {
   const path = ICONS[moduleKey] ?? ''
-  const iconColor = getModuleColor(moduleKey, 'primary')
+  const iconColor = getModuleColor(colorKey ?? moduleKey, 'primary')
   // Плитка иконки красится тинтом цвета модуля (полупрозрачный primary поверх
   // карточки) — работает в обеих темах и даёт каждой плитке цветовую личность.
   const tile = disabled ? 'var(--surface-2)' : `color-mix(in oklab, ${iconColor} 14%, transparent)`
@@ -92,7 +95,8 @@ function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boo
 
 interface CardDef {
   id: string       // unique React key
-  iconKey: string  // module code → icon + color
+  iconKey: string  // module code → рисунок иконки
+  colorKey?: string // module code → цвет (по умолчанию = iconKey)
   label: string
   desc: string
   href: string
@@ -149,7 +153,8 @@ export default function DashboardPage() {
         // раздел, который потом упирается в «нет доступа».
         if (eduAccess?.[sub.accessKey] !== true) continue
         cards.push({
-          id: sub.id, iconKey: 'education',
+          // Иконка общая (это разделы «Учёбы»), цвет — свой у каждого шага.
+          id: sub.id, iconKey: 'education', colorKey: sub.id,
           label: t.nav[sub.id as keyof typeof t.nav] ?? sub.id,
           desc: t.moduleDesc[sub.id as keyof typeof t.moduleDesc] ?? '',
           href: sub.href, ready: true,
@@ -257,7 +262,7 @@ export default function DashboardPage() {
         <div className={cards.length <= 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-5' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'}>
           {cards.map((card, idx) => {
             const ready = card.ready
-            const primary = getModuleColor(card.iconKey, 'primary')
+            const primary = getModuleColor(card.colorKey ?? card.iconKey, 'primary')
             const name = card.label
             const desc = card.desc
             // Стаггер-задержку ограничиваем, чтобы дальние плитки не «висли».
@@ -286,7 +291,7 @@ export default function DashboardPage() {
             const inner = (
               <>
                 {badge}
-                <ModuleIcon moduleKey={card.iconKey} disabled={!ready} />
+                <ModuleIcon moduleKey={card.iconKey} colorKey={card.colorKey} disabled={!ready} />
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : 'var(--text-faint)', lineHeight: 1.3, margin: 0 }}>{name}</p>
                   <p style={{ fontSize: 12, color: ready ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>

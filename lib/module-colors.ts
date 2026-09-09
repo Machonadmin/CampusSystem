@@ -34,6 +34,10 @@ const KNOWN_MODULES = new Set([
   'quality_control', 'tasks', 'finance', 'dormitory', 'food', 'maintenance',
   'security', 'alumni', 'sponsors', 'doctor', 'psychologist', 'health',
   'documents', 'reports', 'contacts', 'settings',
+  // Шаги учебного конвейера. Это НЕ отдельные модули (доступ и права у них от
+  // education), но у каждого свой цвет: на главной это три отдельные карточки,
+  // и раньше все три брали цвет education, то есть выглядели одинаково.
+  'recruitment', 'admission',
 ])
 
 type Shade = 'primary' | 'light' | 'medium'
