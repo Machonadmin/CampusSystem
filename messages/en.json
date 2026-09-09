@@ -2374,7 +2374,11 @@
       "remove_watcher": "Remove watcher",
       "time_prefix": "at",
       "mark_done": "Mark as done",
-      "completed_toast": "Task marked as done"
+      "completed_toast": "Task marked as done",
+      "maintenance_badge": "Maintenance",
+      "maintenance_toggle": "Maintenance task",
+      "maintenance_toggle_hint": "Also shown in the Maintenance module",
+      "maintenance_failed": "Could not update the maintenance flag"
     },
     "module": {
       "general": "General",
@@ -2480,7 +2484,9 @@
       "preview_weekly": "{days}{time}, starting {date}",
       "preview_monthly": "Day {day} of every month{time}",
       "preview_yearly": "{month} {day} every year{time}",
-      "add_to_calendar": "Also add to my calendar"
+      "add_to_calendar": "Also add to my calendar",
+      "maintenance_label": "This is a maintenance task",
+      "maintenance_hint": "It will also show in the Maintenance module, not only in Tasks"
     }
   },
   "staff": {
@@ -3895,6 +3901,22 @@
       "assign": "Assign",
       "assign_to_me": "Assign to me",
       "unassign": "Unassign"
+    },
+    "tasks": {
+      "title": "Maintenance tasks",
+      "subtitle": "Tasks assigned to maintenance staff and marked as maintenance work",
+      "empty": "No open maintenance tasks right now",
+      "load_error": "Failed to load maintenance tasks",
+      "show_all": "Show closed too",
+      "show_open": "Open only",
+      "assignee": "Assignee",
+      "unassigned": "No assignee",
+      "due": "due",
+      "no_due": "No due date",
+      "state_open": "Open",
+      "state_done": "Done",
+      "state_cancelled": "Cancelled",
+      "open_task": "Open task"
     }
   },
   "security": {

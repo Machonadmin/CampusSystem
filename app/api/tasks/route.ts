@@ -4,6 +4,8 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
 import { createNotifications } from '@/lib/notifications/create'
+import { canBeMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
 } from '@/types/database'
@@ -134,6 +136,7 @@ export async function POST(request: NextRequest) {
       due_time?: string | null
       due_all_day?: boolean
       watchers?: string[]
+      is_maintenance?: boolean
     }
 
     // ─── Валидация заголовка ───────────────────────────────────────────────────
@@ -171,11 +174,25 @@ export async function POST(request: NextRequest) {
     if (!due_all_day && !body.due_time) return apiError('not_allday_time_required', 400)
     if (body.due_time && !body.due_date) return apiError('time_without_date', 400)
 
+    const sb = createServerClient()
+
+    // ─── Метка «задача по эксплуатации» ────────────────────────────────────────
+    // Автор ставит галочку в форме, но решает СЕРВЕР: флаг сохраняется, только
+    // если задача персонально назначена человеку с ролью техслужбы. Клиенту не
+    // верим — иначе любую задачу можно было бы выложить на доску техслужбы.
+    // Несовпадение (роль сняли между открытием формы и отправкой) не ломает
+    // создание задачи: флаг просто не ставится, и это видно на карточке.
+    let metadata = (body.metadata ?? {}) as Record<string, unknown>
+    if (body.is_maintenance) {
+      const staff = await maintenanceStaffPersonIds(sb)
+      metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))
+    }
+
     const insert: TaskInsert = {
       title,
       description: body.description?.trim() || null,
       module: body.module ?? 'general',
-      metadata: (body.metadata ?? {}) as TaskInsert['metadata'],
+      metadata: metadata as TaskInsert['metadata'],
       assignee_type,
       assignee_id,
       department_id,
@@ -186,8 +203,6 @@ export async function POST(request: NextRequest) {
       due_time: body.due_time ?? null,
       due_all_day,
     }
-
-    const sb = createServerClient()
     const { data: task, error: insertError } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -27,7 +27,7 @@ export async function DELETE(
     if (!task) {
       return apiError('task_not_found', 404)
     }
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
 
     const isSelf = params.personId === session.person_id
     if (!isSelf && !access.canEdit) {

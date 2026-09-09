@@ -5,6 +5,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
 import { createNotifications } from '@/lib/notifications/create'
+import { canBeMaintenanceTask, isMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 
@@ -47,7 +49,7 @@ export async function GET(
     if (taskErr) throw taskErr
     if (!task) return apiError('task_not_found', 404)
 
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
     if (!access.canView) return apiError('no_access_to_task', 403)
 
     const [
@@ -108,6 +110,7 @@ export async function PATCH(
       assignee_id?: string | null
       assignee_type?: 'person' | 'department'
       department_id?: string | null
+      is_maintenance?: boolean
     }
 
     const { data: task, error: tErr } = await sb
@@ -118,13 +121,13 @@ export async function PATCH(
     if (tErr) throw tErr
     if (!task) return apiError('task_not_found', 404)
 
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
     if (!access.canView) return apiError('no_access_to_task', 403)
 
     const update: TaskUpdate = {}
 
     // ─── Поля, требующие canEdit ───────────────────────────────────────────────
-    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id'] as const
+    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance'] as const
     const hasEditFields = EDIT_KEYS.some(k => k in body)
 
     if (hasEditFields) {
@@ -145,6 +148,34 @@ export async function PATCH(
       if (body.assignee_id !== undefined) update.assignee_id = body.assignee_id
       if (body.assignee_type !== undefined) update.assignee_type = body.assignee_type
       if (body.department_id !== undefined) update.department_id = body.department_id
+
+      // ─── Метка «задача по эксплуатации» ──────────────────────────────────────
+      // Пересчитывается не только когда автор трогает галочку, но и когда он
+      // МЕНЯЕТ ИСПОЛНИТЕЛЯ: если помеченную задачу переназначили на человека вне
+      // техслужбы, метка снимается — иначе задача секретаря осталась бы висеть
+      // на доске техслужбы. Решает сервер, клиенту не верим (см. POST /api/tasks).
+      const flagTouched = body.is_maintenance !== undefined
+      const assigneeTouched = body.assignee_id !== undefined || body.assignee_type !== undefined
+      const currentFlag = isMaintenanceTask((task as { metadata?: unknown }).metadata)
+
+      if (flagTouched || (assigneeTouched && currentFlag)) {
+        const effectiveType = body.assignee_type !== undefined
+          ? body.assignee_type
+          : (task as { assignee_type: string }).assignee_type
+        const effectiveId = body.assignee_id !== undefined
+          ? body.assignee_id
+          : (task as { assignee_id: string | null }).assignee_id
+
+        const wanted = flagTouched ? !!body.is_maintenance : currentFlag
+        const staff = wanted ? await maintenanceStaffPersonIds(sb) : new Set<string>()
+        const allowed = wanted && canBeMaintenanceTask(effectiveType, effectiveId, staff)
+
+        if (allowed !== currentFlag) {
+          update.metadata = withMaintenanceFlag(
+            (task as { metadata?: unknown }).metadata, allowed,
+          ) as TaskUpdate['metadata']
+        }
+      }
     }
 
     // ─── Смена статуса ─────────────────────────────────────────────────────────

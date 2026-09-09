@@ -2374,7 +2374,11 @@
       "remove_watcher": "הסרת עוקב",
       "time_prefix": "בשעה",
       "mark_done": "סמן כבוצע",
-      "completed_toast": "המשימה סומנה כבוצעה"
+      "completed_toast": "המשימה סומנה כבוצעה",
+      "maintenance_badge": "תחזוקה",
+      "maintenance_toggle": "משימת תחזוקה",
+      "maintenance_toggle_hint": "מוצגת גם במודול התחזוקה",
+      "maintenance_failed": "לא הצלחנו לעדכן את סימון התחזוקה"
     },
     "module": {
       "general": "כללי",
@@ -2480,7 +2484,9 @@
       "preview_weekly": "{days}{time}, החל מ־{date}",
       "preview_monthly": "ה־{day} בכל חודש{time}",
       "preview_yearly": "{day} ב{month} בכל שנה{time}",
-      "add_to_calendar": "הוסף גם ליומן שלי"
+      "add_to_calendar": "הוסף גם ליומן שלי",
+      "maintenance_label": "זו משימת תחזוקה",
+      "maintenance_hint": "תוצג לו גם במודול התחזוקה, לא רק במשימות"
     }
   },
   "staff": {
@@ -3895,6 +3901,22 @@
       "assign": "הקצאה",
       "assign_to_me": "הקצה אליי",
       "unassign": "ביטול הקצאה"
+    },
+    "tasks": {
+      "title": "משימות תחזוקה",
+      "subtitle": "משימות שהוקצו לאנשי התחזוקה וסומנו כמשימות תחזוקה",
+      "empty": "אין כרגע משימות תחזוקה פתוחות",
+      "load_error": "שגיאה בטעינת משימות התחזוקה",
+      "show_all": "הצג גם סגורות",
+      "show_open": "הצג רק פתוחות",
+      "assignee": "אחראי",
+      "unassigned": "ללא אחראי",
+      "due": "עד",
+      "no_due": "ללא תאריך יעד",
+      "state_open": "פתוחה",
+      "state_done": "בוצעה",
+      "state_cancelled": "בוטלה",
+      "open_task": "פתח את המשימה"
     }
   },
   "security": {

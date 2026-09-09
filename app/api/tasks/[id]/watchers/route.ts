@@ -27,7 +27,7 @@ export async function GET(
     if (!task) {
       return apiError('task_not_found', 404)
     }
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
     if (!access.canView) {
       return apiError('no_access', 403)
     }
@@ -80,7 +80,7 @@ export async function POST(
     // Добавлять наблюдателей может только тот, кто может РЕДАКТИРОВАТЬ задачу
     // (canEdit — как в PATCH /api/tasks/[id]). Раньше хватало canView, из-за чего
     // любой зритель мог инъектировать наблюдателей.
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
     if (!access.canEdit) {
       return apiError('only_author_can_edit_task', 403)
     }

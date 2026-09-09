@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -36,6 +37,22 @@ interface LocationBuilding {
   code: string | null
   rooms: { id: string; room_number: string; floor: number | null }[]
 }
+/**
+ * Задача из модуля «Задачи», помеченная автором как задача по эксплуатации.
+ * Это НЕ заявка: отдельной строки в maintenance_requests не существует, это та
+ * же самая задача, показанная здесь вторым экраном (см. lib/tasks/maintenance-link).
+ */
+interface MaintTask {
+  id: string
+  title: string
+  status: string
+  state: 'open' | 'done' | 'cancelled'
+  priority: string
+  due_date: string | null
+  assignee_name: string | null
+  creator_name: string | null
+}
+
 interface Stats {
   status_counts: Record<string, number>
   total_overdue: number
@@ -205,6 +222,12 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
         </>}
       />
 
+      {/* Задачи по эксплуатации (из модуля «Задачи») — отдельным блоком.
+          Намеренно НЕ смешиваются с заявками и НЕ попадают в счётчики выше:
+          у задачи нет ни здания, ни категории, ни SLA, поэтому в общем списке
+          сводка бы «врала». */}
+      <MaintenanceTasksSection />
+
       {/* Summary bar */}
       {stats && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -326,6 +349,117 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
         </div>
       )}
     </div>
+  )
+}
+
+function MaintenanceTasksSection() {
+  const router = useRouter()
+  const t = useTranslations('maintenance')
+  const { lang } = useLang()
+
+  const [tasks, setTasks] = useState<MaintTask[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch(`/api/maintenance/tasks${showAll ? '?status=all' : ''}`)
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('tasks.load_error')); setTasks([]); return
+      }
+      const b = await res.json()
+      setTasks((b.tasks ?? []) as MaintTask[])
+    } catch {
+      setError(t('tasks.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [showAll, t])
+
+  useEffect(() => { load() }, [load])
+
+  const STATE_COLORS: Record<MaintTask['state'], { bg: string; fg: string }> = {
+    open:      { bg: 'var(--info-tint)', fg: 'var(--info)' },
+    done:      { bg: 'var(--success-tint)', fg: 'var(--success)' },
+    cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
+  }
+
+  return (
+    <section style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 12, padding: 16, display: 'grid', gap: 12,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+        <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
+          🔧 {t('tasks.title')}
+          {!loading && tasks.length > 0 && (
+            <span style={{ marginInlineStart: 6, fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)', fontWeight: 600 }}>
+              {tasks.length}
+            </span>
+          )}
+        </h2>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('tasks.subtitle')}</span>
+        <button
+          type="button"
+          onClick={() => setShowAll(v => !v)}
+          style={{
+            marginInlineStart: 'auto', fontSize: 12, fontWeight: 600, padding: '5px 12px',
+            border: '1px solid var(--border-strong)', borderRadius: 8,
+            background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          {showAll ? t('tasks.show_open') : t('tasks.show_all')}
+        </button>
+      </div>
+
+      {error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+      ) : loading ? (
+        <SkeletonRows avatar={false} rows={2} />
+      ) : tasks.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('tasks.empty')}</div>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {tasks.map(task => {
+            const pc = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.low
+            const sc = STATE_COLORS[task.state] ?? STATE_COLORS.open
+            return (
+              <button
+                key={task.id}
+                type="button"
+                title={t('tasks.open_task')}
+                onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+                style={{
+                  textAlign: 'start', font: 'inherit',
+                  background: 'var(--surface-2)', border: '1px solid var(--border)',
+                  borderInlineStart: `4px solid ${pc.fg}`,
+                  borderRadius: 10, padding: '10px 14px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                }}
+              >
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
+                    {task.title}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {task.assignee_name ?? t('tasks.unassigned')}
+                    {' · '}
+                    {task.due_date ? `${t('tasks.due')} ${formatDate(task.due_date, lang)}` : t('tasks.no_due')}
+                  </span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <Badge label={t(`priority.${task.priority}`)} colors={pc} />
+                  <Badge label={t(`tasks.state_${task.state}`)} colors={sc} />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
 

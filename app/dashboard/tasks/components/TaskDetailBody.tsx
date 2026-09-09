@@ -4,6 +4,7 @@ import type { TaskRow } from '@/types/database'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
+import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { useTaskDetail, Comment } from './useTaskDetail'
 
 /**
@@ -49,6 +50,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
   const priorityColor = PRIORITY_COLORS[task.priority]
   const actions       = d.getAvailableActions()
 
+  const isMaintenance = isMaintenanceTask(task.metadata)
   const dueDateText = task.due_date ? formatDateLong(task.due_date, lang) : null
   const timeText = (task.due_all_day || !task.due_time) ? '' : ` ${t('card.time_prefix')} ${task.due_time.slice(0, 5)}`
 
@@ -84,6 +86,14 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                 {t('card.from_series')}
               </span>
             )}
+            {isMaintenance && (
+              <span style={{
+                padding: '2px 8px', fontSize: 11, background: 'var(--info-tint)', color: 'var(--info)',
+                borderRadius: 8, fontWeight: 600,
+              }}>
+                🔧 {t('card.maintenance_badge')}
+              </span>
+            )}
           </div>
           {headerExtra}
         </div>
@@ -114,6 +124,33 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
           <Field label={t('card.completed_at')} value={formatDate(task.completed_at, lang)} />
         )}
       </div>
+
+      {/* Метка «задача по эксплуатации» — правит только тот, кто может править
+          задачу (автор/суперадмин), как и остальные поля. Сервер снимет метку
+          сам, если исполнитель окажется не из техслужбы. */}
+      {d.access?.canEdit && (
+        <label style={{
+          marginTop: 12, padding: '10px 12px', borderRadius: 8,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', userSelect: 'none',
+        }}>
+          <input
+            type="checkbox"
+            checked={isMaintenance}
+            disabled={d.actionInProgress}
+            onChange={e => d.toggleMaintenance(e.target.checked)}
+            style={{ accentColor: 'var(--accent-strong)', marginTop: 2 }}
+          />
+          <span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
+              🔧 {t('card.maintenance_toggle')}
+            </span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              {t('card.maintenance_toggle_hint')}
+            </span>
+          </span>
+        </label>
+      )}
 
       {/* Наблюдатели */}
       <div style={{ marginTop: 16 }}>

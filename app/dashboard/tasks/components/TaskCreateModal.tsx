@@ -79,6 +79,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   const [assigneeDepartmentId, setAssigneeDepartmentId] = useState<string>('')
   const [departments,          setDepartments]          = useState<Department[]>([])
 
+  // ── «это задача по эксплуатации» ──
+  // Галочка показывается ТОЛЬКО когда задача назначается человеку, у которого в
+  // настройках стоит роль техслужбы, и по умолчанию включена: раз уж выбрали
+  // техника, чаще всего это его работа. Снять её можно — «зайди на планёрку»
+  // не должно попадать на доску техслужбы.
+  const [maintenanceStaffIds, setMaintenanceStaffIds] = useState<Set<string>>(new Set())
+  const [isMaintenance,       setIsMaintenance]       = useState(true)
+
   // ── one-time due ──
   const [dueDate,     setDueDate]     = useState(today())
   const [dueTimeType, setDueTimeType] = useState<DueTimeType>('allday')
@@ -113,6 +121,23 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
       .then(d => setDepartments(Array.isArray(d) ? d : (d.departments ?? [])))
       .catch(() => {})
   }, [])
+
+  // ── кто из людей — техслужба (для галочки) ──
+  // Не критично: не загрузилось — галочки просто не будет, задача создастся как
+  // обычная.
+  useEffect(() => {
+    fetch('/api/tasks/maintenance-staff')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d?.person_ids)) setMaintenanceStaffIds(new Set(d.person_ids as string[])) })
+      .catch(() => {})
+  }, [])
+
+  // Каждый новый выбор исполнителя начинается со значения по умолчанию (вкл.),
+  // иначе снятая для предыдущего человека галочка «прилипла» бы к следующему.
+  useEffect(() => { setIsMaintenance(true) }, [assigneePersonId])
+
+  const showMaintenanceToggle =
+    assigneeMode === 'person' && !!assigneePersonId && maintenanceStaffIds.has(assigneePersonId)
 
   // ── toggle weekday ──
   function toggleWeekday(wd: number) {
@@ -160,6 +185,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         priority,
         module: 'general',
         watchers: watchers.map(w => w.id),
+        // Сервер всё равно перепроверит роль исполнителя и снимет метку, если
+        // человек не из техслужбы.
+        is_maintenance: showMaintenanceToggle && isMaintenance,
       }
 
       let resp: Response
@@ -359,6 +387,29 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                 placeholder={t('create_modal.assignee_select_placeholder')}
                 accentColor="#F59E0B"
               />
+            )}
+            {showMaintenanceToggle && (
+              <div style={{
+                marginTop: 8, padding: '10px 12px', borderRadius: 8,
+                background: 'var(--surface-2)', border: '1px solid var(--border)',
+              }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={isMaintenance}
+                    onChange={e => setIsMaintenance(e.target.checked)}
+                    style={{ accentColor: 'var(--accent-strong)', marginTop: 2 }}
+                  />
+                  <span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
+                      🔧 {t('create_modal.maintenance_label')}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      {t('create_modal.maintenance_hint')}
+                    </span>
+                  </span>
+                </label>
+              </div>
             )}
             {assigneeMode === 'department' && (
               <select value={assigneeDepartmentId} onChange={e => setAssigneeDepartmentId(e.target.value)} style={inp}>

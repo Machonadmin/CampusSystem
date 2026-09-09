@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
+import { canBeMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import {
   generateSeriesDates,
   validateRecurrenceRule,
@@ -55,6 +57,7 @@ export async function POST(request: NextRequest) {
       due_all_day?: boolean
       recurrence_rule?: RecurrenceRule
       watchers?: string[]
+      is_maintenance?: boolean
     }
 
     // ─── Валидация title ───
@@ -134,11 +137,22 @@ export async function POST(request: NextRequest) {
     const series_id = crypto.randomUUID()
     const ruleJson = body.recurrence_rule as unknown as Json
 
+    const sb = createServerClient()
+
+    // Метка «задача по эксплуатации» — те же правила, что для разовой задачи
+    // (см. POST /api/tasks): решает сервер, а не клиент. Метка ставится на ВСЕ
+    // задачи серии: каждое повторение — отдельная работа для техслужбы.
+    let metadata = (body.metadata ?? {}) as Record<string, unknown>
+    if (body.is_maintenance) {
+      const staff = await maintenanceStaffPersonIds(sb)
+      metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))
+    }
+
     const rows: TaskInsert[] = dates.map((d, idx) => ({
       title,
       description: body.description?.trim() || null,
       module: body.module ?? 'general',
-      metadata: (body.metadata ?? {}) as Json,
+      metadata: metadata as Json,
       assignee_type,
       assignee_id,
       department_id,
@@ -153,7 +167,6 @@ export async function POST(request: NextRequest) {
       recurrence_position: idx + 1,
     }))
 
-    const sb = createServerClient()
     const { data: created, error: insertErr } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

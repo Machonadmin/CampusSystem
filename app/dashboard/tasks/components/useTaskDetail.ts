@@ -48,6 +48,17 @@ export interface HistoryEntry {
   actor?: { id: string; full_name: string; hebrew_name?: string | null } | null
 }
 
+/** Права текущего пользователя на задачу — как их считает GET /api/tasks/[id]. */
+export interface TaskAccessView {
+  canView: boolean
+  canEdit: boolean
+  canChangeStatus: boolean
+  canDelete: boolean
+  isCreator: boolean
+  isAssignee: boolean
+  isMaintenanceViewer?: boolean
+}
+
 export interface TaskDetail extends TaskRow {
   assignee?: { id: string; full_name: string; hebrew_name?: string | null } | null
   department?: { id: string; name: string } | null
@@ -87,6 +98,7 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
   const tCommon = useTranslations('common')
 
   const [task,     setTask]     = useState<TaskDetail | null>(null)
+  const [access,   setAccess]   = useState<TaskAccessView | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [watchers, setWatchers] = useState<Watcher[]>([])
   const [history,  setHistory]  = useState<HistoryEntry[]>([])
@@ -119,6 +131,7 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
       }
       const data = await resp.json()
       setTask(data.task as TaskDetail)
+      setAccess((data.access ?? null) as TaskAccessView | null)
       setComments((data.comments ?? []) as Comment[])
       setWatchers((data.watchers ?? []) as Watcher[])
       setHistory((data.history ?? []) as HistoryEntry[])
@@ -358,9 +371,36 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     }
   }
 
+  /**
+   * Переключить метку «задача по эксплуатации». Сервер перепроверяет роль
+   * исполнителя и может метку не поставить — поэтому после ответа задача
+   * перечитывается, а не правится оптимистично.
+   */
+  async function toggleMaintenance(next: boolean) {
+    setError(null)
+    setActionInProgress(true)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_maintenance: next }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('card.maintenance_failed'))
+        return
+      }
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setActionInProgress(false)
+    }
+  }
+
   return {
     // state
-    task, comments, watchers, history,
+    task, access, comments, watchers, history,
     loading, error, actionInProgress,
     showDeclineInput, declineReason,
     newCommentText, postingComment,
@@ -372,7 +412,7 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     setShowCancelSeriesDialog, setCancelSeriesMode,
     // handlers
     getAvailableActions, handleAction, handleCancelSeries,
-    handleAddComment, handleAddWatcher, handleRemoveWatcher,
+    handleAddComment, handleAddWatcher, handleRemoveWatcher, toggleMaintenance,
     reload: load,
   }
 }
