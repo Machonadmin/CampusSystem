@@ -68,8 +68,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .order('id', { ascending: true })
 
-    const all = await fetchAllPages<Row>((from, to) => buildQuery().range(from, to) as unknown as
-      PromiseLike<{ data: Row[] | null; error: unknown }>, PAGE)
+    const all = await fetchAllPages<Row>((from, to) => buildQuery().range(from, to), PAGE)
 
     const rows = wantAll ? all : all.filter(r => isOpenTaskStatus(r.status))
 

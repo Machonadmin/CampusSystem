@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
 
 /**
@@ -99,6 +100,9 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
 
   const [task,     setTask]     = useState<TaskDetail | null>(null)
   const [access,   setAccess]   = useState<TaskAccessView | null>(null)
+  // Кто из людей — техслужба: нужен, чтобы показать переключатель «задача по
+  // эксплуатации» только там, где он что-то изменит (см. canMarkMaintenance).
+  const [maintenanceStaffIds, setMaintenanceStaffIds] = useState<Set<string>>(new Set())
   const [comments, setComments] = useState<Comment[]>([])
   const [watchers, setWatchers] = useState<Watcher[]>([])
   const [history,  setHistory]  = useState<HistoryEntry[]>([])
@@ -119,6 +123,13 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
   const [cancelSeriesMode,       setCancelSeriesMode]       = useState<'future' | 'all'>('future')
   const [seriesPreview,          setSeriesPreview]          = useState<SeriesPreview | null>(null)
   const [loadingPreview,         setLoadingPreview]         = useState(false)
+
+  useEffect(() => {
+    fetch('/api/tasks/maintenance-staff')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d?.person_ids)) setMaintenanceStaffIds(new Set(d.person_ids as string[])) })
+      .catch(() => { /* не загрузилось — переключатель просто не появится */ })
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -398,9 +409,22 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     }
   }
 
+  /**
+   * Показывать ли переключатель «задача по эксплуатации».
+   * Включить метку можно только на задаче, персонально назначенной человеку из
+   * техслужбы — иначе сервер её не поставит, а пользователь получил бы 400
+   * «нет изменений». Уже помеченная задача показывает переключатель ВСЕГДА,
+   * чтобы метку можно было снять даже после того, как у исполнителя убрали роль.
+   */
+  const canMarkMaintenance =
+    !!task && (
+      isMaintenanceTask(task.metadata) ||
+      (task.assignee_type === 'person' && !!task.assignee_id && maintenanceStaffIds.has(task.assignee_id))
+    )
+
   return {
     // state
-    task, access, comments, watchers, history,
+    task, access, canMarkMaintenance, comments, watchers, history,
     loading, error, actionInProgress,
     showDeclineInput, declineReason,
     newCommentText, postingComment,

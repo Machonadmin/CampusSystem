@@ -128,7 +128,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
       {/* Метка «задача по эксплуатации» — правит только тот, кто может править
           задачу (автор/суперадмин), как и остальные поля. Сервер снимет метку
           сам, если исполнитель окажется не из техслужбы. */}
-      {d.access?.canEdit && (
+      {d.access?.canEdit && d.canMarkMaintenance && (
         <label style={{
           marginTop: 12, padding: '10px 12px', borderRadius: 8,
           background: 'var(--surface-2)', border: '1px solid var(--border)',
