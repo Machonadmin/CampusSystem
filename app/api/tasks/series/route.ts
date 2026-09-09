@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
-import { canBeMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import {
   generateSeriesDates,
@@ -142,7 +142,8 @@ export async function POST(request: NextRequest) {
     // Метка «задача по эксплуатации» — те же правила, что для разовой задачи
     // (см. POST /api/tasks): решает сервер, а не клиент. Метка ставится на ВСЕ
     // задачи серии: каждое повторение — отдельная работа для техслужбы.
-    let metadata = (body.metadata ?? {}) as Record<string, unknown>
+    // Метка из тела запроса снимается всегда — см. POST /api/tasks.
+    let metadata = sanitizeIncomingMetadata(body.metadata)
     if (body.is_maintenance) {
       const staff = await maintenanceStaffPersonIds(sb)
       metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))

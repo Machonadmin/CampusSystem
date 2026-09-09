@@ -4,7 +4,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
 import { createNotifications } from '@/lib/notifications/create'
-import { canBeMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
     // верим — иначе любую задачу можно было бы выложить на доску техслужбы.
     // Несовпадение (роль сняли между открытием формы и отправкой) не ломает
     // создание задачи: флаг просто не ставится, и это видно на карточке.
-    let metadata = (body.metadata ?? {}) as Record<string, unknown>
+    // sanitizeIncomingMetadata снимает метку, пришедшую из тела запроса: иначе
+    // её можно было бы протащить мимо проверки роли, послав metadata напрямую.
+    let metadata = sanitizeIncomingMetadata(body.metadata)
     if (body.is_maintenance) {
       const staff = await maintenanceStaffPersonIds(sb)
       metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))

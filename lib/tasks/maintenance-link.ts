@@ -67,6 +67,21 @@ export function withMaintenanceFlag(metadata: MetadataLike, on: boolean): Record
 }
 
 /**
+ * Санитайзер metadata, пришедшей из ТЕЛА ЗАПРОСА.
+ *
+ * POST /api/tasks и /api/tasks/series принимают произвольную metadata (там
+ * живут ссылки на связанные сущности модулей-источников). Если просто передать
+ * её в insert, любой сотрудник отправил бы `{"metadata":{"maintenance":true}}`
+ * и выложил бы произвольную задачу на доску техслужбы в обход проверки роли.
+ *
+ * Поэтому метка снимается ВСЕГДА и ставится потом только сервером, по
+ * результату canBeMaintenanceTask. Прочие ключи metadata сохраняются.
+ */
+export function sanitizeIncomingMetadata(metadata: MetadataLike): Record<string, unknown> {
+  return withMaintenanceFlag(metadata, false)
+}
+
+/**
  * Может ли задача вообще быть задачей по эксплуатации: только персональное
  * назначение на человека из техслужбы. Пул отдела/должности сюда не входит —
  * там нет конкретного исполнителя, а владелец описывал именно «я выбираю

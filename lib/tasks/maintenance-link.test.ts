@@ -5,6 +5,7 @@ import {
   isMaintenanceTask,
   withMaintenanceFlag,
   canBeMaintenanceTask,
+  sanitizeIncomingMetadata,
 } from './maintenance-link'
 
 // Флаг «это задача по эксплуатации» хранится в tasks.metadata и читается двумя
@@ -90,5 +91,33 @@ describe('canBeMaintenanceTask', () => {
 describe('MAINTENANCE_ROLE_CODES', () => {
   it('обе роли техслужбы — и руководитель, и сотрудник (решение владельца: «שניהם»)', () => {
     expect([...MAINTENANCE_ROLE_CODES].sort()).toEqual(['maintenance_head', 'maintenance_staff'])
+  })
+})
+
+describe('sanitizeIncomingMetadata', () => {
+  it('снимает метку, пришедшую из тела запроса (обход проверки роли)', () => {
+    // Иначе `POST /api/tasks {"metadata":{"maintenance":true}}` выложил бы
+    // произвольную задачу на доску техслужбы мимо canBeMaintenanceTask.
+    expect(isMaintenanceTask(sanitizeIncomingMetadata({ maintenance: true }))).toBe(false)
+  })
+  it('сохраняет остальные ключи metadata', () => {
+    expect(sanitizeIncomingMetadata({ maintenance: true, lead_id: 'L1', source: 'x' }))
+      .toEqual({ lead_id: 'L1', source: 'x' })
+  })
+  it('пустой/отсутствующий/мусорный вход → чистый объект', () => {
+    expect(sanitizeIncomingMetadata(undefined)).toEqual({})
+    expect(sanitizeIncomingMetadata(null)).toEqual({})
+    expect(sanitizeIncomingMetadata('{"maintenance":true}')).toEqual({})
+    expect(sanitizeIncomingMetadata([{ maintenance: true }])).toEqual({})
+  })
+  it('после санитайзера метку ставит только серверная проверка', () => {
+    const clean = sanitizeIncomingMetadata({ maintenance: true, keep: 1 })
+    const staff = new Set(['p-maint'])
+    // исполнитель не из техслужбы → метки нет даже после «повторной» попытки
+    expect(isMaintenanceTask(withMaintenanceFlag(clean, canBeMaintenanceTask('person', 'p-x', staff)))).toBe(false)
+    // из техслужбы → метка ставится сервером, посторонние ключи целы
+    const flagged = withMaintenanceFlag(clean, canBeMaintenanceTask('person', 'p-maint', staff))
+    expect(isMaintenanceTask(flagged)).toBe(true)
+    expect(flagged.keep).toBe(1)
   })
 })
