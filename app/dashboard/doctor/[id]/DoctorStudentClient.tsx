@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -182,15 +183,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
         { label: studentName },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('doctor'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
-      </div>
+      <ModuleHeader module="doctor" title={studentName} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (

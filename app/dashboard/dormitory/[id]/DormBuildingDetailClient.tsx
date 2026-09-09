@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -217,20 +218,11 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
         { label: buildingName || '—' },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('dormitory'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{buildingName}</h1>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>
-            {t('list.occupied')}: {totals.occupied} / {totals.capacity} · {t('list.rooms')}: {rooms.length}
-          </div>
-        </div>
-      </div>
+      <ModuleHeader
+        module="dormitory"
+        title={buildingName}
+        subtitle={<>{t('list.occupied')}: {totals.occupied} / {totals.capacity} · {t('list.rooms')}: {rooms.length}</>}
+      />
 
       {/* Rooms section */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { allowedTransitions } from '@/lib/maintenance/tickets'
 import { PRIORITIES } from '@/lib/maintenance/validation'
@@ -132,20 +133,13 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
         { label: ticketTitle || '—' },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('maintenance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{ticket?.title || ticketTitle}</h1>
-          {ticket?.is_overdue && (
-            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4, letterSpacing: '0.04em' }}>{t('list.overdue')}</div>
-          )}
-        </div>
-      </div>
+      <ModuleHeader
+        module="maintenance"
+        title={ticket?.title || ticketTitle}
+        subtitle={!ticket?.is_overdue ? undefined : (
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em' }}>{t('list.overdue')}</span>
+        )}
+      />
 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>

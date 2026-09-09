@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
@@ -11,7 +12,7 @@ import { PhoneLink } from '@/components/ui/PhoneLink'
 import { Badge } from '@/components/ui/Badge'
 
 /**
- * Чипы в шапке карточки лежат на цветном баннере модуля (getModuleHeaderGradient),
+ * Чипы в шапке карточки лежат на цветном баннере модуля (<ModuleHeader/>),
  * у которого свой светлый текст. Поэтому фон — полупрозрачное «осветление» самого
  * баннера, а цвет текста наследуется от шапки: так чип одинаково читаем и в
  * светлой, и в тёмной теме, без собственного фиксированного цвета.
@@ -91,24 +92,20 @@ export default function PersonDetailClient({
         </div>
       ) : (
         <>
-          {/* Header card */}
-          <div style={{
-            background: getModuleHeaderGradient('persons'),
-            borderRadius: 14, padding: '20px 24px', color: '#fff',
-            display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
-          }}>
-            <Avatar name={data.full_name} photoUrl={data.photo_url} />
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{data.full_name}</h1>
+          <ModuleHeader
+            module="persons"
+            icon={<Avatar name={data.full_name} photoUrl={data.photo_url} />}
+            title={data.full_name}
+            subtitle={<>
               {data.hebrew_name && (
-                <div style={{ fontSize: 14, opacity: 0.9, marginTop: 2, direction: 'rtl' }}>{data.hebrew_name}</div>
+                <div style={{ direction: 'rtl' }}>{data.hebrew_name}</div>
               )}
-              <div style={{ fontSize: 13, opacity: 0.9, marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {data.is_student && <Badge colors={BANNER_CHIP}>{t('education_status.student')}</Badge>}
                 {data.positions.map(p => <Badge key={p} colors={BANNER_CHIP}>{p}</Badge>)}
               </div>
-            </div>
-          </div>
+            </>}
+          />
 
           {/* Info card */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>

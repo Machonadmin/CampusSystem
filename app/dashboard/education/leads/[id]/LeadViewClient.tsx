@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate as sharedFormatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
@@ -373,53 +373,42 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         { label: person.full_name || cardTypeLabel },
       ]} />
 
-      {/* Header with avatar */}
-      <div style={{
-        background: getModuleHeaderGradient(headerColorKey),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Avatar */}
-            <div style={{
-              width: 80, height: 80, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-              background: 'var(--accent-tint)', color: 'var(--accent-strong)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 28, fontWeight: 700, border: '2px solid rgba(255,255,255,0.5)',
-            }}>
-              {person.photo_url
-                ? <img src={person.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : getInitials(person)}
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{person.full_name || cardTypeLabel}</h1>
-                <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.22)', fontWeight: 500 }}>
-                  {statusLabel}
-                </span>
-              </div>
-              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
-                {cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt, lang)}
-              </div>
-            </div>
+      <ModuleHeader
+        module={headerColorKey}
+        icon={
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+            background: 'var(--accent-tint)', color: 'var(--accent-strong)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28, fontWeight: 700, border: '2px solid rgba(255,255,255,0.5)',
+          }}>
+            {person.photo_url
+              ? <img src={person.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : getInitials(person)}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {showEditButton && (
-              <button
-                onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
-                style={{
-                  padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                  background: 'var(--surface)', color: 'var(--success)',
-                  border: 'none', borderRadius: 8, cursor: 'pointer',
-                }}
-              >
-                {t('card.labels.edit')}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+        }
+        title={
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {person.full_name || cardTypeLabel}
+            <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.22)', fontWeight: 500 }}>
+              {statusLabel}
+            </span>
+          </span>
+        }
+        subtitle={<>{cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt, lang)}</>}
+        actions={!showEditButton ? undefined : (
+          <button
+            onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
+            style={{
+              padding: '8px 14px', fontSize: 13, fontWeight: 500,
+              background: 'var(--surface)', color: 'var(--success)',
+              border: 'none', borderRadius: 8, cursor: 'pointer',
+            }}
+          >
+            {t('card.labels.edit')}
+          </button>
+        )}
+      />
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>

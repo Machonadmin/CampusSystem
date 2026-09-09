@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { monthGrid } from '@/lib/calendar/calendar'
 import {
@@ -378,21 +379,17 @@ export default function CalendarClient() {
         { label: t('title') },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('dashboard'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('subtitle')}</div>
+      <ModuleHeader
+        module="dashboard"
+        title={t('title')}
+        subtitle={<>
+          <div>{t('subtitle')}</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginTop: 8, textTransform: 'capitalize' }}>{todayLabel}</div>
           {hebrewDates && (
-            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>{formatHebrewDate(TODAY)}</div>
+            <div style={{ fontSize: 12, marginTop: 2 }}>{formatHebrewDate(TODAY)}</div>
           )}
-        </div>
+        </>}
+        actions={<>
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setAddMenuOpen(v => !v)}
@@ -439,7 +436,8 @@ export default function CalendarClient() {
           )}
         </div>
         <AddToCalendar variant="button" hideTrigger openSignal={personalSignal} onAdded={load} />
-      </div>
+        </>}
+      />
 
       {/* Toolbar: navigation + view toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>

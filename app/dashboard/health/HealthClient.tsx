@@ -1,7 +1,7 @@
 'use client'
 
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useUrlTab } from '@/lib/nav/useUrlTab'
 import DoctorListClient from '../doctor/DoctorListClient'
@@ -39,10 +39,7 @@ export default function HealthClient({ canManageDoctor, canManagePsych }: {
         { label: t.nav.health },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient(tab), borderRadius: 14, padding: '16px 24px', color: '#fff' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t.nav.health}</h1>
-        <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t.moduleDesc.health}</div>
-      </div>
+      <ModuleHeader module={tab} title={t.nav.health} subtitle={t.moduleDesc.health} />
 
       <div style={{ display: 'flex', gap: 6 }}>
         <button type="button" onClick={() => setTab('doctor')} style={tabBtn(tab === 'doctor')}>{tDoctor('title')}</button>

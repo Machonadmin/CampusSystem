@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
@@ -108,18 +108,17 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
         { label: detail?.survey.title ?? '…' },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{detail?.survey.title ?? '…'}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{detail?.survey.is_open ? t('is_open') : t('is_closed')}</div>
-        </div>
-        {detail && (
+      <ModuleHeader
+        module="education"
+        title={detail?.survey.title ?? '…'}
+        subtitle={detail?.survey.is_open ? t('is_open') : t('is_closed')}
+        actions={detail && (
           <SubmitButton onClick={toggleOpen} loading={busy}
             style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
             {detail.survey.is_open ? t('close') : t('open')}
           </SubmitButton>
         )}
-      </div>
+      />
 
       {err && (
         <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>

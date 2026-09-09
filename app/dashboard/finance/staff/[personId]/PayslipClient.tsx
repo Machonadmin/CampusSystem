@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { toast } from '@/components/ui/toast'
@@ -394,19 +395,11 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         { label: displayName },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('finance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{displayName}</h1>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-        </div>
-        {/* Month selector */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <ModuleHeader
+        module="finance"
+        title={displayName}
+        subtitle={t('subtitle')}
+        actions={/* Month selector */ <>
           <select value={month} onChange={e => setMonth(Number(e.target.value))}
             style={{ fontSize: 13, padding: '7px 10px', borderRadius: 8, border: 'none', color: 'var(--text)', background: 'var(--surface)' }}>
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -415,8 +408,8 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
           </select>
           <input type="number" value={year} onChange={e => setYear(Number(e.target.value))}
             style={{ width: 90, fontSize: 13, padding: '7px 10px', borderRadius: 8, border: 'none', color: 'var(--text)', background: 'var(--surface)' }} />
-        </div>
-      </div>
+        </>}
+      />
 
       {/* Rates */}
       {rateDraft && (

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
@@ -56,26 +57,22 @@ export default function TaskPage() {
         { label: d.loading ? '…' : (task?.title ?? t('title')) },
       ]} />
 
-      {/* Хедер */}
-      <div style={{
-        background: getModuleHeaderGradient('tasks'),
-        borderRadius: 14, padding: '12px 24px',
-        boxShadow: 'var(--shadow)', color: '#fff',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <button
-          onClick={goBack}
-          style={{
-            background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
-            color: '#fff', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
-          }}
-        >
-          ← {tCommon('back')}
-        </button>
-        <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>
-          {d.loading ? tCommon('loading') : (task?.title ?? t('title'))}
-        </h1>
-      </div>
+      <ModuleHeader
+        module="tasks"
+        compact
+        icon={
+          <button
+            onClick={goBack}
+            style={{
+              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
+              color: '#fff', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
+            }}
+          >
+            ← {tCommon('back')}
+          </button>
+        }
+        title={d.loading ? tCommon('loading') : (task?.title ?? t('title'))}
+      />
 
       {d.loading && <SkeletonRows />}
 

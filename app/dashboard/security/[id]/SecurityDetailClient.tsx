@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { allowedTransitions } from '@/lib/security/incidents'
 import { SEVERITIES } from '@/lib/security/validation'
@@ -137,17 +138,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
         { label: incidentTitle || '—' },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('security'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{incident?.title || incidentTitle}</h1>
-        </div>
-      </div>
+      <ModuleHeader module="security" title={incident?.title || incidentTitle} />
 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>

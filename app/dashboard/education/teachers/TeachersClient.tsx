@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TeachersHoursClient from '../teachers-hours/TeachersHoursClient'
 import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClient'
@@ -32,10 +32,7 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
         { label: t('title') },
       ]} />
 
-      <div style={{ background: getModuleHeaderGradient('education'), borderRadius: 14, padding: '16px 24px', color: '#fff', boxShadow: 'var(--shadow)' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{t('title')}</h1>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('subtitle')}</div>
-      </div>
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
 
       {canHours && (
         <div style={{ display: 'flex', gap: 6 }}>

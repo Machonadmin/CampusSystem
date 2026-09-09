@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupTeachers'
 import ClassGroupStudents from '@/app/dashboard/education/components/ClassGroupStudents'
 import LessonsJournalTab from '@/app/dashboard/education/components/LessonsJournalTab'
@@ -166,29 +167,19 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         { label: localizedName(group, lang) },
       ]} />
 
-      {/* Хедер */}
-      <div style={{
-        background: getModuleHeaderGradient('education'),
-        borderRadius: 14,
-        padding: '16px 24px',
-        color: '#fff',
-        boxShadow: 'var(--shadow)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{localizedName(group, lang)}</h1>
-            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>
-              {group.subject?.name && <span>{group.subject.name}</span>}
-              {group.department?.name && <span> · {group.department.name}</span>}
-              {!group.is_active && (
-                <span style={{ marginInlineStart: 8, padding: '2px 8px', background: 'rgba(255,255,255,0.2)', borderRadius: 6, fontSize: 11 }}>
-                  {t('class_groups.inactive_badge')}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ModuleHeader
+        module="education"
+        title={localizedName(group, lang)}
+        subtitle={<>
+          {group.subject?.name && <span>{group.subject.name}</span>}
+          {group.department?.name && <span> · {group.department.name}</span>}
+          {!group.is_active && (
+            <span style={{ marginInlineStart: 8, padding: '2px 8px', background: 'rgba(255,255,255,0.2)', borderRadius: 6, fontSize: 11 }}>
+              {t('class_groups.inactive_badge')}
+            </span>
+          )}
+        </>}
+      />
 
       {/* Табы */}
       {showTabs && (

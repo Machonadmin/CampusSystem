@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleHeaderGradient } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import ProcessInfoBlock from '@/components/workflow/ProcessInfoBlock'
@@ -30,18 +30,11 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
         { label: tCommon('edit') },
       ]} />
 
-      <div style={{
-        background: getModuleHeaderGradient('education'),
-        borderRadius: 14,
-        padding: '16px 24px',
-        color: '#fff',
-        boxShadow: 'var(--shadow)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{personName}</h1>
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{t('card.labels.lead_editing')}</div>
-          </div>
+      <ModuleHeader
+        module="education"
+        title={personName}
+        subtitle={t('card.labels.lead_editing')}
+        actions={
           <button
             onClick={() => router.push(viewHref)}
             style={{
@@ -53,8 +46,8 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
           >
             {t('card.labels.back_to_view')}
           </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="split-cols" style={{
         display: 'grid',

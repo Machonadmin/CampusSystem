@@ -2,7 +2,8 @@
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -252,33 +253,32 @@ export default function FinanceLedgerClient({
         { label: fullName || '—' },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('finance'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', gap: 14,
-      }}>
-        <div style={{
-          width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-          background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontSize: 16, fontWeight: 700,
-        }}>
-          {photoUrl
-            ? <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : initials(fullName)}
-        </div>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{fullName || '—'}</h1>
-          {hebrewName && <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>{hebrewName}</div>}
-          {/* Телефон прямо в шапке ПНК: экран, где смотрят на долг, — тот, откуда звонят. */}
-          {phones[0] && (
-            <div style={{ fontSize: 13, marginTop: 4 }}>
-              <PhoneLink phone={phones[0]} style={{ color: '#fff' }} />
-            </div>
-          )}
-        </div>
-      </div>
+      <ModuleHeader
+        module="finance"
+        icon={
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+            background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: 16, fontWeight: 700,
+          }}>
+            {photoUrl
+              ? <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : initials(fullName)}
+          </div>
+        }
+        title={fullName || '—'}
+        subtitle={(hebrewName || phones[0]) ? (
+          <>
+            {hebrewName && <div>{hebrewName}</div>}
+            {/* Телефон прямо в шапке ПНК: экран, где смотрят на долг, — тот, откуда звонят. */}
+            {phones[0] && (
+              <div style={{ marginTop: 4 }}>
+                <PhoneLink phone={phones[0]} style={{ color: '#fff' }} />
+              </div>
+            )}
+          </>
+        ) : undefined}
+      />
 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>

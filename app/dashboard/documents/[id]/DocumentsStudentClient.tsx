@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -189,15 +190,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         { label: studentName },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('documents'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{studentName}</h1>
-      </div>
+      <ModuleHeader module="documents" title={studentName} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (

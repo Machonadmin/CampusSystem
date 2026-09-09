@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -191,18 +192,11 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
         { label: planName || '—' },
       ]} />
 
-      {/* Header */}
-      <div style={{
-        background: getModuleHeaderGradient('food'),
-        borderRadius: 14, padding: '16px 24px', color: '#fff',
-        boxShadow: 'var(--shadow)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{planName}</h1>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{t('list.enrolled')}: {activeShown}</div>
-        </div>
-      </div>
+      <ModuleHeader
+        module="food"
+        title={planName}
+        subtitle={<>{t('list.enrolled')}: {activeShown}</>}
+      />
 
       {panelError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{panelError}</div>}
 
