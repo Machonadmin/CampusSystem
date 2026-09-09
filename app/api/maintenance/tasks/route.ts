@@ -6,7 +6,7 @@ import { requireMaintenancePrivilege } from '@/lib/maintenance/permissions'
 import { mapDbError } from '@/lib/maintenance/http'
 import { priorityRank } from '@/lib/maintenance/tickets'
 import { MAINTENANCE_METADATA_FILTER } from '@/lib/tasks/maintenance-link'
-import { isOpenTaskStatus, simplifyTaskStatus } from '@/lib/tasks/status'
+import { simplifyTaskStatus } from '@/lib/tasks/status'
 import type { TaskStatus } from '@/types/database'
 
 /**
@@ -56,21 +56,25 @@ export async function GET(request: NextRequest) {
 
     // Запрос пересобирается на каждой странице: один PostgrestBuilder нельзя
     // await-ить дважды. Вторичная сортировка по id — стабильная пагинация.
-    const buildQuery = () => sb
-      .from('tasks')
-      .select(`
-        id, title, description, status, priority, due_date, due_time, due_all_day,
-        created_at, completed_at, assignee_id,
-        assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
-        creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name)
-      `)
-      .contains('metadata', MAINTENANCE_METADATA_FILTER)
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: true })
+    const buildQuery = () => {
+      const q = sb
+        .from('tasks')
+        .select(`
+          id, title, description, status, priority, due_date, due_time, due_all_day,
+          created_at, completed_at, assignee_id,
+          assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
+          creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name)
+        `)
+        .contains('metadata', MAINTENANCE_METADATA_FILTER)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+      // Закрытые отсекаем В ЗАПРОСЕ, а не после выборки: иначе за годы
+      // накопленные выполненные задачи вычитывались бы на каждое открытие
+      // экрана только ради того, чтобы их выбросить.
+      return wantAll ? q : q.not('status', 'in', '("completed","cancelled")')
+    }
 
-    const all = await fetchAllPages<Row>((from, to) => buildQuery().range(from, to), PAGE)
-
-    const rows = wantAll ? all : all.filter(r => isOpenTaskStatus(r.status))
+    const rows = await fetchAllPages<Row>((from, to) => buildQuery().range(from, to), PAGE)
 
     // Порядок как в списке заявок: сначала важное, затем по сроку (задачи без
     // срока — в конец), затем более старые выше.
@@ -98,7 +102,7 @@ export async function GET(request: NextRequest) {
       creator_name: displayName(r.creator),
     }))
 
-    return NextResponse.json({ tasks, total: tasks.length, open: all.filter(r => isOpenTaskStatus(r.status)).length })
+    return NextResponse.json({ tasks, total: tasks.length })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
