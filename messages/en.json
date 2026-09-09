@@ -71,6 +71,7 @@
     "optional_note": "Note / reason (optional)",
     "note_placeholder": "Short explanation or reason…",
     "export_csv": "Export CSV",
+    "load_more": "Load more",
     "load_error": "Loading error",
     "call": "Call",
     "whatsapp": "WhatsApp",

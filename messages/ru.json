@@ -71,6 +71,7 @@
     "optional_note": "Заметка / причина (необязательно)",
     "note_placeholder": "Краткое пояснение или причина…",
     "export_csv": "Экспорт CSV",
+    "load_more": "Показать ещё",
     "load_error": "Ошибка загрузки",
     "call": "Позвонить",
     "whatsapp": "WhatsApp",

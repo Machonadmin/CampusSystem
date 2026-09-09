@@ -179,7 +179,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
                 {tc.is_primary && (
                   <span style={{
                     fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
-                    background: `${accentColor}18`, color: accentColor,
+                    background: `color-mix(in oklab, ${accentColor} 9%, transparent)`, color: accentColor,
                   }}>
                     {t('class_groups.primary_badge')}
                   </span>

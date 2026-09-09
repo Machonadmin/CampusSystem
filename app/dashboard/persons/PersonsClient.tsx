@@ -13,6 +13,12 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 
 type Tab = 'staff' | 'students' | 'leads'
 
+// Размер страницы = максимум, который принимает API (/api/persons/*).
+// Раньше список запрашивал pageSize=200 БЕЗ page и показывал настоящий total:
+// при 340 сотрудниках в шапке стояло «340», а в таблице молча лежали первые
+// 200 — остальных нельзя было ни увидеть, ни выгрузить. Теперь есть догрузка.
+const PAGE_SIZE = 200
+
 interface StaffItem {
   person_id: string
   full_name: string
@@ -74,6 +80,7 @@ export default function PersonsClient() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Дебаунс запроса поиска: поиск делается на сервере (app-side), поэтому не
@@ -118,7 +125,7 @@ export default function PersonsClient() {
         return
       }
 
-      const qs = new URLSearchParams({ pageSize: '200' })
+      const qs = new URLSearchParams({ pageSize: String(PAGE_SIZE), page: '1' })
       if (debouncedSearch) qs.set('search', debouncedSearch)
       const res = await fetch(`/api/persons/${tab}?${qs.toString()}`)
       if (res.status === 403) { setError(t('list.forbidden')); setRows([]); setTotal(0); return }
@@ -138,6 +145,29 @@ export default function PersonsClient() {
   }, [tab, debouncedSearch, t])
 
   useEffect(() => { load() }, [load])
+
+  // Догрузка следующей страницы (вкладки staff/students; у «лидов» свой
+  // эндпойнт, отдающий всех сразу). Ошибку не показываем баннером: уже
+  // загруженные строки остаются на месте, пользователь может повторить.
+  const loadMore = useCallback(async () => {
+    if (tab === 'leads') return
+    setLoadingMore(true)
+    try {
+      const nextPage = Math.floor(rows.length / PAGE_SIZE) + 1
+      const qs = new URLSearchParams({ pageSize: String(PAGE_SIZE), page: String(nextPage) })
+      if (debouncedSearch) qs.set('search', debouncedSearch)
+      const res = await fetch(`/api/persons/${tab}?${qs.toString()}`)
+      if (!res.ok) return
+      const b = await res.json()
+      const list: Row[] = tab === 'staff' ? (b.staff ?? []) : (b.students ?? [])
+      setRows(prev => [...prev, ...list])
+      if (typeof b.total === 'number') setTotal(b.total)
+    } catch {
+      /* тихо: список остаётся с уже загруженными строками */
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [tab, debouncedSearch, rows.length])
 
   function openPerson(personId: string) {
     router.push(`/dashboard/persons/${personId}`)
@@ -233,6 +263,26 @@ export default function PersonsClient() {
                 onClick={() => openPerson(row.person_id)}
               />
             ))}
+          </div>
+        )}
+
+        {/* Догрузка: показываем, только когда реально есть что дозагрузить. */}
+        {!loading && !error && rows.length > 0 && rows.length < total && (
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12 }}>
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={loadingMore}
+              style={{
+                fontSize: 13, fontWeight: 600, padding: '9px 18px',
+                border: '1px solid var(--border-strong)', borderRadius: 8,
+                background: 'var(--surface)',
+                color: loadingMore ? 'var(--text-faint)' : 'var(--text)',
+                cursor: loadingMore ? 'default' : 'pointer',
+              }}
+            >
+              {tCommon('load_more')} ({rows.length}/{total})
+            </button>
           </div>
         )}
       </div>

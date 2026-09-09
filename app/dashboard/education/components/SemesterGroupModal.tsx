@@ -309,7 +309,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
                   <label key={s.id} style={{
                     display: 'flex', alignItems: 'center', gap: 9, padding: '8px 11px',
                     borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none', cursor: 'pointer',
-                    background: checked ? `${accent}10` : 'transparent',
+                    background: checked ? `color-mix(in oklab, ${accent} 6%, transparent)` : 'transparent',
                   }}>
                     <input type="checkbox" checked={checked} onChange={() => toggleStudent(s.id)} style={{ accentColor: accent }} />
                     <span style={{ flex: 1, fontSize: 13, color: 'var(--text)' }}>{s.person?.full_name ?? '—'}</span>

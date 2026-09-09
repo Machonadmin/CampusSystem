@@ -172,7 +172,7 @@ export default function ReferenceCitiesPage() {
 
         {showAdd && (
           <div style={{
-            background: accentLight, border: `1px solid ${accent}33`,
+            background: accentLight, border: `1px solid color-mix(in oklab, ${accent} 20%, transparent)`,
             borderRadius: 8, padding: 14, marginBottom: 16,
           }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
@@ -277,7 +277,7 @@ export default function ReferenceCitiesPage() {
                       onClick={() => { setEditingId(c.id); setEditValue(c.city) }}
                       style={{
                         padding: '5px 10px', fontSize: 12, color: accent,
-                        background: 'var(--surface)', border: `1px solid ${accent}66`, borderRadius: 4, cursor: 'pointer',
+                        background: 'var(--surface)', border: `1px solid color-mix(in oklab, ${accent} 40%, transparent)`, borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('edit_button')}</button>
                     <button

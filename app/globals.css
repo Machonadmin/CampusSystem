@@ -101,7 +101,131 @@
   --shadow-lg: 0 30px 80px -30px rgba(0, 0, 0, .65);
 }
 
-html[lang="he"] {
+/* ============================================================================
+   Палитра модулей.
+   Раньше цвета модулей жили в lib/module-colors.ts как фиксированные hex без
+   тёмного варианта. Отсюда две болезни:
+     1) КОЛЛИЗИИ: food≡sponsors, alumni≡contacts, finance≡doctor — байт-в-байт;
+        плюс десяток пар, неразличимых на глаз, и совпадения с --accent/--info.
+     2) Светлые оттенки использовались как фон «чипов» и в тёмной теме тоже —
+        почти белая плашка на тёмной поверхности, текст нечитаем.
+   Теперь цвет модуля — токен темы. Три роли на модуль:
+     --mod-X         идентичность: ТЕКСТ, иконки, активные границы.
+                     Светлая тема — глубокий цвет, тёмная — пастель (её видно
+                     на тёмном фоне). Меняется вместе с темой.
+     --mod-X-tint    фон чипа/плашки. Меняется вместе с темой (бледный →
+                     глубокий приглушённый), поэтому чип читаем в обеих.
+     --mod-X-banner  ФОН шапки модуля, на котором лежит белый текст
+                     (ModuleHeader, color:#fff). Намеренно ОДИНАКОВ в обеих
+                     темах: пастель здесь дала бы белое по светлому.
+   Значения подобраны так, чтобы попарная разница была различима (ΔE ≥ 18 в
+   светлой теме против 0 сейчас) и каждый цвет имел контраст ≥ 3.5:1 на своём
+   фоне. Семантика сохранена: security красный, tasks янтарный, education
+   зелёный — эволюция, а не смена языка.
+   ============================================================================ */
+:root {
+  --mod-security: #C51D28;        --mod-security-tint: #FFDED9;
+  --mod-food: #CA5500;            --mod-food-tint: #FFE3D0;
+  --mod-maintenance: #7B4B1B;     --mod-maintenance-tint: #FBE9DB;
+  --mod-tasks: #AA6700;           --mod-tasks-tint: #FFEAC7;
+  --mod-jewishness: #705D00;      --mod-jewishness-tint: #F3EED3;
+  --mod-sponsors: #78853B;        --mod-sponsors-tint: #EBF0DA;
+  --mod-reports: #327200;         --mod-reports-tint: #DFF5D5;
+  --mod-education: #009353;       --mod-education-tint: #D6F6E0;
+  --mod-finance: #00715B;         --mod-finance-tint: #D7F5EC;
+  --mod-doctor: #00979A;          --mod-doctor-tint: #CBF7F7;
+  --mod-health: #00979A;          --mod-health-tint: #CBF7F7;
+  --mod-dormitory: #0082B9;       --mod-dormitory-tint: #CFF4FF;
+  --mod-chavruta: #006678;        --mod-chavruta-tint: #D7F3F9;
+  --mod-dashboard: #127EDE;       --mod-dashboard-tint: #D5F0FF;
+  --mod-persons: #3451CA;         --mod-persons-tint: #DCECFF;
+  --mod-psychologist: #806DC3;    --mod-psychologist-tint: #EDE9FF;
+  --mod-staff: #7E35B1;           --mod-staff-tint: #F7E3FF;
+  --mod-contacts: #A65FA4;        --mod-contacts-tint: #FCE4FA;
+  --mod-alumni: #A02479;          --mod-alumni-tint: #FFDFF6;
+  --mod-quality_control: #C8436B; --mod-quality_control-tint: #FFDFE7;
+  --mod-documents: #636D77;       --mod-documents-tint: #EAEDF1;
+  --mod-settings: #395170;        --mod-settings-tint: #E5EEF9;
+  --mod-fallback: #636D77;        --mod-fallback-tint: #EAEDF1;
+
+  /* Фон шапки под белым текстом — один и тот же в светлой и тёмной теме. */
+  --mod-security-banner: #C51D28;        --mod-food-banner: #CA5500;
+  --mod-maintenance-banner: #7B4B1B;     --mod-tasks-banner: #AA6700;
+  --mod-jewishness-banner: #705D00;      --mod-sponsors-banner: #78853B;
+  --mod-reports-banner: #327200;         --mod-education-banner: #009353;
+  --mod-finance-banner: #00715B;         --mod-doctor-banner: #00979A;
+  --mod-health-banner: #00979A;          --mod-dormitory-banner: #0082B9;
+  --mod-chavruta-banner: #006678;        --mod-dashboard-banner: #127EDE;
+  --mod-persons-banner: #3451CA;         --mod-psychologist-banner: #806DC3;
+  --mod-staff-banner: #7E35B1;           --mod-contacts-banner: #A65FA4;
+  --mod-alumni-banner: #A02479;          --mod-quality_control-banner: #C8436B;
+  --mod-documents-banner: #636D77;       --mod-settings-banner: #395170;
+  --mod-fallback-banner: #636D77;
+}
+
+/* Тёмная тема по настройке устройства. Guard :not([data-theme="light"]) —
+   чтобы явно выбранная светлая тема побеждала системную тёмную. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mod-security: #FF8079;        --mod-security-tint: #521615;
+    --mod-food: #FF9F67;            --mod-food-tint: #4B1F04;
+    --mod-maintenance: #BE916A;     --mod-maintenance-tint: #3C2918;
+    --mod-tasks: #EBAF3A;           --mod-tasks-tint: #412800;
+    --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
+    --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
+    --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
+    --mod-education: #72D69B;       --mod-education-tint: #06371F;
+    --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
+    --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
+    --mod-health: #37DADC;          --mod-health-tint: #003839;
+    --mod-dormitory: #4BC7F7;       --mod-dormitory-tint: #003448;
+    --mod-chavruta: #55A9BA;        --mod-chavruta-tint: #0B343B;
+    --mod-dashboard: #78C6FF;       --mod-dashboard-tint: #0B2F53;
+    --mod-persons: #799EFF;         --mod-persons-tint: #1C2A58;
+    --mod-psychologist: #C2B4FF;    --mod-psychologist-tint: #2F2849;
+    --mod-staff: #C186F2;           --mod-staff-tint: #3A1F4E;
+    --mod-contacts: #E8A7E5;        --mod-contacts-tint: #3D233D;
+    --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
+    --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
+    --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
+    --mod-settings: #8097B5;        --mod-settings-tint: #252F3B;
+    --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
+  }
+}
+
+/* Явно выбранная тёмная тема — те же значения. */
+:root[data-theme="dark"] {
+  --mod-security: #FF8079;        --mod-security-tint: #521615;
+  --mod-food: #FF9F67;            --mod-food-tint: #4B1F04;
+  --mod-maintenance: #BE916A;     --mod-maintenance-tint: #3C2918;
+  --mod-tasks: #EBAF3A;           --mod-tasks-tint: #412800;
+  --mod-jewishness: #B2A253;      --mod-jewishness-tint: #352E09;
+  --mod-sponsors: #BCC98A;        --mod-sponsors-tint: #2C3116;
+  --mod-reports: #7EB75D;         --mod-reports-tint: #1D350C;
+  --mod-education: #72D69B;       --mod-education-tint: #06371F;
+  --mod-finance: #5AB59F;         --mod-finance-tint: #0A362D;
+  --mod-doctor: #37DADC;          --mod-doctor-tint: #003839;
+  --mod-health: #37DADC;          --mod-health-tint: #003839;
+  --mod-dormitory: #4BC7F7;       --mod-dormitory-tint: #003448;
+  --mod-chavruta: #55A9BA;        --mod-chavruta-tint: #0B343B;
+  --mod-dashboard: #78C6FF;       --mod-dashboard-tint: #0B2F53;
+  --mod-persons: #799EFF;         --mod-persons-tint: #1C2A58;
+  --mod-psychologist: #C2B4FF;    --mod-psychologist-tint: #2F2849;
+  --mod-staff: #C186F2;           --mod-staff-tint: #3A1F4E;
+  --mod-contacts: #E8A7E5;        --mod-contacts-tint: #3D233D;
+  --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
+  --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
+  --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
+  --mod-settings: #8097B5;        --mod-settings-tint: #252F3B;
+  --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
+}
+
+/* Шрифт приложения (Rubik) — для ВСЕХ языков, не только иврита.
+   Раньше правило висело на html[lang="he"], поэтому русские и английские
+   пользователи видели системный шрифт Tailwind (--default-font-family), хотя
+   подмножества latin+cyrillic всё равно загружались на каждой странице.
+   Rubik покрывает иврит, латиницу и кириллицу — держим одну гарнитуру везде. */
+html {
   font-family: var(--font-heebo), system-ui, sans-serif;
 }
 

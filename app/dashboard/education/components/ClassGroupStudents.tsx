@@ -284,7 +284,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
                   borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none',
                   cursor: alreadyIn ? 'default' : 'pointer',
                   opacity: alreadyIn ? 0.45 : 1,
-                  background: isChecked ? `${accentColor}08` : 'transparent',
+                  background: isChecked ? `color-mix(in oklab, ${accentColor} 3%, transparent)` : 'transparent',
                 }}
               >
                 <input

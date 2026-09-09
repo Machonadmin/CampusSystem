@@ -50,7 +50,7 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor, varian
             fontSize: 13,
             fontWeight: isActive ? 600 : 500,
             color: isActive ? accentColor : 'var(--text-muted)',
-            background: isActive ? `${accentColor}18` : 'var(--surface)',
+            background: isActive ? `color-mix(in oklab, ${accentColor} 9%, transparent)` : 'var(--surface)',
             border: `1px solid ${isActive ? accentColor : 'var(--border)'}`,
             borderBottom: 'none',
             borderRadius: '8px 8px 0 0',
