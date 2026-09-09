@@ -12,6 +12,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Badge } from '@/components/ui/Badge'
 
 interface Ticket {
   id: string
@@ -336,14 +337,6 @@ function SummaryPill({ label, value, colors, strong }: { label: string; value: n
     }}>
       {label}
       <span style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</span>
-    </span>
-  )
-}
-
-function Badge({ label, colors }: { label: string; colors: { bg: string; fg: string } }) {
-  return (
-    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: colors.bg, color: colors.fg, whiteSpace: 'nowrap' }}>
-      {label}
     </span>
   )
 }

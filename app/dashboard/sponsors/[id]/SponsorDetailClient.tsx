@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { Button, buttonStyle } from '@/components/ui/Button'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -329,8 +330,8 @@ export default function SponsorDetailClient({
             </label>
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <SubmitButton onClick={saveSponsor} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
-              <button onClick={() => setEditingSponsor(false)} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
-              <SubmitButton onClick={removeSponsor} loading={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
+              <Button onClick={() => setEditingSponsor(false)} disabled={busy}>{tCommon('cancel')}</Button>
+              <SubmitButton onClick={removeSponsor} loading={busy} style={{ ...buttonStyle('danger'), marginInlineStart: 'auto' }}>
                 {tCommon('delete')}
               </SubmitButton>
             </div>
@@ -414,7 +415,7 @@ export default function SponsorDetailClient({
             </div>
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <SubmitButton onClick={saveDonation} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
-              <button onClick={closeDonation} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
+              <Button onClick={closeDonation} disabled={busy}>{tCommon('cancel')}</Button>
             </div>
           </div>
         )}
@@ -578,8 +579,4 @@ function btn(bg: string): React.CSSProperties {
 }
 function outlineBtn(color: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: `1px solid ${color}`, background: 'transparent', color, cursor: 'pointer' }
-}
-const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid var(--border-strong)',
-  borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
 }

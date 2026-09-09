@@ -8,6 +8,15 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { Badge } from '@/components/ui/Badge'
+
+/**
+ * Чипы в шапке карточки лежат на цветном баннере модуля (getModuleHeaderGradient),
+ * у которого свой светлый текст. Поэтому фон — полупрозрачное «осветление» самого
+ * баннера, а цвет текста наследуется от шапки: так чип одинаково читаем и в
+ * светлой, и в тёмной теме, без собственного фиксированного цвета.
+ */
+const BANNER_CHIP = { bg: 'rgba(255, 255, 255, 0.22)', fg: 'inherit' }
 
 interface PersonDetail {
   id: string
@@ -95,8 +104,8 @@ export default function PersonDetailClient({
                 <div style={{ fontSize: 14, opacity: 0.9, marginTop: 2, direction: 'rtl' }}>{data.hebrew_name}</div>
               )}
               <div style={{ fontSize: 13, opacity: 0.9, marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {data.is_student && <Badge>{t('education_status.student')}</Badge>}
-                {data.positions.map(p => <Badge key={p}>{p}</Badge>)}
+                {data.is_student && <Badge colors={BANNER_CHIP}>{t('education_status.student')}</Badge>}
+                {data.positions.map(p => <Badge key={p} colors={BANNER_CHIP}>{p}</Badge>)}
               </div>
             </div>
           </div>
@@ -149,17 +158,6 @@ function Info({ label, value }: { label: string; value: string | null }) {
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: 14, color: 'var(--text)', marginTop: 3 }}>{value}</div>
     </div>
-  )
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span style={{
-      fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999,
-      background: 'rgba(255,255,255,0.22)', color: '#fff',
-    }}>
-      {children}
-    </span>
   )
 }
 

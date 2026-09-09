@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { Button } from '@/components/ui/Button'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
@@ -268,9 +269,9 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
           ))}
         </select>
-        <button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ ...btnGhost, marginInlineStart: 'auto', opacity: filtered.length === 0 ? 0.5 : 1, cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+        <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ marginInlineStart: 'auto' }}>
           <DownloadIcon /> {tCommon('export_csv')}
-        </button>
+        </Button>
       </div>
 
       {/* Inline editor */}
@@ -327,11 +328,11 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
           </label>
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
-            <button onClick={closeForm} disabled={busy} style={btnGhost}>{tCommon('cancel')}</button>
+            <Button onClick={closeForm} disabled={busy}>{tCommon('cancel')}</Button>
             {editingId !== '' && (
-              <button onClick={remove} disabled={busy} style={{ ...btnGhost, color: 'var(--danger)', borderColor: 'var(--danger)', marginInlineStart: 'auto' }}>
+              <Button variant="danger" onClick={remove} disabled={busy} style={{ marginInlineStart: 'auto' }}>
                 {tCommon('delete')}
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -416,8 +417,4 @@ const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '
 
 function btn(bg: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
-}
-const btnGhost: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, padding: '7px 16px', border: '1px solid var(--border-strong)',
-  borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
 }

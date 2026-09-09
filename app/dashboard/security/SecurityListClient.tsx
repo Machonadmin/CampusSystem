@@ -12,6 +12,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Badge } from '@/components/ui/Badge'
 
 interface Incident {
   id: string
@@ -362,14 +363,6 @@ function SummaryPill({ label, value, colors, strong }: { label: string; value: n
     }}>
       {label}
       <span style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</span>
-    </span>
-  )
-}
-
-function Badge({ label, colors, strong }: { label: string; colors: { bg: string; fg: string }; strong?: boolean }) {
-  return (
-    <span style={{ fontSize: 11, fontWeight: strong ? 700 : 600, padding: '2px 9px', borderRadius: 999, background: colors.bg, color: colors.fg, whiteSpace: 'nowrap' }}>
-      {label}
     </span>
   )
 }

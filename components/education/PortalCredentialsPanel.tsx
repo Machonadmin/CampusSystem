@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Button } from '@/components/ui/Button'
 
 /**
  * Панель управления входом студентки в личный портал (staff-only).
@@ -51,10 +52,6 @@ export default function PortalCredentialsPanel({ journeyId }: { journeyId: strin
 
   if (!loaded) return null
 
-  const btn: React.CSSProperties = {
-    fontSize: 13, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)',
-    border: 'none', borderRadius: 8, padding: '8px 14px', cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-  }
   const copyBtn: React.CSSProperties = {
     fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)', background: 'none',
     border: '1px solid var(--border-strong)', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
@@ -83,9 +80,9 @@ export default function PortalCredentialsPanel({ journeyId }: { journeyId: strin
 
       {err && <div style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{err}</div>}
 
-      <button onClick={generate} disabled={busy} style={btn}>
+      <Button variant="primary" onClick={generate} disabled={busy}>
         {exists ? t('reset') : t('create')}
-      </button>
+      </Button>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { Button } from '@/components/ui/Button'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { AUDITED_ENTITY_TYPES, AUDIT_ACTIONS, buildAuditDiff } from '@/lib/audit/query'
 
@@ -88,14 +89,6 @@ export default function AuditLogClient() {
     padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8,
     background: 'var(--surface)', color: 'var(--text)', outline: 'none',
   }
-  const btn: React.CSSProperties = {
-    fontSize: 13, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none',
-    borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
-  }
-  const btnGhost: React.CSSProperties = {
-    fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface)',
-    border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
-  }
 
   const applyFilters = () => { setApplied({ entityType, action, entityId, from, to }); setOpenId(null) }
   const resetFilters = () => {
@@ -158,8 +151,8 @@ export default function AuditLogClient() {
           <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('date_to')}</span>
           <input type="date" value={to} onChange={e => setTo(e.target.value)} style={inp} />
         </label>
-        <button onClick={applyFilters} style={btn}>{t('apply')}</button>
-        <button onClick={resetFilters} style={btnGhost}>{t('reset')}</button>
+        <Button variant="primary" onClick={applyFilters}>{t('apply')}</Button>
+        <Button onClick={resetFilters}>{t('reset')}</Button>
       </div>
 
       {error && (
@@ -237,9 +230,9 @@ export default function AuditLogClient() {
 
           {entries.length < total && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <button onClick={() => load(offset + PAGE, false)} disabled={loading} style={btnGhost}>
+              <Button onClick={() => load(offset + PAGE, false)} disabled={loading}>
                 {t('load_more')}
-              </button>
+              </Button>
             </div>
           )}
         </>
