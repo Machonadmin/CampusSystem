@@ -114,7 +114,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
         subtitle={detail?.survey.is_open ? t('is_open') : t('is_closed')}
         actions={detail && (
           <SubmitButton onClick={toggleOpen} loading={busy}
-            style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+            style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', cursor: 'pointer', background: 'var(--surface-2)', color: 'var(--text)' }}>
             {detail.survey.is_open ? t('close') : t('open')}
           </SubmitButton>
         )}

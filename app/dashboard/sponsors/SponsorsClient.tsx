@@ -175,8 +175,8 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         actions={<>
           {canManage && (
             <button onClick={openNew} style={{
-              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-              borderRadius: 8, background: 'var(--surface)', color: primary, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)',
+              borderRadius: 8, background: 'var(--surface-2)', color: primary, cursor: 'pointer',
             }}>
               {t('list.new_sponsor')}
             </button>

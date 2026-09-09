@@ -258,7 +258,8 @@ export default function FinanceLedgerClient({
         icon={
           <div style={{
             width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-            background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center',
+            background: getModuleColor('finance', 'light'), color: getModuleColor('finance'),
+            display: 'flex', alignItems: 'center',
             justifyContent: 'center', fontSize: 16, fontWeight: 700,
           }}>
             {photoUrl
@@ -273,7 +274,7 @@ export default function FinanceLedgerClient({
             {/* Телефон прямо в шапке ПНК: экран, где смотрят на долг, — тот, откуда звонят. */}
             {phones[0] && (
               <div style={{ marginTop: 4 }}>
-                <PhoneLink phone={phones[0]} style={{ color: '#fff' }} />
+                <PhoneLink phone={phones[0]} style={{ color: 'var(--text-muted)' }} />
               </div>
             )}
           </>

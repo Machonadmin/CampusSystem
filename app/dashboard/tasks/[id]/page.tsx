@@ -64,8 +64,8 @@ export default function TaskPage() {
           <button
             onClick={goBack}
             style={{
-              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
-              color: '#fff', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
+              background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 6,
+              color: 'var(--text)', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
             }}
           >
             ← {tCommon('back')}

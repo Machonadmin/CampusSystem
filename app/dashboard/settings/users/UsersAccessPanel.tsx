@@ -6,6 +6,7 @@
 import { useState, useRef } from 'react'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { getModuleColor } from '@/lib/module-colors'
 import { personDisplayName } from '@/lib/persons/name'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { Modal } from '@/components/ui/Modal'
@@ -35,9 +36,22 @@ export interface UserRow {
 type T = (key: string, fallback?: string) => string
 
 
-export function RoleBadge({ name }: { name: string }) {
+/**
+ * Чип роли/права.
+ *
+ * `module` задаёт цвет чипа. Раньше он был жёстко на --accent (бирюзовый), из-за
+ * чего на фиолетовой странице «Сотрудники» права выглядели зелёными — цветом,
+ * не имеющим отношения к разделу. Теперь чип берёт цвет своего модуля, и
+ * страница читается как одно целое. Без `module` остаётся прежний акцент.
+ *
+ * Цвет состояния (активен/заблокирован) НЕ трогаем: там цвет несёт смысл.
+ */
+export function RoleBadge({ name, module }: { name: string; module?: string }) {
+  const bg = module ? getModuleColor(module, 'light') : 'var(--accent-tint)'
+  const fg = module ? getModuleColor(module) : 'var(--accent)'
   return (
-    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, backgroundColor: 'var(--accent-tint)', color: 'var(--accent)', fontSize: 11, fontWeight: 500, marginRight: 4, marginBottom: 2 }}>
+    // marginInlineEnd, а не marginRight: в RTL отступ обязан идти с другой стороны.
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--r-pill)', backgroundColor: bg, color: fg, fontSize: 'var(--fs-xs)', fontWeight: 500, marginInlineEnd: 4, marginBottom: 2 }}>
       {name}
     </span>
   )

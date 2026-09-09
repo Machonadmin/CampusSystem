@@ -190,14 +190,14 @@ export default function FinancePage() {
           {/* Ссылка на управление доступом — только тем, кто может им управлять
               (иначе кнопка вела в «אין גישה»). */}
           {canManageAccess && (
-            <Link href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+            <Link href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
               {t('access.link_label')}
             </Link>
           )}
-          <Link href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+          <Link href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
             {t('semesters.title')}
           </Link>
-          <Link href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface)', color: primary }}>
+          <Link href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
             {t('staff.link_label')}
           </Link>
         </>}

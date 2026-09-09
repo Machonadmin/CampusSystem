@@ -626,7 +626,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
     if (!user) return <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_none')}</span>
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 240 }}>
-        {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(langPack.roles, r.code, r.name)} />)}
+        {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(langPack.roles, r.code, r.name)} module="staff" />)}
         {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
         {user.roles.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_no_roles')}</span>}
       </div>

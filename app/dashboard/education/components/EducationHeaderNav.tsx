@@ -11,10 +11,15 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
  * не нужно — в шапке осталась только ежедневная ссылка «מערכת שעות».
  */
 
+// Ссылки лежат в слоте `actions` у <ModuleHeader/>. Шапка перестала быть цветным
+// баннером с белым текстом, поэтому «осветление белым» здесь заменено токенами.
+const CHIP_BG = 'var(--surface-2)'
+const CHIP_BG_HOVER = 'var(--accent-tint)'
+
 const linkChip: React.CSSProperties = {
-  fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.15)',
+  fontSize: 12.5, fontWeight: 600, color: 'var(--text)', background: CHIP_BG,
   padding: '6px 12px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
-  display: 'inline-block', border: '1px solid rgba(255,255,255,0.28)',
+  display: 'inline-block', border: '1px solid var(--border-strong)',
   transition: 'background 0.12s',
 }
 
@@ -39,8 +44,8 @@ export default function EducationHeaderNav() {
       <a
         href="/dashboard/education/timetable"
         style={linkChip}
-        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.26)' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.15)' }}
+        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG_HOVER }}
+        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG }}
       >
         {t('timetable.title')}
       </a>
@@ -48,12 +53,12 @@ export default function EducationHeaderNav() {
         <a
           href="/dashboard/education/schedule-approvals"
           style={linkChip}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.26)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.15)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG_HOVER }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG }}
         >
           {t('schedule.approvals_link')}
           {pending > 0 && (
-            <span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, background: '#fff', color: 'var(--accent-strong)', borderRadius: 999, padding: '1px 7px' }}>{pending}</span>
+            <span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, background: 'var(--accent)', color: 'var(--accent-contrast)', borderRadius: 999, padding: '1px 7px' }}>{pending}</span>
           )}
         </a>
       )}

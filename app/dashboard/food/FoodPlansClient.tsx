@@ -117,8 +117,8 @@ export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
           {canManage && (
             <button onClick={() => setShowForm(v => !v)} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)',
-              color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
               + {t('list.add_plan')}
             </button>

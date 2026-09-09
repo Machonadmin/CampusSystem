@@ -46,8 +46,8 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
             onClick={() => router.push(viewHref)}
             style={{
               padding: '8px 14px', fontSize: 13, fontWeight: 500,
-              background: 'rgba(255,255,255,0.2)', color: '#fff',
-              border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8,
+              background: 'var(--surface-2)', color: 'var(--text)',
+              border: '1px solid var(--border-strong)', borderRadius: 8,
               cursor: 'pointer',
             }}
           >

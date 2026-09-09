@@ -207,8 +207,8 @@ export default function CommunitiesPage() {
         actions={<>
           {canManage && (
             <button onClick={openNew} style={{
-              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none',
-              borderRadius: 8, background: 'var(--surface)', color: 'var(--accent-strong)', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)',
+              borderRadius: 8, background: 'var(--surface-2)', color: 'var(--accent-strong)', cursor: 'pointer',
             }}>
               {t('new')}
             </button>

@@ -127,7 +127,7 @@ export default function AbsencesClient() {
         subtitle={t('subtitle')}
         actions={<>
           {canManage && (
-            <button onClick={() => setShowForm(s => !s)} style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.5)', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+            <button onClick={() => setShowForm(s => !s)} style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', cursor: 'pointer', background: 'var(--surface-2)', color: 'var(--text)' }}>
               {showForm ? t('cancel') : t('new_case')}
             </button>
           )}

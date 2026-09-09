@@ -178,7 +178,7 @@ export default function RecruitmentFormSettingsPage() {
           {/* Просмотр публичной страницы регистрации «как видит абитуриентка». */}
           <a
             href="/apply" target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface)', border: 'none', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+            style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
           >
             {t('preview', 'תצוגה מקדימה')}
           </a>

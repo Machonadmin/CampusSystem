@@ -154,7 +154,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
         subtitle={t('subtitle')}
         actions={<>
           {!canEdit && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 8 }}>{t('readonly_badge')}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '4px 10px', borderRadius: 8 }}>{t('readonly_badge')}</span>
           )}
         </>}
       />

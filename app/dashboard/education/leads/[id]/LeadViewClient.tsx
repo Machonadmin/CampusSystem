@@ -380,7 +380,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             width: 80, height: 80, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
             background: 'var(--accent-tint)', color: 'var(--accent-strong)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, fontWeight: 700, border: '2px solid rgba(255,255,255,0.5)',
+            fontSize: 28, fontWeight: 700, border: '2px solid var(--border)',
           }}>
             {person.photo_url
               ? <img src={person.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -390,7 +390,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         title={
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             {person.full_name || cardTypeLabel}
-            <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.22)', fontWeight: 500 }}>
+            <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500 }}>
               {statusLabel}
             </span>
           </span>
@@ -401,8 +401,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
             style={{
               padding: '8px 14px', fontSize: 13, fontWeight: 500,
-              background: 'var(--surface)', color: 'var(--success)',
-              border: 'none', borderRadius: 8, cursor: 'pointer',
+              background: 'var(--surface-2)', color: 'var(--success)',
+              border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
             }}
           >
             {t('card.labels.edit')}

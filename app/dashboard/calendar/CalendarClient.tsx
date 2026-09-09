@@ -396,8 +396,8 @@ export default function CalendarClient() {
             aria-haspopup="menu"
             aria-expanded={addMenuOpen}
             style={{
-              background: 'var(--surface)', color: primary, fontWeight: 600, fontSize: 13,
-              border: 'none', borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
+              background: 'var(--surface-2)', color: primary, fontWeight: 600, fontSize: 13,
+              border: '1px solid var(--border-strong)', borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
               display: 'inline-flex', alignItems: 'center', gap: 6,
             }}
           >
@@ -411,7 +411,7 @@ export default function CalendarClient() {
                 role="menu"
                 style={{
                   position: 'absolute', zIndex: 46, top: 'calc(100% + 4px)', insetInlineEnd: 0, minWidth: 220, maxWidth: 'calc(100vw - 16px)',
-                  background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+                  background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10,
                   boxShadow: 'var(--shadow)', padding: 4, display: 'grid', gap: 1,
                 }}
               >

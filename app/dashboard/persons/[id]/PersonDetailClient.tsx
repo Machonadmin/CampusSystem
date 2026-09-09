@@ -12,12 +12,12 @@ import { PhoneLink } from '@/components/ui/PhoneLink'
 import { Badge } from '@/components/ui/Badge'
 
 /**
- * Чипы в шапке карточки лежат на цветном баннере модуля (<ModuleHeader/>),
- * у которого свой светлый текст. Поэтому фон — полупрозрачное «осветление» самого
- * баннера, а цвет текста наследуется от шапки: так чип одинаково читаем и в
- * светлой, и в тёмной теме, без собственного фиксированного цвета.
+ * Чипы в шапке карточки. Шапка (<ModuleHeader/>) больше НЕ цветной баннер с
+ * белым текстом, а обычная поверхность, поэтому «осветление белым» здесь стало
+ * невидимым. Берём нейтральную пару токенов — она читаема и в светлой, и в
+ * тёмной теме, и не спорит с цветной полосой модуля.
  */
-const BANNER_CHIP = { bg: 'rgba(255, 255, 255, 0.22)', fg: 'inherit' }
+const BANNER_CHIP = { bg: 'var(--surface-2)', fg: 'var(--text-muted)' }
 
 interface PersonDetail {
   id: string
@@ -163,13 +163,13 @@ function Avatar({ name, photoUrl }: { name: string; photoUrl: string | null }) {
   if (photoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={photoUrl} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(255,255,255,0.5)' }} />
+      <img src={photoUrl} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--border)' }} />
     )
   }
   return (
     <div style={{
       width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
-      background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex',
+      background: getModuleColor('persons', 'light'), color: getModuleColor('persons'), display: 'flex',
       alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700,
     }}>
       {initials || '?'}

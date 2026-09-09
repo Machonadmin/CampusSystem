@@ -100,7 +100,7 @@ export default function UnitTeamPage() {
         subtitle={t('units.subtitle')}
         actions={<>
           {/* «מבנה יחידות» живёт здесь (в настройках учёбы одна карточка на юниты). */}
-          <Link href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <Link href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             {t('study.dashboard.launch_structure')}
           </Link>
         </>}

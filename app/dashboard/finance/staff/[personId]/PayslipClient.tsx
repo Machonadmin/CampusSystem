@@ -401,13 +401,13 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         subtitle={t('subtitle')}
         actions={/* Month selector */ <>
           <select value={month} onChange={e => setMonth(Number(e.target.value))}
-            style={{ fontSize: 13, padding: '7px 10px', borderRadius: 8, border: 'none', color: 'var(--text)', background: 'var(--surface)' }}>
+            style={{ fontSize: 13, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', color: 'var(--text)', background: 'var(--surface-2)' }}>
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
               <option key={m} value={m}>{t(`months.${m}`, String(m))}</option>
             ))}
           </select>
           <input type="number" value={year} onChange={e => setYear(Number(e.target.value))}
-            style={{ width: 90, fontSize: 13, padding: '7px 10px', borderRadius: 8, border: 'none', color: 'var(--text)', background: 'var(--surface)' }} />
+            style={{ width: 90, fontSize: 13, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', color: 'var(--text)', background: 'var(--surface-2)' }} />
         </>}
       />
 

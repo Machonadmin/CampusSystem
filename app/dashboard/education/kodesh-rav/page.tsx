@@ -24,7 +24,7 @@ export default function KodeshRavPage() {
       <ModuleHeader
         module="education"
         compact
-        icon={<svg style={{ width: 19, height: 19, color: '#fff' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        icon={<svg style={{ width: 19, height: 19, color: 'currentColor' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>}
         title={t('title')}
