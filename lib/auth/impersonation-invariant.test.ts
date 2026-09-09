@@ -42,6 +42,31 @@ function walk(dir: string): string[] {
 // оператор в начале строки. Матчим строку, состоящую целиком из директивы.
 const USE_SERVER = /^\s*['"]use server['"]\s*;?\s*$/m
 
+describe('impersonation is superadmin-only', () => {
+  const routeSrc = readFileSync(
+    join(process.cwd(), 'app', 'api', 'auth', 'impersonate', 'route.ts'),
+    'utf8',
+  )
+
+  it('the impersonate route gates on the superadmin role', () => {
+    // Вход в режим «צפייה כמשתמש» обязан быть закрыт ролью superadmin на
+    // СЕРВЕРЕ. Гейт в UI (кнопка скрыта) — только косметика: её отсутствие
+    // не мешает вызвать endpoint напрямую.
+    expect(routeSrc).toMatch(/roles\.includes\(\s*['"]superadmin['"]\s*\)/)
+    expect(routeSrc).toMatch(/forbidden/)
+  })
+
+  it('the impersonate route refuses an unauthenticated caller', () => {
+    expect(routeSrc).toMatch(/unauthorized/)
+  })
+
+  it('the impersonate route refuses nesting (already impersonating)', () => {
+    // Иначе из режима просмотра можно было бы «прыгнуть» в третьего
+    // пользователя, потеряв исходный админский токен для возврата.
+    expect(routeSrc).toMatch(/session\.imp_by/)
+  })
+})
+
 describe('impersonation read-only invariant', () => {
   it('no "use server" directive exists (all mutations go through /api/** choke point)', () => {
     const offenders: string[] = []
