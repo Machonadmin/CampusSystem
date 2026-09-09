@@ -3,6 +3,7 @@ import { requireStaff } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { isMissingRelation } from '@/lib/supabase/errors'
 
 
 async function requireSuperadmin() {
@@ -27,11 +28,21 @@ export async function GET() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let depts: any[] | null = deptsWithSort
     if (sortErr) {
+      // Логируем ПЕРВУЮ ошибку: без этого откат к базовым колонкам молча прячет
+      // и настоящую поломку (права, недоступная БД), и на экране остаётся
+      // «ошибка загрузки» без единой зацепки.
+      console.error('[departments] full select failed, falling back:', sortErr)
       const { data: fallback, error: fallbackErr } = await sb
         .from('departments')
         .select('id, name, parent_id, head_person_id, created_at')
         .order('name')
-      if (fallbackErr) throw fallbackErr
+      if (fallbackErr) {
+        console.error('[departments] base select failed too:', fallbackErr)
+        // Таблицы/колонки ещё нет — это ожидаемое состояние между деплоем и
+        // ручным прогоном миграции: отдаём понятный 503, а не голый 500.
+        if (isMissingRelation(fallbackErr)) return apiError('feature_not_migrated', 503)
+        throw fallbackErr
+      }
       depts = fallback
     }
 

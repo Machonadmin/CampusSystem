@@ -924,7 +924,15 @@ export default function StaffPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/settings/departments')
-      if (!res.ok) { setError(t('load_error')); return }
+      if (!res.ok) {
+        // Показываем ПРИЧИНУ, а не общее «ошибка загрузки». Раньше ответ сервера
+        // (например «нет прав» или «раздел ещё не мигрирован») молча выбрасывался,
+        // и на экране оставалась строка, по которой нельзя понять, что случилось,
+        // — ни пользователю, ни поддержке.
+        const body = await res.json().catch(() => null) as { error?: string } | null
+        setError(body?.error || t('load_error'))
+        return
+      }
       setDepts(await res.json())
     } catch {
       setError(t('load_error'))
