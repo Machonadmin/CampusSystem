@@ -22,10 +22,11 @@ export async function GET() {
   try {
     await requireStaff()
     const sb = createServerClient()
-    // Внутри — fail-closed: при любой ошибке чтения вернётся пустое множество,
-    // галочка просто не появится.
+    // null — состав техслужбы прочитать не удалось. Отдаём пустой список
+    // (fail-closed): галочка просто не появится, форма задачи работает как
+    // раньше. Ошибку в ответ не превращаем — создание задачи важнее галочки.
     const ids = await maintenanceStaffPersonIds(sb)
-    return NextResponse.json({ person_ids: [...ids] })
+    return NextResponse.json({ person_ids: ids ? [...ids] : [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })

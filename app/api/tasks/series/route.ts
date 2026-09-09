@@ -145,8 +145,9 @@ export async function POST(request: NextRequest) {
     // Метка из тела запроса снимается всегда — см. POST /api/tasks.
     let metadata = sanitizeIncomingMetadata(body.metadata)
     if (body.is_maintenance) {
+      // staff === null → метку не ставим (fail-closed), см. POST /api/tasks.
       const staff = await maintenanceStaffPersonIds(sb)
-      metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))
+      metadata = withMaintenanceFlag(metadata, !!staff && canBeMaintenanceTask(assignee_type, assignee_id, staff))
     }
 
     const rows: TaskInsert[] = dates.map((d, idx) => ({

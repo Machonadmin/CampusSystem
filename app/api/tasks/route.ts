@@ -186,8 +186,10 @@ export async function POST(request: NextRequest) {
     // её можно было бы протащить мимо проверки роли, послав metadata напрямую.
     let metadata = sanitizeIncomingMetadata(body.metadata)
     if (body.is_maintenance) {
+      // staff === null — состав техслужбы прочитать не удалось; тогда метку НЕ
+      // ставим (fail-closed), задача создаётся как обычная.
       const staff = await maintenanceStaffPersonIds(sb)
-      metadata = withMaintenanceFlag(metadata, canBeMaintenanceTask(assignee_type, assignee_id, staff))
+      metadata = withMaintenanceFlag(metadata, !!staff && canBeMaintenanceTask(assignee_type, assignee_id, staff))
     }
 
     const insert: TaskInsert = {

@@ -189,6 +189,15 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     if (!task || !currentUserId) return []
     const isCreator  = task.creator_id  === currentUserId
     const isAssignee = task.assignee_id === currentUserId
+
+    // Кнопки смены статуса показываем, только если сервер эту смену примет
+    // (PATCH требует автора/исполнителя/суперадмина). Раньше «בוצע» рисовалась
+    // всем, кто видит задачу, и наблюдатель или коллега получал в ответ красный
+    // 403. С доской техслужбы («техслужба видит техслужбу») это перестало быть
+    // редкостью: руководитель заходит именно в чужие задачи. Пока права не
+    // загружены — поведение прежнее, чтобы не мигать кнопками.
+    const canChangeStatus = access ? access.canChangeStatus : true
+
     const out: ActionDef[] = []
 
     // Упрощённая модель (запрос владельца): у открытой задачи главная кнопка —
@@ -196,28 +205,32 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     // review/declined продолжают отображаться и получают выход).
     switch (task.status) {
       case 'unassigned':
+        // «Взять» гейтится не canChangeStatus, а собственной проверкой отдела
+        // в POST /api/tasks/[id]/claim — поэтому кнопка остаётся.
         out.push({ label: t('actions.claim'), action: 'claim' })
-        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'pending':
-        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isAssignee) out.push({ label: t('actions.start'), action: 'start' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'in_progress':
-        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
       case 'review':
         // Легаси: задачи, отправленные «на проверку» до упрощения.
-        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
         if (isCreator) out.push({ label: t('actions.reopen'), action: 'reopen' })
         break
       case 'declined':
         // Легаси-тупик: раньше у отклонённой задачи не было НИ ОДНОЙ кнопки.
-        out.push({ label: t('actions.reopen'), action: 'reopen' })
-        out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (canChangeStatus) {
+          out.push({ label: t('actions.reopen'), action: 'reopen' })
+          out.push({ label: t('actions.mark_done'), action: 'complete' })
+        }
         if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
         break
     }

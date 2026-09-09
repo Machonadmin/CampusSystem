@@ -168,12 +168,18 @@ export async function PATCH(
 
         const wanted = flagTouched ? !!body.is_maintenance : currentFlag
         const staff = wanted ? await maintenanceStaffPersonIds(sb) : new Set<string>()
-        const allowed = wanted && canBeMaintenanceTask(effectiveType, effectiveId, staff)
 
-        if (allowed !== currentFlag) {
-          update.metadata = withMaintenanceFlag(
-            (task as { metadata?: unknown }).metadata, allowed,
-          ) as TaskUpdate['metadata']
+        // staff === null — состав техслужбы прочитать не удалось. Это «не
+        // знаю», а не «не техслужба»: метку НЕ трогаем вовсе, иначе разовый сбой
+        // запроса стёр бы её у живой задачи (например при массовом
+        // переназначении), и вернуть её пришлось бы вручную.
+        if (staff) {
+          const allowed = wanted && canBeMaintenanceTask(effectiveType, effectiveId, staff)
+          if (allowed !== currentFlag) {
+            update.metadata = withMaintenanceFlag(
+              (task as { metadata?: unknown }).metadata, allowed,
+            ) as TaskUpdate['metadata']
+          }
         }
       }
     }
