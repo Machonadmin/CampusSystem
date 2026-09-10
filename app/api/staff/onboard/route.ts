@@ -73,10 +73,18 @@ export async function POST(request: NextRequest) {
     let personId = body.person_id
     if (!personId) {
       const phones = body.phone?.trim() ? [{ type: 'mobile', number: body.phone.trim() }] : []
+      // persons.full_name — ГЕНЕРИРУЕМАЯ колонка «last first middle». Поэтому
+      // фолбэк first_name ← last_name (когда прислали только фамилию) давал
+      // УДВОЕНИЕ: last='Бекерман' + first='Бекерман' → «Бекерман Бекерман».
+      // Как в POST /api/persons: одиночное имя кладём в first_name, фамилию — NULL.
+      const hasFirst = Boolean(body.first_name?.trim())
+      const firstName = body.first_name?.trim() || body.last_name?.trim() || ''
+      const lastName = hasFirst ? (body.last_name?.trim() || null) : null
+      const middleName = hasFirst ? (body.middle_name?.trim() || null) : null
       const { data: person, error: pErr } = await sb.from('persons').insert({
-        last_name: body.last_name?.trim() || null,
-        first_name: body.first_name?.trim() || body.last_name?.trim() || '',
-        middle_name: body.middle_name?.trim() || null,
+        last_name: lastName,
+        first_name: firstName,
+        middle_name: middleName,
         hebrew_name: body.hebrew_name?.trim() || null,
         gender: null, birth_date: null, photo_url: null, email: null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
