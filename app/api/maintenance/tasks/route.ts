@@ -6,6 +6,7 @@ import { requireMaintenancePrivilege } from '@/lib/maintenance/permissions'
 import { mapDbError } from '@/lib/maintenance/http'
 import { priorityRank } from '@/lib/maintenance/tickets'
 import { MAINTENANCE_METADATA_FILTER } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import { simplifyTaskStatus } from '@/lib/tasks/status'
 import type { TaskStatus } from '@/types/database'
 
@@ -22,6 +23,14 @@ import type { TaskStatus } from '@/types/database'
  * размер команды ещё не известен).
  *
  * ?status=open (по умолчанию) | all
+ *
+ * Вместе со списком отдаём maintenance_people — сколько человек вообще имеет
+ * роль техслужбы. Пустой список сам по себе ничего не объясняет, а именно на
+ * пустом экране и застревают: задача «дошла до исполнителя», но сюда не попала.
+ * Ноль людей с ролью — самая частая причина (роль не выдана, а без неё галочка
+ * «это задача по эксплуатации» в форме задачи даже не появляется), и тогда
+ * экран говорит об этом прямо, вместо безмолвного «пока пусто».
+ * null (прочитать не удалось) отдаём как null — не выдаём догадку за факт.
  */
 
 const PAGE = 1000
@@ -102,7 +111,13 @@ export async function GET(request: NextRequest) {
       creator_name: displayName(r.creator),
     }))
 
-    return NextResponse.json({ tasks, total: tasks.length })
+    const staff = await maintenanceStaffPersonIds(sb)
+
+    return NextResponse.json({
+      tasks,
+      total: tasks.length,
+      maintenance_people: staff ? staff.size : null,
+    })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

@@ -3916,7 +3916,9 @@
       "state_open": "Open",
       "state_done": "Done",
       "state_cancelled": "Cancelled",
-      "open_task": "Open task"
+      "open_task": "Open task",
+      "empty_why": "A task appears here only if it is assigned to a person holding a maintenance role AND the author ticked \"this is a maintenance task\" when creating it.",
+      "empty_no_staff": "Note: nobody currently holds a maintenance role, so the \"this is a maintenance task\" checkbox never appears in the task form. Give someone the \"Maintenance Staff\" or \"Maintenance Head\" role in Settings → Users & permissions."
     }
   },
   "security": {

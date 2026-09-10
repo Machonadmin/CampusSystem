@@ -361,6 +361,10 @@ function MaintenanceTasksSection() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  // Сколько человек вообще имеет роль техслужбы. Ноль — самая частая причина
+  // пустого списка: без роли галочка «это задача по эксплуатации» в форме
+  // задачи даже не появляется, и задача сюда попасть не может. null = не узнали.
+  const [staffCount, setStaffCount] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -372,6 +376,7 @@ function MaintenanceTasksSection() {
       }
       const b = await res.json()
       setTasks((b.tasks ?? []) as MaintTask[])
+      setStaffCount(typeof b.maintenance_people === 'number' ? b.maintenance_people : null)
     } catch {
       setError(t('tasks.load_error'))
     } finally {
@@ -420,7 +425,13 @@ function MaintenanceTasksSection() {
       ) : loading ? (
         <SkeletonRows avatar={false} rows={2} />
       ) : tasks.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('tasks.empty')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-faint)', display: 'grid', gap: 4 }}>
+          <span>{t('tasks.empty')}</span>
+          {/* Пустой экран объясняет СЕБЯ: почему задача, дошедшая до исполнителя,
+              могла сюда не попасть. Ноль людей с ролью — отдельный, самый
+              частый случай, и он чинится в другом месте. */}
+          <span>{staffCount === 0 ? t('tasks.empty_no_staff') : t('tasks.empty_why')}</span>
+        </div>
       ) : (
         <div style={{ display: 'grid', gap: 8 }}>
           {tasks.map(task => {
