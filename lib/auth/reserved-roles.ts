@@ -75,13 +75,15 @@ export const RESERVED_ROLE_CODE_REASONS: Readonly<Record<string, string>> = {
     'lib/finance/notify-semester-opened.ts: recipient of the "semester opened" ' +
     'notification.',
   maintenance_head:
-    'lib/tasks/maintenance-link.ts (MAINTENANCE_ROLE_CODES): holding this code is ' +
-    'what makes a task eligible to be marked "maintenance work" and appear on the ' +
-    'Maintenance board. Renaming it would silently switch the feature off; ' +
-    're-creating it elsewhere would put arbitrary tasks on that board.',
+    'lib/tasks/maintenance-link.ts (MAINTENANCE_ROLE_CODES): holding this code marks ' +
+    'a person as maintenance staff, which is what lets a task be flagged "maintenance ' +
+    'work" and appear on the Maintenance board. It is no longer the ONLY signal ' +
+    '(maintenance.manage counts too, see lib/maintenance/staff-server.ts), but the ' +
+    'code is still read directly, so re-creating it elsewhere would put arbitrary ' +
+    'tasks on that board.',
   maintenance_staff:
-    'lib/tasks/maintenance-link.ts (MAINTENANCE_ROLE_CODES): same rule — this code ' +
-    'is the single signal for "this person is maintenance staff".',
+    'lib/tasks/maintenance-link.ts (MAINTENANCE_ROLE_CODES): same rule as ' +
+    'maintenance_head — the code is read directly as a maintenance-staff marker.',
 
   // ── Legacy "university model" codes with hardcoded UI behaviour ──────────
   // lib/roles/deprecated.ts hides these from role pickers and the roles screen.
