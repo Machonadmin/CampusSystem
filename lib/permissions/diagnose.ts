@@ -34,10 +34,18 @@ export interface ModuleAccessDiagnosis {
   catalogUnknown: boolean
 }
 
+/**
+ * Проверка «есть ли у сессии право <code> в модуле». Намеренно принимает код
+ * строкой: страницы передают сюда свой has<Module>Privilege, у которого код
+ * сужен до литерального union, а нам нужно перебрать весь каталог модуля.
+ * В рантайме это тот же самый поиск по объекту прав.
+ */
+export type ModulePrivilegeCheck = (session: SessionPayload, code: string) => Promise<boolean>
+
 export async function diagnoseModuleAccess(
   session: SessionPayload,
   module: string,
-  hasPrivilege: (session: SessionPayload, code: string) => Promise<boolean>,
+  hasPrivilege: ModulePrivilegeCheck,
 ): Promise<ModuleAccessDiagnosis> {
   const sb = createServerClient()
 

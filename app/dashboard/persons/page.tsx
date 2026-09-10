@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
+import { diagnoseModuleAccess, type ModulePrivilegeCheck } from '@/lib/permissions/diagnose'
+import NoModuleAccess from '@/components/dashboard/NoModuleAccess'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import PersonsClient from './PersonsClient'
 
@@ -14,7 +16,14 @@ export default async function PersonsPage() {
   if (!session) redirect('/login')
 
   const canView = await hasPersonsPrivilege(session, 'view')
-  if (!canView) redirect('/dashboard')
+  if (!canView) {
+    // Не редирект: молчаливый возврат на главную неотличим от поломки.
+    // Экран называет недостающее право и место, где его выдать.
+    const diagnosis = await diagnoseModuleAccess(
+      session, 'persons', hasPersonsPrivilege as unknown as ModulePrivilegeCheck,
+    )
+    return <NoModuleAccess module="persons" required="view" diagnosis={diagnosis} />
+  }
 
 
   return <PersonsClient />

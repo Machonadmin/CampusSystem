@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { ModuleAccessDiagnosis } from '@/lib/permissions/diagnose'
 
 /**
@@ -29,8 +29,11 @@ export default function NoModuleAccess({
   diagnosis: ModuleAccessDiagnosis
 }) {
   const t = useTranslations('access')
-  const tNav = useTranslations('navigation')
-  const moduleName = tNav(module, module)
+  // Имя модуля берём ИЗ ТОГО ЖЕ источника, что и подписи в меню (t.nav), а не из
+  // неймспейса `navigation` в messages/*.json: там заведена лишь часть модулей,
+  // и человек увидел бы в объяснении не то название, что в сайдбаре.
+  const { t: tLang } = useLang()
+  const moduleName = (tLang.nav as Record<string, string>)[module] ?? module
 
   const { catalog, granted, catalogEmpty, catalogUnknown } = diagnosis
   const grantedSet = new Set(granted)

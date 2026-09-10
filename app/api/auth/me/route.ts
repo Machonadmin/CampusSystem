@@ -3,6 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
+import { effectivePrivileges, visibleModules } from '@/lib/permissions/module-gates'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewChavruta } from '@/lib/chavruta/access'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
@@ -47,16 +48,21 @@ export async function GET() {
     const { data: roleRows } = await sb.from('roles').select('id').in('code', session.roles as RoleCode[])
     const roleIds = (roleRows ?? []).map(r => r.id)
 
+    // Собираются здесь, применяются ниже вместе с персональными оверрайдами:
+    // оверрайд может дать доступ и человеку вообще без ролей.
+    let rolePrivilegeRows: { module: string; privilege_code: string }[] = []
+
     if (roleIds.length === 0) {
-      accessible_modules = []
       feature_access = {}
     } else {
+      // Берём ВСЕ привилегии ролей, а не только 'access': видимость модуля
+      // теперь означает «сможет войти», а вход у части модулей требует ещё и
+      // '<module>.view' (см. lib/permissions/module-gates.ts).
       const { data: privs } = await sb
         .from('role_privileges')
-        .select('module')
+        .select('module, privilege_code')
         .in('role_id', roleIds)
-        .eq('privilege_code', 'access')
-      accessible_modules = [...new Set((privs ?? []).map(p => p.module as string))]
+      rolePrivilegeRows = (privs ?? []) as { module: string; privilege_code: string }[]
 
       const { data: featRows } = await sb
         .from('feature_privileges')
@@ -75,22 +81,24 @@ export async function GET() {
       }
     }
 
-    // Персональные оверрайды доступа к МОДУЛЮ (grant/deny) поверх ролей —
+    // Персональные оверрайды поверх ролей (grant добавляет, deny отнимает) —
     // платформенно, как в модульных permissions.ts. Работают и без ролей.
+    let personPrivilegeRows: Array<{ module: string; privilege_code: string; is_granted: boolean; expires_at: string | null }> = []
     try {
-      const { data: pAccess } = await sb
+      const { data: pRows } = await sb
         .from('person_privileges')
-        .select('module, is_granted, expires_at')
+        .select('module, privilege_code, is_granted, expires_at')
         .eq('person_id', session.person_id)
-        .eq('privilege_code', 'access')
-      const nowMs = Date.now()
-      const set = new Set(accessible_modules)
-      for (const r of (pAccess ?? []) as Array<{ module: string; is_granted: boolean; expires_at: string | null }>) {
-        if (r.expires_at && new Date(r.expires_at).getTime() <= nowMs) continue
-        if (r.is_granted) set.add(r.module); else set.delete(r.module)
-      }
-      accessible_modules = [...set]
-    } catch { /* нет таблицы — оставляем ролевой список */ }
+      personPrivilegeRows = (pRows ?? []) as typeof personPrivilegeRows
+    } catch { /* нет таблицы — остаёмся на ролевом списке */ }
+
+    // «Видит ⇔ может войти»: модуль попадает в список, только если у человека
+    // есть и 'access' (плитка/меню), и право, которое требует сама страница.
+    // Раньше здесь учитывался только 'access', из-за чего модуль мог быть виден
+    // и при этом молча не открываться.
+    accessible_modules = visibleModules(
+      effectivePrivileges(rolePrivilegeRows, personPrivilegeRows, Date.now()),
+    )
   }
 
   // Должность-ярлык для подписи в шапке (напр. «מזכירת טורו»). Живой запрос

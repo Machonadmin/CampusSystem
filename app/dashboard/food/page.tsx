@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
+import { diagnoseModuleAccess, type ModulePrivilegeCheck } from '@/lib/permissions/diagnose'
+import NoModuleAccess from '@/components/dashboard/NoModuleAccess'
 import { hasFoodPrivilege } from '@/lib/food/permissions'
 import FoodPlansClient from './FoodPlansClient'
 
@@ -12,7 +14,14 @@ export default async function FoodPage() {
   if (!session) redirect('/login')
 
   const canView = await hasFoodPrivilege(session, 'view')
-  if (!canView) redirect('/dashboard')
+  if (!canView) {
+    // Не редирект: молчаливый возврат на главную неотличим от поломки.
+    // Экран называет недостающее право и место, где его выдать.
+    const diagnosis = await diagnoseModuleAccess(
+      session, 'food', hasFoodPrivilege as unknown as ModulePrivilegeCheck,
+    )
+    return <NoModuleAccess module="food" required="view" diagnosis={diagnosis} />
+  }
 
   const canManage = await hasFoodPrivilege(session, 'manage')
 

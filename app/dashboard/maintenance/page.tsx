@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import { hasMaintenancePrivilege } from '@/lib/maintenance/permissions'
-import { diagnoseModuleAccess } from '@/lib/permissions/diagnose'
+import { diagnoseModuleAccess, type ModulePrivilegeCheck } from '@/lib/permissions/diagnose'
 import NoModuleAccess from '@/components/dashboard/NoModuleAccess'
 import MaintenanceListClient from './MaintenanceListClient'
 
@@ -22,9 +22,7 @@ export default async function MaintenancePage() {
   const canView = await hasMaintenancePrivilege(session, 'view')
   if (!canView) {
     const diagnosis = await diagnoseModuleAccess(
-      session,
-      'maintenance',
-      (s, code) => hasMaintenancePrivilege(s, code as 'view' | 'manage'),
+      session, 'maintenance', hasMaintenancePrivilege as unknown as ModulePrivilegeCheck,
     )
     return <NoModuleAccess module="maintenance" required="view" diagnosis={diagnosis} />
   }
