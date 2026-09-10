@@ -5343,5 +5343,18 @@
     "viewing_as": "Viewing as {name}",
     "read_only": "View-only",
     "exit": "Back to my account"
+  },
+  "access": {
+    "title": "You do not have access to this screen",
+    "subtitle": "The \"{module}\" module is shown in your menu, but opening the screen needs one more privilege you do not have yet.",
+    "diagnosis": "What exactly is missing",
+    "cause_privilege": "The {privilege} privilege is missing. Your privileges in \"{module}\":",
+    "cause_catalog": "No privileges are defined for the \"{module}\" module at all, so they cannot be granted from settings. The module privilege catalogue needs to be seeded.",
+    "cause_unknown": "Could not read the module privilege list. Please try again in a moment.",
+    "has": "granted",
+    "missing": "missing",
+    "fix_privilege": "An administrator can grant it in Settings → Roles (for the whole role) or Settings → Users & permissions (for this person only).",
+    "fix_catalog": "This is an installation problem, not a permission one: the module privilege catalogue must be seeded in the database.",
+    "back_home": "Back to home"
   }
 }
