@@ -188,7 +188,9 @@ export default function TimetablePage() {
    * Кнопки на карточке слота. draggable={false} и stopPropagation обязательны:
    * иначе нажатие на кнопку начинало бы перетаскивание карточки.
    */
-  const CardActions = ({ s }: { s: Slot }) => (
+  // Обычные функции, а не компоненты: объявленный внутри render компонент —
+  // это новый тип на каждый рендер, и React размонтировал бы всю сетку карточек.
+  const renderActions = (s: Slot) => (
     <div
       draggable={false}
       onDragStart={e => e.preventDefault()}
@@ -209,8 +211,8 @@ export default function TimetablePage() {
     </div>
   )
 
-  /** Содержимое карточки: предмет → группа → מорה → кабинет (порядок по ТЗ). */
-  const CardBody = ({ s }: { s: Slot }) => (
+  /** Содержимое карточки: предмет → группа → преподаватель → кабинет (по ТЗ). */
+  const renderBody = (s: Slot) => (
     <>
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginTop: 2 }}>
         {s.subject || t('no_subject', 'ללא מקצוע')}
@@ -334,7 +336,7 @@ export default function TimetablePage() {
                             </span>
                           )}
                         </div>
-                        <CardBody s={s} />
+                        {renderBody(s)}
                         {bad && (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                             {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
@@ -344,7 +346,7 @@ export default function TimetablePage() {
                             ))}
                           </div>
                         )}
-                        {canEdit && <CardActions s={s} />}
+                        {canEdit && renderActions(s)}
                       </div>
                     )
                   })}
@@ -420,7 +422,7 @@ export default function TimetablePage() {
                               {t('cancelled_on', 'בוטל ב-{date}').replace('{date}', cancelledOn.get(s.id) ?? '')}
                             </div>
                           )}
-                          {canEdit && <CardActions s={s} />}
+                          {canEdit && renderActions(s)}
                           {bad && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                               {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
