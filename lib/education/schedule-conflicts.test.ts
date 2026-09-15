@@ -73,6 +73,56 @@ describe('detectScheduleConflicts', () => {
     expect(detectScheduleConflicts(s)).toEqual([])
   })
 
+  // ─── Преподаватель НА УРОВНЕ СЛОТА (миграция 20260915120000) ───────────────
+  // Роут заполняет teacher_ids действующим значением: свой teacher_id слота,
+  // иначе весь список class_teachers группы (lib/education/slot-fields).
+  // Здесь фиксируем, что из этого получается в сетке.
+
+  it('у каждого слота свой преподаватель → пересечение по времени НЕ конфликт', () => {
+    // Раньше оба слота несли ВЕСЬ список преподавателей группы, и два
+    // параллельных урока одной группы всегда выглядели двойным бронированием.
+    const c = detectScheduleConflicts([
+      base({ id: 'a', teacher_ids: ['t1'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', teacher_ids: ['t2'] }),
+    ])
+    expect(c).toEqual([])
+  })
+
+  it('один и тот же преподаватель на слотах РАЗНЫХ групп → конфликт по нему', () => {
+    const c = detectScheduleConflicts([
+      base({ id: 'a', teacher_ids: ['t1'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', teacher_ids: ['t1'] }),
+    ])
+    expect(c).toHaveLength(1)
+    expect(c[0]).toMatchObject({ kind: 'teacher', key: 't1', slot_a: 'a', slot_b: 'b' })
+  })
+
+  it('слот со своим преподавателем против слота, унаследовавшего список группы', () => {
+    // b без своего преподавателя → несёт обоих преподавателей группы, среди них t1.
+    const c = detectScheduleConflicts([
+      base({ id: 'a', teacher_ids: ['t1'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', teacher_ids: ['t1', 't2'] }),
+    ])
+    expect(c).toHaveLength(1)
+    expect(c[0]).toMatchObject({ kind: 'teacher', key: 't1' })
+  })
+
+  it('свой преподаватель, которого нет среди преподавателей встречной группы → не конфликт', () => {
+    const c = detectScheduleConflicts([
+      base({ id: 'a', teacher_ids: ['t9'] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', teacher_ids: ['t1', 't2'] }),
+    ])
+    expect(c).toEqual([])
+  })
+
+  it('слот без преподавателя вовсе (пустой список) ни с чем не конфликтует по преподавателю', () => {
+    const c = detectScheduleConflicts([
+      base({ id: 'a', teacher_ids: [] }),
+      base({ id: 'b', start_time: '09:30', end_time: '10:30', teacher_ids: ['t1'] }),
+    ])
+    expect(c).toEqual([])
+  })
+
   it('conflictedSlotIds собирает id из всех конфликтов', () => {
     const s = [
       base({ id: 'a', teacher_ids: ['t1'] }),

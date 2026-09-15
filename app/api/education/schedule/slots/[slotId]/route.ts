@@ -149,6 +149,10 @@ export async function PATCH(
         conflicts = await detectSlotConflicts(sb, {
           classGroupId: access.slot.class_group_id, dayOfWeek: effDow,
           startSec: effStart, endSec: effEnd, room: effRoom, roomId: body.room_id ?? null,
+          // Преподаватель ПОСЛЕ правки: присланный, иначе уже сохранённый.
+          teacherId: teacherId.provided
+            ? teacherId.value
+            : ((access.slot as { teacher_id?: string | null }).teacher_id ?? null),
         }, params.slotId)
       } catch { /* детект не должен ронять правку */ }
       const roomConflict = conflicts.find(c => c.kind === 'room')

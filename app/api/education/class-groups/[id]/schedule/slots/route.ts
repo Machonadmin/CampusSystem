@@ -127,6 +127,7 @@ export async function POST(
       conflicts = await detectSlotConflicts(sb, {
         classGroupId: params.id, dayOfWeek: dow, startSec, endSec,
         room: body.room?.trim() || null, roomId: body.room_id ?? null,
+        teacherId: teacherId.provided ? teacherId.value : null,
       })
     } catch { /* детект не должен ронять создание */ }
     const roomConflict = conflicts.find(c => c.kind === 'room')

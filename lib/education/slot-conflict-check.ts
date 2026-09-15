@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { effectiveTeacherIds } from './slot-fields'
 
 // ─── Проверка конфликтов ПРИ СОЗДАНИИ/ПРАВКЕ слота (מנוע התנגשויות) ───────────
 //
@@ -24,6 +25,7 @@ interface Candidate {
   endSec: number
   room: string | null
   roomId?: string | null // приоритетное совпадение по реестру кабинетов
+  teacherId?: string | null // собственный преподаватель слота (NULL = все преподаватели группы)
 }
 
 function timeToSeconds(t: string | null): number | null {
@@ -45,27 +47,20 @@ export async function detectSlotConflicts(
   // колонки нет → '*'-fallback без room_id (тогда сверяем только по тексту).
   // Постранично: без .range() PostgREST молча срезает выборку на db-max-rows —
   // при большом расписании часть конфликтов «исчезала» бы из проверки.
-  let slotRows: Array<{ id: string; class_group_id: string; start_time: string; end_time: string; room: string | null; room_id?: string | null }> = []
+  const slotRows: Array<{ id: string; class_group_id: string; start_time: string; end_time: string; room: string | null; room_id?: string | null; teacher_id?: string | null }> = []
   {
     const PAGE = 1000
-    let withRoomId = true
     for (let fromRow = 0; ; fromRow += PAGE) {
-      let rows: typeof slotRows | null = null
-      if (withRoomId) {
-        const r = await sb.from('class_schedule_slots')
-          .select('id, class_group_id, start_time, end_time, room, room_id')
-          .eq('day_of_week', cand.dayOfWeek)
-          .range(fromRow, fromRow + PAGE - 1)
-        if (r.error) withRoomId = false
-        else rows = (r.data ?? []) as typeof slotRows
-      }
-      if (rows === null) {
-        const r2 = await sb.from('class_schedule_slots')
-          .select('id, class_group_id, start_time, end_time, room')
-          .eq('day_of_week', cand.dayOfWeek)
-          .range(fromRow, fromRow + PAGE - 1)
-        rows = (r2.data ?? []) as typeof slotRows
-      }
+      // select('*') — деплой-безопасно: room_id (20260721120000) и teacher_id
+      // (20260915120000) могут ещё не существовать, а перечисление колонок по
+      // имени вернуло бы 42703 на весь запрос. Раньше здесь был ручной откат на
+      // проекцию без room_id; со второй новой колонкой он превратился бы в
+      // лестницу вариантов, поэтому заменён на '*'.
+      const r = await sb.from('class_schedule_slots')
+        .select('*')
+        .eq('day_of_week', cand.dayOfWeek)
+        .range(fromRow, fromRow + PAGE - 1)
+      const rows = (r.data ?? []) as typeof slotRows
       slotRows.push(...rows)
       if (rows.length < PAGE) break
     }
@@ -117,7 +112,11 @@ export async function detectSlotConflicts(
     }
   }
 
-  const myTeachers = teachersByGroup.get(cand.classGroupId) ?? new Set<string>()
+  // Преподаватели КАНДИДАТА: если у слота задан свой — конфликт ищем только по
+  // нему. Иначе (NULL) — по всем преподавателям группы, как раньше.
+  const myTeachers = new Set(
+    effectiveTeacherIds(cand.teacherId, [...(teachersByGroup.get(cand.classGroupId) ?? new Set<string>())]),
+  )
   const myStudents = studentsByGroup.get(cand.classGroupId) ?? new Set<string>()
   const myRoom = normRoom(cand.room)
 
@@ -134,8 +133,13 @@ export async function detectSlotConflicts(
       const key = `${gid}:room`
       if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'room', group_name: gname, detail: cand.room ?? undefined }) }
     }
-    const theirTeachers = teachersByGroup.get(gid)
-    if (theirTeachers && [...myTeachers].some(t => theirTeachers.has(t))) {
+    // И у встречного слота тоже действующий преподаватель, а не вся его группа:
+    // иначе урок, отданный одному преподавателю, продолжал бы «занимать» всех
+    // остальных преподавателей своей группы.
+    const theirTeachers = new Set(
+      effectiveTeacherIds(s.teacher_id, [...(teachersByGroup.get(gid) ?? new Set<string>())]),
+    )
+    if (theirTeachers.size > 0 && [...myTeachers].some(t => theirTeachers.has(t))) {
       const key = `${gid}:teacher`
       if (!seen.has(key)) { seen.add(key); conflicts.push({ kind: 'teacher', group_name: gname }) }
     }
