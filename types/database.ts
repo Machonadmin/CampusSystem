@@ -1055,6 +1055,11 @@ export interface ScheduleSlotRow {
   created_at: string
   updated_at: string
   created_by: string | null
+  // Предмет и преподаватель САМОГО СЛОТА (миграция 20260915120000; опционально —
+  // деплой-безопасно до применения). NULL = наследовать от группы: предмет
+  // class_groups.subject_id и полный список class_teachers.
+  subject_id?: string | null
+  teacher_id?: string | null
   // Утверждение кодеш-времени (миграция 20260826140000; опционально —
   // деплой-безопасно до применения миграции).
   approval_status?: 'active' | 'pending' | 'rejected'
@@ -1070,6 +1075,8 @@ export interface ScheduleSlotInsert {
   end_time: string
   room?: string | null
   created_by?: string | null
+  subject_id?: string | null
+  teacher_id?: string | null
   approval_status?: 'active' | 'pending' | 'rejected'
   requested_by?: string | null
 }
