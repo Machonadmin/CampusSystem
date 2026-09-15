@@ -404,7 +404,22 @@
       "generate_run": "יצירה",
       "generating": "יוצר…",
       "close": "סגירה",
-      "forbidden": "אין הרשאה"
+      "forbidden": "אין הרשאה",
+      "unit_label": "יחידה",
+      "all_units_option": "כל היחידות",
+      "group_label": "קבוצה",
+      "group_placeholder": "בחר קבוצה",
+      "group_required": "יש לבחור קבוצה",
+      "subject_label": "מקצוע",
+      "subject_inherit": "לפי המקצוע של הקבוצה",
+      "subject_inherit_named": "לפי הקבוצה — {subject}",
+      "teacher_label": "מורה",
+      "teacher_inherit": "כל מורי הקבוצה",
+      "teacher_busy": "תפוס",
+      "teacher_busy_hint": "שים לב: המורה כבר משובץ באותה שעה — {group}",
+      "students_toggle": "התלמידות בקבוצה",
+      "students_loading": "טוען…",
+      "students_empty": "אין תלמידות רשומות בקבוצה"
     },
     "tabs": {
       "leads": "גיוס",

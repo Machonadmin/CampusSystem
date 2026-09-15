@@ -1,14 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { intlLocale } from '@/lib/i18n/format-date'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
-import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
+// Форма слота и каркас модалок — общие с кампусной сеткой расписания.
+import SlotFormModal, {
+  ModalShell, ModalHeader, ModalError,
+  weekdayLabel, hhmm, KODESH_GOLD, KODESH_TINT,
+} from '@/components/education/SlotFormModal'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -19,6 +22,11 @@ interface SlotItem {
   start_time: string         // 'HH:MM:SS'
   end_time: string           // 'HH:MM:SS'
   room: string | null
+  // Собственные предмет/преподаватель слота. ОБЯЗАТЕЛЬНО держать здесь: форма
+  // редактирования открывается этим объектом, и без них она открылась бы
+  // пустой, а сохранение стёрло бы уже заданные значения.
+  subject_id?: string | null
+  teacher_id?: string | null
   approval_status?: 'active' | 'pending' | 'rejected'
 }
 
@@ -33,27 +41,10 @@ interface Props {
 // ── Хелперы ───────────────────────────────────────────────────────────────────
 
 
-// 2024-01-01 — понедельник; стабильный якорь для локализованных имён дней.
-// wd — ISO 1=Пн..7=Вс, Date.UTC(2024,0,wd) даёт нужный день.
-function weekdayLabel(lang: string, wd: number, format: 'short' | 'long'): string {
-  const d = new Date(Date.UTC(2024, 0, wd))
-  return d.toLocaleDateString(intlLocale(lang), { weekday: format, timeZone: 'UTC' })
-}
-
-/** 'HH:MM:SS' | 'HH:MM' → 'HH:MM'. */
-function hhmm(t: string): string {
-  return t.length >= 5 ? t.slice(0, 5) : t
-}
-
 /** Подстановка {placeholder} — как в остальных i18n-строках проекта. */
 function fill(tpl: string, vars: Record<string, string | number>): string {
   return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, String(v)), tpl)
 }
-
-// Кодеш-акцент (золото модуля «еврейство») — для слотов, попадающих в
-// зарезервированное утреннее окно. Тинт через rgba работает в обеих темах.
-const KODESH_GOLD = '#ca8a04'
-const KODESH_TINT = 'rgba(202,138,4,0.13)'
 
 const cardBtn: React.CSSProperties = {
   padding: '3px 8px', fontSize: 11, color: 'var(--text)',
@@ -223,10 +214,10 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
       {formSlot !== null && (
         <SlotFormModal
           groupId={groupId}
+          lockGroup
           slot={'create' in formSlot ? null : formSlot}
           presetDay={'create' in formSlot ? formSlot.day : undefined}
           accentColor={accentColor}
-          lang={lang}
           onClose={() => setFormSlot(null)}
           onDone={() => { setFormSlot(null); load() }}
         />
@@ -247,185 +238,6 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
 }
 
 // ── Модал создания/редактирования слота ──────────────────────────────────────
-
-interface SlotFormModalProps {
-  groupId: string
-  slot: SlotItem | null   // null = создание
-  presetDay?: number      // предвыбранный день недели при создании (клик по колонке)
-  accentColor: string
-  lang: string
-  onClose: () => void
-  onDone: () => void
-}
-
-function SlotFormModal({ groupId, slot, presetDay, accentColor, lang, onClose, onDone }: SlotFormModalProps) {
-  const t = useTranslations('education.schedule')
-
-  const [dayOfWeek, setDayOfWeek] = useState(slot ? String(slot.day_of_week) : String(presetDay ?? 1))
-  const [startTime, setStartTime] = useState(slot ? hhmm(slot.start_time) : '')
-  const [endTime, setEndTime] = useState(slot ? hhmm(slot.end_time) : '')
-  const [room, setRoom] = useState(slot?.room ?? '')
-  const [saving, setSaving] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-
-  // Живое предупреждение: выбранное время попадает в зарезервированное окно
-  // кодеш (Вс–Чт, утро). Пока — мягкое правило (как на бэкенде): сообщаем,
-  // не блокируем.
-  const kodeshClash = !!startTime && !!endTime && endTime > startTime
-    && collidesWithKodesh(Number(dayOfWeek), startTime, endTime)
-
-  // Здания/аудитории — если заданы, можно выбрать; иначе — свободный текст.
-  const [buildings, setBuildings] = useState<{ id: string; name: string; rooms: { id: string; name: string }[] }[]>([])
-  const [buildingId, setBuildingId] = useState('')
-  const [roomId, setRoomId] = useState('')
-  useEffect(() => {
-    fetch('/api/education/buildings')
-      .then(r => (r.ok ? r.json() : { buildings: [] }))
-      .then(b => setBuildings(b.buildings ?? []))
-      .catch(() => setBuildings([]))
-  }, [])
-  const pickedBuilding = buildings.find(b => b.id === buildingId)
-
-  const handleSubmit = async () => {
-    if (!startTime || !endTime) {
-      setFormError(t('time_required'))
-      return
-    }
-    if (endTime <= startTime) {
-      setFormError(t('end_after_start'))
-      return
-    }
-    setSaving(true)
-    setFormError(null)
-    try {
-      const payload = {
-        day_of_week: Number(dayOfWeek),
-        start_time: startTime,
-        end_time: endTime,
-        room: room.trim() || null,
-        building_id: buildingId || null,
-        room_id: roomId || null,
-      }
-      const resp = slot
-        ? await fetch(`/api/education/schedule/slots/${slot.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-          })
-        : await fetch(`/api/education/class-groups/${groupId}/schedule/slots`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-          })
-      const respBody = await resp.json().catch(() => ({}))
-      if (!resp.ok) {
-        setFormError(respBody.error ?? t('action_failed'))
-        return
-      }
-      // Кодеш-время: слот ушёл на утверждение מנהל כללי — сообщаем.
-      // Иначе — мягкое правило иудаики (время зарезервировано) как раньше.
-      if (respBody.pending) toast(t('kodesh_pending_toast'), 'info')
-      else if (respBody.warning) toast(respBody.warning, 'info')
-      // Перенос кабинета → уведомлены преподаватели/ученицы группы.
-      if (respBody.room_move_notified) toast(t('room_moved_notified').replace('{n}', String(respBody.room_move_notified)), 'info')
-      // Конфликты кабинет/преподаватель/ученицы — не блокируют, но предупреждаем.
-      const conflicts = (respBody.conflicts ?? []) as Array<{ kind: 'room' | 'teacher' | 'students'; group_name: string; detail?: string }>
-      for (const c of conflicts) {
-        const msg = c.kind === 'room'
-          ? t('conflict_room').replace('{room}', c.detail ?? '').replace('{group}', c.group_name)
-          : c.kind === 'teacher'
-            ? t('conflict_teacher').replace('{group}', c.group_name)
-            : t('conflict_students').replace('{n}', c.detail ?? '').replace('{group}', c.group_name)
-        toast(msg, 'error')
-      }
-      onDone()
-    } catch {
-      setFormError(t('action_failed'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, boxSizing: 'border-box', outline: 'none',
-  }
-
-  return (
-    <ModalShell onClose={onClose}>
-      <ModalHeader title={slot ? t('modal_edit_title') : t('modal_create_title')} onClose={onClose} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div>
-          <label style={labelStyle}>{t('day_label')}</label>
-          <select aria-label={t('day_label')} value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)} style={inputStyle}>
-            {[1, 2, 3, 4, 5, 6, 7].map(wd => (
-              <option key={wd} value={wd}>{weekdayLabel(lang, wd, 'long')}</option>
-            ))}
-          </select>
-        </div>
-        <div className="resp-grid-2" style={{ gap: 12 }}>
-          <div>
-            <label style={labelStyle}>{t('start_label')} *</label>
-            <input aria-label={t('start_label')} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('end_label')} *</label>
-            <input aria-label={t('end_label')} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} style={inputStyle} />
-          </div>
-        </div>
-        {buildings.length > 0 && (
-          <div className="resp-grid-2" style={{ gap: 12 }}>
-            <div>
-              <label style={labelStyle}>{t('building_label')}</label>
-              <select aria-label={t('building_label')}
-                value={buildingId}
-                onChange={e => { setBuildingId(e.target.value); setRoomId('') }}
-                style={inputStyle}
-              >
-                <option value="">{t('none_option')}</option>
-                {buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>{t('room_select_label')}</label>
-              <select aria-label={t('room_select_label')}
-                value={roomId}
-                onChange={e => {
-                  const rid = e.target.value
-                  setRoomId(rid)
-                  const rm = pickedBuilding?.rooms.find(r => r.id === rid)
-                  if (rm && pickedBuilding) setRoom(`${pickedBuilding.name} / ${rm.name}`)
-                }}
-                disabled={!pickedBuilding || pickedBuilding.rooms.length === 0}
-                style={inputStyle}
-              >
-                <option value="">{t('none_option')}</option>
-                {(pickedBuilding?.rooms ?? []).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-            </div>
-          </div>
-        )}
-        <div>
-          <label style={labelStyle}>{t('room_label')} {buildings.length > 0 && <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>· {t('or_free_text')}</span>}</label>
-          <input aria-label={t('room_placeholder')} value={room} onChange={e => setRoom(e.target.value)} placeholder={t('room_placeholder')} style={inputStyle} />
-        </div>
-      </div>
-
-      {kodeshClash && (
-        <div style={{ marginTop: 12, padding: '8px 12px', background: KODESH_TINT, color: KODESH_GOLD, borderRadius: 8, fontSize: 12.5, fontWeight: 500, border: `1px solid ${KODESH_TINT}` }}>
-          {t('kodesh_time_notice')}
-        </div>
-      )}
-
-      {formError && <ModalError text={formError} />}
-
-      <ModalActions
-        accentColor={accentColor}
-        saving={saving}
-        onCancel={onClose}
-        onSubmit={handleSubmit}
-        cancelLabel={t('btn_cancel')}
-        saveLabel={saving ? t('btn_saving') : t('btn_save')}
-      />
-    </ModalShell>
-  )
-}
 
 // ── Модал генерации уроков ────────────────────────────────────────────────────
 
@@ -517,54 +329,5 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
         </SubmitButton>
       </div>
     </ModalShell>
-  )
-}
-
-// ── Общие части модалок ───────────────────────────────────────────────────────
-
-function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
-    <Modal onClose={onClose} maxWidth={440} closeOnBackdrop panelStyle={{ padding: 24 }}>
-      {children}
-    </Modal>
-  )
-}
-
-function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
-  const tCommon = useTranslations('common')
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{title}</h2>
-      <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
-    </div>
-  )
-}
-
-function ModalError({ text }: { text: string }) {
-  return (
-    <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
-      {text}
-    </div>
-  )
-}
-
-function ModalActions({
-  accentColor, saving, onCancel, onSubmit, cancelLabel, saveLabel,
-}: { accentColor: string; saving: boolean; onCancel: () => void; onSubmit: () => void; cancelLabel: string; saveLabel: string }) {
-  return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
-      <button
-        onClick={onCancel} disabled={saving}
-        style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
-      >
-        {cancelLabel}
-      </button>
-      <SubmitButton
-        onClick={onSubmit} loading={saving}
-        style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.55 : 1 }}
-      >
-        {saveLabel}
-      </SubmitButton>
-    </div>
   )
 }

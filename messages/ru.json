@@ -404,7 +404,22 @@
       "generate_run": "Сгенерировать",
       "generating": "Генерация…",
       "close": "Закрыть",
-      "forbidden": "Нет доступа"
+      "forbidden": "Нет доступа",
+      "unit_label": "Единица",
+      "all_units_option": "Все единицы",
+      "group_label": "Группа",
+      "group_placeholder": "Выберите группу",
+      "group_required": "Выберите группу",
+      "subject_label": "Предмет",
+      "subject_inherit": "Как у группы",
+      "subject_inherit_named": "Как у группы — {subject}",
+      "teacher_label": "Преподаватель",
+      "teacher_inherit": "Все преподаватели группы",
+      "teacher_busy": "занят",
+      "teacher_busy_hint": "Внимание: преподаватель уже занят в это время — {group}",
+      "students_toggle": "Ученицы группы",
+      "students_loading": "Загрузка…",
+      "students_empty": "В группе нет учениц"
     },
     "tabs": {
       "leads": "Набор",

@@ -404,7 +404,22 @@
       "generate_run": "Generate",
       "generating": "Generating…",
       "close": "Close",
-      "forbidden": "No permission"
+      "forbidden": "No permission",
+      "unit_label": "Unit",
+      "all_units_option": "All units",
+      "group_label": "Class group",
+      "group_placeholder": "Choose a group",
+      "group_required": "Choose a class group",
+      "subject_label": "Subject",
+      "subject_inherit": "The group's subject",
+      "subject_inherit_named": "The group's subject — {subject}",
+      "teacher_label": "Teacher",
+      "teacher_inherit": "All of the group's teachers",
+      "teacher_busy": "busy",
+      "teacher_busy_hint": "Note: this teacher is already scheduled at this time — {group}",
+      "students_toggle": "Students in the group",
+      "students_loading": "Loading…",
+      "students_empty": "No students enrolled in this group"
     },
     "tabs": {
       "leads": "Recruitment",
