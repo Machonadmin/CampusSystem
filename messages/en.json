@@ -1631,7 +1631,23 @@
         "5": "Fri",
         "6": "Sat",
         "7": "Sun"
-      }
+      },
+      "add_lesson": "Add lesson",
+      "no_subject": "No subject",
+      "action_edit": "Edit",
+      "action_cancel_lesson": "Cancel lesson",
+      "action_delete": "Delete",
+      "delete_confirm": "Delete this lesson from the timetable? Lessons already generated are kept.",
+      "deleted_ok": "Lesson deleted",
+      "cancelled_on": "cancelled on {date}",
+      "cancel_title": "Cancel a lesson",
+      "cancel_hint": "Only the chosen date is cancelled. The weekly lesson stays in the timetable.",
+      "cancel_date_label": "Date",
+      "cancel_date_required": "Choose a date",
+      "cancel_confirm": "Cancel the lesson",
+      "cancel_ok": "Lesson on {date} cancelled",
+      "cancel_failed": "Could not cancel the lesson",
+      "cancel_already": "That date is already cancelled"
     },
     "reports": {
       "title": "Reports & Analytics",

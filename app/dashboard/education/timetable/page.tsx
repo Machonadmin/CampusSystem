@@ -8,6 +8,10 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { getModuleColor } from '@/lib/module-colors'
+import SlotFormModal, { type SlotFormSlot } from '@/components/education/SlotFormModal'
+import CancelLessonDialog from './CancelLessonDialog'
 
 interface Slot {
   id: string
@@ -15,10 +19,15 @@ interface Slot {
   start_time: string
   end_time: string
   room: string | null
+  class_group_id: string
   class_group_name: string
   subject: string | null
   unit: string | null
   teachers: string[]
+  // Собственные предмет/преподаватель слота — нужны форме редактирования,
+  // чтобы она открылась с уже выбранными значениями, а не стёрла их.
+  subject_id: string | null
+  teacher_id: string | null
   approval_status?: 'active' | 'pending'
 }
 interface Unit { id: string; name: string; name_he?: string | null; name_en?: string | null }
@@ -26,6 +35,10 @@ interface Unit { id: string; name: string; name_he?: string | null; name_en?: st
 const DAY_ORDER = [7, 1, 2, 3, 4, 5, 6] // Sun..Sat (Israel week)
 const hhmm = (t: string) => t.slice(0, 5)
 // Кодеш-время, ожидающее אישור מנהל — золото модуля «еврейство».
+const cardBtn: React.CSSProperties = {
+  padding: '3px 8px', fontSize: 11, color: 'var(--text)',
+  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
+}
 const PENDING_GOLD = '#ca8a04'
 const PENDING_TINT = 'rgba(202,138,4,0.13)'
 
@@ -48,6 +61,15 @@ export default function TimetablePage() {
   // ось времени для одного дня, все параллельные уроки на одном времени видны
   // разом (кто где и с кем в 14:00). По умолчанию — сегодня.
   const [view, setView] = useState<'week' | 'day'>('week')
+
+  const accent = getModuleColor('education')
+  // Форма слота: null — закрыта, {create:true} — создание, иначе редактирование.
+  const [formSlot, setFormSlot] = useState<SlotFormSlot | { create: true } | null>(null)
+  const [cancelFor, setCancelFor] = useState<Slot | null>(null)
+  // Пометка «отменён на такую-то дату» держится до перезагрузки: сетка рисует
+  // ШАБЛОНЫ слотов и уроков не читает, так что после reload метка исчезает.
+  // Сам факт отмены при этом сохранён в lessons и виден в календаре.
+  const [cancelledOn, setCancelledOn] = useState<Map<string, string>>(new Map())
   const jsDow = new Date().getDay() // 0=вс..6=сб
   const [selDay, setSelDay] = useState<number>(jsDow === 0 ? 7 : jsDow)
 
@@ -133,6 +155,79 @@ export default function TimetablePage() {
     return { lessons: list.length, rooms: rooms.size, teachers: teachers.size, peak: dayTimeRows.reduce((mx, [, ss]) => Math.max(mx, ss.length), 0) }
   }, [byDay, selDay, dayTimeRows])
 
+  // Открыть форму на уже существующем слоте: тащим и id предмета/преподавателя,
+  // иначе форма открылась бы пустой и сохранение стёрло бы их.
+  const toFormSlot = (s: Slot): SlotFormSlot => ({
+    id: s.id,
+    class_group_id: s.class_group_id,
+    day_of_week: s.day_of_week,
+    start_time: s.start_time,
+    end_time: s.end_time,
+    room: s.room,
+    subject_id: s.subject_id,
+    teacher_id: s.teacher_id,
+  })
+
+  const removeSlot = useCallback(async (s: Slot) => {
+    if (!(await confirmDialog({ message: t('delete_confirm', 'למחוק את השיעור?'), tone: 'danger' }))) return
+    try {
+      const res = await fetch(`/api/education/schedule/slots/${s.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        toast(b.error ?? tCommon('error'), 'error')
+        return
+      }
+      toast(t('deleted_ok', 'השיעור נמחק'), 'success')
+      await load(unit)
+    } catch {
+      toast(tCommon('error'), 'error')
+    }
+  }, [load, unit, t, tCommon])
+
+  /**
+   * Кнопки на карточке слота. draggable={false} и stopPropagation обязательны:
+   * иначе нажатие на кнопку начинало бы перетаскивание карточки.
+   */
+  const CardActions = ({ s }: { s: Slot }) => (
+    <div
+      draggable={false}
+      onDragStart={e => e.preventDefault()}
+      style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}
+    >
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); setFormSlot(toFormSlot(s)) }}
+        style={cardBtn}
+      >{t('action_edit', 'עריכה')}</button>
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); setCancelFor(s) }}
+        style={cardBtn}
+      >{t('action_cancel_lesson', 'ביטול שיעור')}</button>
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); removeSlot(s) }}
+        style={{ ...cardBtn, color: 'var(--danger)' }}
+      >{t('action_delete', 'מחיקה')}</button>
+    </div>
+  )
+
+  /** Содержимое карточки: предмет → группа → מорה → кабинет (порядок по ТЗ). */
+  const CardBody = ({ s }: { s: Slot }) => (
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginTop: 2 }}>
+        {s.subject || t('no_subject', 'ללא מקצוע')}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{s.class_group_name}</div>
+      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+        {s.teachers.length > 0 && <span>{s.teachers.join(', ')}</span>}
+        {s.room && <span>{s.teachers.length ? ' · ' : ''}{t('room')} {s.room}</span>}
+      </div>
+      {cancelledOn.has(s.id) && (
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--danger)', marginTop: 3 }}>
+          {t('cancelled_on', 'בוטל ב-{date}').replace('{date}', cancelledOn.get(s.id) ?? '')}
+        </div>
+      )}
+    </>
+  )
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -165,6 +260,12 @@ export default function TimetablePage() {
             }}>{v === 'week' ? t('view_week', 'לפי יום') : t('view_manager', 'תצוגת מנהל')}</button>
           ))}
         </div>
+        {canEdit && (
+          <button type="button" onClick={() => setFormSlot({ create: true })} style={{
+            fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+            border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+        )}
       </div>
 
       {/* Взгляд менеджера — выбор дня недели (по умолчанию сегодня). */}
@@ -184,7 +285,17 @@ export default function TimetablePage() {
       {loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : slots.length === 0 ? (
-        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('no_slots')}</div>
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
+          <div>{t('no_slots')}</div>
+          {/* Пустой экран без кнопки — тупик: именно в этом состоянии заказчик и
+              оказался, построить расписание было неоткуда. */}
+          {canEdit && (
+            <button type="button" onClick={() => setFormSlot({ create: true })} style={{
+              marginTop: 14, fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8,
+              border: 'none', background: accent, color: '#fff', cursor: 'pointer',
+            }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+          )}
+        </div>
       ) : view === 'week' ? (
         <div style={{ overflowX: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${DAY_ORDER.length}, minmax(150px, 1fr))`, gap: 10, minWidth: 900 }}>
@@ -223,11 +334,7 @@ export default function TimetablePage() {
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>{s.class_group_name}{s.subject ? ` · ${s.subject}` : ''}</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                          {s.teachers.length > 0 && <span>{s.teachers.join(', ')}</span>}
-                          {s.room && <span>{s.teachers.length ? ' · ' : ''}{t('room')} {s.room}</span>}
-                        </div>
+                        <CardBody s={s} />
                         {bad && (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                             {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
@@ -237,6 +344,7 @@ export default function TimetablePage() {
                             ))}
                           </div>
                         )}
+                        {canEdit && <CardActions s={s} />}
                       </div>
                     )
                   })}
@@ -292,10 +400,10 @@ export default function TimetablePage() {
                           boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{s.class_group_name}</span>
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{s.subject || t('no_subject', 'ללא מקצוע')}</span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>–{hhmm(s.end_time)}</span>
                           </div>
-                          {s.subject && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.subject}</div>}
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.class_group_name}</div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 5, fontSize: 11.5, color: 'var(--text-muted)' }}>
                             {s.teachers.length > 0 && (
                               <span style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{s.teachers.join(', ')}</span>
@@ -307,6 +415,12 @@ export default function TimetablePage() {
                               <span style={{ fontWeight: 700, color: PENDING_GOLD, background: PENDING_TINT, padding: '2px 7px', borderRadius: 6 }}>{t('pending', 'ממתין לאישור')}</span>
                             )}
                           </div>
+                          {cancelledOn.has(s.id) && (
+                            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--danger)', marginTop: 4 }}>
+                              {t('cancelled_on', 'בוטל ב-{date}').replace('{date}', cancelledOn.get(s.id) ?? '')}
+                            </div>
+                          )}
+                          {canEdit && <CardActions s={s} />}
                           {bad && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                               {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
@@ -325,6 +439,30 @@ export default function TimetablePage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Форма слота — та же, что в карточке группы (components/education/SlotFormModal). */}
+      {formSlot !== null && (
+        <SlotFormModal
+          slot={'create' in formSlot ? null : formSlot}
+          presetUnit={unit || undefined}
+          presetDay={view === 'day' ? selDay : undefined}
+          accentColor={accent}
+          onClose={() => setFormSlot(null)}
+          onDone={() => { setFormSlot(null); load(unit) }}
+        />
+      )}
+
+      {cancelFor && (
+        <CancelLessonDialog
+          slot={cancelFor}
+          accentColor={accent}
+          onClose={() => setCancelFor(null)}
+          onDone={dateISO => {
+            setCancelledOn(prev => new Map(prev).set(cancelFor.id, dateISO))
+            setCancelFor(null)
+          }}
+        />
       )}
     </div>
   )

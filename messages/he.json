@@ -1631,7 +1631,23 @@
         "5": "שישי",
         "6": "שבת",
         "7": "ראשון"
-      }
+      },
+      "add_lesson": "הוספת שיעור",
+      "no_subject": "ללא מקצוע",
+      "action_edit": "עריכה",
+      "action_cancel_lesson": "ביטול שיעור",
+      "action_delete": "מחיקה",
+      "delete_confirm": "למחוק את השיעור מהמערכת? השיעורים שכבר נוצרו לא יימחקו.",
+      "deleted_ok": "השיעור נמחק",
+      "cancelled_on": "בוטל ב-{date}",
+      "cancel_title": "ביטול שיעור",
+      "cancel_hint": "הביטול חל רק על התאריך שנבחר. השיעור השבועי נשאר במערכת.",
+      "cancel_date_label": "תאריך",
+      "cancel_date_required": "יש לבחור תאריך",
+      "cancel_confirm": "בטל את השיעור",
+      "cancel_ok": "השיעור בוטל בתאריך {date}",
+      "cancel_failed": "לא הצלחנו לבטל את השיעור",
+      "cancel_already": "השיעור כבר מבוטל בתאריך הזה"
     },
     "reports": {
       "title": "דוחות ונתונים",
