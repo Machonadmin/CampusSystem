@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
+import { parseOptionalUuid } from '@/lib/education/slot-fields'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { detectSlotConflicts } from '@/lib/education/slot-conflict-check'
 import type { ScheduleSlotInsert } from '@/types/database'
@@ -80,6 +81,8 @@ export async function POST(
       room?: string | null
       building_id?: string | null
       room_id?: string | null
+      subject_id?: string | null
+      teacher_id?: string | null
     }
 
     const dow = Number(body.day_of_week)
@@ -100,6 +103,14 @@ export async function POST(
     if (endSec <= startSec) {
       return apiError('end_after_start', 400)
     }
+
+    // Собственные предмет/преподаватель слота (необязательные; NULL = наследовать
+    // от группы). Проверяем формат ДО обращения к БД: иначе кривой id дошёл бы до
+    // Postgres и вернулся как 22P02 с невнятным текстом.
+    const subjectId = parseOptionalUuid(body.subject_id)
+    if (!subjectId.ok) return apiError('invalid_id', 400)
+    const teacherId = parseOptionalUuid(body.teacher_id)
+    if (!teacherId.ok) return apiError('invalid_id', 400)
 
     const sb = createServerClient()
 
@@ -146,13 +157,21 @@ export async function POST(
       return NextResponse.json({ error: m.message }, { status: m.status })
     }
 
-    // building_id / room_id — деплой-безопасным UPDATE (новые колонки могут
-    // отсутствовать; свободный текст room уже сохранён выше). Ошибку 42703
-    // (нет колонок) молча игнорируем.
-    if ((body.building_id || body.room_id) && data?.id) {
+    // Колонки, добавленные поздними миграциями (building_id/room_id —
+    // 20260721120000, subject_id/teacher_id — 20260915120000), пишем отдельным
+    // UPDATE: их может ещё не быть, а сам слот уже создан и терять его нельзя.
+    // Ошибку «нет колонки» молча игнорируем — как и раньше.
+    const extra: Record<string, unknown> = {}
+    if (body.building_id || body.room_id) {
+      extra.building_id = body.building_id ?? null
+      extra.room_id = body.room_id ?? null
+    }
+    if (subjectId.provided) extra.subject_id = subjectId.value
+    if (teacherId.provided) extra.teacher_id = teacherId.value
+    if (Object.keys(extra).length > 0 && data?.id) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: locErr } = await (sb as any).from('class_schedule_slots')
-        .update({ building_id: body.building_id ?? null, room_id: body.room_id ?? null })
+        .update(extra)
         .eq('id', data.id)
       void locErr // деградируем молча, если колонок ещё нет
     }

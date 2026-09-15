@@ -9,6 +9,7 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { createNotifications } from '@/lib/notifications/create'
 import type { ScheduleSlotUpdate } from '@/types/database'
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { parseOptionalUuid } from '@/lib/education/slot-fields'
 
 /**
  * Уведомляет преподавателей и учениц группы о переносе кабинета урока.
@@ -80,6 +81,8 @@ export async function PATCH(
       room?: string | null
       room_id?: string | null
       building_id?: string | null
+      subject_id?: string | null
+      teacher_id?: string | null
     }
 
     const sb = createServerClient()
@@ -114,8 +117,16 @@ export async function PATCH(
     }
     if (body.room !== undefined) update.room = body.room?.trim() || null
 
+    // Собственные предмет/преподаватель слота (NULL = наследовать от группы).
+    // Формат проверяем ДО БД — иначе кривой id вернулся бы как 22P02.
+    const subjectId = parseOptionalUuid(body.subject_id)
+    if (!subjectId.ok) return apiError('invalid_id', 400)
+    const teacherId = parseOptionalUuid(body.teacher_id)
+    if (!teacherId.ok) return apiError('invalid_id', 400)
+
     const locationChanged = body.room_id !== undefined || body.building_id !== undefined
-    if (Object.keys(update).length === 0 && !locationChanged) {
+    const extraChanged = locationChanged || subjectId.provided || teacherId.provided
+    if (Object.keys(update).length === 0 && !extraChanged) {
       return apiError('no_changes', 400)
     }
 
@@ -165,11 +176,21 @@ export async function PATCH(
       data = res.data
     }
 
-    // building_id / room_id — деплой-безопасным UPDATE (колонки могут отсутствовать).
-    if (locationChanged) {
+    // Колонки поздних миграций (building_id/room_id, subject_id/teacher_id) —
+    // отдельным деплой-безопасным UPDATE: их может ещё не быть в базе.
+    // ВАЖНО: пишем только то, что реально пришло в теле. Раньше форма слала все
+    // поля сразу, и любая правка молча обнуляла building_id/room_id.
+    if (extraChanged) {
+      const extra: Record<string, unknown> = {}
+      if (locationChanged) {
+        extra.room_id = body.room_id ?? null
+        extra.building_id = body.building_id ?? null
+      }
+      if (subjectId.provided) extra.subject_id = subjectId.value
+      if (teacherId.provided) extra.teacher_id = teacherId.value
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: locErr } = await (sb as any).from('class_schedule_slots')
-        .update({ room_id: body.room_id ?? null, building_id: body.building_id ?? null }).eq('id', params.slotId)
+        .update(extra).eq('id', params.slotId)
       if (locErr && !isMissingColumn(locErr)) throw locErr
     }
 
