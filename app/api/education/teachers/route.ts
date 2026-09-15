@@ -23,6 +23,13 @@ import { sanitizeOrSearch } from '@/lib/search/sanitize'
  * преподавателям», т.к. один и тот же может преподавать в разных юнитах).
  * Тот же набор, что видит колонка преподавателей на доске שיבוץ.
  *
+ * ?department_id=<uuid> СУЖАЕТ пул до преподавателей, закреплённых за этой
+ * единицей (текущая staff_position в ней). Так «каталог» преподавателей по
+ * юнитам (университет / колледж / Touro / иудаика) не требует отдельной
+ * таблицы: закрепление за юнитом — это и есть посадка в его подразделение, а
+ * один человек может быть посажен в несколько. Без параметра поведение прежнее
+ * — весь штат.
+ *
  * Поиск по full_name И hebrew_name (система на иврите: людей часто заводят с
  * ивритским именем в hebrew_name; поиск только по full_name их не находил).
  */
@@ -63,8 +70,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ people })
     }
 
-    // Пул: активные staff_positions → person_id (вся школа).
-    const { data: spRows } = await sb.from('staff_positions').select('person_id').is('end_date', null)
+    // Пул: активные staff_positions → person_id (вся школа либо одна единица).
+    const departmentId = (request.nextUrl.searchParams.get('department_id') ?? '').trim()
+    let spq = sb.from('staff_positions').select('person_id').is('end_date', null)
+    if (departmentId) spq = spq.eq('department_id', departmentId)
+    const { data: spRows } = await spq
     const staffPersonIds = [...new Set((spRows ?? []).map((r: { person_id: string }) => r.person_id))]
     if (staffPersonIds.length === 0) return NextResponse.json({ people: [] })
 

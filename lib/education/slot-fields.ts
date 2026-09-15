@@ -41,3 +41,25 @@ export function effectiveTeacherIds(
 ): string[] {
   return slotTeacherId ? [slotTeacherId] : [...groupTeacherIds]
 }
+
+/**
+ * 'HH:MM' или 'HH:MM:SS' → секунды с начала суток; null на мусоре.
+ * Строгий разбор: неразборчивое время лучше отбросить, чем молча превратить
+ * в 00:00 и посчитать пересечение не с тем интервалом.
+ */
+export function timeToSeconds(t: string | null | undefined): number | null {
+  if (!t) return null
+  const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  if (!m) return null
+  const h = Number(m[1]), mi = Number(m[2]), sec = m[3] ? Number(m[3]) : 0
+  if (h > 23 || mi > 59 || sec > 59) return null
+  return h * 3600 + mi * 60 + sec
+}
+
+/**
+ * Пересекаются ли два интервала (полуоткрыто): урок 09:00–10:00 и урок
+ * 10:00–11:00 НЕ конфликтуют — они идут встык.
+ */
+export function intervalsOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
+  return aStart < bEnd && bStart < aEnd
+}

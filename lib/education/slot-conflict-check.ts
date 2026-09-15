@@ -1,5 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { effectiveTeacherIds } from './slot-fields'
+import { effectiveTeacherIds, timeToSeconds } from './slot-fields'
 
 // ─── Проверка конфликтов ПРИ СОЗДАНИИ/ПРАВКЕ слота (מנוע התנגשויות) ───────────
 //
@@ -26,13 +26,6 @@ interface Candidate {
   room: string | null
   roomId?: string | null // приоритетное совпадение по реестру кабинетов
   teacherId?: string | null // собственный преподаватель слота (NULL = все преподаватели группы)
-}
-
-function timeToSeconds(t: string | null): number | null {
-  if (!t) return null
-  const m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
-  if (!m) return null
-  return Number(m[1]) * 3600 + Number(m[2]) * 60 + (m[3] ? Number(m[3]) : 0)
 }
 
 function normRoom(r: string | null): string { return (r ?? '').trim().toLowerCase() }
