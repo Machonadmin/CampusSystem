@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
       end_time: string
       room: string | null
       approval_status?: string   // миграция 20260826140000; может отсутствовать
+      subject_id?: string | null // миграция 20260915120000; может отсутствовать
     }
     const slotRows: SlotRow[] = []
     {
@@ -107,9 +108,12 @@ export async function GET(request: NextRequest) {
     // Фильтруем null/пустые subject_id: .in('id', [..., null]) → 22P02 (invalid uuid)
     // и 400 на весь роут (у superadmin набор — все группы; одна с subject_id=null
     // блокировала показ всего расписания). Тот же баг, что в lessons/route.ts.
-    const subjectIds = Array.from(
-      new Set(Array.from(groupById.values()).map(g => g.subject_id).filter(Boolean)),
-    )
+    // Предметы: и групповые, и заданные на самом слоте (миграция 20260915120000).
+    // Иначе личный календарь показывал бы предмет группы вместо предмета урока.
+    const subjectIds = Array.from(new Set([
+      ...Array.from(groupById.values()).map(g => g.subject_id),
+      ...slotRows.map(sl => sl.subject_id ?? null),
+    ].filter(Boolean) as string[]))
     const subjectById = new Map<string, { name: string; name_he: string | null }>()
     if (subjectIds.length > 0) {
       const { data, error } = await sb
@@ -123,7 +127,9 @@ export async function GET(request: NextRequest) {
     // 5. Сборка ответа.
     const slots = slotRows.map(sl => {
       const g = groupById.get(sl.class_group_id)
-      const subj = g ? subjectById.get(g.subject_id) : undefined
+      // Собственный предмет слота важнее предмета группы.
+      const subj = (sl.subject_id ? subjectById.get(sl.subject_id) : undefined)
+        ?? (g ? subjectById.get(g.subject_id) : undefined)
       return {
         id: sl.id,
         class_group_id: sl.class_group_id,

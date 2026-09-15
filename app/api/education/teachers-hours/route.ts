@@ -75,12 +75,13 @@ export async function GET() {
       }
     }
 
-    // 4. Слоты этих групп.
-    type Slot = { class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
+    // 4. Слоты этих групп. select('*') — деплой-безопасно: teacher_id добавлен
+    // миграцией 20260915120000 и может ещё отсутствовать.
+    type Slot = { class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null; teacher_id?: string | null }
     const slotsByGroup = new Map<string, Slot[]>()
     {
       const { data } = await sb.from('class_schedule_slots')
-        .select('class_group_id, day_of_week, start_time, end_time, room')
+        .select('*')
         .in('class_group_id', groupIds)
       for (const s of (data ?? []) as Slot[]) {
         const a = slotsByGroup.get(s.class_group_id) ?? []
@@ -89,22 +90,48 @@ export async function GET() {
     }
 
     // 5. Сборка по преподавателю.
+    //
+    // Слот с СОБСТВЕННЫМ teacher_id принадлежит только ему; слот без него —
+    // всем преподавателям группы (прежнее поведение). Без этого разделения урок,
+    // отданный одной преподавательнице, продолжал бы засчитываться в недельные
+    // часы каждой её коллеги по группе, и часы у всех были бы завышены.
     const groupsByTeacher = new Map<string, string[]>()
-    for (const l of links) {
-      const a = groupsByTeacher.get(l.teacher_id) ?? []
-      if (!a.includes(l.class_group_id)) a.push(l.class_group_id)
-      groupsByTeacher.set(l.teacher_id, a)
+    const addGroup = (tid: string, gid: string) => {
+      const a = groupsByTeacher.get(tid) ?? []
+      if (!a.includes(gid)) a.push(gid)
+      groupsByTeacher.set(tid, a)
+    }
+    for (const l of links) addGroup(l.teacher_id, l.class_group_id)
+
+    // Преподаватель может вести отдельный слот, не числясь в class_teachers
+    // группы (его назначили прямо на урок) — иначе его часы просто пропали бы.
+    const slotOnlyTeachers = new Set<string>()
+    for (const [gid, arr] of slotsByGroup) {
+      for (const sl of arr) {
+        if (!sl.teacher_id) continue
+        addGroup(sl.teacher_id, gid)
+        if (!teacherIds.includes(sl.teacher_id)) slotOnlyTeachers.add(sl.teacher_id)
+      }
+    }
+    const allTeacherIds = [...teacherIds, ...slotOnlyTeachers]
+    if (slotOnlyTeachers.size > 0) {
+      const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', [...slotOnlyTeachers])
+      for (const p of (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
+        nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
+      }
     }
 
-    const teachers = teacherIds.map(tid => {
+    const teachers = allTeacherIds.map(tid => {
       const gids = groupsByTeacher.get(tid) ?? []
-      const slots = gids.flatMap(gid => (slotsByGroup.get(gid) ?? []).map(s => ({
-        group_name: groupNameById.get(s.class_group_id) ?? '',
-        day_of_week: s.day_of_week,
-        start_time: s.start_time?.slice(0, 5) ?? '',
-        end_time: s.end_time?.slice(0, 5) ?? '',
-        room: s.room,
-      })))
+      const slots = gids.flatMap(gid => (slotsByGroup.get(gid) ?? [])
+        .filter(s => (s.teacher_id ? s.teacher_id === tid : true))
+        .map(s => ({
+          group_name: groupNameById.get(s.class_group_id) ?? '',
+          day_of_week: s.day_of_week,
+          start_time: s.start_time?.slice(0, 5) ?? '',
+          end_time: s.end_time?.slice(0, 5) ?? '',
+          room: s.room,
+        })))
       const weeklyMinutes = slots.reduce((sum, s) => sum + Math.max(0, toMin(s.end_time) - toMin(s.start_time)), 0)
       slots.sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time))
       return {
