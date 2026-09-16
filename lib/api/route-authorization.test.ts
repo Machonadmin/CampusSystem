@@ -53,6 +53,8 @@ const SENSITIVE_MODULES = new Set([
   'persons', 'dormitory', 'food', 'security', 'maintenance', 'reports',
   'contacts', 'staff', 'staff-comp', 'quality-control', 'settings', 'alumni', 'education',
   'applicants',
+  // Модуль управления самими правами: голой сессии здесь заведомо мало.
+  'data-security',
 ])
 
 // Любой распознаваемый примитив авторизации (Tier 1).
