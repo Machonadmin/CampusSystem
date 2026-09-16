@@ -44,6 +44,7 @@ const ru = {
     staff: 'Сотрудники',
     quality_control: 'Оценка преподавания',
     chavruta: 'Хеврута',
+    data_security: 'Информационная безопасность',
   },
   nav_groups: {
     studies: 'Учёба',
@@ -195,6 +196,7 @@ const he: typeof ru = {
     staff: 'ניהול עובדים',
     quality_control: 'הערכת הוראה',
     chavruta: 'חברותא',
+    data_security: 'אבטחת מידע',
   },
   nav_groups: {
     studies: 'לימודים',
@@ -346,6 +348,7 @@ const en: typeof ru = {
     staff: 'Employees',
     quality_control: 'Teaching Evaluation',
     chavruta: 'Chavruta',
+    data_security: 'Data Security',
   },
   nav_groups: {
     studies: 'Education',

@@ -1,6 +1,8 @@
 // Tables the curated Database interface below does not hand-maintain are pulled
 // from the auto-generated schema so their Row/Insert/Update stay authoritative.
 import type { Database as GeneratedDatabase } from './database.generated'
+// Коды модулей прав — из реестра модулей (единственный источник правды).
+import type { PrivilegeModuleCode } from '@/lib/modules/registry'
 
 export type Json =
   | string
@@ -72,11 +74,13 @@ export type RoleCode =
   | 'applicant' | 'alumni' | 'sponsor'
   | 'head_of_studies' | 'jewishness_officer'
 
-export type PrivilegeModule =
-  | 'persons' | 'applicants' | 'education' | 'jewishness' | 'finance'
-  | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
-  | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
-  | 'contacts' | 'chavruta'
+// Код модуля прав выводится из реестра модулей — единственного источника правды
+// (lib/modules/registry.ts). Раньше этот union писался здесь руками и отставал от
+// реальности: `staff` и `quality_control` выдаются миграцией 20260708140000, а
+// `recruitment`/`admission`/`studies` — миграцией 20260819120000, но в типе их не
+// было, из-за чего lib/education/permissions.ts кастовал их через
+// `as unknown as PrivilegeModule[]`.
+export type PrivilegeModule = PrivilegeModuleCode
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 

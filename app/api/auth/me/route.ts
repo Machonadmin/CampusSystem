@@ -7,13 +7,14 @@ import { effectivePrivileges, visibleModules } from '@/lib/permissions/module-ga
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewChavruta } from '@/lib/chavruta/access'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
+import { ALL_MODULE_CODES as REGISTRY_ALL_MODULE_CODES } from '@/lib/modules/registry'
 import type { RoleCode } from '@/types/database'
 
-const ALL_MODULE_CODES = [
-  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'finance', 'dormitory', 'food',
-  'security', 'alumni', 'sponsors', 'tasks', 'documents', 'reports',
-  'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
-]
+// Список модулей, которые видит superadmin. Берётся из реестра модулей
+// (lib/modules/registry.ts) — единственного источника правды; раньше жил здесь
+// копией и разошёлся с middleware (там не было tasks) и с палитрой.
+// Копия, а не readonly-ссылка: accessible_modules ниже — обычный string[].
+const ALL_MODULE_CODES: string[] = [...REGISTRY_ALL_MODULE_CODES]
 
 type FeaturePerms = { can_view: boolean; can_create: boolean; can_edit: boolean; can_delete: boolean }
 type FeatureAccess = Record<string, Record<string, FeaturePerms>>
