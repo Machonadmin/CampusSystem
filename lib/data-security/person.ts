@@ -69,9 +69,10 @@ export function resolvePersonPrivileges(
 
   const out: ResolvedPrivilege[] = []
 
-  for (const module of modules) {
-    const roleRows = rolePrivileges.filter(r => r.module === module)
-    const personRows = personPrivileges.filter(p => p.module === module)
+  // Имя `module` занято бандлером Next (no-assign-module-variable).
+  for (const moduleCode of modules) {
+    const roleRows = rolePrivileges.filter(r => r.module === moduleCode)
+    const personRows = personPrivileges.filter(p => p.module === moduleCode)
 
     const live = personRows.filter(p => !p.expires_at || new Date(p.expires_at).getTime() > nowMs)
     const expired = personRows.filter(p => p.expires_at && new Date(p.expires_at).getTime() <= nowMs)
@@ -102,7 +103,7 @@ export function resolvePersonPrivileges(
       else source = 'role'
 
       out.push({
-        module, code, granted, source, scope,
+        module: moduleCode, code, granted, source, scope,
         expiresAt: personal?.expires_at ?? null,
         expired: false,
       })
@@ -112,7 +113,7 @@ export function resolvePersonPrivileges(
     for (const p of expired) {
       if (codes.has(p.privilege_code)) continue
       out.push({
-        module, code: p.privilege_code,
+        module: moduleCode, code: p.privilege_code,
         granted: false,
         source: p.is_granted ? 'personal_grant' : 'personal_deny_noop',
         scope: null,

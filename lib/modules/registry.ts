@@ -300,7 +300,7 @@ export const MODULES = [
   },
   {
     code: 'data_security', navKey: 'data_security', href: '/dashboard/data-security',
-    routeGuard: true, pageGates: false, pagePrivilege: null,
+    routeGuard: true, pageGates: true, pagePrivilege: null,
     gateExceptionReason:
       'Страница сама проверяет superadmin ∪ data_security.access — то же право, ' +
       'что и видимость.',

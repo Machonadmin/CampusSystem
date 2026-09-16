@@ -106,8 +106,10 @@ describe('производные списки не изменились посл
     })
   })
 
-  it('MODULE_GATE_EXCEPTIONS == прежние два исключения', () => {
-    expect(Object.keys(MODULE_GATE_EXCEPTIONS).sort()).toEqual(['health', 'jewishness'])
+  it('MODULE_GATE_EXCEPTIONS == прежние два исключения плюс новый модуль', () => {
+    // health и jewishness были и до объединения; data_security добавлен вместе с
+    // самим модулем — его страница гейтится тем же 'access', что и видимость.
+    expect(Object.keys(MODULE_GATE_EXCEPTIONS).sort()).toEqual(['data_security', 'health', 'jewishness'])
   })
 
   it('COLOURED_MODULE_CODES == токены --mod-* в globals.css', () => {
