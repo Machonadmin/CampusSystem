@@ -1,6 +1,9 @@
-const IMPLEMENTED_MODULES = new Set([
-  'persons', 'education', 'tasks', 'settings', 'staff', 'quality_control', 'alumni', 'finance', 'dormitory', 'food', 'maintenance', 'security', 'doctor', 'psychologist', 'health', 'reports', 'documents', 'contacts', 'sponsors', 'jewishness', 'chavruta',
-])
+// Состав обоих списков — из реестра модулей (lib/modules/registry.ts),
+// единственного источника правды. Раньше они жили здесь копиями и разошлись
+// с middleware, /api/auth/me и типом модулей прав.
+import { COLOURED_MODULE_CODES, IMPLEMENTED_MODULE_CODES } from '@/lib/modules/registry'
+
+const IMPLEMENTED_MODULES = new Set<string>(IMPLEMENTED_MODULE_CODES)
 
 export function isModuleImplemented(moduleCode: string): boolean {
   return IMPLEMENTED_MODULES.has(moduleCode)
@@ -29,16 +32,10 @@ export function isModuleImplemented(moduleCode: string): boolean {
  * components/workflow/ProcessGraphModal.tsx.
  */
 
-const KNOWN_MODULES = new Set([
-  'dashboard', 'persons', 'education', 'chavruta', 'jewishness', 'staff',
-  'quality_control', 'tasks', 'finance', 'dormitory', 'food', 'maintenance',
-  'security', 'alumni', 'sponsors', 'doctor', 'psychologist', 'health',
-  'documents', 'reports', 'contacts', 'settings',
-  // Шаги учебного конвейера. Это НЕ отдельные модули (доступ и права у них от
-  // education), но у каждого свой цвет: на главной это три отдельные карточки,
-  // и раньше все три брали цвет education, то есть выглядели одинаково.
-  'recruitment', 'admission',
-])
+// Модули, у которых есть палитра --mod-<code> в globals.css. Соответствие
+// реестра и самого CSS проверяет lib/modules/registry.test.ts: пометка без
+// переменной увела бы цвет в серый fallback.
+const KNOWN_MODULES = new Set<string>(COLOURED_MODULE_CODES)
 
 type Shade = 'primary' | 'light' | 'medium'
 
