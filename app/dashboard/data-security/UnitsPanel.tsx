@@ -78,9 +78,8 @@ export default function UnitsPanel({ units, canManageUnits, t, onReload }: {
     const open = expanded.has(node.id)
     return (
       <div key={node.id}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 9,
-          padding: '8px 12px', paddingInlineStart: 12 + depth * 20,
+        <div className="ds-row" style={{
+          padding: '8px 12px', paddingInlineStart: 12 + Math.min(depth, 3) * 16,
           borderRadius: 8,
         }}>
           {node.children.length > 0 ? (
@@ -91,9 +90,10 @@ export default function UnitsPanel({ units, canManageUnits, t, onReload }: {
             >{open ? '▾' : '◂'}</button>
           ) : <span style={{ width: 17 }} />}
 
-          <span style={{
-            flexGrow: 1, fontSize: depth === 0 ? 14 : 13.5,
+          <span className="ds-grow" style={{
+            fontSize: depth === 0 ? 14 : 13.5,
             fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)',
+            overflowWrap: 'anywhere',
           }}>{node.name}</span>
 
           <span style={{ fontSize: 11.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
@@ -119,8 +119,8 @@ export default function UnitsPanel({ units, canManageUnits, t, onReload }: {
 
   return (
     <div style={{ ...cardStyle, padding: '14px 10px', marginBottom: 16, borderInlineStart: '3px solid var(--danger)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 6px 8px' }}>
-        <span style={{ flexGrow: 1, fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('units_title')}</span>
+      <div className="ds-row" style={{ padding: '0 6px 8px' }}>
+        <span className="ds-grow" style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('units_title')}</span>
         {canManageUnits && (
           <button
             onClick={() => setEditing({ parent_id: null, name_he: '', name: '', name_en: '' })}

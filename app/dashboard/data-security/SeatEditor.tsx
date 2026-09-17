@@ -87,8 +87,8 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
         {flat.map(u => {
           const on = selected.has(u.id)
           return (
-            <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', paddingInlineStart: 8 + u.depth * 18 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, flexGrow: 1, cursor: 'pointer' }}>
+            <div key={u.id} className="ds-row" style={{ padding: '5px 8px', paddingInlineStart: 8 + Math.min(u.depth, 3) * 16 }}>
+              <label className="ds-grow" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                 <input type="checkbox" checked={on} onChange={() => toggle(u.id)} />
                 <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: on ? 600 : 400 }}>{u.label}</span>
               </label>

@@ -6,22 +6,27 @@ import { toastError, toastSuccess } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { getModuleColor } from '@/lib/module-colors'
 import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree'
-import { privilegeKey } from '@/lib/data-security/tree'
+import { privilegeKey, collectPrivileges } from '@/lib/data-security/tree'
 import type { ResolvedPrivilege } from '@/lib/data-security/person'
 import type { StaffSummary, PersonAccess } from '@/lib/data-security/load'
 import type { UnitNode } from '@/lib/data-security/units'
 import SeatEditor from './SeatEditor'
 import {
   LevelBadge, RiskBadge, ScopeBadge, SourceBadge, PrivilegeName,
-  cardStyle, type T,
+  AreaTile, BackToAreas, cardStyle, type T,
 } from './shared'
 
 // ─── Вид «по сотруднику»: здесь утверждают доступ ────────────────────────────
 //
-// Экран показывает не «галочки», а ответ на вопрос «что этому человеку реально
-// открыто и откуда это взялось». Источник обязателен: без него администратор
-// видит включённый переключатель и не понимает, исчезнет ли доступ при смене
-// должности.
+// Путь ровно в три шага, и на каждом видно только его содержимое:
+//   человек → раздел → права внутри раздела.
+// Так прямо попросил владелец: «захожу к человеку — хочу утвердить ему
+// определённые вещи внутри определённой области, это должно быть лёгким,
+// понятным, простым». Прошлая версия вываливала все 141 право сразу, и это
+// читалось как каша.
+//
+// Поиск — четвёртый путь, а не четвёртый шаг: если известно, ЧТО открыть,
+// набранное слово даёт плоский список по всем разделам, и разделы обходятся.
 //
 // Меняются ТОЛЬКО личные решения (person_privileges). Права должности отсюда не
 // правятся намеренно: это задело бы всех её держателей разом, а экран — про
@@ -46,6 +51,9 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
   /** Несохранённые решения: ключ права → решение. */
   const [draft, setDraft] = useState<Map<string, Decision>>(new Map())
   const [seatOpen, setSeatOpen] = useState(false)
+  /** Открытый раздел. null — показан список разделов. */
+  const [areaId, setAreaId] = useState<string | null>(null)
+  const [privQuery, setPrivQuery] = useState('')
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -78,7 +86,7 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
   }, [access])
 
   /** Текущее решение по праву: черновик, иначе то, что есть сейчас. */
-  const decisionOf = (key: string): Decision => {
+  const decisionOf = useCallback((key: string): Decision => {
     const drafted = draft.get(key)
     if (drafted) return drafted
     const r = resolved.get(key)
@@ -86,7 +94,15 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
     if (r.source === 'personal_grant' && !r.expired) return 'grant'
     if (r.source.startsWith('personal_deny') && !r.expired) return 'deny'
     return 'inherit'
-  }
+  }, [draft, resolved])
+
+  /** Открыто ли право по факту — с учётом несохранённого решения. */
+  const isOpen = useCallback((key: string): boolean => {
+    const d = decisionOf(key)
+    if (d === 'grant') return true
+    if (d === 'deny') return false
+    return resolved.get(key)?.granted === true
+  }, [decisionOf, resolved])
 
   const setDecision = (key: string, value: Decision) => {
     if (!canGrant) return
@@ -108,10 +124,10 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
       const overrides: { module: string; privilege_code: string; is_granted: boolean }[] = []
       const keys = new Set<string>([...resolved.keys(), ...draft.keys()])
       for (const key of keys) {
-        const [module, code] = key.split('::')
+        const [moduleCode, code] = key.split('::')
         const d = decisionOf(key)
-        if (d === 'grant') overrides.push({ module, privilege_code: code, is_granted: true })
-        else if (d === 'deny') overrides.push({ module, privilege_code: code, is_granted: false })
+        if (d === 'grant') overrides.push({ module: moduleCode, privilege_code: code, is_granted: true })
+        else if (d === 'deny') overrides.push({ module: moduleCode, privilege_code: code, is_granted: false })
       }
       const res = await fetch(`/api/data-security/person/${personId}`, {
         method: 'PUT',
@@ -130,104 +146,117 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
 
   const deptNames = (access?.departments ?? []).map(d => d.name)
 
+  // ── Разделы ───────────────────────────────────────────────────────────────
+  /** Живые (не устаревшие) права раздела вместе со всем, что под ним. */
+  const livePrivileges = useCallback(
+    (node: TreeNode) => collectPrivileges(node).filter(i => !i.isLegacy),
+    [],
+  )
+
+  const area = useMemo(
+    () => (areaId ? tree.roots.find(r => r.id === areaId) ?? null : null),
+    [areaId, tree.roots],
+  )
+
+  /** Плоский результат поиска по всем разделам: «знаю что искать». */
+  const searchHits = useMemo(() => {
+    const q = privQuery.trim().toLowerCase()
+    if (!q) return []
+    const hits: { area: TreeNode; item: CatalogEntry }[] = []
+    for (const root of tree.roots) {
+      for (const item of livePrivileges(root)) {
+        const hay = `${item.name ?? ''} ${item.description ?? ''} ${root.name ?? ''}`.toLowerCase()
+        if (hay.includes(q)) hits.push({ area: root, item })
+      }
+    }
+    return hits.slice(0, 60)
+  }, [privQuery, tree.roots, livePrivileges])
+
   // ── Строка права ──────────────────────────────────────────────────────────
-  const renderItem = (item: CatalogEntry) => {
+  const renderItem = (item: CatalogEntry, caption?: string) => {
     const key = privilegeKey(item.module, item.code)
     const r = resolved.get(key)
     const decision = decisionOf(key)
     const changed = draft.has(key)
-    const effectiveGranted = decision === 'grant' || (decision === 'inherit' && r?.granted === true)
+    const open = isOpen(key)
 
     return (
-      <div key={key} style={{
-        display: 'flex', alignItems: 'center', gap: 9,
-        padding: '7px 12px', paddingInlineStart: 34,
-        borderRadius: 8,
+      <div key={key} className="ds-row" style={{
+        padding: '9px 12px',
+        borderRadius: 9,
         background: changed ? 'var(--warn-tint)' : 'transparent',
-        opacity: item.isLegacy ? 0.6 : 1,
+        borderBottom: '1px solid var(--border)',
       }}>
-        <span style={{
-          flexGrow: 1, fontSize: 13, color: 'var(--text)',
-          textDecoration: !effectiveGranted && decision === 'deny' ? 'line-through' : undefined,
-        }}>
+        <span aria-hidden style={{
+          width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+          background: open ? 'var(--success)' : 'transparent',
+          border: open ? 'none' : '1.5px solid var(--border)',
+        }} />
+
+        <span className="ds-grow" style={{ fontSize: 13.5, color: 'var(--text)' }}>
           <PrivilegeName name={item.name} t={t} />
+          {caption && (
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>{caption}</span>
+          )}
         </span>
 
-        {r && !r.expired && r.source !== 'role' && (
-          <SourceBadge source={r.source} expiresAt={r.expiresAt} expired={false} t={t} lang={lang} />
+        {/* Значок источника — только когда он что-то добавляет: личное решение
+            или просроченная строка. «Из должности» и так видно по положению. */}
+        {r && (r.expired || r.source !== 'role') && (
+          <SourceBadge source={r.source} expiresAt={r.expiresAt} expired={r.expired} t={t} lang={lang} />
         )}
-        {r?.expired && (
-          <SourceBadge source={r.source} expiresAt={r.expiresAt} expired t={t} lang={lang} />
+        {open && r?.scope === 'department' && (
+          <ScopeBadge scope="department" departments={deptNames} t={t} />
         )}
-        {r?.granted && r.source === 'role' && !changed && (
-          <SourceBadge source="role" expiresAt={null} expired={false} t={t} lang={lang} />
-        )}
-        {effectiveGranted && r?.scope && <ScopeBadge scope={r.scope} departments={deptNames} t={t} />}
         <RiskBadge risk={item.risk} t={t} />
         <LevelBadge level={item.level} t={t} />
 
-        <ThreeWay
-          value={decision}
-          disabled={!canGrant}
-          onChange={v => setDecision(key, v)}
-          t={t}
-        />
+        <ThreeWay value={decision} disabled={!canGrant} onChange={v => setDecision(key, v)} t={t} />
       </div>
     )
   }
 
-  const renderNode = (node: TreeNode, depth: number): React.ReactNode => {
+  /** Подгруппы внутри раздела: заголовок-строка, под ней права. */
+  const renderGroup = (node: TreeNode, depth: number): React.ReactNode => {
     const items = node.items.filter(i => !i.isLegacy)
     if (items.length === 0 && node.children.length === 0) return null
-    const accent = node.color || (node.moduleCode ? getModuleColor(node.moduleCode) : 'var(--text-muted)')
-
     return (
-      <div key={node.id}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 9,
-          padding: '9px 12px', paddingInlineStart: 12 + depth * 18,
-          borderInlineStart: depth === 0 ? `3px solid ${accent}` : undefined,
-        }}>
-          <span style={{ flexGrow: 1, fontSize: depth === 0 ? 14 : 13, fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)' }}>
-            {node.name}
-          </span>
-          {node.departmentId && (
-            <ScopeBadge
-              scope="department"
-              departments={[access?.departments.find(d => d.id === node.departmentId)?.name ?? '']}
-              t={t}
-            />
-          )}
-          {canGrant && items.length > 0 && (
-            <>
-              <MiniBtn onClick={() => items.forEach(i => setDecision(privilegeKey(i.module, i.code), 'grant'))}>
-                {t('grant_all')}
-              </MiniBtn>
-              <MiniBtn onClick={() => items.forEach(i => setDecision(privilegeKey(i.module, i.code), 'deny'))}>
-                {t('deny_all')}
-              </MiniBtn>
-            </>
-          )}
-        </div>
-        {items.map(renderItem)}
-        {node.children.map(c => renderNode(c, depth + 1))}
+      <div key={node.id} style={{ marginTop: depth === 0 ? 0 : 10 }}>
+        {depth > 0 && (
+          <div className="ds-row" style={{ padding: '8px 12px' }}>
+            <span className="ds-grow" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>
+              {node.name}
+            </span>
+            {canGrant && items.length > 0 && (
+              <>
+                <MiniBtn onClick={() => items.forEach(i => setDecision(privilegeKey(i.module, i.code), 'grant'))}>
+                  {t('grant_all')}
+                </MiniBtn>
+                <MiniBtn onClick={() => items.forEach(i => setDecision(privilegeKey(i.module, i.code), 'deny'))}>
+                  {t('deny_all')}
+                </MiniBtn>
+              </>
+            )}
+          </div>
+        )}
+        {items.map(i => renderItem(i))}
+        {node.children.map(c => renderGroup(c, depth + 1))}
       </div>
     )
   }
 
-  const stats = useMemo(() => {
+  const openCount = useMemo(() => {
     const rows = access?.privileges ?? []
     return {
-      modules: new Set(rows.filter(r => r.granted).map(r => r.module)).size,
-      scoped: rows.filter(r => r.granted && r.scope === 'department').length,
-      denied: rows.filter(r => r.source === 'personal_deny').length,
+      open: rows.filter(r => isOpen(privilegeKey(r.module, r.code))).length,
+      denied: rows.filter(r => decisionOf(privilegeKey(r.module, r.code)) === 'deny').length,
     }
-  }, [access])
+  }, [access, isOpen, decisionOf])
 
   return (
-    <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+    <div className="ds-split">
       {/* Список сотрудников */}
-      <div style={{ ...cardStyle, width: 282, flexShrink: 0, padding: '12px 9px' }}>
+      <div style={{ ...cardStyle, padding: '12px 9px' }}>
         <input
           type="text"
           value={query}
@@ -240,13 +269,13 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
             color: 'var(--text)', fontSize: 13,
           }}
         />
-        <div style={{ maxHeight: 560, overflowY: 'auto' }}>
+        <div style={{ maxHeight: 520, overflowY: 'auto' }}>
           {filtered.map(s => {
             const active = s.personId === personId
             return (
               <button
                 key={s.personId}
-                onClick={() => setPersonId(s.personId)}
+                onClick={() => { setPersonId(s.personId); setAreaId(null); setPrivQuery('') }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                   padding: '9px 11px', marginBottom: 2, borderRadius: 9,
@@ -257,7 +286,7 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
               >
                 <span style={{ flexGrow: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 13.5, fontWeight: active ? 700 : 600, color: 'var(--text)' }}>{s.name}</span>
-                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-muted)' }}>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-muted)', overflowWrap: 'anywhere' }}>
                     {s.positionTitle ?? t('person_no_roles')}
                   </span>
                 </span>
@@ -271,7 +300,7 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
       </div>
 
       {/* Карточка сотрудника */}
-      <div style={{ flexGrow: 1, minWidth: 0 }}>
+      <div style={{ minWidth: 0 }}>
         {!personId && (
           <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
             {t('select_staff')}
@@ -282,44 +311,106 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
 
         {personId && !loading && access && (
           <>
-            <div style={{ ...cardStyle, padding: '16px 20px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ flexGrow: 1, minWidth: 180 }}>
-                <h2 style={{ margin: 0, fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>{access.name}</h2>
-                <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-muted)' }}>
-                  {access.roles.length > 0
-                    ? access.roles.map(r => r.name).join(' · ')
-                    : t('person_no_roles')}
+            <div style={{ ...cardStyle, padding: '14px 18px', marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--text)', overflowWrap: 'anywhere' }}>
+                {access.name}
+              </h2>
+              <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-muted)', overflowWrap: 'anywhere' }}>
+                {access.roles.length > 0 ? access.roles.map(r => r.name).join(' · ') : t('person_no_roles')}
+                {' · '}
+                {t('area_open_count')
+                  .replace('{n}', String(openCount.open))
+                  .replace('{total}', String(access.privileges.length))}
+              </p>
+
+              <div className="ds-row" style={{ marginTop: 8 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('seat_title')}:</span>
+                {access.departments.length > 0 ? access.departments.map(d => (
+                  <span key={d.id} style={{ padding: '3px 10px', borderRadius: 7, background: 'var(--violet-tint)', color: 'var(--violet)', fontSize: 12, fontWeight: 600, overflowWrap: 'anywhere' }}>{d.name}</span>
+                )) : (
+                  <span style={{ fontSize: 12, color: 'var(--danger)' }}>{t('seat_none')}</span>
+                )}
+                {canManageUnits && (
+                  <button
+                    onClick={() => setSeatOpen(true)}
+                    style={{ padding: '3px 11px', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 11.5, cursor: 'pointer' }}
+                  >{t('seat_edit')}</button>
+                )}
+              </div>
+            </div>
+
+            <div className="ds-row" style={{ marginBottom: 12 }}>
+              {area && <BackToAreas label={t('back_to_areas')} onClick={() => setAreaId(null)} />}
+              <input
+                type="text"
+                value={privQuery}
+                onChange={e => setPrivQuery(e.target.value)}
+                placeholder={t('search_privilege')}
+                aria-label={t('search_privilege')}
+                className="ds-grow"
+                style={{
+                  padding: '9px 13px', borderRadius: 9,
+                  border: '1px solid var(--border)', background: 'var(--surface)',
+                  color: 'var(--text)', fontSize: 13,
+                }}
+              />
+            </div>
+
+            {/* 1. Поиск перекрывает всё: человек уже знает, что ищет. */}
+            {privQuery.trim() ? (
+              <div style={{ ...cardStyle, padding: '6px 8px' }}>
+                {searchHits.length === 0 ? (
+                  <p style={{ margin: 0, padding: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+                    {t('no_results')}
+                  </p>
+                ) : searchHits.map(h => renderItem(h.item, h.area.name ?? undefined))}
+              </div>
+            ) : !area ? (
+              // 2. Разделы: один взгляд — где что открыто.
+              <>
+                <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--text-muted)' }}>
+                  {canGrant ? t('area_pick_person') : t('no_grant_permission')}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('seat_title')}:</span>
-                  {access.departments.length > 0 ? access.departments.map(d => (
-                    <span key={d.id} style={{ padding: '3px 10px', borderRadius: 7, background: 'var(--violet-tint)', color: 'var(--violet)', fontSize: 12, fontWeight: 600 }}>{d.name}</span>
-                  )) : (
-                    <span style={{ fontSize: 12, color: 'var(--danger)' }}>{t('seat_none')}</span>
-                  )}
-                  {canManageUnits && (
-                    <button
-                      onClick={() => setSeatOpen(true)}
-                      style={{ padding: '3px 11px', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 11.5, cursor: 'pointer' }}
-                    >{t('seat_edit')}</button>
+                <div className="ds-tiles">
+                  {tree.roots.map(root => {
+                    const all = livePrivileges(root)
+                    if (all.length === 0) return null
+                    const open = all.filter(i => isOpen(privilegeKey(i.module, i.code))).length
+                    return (
+                      <AreaTile
+                        key={root.id}
+                        name={root.name ?? ''}
+                        accent={root.color || (root.moduleCode ? getModuleColor(root.moduleCode) : 'var(--border)')}
+                        caption={t('area_open_count')
+                          .replace('{n}', String(open))
+                          .replace('{total}', String(all.length))}
+                        onClick={() => setAreaId(root.id)}
+                      />
+                    )
+                  })}
+                </div>
+              </>
+            ) : (
+              // 3. Внутри раздела — только его права.
+              <>
+                <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>
+                  {area.name}
+                </h3>
+                <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--text-muted)' }}>
+                  {canGrant ? t('decision_hint') : t('no_grant_permission')}
+                </p>
+                <div style={{ ...cardStyle, padding: '6px 8px' }}>
+                  {renderGroup(area, 0) ?? (
+                    <p style={{ margin: 0, padding: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+                      {t('area_empty')}
+                    </p>
                   )}
                 </div>
-              </div>
-              <Stat value={stats.modules} label={t('person_modules')} />
-              <Stat value={stats.scoped} label={t('person_scoped')} tone="var(--violet)" />
-              <Stat value={stats.denied} label={t('person_denied')} tone="var(--danger)" />
-            </div>
-
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-muted)' }}>
-              {canGrant ? t('person_hint') : t('no_grant_permission')}
-            </p>
-
-            <div style={{ ...cardStyle, padding: '10px 8px' }}>
-              {tree.roots.map(r => renderNode(r, 0))}
-            </div>
+              </>
+            )}
 
             {canGrant && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+              <div className="ds-savebar">
                 <SubmitButton
                   loading={saving}
                   disabled={!dirty}
@@ -332,12 +423,19 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
                   }}
                 >{t('save')}</SubmitButton>
                 {dirty && (
-                  <button
-                    onClick={() => setDraft(new Map())}
-                    style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: 14, cursor: 'pointer' }}
-                  >{t('reset')}</button>
+                  <>
+                    <button
+                      onClick={() => setDraft(new Map())}
+                      style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: 14, cursor: 'pointer' }}
+                    >{t('reset')}</button>
+                    <span style={{ fontSize: 12, color: 'var(--warn)', fontWeight: 600 }}>
+                      {t('unsaved_count').replace('{n}', String(draft.size))}
+                    </span>
+                  </>
                 )}
-                <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('audit_note')}</span>
+                {!dirty && (
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('audit_note')}</span>
+                )}
               </div>
             )}
           </>
@@ -353,15 +451,6 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
           />
         )}
       </div>
-    </div>
-  )
-}
-
-function Stat({ value, label, tone }: { value: number; label: string; tone?: string }) {
-  return (
-    <div style={{ textAlign: 'center', padding: '0 12px' }}>
-      <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: tone ?? 'var(--accent)' }}>{value}</span>
-      <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
     </div>
   )
 }
@@ -383,6 +472,9 @@ function MiniBtn({ onClick, children }: { onClick: () => void; children: React.R
  * Три положения вместо галочки: «как у должности» — не то же самое, что
  * «открыто лично». Галочка их смешивает, и тогда снятие «галочки» у права,
  * которое даёт должность, молча превращается в личный запрет.
+ *
+ * Подписи короткие намеренно: длинные («ניתן אישית») растягивали строку так,
+ * что на телефоне она уезжала за край.
  */
 function ThreeWay({ value, disabled, onChange, t }: {
   value: Decision
@@ -400,16 +492,16 @@ function ThreeWay({ value, disabled, onChange, t }: {
         padding: '4px 10px', border: 0, borderRadius: 6,
         background: value === v ? tone : 'transparent',
         color: value === v ? '#fff' : 'var(--text-muted)',
-        fontSize: 11, fontWeight: 700,
+        fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         cursor: disabled ? 'default' : 'pointer',
       }}
     >{label}</button>
   )
   return (
     <span style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 8, background: 'var(--surface-2)', flexShrink: 0 }}>
-      {opt('inherit', t('source_role'), 'var(--text-muted)')}
-      {opt('grant', t('source_personal_grant'), 'var(--success)')}
-      {opt('deny', t('source_personal_deny'), 'var(--danger)')}
+      {opt('inherit', t('decision_inherit'), 'var(--text-muted)')}
+      {opt('grant', t('decision_grant'), 'var(--success)')}
+      {opt('deny', t('decision_deny'), 'var(--danger)')}
     </span>
   )
 }

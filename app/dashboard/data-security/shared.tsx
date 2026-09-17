@@ -114,3 +114,66 @@ export const cardStyle: React.CSSProperties = {
   border: '1px solid var(--border)',
   borderRadius: 12,
 }
+
+/**
+ * Плитка раздела. Экран раскрывает ровно ОДИН раздел за раз: владелец сказал,
+ * что «всё сразу» читается как каша, и он прав — 141 право на одной странице
+ * невозможно окинуть взглядом. Плитка отвечает на единственный вопрос, который
+ * нужен перед входом: сколько здесь всего и сколько уже открыто.
+ */
+export function AreaTile({ name, accent, caption, active, onClick, onDragOver, onDragLeave, onDrop, dropActive }: {
+  name: string
+  accent: string
+  caption: string
+  active?: boolean
+  onClick: () => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDragLeave?: () => void
+  onDrop?: (e: React.DragEvent) => void
+  dropActive?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      aria-pressed={active}
+      style={{
+        display: 'block', width: '100%', textAlign: 'start',
+        padding: '12px 14px',
+        borderRadius: 11,
+        border: `1px solid ${dropActive ? 'var(--accent)' : active ? accent : 'var(--border)'}`,
+        borderInlineStartWidth: 4,
+        borderInlineStartColor: accent,
+        background: dropActive ? 'var(--accent-tint)' : active ? 'var(--surface-2)' : 'var(--surface)',
+        cursor: 'pointer',
+      }}
+    >
+      <span style={{
+        display: 'block', fontSize: 14, fontWeight: 700, color: 'var(--text)',
+        overflowWrap: 'anywhere',
+      }}>{name}</span>
+      <span style={{ display: 'block', marginTop: 3, fontSize: 11.5, color: 'var(--text-muted)' }}>
+        {caption}
+      </span>
+    </button>
+  )
+}
+
+/** Возврат из раздела к списку разделов. Одна и та же кнопка в обоих видах. */
+export function BackToAreas({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '6px 12px', borderRadius: 8,
+        border: '1px solid var(--border)', background: 'var(--surface)',
+        color: 'var(--text-muted)', fontSize: 12.5, cursor: 'pointer',
+      }}
+    >
+      <span aria-hidden>‹</span>{label}
+    </button>
+  )
+}
