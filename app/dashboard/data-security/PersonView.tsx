@@ -328,7 +328,11 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
                 {access.departments.length > 0 ? access.departments.map(d => (
                   <span key={d.id} style={{ padding: '3px 10px', borderRadius: 7, background: 'var(--violet-tint)', color: 'var(--violet)', fontSize: 12, fontWeight: 600, overflowWrap: 'anywhere' }}>{d.name}</span>
                 )) : (
-                  <span style={{ fontSize: 12, color: 'var(--danger)' }}>{t('seat_none')}</span>
+                  // Не красным: отсутствие единицы — НЕ ошибка. Единица нужна
+                  // только тому, кто работает со списками студенток; остальным
+                  // личной выдачи достаточно (lib/permissions/module-factory.ts
+                  // не смотрит на scope вовсе).
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('seat_none')}</span>
                 )}
                 {canManageUnits && (
                   <button
