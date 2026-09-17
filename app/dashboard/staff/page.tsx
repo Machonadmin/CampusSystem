@@ -19,7 +19,6 @@ import {
   RolesModal, AddUserModal, EditUserModal, RoleBadge,
   type UserRow, type Role, type PersonResult,
 } from '@/app/dashboard/settings/users/UsersAccessPanel'
-import PersonPrivilegesModal from '@/app/dashboard/settings/users/PersonPrivilegesModal'
 import { roleLabel } from '@/lib/roles/role-label'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -532,7 +531,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   // раз вкладки слиты в одну (запрос владельца).
   const tUsers = useTranslations('settings.users')
   const tCat = useTranslations('settings.categories')
-  const tPriv = useTranslations('settings.person_privileges')
   const me = useMe()
   const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -548,7 +546,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [allRoles, setAllRoles] = useState<Role[]>([])
   const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
   const [editTarget, setEditTarget] = useState<UserRow | null>(null)
-  const [privTarget, setPrivTarget] = useState<UserRow | null>(null)
   const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
   const [wizardOpen, setWizardOpen] = useState(false)
   const [mergeOpen, setMergeOpen] = useState(false)
@@ -645,7 +642,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
     return [
       { key: 'roles', label: tUsers('manage_roles_button'), onClick: () => setRolesTarget(user) },
       { key: 'account', label: tUsers('edit_button'), onClick: () => setEditTarget(user) },
-      { key: 'priv', label: tPriv('button'), onClick: () => setPrivTarget(user) },
     ]
   }
 
@@ -854,9 +850,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         <EditUserModal user={editTarget} t={tUsers} tCommon={tCommon}
           onClose={() => setEditTarget(null)} onSaved={() => { setEditTarget(null); setLocalRefresh(n => n + 1) }} />
       )}
-      {privTarget && (
-        <PersonPrivilegesModal user={privTarget} t={tPriv} tCommon={tCommon} onClose={() => setPrivTarget(null)} />
-      )}
       {addPerson !== undefined && (
         <AddUserModal
           key={addPerson?.id ?? 'new'}
@@ -887,7 +880,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
             onEditDetails={editable ? () => { setCardTarget(null); onAdd(editable) } : null}
             onManageRoles={cardUser ? () => { setCardTarget(null); setRolesTarget(cardUser) } : null}
             onEditAccount={cardUser ? () => { setCardTarget(null); setEditTarget(cardUser) } : null}
-            onPersonalPrivs={cardUser ? () => { setCardTarget(null); setPrivTarget(cardUser) } : null}
             onCreateLogin={!cardUser ? () => { setCardTarget(null); setAddPerson({ id: cardTarget.person_id, full_name: cardTarget.full_name, hebrew_name: cardTarget.hebrew_name, email: cardTarget.email }) } : null}
             onViewAs={() => viewAsUser(cardTarget.person_id)}
             onDelete={editable?.profile_id ? () => { setCardTarget(null); handleDeleteEmployee(editable.profile_id!, cardTarget.full_name) } : null}

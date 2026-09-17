@@ -215,6 +215,7 @@
   --mod-contacts: #A65FA4;        --mod-contacts-tint: #FCE4FA;
   --mod-alumni: #A02479;          --mod-alumni-tint: #FFDFF6;
   --mod-quality_control: #C8436B; --mod-quality_control-tint: #FFDFE7;
+  --mod-data_security: #35306B;  --mod-data_security-tint: #E3E1F5;
   --mod-documents: #636D77;       --mod-documents-tint: #EAEDF1;
   --mod-settings: #2D2F39;        --mod-settings-tint: #E7EAF0;
   --mod-fallback: #636D77;        --mod-fallback-tint: #EAEDF1;
@@ -232,6 +233,7 @@
   --mod-staff-banner: #7E35B1;           --mod-contacts-banner: #A65FA4;
   --mod-alumni-banner: #A02479;          --mod-quality_control-banner: #C8436B;
   --mod-documents-banner: #636D77;       --mod-settings-banner: #2D2F39;
+  --mod-data_security-banner: #35306B;
   --mod-fallback-banner: #636D77;
 }
 
@@ -261,6 +263,7 @@
     --mod-contacts: #E8A7E5;        --mod-contacts-tint: #3D233D;
     --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
     --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
+    --mod-data_security: #9A93E0;  --mod-data_security-tint: #2A2745;
     --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
     --mod-settings: #7881A5;        --mod-settings-tint: #252833;
     --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
@@ -291,6 +294,7 @@
   --mod-contacts: #E8A7E5;        --mod-contacts-tint: #3D233D;
   --mod-alumni: #E67ABC;          --mod-alumni-tint: #481A38;
   --mod-quality_control: #FF94AF; --mod-quality_control-tint: #4C1A28;
+  --mod-data_security: #9A93E0;  --mod-data_security-tint: #2A2745;
   --mod-documents: #A9B2BC;       --mod-documents-tint: #2A2E32;
   --mod-settings: #7881A5;        --mod-settings-tint: #252833;
   --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
@@ -652,4 +656,62 @@ p { text-wrap: pretty; }
      перебить transition существующих классов (home-card, card-interactive). */
   :where(button:not(:disabled)) { transition: transform .12s var(--ease-out); }
   button:not(:disabled):active { transform: scale(.97); }
+}
+
+/* ── «Безопасность данных»: раскладка, которая не убегает за край ───────────
+   Модуль сознательно НЕ использует inline-разметку в две колонки: на телефоне
+   фиксированные 300px + 340px рядом с деревом давали горизонтальную прокрутку
+   и обрезанные подписи. Колонки объявлены здесь, чтобы они схлопывались в одну
+   на узком экране, а строки — переносились, а не уезжали вбок. */
+
+.ds-split,
+.ds-split-rev {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1000px) { .ds-split     { grid-template-columns: 300px minmax(0, 1fr); } }
+@media (min-width: 1100px) { .ds-split-rev { grid-template-columns: minmax(0, 1fr) 340px; } }
+@media (min-width: 1100px) { .ds-sticky    { position: sticky; top: 16px; } }
+
+/* Плитки разделов: одна колонка на телефоне, дальше — сколько влезет. */
+.ds-tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+/* Строка права. Переносится целиком: подпись не обрезается значками справа. */
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.ds-grow {
+  flex: 1 1 150px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Полоса сохранения: на узком экране прилипает к низу, чтобы не искать её. */
+.ds-savebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+@media (max-width: 767px) {
+  .ds-savebar {
+    position: sticky;
+    bottom: 0;
+    padding: 10px 12px;
+    margin-inline: -12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 5;
+  }
 }

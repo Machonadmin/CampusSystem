@@ -1,6 +1,8 @@
 // Tables the curated Database interface below does not hand-maintain are pulled
 // from the auto-generated schema so their Row/Insert/Update stay authoritative.
 import type { Database as GeneratedDatabase } from './database.generated'
+// Коды модулей прав — из реестра модулей (единственный источник правды).
+import type { PrivilegeModuleCode } from '@/lib/modules/registry'
 
 export type Json =
   | string
@@ -72,11 +74,13 @@ export type RoleCode =
   | 'applicant' | 'alumni' | 'sponsor'
   | 'head_of_studies' | 'jewishness_officer'
 
-export type PrivilegeModule =
-  | 'persons' | 'applicants' | 'education' | 'jewishness' | 'finance'
-  | 'dormitory' | 'food' | 'maintenance' | 'security' | 'doctor' | 'psychologist'
-  | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
-  | 'contacts' | 'chavruta'
+// Код модуля прав выводится из реестра модулей — единственного источника правды
+// (lib/modules/registry.ts). Раньше этот union писался здесь руками и отставал от
+// реальности: `staff` и `quality_control` выдаются миграцией 20260708140000, а
+// `recruitment`/`admission`/`studies` — миграцией 20260819120000, но в типе их не
+// было, из-за чего lib/education/permissions.ts кастовал их через
+// `as unknown as PrivilegeModule[]`.
+export type PrivilegeModule = PrivilegeModuleCode
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 
@@ -393,10 +397,18 @@ export interface StaffProfileRow {
 
 export interface DepartmentRow {
   id: string
+  /** Русское название — оно же значение по умолчанию для остальных языков. */
   name: string
+  // Добавлены миграцией 20260715280000, но в этот тип не попали: из-за этого
+  // select('name_he') отдавал unknown и не подходил под localizedDeptName.
+  name_he: string | null
+  name_en: string | null
   parent_id: string | null
   head_person_id: string | null
   is_educational_institution: boolean
+  // Добавлены миграцией 20260504120000.
+  sort_order: number | null
+  description: string | null
   created_at: string
   updated_at: string
 }
@@ -473,16 +485,76 @@ export interface PersonRoleRow {
   created_at: string
 }
 
+/** Уровень права — только для шкалы на экране, проверки его не читают. */
+export type PrivilegeLevel = 'access' | 'view' | 'edit' | 'manage'
+/** Чувствительность права — только для пометки на экране. */
+export type PrivilegeRisk = 'normal' | 'sensitive' | 'critical'
+
 export interface ModulePrivilegeRow {
   id: string
   module: PrivilegeModule
   privilege_code: string
+  /** Историческая русская подпись. На экране не используется — см. name_ru. */
   privilege_name: string
   description: string | null
   sort_order: number
   created_at: string
   updated_at: string
+  // ── Каталог на трёх языках (20260916120000). Технический код на экране не
+  // показывается нигде, поэтому имя и объяснение обязательны по смыслу.
+  name_he: string | null
+  name_ru: string | null
+  name_en: string | null
+  description_he: string | null
+  description_ru: string | null
+  description_en: string | null
+  level: PrivilegeLevel | null
+  risk: PrivilegeRisk
+  /** Какие значения role_privileges.scope осмысленны для этого права. */
+  allowed_scopes: string[]
+  /** Код-замена 'module.code' для устаревшего права, иначе null. */
+  superseded_by: string | null
+  is_legacy: boolean
 }
+
+
+// ─── Дерево отображения прав (20260916130000) ────────────────────────────────
+// Читает ТОЛЬКО экран «Безопасность данных». Ни одна проверка доступа эти две
+// таблицы не касается, поэтому перестройка дерева не может ничего никому
+// открыть или закрыть.
+
+export interface SecurityTreeNodeRow {
+  id: string
+  /** null = корень: на экране выглядит отдельным модулем. */
+  parent_id: string | null
+  sort_order: number
+  name_he: string
+  name_ru: string | null
+  name_en: string | null
+  description_he: string | null
+  description_ru: string | null
+  description_en: string | null
+  /** Код модуля из lib/modules/registry.ts — даёт цвет, иконку и ссылку. */
+  module_code: string | null
+  icon: string | null
+  color: string | null
+  /** Привязка к подразделению: выдача такого узла идёт с scope=department. */
+  department_id: string | null
+  created_at: string
+  updated_at: string
+}
+export type SecurityTreeNodeInsert =
+  Omit<SecurityTreeNodeRow, 'id' | 'created_at' | 'updated_at'>
+export type SecurityTreeNodeUpdate = Partial<SecurityTreeNodeInsert>
+
+export interface SecurityTreeItemRow {
+  node_id: string
+  module: string
+  privilege_code: string
+  sort_order: number
+}
+export type SecurityTreeItemInsert = SecurityTreeItemRow
+export type SecurityTreeItemUpdate = Partial<SecurityTreeItemRow>
 
 export interface PersonPrivilegeRow {
   id: string
@@ -507,9 +579,17 @@ export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id' | 'created_at'>
 /** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
 export type ApplicantProfileInsert = EducationJourneyInsert
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id' | 'created_at' | 'updated_at'>
-export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'> & {
-  is_educational_institution?: boolean
-}
+// name_he / name_en / sort_order / description необязательны при вставке:
+// у всех есть значение по умолчанию в БД, и существующий код их не передаёт.
+export type DepartmentInsert =
+  Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'
+    | 'name_he' | 'name_en' | 'sort_order' | 'description'> & {
+    is_educational_institution?: boolean
+    name_he?: string | null
+    name_en?: string | null
+    sort_order?: number | null
+    description?: string | null
+  }
 export type StaffPositionInsert = Omit<StaffPositionRow, 'id' | 'created_at' | 'updated_at'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id' | 'created_at' | 'updated_at'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id' | 'created_at' | 'updated_at'>
@@ -2001,6 +2081,8 @@ export interface Database {
       role_privileges:   T<RolePrivilegeRow,    RolePrivilegeInsert,    RolePrivilegeUpdate>
       person_roles:      T<PersonRoleRow,       PersonRoleInsert,       PersonRoleUpdate>
       module_privileges: T<ModulePrivilegeRow,  ModulePrivilegeInsert,  ModulePrivilegeUpdate>
+      security_tree_nodes:       T<SecurityTreeNodeRow,          SecurityTreeNodeInsert,          SecurityTreeNodeUpdate>
+      security_tree_items:       T<SecurityTreeItemRow,          SecurityTreeItemInsert,          SecurityTreeItemUpdate>
       person_privileges:       T<PersonPrivilegeRow,          PersonPrivilegeInsert,          PersonPrivilegeUpdate>
       lead_interests:            T<LeadInterestRow,              LeadInterestInsert,              LeadInterestUpdate>
       person_status_history:     T<PersonStatusHistoryRow,       PersonStatusHistoryInsert,       PersonStatusHistoryUpdate>

@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken } from '@/lib/auth/jwt'
+import { PROTECTED_MODULE_CODES, moduleCodeFromSegment } from '@/lib/modules/registry'
 
 const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/']
 const PUBLIC_PAGES = ['/login', '/portal/login']
 
-// Module routes that require an explicit access privilege
-const PROTECTED_MODULES = new Set([
-  // 'applicants' удалён: маршрута /dashboard/applicants нет (код модуля —
-  // 'education'), запись была мёртвой.
-  'persons', 'staff', 'education', 'jewishness', 'finance', 'dormitory', 'food',
-  'security', 'alumni', 'sponsors', 'documents', 'reports',
-  'contacts', 'settings', 'doctor', 'psychologist', 'maintenance',
-  'quality_control',
-])
+// Модули, чью страницу закрывает право '<module>.access'. Состав берётся из
+// реестра модулей (lib/modules/registry.ts) — единственного источника правды;
+// раньше этот список жил здесь копией и разошёлся с /api/auth/me и палитрой.
+// Реестр импортируется ТОЛЬКО ради констант: подписи в нём — type-only импорт
+// translations, поэтому в Edge-бандл ничего лишнего не попадает.
+const PROTECTED_MODULES = new Set<string>(PROTECTED_MODULE_CODES)
 
 async function fetchAccessibleModules(roleCodes: string[], personId: string): Promise<string[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -123,7 +121,8 @@ export async function middleware(request: NextRequest) {
     // Директория страницы использует дефис ('quality-control'), а код модуля в
     // role_privileges — подчёркивание ('quality_control'). Нормализуем, иначе
     // страница не сматчилась бы с PROTECTED_MODULES / accessible.
-    const moduleCode = pathname.split('/')[2]?.replace(/-/g, '_') // e.g. 'settings', 'quality_control'
+    const segment = pathname.split('/')[2]
+    const moduleCode = segment ? moduleCodeFromSegment(segment) : undefined
 
     if (moduleCode && PROTECTED_MODULES.has(moduleCode) && !pathname.startsWith('/api/')) {
       if (!session.roles.includes('superadmin')) {

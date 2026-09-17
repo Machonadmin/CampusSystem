@@ -20,30 +20,16 @@
  * человек реально может открыть.
  */
 
-/** Право, которое страница модуля требует СВЕРХ `<module>.access`. */
-export const MODULE_PAGE_PRIVILEGE: Readonly<Record<string, string>> = {
-  contacts:     'view',
-  doctor:       'view',
-  documents:    'view',
-  dormitory:    'view',
-  food:         'view',
-  maintenance:  'view',
-  persons:      'view',
-  psychologist: 'view',
-  reports:      'view',
-  security:     'view',
-  sponsors:     'view',
-}
+// Обе карты теперь ВЫВОДЯТСЯ из реестра модулей (lib/modules/registry.ts) —
+// единственного источника правды о модулях. Раньше они жили здесь отдельным
+// списком, а middleware, /api/auth/me и палитра — своими, и все четыре
+// разошлись. Re-export сохранён, чтобы вызывающий код и страж ниже не менялись.
+// Импорт + re-export, а не `export ... from`: visibleModules() ниже читает
+// MODULE_PAGE_PRIVILEGE как локальную переменную, а сквозной re-export в
+// локальную область видимости имя не вносит.
+import { MODULE_PAGE_PRIVILEGE, MODULE_GATE_EXCEPTIONS } from '@/lib/modules/registry'
 
-/**
- * Модули, у страницы которых НЕТ отдельного права сверх 'access' — видимость и
- * вход совпадают сами собой. Ключ → почему. Список ведётся ради теста-стража:
- * он требует, чтобы каждая гейтящая страница была либо в карте выше, либо здесь.
- */
-export const MODULE_GATE_EXCEPTIONS: Readonly<Record<string, string>> = {
-  jewishness: "страница гейтится hasJewishnessAccess = тем же 'access', что и видимость",
-  health:     'сводный экран доктор+психолог, не отдельный модуль меню (гейт — view любого из двух)',
-}
+export { MODULE_PAGE_PRIVILEGE, MODULE_GATE_EXCEPTIONS }
 
 /** Строка привилегий человека в одном модуле. */
 export type EffectivePrivileges = ReadonlyMap<string, ReadonlySet<string>>

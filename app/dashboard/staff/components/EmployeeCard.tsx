@@ -45,7 +45,6 @@ interface Props {
   onEditDetails: (() => void) | null
   onManageRoles: (() => void) | null
   onEditAccount: (() => void) | null
-  onPersonalPrivs: (() => void) | null
   onCreateLogin: (() => void) | null
   onViewAs: (() => void) | null
   onDelete: (() => void) | null
@@ -53,11 +52,10 @@ interface Props {
 
 export default function EmployeeCard({
   person, seats, user, isSuperadmin, onClose,
-  onEditDetails, onManageRoles, onEditAccount, onPersonalPrivs, onCreateLogin, onViewAs, onDelete,
+  onEditDetails, onManageRoles, onEditAccount, onCreateLogin, onViewAs, onDelete,
 }: Props) {
   const t = useTranslations('staff')
   const tUsers = useTranslations('settings.users')
-  const tPriv = useTranslations('settings.person_privileges')
   const tCommon = useTranslations('common')
   const { t: pack } = useLang()
   const accent = getModuleColor('staff')
@@ -144,7 +142,8 @@ export default function EmployeeCard({
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {onManageRoles && <button onClick={onManageRoles} style={actBtn}>{tUsers('manage_roles_button')}</button>}
                   {onEditAccount && <button onClick={onEditAccount} style={actBtn}>{tUsers('edit_button')}</button>}
-                  {onPersonalPrivs && <button onClick={onPersonalPrivs} style={actBtn}>{tPriv('button')}</button>}
+                  {/* Кнопка личных прав убрана: единственное место, где они
+                      выдаются, — «אבטחת מידע» → вид по сотруднику. */}
                 </div>
               )}
             </div>
