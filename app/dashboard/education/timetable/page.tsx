@@ -262,7 +262,10 @@ export default function TimetablePage() {
             }}>{v === 'week' ? t('view_week', 'לפי יום') : t('view_manager', 'תצוגת מנהל')}</button>
           ))}
         </div>
-        {canEdit && (
+        {/* Когда расписание пусто, эта кнопка не показывается: ниже, на пустом
+            экране, стоит такая же и заметнее. Две одинаковые кнопки на одной
+            странице читались как ошибка — владелец прислал снимок. */}
+        {canEdit && slots.length > 0 && (
           <button type="button" onClick={() => setFormSlot({ create: true })} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
             border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',

@@ -700,7 +700,16 @@ function NodeEditor({ node, departments, t, busy, onClose, onSave }: {
   )
 
   return (
-    <Modal onClose={onClose} maxWidth={520} ariaLabel={node ? t('edit_node') : t('new_node_title')}>
+    // panelStyle с отступом — то, как Modal используется везде в проекте
+    // (ClassGroupModal, AcceptanceOverviewTab): сам Modal внутреннего padding не
+    // задаёт. Без него подписи полей упирались в край панели, и на телефоне
+    // форма читалась как обрезанная — владелец прислал ровно этот снимок.
+    <Modal
+      onClose={onClose}
+      maxWidth={520}
+      ariaLabel={node ? t('edit_node') : t('new_node_title')}
+      panelStyle={{ padding: 20 }}
+    >
       <h2 style={{ margin: '0 0 14px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
         {node ? t('edit_node') : t('new_node_title')}
       </h2>
