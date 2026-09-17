@@ -8,6 +8,8 @@ import { toastError, toastSuccess } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
 import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree'
 import { countPrivileges } from '@/lib/data-security/tree'
+import type { UnitNode } from '@/lib/data-security/units'
+import UnitsPanel from './UnitsPanel'
 import {
   LevelBadge, RiskBadge, ScopeBadge, PrivilegeName, MissingDescription,
   cardStyle, type T,
@@ -37,14 +39,17 @@ interface DragPayload {
 }
 
 export default function GeneralView({
-  tree, departments, canManageTree, t, lang, onReload,
+  tree, units, departments, canManageTree, canManageUnits, t, lang, onReload, onUnitsReload,
 }: {
   tree: BuiltTree
+  units: UnitNode[]
   departments: Department[]
   canManageTree: boolean
+  canManageUnits: boolean
   t: T
   lang: string
   onReload: (next: BuiltTree) => void
+  onUnitsReload: (next: UnitNode[]) => void
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(tree.roots.map(r => r.id)))
   const [selected, setSelected] = useState<{ node: TreeNode; item: CatalogEntry | null } | null>(null)
@@ -319,6 +324,10 @@ export default function GeneralView({
   return (
     <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
       <div style={{ flexGrow: 1, minWidth: 0 }}>
+        {/* Единицы идут первыми: они задают ГРАНИЦЫ, внутри которых действуют
+            права ниже. Обратный порядок читался бы как «права важнее границы». */}
+        <UnitsPanel units={units} canManageUnits={canManageUnits} t={t} onReload={onUnitsReload} />
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
           <input
             type="text"

@@ -7,14 +7,17 @@ import type { Scope } from '@/lib/permissions/scope'
 //
 //   access      — войти в модуль и видеть, кто что видит (только чтение);
 //   grant       — открывать и закрывать права сотруднику;
-//   manage_tree — перестраивать дерево отображения (перетаскивание, вынос
-//                 темы в отдельный модуль). Права при этом не меняются.
+//   manage_tree  — перестраивать дерево ОТОБРАЖЕНИЯ (перетаскивание, вынос
+//                  темы в отдельный модуль). Права при этом не меняются.
+//   manage_units — править ОРГСТРУКТУРУ и посадку людей. В отличие от
+//                  manage_tree это меняет доступ ПО-НАСТОЯЩЕМУ: посаженный на
+//                  единицу видит её и всё, что ниже. Поэтому право отдельное.
 //
 // Права разделены намеренно: 'grant' — сильнейшее право в системе (его
 // держатель может открыть себе что угодно), а 'manage_tree' безопасно, потому
 // что меняет только показ. Их нельзя было склеить в одно.
 
-export type DataSecurityPrivilege = 'access' | 'grant' | 'manage_tree'
+export type DataSecurityPrivilege = 'access' | 'grant' | 'manage_tree' | 'manage_units'
 export type { Scope }
 
 const perms = makeModulePermissions<DataSecurityPrivilege>('data_security')
@@ -31,16 +34,18 @@ export interface DataSecurityAbilities {
   canView: boolean
   canGrant: boolean
   canManageTree: boolean
+  canManageUnits: boolean
 }
 
 export async function getDataSecurityAbilities(
   session: SessionPayload | null,
 ): Promise<DataSecurityAbilities> {
-  if (!session) return { canView: false, canGrant: false, canManageTree: false }
-  const [canView, canGrant, canManageTree] = await Promise.all([
+  if (!session) return { canView: false, canGrant: false, canManageTree: false, canManageUnits: false }
+  const [canView, canGrant, canManageTree, canManageUnits] = await Promise.all([
     hasDataSecurityPrivilege(session, 'access'),
     hasDataSecurityPrivilege(session, 'grant'),
     hasDataSecurityPrivilege(session, 'manage_tree'),
+    hasDataSecurityPrivilege(session, 'manage_units'),
   ])
-  return { canView, canGrant, canManageTree }
+  return { canView, canGrant, canManageTree, canManageUnits }
 }

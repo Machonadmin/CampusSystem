@@ -9,6 +9,8 @@ import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree
 import { privilegeKey } from '@/lib/data-security/tree'
 import type { ResolvedPrivilege } from '@/lib/data-security/person'
 import type { StaffSummary, PersonAccess } from '@/lib/data-security/load'
+import type { UnitNode } from '@/lib/data-security/units'
+import SeatEditor from './SeatEditor'
 import {
   LevelBadge, RiskBadge, ScopeBadge, SourceBadge, PrivilegeName,
   cardStyle, type T,
@@ -27,10 +29,12 @@ import {
 
 type Decision = 'inherit' | 'grant' | 'deny'
 
-export default function PersonView({ tree, staff, canGrant, t, lang }: {
+export default function PersonView({ tree, staff, units, canGrant, canManageUnits, t, lang }: {
   tree: BuiltTree
   staff: StaffSummary[]
+  units: UnitNode[]
   canGrant: boolean
+  canManageUnits: boolean
   t: T
   lang: string
 }) {
@@ -41,6 +45,7 @@ export default function PersonView({ tree, staff, canGrant, t, lang }: {
   const [saving, setSaving] = useState(false)
   /** Несохранённые решения: ключ права → решение. */
   const [draft, setDraft] = useState<Map<string, Decision>>(new Map())
+  const [seatOpen, setSeatOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -285,11 +290,20 @@ export default function PersonView({ tree, staff, canGrant, t, lang }: {
                     ? access.roles.map(r => r.name).join(' · ')
                     : t('person_no_roles')}
                 </p>
-                {access.departments.length > 0 && (
-                  <p style={{ margin: '5px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
-                    {t('person_departments')}: {access.departments.map(d => d.name).join(' · ')}
-                  </p>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('seat_title')}:</span>
+                  {access.departments.length > 0 ? access.departments.map(d => (
+                    <span key={d.id} style={{ padding: '3px 10px', borderRadius: 7, background: 'var(--violet-tint)', color: 'var(--violet)', fontSize: 12, fontWeight: 600 }}>{d.name}</span>
+                  )) : (
+                    <span style={{ fontSize: 12, color: 'var(--danger)' }}>{t('seat_none')}</span>
+                  )}
+                  {canManageUnits && (
+                    <button
+                      onClick={() => setSeatOpen(true)}
+                      style={{ padding: '3px 11px', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 11.5, cursor: 'pointer' }}
+                    >{t('seat_edit')}</button>
+                  )}
+                </div>
               </div>
               <Stat value={stats.modules} label={t('person_modules')} />
               <Stat value={stats.scoped} label={t('person_scoped')} tone="var(--violet)" />
@@ -327,6 +341,16 @@ export default function PersonView({ tree, staff, canGrant, t, lang }: {
               </div>
             )}
           </>
+        )}
+
+        {seatOpen && access && (
+          <SeatEditor
+            person={access}
+            units={units}
+            t={t}
+            onClose={() => setSeatOpen(false)}
+            onSaved={next => { setAccess(next); setDraft(new Map()) }}
+          />
         )}
       </div>
     </div>
