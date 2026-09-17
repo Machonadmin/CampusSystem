@@ -657,3 +657,61 @@ p { text-wrap: pretty; }
   :where(button:not(:disabled)) { transition: transform .12s var(--ease-out); }
   button:not(:disabled):active { transform: scale(.97); }
 }
+
+/* ── «Безопасность данных»: раскладка, которая не убегает за край ───────────
+   Модуль сознательно НЕ использует inline-разметку в две колонки: на телефоне
+   фиксированные 300px + 340px рядом с деревом давали горизонтальную прокрутку
+   и обрезанные подписи. Колонки объявлены здесь, чтобы они схлопывались в одну
+   на узком экране, а строки — переносились, а не уезжали вбок. */
+
+.ds-split,
+.ds-split-rev {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1000px) { .ds-split     { grid-template-columns: 300px minmax(0, 1fr); } }
+@media (min-width: 1100px) { .ds-split-rev { grid-template-columns: minmax(0, 1fr) 340px; } }
+@media (min-width: 1100px) { .ds-sticky    { position: sticky; top: 16px; } }
+
+/* Плитки разделов: одна колонка на телефоне, дальше — сколько влезет. */
+.ds-tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+/* Строка права. Переносится целиком: подпись не обрезается значками справа. */
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.ds-grow {
+  flex: 1 1 150px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Полоса сохранения: на узком экране прилипает к низу, чтобы не искать её. */
+.ds-savebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+@media (max-width: 767px) {
+  .ds-savebar {
+    position: sticky;
+    bottom: 0;
+    padding: 10px 12px;
+    margin-inline: -12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 5;
+  }
+}

@@ -12,7 +12,7 @@ import type { UnitNode } from '@/lib/data-security/units'
 import UnitsPanel from './UnitsPanel'
 import {
   LevelBadge, RiskBadge, ScopeBadge, PrivilegeName, MissingDescription,
-  cardStyle, type T,
+  AreaTile, BackToAreas, cardStyle, type T,
 } from './shared'
 
 // ─── Общий вид: здесь наводят порядок ────────────────────────────────────────
@@ -28,6 +28,12 @@ import {
 //
 // Доступность: одним перетаскиванием обойтись нельзя — у каждой строки есть
 // кнопки «выше», «ниже» и «на уровень выше», работающие с клавиатуры.
+//
+// Раскрыт ровно ОДИН раздел за раз. Раньше открывалось всё дерево сразу, и
+// владелец назвал это кашей — справедливо: 141 право на одном экране не
+// охватывается взглядом. Плитки разделов при этом остаются на месте и служат
+// целями броска, поэтому «вынести Туро из университета» по-прежнему делается
+// одним перетаскиванием, а не становится недоступным из-за свёрнутого дерева.
 
 interface Department { id: string; name: string }
 
@@ -51,7 +57,9 @@ export default function GeneralView({
   onReload: (next: BuiltTree) => void
   onUnitsReload: (next: UnitNode[]) => void
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(tree.roots.map(r => r.id)))
+  const [areaId, setAreaId] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
+  const [showUnits, setShowUnits] = useState(false)
   const [selected, setSelected] = useState<{ node: TreeNode; item: CatalogEntry | null } | null>(null)
   const [editing, setEditing] = useState<TreeNode | 'new' | null>(null)
   const [dragOver, setDragOver] = useState<string | null>(null)
@@ -189,14 +197,32 @@ export default function GeneralView({
     await send(`/api/data-security/tree/node?id=${encodeURIComponent(node.id)}`, { method: 'DELETE' })
   }
 
-  // ── Фильтр по поиску ──────────────────────────────────────────────────────
-  const matches = (text: string | null) =>
-    !query.trim() || (text ?? '').toLowerCase().includes(query.trim().toLowerCase())
+  // ── Поиск ─────────────────────────────────────────────────────────────────
+  // Не фильтр по дереву, а отдельный плоский список: когда ищут конкретное
+  // право, разделы только мешают, а обрезанное дерево ещё и вводит в
+  // заблуждение — непонятно, что скрыто, а чего просто нет.
+  const searchHits = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    const hits: { node: TreeNode; item: CatalogEntry }[] = []
+    const walk = (node: TreeNode) => {
+      for (const item of node.items) {
+        if (!showLegacy && item.isLegacy) continue
+        const hay = `${item.name ?? ''} ${item.description ?? ''} ${node.name ?? ''}`.toLowerCase()
+        if (hay.includes(q)) hits.push({ node, item })
+      }
+      node.children.forEach(walk)
+    }
+    tree.roots.forEach(walk)
+    return hits.slice(0, 80)
+  }, [query, tree.roots, showLegacy])
 
-  const visibleItems = (node: TreeNode) =>
-    node.items
-      .filter(i => showLegacy || !i.isLegacy)
-      .filter(i => matches(i.name) || matches(i.description) || matches(node.name))
+  const area = useMemo(
+    () => (areaId ? tree.roots.find(r => r.id === areaId) ?? null : null),
+    [areaId, tree.roots],
+  )
+
+  const visibleItems = (node: TreeNode) => node.items.filter(i => showLegacy || !i.isLegacy)
 
   // ── Отрисовка ─────────────────────────────────────────────────────────────
   const renderItem = (node: TreeNode, item: CatalogEntry, depth: number) => {
@@ -211,10 +237,10 @@ export default function GeneralView({
         role="button"
         tabIndex={0}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected({ node, item }) } }}
+        className="ds-row"
         style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '7px 12px',
-          paddingInlineStart: 12 + depth * 22 + 26,
+          padding: '8px 12px',
+          paddingInlineStart: 12 + Math.min(depth, 3) * 16 + 22,
           borderRadius: 8,
           cursor: canManageTree ? 'grab' : 'pointer',
           background: isSelected ? 'var(--accent-tint)' : 'transparent',
@@ -222,7 +248,7 @@ export default function GeneralView({
         }}
       >
         {canManageTree && <span aria-hidden style={{ color: 'var(--text-muted)', fontSize: 12 }}>⠿</span>}
-        <span style={{ flexGrow: 1, fontSize: 13, color: 'var(--text)' }}>
+        <span className="ds-grow" style={{ fontSize: 13, color: 'var(--text)' }}>
           <PrivilegeName name={item.name} t={t} />
         </span>
         {item.isLegacy && (
@@ -251,13 +277,13 @@ export default function GeneralView({
           onDragOver={e => allowDrop(e, node.id)}
           onDragLeave={() => setDragOver(null)}
           onDrop={e => onDrop(e, node.id)}
+          className="ds-row"
           style={{
-            display: 'flex', alignItems: 'center', gap: 9,
             padding: '9px 12px',
-            paddingInlineStart: 12 + depth * 22,
+            paddingInlineStart: 12 + Math.min(depth, 3) * 16,
             borderRadius: 9,
             background: dragOver === node.id ? 'var(--accent-tint)' : 'transparent',
-            borderInlineStart: depth === 0 ? `3px solid ${accent}` : undefined,
+            borderInlineStart: `3px solid ${depth === 0 ? accent : 'var(--border)'}`,
           }}
         >
           {canManageTree && <span aria-hidden style={{ color: 'var(--text-muted)', fontSize: 12 }}>⠿</span>}
@@ -273,12 +299,13 @@ export default function GeneralView({
 
           <button
             onClick={() => setSelected({ node, item: null })}
+            className="ds-grow"
             style={{
-              flexGrow: 1, border: 0, background: 'none', cursor: 'pointer',
+              border: 0, background: 'none', cursor: 'pointer',
               textAlign: 'start', padding: 0,
-              fontSize: depth === 0 ? 14.5 : 13.5,
+              fontSize: depth === 0 ? 14 : 13.5,
               fontWeight: depth === 0 ? 700 : 600,
-              color: 'var(--text)',
+              color: 'var(--text)', overflowWrap: 'anywhere',
             }}
           >
             {node.name ?? <PrivilegeName name={null} t={t} />}
@@ -321,22 +348,48 @@ export default function GeneralView({
     )
   }
 
-  return (
-    <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
-      <div style={{ flexGrow: 1, minWidth: 0 }}>
-        {/* Единицы идут первыми: они задают ГРАНИЦЫ, внутри которых действуют
-            права ниже. Обратный порядок читался бы как «права важнее границы». */}
-        <UnitsPanel units={units} canManageUnits={canManageUnits} t={t} onReload={onUnitsReload} />
+  const areaAccent = (root: TreeNode) =>
+    root.color || (root.moduleCode ? getModuleColor(root.moduleCode) : 'var(--border)')
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+  return (
+    <div className={selected ? 'ds-split-rev' : undefined}>
+      <div style={{ minWidth: 0 }}>
+        {/* Единицы задают ГРАНИЦЫ, внутри которых действуют права, поэтому они
+            наверху. Но открыты не всегда: постоянно развёрнутое дерево единиц
+            было половиной того «слишком много», о котором сказал владелец. */}
+        <button
+          onClick={() => setShowUnits(v => !v)}
+          aria-expanded={showUnits}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+            padding: '11px 14px', marginBottom: 12, borderRadius: 11,
+            border: '1px solid var(--border)', background: 'var(--surface)',
+            color: 'var(--text)', fontSize: 13.5, fontWeight: 700,
+            cursor: 'pointer', textAlign: 'start',
+          }}
+        >
+          <span aria-hidden style={{ color: 'var(--text-muted)', fontSize: 11 }}>{showUnits ? '▾' : '◂'}</span>
+          <span style={{ flexGrow: 1 }}>{t('units_title')}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)' }}>
+            {showUnits ? t('units_hide') : t('units_show')}
+          </span>
+        </button>
+        {showUnits && (
+          <div className="anim-expand">
+            <UnitsPanel units={units} canManageUnits={canManageUnits} t={t} onReload={onUnitsReload} />
+          </div>
+        )}
+
+        <div className="ds-row" style={{ marginBottom: 12 }}>
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={t('search_privilege')}
             aria-label={t('search_privilege')}
+            className="ds-grow"
             style={{
-              flexGrow: 1, minWidth: 220, padding: '9px 13px', borderRadius: 9,
+              padding: '9px 13px', borderRadius: 9,
               border: '1px solid var(--border)', background: 'var(--surface)',
               color: 'var(--text)', fontSize: 13,
             }}
@@ -359,41 +412,93 @@ export default function GeneralView({
               style={{
                 padding: '8px 16px', borderRadius: 9, border: 0,
                 background: getModuleColor('data_security'), color: '#fff',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
             >+ {t('new_node')}</button>
           )}
         </div>
 
-        <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-muted)' }}>
-          {canManageTree ? t('general_hint') : t('no_tree_permission')}
-        </p>
+        {query.trim() ? (
+          /* Поиск: плоский список по всем разделам. */
+          <>
+            <p style={{ margin: '0 0 8px', fontSize: 12.5, color: 'var(--text-muted)' }}>{t('search_results')}</p>
+            <div style={{ ...cardStyle, padding: '6px 8px' }}>
+              {searchHits.length === 0 ? (
+                <p style={{ margin: 0, padding: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+                  {t('no_results')}
+                </p>
+              ) : searchHits.map(h => renderItem(h.node, h.item, 0))}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Плитки разделов видны всегда: это и навигация, и цель броска —
+                перетащить узел на чужой раздел значит перенести его туда. */}
+            <div className="ds-tiles" style={{ marginBottom: 14 }}>
+              {tree.roots.map(root => (
+                <AreaTile
+                  key={root.id}
+                  name={root.name ?? ''}
+                  accent={areaAccent(root)}
+                  caption={t('privileges_count').replace('{n}', String(countPrivileges(root)))}
+                  active={root.id === areaId}
+                  onClick={() => {
+                    // Открытый раздел сразу разворачивается: иначе клик по
+                    // плитке приводил бы к свёрнутой строке и выглядел поломкой.
+                    const next = areaId === root.id ? null : root.id
+                    setAreaId(next)
+                    if (next) setExpanded(prev => new Set(prev).add(next))
+                  }}
+                  dropActive={dragOver === `tile-${root.id}`}
+                  onDragOver={canManageTree ? (e => allowDrop(e, `tile-${root.id}`)) : undefined}
+                  onDragLeave={canManageTree ? (() => setDragOver(null)) : undefined}
+                  onDrop={canManageTree ? (e => onDrop(e, root.id)) : undefined}
+                />
+              ))}
+            </div>
 
-        {/* Полоса «вынести в отдельный модуль»: бросок сюда делает узел корневым. */}
-        {canManageTree && (
-          <div
-            onDragOver={e => allowDrop(e, '__root__')}
-            onDragLeave={() => setDragOver(null)}
-            onDrop={e => onDrop(e, null)}
-            style={{
-              padding: '10px 14px', marginBottom: 10, borderRadius: 9,
-              border: `1.5px dashed ${dragOver === '__root__' ? 'var(--accent)' : 'var(--border)'}`,
-              background: dragOver === '__root__' ? 'var(--accent-tint)' : 'transparent',
-              color: 'var(--text-muted)', fontSize: 12.5, textAlign: 'center',
-            }}
-          >{t('make_root')}</div>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-muted)' }}>
+              {canManageTree ? (area ? t('general_hint') : t('area_pick_general')) : t('no_tree_permission')}
+            </p>
+
+            {area && (
+              <div className="anim-expand">
+                <div className="ds-row" style={{ marginBottom: 10 }}>
+                  <BackToAreas label={t('back_to_areas')} onClick={() => setAreaId(null)} />
+                  <h3 className="ds-grow" style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>
+                    {area.name}
+                  </h3>
+                </div>
+
+                {/* Полоса «вынести в отдельный раздел»: бросок сюда делает узел корневым. */}
+                {canManageTree && (
+                  <div
+                    onDragOver={e => allowDrop(e, '__root__')}
+                    onDragLeave={() => setDragOver(null)}
+                    onDrop={e => onDrop(e, null)}
+                    style={{
+                      padding: '10px 14px', marginBottom: 10, borderRadius: 9,
+                      border: `1.5px dashed ${dragOver === '__root__' ? 'var(--accent)' : 'var(--border)'}`,
+                      background: dragOver === '__root__' ? 'var(--accent-tint)' : 'transparent',
+                      color: 'var(--text-muted)', fontSize: 12.5, textAlign: 'center',
+                    }}
+                  >{t('make_root')}</div>
+                )}
+
+                <div style={{ ...cardStyle, padding: '10px 8px' }}>
+                  {renderNode(area, 0)}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
-        <div style={{ ...cardStyle, padding: '10px 8px' }}>
-          {tree.roots.map(r => renderNode(r, 0))}
-        </div>
-
         {tree.unassigned.length > 0 && (
-          <div style={{ ...cardStyle, padding: '12px 14px', marginTop: 14, borderInlineStart: '3px solid var(--warn)' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
+          <details style={{ ...cardStyle, padding: '12px 14px', marginTop: 14, borderInlineStart: '3px solid var(--warn)' }}>
+            <summary style={{ cursor: 'pointer', fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
               {t('unassigned')} · {tree.unassigned.length}
-            </p>
-            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-muted)' }}>{t('unassigned_hint')}</p>
+            </summary>
+            <p style={{ margin: '8px 0 10px', fontSize: 12, color: 'var(--text-muted)' }}>{t('unassigned_hint')}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {tree.unassigned.filter(i => showLegacy || !i.isLegacy).map(i => (
                 <span
@@ -403,11 +508,12 @@ export default function GeneralView({
                   style={{
                     padding: '5px 11px', borderRadius: 7, background: 'var(--surface-2)',
                     color: 'var(--text)', fontSize: 12.5, cursor: canManageTree ? 'grab' : 'default',
+                    overflowWrap: 'anywhere',
                   }}
                 ><PrivilegeName name={i.name} t={t} /></span>
               ))}
             </div>
-          </div>
+          </details>
         )}
       </div>
 
@@ -484,7 +590,7 @@ function DetailPanel({ node, item, departments, onClose, t, lang }: {
   const dept = node.departmentId ? departments.find(d => d.id === node.departmentId) : null
 
   return (
-    <aside style={{ ...cardStyle, width: 340, flexShrink: 0, padding: 20, position: 'sticky', top: 16 }}>
+    <aside className="ds-sticky" style={{ ...cardStyle, padding: 20, minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <h2 style={{ margin: 0, flexGrow: 1, fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>
           {item ? <PrivilegeName name={item.name} t={t} /> : (node.name ?? '')}
