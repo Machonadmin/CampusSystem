@@ -40,14 +40,33 @@
 -- побеждает ЗАПРЕТ — так же, как applyPersonGrants решает это сегодня.
 -- Ошибиться в сторону «закрыто» здесь безопаснее, чем в сторону «открыто».
 --
+-- ─── Мёртвый код расписания заменяется на НАСТОЯЩИЙ ─────────────────────────
+--
+-- education.manage_schedule не читается НИ ОДНОЙ строкой кода: расписание и
+-- сегодня, и раньше гейтится set_lesson_topics
+-- (app/api/education/timetable/route.ts:52 — canEdit;
+--  app/api/education/schedule/slots/[slotId]/route.ts:93,257 — PATCH и DELETE).
+--
+-- При этом 20260901150000_jewish_studies_manager_role.sql:54-61 выдал его роли
+-- «אחראית יהדות» вместе с её настоящими правами и с прямым комментарием
+-- «расписание (часы/классы)». То есть НАМЕРЕНИЕ было — «она ведёт расписание
+-- своего подразделения», а выданный код этого никогда не делал.
+--
+-- Владелец, увидев это, выбрал: удалить мёртвый код и дать настоящий. Поэтому
+-- manage_schedule объявляется устаревшим В ПОЛЬЗУ studies.set_lesson_topics, и
+-- дальше его обрабатывает тот же механизм, что и остальные 20 кодов: перенос
+-- держателей с сохранением scope, расширение scope у уже существующей строки,
+-- удаление старой, самопроверка.
+--
+-- ЭТО ЕДИНСТВЕННОЕ МЕСТО В МИГРАЦИИ, ГДЕ ПОЯВЛЯЕТСЯ НОВАЯ ВОЗМОЖНОСТЬ, а не
+-- сохраняется прежняя. Поэтому миграция называет вслух, кто её получил.
+--
 -- ─── Что будет ПОТЕРЯНО осознанно ───────────────────────────────────────────
 --
--- Два старых кода преемника не имеют и не читаются НИ ОДНОЙ строкой кода:
---   • education.manage_schedule  — расписание давно гейтится view_students /
---                                  set_lesson_topics (app/api/education/timetable);
---   • education.view_own_only    — не упоминается в приложении вообще.
--- Их выдачи удаляются: они ничего не открывали. Миграция называет вслух, у
--- скольких ролей и людей они были, — чтобы это было видно, а не «просто исчезло».
+-- Один старый код преемника не имеет и в приложении не упоминается вообще:
+-- education.view_own_only. Его выдачи удаляются: он ничего не открывал.
+-- Миграция называет вслух, у скольких ролей и людей он был, — чтобы это было
+-- видно, а не «просто исчезло».
 --
 -- Идемпотентно: повторный запуск не находит старых кодов и ничего не делает.
 -- Применять ВРУЧНУЮ через Supabase Dashboard SQL Editor.
@@ -55,6 +74,14 @@
 
 DROP TABLE IF EXISTS _edu_map;
 DROP TABLE IF EXISTS _edu_before;
+
+-- ── 0. Расписание: мёртвый код получает настоящего преемника ────────────────
+-- Делается ДО построения карты — дальше manage_schedule идёт общим потоком.
+UPDATE module_privileges
+   SET superseded_by = 'studies.set_lesson_topics'
+ WHERE module = 'education'
+   AND privilege_code = 'manage_schedule'
+   AND superseded_by IS NULL;
 
 -- ── 1. Карта «старый код → преемник» ────────────────────────────────────────
 -- Берётся из самого каталога, а не из списка в тексте миграции: список в тексте
@@ -91,6 +118,21 @@ BEGIN
   SELECT count(*) INTO n_rp FROM role_privileges rp JOIN _edu_map m ON m.old_code = rp.privilege_code WHERE rp.module = 'education';
   SELECT count(*) INTO n_pp FROM person_privileges pp JOIN _edu_map m ON m.old_code = pp.privilege_code WHERE pp.module = 'education';
   RAISE NOTICE 'Кодов с преемником: %. Строк ролей к переносу: %. Личных строк к переносу: %', n_map, n_rp, n_pp;
+END $$;
+
+-- Единственная новая возможность в этой миграции — назвать её поимённо.
+DO $$
+DECLARE who TEXT; n INT;
+BEGIN
+  SELECT count(*), string_agg(DISTINCT ro.name, ', ')
+    INTO n, who
+    FROM role_privileges rp JOIN roles ro ON ro.id = rp.role_id
+   WHERE rp.module = 'education' AND rp.privilege_code = 'manage_schedule';
+  IF n > 0 THEN
+    RAISE NOTICE 'НОВАЯ ВОЗМОЖНОСТЬ: studies.set_lesson_topics (ведение расписания) получают роли: %', who;
+  ELSE
+    RAISE NOTICE 'Мёртвый код расписания ни у кого не был выдан — новых возможностей не появляется';
+  END IF;
 END $$;
 
 -- ── 2. Роли: добавить преемников ────────────────────────────────────────────
@@ -155,31 +197,31 @@ DELETE FROM person_privileges pp
  USING _edu_map m
  WHERE pp.module = 'education' AND pp.privilege_code = m.old_code;
 
--- Затем два кода без преемника — с поимённым отчётом, что именно исчезает.
+-- Затем код без преемника — с поимённым отчётом, что именно исчезает.
 DO $$
 DECLARE r_cnt INT; p_cnt INT; who TEXT;
 BEGIN
   SELECT count(*) INTO r_cnt FROM role_privileges
-   WHERE module = 'education' AND privilege_code IN ('manage_schedule', 'view_own_only');
+   WHERE module = 'education' AND privilege_code = 'view_own_only';
   SELECT count(*) INTO p_cnt FROM person_privileges
-   WHERE module = 'education' AND privilege_code IN ('manage_schedule', 'view_own_only');
+   WHERE module = 'education' AND privilege_code = 'view_own_only';
 
   SELECT string_agg(DISTINCT ro.name, ', ') INTO who
     FROM role_privileges rp JOIN roles ro ON ro.id = rp.role_id
-   WHERE rp.module = 'education' AND rp.privilege_code IN ('manage_schedule', 'view_own_only');
+   WHERE rp.module = 'education' AND rp.privilege_code = 'view_own_only';
 
   IF r_cnt > 0 OR p_cnt > 0 THEN
-    RAISE NOTICE 'Коды без преемника (manage_schedule, view_own_only) удаляются: у ролей — % (%), личных — %. Они не проверялись ни одной строкой кода.',
+    RAISE NOTICE 'Код без преемника (view_own_only) удаляется: у ролей — % (%), личных — %. Он не проверялся ни одной строкой кода.',
       r_cnt, COALESCE(who, '—'), p_cnt;
   ELSE
-    RAISE NOTICE 'Кодов без преемника ни у кого не было';
+    RAISE NOTICE 'Кода без преемника ни у кого не было';
   END IF;
 END $$;
 
 DELETE FROM role_privileges
- WHERE module = 'education' AND privilege_code IN ('manage_schedule', 'view_own_only');
+ WHERE module = 'education' AND privilege_code = 'view_own_only';
 DELETE FROM person_privileges
- WHERE module = 'education' AND privilege_code IN ('manage_schedule', 'view_own_only');
+ WHERE module = 'education' AND privilege_code = 'view_own_only';
 
 -- ── 6. Самопроверка ДО удаления каталога ────────────────────────────────────
 -- Каждая пара (роль, преемник) из снимка обязана существовать со scope не ниже.
