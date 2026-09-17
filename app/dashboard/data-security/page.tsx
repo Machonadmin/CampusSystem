@@ -9,6 +9,8 @@ import {
   hasDataSecurityPrivilege, getDataSecurityAbilities,
 } from '@/lib/data-security/permissions'
 import { loadTree, loadStaffList } from '@/lib/data-security/load'
+import { buildUnitTree, type DepartmentInput, type SeatInput } from '@/lib/data-security/units'
+import { todayISO } from '@/lib/dates'
 import DataSecurityClient from './DataSecurityClient'
 
 /**
@@ -37,10 +39,13 @@ export default async function DataSecurityPage() {
   const abilities = await getDataSecurityAbilities(session)
 
   const sb = createServerClient()
-  const [tree, staff, deptRes] = await Promise.all([
+  const [tree, staff, deptRes, seatRes] = await Promise.all([
     loadTree(lang),
     loadStaffList(lang),
-    sb.from('departments').select('id, name, name_he, name_en').order('name'),
+    sb.from('departments')
+      .select('id, name, name_he, name_en, parent_id, head_person_id, sort_order, is_educational_institution')
+      .order('name'),
+    sb.from('staff_positions').select('person_id, department_id, is_head, end_date'),
   ])
 
   const departments = (deptRes.data ?? []).map(d => ({
@@ -48,13 +53,24 @@ export default async function DataSecurityPage() {
     name: localizedDeptName(d, lang),
   }))
 
+  // Единицы — настоящая граница доступа: посаженный на единицу видит её и всё,
+  // что ниже. Экран показывает их рядом с правами именно поэтому.
+  const units = buildUnitTree(
+    lang,
+    (deptRes.data ?? []) as unknown as DepartmentInput[],
+    (seatRes.data ?? []) as unknown as SeatInput[],
+    todayISO(),
+  )
+
   return (
     <DataSecurityClient
       initialTree={tree}
+      initialUnits={units}
       staff={staff}
       departments={departments}
       canGrant={abilities.canGrant}
       canManageTree={abilities.canManageTree}
+      canManageUnits={abilities.canManageUnits}
     />
   )
 }

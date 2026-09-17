@@ -7,6 +7,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useUrlTab } from '@/lib/nav/useUrlTab'
 import type { BuiltTree } from '@/lib/data-security/tree'
 import type { StaffSummary } from '@/lib/data-security/load'
+import type { UnitNode } from '@/lib/data-security/units'
 import GeneralView from './GeneralView'
 import PersonView from './PersonView'
 
@@ -20,18 +21,21 @@ import PersonView from './PersonView'
  * ссылка открывала тот же — как в остальных модулях (lib/nav/useUrlTab).
  */
 export default function DataSecurityClient({
-  initialTree, staff, departments, canGrant, canManageTree,
+  initialTree, initialUnits, staff, departments, canGrant, canManageTree, canManageUnits,
 }: {
   initialTree: BuiltTree
+  initialUnits: UnitNode[]
   staff: StaffSummary[]
   departments: { id: string; name: string }[]
   canGrant: boolean
   canManageTree: boolean
+  canManageUnits: boolean
 }) {
   const t = useTranslations('data_security')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
   const [tree, setTree] = useState(initialTree)
+  const [units, setUnits] = useState(initialUnits)
 
   const [tab, setTab] = useUrlTab({
     allowed: ['general', 'person'] as const,
@@ -72,17 +76,22 @@ export default function DataSecurityClient({
       {tab === 'general' ? (
         <GeneralView
           tree={tree}
+          units={units}
           departments={departments}
           canManageTree={canManageTree}
+          canManageUnits={canManageUnits}
           t={t}
           lang={lang}
           onReload={setTree}
+          onUnitsReload={setUnits}
         />
       ) : (
         <PersonView
           tree={tree}
           staff={staff}
+          units={units}
           canGrant={canGrant}
+          canManageUnits={canManageUnits}
           t={t}
           lang={lang}
         />
