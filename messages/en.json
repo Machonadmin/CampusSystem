@@ -5523,6 +5523,7 @@
     "unit_no_people": "Nobody is assigned to this unit",
     "unit_open_person": "Their permissions",
     "unit_all_seated": "Every staff member is already here",
-    "units_people_hint": "Clicking a unit name shows who sits there and lets you add or remove staff. The arrow opens the units beneath it."
+    "units_people_hint": "Clicking a unit name shows who sits there and lets you add or remove staff. The arrow opens the units beneath it.",
+    "units_children_count": "{n} units inside"
   }
 }
