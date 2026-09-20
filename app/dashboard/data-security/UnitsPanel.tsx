@@ -157,41 +157,57 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
     const open = expanded.has(node.id)
     return (
       <div key={node.id}>
-        <div className="ds-row" style={{
-          padding: '8px 12px', paddingInlineStart: 12 + Math.min(depth, 3) * 16,
+        <div className="ds-unit-row" style={{
+          padding: '7px 12px', paddingInlineStart: 12 + Math.min(depth, 3) * 16,
           borderRadius: 8,
         }}>
           {node.children.length > 0 ? (
             <button
               onClick={() => toggle(node.id)}
               aria-expanded={open}
-              style={{ border: 0, background: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11, padding: '2px 4px' }}
+              style={{ border: 0, background: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11, padding: '2px 4px', flex: '0 0 auto' }}
             >{open ? '▾' : '◂'}</button>
-          ) : <span style={{ width: 17 }} />}
+          ) : <span style={{ width: 17, flex: '0 0 auto' }} />}
 
-          {/* Имя — кнопка: открывает, КТО здесь сидит. Стрелка слева
-              по-прежнему раскрывает вложенные единицы: это два разных вопроса
-              и смешивать их в одном клике было бы путаницей. */}
+          {/* Имя + счётчик — ОДНА кнопка: открывает, КТО здесь сидит. Стрелка
+              слева по-прежнему раскрывает вложенные единицы — два разных
+              вопроса, два разных клика.
+              Счётчик стоит рядом с именем, а не у противоположного края:
+              подпись должна быть при том, что она описывает. */}
           <button
             onClick={() => togglePeople(node.id)}
             aria-expanded={peopleOpen.has(node.id)}
-            className="ds-grow"
+            title={t('unit_people')}
+            aria-label={`${node.name} — ${t('unit_people')}`}
+            className="ds-unit-name"
             style={{
+              display: 'flex', alignItems: 'center', gap: 7,
               border: 0, background: 'none', cursor: 'pointer', textAlign: 'start', padding: 0,
+            }}
+          >
+            <span style={{
+              minWidth: 0, overflowWrap: 'anywhere',
               fontSize: depth === 0 ? 14 : 13.5,
               fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)',
-              overflowWrap: 'anywhere',
-            }}
-          >{node.name}</button>
+            }}>{node.name}</span>
 
-          <span style={{ fontSize: 11.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-            {t('units_seats').replace('{n}', String(node.seatCount))}
-            {node.seatCountDeep !== node.seatCount &&
-              ` · ${t('units_seats_deep').replace('{n}', String(node.seatCountDeep))}`}
-          </span>
+            {/* Пустые единицы молчат. Тринадцать подряд «0 אנשי צוות» —
+                это шум, из-за которого не видно тех, где люди есть. */}
+            {node.seatCountDeep > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '2px 8px', borderRadius: 999, flex: '0 0 auto',
+                background: 'var(--violet-tint)', color: 'var(--violet)',
+                fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+              }}>
+                {node.seatCount > 0 ? node.seatCount : `+${node.seatCountDeep}`}
+                <span aria-hidden style={{ fontSize: 9 }}>{peopleOpen.has(node.id) ? '▾' : '◂'}</span>
+              </span>
+            )}
+          </button>
 
           {canManageUnits && (
-            <span style={{ display: 'flex', gap: 2 }}>
+            <span className="ds-unit-actions">
               <IconBtn label={t('units_new_under').replace('{name}', node.name)} disabled={busy}
                 onClick={() => setEditing({ parent_id: node.id, name_he: '', name: '', name_en: '' })}>+</IconBtn>
               <IconBtn label={t('units_edit')} disabled={busy}
@@ -285,8 +301,14 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
         )}
       </div>
 
-      <p style={{ margin: '0 6px 10px', fontSize: 12, color: 'var(--danger)', lineHeight: 1.6 }}>
+      <p style={{ margin: '0 6px 6px', fontSize: 12, color: 'var(--danger)', lineHeight: 1.6 }}>
         {canManageUnits ? t('units_hint') : t('units_no_permission')}
+      </p>
+
+      {/* Правило «жми по имени, а не по стрелке» угадать невозможно, а я до сих
+          пор объяснял его в переписке. Экран обязан сказать это сам. */}
+      <p style={{ margin: '0 6px 10px', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+        {t('units_people_hint')}
       </p>
 
       {units.map(u => renderNode(u, 0))}
@@ -318,7 +340,7 @@ function IconBtn({ label, onClick, disabled, children }: {
     <button
       aria-label={label} title={label} onClick={onClick} disabled={disabled}
       style={{
-        width: 26, height: 26, borderRadius: 7, border: '1px solid var(--border)',
+        width: 24, height: 24, borderRadius: 7, border: '1px solid var(--border)',
         background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 12,
         cursor: disabled ? 'default' : 'pointer', lineHeight: 1,
       }}

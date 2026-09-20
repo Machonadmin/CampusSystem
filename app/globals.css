@@ -715,3 +715,26 @@ p { text-wrap: pretty; }
     z-index: 5;
   }
 }
+
+/* Строка единицы: имя переносится, кластер кнопок — никогда ───────────────
+   .ds-row (для строк прав) переносит ВСЁ, и в дереве единиц это сбрасывало
+   ＋ ✎ ✕ на отдельную строку под названием: каждая единица занимала две
+   строки, и 21 единица превращалась в бесконечную простыню. Здесь перенос
+   отдан имени, а кнопки держатся в своей строке. */
+.ds-unit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.ds-unit-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ds-unit-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+}
