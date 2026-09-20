@@ -191,6 +191,20 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
               fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)',
             }}>{node.name}</span>
 
+            {/* Свёрнутая единица не давала НИКАКОГО следа того, что внутри, и
+                владелец решил, что колледж на 3 года пропал. Он был на месте,
+                просто свёрнут. Открытая единица значок не показывает: её дети
+                уже на экране. */}
+            {!open && node.children.length > 0 && (
+              <span style={{
+                padding: '2px 8px', borderRadius: 999, flex: '0 0 auto',
+                background: 'var(--surface-2)', color: 'var(--text-muted)',
+                fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap',
+              }}>
+                {t('units_children_count').replace('{n}', String(node.children.length))}
+              </span>
+            )}
+
             {/* Пустые единицы молчат. Тринадцать подряд «0 אנשי צוות» —
                 это шум, из-за которого не видно тех, где люди есть. */}
             {node.seatCountDeep > 0 && (
@@ -372,7 +386,17 @@ function UnitEditor({ form, options, t, busy, onClose, onSave }: {
   )
 
   return (
-    <Modal onClose={onClose} maxWidth={460} ariaLabel={state.id ? t('units_edit') : t('units_new')}>
+    // padding через panelStyle: сам Modal внутреннего отступа не задаёт, его
+    // передаёт каждый вызывающий (ClassGroupModal: 24, NodeEditor: 20). Без
+    // него поля упираются в край панели — владелец прислал ровно этот снимок,
+    // и это был ВТОРОЙ раз: та же ошибка уже чинилась в NodeEditor (4c47e69).
+    // Рядом стоит страж modal-usage.test.ts, чтобы третьего раза не было.
+    <Modal
+      onClose={onClose}
+      maxWidth={460}
+      ariaLabel={state.id ? t('units_edit') : t('units_new')}
+      panelStyle={{ padding: 20 }}
+    >
       <h2 style={{ margin: '0 0 14px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
         {state.id ? t('units_edit') : t('units_new')}
       </h2>
@@ -397,7 +421,10 @@ function UnitEditor({ form, options, t, busy, onClose, onSave }: {
         </select>
       </label>
 
-      <p style={{ margin: '0 0 12px', padding: '9px 11px', borderRadius: 8, background: 'var(--danger-tint)', fontSize: 12, color: 'var(--danger)', lineHeight: 1.6 }}>
+      {/* Полное предупреждение живёт над деревом и читается там один раз.
+          Здесь, в окне на телефоне, красный блок во весь экран съедал половину
+          высоты, повторяя слово в слово уже прочитанное. */}
+      <p style={{ margin: '0 0 12px', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
         {t('units_hint')}
       </p>
 

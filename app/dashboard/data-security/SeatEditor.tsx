@@ -79,7 +79,15 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
   }
 
   return (
-    <Modal onClose={onClose} maxWidth={560} ariaLabel={t('seat_edit')}>
+    // Третий случай той же забывчивости, найденный стражем
+    // lib/data-security/modal-usage.test.ts: Modal своего padding не задаёт,
+    // и без него подписи полей упираются в край панели.
+    <Modal
+      onClose={onClose}
+      maxWidth={560}
+      ariaLabel={t('seat_edit')}
+      panelStyle={{ padding: 20 }}
+    >
       <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{t('seat_edit')}</h2>
       <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-muted)' }}>{person.name}</p>
 
