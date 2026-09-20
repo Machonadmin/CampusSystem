@@ -9,6 +9,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree'
 import { countPrivileges } from '@/lib/data-security/tree'
 import type { UnitNode } from '@/lib/data-security/units'
+import type { StaffSummary } from '@/lib/data-security/load'
 import UnitsPanel from './UnitsPanel'
 import {
   LevelBadge, RiskBadge, ScopeBadge, PrivilegeName, MissingDescription,
@@ -45,10 +46,12 @@ interface DragPayload {
 }
 
 export default function GeneralView({
-  tree, units, departments, canManageTree, canManageUnits, t, lang, onReload, onUnitsReload,
+  tree, units, staff, departments, canManageTree, canManageUnits, t, lang,
+  onReload, onUnitsReload, onOpenPerson,
 }: {
   tree: BuiltTree
   units: UnitNode[]
+  staff: StaffSummary[]
   departments: Department[]
   canManageTree: boolean
   canManageUnits: boolean
@@ -56,6 +59,7 @@ export default function GeneralView({
   lang: string
   onReload: (next: BuiltTree) => void
   onUnitsReload: (next: UnitNode[]) => void
+  onOpenPerson: (personId: string) => void
 }) {
   const [areaId, setAreaId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
@@ -376,7 +380,14 @@ export default function GeneralView({
         </button>
         {showUnits && (
           <div className="anim-expand">
-            <UnitsPanel units={units} canManageUnits={canManageUnits} t={t} onReload={onUnitsReload} />
+            <UnitsPanel
+              units={units}
+              staff={staff}
+              canManageUnits={canManageUnits}
+              t={t}
+              onReload={onUnitsReload}
+              onOpenPerson={onOpenPerson}
+            />
           </div>
         )}
 

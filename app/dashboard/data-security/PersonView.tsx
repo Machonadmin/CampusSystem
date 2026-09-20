@@ -34,7 +34,9 @@ import {
 
 type Decision = 'inherit' | 'grant' | 'deny'
 
-export default function PersonView({ tree, staff, units, canGrant, canManageUnits, t, lang }: {
+export default function PersonView({
+  tree, staff, units, canGrant, canManageUnits, t, lang, focusPersonId,
+}: {
   tree: BuiltTree
   staff: StaffSummary[]
   units: UnitNode[]
@@ -42,9 +44,11 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
   canManageUnits: boolean
   t: T
   lang: string
+  /** Человек, выбранный в дереве единиц: вкладка открывается сразу на нём. */
+  focusPersonId: string | null
 }) {
   const [query, setQuery] = useState('')
-  const [personId, setPersonId] = useState<string | null>(null)
+  const [personId, setPersonId] = useState<string | null>(focusPersonId)
   const [access, setAccess] = useState<PersonAccess | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -78,6 +82,12 @@ export default function PersonView({ tree, staff, units, canGrant, canManageUnit
   }, [t])
 
   useEffect(() => { if (personId) load(personId) }, [personId, load])
+
+  // Переход «из единицы к его правам», когда вкладка уже была открыта:
+  // смены смонтированного состояния одним initial-значением не добиться.
+  useEffect(() => {
+    if (focusPersonId) setPersonId(focusPersonId)
+  }, [focusPersonId])
 
   const resolved = useMemo(() => {
     const map = new Map<string, ResolvedPrivilege>()

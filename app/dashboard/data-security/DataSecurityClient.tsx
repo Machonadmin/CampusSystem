@@ -36,6 +36,12 @@ export default function DataSecurityClient({
   const { lang } = useLang()
   const [tree, setTree] = useState(initialTree)
   const [units, setUnits] = useState(initialUnits)
+  /**
+   * Человек, выбранный в дереве единиц кнопкой «его права». Посадка и права —
+   * два разных решения, поэтому дерево не открывает права само, а переводит
+   * на вкладку, где их утверждают.
+   */
+  const [focusPersonId, setFocusPersonId] = useState<string | null>(null)
 
   const [tab, setTab] = useUrlTab({
     allowed: ['general', 'person'] as const,
@@ -77,6 +83,7 @@ export default function DataSecurityClient({
         <GeneralView
           tree={tree}
           units={units}
+          staff={staff}
           departments={departments}
           canManageTree={canManageTree}
           canManageUnits={canManageUnits}
@@ -84,6 +91,7 @@ export default function DataSecurityClient({
           lang={lang}
           onReload={setTree}
           onUnitsReload={setUnits}
+          onOpenPerson={id => { setFocusPersonId(id); setTab('person') }}
         />
       ) : (
         <PersonView
@@ -94,6 +102,7 @@ export default function DataSecurityClient({
           canManageUnits={canManageUnits}
           t={t}
           lang={lang}
+          focusPersonId={focusPersonId}
         />
       )}
     </div>

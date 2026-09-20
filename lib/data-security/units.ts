@@ -44,6 +44,16 @@ export interface UnitNode {
   headPersonId: string | null
   /** Сотрудники, посаженные именно на эту единицу (без потомков). */
   seatCount: number
+  /**
+   * КТО именно посажен на эту единицу. Раньше дерево знало только «сколько»,
+   * и посадить человека можно было лишь с другой стороны — из карточки
+   * сотрудника. Владелец попросил обратное направление: «стою на пнимии и
+   * добавляю ей людей».
+   *
+   * Имён здесь нет намеренно: их разрешает экран по уже загруженному списку
+   * персонала. Иначе в этот чистый слой пришлось бы тащить язык и загрузку.
+   */
+  seats: { personId: string; isHead: boolean }[]
   /** Сотрудники этой единицы и всего, что под ней, — сколько человек её «видит». */
   seatCountDeep: number
   children: UnitNode[]
@@ -66,9 +76,16 @@ export function buildUnitTree(
 ): UnitNode[] {
   const activeSeats = seats.filter(s => s.end_date === null || s.end_date > todayISO)
 
-  const seatsByDept = new Map<string, number>()
+  const seatsByDept = new Map<string, { personId: string; isHead: boolean }[]>()
   for (const s of activeSeats) {
-    seatsByDept.set(s.department_id, (seatsByDept.get(s.department_id) ?? 0) + 1)
+    const list = seatsByDept.get(s.department_id) ?? []
+    // Один человек может быть записан на единицу дважды (две должности) —
+    // на экране это одна строка, поэтому дубли схлопываются, а «глава»
+    // побеждает: право главы, полученное хоть одной записью, реально.
+    const existing = list.find(x => x.personId === s.person_id)
+    if (existing) existing.isHead = existing.isHead || s.is_head
+    else list.push({ personId: s.person_id, isHead: s.is_head })
+    seatsByDept.set(s.department_id, list)
   }
 
   const built = new Map<string, UnitNode>()
@@ -79,7 +96,8 @@ export function buildUnitTree(
       name: localizedDeptName(d, lang),
       isEducational: d.is_educational_institution,
       headPersonId: d.head_person_id,
-      seatCount: seatsByDept.get(d.id) ?? 0,
+      seatCount: (seatsByDept.get(d.id) ?? []).length,
+      seats: seatsByDept.get(d.id) ?? [],
       seatCountDeep: 0,
       children: [],
     })
