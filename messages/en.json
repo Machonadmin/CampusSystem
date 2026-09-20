@@ -5511,6 +5511,17 @@
     "decision_hint": "Three positions per row: keep as the role gives, open personally, or block personally.",
     "units_show": "Show institution units",
     "units_hide": "Hide institution units",
-    "unsaved_count": "{n} unsaved changes"
+    "unsaved_count": "{n} unsaved changes",
+    "unit_people": "Who sits here",
+    "unit_add_person": "Add a staff member to this unit",
+    "unit_search_person": "Search staff…",
+    "unit_remove_person": "Remove from this unit",
+    "unit_remove_confirm": "Remove {name} from this unit? Their other assignments stay.",
+    "unit_set_head": "Make head of the unit",
+    "unit_unset_head": "Remove as head",
+    "unit_head_badge": "Head of the unit",
+    "unit_no_people": "Nobody is assigned to this unit",
+    "unit_open_person": "Their permissions",
+    "unit_all_seated": "Every staff member is already here"
   }
 }

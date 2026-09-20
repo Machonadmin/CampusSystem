@@ -5511,6 +5511,17 @@
     "decision_hint": "שלוש אפשרויות לכל שורה: להשאיר כמו התפקיד, לפתוח אישית, או לחסום אישית.",
     "units_show": "הצגת יחידות המוסד",
     "units_hide": "סגירת יחידות המוסד",
-    "unsaved_count": "{n} שינויים לא נשמרו"
+    "unsaved_count": "{n} שינויים לא נשמרו",
+    "unit_people": "מי יושב כאן",
+    "unit_add_person": "הוספת איש צוות ליחידה",
+    "unit_search_person": "חיפוש איש צוות…",
+    "unit_remove_person": "הסרה מהיחידה",
+    "unit_remove_confirm": "להסיר את {name} מהיחידה? שאר השיוכים שלו יישארו.",
+    "unit_set_head": "סימון כראש היחידה",
+    "unit_unset_head": "ביטול ראש היחידה",
+    "unit_head_badge": "ראש היחידה",
+    "unit_no_people": "אף אחד לא משויך ליחידה הזו",
+    "unit_open_person": "ההרשאות שלו",
+    "unit_all_seated": "כל אנשי הצוות כבר משויכים כאן"
   }
 }
