@@ -43,6 +43,9 @@ export default function UnitTeamPage() {
   const [units, setUnits] = useState<Unit[]>([])
   const [unitId, setUnitId] = useState<string>('')
   const [members, setMembers] = useState<Member[]>([])
+  // Тумблеры прав принадлежат главе единицы, а не всякому, кто сюда вошёл:
+  // держатель manage_units правит состав, но права не раздаёт. Решает сервер.
+  const [canGrantPrivileges, setCanGrantPrivileges] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
@@ -65,20 +68,30 @@ export default function UnitTeamPage() {
     setMembersLoading(true)
     try {
       const res = await fetch(`/api/education/units/${uid}/members`)
-      if (res.ok) { const b = await res.json(); setMembers(b.members ?? []) }
-      else { setMembers([]); toastError(tCommon('load_error')) }
+      if (res.ok) {
+        const b = await res.json()
+        setMembers(b.members ?? [])
+        setCanGrantPrivileges(b.can_grant_privileges === true)
+      }
+      else { setMembers([]); setCanGrantPrivileges(false); toastError(tCommon('load_error')) }
     } catch {
-      setMembers([]); toastError(tCommon('load_error'))
+      setMembers([]); setCanGrantPrivileges(false); toastError(tCommon('load_error'))
     } finally { setMembersLoading(false) }
   }, [tCommon])
   useEffect(() => { if (unitId) loadMembers(unitId) }, [unitId, loadMembers])
 
   async function togglePriv(personId: string, code: string, on: boolean) {
+    const revert = () => setMembers(prev => prev.map(m => m.person_id === personId ? { ...m, privileges: { ...m.privileges, [code]: !on } } : m))
     setMembers(prev => prev.map(m => m.person_id === personId ? { ...m, privileges: { ...m.privileges, [code]: on } } : m))
-    await fetch(`/api/education/units/${unitId}/members/${personId}/privileges`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ privileges: { [code]: on } }),
-    })
+    // Раньше ответ не читался вовсе: отказ сервера оставлял галочку включённой,
+    // и экран показывал право, которого нет.
+    try {
+      const res = await fetch(`/api/education/units/${unitId}/members/${personId}/privileges`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ privileges: { [code]: on } }),
+      })
+      if (!res.ok) { revert(); toastError(tCommon('action_failed')) }
+    } catch { revert(); toastError(tCommon('action_failed')) }
   }
 
   async function removeMember(personId: string) {
@@ -159,15 +172,16 @@ export default function UnitTeamPage() {
                         {GRANTABLE.map(code => {
                           const on = !!m.privileges[code]
                           return (
-                            <label key={code} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--text)', cursor: 'pointer', padding: '6px 8px', borderRadius: 8, background: on ? 'var(--accent-tint)' : 'transparent' }}>
-                              <input type="checkbox" checked={on} onChange={e => togglePriv(m.person_id, code, e.target.checked)}
+                            <label key={code} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: canGrantPrivileges ? 'var(--text)' : 'var(--text-muted)', cursor: canGrantPrivileges ? 'pointer' : 'default', padding: '6px 8px', borderRadius: 8, background: on ? 'var(--accent-tint)' : 'transparent' }}>
+                              <input type="checkbox" checked={on} disabled={!canGrantPrivileges}
+                                onChange={e => togglePriv(m.person_id, code, e.target.checked)}
                                 style={{ accentColor: accent, width: 16, height: 16 }} />
                               {t(`units.priv.${code}`, code)}
                             </label>
                           )
                         })}
                       </div>
-                      {m.role === 'teacher' && (
+                      {m.role === 'teacher' && canGrantPrivileges && (
                         <ExtraMinutes unitId={unitId} personId={m.person_id} initial={m.extra_minutes} accent={accent} />
                       )}
                     </div>
