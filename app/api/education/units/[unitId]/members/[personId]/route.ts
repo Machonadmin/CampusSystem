@@ -4,19 +4,23 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
+import { canSeatInUnit } from '@/lib/auth/seat-access'
 
 /**
  * DELETE /api/education/units/[unitId]/members/[personId]
  * Убрать члена из единицы — закрываем его активную позицию (end_date=сегодня)
  * и снимаем персональные education-права. Роль/аккаунт не трогаем.
  *
- * Право: superadmin или глава единицы. Главу единицы удалить нельзя.
+ * Право: единое правило посадки — глава единицы/делегат ИЛИ держатель
+ * data_security.manage_units. Главу единицы удалить нельзя.
  */
 export async function DELETE(_req: NextRequest, { params }: { params: { unitId: string; personId: string } }) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
+    if (!(await canManageUnit(session, params.unitId)) && !(await canSeatInUnit(session, params.unitId))) {
+      return apiError('forbidden', 403)
+    }
 
     const sb = createServerClient()
     const today = todayISO()

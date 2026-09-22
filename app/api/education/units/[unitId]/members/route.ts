@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit, GRANTABLE_EDUCATION_PRIVILEGES } from '@/lib/education/unit-access'
+import { canSeatInUnit } from '@/lib/auth/seat-access'
 import { getCookieLocale } from '@/lib/i18n/locale'
 
 /**
@@ -14,16 +15,36 @@ import { getCookieLocale } from '@/lib/i18n/locale'
  * POST — добавить человека секретарём/учителем: создать нового ИЛИ прикрепить
  *        существующего. Создаёт staff_position в единице + назначает роль.
  *
- * Право: superadmin или глава этой единицы (canManageUnit).
+ * Право на состав (смотреть, добавить, убрать): единое правило посадки —
+ * глава единицы/делегат (canManageUnit) ИЛИ право data_security.manage_units.
+ *
+ * Право на ТУМБЛЕРЫ прав (подмаршрут .../privileges) шире не становится: выдача
+ * прав — это `grant`, а не «посадка». Поэтому GET отдаёт `can_grant_privileges`,
+ * и экран показывает тумблеры выключенными тому, кто ими распоряжаться не может,
+ * вместо того чтобы ловить 403 при клике.
  */
 
 type MemberRole = 'studies_secretary' | 'teacher'
+
+/** Состав единицы: глава/делегат или держатель manage_units (объединение). */
+async function canManageMembers(
+  session: Parameters<typeof canManageUnit>[0],
+  unitId: string,
+): Promise<boolean> {
+  if (await canManageUnit(session, unitId)) return true
+  return canSeatInUnit(session, unitId)
+}
 
 export async function GET(_req: NextRequest, { params }: { params: { unitId: string } }) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
+    // Тумблеры прав остаются у главы/делегата; держатель manage_units видит
+    // состав и правит посадку, но не раздаёт education-права.
+    const canGrantPrivileges = await canManageUnit(session, params.unitId)
+    if (!canGrantPrivileges && !(await canSeatInUnit(session, params.unitId))) {
+      return apiError('forbidden', 403)
+    }
 
     const sb = createServerClient()
 
@@ -39,7 +60,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
     }) as Array<{ id: string; person_id: string; position_he: string | null; position_ru: string | null; is_head: boolean }>
 
     const personIds = [...new Set(active.map(p => p.person_id))]
-    if (personIds.length === 0) return NextResponse.json({ members: [] })
+    if (personIds.length === 0) return NextResponse.json({ members: [], can_grant_privileges: canGrantPrivileges })
 
     const [{ data: persons }, { data: roleRows }, { data: pgrants }] = await Promise.all([
       sb.from('persons').select('id, full_name, hebrew_name, email').in('id', personIds),
@@ -107,7 +128,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
     })
     // Секретари/учителя вперёд, главы в конце.
     members.sort((a, b) => Number(a.is_head) - Number(b.is_head))
-    return NextResponse.json({ members })
+    return NextResponse.json({ members, can_grant_privileges: canGrantPrivileges })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
@@ -118,7 +139,7 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
+    if (!(await canManageMembers(session, params.unitId))) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as {
       mode?: 'create' | 'existing'

@@ -163,7 +163,7 @@ export default function AddEmployeeModal({
   const [workSchedule, setWorkSchedule] = useState('')
   // Роль в системе (перенесено из отдельной модалки «посадить на стул» —
   // owner: одна форма добавления). Необязательно; назначается после сохранения
-  // через /api/staff/seat (superadmin).
+  // через /api/staff/seat (superadmin, право manage_units или глава единицы).
   const [rolesList, setRolesList] = useState<{ id: string; code: string; name: string }[]>([])
   const [roleId, setRoleId] = useState('')
   const [isHead, setIsHead] = useState(false)

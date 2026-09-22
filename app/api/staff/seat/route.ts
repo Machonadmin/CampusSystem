@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
+import { canSeatInUnit } from '@/lib/auth/seat-access'
 
 /**
  * POST /api/staff/seat — «посадить человека на стул» одним действием:
@@ -14,13 +15,16 @@ import { getSession } from '@/lib/auth/session'
  *     обновляем её, иначе создаём новую.
  *   • person_roles — добавляем роль (не затирая другие роли человека).
  *
- * Право: superadmin (как и назначение ролей в настройках пользователей).
+ * Право: единое правило посадки (canSeatInUnit) — superadmin, право
+ * data_security.manage_units или глава той единицы, в которую сажают.
+ *
+ * ⚠ Роль superadmin через этот маршрут раздаёт только superadmin: иначе глава
+ * единицы «посадил бы» себе полный обход всех проверок в системе.
  */
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!session.roles.includes('superadmin')) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as {
       person_id?: string
@@ -36,6 +40,8 @@ export async function POST(request: NextRequest) {
     if (!body.position_id) return apiError('position_required', 400)
     if (!body.role_id) return apiError('role_required', 400)
 
+    if (!(await canSeatInUnit(session, body.department_id))) return apiError('forbidden', 403)
+
     const sb = createServerClient()
 
     // 1) Должность-ярлык (для снапшотов position_ru/he).
@@ -47,9 +53,13 @@ export async function POST(request: NextRequest) {
     if (!refPos) return apiError('position_not_found', 400)
     const pos = refPos as { name_ru: string | null; name_he: string | null }
 
-    // 2) Роль существует?
-    const { data: role } = await sb.from('roles').select('id').eq('id', body.role_id).maybeSingle()
+    // 2) Роль существует? И её вообще можно выдавать этим вызовом?
+    const { data: role } = await sb.from('roles').select('id, code').eq('id', body.role_id).maybeSingle()
     if (!role) return apiError('role_not_found', 400)
+    // Обход всех проверок в системе не раздаётся правом «сажать в единицу».
+    if ((role as { code: string | null }).code === 'superadmin' && !session.roles.includes('superadmin')) {
+      return apiError('forbidden', 403)
+    }
 
     const isHead = body.is_head === true
     const hireDate = (body.hire_date && String(body.hire_date).trim())
