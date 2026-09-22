@@ -2930,7 +2930,9 @@
       "no_seat_fix": "Press \"Add employee\" and pick them as an existing person.",
       "duplicates": "Found {count} groups of records that look like the same person.",
       "duplicates_fix": "Merge duplicates"
-    }
+    },
+    "structure_moved": "The org structure is now managed in Data Security.",
+    "structure_moved_link": "Go to the unit tree →"
   },
   "quality": {
     "title": "Teaching Evaluation",
