@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
@@ -41,16 +42,16 @@ export default function EducationHeaderNav() {
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <a
+      <Link
         href="/dashboard/education/timetable"
         style={linkChip}
         onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG_HOVER }}
         onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG }}
       >
         {t('timetable.title')}
-      </a>
+      </Link>
       {pending !== null && (
-        <a
+        <Link
           href="/dashboard/education/schedule-approvals"
           style={linkChip}
           onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = CHIP_BG_HOVER }}
@@ -60,7 +61,7 @@ export default function EducationHeaderNav() {
           {pending > 0 && (
             <span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, background: 'var(--accent)', color: 'var(--accent-contrast)', borderRadius: 999, padding: '1px 7px' }}>{pending}</span>
           )}
-        </a>
+        </Link>
       )}
     </div>
   )

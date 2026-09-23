@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TasksList from './components/TasksList'
 import TaskCreateModal from './components/TaskCreateModal'
@@ -34,7 +35,13 @@ export default function TasksPage() {
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
 
-  const [view, setView] = useState<ViewMode>('assigned')
+  // Раздел в URL (?view=): «назад» из карточки задачи возвращает в тот же
+  // раздел (созданные мной / отдел / слежу), а не в «назначенные мне».
+  const [view, setView] = useUrlTab<ViewMode>({
+    allowed: ['assigned', 'created', 'department', 'watching'],
+    fallback: 'assigned',
+    key: 'view',
+  })
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
   const [showFilters, setShowFilters] = useState(false) // מסננים מתקדמים מוסתרים כברירת מחדל

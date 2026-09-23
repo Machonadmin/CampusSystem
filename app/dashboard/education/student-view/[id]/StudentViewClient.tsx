@@ -2,6 +2,7 @@
 
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSafeBack } from '@/lib/hooks/useSafeBack'
+import { EDUCATION_SECTION_ROUTES } from '@/lib/education/education-hub'
 import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentMessagesPanel from '@/components/education/StudentMessagesPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
@@ -13,7 +14,7 @@ export default function StudentViewClient({ journeyId, name }: { journeyId: stri
   // «Назад» = реальная история (вернуться на карточку/список, откуда открыли
   // предпросмотр), а не жёсткий переход на /dashboard/education (который к тому же
   // редиректит и может увести на главную). Запасной родитель — раздел «Учёба».
-  const goBack = useSafeBack('/dashboard/education')
+  const goBack = useSafeBack(EDUCATION_SECTION_ROUTES.studies)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '16px' }}>
