@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /** Создание аудитории в здании. Деплой-безопасно (нет таблицы → 503). */
 
@@ -32,6 +33,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     return NextResponse.json({ id: data.id }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

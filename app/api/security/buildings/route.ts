@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSecurityPrivilege } from '@/lib/security/permissions'
 import { mapDbError } from '@/lib/security/http'
 import { buildingsList } from '@/lib/security/locations-server'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/security/buildings — здания общежития для пикера места происшествия
@@ -22,8 +22,8 @@ export async function GET() {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

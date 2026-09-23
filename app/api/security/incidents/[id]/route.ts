@@ -7,6 +7,7 @@ import { isSeverity, isStatus } from '@/lib/security/validation'
 import { canTransition } from '@/lib/security/incidents'
 import { buildingNamesByIds } from '@/lib/security/locations-server'
 import type { SecurityIncidentUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET   /api/security/incidents/[id] — инцидент + имя здания. Право: security.view.
@@ -79,9 +80,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -158,7 +159,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(await withMeta(sb, data as unknown as IncidentRow))
@@ -166,8 +167,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
@@ -44,9 +44,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -107,8 +107,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

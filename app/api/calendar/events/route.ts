@@ -6,6 +6,7 @@ import { isIsoDate } from '@/lib/calendar/validation'
 import type { CalendarEventInsert } from '@/types/database'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { cleanAppLink } from '@/lib/safe-url'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Личные события календаря пользователя.
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ events: data ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -102,6 +103,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, id: data?.id }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

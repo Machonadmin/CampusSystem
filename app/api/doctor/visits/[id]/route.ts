@@ -6,6 +6,7 @@ import { mapDbError } from '@/lib/doctor/http'
 import { isIsoDate, isVisitStatus } from '@/lib/doctor/validation'
 import { canTransitionVisit } from '@/lib/doctor/medical'
 import type { MedicalVisitUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET   /api/doctor/visits/[id] — приём по id (view).
@@ -34,9 +35,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -118,7 +119,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data)
@@ -126,8 +127,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

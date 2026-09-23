@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/class-groups/[id]/enrollments
@@ -43,7 +44,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     return NextResponse.json({ enrollments: data ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -132,6 +133,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

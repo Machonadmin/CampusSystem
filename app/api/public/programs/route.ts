@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { errorResponse } from '@/lib/api/handler'
 
 // Всегда свежий список программ (иначе Next закэширует ответ на этапе сборки).
 export const dynamic = 'force-dynamic'
@@ -48,6 +48,6 @@ export async function GET() {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

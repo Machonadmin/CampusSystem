@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { mapDbError } from '@/lib/psychologist/http'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/psychologist/journeys/[id] — карта сопровождения студента + история
@@ -43,8 +43,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

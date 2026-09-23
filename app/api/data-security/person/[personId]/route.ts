@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadPersonAccess } from '@/lib/data-security/load'
 import { clearDataSecurityPermissionsCache } from '@/lib/data-security/permissions'
 import type { PrivilegeModule } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Права конкретного сотрудника.
@@ -28,7 +29,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ pers
     return NextResponse.json(access)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -90,6 +91,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
     return NextResponse.json(access)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

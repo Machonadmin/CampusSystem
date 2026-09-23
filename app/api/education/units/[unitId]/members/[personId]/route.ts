@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { canSeatInUnit } from '@/lib/auth/seat-access'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * DELETE /api/education/units/[unitId]/members/[personId]
@@ -47,6 +48,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

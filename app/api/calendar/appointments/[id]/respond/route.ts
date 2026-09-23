@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Ответ приглашённого участника на встречу: принять / отклонить.
@@ -40,6 +41,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     return NextResponse.json({ ok: true, status: newStatus })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

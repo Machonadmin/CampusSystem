@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasPsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/psychologist/referrals — очередь «Направленные к психологу» (מטופלות).
@@ -216,6 +217,6 @@ export async function GET() {
     return NextResponse.json({ referrals, finals: finals ?? [], signature_method })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

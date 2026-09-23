@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canSeatInUnit } from '@/lib/auth/seat-access'
 import { hasDataSecurityPrivilege } from '@/lib/data-security/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
 // Роли, которые глава единицы может выдать при посадке (см. проверку ниже).
 const HEAD_SEATABLE_ROLES: ReadonlySet<string> = new Set(['teacher', 'studies_secretary'])
@@ -150,6 +151,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

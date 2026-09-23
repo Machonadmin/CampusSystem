@@ -1,11 +1,11 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePersonsPrivilege, hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { redactSensitivePerson } from '@/lib/persons/redact'
 import { mapDbError } from '@/lib/persons/http'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/persons/directory/[id]
@@ -108,8 +108,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

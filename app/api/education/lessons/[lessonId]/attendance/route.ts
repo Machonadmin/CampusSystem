@@ -7,6 +7,7 @@ import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
@@ -146,9 +147,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ less
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -270,7 +271,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ less
       .upsert(rows as any, { onConflict: 'lesson_id,journey_id' })
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ marked: rows.length }, { status: 201 })
@@ -278,8 +279,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ less
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

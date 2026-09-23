@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { generateLessonsForGroup } from '@/lib/education/lesson-generation'
 import { MS_PER_DAY, parseDateUTC } from '@/lib/education/schedule-dates'
+import { errorResponse } from '@/lib/api/handler'
 
 const MAX_RANGE_DAYS = 366
 
@@ -80,8 +81,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

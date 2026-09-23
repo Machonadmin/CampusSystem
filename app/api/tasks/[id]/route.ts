@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
@@ -80,8 +80,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
@@ -219,7 +219,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       .select('*')
       .single()
 
-    if (uErr) { const m = mapDbError(uErr); return NextResponse.json({ error: m.message }, { status: m.status }) }
+    if (uErr) { const m = mapDbError(uErr); return errorResponse(m) }
 
     if (statusChange) {
       const { error: histErr } = await sb.from('task_status_history').insert({
@@ -284,8 +284,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     return NextResponse.json(updated)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
@@ -317,7 +317,7 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ i
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }

@@ -8,6 +8,7 @@ import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType } from '@/lib/documents/validation'
 import type { DocumentRecordInsert } from '@/types/database'
 import { cleanExternalUrl } from '@/lib/safe-url'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET  /api/documents/journeys/[id] — документы студента (свежие сверху). [id] =
@@ -57,9 +58,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -145,8 +146,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

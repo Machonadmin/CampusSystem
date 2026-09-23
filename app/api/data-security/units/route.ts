@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { buildUnitTree, seatReach, type DepartmentInput, type SeatInput } from '@/lib/data-security/units'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Учебные единицы — НАСТОЯЩАЯ граница доступа.
@@ -47,7 +48,7 @@ export async function GET() {
     return NextResponse.json({ units })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ units })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -127,7 +128,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ units })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -154,7 +155,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ units })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -170,6 +171,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(reach)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

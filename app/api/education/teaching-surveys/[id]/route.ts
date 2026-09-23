@@ -1,11 +1,12 @@
 import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
 import { getSurveyWithQuestions, surveyDepartment, teachersForSurvey } from '@/lib/education/teaching-surveys'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Один сбор «הערכת הוראה».
@@ -48,7 +49,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
     }
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -97,7 +98,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -117,6 +118,6 @@ export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: s
     }
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

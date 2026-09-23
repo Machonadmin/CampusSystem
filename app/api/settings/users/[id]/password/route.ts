@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
 import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { clearLoginLockout } from '@/lib/auth/account-lockout'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
@@ -47,7 +48,7 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
     return NextResponse.json({ ok: true, generated_password: wasGenerated ? password : undefined })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
