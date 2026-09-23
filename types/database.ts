@@ -1806,6 +1806,19 @@ export interface AppSettingInsert {
 }
 export type AppSettingUpdate = Partial<Omit<AppSettingInsert, 'key'>>
 
+/** Личная раскладка интерфейса сотрудника (см. lib/prefs/ui-prefs.ts). */
+export interface UserPreferencesRow {
+  person_id:  string
+  prefs:      unknown
+  updated_at: string
+}
+export interface UserPreferencesInsert {
+  person_id:   string
+  prefs:       unknown
+  updated_at?: string
+}
+export type UserPreferencesUpdate = Partial<Omit<UserPreferencesInsert, 'person_id'>>
+
 // ─── Notifications (личные уведомления в шапке) ──────────────────────────────
 export interface NotificationRow {
   id:         string
@@ -2121,6 +2134,7 @@ export interface Database {
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
       stage_signatures:          T<StageSignatureRow,            StageSignatureInsert,            StageSignatureUpdate>
       app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
+      user_preferences:          T<UserPreferencesRow,           UserPreferencesInsert,           UserPreferencesUpdate>
       notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
       study_tracks:              T<StudyTrackRow,                StudyTrackInsert,                StudyTrackUpdate>
       journey_study_tracks:      T<JourneyStudyTrackRow,         JourneyStudyTrackInsert,         JourneyStudyTrackUpdate>

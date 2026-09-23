@@ -4,8 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
-import { enablePush, getPushState, registerSW, sendTestPush, syncPush, type PushState } from '@/lib/push/client'
-import { toastError, toastSuccess } from '@/components/ui/toast'
+import { usePushControls } from '@/lib/push/usePushControls'
 
 interface Notification {
   id: string
@@ -32,45 +31,9 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Web Push: регистрируем service worker при монтировании шапки, тихо сверяем
-  // подписку с сервером (если разрешение уже есть) и выясняем, подписано ли ЭТО
-  // устройство — если нет, показываем кнопку включения.
-  const [pushState, setPushState] = useState<PushState>('unsupported')
-  const [pushBusy, setPushBusy] = useState(false)
-  useEffect(() => {
-    let alive = true
-    registerSW().then(() => syncPush()).then(() => getPushState()).then(s => { if (alive) setPushState(s) })
-    return () => { alive = false }
-  }, [])
-
-  async function onEnablePush() {
-    setPushBusy(true)
-    try {
-      const reason = await enablePush()
-      if (reason === 'ok') { setPushState('subscribed'); toastSuccess(t('push_enabled')) }
-      else {
-        setPushState(await getPushState())
-        // Конкретная причина, а не общий провал: «денай» и «нужна установка»
-        // объясняем текстом в самой панели, для остальных — тост.
-        if (reason !== 'denied' && reason !== 'ios-needs-install') toastError(t('push_failed'))
-      }
-    } finally {
-      setPushBusy(false)
-    }
-  }
-
-  async function onTestPush() {
-    setPushBusy(true)
-    try {
-      const r = await sendTestPush()
-      if (!r || r.noKeys) toastError(t('push_test_failed').replace('{code}', '—'))
-      else if (r.devices === 0) toastError(t('push_test_no_devices'))
-      else if (r.sent > 0) toastSuccess(t('push_test_sent'))
-      else toastError(t('push_test_failed').replace('{code}', r.failed.join(', ') || '—'))
-    } finally {
-      setPushBusy(false)
-    }
-  }
+  // Web Push для этого устройства: состояние + «включить» / «тестовый пуш».
+  // Общий хук с экраном «הפרופיל שלי» (lib/push/usePushControls.ts).
+  const { pushState, pushBusy, onEnablePush, onTestPush } = usePushControls()
 
   const load = useCallback(async () => {
     try {

@@ -8,6 +8,10 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { isModuleImplemented } from '@/lib/module-colors'
 import { KODESH_COVERED_MODULES, kodeshMoreModuleItems, kodeshMoreEduSections } from '@/lib/education/kodesh-nav'
+import { useUiPrefs } from '@/lib/prefs/UiPrefsContext'
+import { useMe } from '@/lib/hooks/useMe'
+import { applyNavPrefs } from '@/lib/prefs/ui-prefs'
+import { fetchMyActiveTasks } from '@/lib/tasks/my-active-tasks-client'
 
 // Три раздела «Образования» как ОТДЕЛЬНЫЕ модули-маршруты (запрос владельца:
 // גיוс / קבלה / לимудим — раздельные, без «התנגשויות»). У каждого свой маршрут,
@@ -202,6 +206,8 @@ export default function Sidebar() {
   const { t, isRTL } = useLang()
   const tEdu = useTranslations('education')
   const tFin = useTranslations('finance')
+  const tPrefs = useTranslations('prefs')
+  const { prefs: uiPrefs } = useUiPrefs()
   const { isOpen, isPinned, isMobile, toggle, close, setPin } = useSidebar()
   const sidebarRef = useRef<HTMLElement>(null)
   const [accessibleModules, setAccessibleModules] = useState<string[] | null>(null)
@@ -221,29 +227,23 @@ export default function Sidebar() {
   // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
 
+  // /api/auth/me — через общий кэш useMe (один запрос на всё приложение,
+  // а не отдельный в меню и на главной).
+  const me = useMe()
   useEffect(() => {
-    let alive = true
-    fetch('/api/auth/me')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!alive) return
-        if (data?.accessible_modules) setAccessibleModules(data.accessible_modules)
-        if (data?.is_chavruta_teacher) setIsChavrutaTeacher(true)
-        if (data?.can_view_chavruta) setCanViewChavrutaHub(true)
-        if (data?.can_view_staff_comp) setCanViewStaffComp(true)
-      })
-      .catch(() => { /* тихо: сеть упала — навигация остаётся с дефолтами */ })
-    return () => { alive = false }
-  }, [])
+    if (!me) return
+    if (me.accessible_modules) setAccessibleModules(me.accessible_modules)
+    if (me.is_chavruta_teacher) setIsChavrutaTeacher(true)
+    if (me.can_view_chavruta) setCanViewChavrutaHub(true)
+    if (me.can_view_staff_comp) setCanViewStaffComp(true)
+  }, [me])
 
   // Точка на «Задачах»: есть ли открытые задачи, назначенные на меня. Обновляем
   // при смене маршрута — вернувшись со страницы задач, точка отражает актуальное.
   useEffect(() => {
     let alive = true
-    fetch('/api/tasks?view=assigned&status=active')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (alive) setHasOpenTasks(((data?.tasks ?? []) as unknown[]).length > 0) })
-      .catch(() => { /* тихо */ })
+    fetchMyActiveTasks()
+      .then(tasks => { if (alive) setHasOpenTasks((tasks ?? []).length > 0) })
     return () => { alive = false }
   }, [pathname])
 
@@ -365,6 +365,122 @@ export default function Sidebar() {
     if (next.has(key)) next.delete(key); else next.add(key)
     return next
   })
+
+  // ── Пункты групп как плоский список {id, ссылка} ───────────────────────────
+  // id — стабильный код пункта для личной раскладки (избранное / скрытое):
+  // код модуля, либо код раздела для пунктов, на которые модуль разворачивается
+  // (образование → recruitment/admission/studies, финансы → finance_staff).
+  // Совпадает с id плиток на главной — одно избранное на меню и на главную.
+  type NavEntry = { id: string; el: React.ReactElement }
+  const EDU_NAV_ID: Record<string, string> = { recruitment: 'recruitment', committee: 'admission', study: 'studies' }
+  function buildLinks(item: ModuleItem): NavEntry[] {
+    // «Образование» разворачивается в три пункта: набор / приём / учёба.
+    if (item.key === 'education') {
+      const activeSec = activeEduSection()
+      const secIcon: Record<string, string> = {
+        recruitment: I.persons, committee: I.quality_control, study: I.education,
+      }
+      return EDU_SECTIONS
+        // fail-closed: показываем раздел ТОЛЬКО при явном доступе
+        // (=== true). Пока грузится (null) или при ошибке ({}) — не
+        // показываем; иначе секретарь кодеша на миг видит גיוס.
+        .filter(s => eduTabAccess?.[s.key] === true)
+        .map(s => ({
+          id: EDU_NAV_ID[s.key] ?? s.key,
+          el: (
+            <SidebarNavLink
+              key={`education-${s.key}`}
+              href={s.href}
+              iconPath={secIcon[s.key] ?? item.icon}
+              label={tEdu(s.labelKey)}
+              active={activeSec === s.key}
+              isOpen={isOpen}
+              isRTL={isRTL}
+              moduleKey="education"
+              soonLabel={t.soon}
+            />
+          ),
+        }))
+    }
+    // «Финансы» разворачиваются в два пункта: сам модуль и «שכר צוות»
+    // (расчётные листы). Экраны существовали, но были навигационно
+    // недостижимы (аудит §22.2). fail-closed: пункт только при === true.
+    if (item.key === 'finance') {
+      const links: NavEntry[] = [{
+        id: 'finance',
+        el: (
+          <SidebarNavLink
+            key="finance"
+            href={item.href}
+            iconPath={item.icon}
+            label={t.nav.finance}
+            active={pathname === '/dashboard/finance' || (pathname.startsWith('/dashboard/finance/') && !pathname.startsWith('/dashboard/finance/staff'))}
+            isOpen={isOpen}
+            isRTL={isRTL}
+            moduleKey="finance"
+            soonLabel={t.soon}
+          />
+        ),
+      }]
+      if (canViewStaffComp) {
+        links.push({
+          id: 'finance_staff',
+          el: (
+            <SidebarNavLink
+              key="finance-staff"
+              href="/dashboard/finance/staff"
+              iconPath={I.staff}
+              label={tFin('staff.link_label')}
+              active={pathname.startsWith('/dashboard/finance/staff')}
+              isOpen={isOpen}
+              isRTL={isRTL}
+              moduleKey="finance"
+              soonLabel={t.soon}
+            />
+          ),
+        })
+      }
+      return links
+    }
+    // «Хеврута»: преподаватель хавруты → его журнал; менеджер (не
+    // преподаватель) → управляющий хаб (иначе он попадал на страницу
+    // «для преподавателей» и «не мог ничего сделать»).
+    const href = item.key === 'chavruta' && !isChavrutaTeacher
+      ? '/dashboard/education/chavruta'
+      : item.href
+    // «Здоровье» подсвечивается и на старых адресах рофэ/психолога.
+    const active = (item.key as string) === 'health'
+      ? ['/dashboard/health', '/dashboard/doctor', '/dashboard/psychologist'].some(p => pathname.startsWith(p))
+      : isActive(href)
+    return [{
+      id: item.key,
+      el: (
+        <SidebarNavLink
+          key={item.key}
+          href={href}
+          iconPath={item.icon}
+          label={t.nav[item.key]}
+          active={active}
+          isOpen={isOpen}
+          isRTL={isRTL}
+          moduleKey={item.key}
+          soonLabel={t.soon}
+        />
+      ),
+    }]
+  }
+
+  // Личная раскладка поверх уже отфильтрованного по правам списка: избранные
+  // пункты — отдельной группой наверху, скрытые — пропадают из меню. Показать
+  // недоступное раскладка не может (applyNavPrefs видит только доступное).
+  const sectionEntries = sections.map(s => ({ key: s.key, entries: s.items.flatMap(buildLinks) }))
+  const { favorites: favoriteEntries } = applyNavPrefs(sectionEntries.flatMap(s => s.entries), uiPrefs)
+  const favoriteIds = new Set(favoriteEntries.map(e => e.id))
+  const hiddenIds = new Set(uiPrefs.hidden)
+  const visibleSections = sectionEntries
+    .map(s => ({ ...s, entries: s.entries.filter(e => !favoriteIds.has(e.id) && !hiddenIds.has(e.id)) }))
+    .filter(s => s.entries.length > 0)
+  const totalLinks = favoriteEntries.length + visibleSections.reduce((n, s) => n + s.entries.length, 0)
 
   return (
     <aside
@@ -540,14 +656,31 @@ export default function Sidebar() {
           </>
         )}
 
+        {/* Избранное — личная группа наверху (всегда раскрыта). */}
+        {!isKodeshWorkspace && favoriteEntries.length > 0 && (
+          <div>
+            {isOpen ? (
+              <div style={{ padding: '14px 16px 5px' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  {tPrefs('favorites_group')}
+                </span>
+              </div>
+            ) : (
+              <div style={{ padding: '12px 6px 4px' }}>
+                <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
+              </div>
+            )}
+            <div className="anim-expand">{favoriteEntries.map(e => e.el)}</div>
+          </div>
+        )}
+
         {/* Module sections — сворачиваемые группы (в развёрнутом сайдбаре).
             В icon-режиме (!isOpen) заголовков нет — показываем все пункты. */}
-        {!isKodeshWorkspace && sections.map(section => {
+        {!isKodeshWorkspace && visibleSections.map(section => {
           // У пользователя с 1-4 ссылками (например, только гиюс) группы всегда
           // раскрыты: на телефоне ящик открывается с закрытыми группами, и его
           // единственный раздел был спрятан за заголовком — «пустое» приложение.
-          const totalItems = sections.reduce((n, s) => n + s.items.length, 0)
-          const expanded = !isOpen || openGroups.has(section.key) || totalItems <= 4
+          const expanded = !isOpen || openGroups.has(section.key) || totalLinks <= 4
           return (
             <div key={section.key}>
               {isOpen ? (
@@ -575,90 +708,7 @@ export default function Sidebar() {
                 </div>
               )}
 
-              {expanded && <div className="anim-expand">{section.items.flatMap(item => {
-                // «Образование» разворачивается в три пункта: набор / приём / учёба.
-                if (item.key === 'education') {
-                  const activeSec = activeEduSection()
-                  const secIcon: Record<string, string> = {
-                    recruitment: I.persons, committee: I.quality_control, study: I.education,
-                  }
-                  return EDU_SECTIONS
-                    // fail-closed: показываем раздел ТОЛЬКО при явном доступе
-                    // (=== true). Пока грузится (null) или при ошибке ({}) — не
-                    // показываем; иначе секретарь кодеша на миг видит גיוס.
-                    .filter(s => eduTabAccess?.[s.key] === true)
-                    .map(s => (
-                      <SidebarNavLink
-                        key={`education-${s.key}`}
-                        href={s.href}
-                        iconPath={secIcon[s.key] ?? item.icon}
-                        label={tEdu(s.labelKey)}
-                        active={activeSec === s.key}
-                        isOpen={isOpen}
-                        isRTL={isRTL}
-                        moduleKey="education"
-                        soonLabel={t.soon}
-                      />
-                    ))
-                }
-                // «Финансы» разворачиваются в два пункта: сам модуль и «שכר צוות»
-                // (расчётные листы). Экраны существовали, но были навигационно
-                // недостижимы (аудит §22.2). fail-closed: пункт только при === true.
-                if (item.key === 'finance') {
-                  const links = [(
-                    <SidebarNavLink
-                      key="finance"
-                      href={item.href}
-                      iconPath={item.icon}
-                      label={t.nav.finance}
-                      active={pathname === '/dashboard/finance' || (pathname.startsWith('/dashboard/finance/') && !pathname.startsWith('/dashboard/finance/staff'))}
-                      isOpen={isOpen}
-                      isRTL={isRTL}
-                      moduleKey="finance"
-                      soonLabel={t.soon}
-                    />
-                  )]
-                  if (canViewStaffComp) {
-                    links.push(
-                      <SidebarNavLink
-                        key="finance-staff"
-                        href="/dashboard/finance/staff"
-                        iconPath={I.staff}
-                        label={tFin('staff.link_label')}
-                        active={pathname.startsWith('/dashboard/finance/staff')}
-                        isOpen={isOpen}
-                        isRTL={isRTL}
-                        moduleKey="finance"
-                        soonLabel={t.soon}
-                      />
-                    )
-                  }
-                  return links
-                }
-                // «Хеврута»: преподаватель хавруты → его журнал; менеджер (не
-                // преподаватель) → управляющий хаб (иначе он попадал на страницу
-                // «для преподавателей» и «не мог ничего сделать»).
-                const href = item.key === 'chavruta' && !isChavrutaTeacher
-                  ? '/dashboard/education/chavruta'
-                  : item.href
-                // «Здоровье» подсвечивается и на старых адресах рофэ/психолога.
-                const active = (item.key as string) === 'health'
-                  ? ['/dashboard/health', '/dashboard/doctor', '/dashboard/psychologist'].some(p => pathname.startsWith(p))
-                  : isActive(href)
-                return [(
-                  <SidebarNavLink
-                    key={item.key}
-                    href={href}
-                    iconPath={item.icon}
-                    label={t.nav[item.key]}
-                    active={active}
-                    isOpen={isOpen}
-                    isRTL={isRTL}
-                    moduleKey={item.key}
-                    soonLabel={t.soon}
-                  />
-                )]
-              })}</div>}
+              {expanded && <div className="anim-expand">{section.entries.map(e => e.el)}</div>}
             </div>
           )
         })}
@@ -667,6 +717,18 @@ export default function Sidebar() {
       {/* Footer */}
       {isOpen && (
         <div className="flex-shrink-0 px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+          {/* Вход в личную раскладку меню («הפרופיל שלי» → סידור). */}
+          <Link
+            href="/dashboard/profile#layout"
+            prefetch={false}
+            className="nav-link flex items-center justify-center gap-2 rounded-lg"
+            style={{ fontSize: 12, color: 'var(--text-muted)', padding: '6px 8px', marginBottom: 6 }}
+          >
+            <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+            {tPrefs('arrange_menu')}
+          </Link>
           <p className="text-[10px] text-center" style={{ color: 'var(--text-faint)' }}>© 2025 {t.campusNameShort}</p>
         </div>
       )}

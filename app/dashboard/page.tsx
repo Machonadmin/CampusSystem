@@ -5,7 +5,11 @@ import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
 import HomeWidgets from '@/components/dashboard/HomeWidgets'
-import HomeAgenda from '@/components/dashboard/HomeAgenda'
+import { useUiPrefs } from '@/lib/prefs/UiPrefsContext'
+import { useMe } from '@/lib/hooks/useMe'
+import { applyNavPrefs, toggleFavorite, visibleWidgets } from '@/lib/prefs/ui-prefs'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toastError } from '@/components/ui/toast'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
@@ -114,20 +118,22 @@ const EDUCATION_SUBCARDS = [
 
 export default function DashboardPage() {
   const { t } = useLang()
-  const [user, setUser] = useState<MeResponse | null>(null)
+  const tPrefs = useTranslations('prefs')
+  const { prefs, persisted, save } = useUiPrefs()
+  // /api/auth/me — общий кэш useMe (тот же запрос, что у бокового меню).
+  const me = useMe()
+  const user: MeResponse | null = me ? { ...me, accessible_modules: me.accessible_modules ?? [] } : null
   const [eduAccess, setEduAccess] = useState<Record<string, boolean> | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [tabsLoaded, setTabsLoaded] = useState(false)
+  const loading = !me || !tabsLoaded
 
   useEffect(() => {
     let alive = true
-    Promise.all([
-      fetch('/api/auth/me').then(r => (r.ok ? r.json() : null)).catch(() => null),
-      fetch('/api/education/tab-access').then(r => (r.ok ? r.json() : null)).catch(() => null),
-    ]).then(([me, tabs]) => {
-      if (!alive) return
-      if (me) setUser(me)
-      if (tabs) setEduAccess(tabs)
-    }).finally(() => { if (alive) setLoading(false) })
+    fetch('/api/education/tab-access')
+      .then(r => (r.ok ? r.json() : null))
+      .then(tabs => { if (alive && tabs) setEduAccess(tabs) })
+      .catch(() => { /* тихо: разделы образования не показываем (fail-closed) */ })
+      .finally(() => { if (alive) setTabsLoaded(true) })
     return () => { alive = false }
   }, [])
 
@@ -184,6 +190,18 @@ export default function DashboardPage() {
     })
   }
 
+  // Личная раскладка: избранные плитки — первыми в выбранном порядке, скрытые —
+  // пропадают; режим «только избранное» оставляет лишь избранные. Работает
+  // поверх уже отфильтрованного по правам списка — показать лишнее не может.
+  const arranged = applyNavPrefs(cards, prefs)
+  const favoriteIds = new Set(arranged.favorites.map(c => c.id))
+  const shownCards = prefs.tiles === 'favorites' ? arranged.favorites : [...arranged.favorites, ...arranged.rest]
+
+  async function onToggleFavorite(id: string) {
+    const r = await save(toggleFavorite(prefs, id))
+    if (!r.ok) toastError(r.error ?? tPrefs('save_failed'))
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Welcome banner */}
@@ -207,21 +225,22 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Ежедневник: календарь под рукой прямо на главной (всегда виден) */}
+      {/* «העבודה שלי»: ближайшие дни + всё, что ждёт сотрудника. Состав и
+          порядок блоков — личная раскладка («הפרופיל שלי»). */}
       <div className="anim-stagger" style={{ ['--i']: 1 } as React.CSSProperties}>
-        <HomeAgenda />
-      </div>
-
-      {/* Personal "what needs attention" widgets — hidden when everything is empty */}
-      <div className="anim-stagger" style={{ ['--i']: 2 } as React.CSSProperties}>
-        <HomeWidgets />
+        <HomeWidgets widgets={visibleWidgets(prefs)} />
       </div>
 
       {/* Modules grid */}
       <div>
-        <h2 className="text-sm font-bold tracking-widest uppercase mb-5" style={{ color: 'var(--text-faint)' }}>
-          {t.availableModules}
-        </h2>
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <h2 className="text-sm font-bold tracking-widest uppercase" style={{ color: 'var(--text-faint)', margin: 0 }}>
+            {prefs.tiles === 'favorites' ? tPrefs('favorites_group') : t.availableModules}
+          </h2>
+          <Link href="/dashboard/profile#layout" prefetch={false} style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)' }}>
+            {tPrefs('arrange_home')}
+          </Link>
+        </div>
 
         {loading ? (
           // Пока /api/auth/me не ответил — скелет, а НЕ пустое состояние
@@ -249,18 +268,19 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        ) : cards.length === 0 ? (
+        ) : shownCards.length === 0 ? (
           <div style={{
             border: '1px dashed var(--border-strong)', borderRadius: 14, padding: '28px 20px',
             textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
           }}>
-            {t.noModules}
+            {/* Модулей нет вовсе (права) — или все скрыты / не выбрано избранное (раскладка). */}
+            {cards.length === 0 ? t.noModules : tPrefs('no_tiles_after_prefs')}
           </div>
         ) : (
         // Одна-две плитки (узкий доступ, напр. только гиюс) — во всю ширину,
         // а не одинокая полу-плитка в сетке 2 колонок на телефоне.
-        <div className={cards.length <= 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-5' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'}>
-          {cards.map((card, idx) => {
+        <div className={shownCards.length <= 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-5' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'}>
+          {shownCards.map((card, idx) => {
             const ready = card.ready
             const primary = getModuleColor(card.colorKey ?? card.iconKey, 'primary')
             const name = card.label
@@ -298,16 +318,40 @@ export default function DashboardPage() {
                 </div>
               </>
             )
+            // Звёздочка «в избранное» — рядом с плиткой (не внутри ссылки:
+            // кнопка внутри <a> — невалидная разметка и ловила бы переход).
+            const isFav = favoriteIds.has(card.id)
+            const starLabel = isFav ? tPrefs('unfavorite') : tPrefs('favorite')
             return ready ? (
-              <Link
-                key={card.id}
-                href={card.href}
-                prefetch={false}
-                className="flex flex-col gap-3 anim-stagger card-interactive"
-                style={cardStyle}
-              >
-                {inner}
-              </Link>
+              <div key={card.id} style={{ position: 'relative' }}>
+                <Link
+                  href={card.href}
+                  prefetch={false}
+                  className="flex flex-col gap-3 anim-stagger card-interactive h-full"
+                  style={cardStyle}
+                >
+                  {inner}
+                </Link>
+                {/* До миграции user_preferences сохранять некуда — звёздочку не показываем. */}
+                {persisted && <button
+                  type="button"
+                  onClick={() => onToggleFavorite(card.id)}
+                  aria-pressed={isFav}
+                  aria-label={`${starLabel}: ${card.label}`}
+                  title={starLabel}
+                  className="icon-ghost"
+                  style={{
+                    position: 'absolute', top: 8, insetInlineEnd: 8, width: 30, height: 30, borderRadius: 8,
+                    border: 'none', background: 'transparent', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: isFav ? 'var(--warn)' : 'var(--text-faint)',
+                  }}
+                >
+                  <svg style={{ width: 17, height: 17 }} fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                  </svg>
+                </button>}
+              </div>
             ) : (
               <div
                 key={card.id}

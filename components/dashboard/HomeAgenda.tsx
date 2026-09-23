@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { localISODate, localTodayISO } from '@/lib/dates'
+import { fetchMyActiveTasks } from '@/lib/tasks/my-active-tasks-client'
 
 /**
  * «Ежедневник» на главной: всегда виден (даже пустой), сверху страницы —
@@ -24,7 +25,7 @@ interface AgendaItem {
 const KIND_ICON: Record<AgendaItem['kind'], string> = { appointment: '🤝', event: '📅', task: '✓' }
 const DAYS_AHEAD = 7
 
-export default function HomeAgenda() {
+export default function HomeAgenda({ onVisible }: { onVisible?: () => void } = {}) {
   const t = useTranslations('home')
   const { lang } = useLang()
   const [items, setItems] = useState<AgendaItem[]>([])
@@ -37,20 +38,22 @@ export default function HomeAgenda() {
       const from = localISODate(now)
       const to = localISODate(new Date(now.getTime() + DAYS_AHEAD * 86400000))
 
-      const [apptRes, evRes, taskRes] = await Promise.all([
+      const [apptRes, evRes, myTasks] = await Promise.all([
         fetch(`/api/calendar/appointments?from=${from}&to=${to}`).catch(() => null),
         fetch(`/api/calendar/events?from=${from}&to=${to}`).catch(() => null),
-        // Мои открытые задачи со сроком — «встречи + задачи в одном месте».
-        fetch('/api/tasks?view=assigned&status=active').catch(() => null),
+        // Мои открытые задачи со сроком — «встречи + задачи в одном месте»
+        // (решение владельца). Общий запрос с блоком «המשימות שלי» и меню.
+        fetchMyActiveTasks(),
       ])
 
       // Нет доступа к календарю вовсе → секцию не показываем (задачи есть у всех,
       // но ежедневник — про календарь; при доступе к задачам всё равно покажем).
-      if ((!apptRes || !apptRes.ok) && (!evRes || !evRes.ok) && (!taskRes || !taskRes.ok)) {
+      if ((!apptRes || !apptRes.ok) && (!evRes || !evRes.ok) && myTasks === null) {
         setVisible(false)
         return
       }
       setVisible(true)
+      onVisible?.()
 
       const collected: AgendaItem[] = []
       if (apptRes?.ok) {
@@ -66,9 +69,8 @@ export default function HomeAgenda() {
           collected.push({ id: `e_${e.id}`, title: e.title, date: e.event_date, time: e.all_day ? null : (e.event_time?.slice(0, 5) ?? null), kind: 'event' })
         }
       }
-      if (taskRes?.ok) {
-        const b = await taskRes.json() as { tasks?: Array<{ id: string; title: string; due_date: string | null; due_time: string | null; due_all_day: boolean | null }> }
-        for (const tk of b.tasks ?? []) {
+      if (myTasks) {
+        for (const tk of myTasks) {
           // Только задачи со сроком в окне ежедневника (7 дней).
           if (!tk.due_date || tk.due_date < from || tk.due_date > to) continue
           collected.push({ id: `t_${tk.id}`, title: tk.title, date: tk.due_date, time: tk.due_all_day ? null : (tk.due_time?.slice(0, 5) ?? null), kind: 'task' })
@@ -81,7 +83,7 @@ export default function HomeAgenda() {
     } finally {
       setLoaded(true)
     }
-  }, [])
+  }, [onVisible])
 
   useEffect(() => { load() }, [load])
 
@@ -96,7 +98,7 @@ export default function HomeAgenda() {
   const todayIso = localTodayISO()
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div>
       <div style={{ marginBottom: 12 }}>
         <h2 className="text-sm font-bold tracking-widest uppercase" style={{ color: 'var(--text-faint)', margin: 0 }}>
           {t('agenda_title')}

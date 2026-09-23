@@ -190,8 +190,10 @@ export default function Header({ userName, roles }: HeaderProps) {
                 ))}
               </div>
 
+              {/* «הפרופיל שלי»: детали, тема/язык, пароль, пуши и личная раскладка.
+                  Раньше пункт только закрывал меню и никуда не вёл. */}
               <button
-                onClick={() => setUserMenuOpen(false)}
+                onClick={() => { setUserMenuOpen(false); router.push('/dashboard/profile') }}
                 className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
                 style={{ color: 'var(--text-muted)' }}
               >
