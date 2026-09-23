@@ -29,6 +29,20 @@ export async function createNotifications(sb: SB, rows: NotificationInsert[]): P
   }
 
   // Web Push — после вставки, по одному пушу на строку (объёмы небольшие).
+  await pushNotificationRows(sb, rows)
+}
+
+/**
+ * Дублирует уже вставленные уведомления пушем на телефон. Нужен и тем, кто
+ * пишет в notifications напрямую (напоминания календаря, дедлайны задач,
+ * хаврута) — раньше они попадали только в колокольчик, а телефон молчал.
+ * Best-effort: никогда не бросает.
+ */
+export async function pushNotificationRows(
+  sb: SB,
+  rows: Array<Pick<NotificationInsert, 'person_id' | 'title' | 'body' | 'link'>>,
+): Promise<void> {
+  if (rows.length === 0) return
   try {
     await Promise.allSettled(rows.map(r =>
       sendPushToPerson(sb, r.person_id, { title: r.title, body: r.body ?? null, link: r.link ?? null }),
