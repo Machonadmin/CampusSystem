@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from 'next'
-import { Rubik } from 'next/font/google'
+import '@fontsource-variable/rubik/wght.css'
 import './globals.css'
 import { getCookieLocale } from '@/lib/i18n/locale'
 
 // Rubik вместо Heebo: у Heebo НЕТ кириллицы — русский интерфейс падал в
 // системный шрифт и типографика «смешивалась». Rubik покрывает все три языка
 // приложения (иврит + латиница + кириллица) одним начертанием.
-const appFont = Rubik({
-  subsets: ['hebrew', 'latin', 'cyrillic'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-heebo',
-  display: 'swap',
-})
+//
+// Шрифт лежит в пакете @fontsource-variable/rubik и отдаётся с нашего же
+// домена, а не качается с Google Fonts при сборке (next/font/google): на
+// Next 15 сборка в Vercel падала на загрузке шрифта с Google. Файлы разбиты по
+// алфавитам (unicode-range) — браузер скачивает только нужные. Имя семейства
+// подставляется в --font-heebo в globals.css.
 
 export const metadata: Metadata = {
   title: 'CampusSystem',
@@ -43,7 +43,7 @@ export default function RootLayout({
   const locale = getCookieLocale()
   const dir = locale === 'he' ? 'rtl' : 'ltr'
   return (
-    <html lang={locale} dir={dir} className={appFont.variable}>
+    <html lang={locale} dir={dir}>
       <body>
         {/* Применяем сохранённый выбор темы ДО отрисовки — без мигания. */}
         <script
