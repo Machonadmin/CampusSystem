@@ -1150,7 +1150,6 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
-          head_person_id: string | null
           id: string
           is_educational_institution: boolean
           name: string
@@ -1164,7 +1163,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          head_person_id?: string | null
           id?: string
           is_educational_institution?: boolean
           name: string
@@ -1178,7 +1176,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
-          head_person_id?: string | null
           id?: string
           is_educational_institution?: boolean
           name?: string
@@ -1190,13 +1187,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "departments_head_person_id_fkey"
-            columns: ["head_person_id"]
-            isOneToOne: false
-            referencedRelation: "persons"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "departments_parent_id_fkey"
             columns: ["parent_id"]

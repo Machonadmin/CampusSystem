@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
 
@@ -17,19 +18,19 @@ import { canManageUnit } from '@/lib/education/unit-access'
  * Право: superadmin или глава корневой единицы (canManageUnit).
  */
 
-type Dept = { id: string; name: string; parent_id: string | null; head_person_id?: string | null; structure_tier?: string | null; sort_order?: number | null }
+type Dept = { id: string; name: string; parent_id: string | null; structure_tier?: string | null; sort_order?: number | null }
 
 /**
  * Читает departments с sort_order и structure_tier; каскадный fallback, если
  * какой-то из необязательных столбцов ещё не добавлен миграцией:
- *   full (оба) → только sort_order → базовые. head_person_id есть всегда.
+ *   full (оба) → только sort_order → базовые.
  */
 async function readDepts(sb: ReturnType<typeof createServerClient>): Promise<Dept[]> {
-  const full = await sb.from('departments').select('id, name, parent_id, head_person_id, sort_order, structure_tier')
+  const full = await sb.from('departments').select('id, name, parent_id, sort_order, structure_tier')
   if (!full.error) return (full.data ?? []) as Dept[]
-  const midd = await sb.from('departments').select('id, name, parent_id, head_person_id, sort_order')
+  const midd = await sb.from('departments').select('id, name, parent_id, sort_order')
   if (!midd.error) return (midd.data ?? []) as Dept[]
-  const base = await sb.from('departments').select('id, name, parent_id, head_person_id')
+  const base = await sb.from('departments').select('id, name, parent_id')
   if (base.error) throw base.error
   return (base.data ?? []) as Dept[]
 }
@@ -76,13 +77,37 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
       const arr = groupsByNode.get(g.department_id) ?? []; arr.push({ id: g.id, name: g.name }); groupsByNode.set(g.department_id, arr)
     }
 
-    // Имена руководителей (head_person_id) узлов поддерева — для показа «кто ведёт».
-    const headIds = [...new Set([...ids].map(id => byId.get(id)?.head_person_id).filter(Boolean))] as string[]
-    const headNameById = new Map<string, string>()
-    if (headIds.length > 0) {
-      const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', headIds)
-      for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
-        headNameById.set(p.id, p.hebrew_name || p.full_name || '')
+    // Имена руководителей узлов поддерева — для показа «кто ведёт».
+    // Источник один: активная позиция staff_positions.is_head. Раньше здесь
+    // читалось departments.head_person_id — второе поле «глава», которое ничего
+    // не решало в правах, и экран мог показать одного человека, пока полномочия
+    // держал другой.
+    const headNameByDept = new Map<string, string>()
+    {
+      const today = todayISO()
+      const { data: heads } = await sb
+        .from('staff_positions')
+        .select('person_id, department_id, end_date')
+        .eq('is_head', true)
+        .in('department_id', [...ids])
+      const active = (heads ?? []).filter(h => {
+        const ed = (h as { end_date: string | null }).end_date
+        return ed === null || ed > today
+      }) as Array<{ person_id: string; department_id: string }>
+      const headIds = [...new Set(active.map(h => h.person_id))]
+      if (headIds.length > 0) {
+        const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', headIds)
+        const nameById = new Map<string, string>()
+        for (const p of (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
+          nameById.set(p.id, p.hebrew_name || p.full_name || '')
+        }
+        // Несколько глав у одной единицы — берём первого: строка показывает
+        // «кто ведёт», а не полный список.
+        for (const h of active) {
+          if (!headNameByDept.has(h.department_id)) {
+            headNameByDept.set(h.department_id, nameById.get(h.person_id) || '')
+          }
+        }
       }
     }
 
@@ -94,7 +119,7 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
         name: d.name,
         tier: d.structure_tier ?? null,
         sort_order: d.sort_order ?? 0,
-        head: d.head_person_id ? (headNameById.get(d.head_person_id) || null) : null,
+        head: headNameByDept.get(d.id) || null,
         parent_id: d.id === params.unitId ? null : d.parent_id, // корень отдаём как top
         is_root: d.id === params.unitId,
         groups: gs,
@@ -128,12 +153,12 @@ export async function POST(request: NextRequest, { params }: { params: { unitId:
     // Deploy-safe insert: пробуем с sort_order + structure_tier, при ошибке
     // (колонок ещё нет) — падаем к базовым колонкам.
     const full = await sb.from('departments')
-      .insert({ name, parent_id: parentId, head_person_id: null, sort_order: 0, structure_tier: tier } as never)
+      .insert({ name, parent_id: parentId, sort_order: 0, structure_tier: tier } as never)
       .select('id, name, parent_id').single()
     let data = full.data
     if (full.error) {
       const base = await sb.from('departments')
-        .insert({ name, parent_id: parentId, head_person_id: null } as never)
+        .insert({ name, parent_id: parentId } as never)
         .select('id, name, parent_id').single()
       if (base.error) throw base.error
       data = base.data

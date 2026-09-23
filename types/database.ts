@@ -404,7 +404,6 @@ export interface DepartmentRow {
   name_he: string | null
   name_en: string | null
   parent_id: string | null
-  head_person_id: string | null
   is_educational_institution: boolean
   // Добавлены миграцией 20260504120000.
   sort_order: number | null

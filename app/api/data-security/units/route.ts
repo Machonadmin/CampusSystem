@@ -21,7 +21,7 @@ import { buildUnitTree, seatReach, type DepartmentInput, type SeatInput } from '
  */
 
 const DEPT_COLUMNS =
-  'id, name, name_he, name_en, parent_id, head_person_id, sort_order, is_educational_institution'
+  'id, name, name_he, name_en, parent_id, sort_order, is_educational_institution'
 
 async function loadUnits(lang: ReturnType<typeof getCookieLocale>) {
   const sb = createServerClient()
@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
       name_he: nameHe,
       name_en: body.name_en?.trim() || null,
       parent_id: body.parent_id ?? null,
-      head_person_id: null,
     })
     if (error) throw error
 

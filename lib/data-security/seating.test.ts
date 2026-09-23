@@ -8,7 +8,7 @@ import type { UnitNode } from './units'
 // где его никто не трогал.
 
 const node = (id: string, seats: UnitNode['seats'], children: UnitNode[] = []): UnitNode => ({
-  id, parentId: null, name: id, isEducational: false, headPersonId: null,
+  id, parentId: null, name: id, isEducational: false,
   seatCount: seats.length, seats, seatCountDeep: seats.length, children,
 })
 

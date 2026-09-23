@@ -24,7 +24,6 @@ export interface DepartmentInput {
   name_he: string | null
   name_en: string | null
   parent_id: string | null
-  head_person_id: string | null
   sort_order: number | null
   is_educational_institution: boolean
 }
@@ -41,7 +40,6 @@ export interface UnitNode {
   parentId: string | null
   name: string
   isEducational: boolean
-  headPersonId: string | null
   /** Сотрудники, посаженные именно на эту единицу (без потомков). */
   seatCount: number
   /**
@@ -95,7 +93,6 @@ export function buildUnitTree(
       parentId: d.parent_id,
       name: localizedDeptName(d, lang),
       isEducational: d.is_educational_institution,
-      headPersonId: d.head_person_id,
       seatCount: (seatsByDept.get(d.id) ?? []).length,
       seats: seatsByDept.get(d.id) ?? [],
       seatCountDeep: 0,
