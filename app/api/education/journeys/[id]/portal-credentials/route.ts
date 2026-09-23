@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { generatePassword, hashPassword } from '@/lib/auth/password'
 import { revokeSessionsBefore } from '@/lib/auth/live-session'
+import { clearLoginLockout } from '@/lib/auth/account-lockout'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
@@ -153,6 +154,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     // Сброс пароля выводит студентку со всех устройств (старый вход по
     // прежнему паролю больше не действует).
     await revokeSessionsBefore('student_credentials', 'journey_id', params.id)
+    // Новый пароль — заодно снимаем блокировку входа после неудачных попыток.
+    await clearLoginLockout('student_credentials', 'journey_id', params.id)
 
     // Возвращаем открытый пароль ОДИН раз — сотрудник передаёт его студентке.
     return NextResponse.json({ email, password })

@@ -3,7 +3,11 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { verifyLoginPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
-import { throttleAuth } from '@/lib/auth/login-throttle'
+import { throttleAuth, tooManyAttempts } from '@/lib/auth/login-throttle'
+import {
+  selectLoginRow, lockedForSec, recordFailedLogin, recordSuccessfulLogin,
+  unknownLockedForSec, recordUnknownFailure,
+} from '@/lib/auth/account-lockout'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — читаем/пишем её через нетипизированный клиент.
@@ -34,20 +38,28 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const normalizedEmail = email.toLowerCase().trim()
 
-    // 1. Учётные данные студентки по email.
-    const { data: cred, error: credError } = await creds(supabase)
-      .select('journey_id, person_id, login_email, password_hash, is_active')
-      .eq('login_email', normalizedEmail)
-      .maybeSingle()
+    // 1. Учётные данные студентки по email (с полями блокировки, если миграция применена).
+    const { row: found } = await selectLoginRow<{
+      journey_id: string; person_id: string; login_email: string; password_hash: string | null; is_active: boolean
+    }>('student_credentials', 'journey_id, person_id, login_email, password_hash, is_active', normalizedEmail)
 
     // Пароль сверяем первым и одинаково по времени для любого адреса
     // (verifyLoginPassword): иначе несуществующий адрес отвечал бы быстрее, и по
     // скорости ответа можно было бы узнать, какие адреса в системе есть.
-    const found = credError ? null : cred
     const passwordValid = await verifyLoginPassword(password, found?.password_hash)
-    if (!found || !passwordValid || !found.is_active) {
+
+    // После 10 неудач подряд вход закрыт на 15 минут (lib/auth/account-lockout.ts).
+    const lockedSec = found ? lockedForSec(found) : unknownLockedForSec(`student:${normalizedEmail}`)
+    if (lockedSec > 0) return tooManyAttempts(lockedSec)
+
+    if (!found || !passwordValid) {
+      if (found) await recordFailedLogin('student_credentials', normalizedEmail, found)
+      else recordUnknownFailure(`student:${normalizedEmail}`)
       return apiError('invalid_credentials', 401)
     }
+    if (!found.is_active) return apiError('invalid_credentials', 401)
+
+    await recordSuccessfulLogin('student_credentials', normalizedEmail, found)
 
     // 2. Journey всё ещё существует и является студенткой.
     const { data: journey } = await supabase
