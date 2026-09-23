@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { isMissingTable } from '@/lib/supabase/errors'
 import { verifyFeedToken } from '@/lib/calendar/feed-token'
 import { buildICS, toFloating, type IcsEvent } from '@/lib/calendar/ics'
 import { todayISO } from '@/lib/dates'
@@ -32,14 +33,37 @@ type ApptRow = {
   starts_at: string; ends_at: string; status: string | null
 }
 
+/** Есть ли у человека активный вход. null — база не ответила. */
+async function hasActiveLogin(sb: ReturnType<typeof createServerClient>, personId: string): Promise<boolean | null> {
+  const { data: staff, error } = await sb
+    .from('person_accounts').select('is_active').eq('person_id', personId).eq('is_active', true).limit(1)
+  if (error) return null
+  if (staff && staff.length > 0) return true
+  // student_credentials нет в сгенерированных типах БД.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: cred, error: cErr } = await (sb as any)
+    .from('student_credentials').select('is_active').eq('person_id', personId).eq('is_active', true).limit(1)
+  if (cErr) return isMissingTable(cErr) ? false : null
+  return Array.isArray(cred) && cred.length > 0
+}
+
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')?.trim()
   const personId = token ? await verifyFeedToken(token) : null
   if (!personId) return new NextResponse('Invalid or expired feed token', { status: 404 })
 
+  const sb = createServerClient()
+
+  // Токен живёт год и сам не знает, что аккаунт отключили: без этой проверки
+  // уволенный сотрудник ещё год видел бы свой календарь (названия и заметки
+  // событий) в Google. Нет активного входа (сотрудника или портала) — фид
+  // больше не отдаём.
+  const active = await hasActiveLogin(sb, personId)
+  if (active === null) return new NextResponse('Temporarily unavailable', { status: 503 })
+  if (!active) return new NextResponse('Invalid or expired feed token', { status: 404 })
+
   const from = addDaysUTC(todayISO(), -30)
   const to = addDaysUTC(todayISO(), 180)
-  const sb = createServerClient()
   const events: IcsEvent[] = []
 
   // Личные события календаря (owner_id = пользователь). Деплой-safe к 42P01.
