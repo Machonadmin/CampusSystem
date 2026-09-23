@@ -14,7 +14,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Устойчиво к отсутствию таблицы lesson_notes (deploy до миграции).
  */
 
-export async function GET(_req: NextRequest, { params }: { params: { lessonId: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -53,7 +54,8 @@ export async function GET(_req: NextRequest, { params }: { params: { lessonId: s
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { lessonId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -61,8 +63,8 @@ export async function POST(request: NextRequest, { params }: { params: { lessonI
 
     const access = await getLessonAccess(sb, params.lessonId)
     if (!access) return apiError('substage_not_found', 404)
-    const canWrite = await hasEducationPrivilege(session, 'mark_attendance', access.target)
-      || await hasEducationPrivilege(session, 'set_lesson_topics', access.target)
+    const canWrite = (await hasEducationPrivilege(session, 'mark_attendance', access.target))
+      || (await hasEducationPrivilege(session, 'set_lesson_topics', access.target))
     if (!canWrite) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { body?: string }

@@ -21,10 +21,8 @@ const CLASS_GROUP_SELECT = `
  * (ФИО студенток) — как в enrollments/assessments/lessons той же группы, —
  * поэтому одной авторизации мало.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -121,10 +119,8 @@ export async function GET(
  * При смене department_id — проверка в обоих.
  * При смене subject_id — проверка принадлежности к (новому) department.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -241,10 +237,8 @@ export async function PATCH(
  * Отказывает (409) если есть enrollments — нужно сначала снять студентов.
  * class_teachers удаляются каскадно (ON DELETE CASCADE).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

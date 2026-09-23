@@ -48,15 +48,16 @@ async function gateStaff(journeyId: string): Promise<{ err: NextResponse } | {
   if (j.education_status !== 'student') return { err: apiError('forbidden', 403) }
 
   const allowed = session.roles.includes('superadmin')
-    || await hasEducationPrivilege(session, 'manage_students', {
+    || (await hasEducationPrivilege(session, 'manage_students', {
       department_id: j.primary_department_id ?? undefined,
-    })
+    }))
   if (!allowed) return { err: apiError('forbidden', 403) }
 
   return { sb, journey: j }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const g = await gateStaff(params.id)
     if ('err' in g) return g.err
@@ -83,7 +84,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const g = await gateStaff(params.id)
     if ('err' in g) return g.err

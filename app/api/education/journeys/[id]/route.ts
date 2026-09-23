@@ -50,10 +50,8 @@ const JOURNEY_SELECT = `
  * Право: view_students с учётом scope.
  * scope='own' пока не реализован (см. /api/education/journeys/route.ts).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -128,10 +126,8 @@ export async function GET(
  * Право: manage_students в соответствующем department.
  * НЕЛЬЗЯ менять person_id и education_status (для смены статуса будет /transition).
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       desired_department_id?: string | null
@@ -269,10 +265,8 @@ export async function PATCH(
  * Мягкое: closed_at = сегодня. Если уже closed — 409.
  * Право: manage_students в соответствующем department.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

@@ -32,10 +32,8 @@ function mapPgError(error: { code?: string; message?: string }): { status: numbe
   return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

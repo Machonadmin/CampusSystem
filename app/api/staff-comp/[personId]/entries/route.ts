@@ -15,7 +15,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
 const TYPES = ['teaching', 'meeting', 'chavruta', 'chavruta_plus', 'shabbat_host', 'shabbat_family', 'other']
 
 
-export async function GET(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest, { params }: { params: { personId
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

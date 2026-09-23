@@ -19,10 +19,8 @@ import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
  *   - claimed_at → NOW()
  *   - Запись в task_status_history
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const personId = session.person_id

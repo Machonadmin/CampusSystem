@@ -39,13 +39,14 @@ async function requireManage(sb: ReturnType<typeof createServerClient>, journeyI
   return session
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     // 1:N select. Deploy-safe: 42703 (нет role/year_level до миграции) → base select.
@@ -79,7 +80,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     const session = await requireManage(sb, params.id)
@@ -165,7 +167,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     await requireManage(sb, params.id)

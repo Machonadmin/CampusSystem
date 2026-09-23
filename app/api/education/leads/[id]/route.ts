@@ -21,10 +21,8 @@ function pickManagePrivilege(status: string | null): EducationPrivilege {
  * Soft-delete лида: устанавливает is_deleted=true, deleted_at, deleted_by.
  * Требует: manage_leads
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -89,10 +87,8 @@ interface CommunityPayload {
  * id = journey_id (education_status must be 'lead')
  * Единый endpoint: обновляет person + journey + interests + relatives + communities.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

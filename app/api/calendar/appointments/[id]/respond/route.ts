@@ -14,7 +14,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Деплой-безопасно: нет таблицы → 503.
  */
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireCalendarUser()
     const body = await request.json().catch(() => ({})) as { action?: string }

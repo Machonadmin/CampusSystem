@@ -26,10 +26,8 @@ const DETAIL_SELECT = `
  * Полная карточка: поля + преподаватели (с monthly_rate) + зачисленные студентки.
  * Право: view_students в подразделении группы.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -154,10 +152,8 @@ interface TeacherInput { person_id: string; is_primary?: boolean; monthly_rate?:
  * Обновить поля + синхронизировать преподавателей и студенток.
  * Право: manage_class_groups в подразделении группы.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string

@@ -10,10 +10,8 @@ import type { TaskRow } from '@/types/database'
 /**
  * GET /api/tasks/[id]/watchers — список наблюдателей.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -54,10 +52,8 @@ export async function GET(
  * POST /api/tasks/[id]/watchers — добавить наблюдателя.
  * Body: { person_id: string } или { person_ids: string[] } (батч)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

@@ -9,10 +9,8 @@ import type { SpecialtyUpdate } from '@/types/database'
  * Право: manage_specialties в подразделении специальности.
  * При переносе (department_id меняется) — проверка прав в обоих подразделениях.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -86,10 +84,8 @@ export async function PATCH(
  * Право: manage_specialties в подразделении специальности.
  * FK из study_groups.specialty_id и students.specialty_id → 409.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

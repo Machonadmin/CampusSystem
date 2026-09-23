@@ -46,7 +46,11 @@ async function guard(unitId: string, nodeId: string) {
   return { sb, all }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { unitId: string; nodeId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ unitId: string; nodeId: string }> }
+) {
+  const params = await props.params
   try {
     const g = await guard(params.unitId, params.nodeId)
     if (g.err) return g.err
@@ -71,7 +75,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { unitId
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { unitId: string; nodeId: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  props: { params: Promise<{ unitId: string; nodeId: string }> }
+) {
+  const params = await props.params
   try {
     const g = await guard(params.unitId, params.nodeId)
     if (g.err) return g.err

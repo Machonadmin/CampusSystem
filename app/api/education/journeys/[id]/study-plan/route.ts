@@ -18,13 +18,14 @@ import { isMissingTable } from '@/lib/supabase/errors'
 const ENTRY_GROUPS = ['after_9', 'above_11'] as const
 const DURATIONS = [2, 3, 4] as const
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     const { data, error } = await sb
@@ -43,13 +44,14 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { entry_group?: string | null; expected_duration_years?: number | null }

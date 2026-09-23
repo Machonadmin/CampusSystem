@@ -9,10 +9,11 @@ import LeadEditClient from './LeadEditClient'
 const messagesByLocale = { ru: ruMessages, he: heMessages, en: enMessages }
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function LeadEditPage({ params }: Props) {
+export default async function LeadEditPage(props: Props) {
+  const params = await props.params
   const sb = createServerClient()
 
   const { data: journey } = await sb

@@ -11,10 +11,8 @@ import type { TaskRow, TaskCommentType } from '@/types/database'
  * GET /api/tasks/[id]/comments — список комментариев задачи.
  * Доступ — у всех кто может видеть задачу (canView).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -56,10 +54,8 @@ export async function GET(
  * POST /api/tasks/[id]/comments — добавить комментарий.
  * Доступ — у всех кто может видеть задачу (canView).
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

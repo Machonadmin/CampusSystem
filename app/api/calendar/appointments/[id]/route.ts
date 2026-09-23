@@ -18,10 +18,8 @@ import type { AppointmentUpdate } from '@/types/database'
 const COLS =
   'id, provider_id, journey_id, title, reason, starts_at, ends_at, status, notes, created_by, created_at, updated_at'
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireCalendarUser()
 
@@ -164,10 +162,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireCalendarUser()
     const sb = createServerClient()

@@ -77,10 +77,8 @@ function inRange(d: string | null, from: string, to: string): boolean {
   return true
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { unitId: string } },
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ unitId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

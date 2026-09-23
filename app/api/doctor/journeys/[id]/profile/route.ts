@@ -16,10 +16,8 @@ import type { MedicalProfileInsert } from '@/types/database'
 const PROFILE_COLS =
   'id, journey_id, blood_type, chronic_conditions, allergies, medications, emergency_contact, notes, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDoctorPrivilege('view')
 
@@ -43,10 +41,8 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDoctorPrivilege('manage')
 

@@ -14,7 +14,11 @@ import { isMissingTable } from '@/lib/supabase/errors'
  *   body: { extra_minutes: number }
  * Право: superadmin или глава единицы; цель — активный член единицы.
  */
-export async function PUT(request: NextRequest, { params }: { params: { unitId: string; personId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  props: { params: Promise<{ unitId: string; personId: string }> }
+) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

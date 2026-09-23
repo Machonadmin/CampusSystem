@@ -27,10 +27,8 @@ type EnrollRow = {
  * студент отдаётся со своей оценкой или как ещё не оценённый (null).
  * Право: view_students в контексте группы задания.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -108,10 +106,8 @@ export async function GET(
  * graded_at = сейчас. Каждый score в диапазоне [0, max_score]; каждый journey
  * должен быть записан в группу задания.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       entries?: { journey_id?: string; score?: number; comment?: string | null }[]

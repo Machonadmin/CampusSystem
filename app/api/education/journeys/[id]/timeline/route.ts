@@ -27,7 +27,8 @@ interface TimelineItem {
   content?: string | null
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -46,8 +47,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     const target = dept ? { department_id: dept } : undefined
 
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_applicants', target)
-      || await hasEducationPrivilege(session, 'view_students', target)
+      || (await hasEducationPrivilege(session, 'view_applicants', target))
+      || (await hasEducationPrivilege(session, 'view_students', target))
     if (!allowed) return apiError('forbidden', 403)
 
     const { data: pis } = await sb

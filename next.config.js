@@ -3,10 +3,6 @@ const { withSentryConfig } = require('@sentry/nextjs')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Нужен для instrumentation.ts на Next 14 (в 15 включён по умолчанию).
-  experimental: {
-    instrumentationHook: true,
-  },
   async headers() {
     return [
       {

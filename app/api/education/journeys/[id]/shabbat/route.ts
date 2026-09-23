@@ -18,7 +18,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * принимавший). Деплой-безопасно (42P01).
  */
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -31,9 +32,9 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     } else {
       const target = await journeyDeptTarget(sb, params.id)
       const isSuper = session.roles.includes('superadmin')
-      const allowed = isSuper || await hasEducationPrivilege(session, 'view_students', target)
+      const allowed = isSuper || (await hasEducationPrivilege(session, 'view_students', target))
       if (!allowed) return apiError('forbidden', 403)
-      canSeeAnyPrivate = isSuper || await hasEducationPrivilege(session, 'manage_students', target)
+      canSeeAnyPrivate = isSuper || (await hasEducationPrivilege(session, 'manage_students', target))
       viewerPersonId = session.person_id
     }
 

@@ -25,7 +25,8 @@ async function semesterDept(sb: ReturnType<typeof createServerClient>, semesterI
   return (data as { department_id: string | null } | null)?.department_id ?? null
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -33,7 +34,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const sb = createServerClient()
     const dept = await semesterDept(sb, params.id)
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_students', dept ? { department_id: dept } : undefined)
+      || (await hasEducationPrivilege(session, 'view_students', dept ? { department_id: dept } : undefined))
     if (!allowed) return apiError('forbidden', 403)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +77,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string

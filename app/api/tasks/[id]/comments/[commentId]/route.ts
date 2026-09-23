@@ -10,8 +10,9 @@ import { createServerClient } from '@/lib/supabase/server'
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string; commentId: string } }
+  props: { params: Promise<{ id: string; commentId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

@@ -19,10 +19,8 @@ import type { ContactUpdate } from '@/types/database'
 const CONTACT_COLS =
   'id, name, contact_type, category, email, phone, address, website, contact_person, notes, is_active, created_by, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireContactsPrivilege('view')
 
@@ -43,10 +41,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireContactsPrivilege('manage')
 
@@ -149,10 +145,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireContactsPrivilege('manage')
 

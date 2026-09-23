@@ -35,7 +35,8 @@ async function canManageMembers(
   return canSeatInUnit(session, unitId)
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { unitId: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ unitId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -135,7 +136,8 @@ export async function GET(_req: NextRequest, { params }: { params: { unitId: str
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { unitId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ unitId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

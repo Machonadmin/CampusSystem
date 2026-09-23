@@ -19,10 +19,8 @@ import type { FinanceChargeInsert } from '@/types/database'
  * 404 — если journey не найден.
  */
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

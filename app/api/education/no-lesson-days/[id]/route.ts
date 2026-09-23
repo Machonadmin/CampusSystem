@@ -32,7 +32,8 @@ async function gateByRowScope(sb: ReturnType<typeof createServerClient>, id: str
   return true
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, patchSchema)
     const sb = createServerClient()
@@ -60,7 +61,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     if (!(await gateByRowScope(sb, params.id))) return apiError('record_not_found', 404)

@@ -10,10 +10,8 @@ import type { SubjectUpdate } from '@/types/database'
  * Право: manage_subjects в подразделении предмета.
  * При переносе (department_id меняется) — проверка прав в обоих подразделениях.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -102,10 +100,8 @@ export async function PATCH(
  * Право: manage_subjects в подразделении предмета.
  * FK ON DELETE RESTRICT из class_groups → 409.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

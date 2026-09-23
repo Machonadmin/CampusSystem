@@ -8,7 +8,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * DELETE /api/calendar/events/[id] — удалить своё событие календаря
  * (owner_id = session). Идемпотентно.
  */
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireCalendarUser()
     const sb = createServerClient()

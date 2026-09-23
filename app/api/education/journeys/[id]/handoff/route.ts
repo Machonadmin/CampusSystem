@@ -22,13 +22,14 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 const CONVERT_FINAL = 'convert_to_applicant'
 
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_leads', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'view_leads', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     // Активный процесс «Набор» для journey.

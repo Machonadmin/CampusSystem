@@ -18,7 +18,7 @@ const ORIG_COOKIE = AUTH_CONFIG.impOrigCookieName
  */
 export async function POST() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const orig = cookieStore.get(ORIG_COOKIE)?.value
     const currentToken = cookieStore.get(AUTH_CONFIG.cookieName)?.value
     const current = currentToken ? await verifyToken(currentToken) : null

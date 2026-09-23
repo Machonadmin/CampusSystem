@@ -19,10 +19,8 @@ import type { FinancePaymentUpdate } from '@/types/database'
  * 404 — платёж не найден.
  */
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFinancePrivilege('create_invoice')
 

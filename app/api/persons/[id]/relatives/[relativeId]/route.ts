@@ -22,8 +22,9 @@ function mapDbError(error: { code?: string; message?: string }) {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; relativeId: string } }
+  props: { params: Promise<{ id: string; relativeId: string }> }
 ) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const sb = createServerClient()
@@ -61,8 +62,9 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; relativeId: string } }
+  props: { params: Promise<{ id: string; relativeId: string }> }
 ) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const body = await request.json() as {

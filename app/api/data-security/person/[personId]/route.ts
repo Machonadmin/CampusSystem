@@ -19,7 +19,8 @@ import type { PrivilegeModule } from '@/types/database'
  * держателей разом, а этот экран — про одного человека.
  */
 
-export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     await requireDataSecurityPrivilege('access')
     const access = await loadPersonAccess(params.personId, getCookieLocale())
@@ -39,7 +40,8 @@ interface Override {
   reason?: string | null
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireDataSecurityPrivilege('grant')
     const sb = createServerClient()

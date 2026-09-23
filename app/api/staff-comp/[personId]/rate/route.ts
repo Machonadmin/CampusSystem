@@ -18,7 +18,8 @@ function comp(sb: ReturnType<typeof createServerClient>) {
   return sb.from('staff_compensation')
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -41,7 +42,8 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

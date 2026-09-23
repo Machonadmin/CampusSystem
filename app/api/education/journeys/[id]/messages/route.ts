@@ -27,7 +27,8 @@ function msgs(sb: ReturnType<typeof createServerClient>) {
   return sb.from('student_messages')
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -38,7 +39,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       if (session.student_journey_id !== params.id) return apiError('forbidden', 403)
     } else {
       const allowed = session.roles.includes('superadmin')
-        || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+        || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
       if (!allowed) return apiError('forbidden', 403)
     }
 
@@ -79,7 +80,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (session.principal === 'student') return apiError('forbidden', 403)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'manage_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { subject?: string; body?: string }
@@ -115,7 +117,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

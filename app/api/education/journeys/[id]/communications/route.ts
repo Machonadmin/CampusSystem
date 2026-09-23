@@ -15,7 +15,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
  * stage_instance_id.
  */
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 const MANUAL_TYPES = ['note', 'call', 'meeting', 'message', 'email']
 
@@ -65,7 +65,8 @@ async function collectStages(sb: ReturnType<typeof createServerClient>, journeyI
 }
 
 /** GET — единая лента коммуникаций journey (новые сверху). */
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(_req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -112,7 +113,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 /** POST — ручная запись коммуникации. Body: { event_type, content }. */
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

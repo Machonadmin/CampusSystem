@@ -45,10 +45,8 @@ type EnrolledGroup = {
  *   3. Итог: 403 только если пользователь не проходит верхний гейт И не видит
  *      ни одной группы студента. Иначе — 200 с видимыми группами (возможно 0).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

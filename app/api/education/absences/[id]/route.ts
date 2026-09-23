@@ -14,7 +14,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Доступ: manage_students / superadmin ЛИБО сотрудник подразделения, которому
  * случай сейчас назначен (принимающая сторона может обработать/передать дальше).
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -26,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (!row) return apiError('substage_not_found', 404)
       const caseRow = row as { id: string; journey_id: string; assigned_department_id: string | null; note: string | null; status: string }
 
-      const isManager = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
+      const isManager = session.roles.includes('superadmin') || (await canDoEducationInAny(session, 'manage_students'))
       const myDepts = isManager ? [] : await getUserDepartmentIds(session.person_id)
       const canAct = isManager || (!!caseRow.assigned_department_id && myDepts.includes(caseRow.assigned_department_id))
       if (!canAct) return apiError('forbidden', 403)

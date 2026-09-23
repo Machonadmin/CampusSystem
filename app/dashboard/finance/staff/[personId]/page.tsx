@@ -5,7 +5,7 @@ import { canViewStaffComp, canManageStaffComp, canApprovePayslip } from '@/lib/f
 import PayslipClient from './PayslipClient'
 
 interface Props {
-  params: { personId: string }
+  params: Promise<{ personId: string }>
 }
 
 /**
@@ -13,7 +13,8 @@ interface Props {
  * действий гейтятся ФЛАГАМИ (canManage / canApprove), вычисленными на сервере.
  * Данные (тарифы, записи, свод) тянет клиент, чтобы обновляться после мутаций.
  */
-export default async function StaffPayslipPage({ params }: Props) {
+export default async function StaffPayslipPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
   if (!(await canViewStaffComp(session))) redirect('/dashboard')

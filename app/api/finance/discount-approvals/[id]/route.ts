@@ -18,7 +18,8 @@ const schema = z.object({
   note: z.string().trim().max(2000).nullish(),
 })
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, schema)
     const session = await getSession()

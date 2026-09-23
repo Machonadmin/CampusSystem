@@ -12,10 +12,8 @@ async function requireSuperadmin() {
 }
 
 // PATCH /api/workflow/stage-templates/[id] — все поля кроме code и process_template_id
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -68,10 +66,8 @@ export async function PATCH(
 }
 
 // DELETE /api/workflow/stage-templates/[id] — физическое, с проверкой на существующие экземпляры
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()

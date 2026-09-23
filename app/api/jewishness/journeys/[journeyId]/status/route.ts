@@ -19,7 +19,8 @@ import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefi
  *
  * Право: jewishness.access (superadmin — в обход).
  */
-export async function POST(request: NextRequest, { params }: { params: { journeyId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ journeyId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireJewishnessAccess()
 

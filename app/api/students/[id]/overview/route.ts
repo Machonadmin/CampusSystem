@@ -213,7 +213,8 @@ async function loadDocuments(sb: Sb, journeyId: string, today: string): Promise<
  * есть привилегия 'view' соответствующего модуля; иначе секция = null и её нет в
  * visible_sections. Секция также = null, если у студента нет данных в модуле.
  */
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

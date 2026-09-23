@@ -39,10 +39,8 @@ async function journeyOnActiveJewishness(sb: ReturnType<typeof createServerClien
   return !!data && data.length > 0
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { journeyId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ journeyId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireJewishnessAccess()
 

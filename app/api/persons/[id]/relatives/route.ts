@@ -29,17 +29,15 @@ function mapDbError(error: { code?: string; message?: string }) {
  * Ответ: [{ id, relation_type, notes, created_at,
  *           relative: { id, full_name, email, phone } }]
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Как и GET /api/persons/[id]: либо persons.view, либо образовательный
     // доступ к этому человеку (менеджер юнита видит родственников своего человека).
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-    const allowed = await hasPersonsPrivilege(session, 'view')
-      || await canReadPersonInEducationScope(session, params.id)
+    const allowed = (await hasPersonsPrivilege(session, 'view'))
+      || (await canReadPersonInEducationScope(session, params.id))
     if (!allowed) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
     const sb = createServerClient()
 
@@ -103,10 +101,8 @@ const relativeSchema = z.object({
  * Body: { relative_id, relation_type, notes? }
  * Право: persons.edit
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const body = await parseBody(request, relativeSchema)

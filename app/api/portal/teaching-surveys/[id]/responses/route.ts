@@ -11,7 +11,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Ученица оценивает преподавание одного СВОЕГО преподавателя (с именем).
  * Жёсткая проверка: teacher_person_id обязан быть преподавателем её групп.
  */
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session || session.principal !== 'student' || !session.student_journey_id) return apiError('forbidden', 403)

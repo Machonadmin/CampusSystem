@@ -12,7 +12,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * БЕЗ влияния на зарплату. Право: manage staff-comp. Деплой-безопасно (42P01).
  */
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // Логин-имейл цели (если есть аккаунт) — только для отображения.
     const { data: acc } = await sb.from('person_accounts').select('login_email').eq('person_id', body.person_id).maybeSingle()
 
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const origToken = cookieStore.get(AUTH_CONFIG.cookieName)?.value
     if (!origToken) return apiError('unauthorized', 401)
 

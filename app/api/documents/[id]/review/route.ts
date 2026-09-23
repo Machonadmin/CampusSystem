@@ -17,10 +17,8 @@ import { isMissingColumn } from '@/lib/supabase/errors'
  * feature_not_migrated, а не 500. Право: как у DELETE — education-доступ на
  * journey ЛИБО привилегия «Документы» (manage).
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

@@ -27,10 +27,8 @@ const ALLOWED_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 
 // ─── GET /api/tasks/[id] ──────────────────────────────────────────────────────
 // Возвращает задачу + комментарии + watchers + история + объект access.
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -90,10 +88,8 @@ export async function GET(
 // ─── PATCH /api/tasks/[id] ────────────────────────────────────────────────────
 // Изменение полей (canEdit) и/или смена статуса (canChangeStatus).
 // При смене статуса пишется запись в task_status_history.
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -295,10 +291,8 @@ export async function PATCH(
 
 // ─── DELETE /api/tasks/[id] ───────────────────────────────────────────────────
 // Только автор или суперадмин. Каскадно удаляет связанные записи (ON DELETE CASCADE).
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

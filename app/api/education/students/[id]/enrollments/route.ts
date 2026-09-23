@@ -21,10 +21,8 @@ function pickViewPrivilege(status: string | null): EducationPrivilege {
  * journeys/[id] и graph. Иначе любой авторизованный читал бы состав групп
  * (ФИО студенток) без education-привилегий.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
