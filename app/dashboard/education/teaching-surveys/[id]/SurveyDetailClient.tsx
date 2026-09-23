@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
@@ -112,12 +113,15 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
         module="education"
         title={detail?.survey.title ?? '…'}
         subtitle={detail?.survey.is_open ? t('is_open') : t('is_closed')}
-        actions={detail && (
-          <SubmitButton onClick={toggleOpen} loading={busy}
-            style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', cursor: 'pointer', background: 'var(--surface-2)', color: 'var(--text)' }}>
-            {detail.survey.is_open ? t('close') : t('open')}
-          </SubmitButton>
-        )}
+        actions={<>
+          <BackButton fallback="/dashboard/education/teaching-surveys" />
+          {detail && (
+            <SubmitButton onClick={toggleOpen} loading={busy}
+              style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', cursor: 'pointer', background: 'var(--surface-2)', color: 'var(--text)' }}>
+              {detail.survey.is_open ? t('close') : t('open')}
+            </SubmitButton>
+          )}
+        </>}
       />
 
       {err && (

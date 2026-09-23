@@ -2,6 +2,7 @@
 
 // Диалоги/легенда календаря (только чтение) + мелкие обёртки. Вынесено из
 // CalendarClient.tsx для разгрузки монолита; поведение не менялось.
+import Link from 'next/link'
 import { useState } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import { Modal } from '@/components/ui/Modal'
@@ -177,12 +178,12 @@ export function TaskDetail({
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16, borderTop: '1px solid var(--surface-2)', paddingTop: 14 }}>
-          <a
+          <Link
             href={`/dashboard/tasks/${task.id}`}
             style={{ ...btnPrimary(TASK_ACCENT), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
           >
             {t('task_open')}
-          </a>
+          </Link>
           <button onClick={onClose} style={btnGhost}>{tCommon('back')}</button>
         </div>
       </div>
