@@ -514,6 +514,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_admission_contracts_active_journey
 CREATE INDEX IF NOT EXISTS idx_admission_contracts_journey
   ON admission_contracts (journey_id);
 
+-- Политика проекта (20260908120000): КАЖДАЯ таблица public включает RLS без
+-- политик — deny-all для anon/authenticated, а приложение ходит service_role'ом
+-- и RLS обходит. Исходная миграция создавала admission_contracts ДО введения
+-- правила, поэтому здесь его нужно применить явно: иначе склейка воссоздала бы
+-- таблицу, открытую публичным ключом в обход приложения.
+ALTER TABLE admission_contracts ENABLE ROW LEVEL SECURITY;
+
 COMMENT ON TABLE admission_contracts IS
   'Договор с абитуриенткой (חוזה): скидка/поддержка/льготы, создаётся при приёме, связан с финансами через journey_id';
 
