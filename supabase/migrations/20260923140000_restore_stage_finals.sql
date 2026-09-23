@@ -84,7 +84,6 @@ INSERT INTO stage_finals (id, stage_template_id, code, name_ru, is_positive, clo
 ('ad000000-0000-4000-8000-000000000202', 'ad000000-0000-4000-8000-000000000020',
  'rejected',             'Отклонён из списка',false, true,  'rejected',             20)
 ON CONFLICT (stage_template_id, code) DO NOTHING;
-ON CONFLICT (stage_template_id, code) DO NOTHING;
 
 -- ─── 3. acceptance ────────────────────────────────────────────────────
 INSERT INTO stage_finals (id, stage_template_id, code, name_ru, is_positive, closes_process, process_finish_reason, sort_order) VALUES
@@ -106,7 +105,6 @@ INSERT INTO stage_finals (id, stage_template_id, code, name_ru, is_positive, clo
 ('ac000000-0000-4000-8000-000000000501', 'ac000000-0000-4000-8000-000000000050', 'admitted',             'Принята',         true,  true, 'admitted',             10),
 ('ac000000-0000-4000-8000-000000000502', 'ac000000-0000-4000-8000-000000000050', 'admitted_conditional', 'Условно принята', true,  true, 'admitted_conditional', 20),
 ('ac000000-0000-4000-8000-000000000503', 'ac000000-0000-4000-8000-000000000050', 'rejected',             'Отклонена',       false, true, 'rejected',             30)
-ON CONFLICT (stage_template_id, code) DO NOTHING;
 ON CONFLICT (stage_template_id, code) DO NOTHING;
 
 -- ─── 4. acceptance_v2 ─────────────────────────────────────────────────
@@ -138,7 +136,6 @@ INSERT INTO stage_finals (id, stage_template_id, code, name_ru, is_positive, clo
 ('ac200000-0000-4000-8000-000000000504', 'ac200000-0000-4000-8000-000000000050', 'external_studies',     'Внешнее обучение',true,  true, 'external_studies',     30),
 ('ac200000-0000-4000-8000-000000000505', 'ac200000-0000-4000-8000-000000000050', 'postponed',            'Отложено',        false, true, 'postponed',            40),
 ('ac200000-0000-4000-8000-000000000503', 'ac200000-0000-4000-8000-000000000050', 'rejected',             'Отклонена',       false, true, 'rejected',             50)
-ON CONFLICT (stage_template_id, code) DO NOTHING;
 ON CONFLICT (stage_template_id, code) DO NOTHING;
 
 -- ─── 5. Проверка: у каждого этапа должен быть хотя бы один исход ───────
