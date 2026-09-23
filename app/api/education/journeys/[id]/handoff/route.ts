@@ -80,10 +80,11 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     // Обязательные поля лида для передачи: имя + телефон.
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('person:persons!applicant_profiles_person_id_fkey(first_name, full_name, phones)')
+      .select('education_status, person:persons!applicant_profiles_person_id_fkey(first_name, full_name, phones)')
       .eq('id', params.id)
       .maybeSingle()
     const person = (journey?.person as unknown as { first_name?: string | null; full_name?: string | null; phones?: unknown } | null) ?? null
+    const eduStatus = (journey as { education_status?: string | null } | null)?.education_status ?? null
 
     const missing: string[] = []
     if (!(person?.first_name?.trim() || person?.full_name?.trim())) missing.push('name')
@@ -95,6 +96,13 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       missing,
       has_active_process: instanceIds.length > 0,
       last_closed: lastClosed,
+      // Статус journey отдаём ЯВНО: карточка лида — Server Component, и её
+      // education_status приезжает из Router Cache, который после конверсии
+      // (уход через router.push, без refresh — он дал бы 403 рекрутёру без
+      // view_applicants) остаётся прежним. Из-за этого на уже переведённой
+      // девушке снова показывалась кнопка «Передать в приёмную комиссию».
+      // Этот ответ всегда свежий, поэтому решение принимает он, а не пропс.
+      education_status: eduStatus,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

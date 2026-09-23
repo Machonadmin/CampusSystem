@@ -22,6 +22,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   const [missing, setMissing] = useState<string[]>([])
   const [hasProcess, setHasProcess] = useState(true)
   const [lastClosed, setLastClosed] = useState<{ finished_at: string | null; finish_reason: string | null } | null>(null)
+  const [eduStatus, setEduStatus] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [busy, setBusy] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -38,6 +39,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
       // процесс есть, и ведём себя как раньше (не предлагаем запуск вслепую).
       setHasProcess(b.has_active_process ?? true)
       setLastClosed(b.last_closed ?? null)
+      setEduStatus(b.education_status ?? null)
     } catch { /* тихо */ }
     finally { setLoaded(true) }
   }, [journeyId])
@@ -92,6 +94,13 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   }
 
   if (!loaded) return null
+
+  // Девушка уже не лид (её перевели) — блока быть не должно вообще: ни кнопки
+  // передачи, ни предложения «запустить набор заново». Родительская карточка
+  // тоже это проверяет, но её status приходит из Server Component и после
+  // конверсии остаётся устаревшим в Router Cache; этот ответ всегда свежий.
+  // education_status === null — старая версия API: ведём себя как раньше.
+  if (eduStatus !== null && eduStatus !== 'lead') return null
 
   // Этап конверсии ещё не активен. Две разные причины, и до этой правки обе
   // показывали одну и ту же подсказку — в том числе случай «процесса нет
