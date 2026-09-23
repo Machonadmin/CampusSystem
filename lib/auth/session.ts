@@ -18,10 +18,27 @@ export async function createSession(payload: Omit<SessionPayload, 'iat' | 'exp'>
     maxAge: AUTH_CONFIG.cookieMaxAge,
     path: '/',
   })
+  // Новый вход начинает с чистого листа: отложенный токен superadmin'а от
+  // прошлой «צפייה כמשתמש» в этом браузере не должен пережить смену человека.
+  clearImpersonationOrigin()
 }
 
 export function clearSession(): void {
   cookies().set(AUTH_CONFIG.cookieName, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0,
+    path: '/',
+  })
+  // Выход из режима просмотра кнопкой «выйти» раньше оставлял в браузере
+  // campus_imp_orig с токеном superadmin'а: следующий человек за этим
+  // компьютером мог вызвать stop-impersonate и стать superadmin'ом.
+  clearImpersonationOrigin()
+}
+
+function clearImpersonationOrigin(): void {
+  cookies().set(AUTH_CONFIG.impOrigCookieName, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

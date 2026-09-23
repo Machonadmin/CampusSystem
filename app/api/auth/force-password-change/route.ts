@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (session.principal === 'student') return apiError('forbidden', 403)
+    // Режим «צפייה כמשתמש» — только чтение; /api/auth/* middleware не
+    // проверяет, поэтому здесь. Иначе смотрящий мог бы задать пароль человеку,
+    // у которого ещё стоит флаг обязательной смены.
+    if (session.imp_by) return apiError('forbidden', 403)
 
     const { new_password } = await request.json().catch(() => ({})) as { new_password?: string }
     const issue = passwordStrengthIssue(new_password ?? '')
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
     const { data: account } = await sb.from('person_accounts')
-      .select('id, must_change_password').eq('login_email', session.login_email).maybeSingle()
+      .select('id, must_change_password').eq('person_id', session.person_id).eq('login_email', session.login_email).maybeSingle()
     if (!account) return apiError('account_not_found', 404)
     if (!(account as { must_change_password?: boolean }).must_change_password) return apiError('forbidden', 403)
 

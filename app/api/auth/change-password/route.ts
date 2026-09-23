@@ -12,6 +12,9 @@ export async function PATCH(request: NextRequest) {
 
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // /api/auth/* пропускается middleware мимо read-only проверки режима
+    // «צפייה כמשתמש», поэтому запрещаем смену пароля в этом режиме здесь.
+    if (session.imp_by) return apiError('forbidden', 403)
 
     const { current_password, new_password } = await request.json() as {
       current_password: string
@@ -23,11 +26,13 @@ export async function PATCH(request: NextRequest) {
     if (new_password.length < 8)
       return apiError('new_password_min_8', 400)
 
+    // Ищем по person_id И e-mail: если адрес потом передали другому аккаунту,
+    // старый токен с этим e-mail не должен дотянуться до чужого пароля.
     const sb = createServerClient()
     const { data: account, error: e1 } = await sb
       .from('person_accounts')
       .select('id, password_hash')
-      .eq('login_email', session.login_email)
+      .eq('person_id', session.person_id).eq('login_email', session.login_email)
       .single()
     if (e1 || !account) return apiError('account_not_found', 404)
 

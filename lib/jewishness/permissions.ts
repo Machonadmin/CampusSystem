@@ -19,6 +19,9 @@ export async function hasJewishnessAccess(session: SessionPayload | null): Promi
   if (!session) return false
   // superadmin (штатный, не студенческий principal) — всегда.
   if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
+  // Токен студентки не несёт штатных прав, даже если этот же person где-то
+  // сотрудник (персональная выдача по person_id) — как в lib/education/permissions.ts.
+  if (session.principal === 'student') return false
 
   // Роль даёт доступ?
   let roleHasAccess = false

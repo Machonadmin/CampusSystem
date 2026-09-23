@@ -5040,6 +5040,7 @@
     "database_error": "Database error",
     "state_conflict": "State conflict",
     "invalid_input": "Invalid input data",
+    "invalid_url": "The link must start with https:// (or http://)",
     "validation_error": "Validation error",
     "db_constraint_amount_status": "Database constraint violated (check amount/status)",
     "db_constraint_amount_type_status": "Database constraint violated (check amount/type/status)",

@@ -4,6 +4,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { canSeatInUnit } from '@/lib/auth/seat-access'
+import { hasDataSecurityPrivilege } from '@/lib/data-security/permissions'
+
+// Роли, которые глава единицы может выдать при посадке (см. проверку ниже).
+const HEAD_SEATABLE_ROLES: ReadonlySet<string> = new Set(['teacher', 'studies_secretary'])
 
 /**
  * POST /api/staff/seat — «посадить человека на стул» одним действием:
@@ -20,6 +24,8 @@ import { canSeatInUnit } from '@/lib/auth/seat-access'
  *
  * ⚠ Роль superadmin через этот маршрут раздаёт только superadmin: иначе глава
  * единицы «посадил бы» себе полный обход всех проверок в системе.
+ * ⚠ Глава единицы (без manage_units) выдаёт только teacher / studies_secretary
+ * и не сажает сам себя.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +65,17 @@ export async function POST(request: NextRequest) {
     // Обход всех проверок в системе не раздаётся правом «сажать в единицу».
     if ((role as { code: string | null }).code === 'superadmin' && !session.roles.includes('superadmin')) {
       return apiError('forbidden', 403)
+    }
+    // Глава единицы (без superadmin и без data_security.manage_units) сажает
+    // только в роли учебной единицы — те же, что даёт маршрут состава единицы
+    // (education/units/[unitId]/members): преподаватель и секретарь. Иначе глава
+    // выдал бы кому угодно (и себе) doctor, psychologist, hr_director и т.п. —
+    // роли, которые открывают медицинские этапы и настройки. И не сажает сам
+    // себя: своё право глава не расширяет.
+    const isAdminSeater = session.roles.includes('superadmin') || await hasDataSecurityPrivilege(session, 'manage_units')
+    if (!isAdminSeater) {
+      if (!HEAD_SEATABLE_ROLES.has((role as { code: string | null }).code ?? '')) return apiError('forbidden', 403)
+      if (body.person_id === session.person_id) return apiError('forbidden', 403)
     }
 
     const isHead = body.is_head === true

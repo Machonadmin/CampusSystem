@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { landingRouteForRoles, hasBroaderAdminRole } from './landing'
+import { landingRouteForRoles, hasBroaderAdminRole, safeInternalPath } from './landing'
 
 // По умолчанию каждый входит на общий главный экран /dashboard; управляющая
 // кафедрой иудаики (kodeshWorkspace) — на дом иудаики; более широкий админ
@@ -66,5 +66,34 @@ describe('hasBroaderAdminRole', () => {
     expect(hasBroaderAdminRole(['teacher', 'campus_admin'])).toBe(false)
     expect(hasBroaderAdminRole(['admin'])).toBe(false)
     expect(hasBroaderAdminRole(['campus_doctor'])).toBe(false)
+  })
+})
+
+// ?from после входа: только внутренний путь, иначе — открытый редирект
+// (фишинговая ссылка на настоящую страницу входа уводит на чужой сайт).
+describe('safeInternalPath', () => {
+  it('внутренний путь пропускается как есть', () => {
+    expect(safeInternalPath('/dashboard')).toBe('/dashboard')
+    expect(safeInternalPath('/dashboard/persons/abc?tab=docs')).toBe('/dashboard/persons/abc?tab=docs')
+  })
+
+  it('пусто → null', () => {
+    expect(safeInternalPath(null)).toBeNull()
+    expect(safeInternalPath(undefined)).toBeNull()
+    expect(safeInternalPath('')).toBeNull()
+  })
+
+  it('чужой сайт и схемы → null', () => {
+    expect(safeInternalPath('https://evil.example')).toBeNull()
+    expect(safeInternalPath('//evil.example')).toBeNull()
+    expect(safeInternalPath('/\\evil.example')).toBeNull()
+    expect(safeInternalPath('/\\/evil.example')).toBeNull()
+    expect(safeInternalPath('javascript:alert(1)')).toBeNull()
+    expect(safeInternalPath('dashboard')).toBeNull()
+  })
+
+  it('управляющие символы → null', () => {
+    expect(safeInternalPath('/\t/evil.example')).toBeNull()
+    expect(safeInternalPath('/dash\nboard')).toBeNull()
   })
 })

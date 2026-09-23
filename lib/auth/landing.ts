@@ -49,3 +49,21 @@ export function landingRouteForRoles(
   }
   return '/dashboard'
 }
+
+/**
+ * Проверка ?from перед переходом после входа. Параметр приходит из адресной
+ * строки, то есть его может подставить кто угодно: ссылка вида
+ * /login?from=https://чужой-сайт после ввода настоящего пароля увела бы
+ * пользователя на поддельную страницу («сессия истекла, введите пароль ещё
+ * раз»). Поэтому пропускаем только внутренний путь этого же сайта: начинается
+ * с одного '/', без '//' и '/\' (браузер читает их как адрес другого хоста) и
+ * без управляющих символов. Всё остальное → null, и LoginForm берёт посадку по
+ * роли.
+ */
+export function safeInternalPath(from: string | null | undefined): string | null {
+  if (!from) return null
+  if (!from.startsWith('/')) return null
+  if (from.startsWith('//') || from.startsWith('/\\')) return null
+  if (/[\u0000-\u001f\u007f\\]/.test(from)) return null
+  return from
+}
