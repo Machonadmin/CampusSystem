@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
+import { EDUCATION_SECTION_ROUTES } from '@/lib/education/education-hub'
 
 /**
  * Заметная кнопка «Передать в приёмную комиссию» на карточке лида. Показывается
@@ -17,6 +19,7 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education')
   const { lang } = useLang()
   const router = useRouter()
+  const goBack = useSafeBack(EDUCATION_SECTION_ROUTES.recruitment)
 
   const [stageId, setStageId] = useState<string | null>(null)
   const [missing, setMissing] = useState<string[]>([])
@@ -86,8 +89,10 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
       // рекрутёр), может НЕ иметь права смотреть карточку абитуриентки —
       // router.refresh() перезагрузил бы эту же страницу как карточку
       // абитуриентки и упал бы в 403 (Server Components render → error boundary).
-      // Поэтому уводим на список образования, а не обновляем на месте.
-      router.push('/dashboard/education')
+      // Поэтому уходим с карточки, а не обновляем на месте: назад туда, откуда
+      // пришли (обычно список גיוס), без истории — в список גיוס (не на хаб
+      // «חינוך»).
+      goBack()
     } finally {
       setBusy(false)
     }

@@ -42,3 +42,15 @@ export function resolveEducationHubTarget(accessible: AccessibleSections): HubTa
   if (sections.length === 1) return { kind: 'redirect', href: EDUCATION_SECTION_ROUTES[sections[0]] }
   return { kind: 'hub', sections }
 }
+
+/**
+ * Раздел «חינוך», к которому относится карточка по education_status journey.
+ * Та же логика, что у подписи средней крошки карточки (לид → גיוס, מועמד → קבלה,
+ * остальное → לימודים): крошка «גיוס» должна вести в список גיוס, а не на хаб
+ * «חינוך» (жалоба владельца: из карточки лида «назад» уводило в «חינוך»).
+ */
+export function educationSectionForStatus(status: string | null | undefined): EducationSection {
+  if (status === 'applicant') return 'admission'
+  if (status && status !== 'lead') return 'studies'
+  return 'recruitment'
+}

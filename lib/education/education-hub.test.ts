@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveEducationHubTarget, EDUCATION_SECTION_ROUTES } from './education-hub'
+import { resolveEducationHubTarget, educationSectionForStatus, EDUCATION_SECTION_ROUTES } from './education-hub'
 
 describe('resolveEducationHubTarget', () => {
   it('0 sections → fail-closed redirect home', () => {
@@ -29,5 +29,23 @@ describe('resolveEducationHubTarget', () => {
   it('all 3 (e.g. superadmin) → hub with all three, stable order', () => {
     expect(resolveEducationHubTarget({ recruitment: true, admission: true, studies: true }))
       .toEqual({ kind: 'hub', sections: ['recruitment', 'admission', 'studies'] })
+  })
+})
+
+describe('educationSectionForStatus', () => {
+  it('lead (or unknown/empty) → recruitment list', () => {
+    expect(educationSectionForStatus('lead')).toBe('recruitment')
+    expect(educationSectionForStatus(null)).toBe('recruitment')
+    expect(educationSectionForStatus(undefined)).toBe('recruitment')
+  })
+
+  it('applicant → admission list', () => {
+    expect(educationSectionForStatus('applicant')).toBe('admission')
+  })
+
+  it('student and later statuses → studies', () => {
+    for (const s of ['student', 'graduated', 'expelled', 'on_leave']) {
+      expect(educationSectionForStatus(s)).toBe('studies')
+    }
   })
 })

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { PersonSelect } from '@/components/ui/person-select'
@@ -144,13 +145,13 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
         title={t('hub_title')}
         subtitle={t('hub_subtitle')}
         actions={<>
-          <a
+          <Link
             href="/dashboard/chavruta"
             style={{
               fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface-2)',
               border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
             }}
-          >{t('open_teacher_journal')}</a>
+          >{t('open_teacher_journal')}</Link>
         </>}
       />
 

@@ -44,7 +44,8 @@ export default function TaskPage() {
     taskId,
     currentUserId,
     reloadOnOpenAction: true,
-    onAfterAction: (kind) => { if (kind === 'gone') router.push('/dashboard/tasks') },
+    // replace: удалённой задачи не должно остаться в истории («назад» со списка).
+    onAfterAction: (kind) => { if (kind === 'gone') router.replace('/dashboard/tasks') },
   })
 
   const task = d.task
