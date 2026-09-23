@@ -692,26 +692,15 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         {t('process.close_stage_section')}
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {/* Перевод в приёмную комиссию прямо из шага решения (не
-                            только верхней кнопкой HandoffButton) — по просьбе
-                            владельца. Та же метка и то же действие. */}
-                        {canConvert && stageDetail.finals.some(f => f.code === 'convert_to_applicant') && (
-                          <button
-                            onClick={() => onFinalClick('convert_to_applicant')}
-                            disabled={completing}
-                            style={{
-                              padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8,
-                              cursor: completing ? 'not-allowed' : 'pointer', opacity: completing ? 0.6 : 1,
-                              border: 'none', background: 'var(--violet)', color: '#fff',
-                              transition: 'opacity 0.15s',
-                            }}
-                          >
-                            → {t('handoff.button')}
-                          </button>
-                        )}
                         {stageDetail.finals
-                          // Конверсию лид→кандидат показываем выделенной кнопкой выше
-                          // (когда canConvert), поэтому в общем списке её не дублируем.
+                          // «Передать в приёмную комиссию» живёт ТОЛЬКО в верхней
+                          // панели (HandoffButton) — по решению владельца 2026-09-23.
+                          // Раньше то же действие дублировалось здесь отдельной
+                          // фиолетовой кнопкой: две точки входа, один и тот же
+                          // вызов. Верхняя панель выигрывает, потому что она ещё и
+                          // объясняет, чего не хватает для передачи; эта кнопка
+                          // только выполняла. Модалка остаётся местом для ОСТАЛЬНЫХ
+                          // исходов — то есть чтобы закрыть дело.
                           .filter(final => final.code !== 'convert_to_applicant')
                           .map(final => {
                             const colors = finalButtonColors(final.code, final.is_positive)

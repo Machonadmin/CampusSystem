@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 /**
@@ -14,12 +15,16 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
  */
 export default function HandoffButton({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education')
+  const { lang } = useLang()
   const router = useRouter()
 
   const [stageId, setStageId] = useState<string | null>(null)
   const [missing, setMissing] = useState<string[]>([])
+  const [hasProcess, setHasProcess] = useState(true)
+  const [lastClosed, setLastClosed] = useState<{ finished_at: string | null; finish_reason: string | null } | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
 
   const load = useCallback(async () => {
@@ -29,11 +34,40 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
       const b = await res.json()
       setStageId(b.stage_instance_id ?? null)
       setMissing(b.missing ?? [])
+      // has_active_process отсутствует до деплоя этой версии API → считаем, что
+      // процесс есть, и ведём себя как раньше (не предлагаем запуск вслепую).
+      setHasProcess(b.has_active_process ?? true)
+      setLastClosed(b.last_closed ?? null)
     } catch { /* тихо */ }
     finally { setLoaded(true) }
   }, [journeyId])
 
   useEffect(() => { load() }, [load])
+
+  /**
+   * Запустить «Набор» для лида, у которого процесса нет. Два случая: автостарт
+   * при создании лида упал (тогда карточка вообще мертва), и «второй шанс»
+   * лиду, чей набор закрыли отказом.
+   */
+  async function startProcess() {
+    setStarting(true); setError('')
+    try {
+      const res = await fetch(`/api/workflow/journeys/${journeyId}/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ process_code: 'recruitment' }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { error?: string }
+        setError(d.error ?? t('handoff.start_error'))
+        return
+      }
+      await load()
+      router.refresh()
+    } finally {
+      setStarting(false)
+    }
+  }
 
   async function handoff() {
     if (!stageId || missing.length > 0) return
@@ -59,13 +93,44 @@ export default function HandoffButton({ journeyId }: { journeyId: string }) {
 
   if (!loaded) return null
 
-  // Этап конверсии ещё не активен (идут более ранние этапы набора) — вместо
-  // пустоты показываем понятную подсказку, чтобы CTA не «исчезала молча».
+  // Этап конверсии ещё не активен. Две разные причины, и до этой правки обе
+  // показывали одну и ту же подсказку — в том числе случай «процесса нет
+  // вообще», из которого карточка не выбиралась вообще никак.
   if (!stageId) {
+    const canStart = !hasProcess
     return (
       <div style={{ background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 14, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-muted)' }}>→ {t('handoff.button')}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.5 }}>{t('handoff.not_ready')}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.5 }}>
+          {canStart
+            ? (lastClosed ? t('handoff.process_closed') : t('handoff.no_process'))
+            : t('handoff.not_ready')}
+        </div>
+        {canStart && lastClosed?.finished_at && (
+          <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4 }}>
+            {formatDate(lastClosed.finished_at, lang)}
+            {lastClosed.finish_reason
+              ? ` · ${t(`process.finals.${lastClosed.finish_reason}`, lastClosed.finish_reason)}`
+              : ''}
+          </div>
+        )}
+        {canStart && (
+          <button
+            onClick={startProcess}
+            disabled={starting}
+            style={{
+              marginTop: 12, width: '100%', padding: '10px', fontSize: 14, fontWeight: 600,
+              color: 'var(--accent-contrast)', background: 'var(--accent)',
+              border: 'none', borderRadius: 10, cursor: starting ? 'not-allowed' : 'pointer',
+              opacity: starting ? 0.6 : 1,
+            }}
+          >
+            {starting
+              ? t('handoff.starting')
+              : (lastClosed ? t('handoff.restart_process') : t('handoff.start_process'))}
+          </button>
+        )}
+        {error && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8, textAlign: 'center' }}>{error}</div>}
       </div>
     )
   }

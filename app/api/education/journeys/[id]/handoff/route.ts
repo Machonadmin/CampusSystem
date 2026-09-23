@@ -40,6 +40,23 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .eq('status', 'active')
     const instanceIds = (pis ?? []).map(p => p.id)
 
+    // Закрытый/отменённый набор — чтобы на карточке отличить «этап конверсии
+    // ещё не дошёл» от «процесса нет вообще» и предложить запустить заново
+    // (второй шанс упавшему лиду). Берём последний по времени завершения.
+    let lastClosed: { finished_at: string | null; finish_reason: string | null } | null = null
+    if (instanceIds.length === 0) {
+      const { data: closed } = await sb
+        .from('process_instances')
+        .select('finished_at, finish_reason, process_template:process_templates!inner(code)')
+        .eq('journey_id', params.id)
+        .eq('process_template.code', 'recruitment')
+        .neq('status', 'active')
+        .order('finished_at', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const row = (closed ?? [])[0] as { finished_at: string | null; finish_reason: string | null } | undefined
+      if (row) lastClosed = { finished_at: row.finished_at, finish_reason: row.finish_reason }
+    }
+
     let stageInstanceId: string | null = null
     if (instanceIds.length > 0) {
       const { data: stages } = await sb
@@ -76,6 +93,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       stage_instance_id: stageInstanceId,
       ready: stageInstanceId != null && missing.length === 0,
       missing,
+      has_active_process: instanceIds.length > 0,
+      last_closed: lastClosed,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

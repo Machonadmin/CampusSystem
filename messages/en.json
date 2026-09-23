@@ -1489,7 +1489,13 @@
       "converting": "Handing off…",
       "confirm": "Hand this applicant off to the acceptance committee? Acceptance will start.",
       "error": "Handoff failed",
-      "not_ready": "Handoff to the admissions committee opens once the earlier recruitment stages (contact, documents, event) are completed."
+      "not_ready": "Handoff to the admissions committee opens once the earlier recruitment stages (contact, documents, event) are completed.",
+      "no_process": "No recruitment process was started for her. You can start one now — the first stage opens immediately.",
+      "process_closed": "Her recruitment process was closed. You can start it again for a second chance — the earlier history is kept.",
+      "start_process": "Start recruitment",
+      "restart_process": "Restart recruitment",
+      "starting": "Starting…",
+      "start_error": "Could not start the process"
     },
     "timeline": {
       "title": "Timeline",
