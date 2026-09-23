@@ -125,7 +125,7 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
       const { error: histErr } = await sb.from('task_status_history').insert(
         toClose.map(task => ({
           task_id: task.id, actor_id: actorId, from_status: task.status, to_status: 'completed',
-          note: 'Этап приёма завершён',
+          note: 'שלב הקבלה הושלם',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         })) as any,
       )
@@ -187,7 +187,7 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
       if (error || !task) continue
       const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: task.id, actor_id: actorId, from_status: null, to_status: 'pending',
-        note: 'Автозадача этапа приёма',
+        note: 'משימה אוטומטית של שלב הקבלה',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       if (histErr) console.error('[acceptance-tasks] status history:', histErr)
