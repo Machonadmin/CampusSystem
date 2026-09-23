@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { getSession, reissueSession } from '@/lib/auth/session'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { verifyPassword, hashPassword } from '@/lib/auth/password'
 import { throttleAuth } from '@/lib/auth/login-throttle'
 
@@ -53,6 +54,11 @@ export async function PATCH(request: NextRequest) {
       await (sb as unknown as import('@supabase/supabase-js').SupabaseClient)
         .from('person_accounts').update({ must_change_password: false }).eq('id', account.id)
     } catch { /* колонки нет до миграции — игнорируем */ }
+
+    // Новый пароль закрывает все остальные входы (в т.ч. украденную куку);
+    // этот браузер получает свежий токен и остаётся в системе.
+    await revokeSessionsBefore('person_accounts', 'id', account.id)
+    await reissueSession(session)
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {

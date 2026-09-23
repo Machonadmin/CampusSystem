@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { generatePassword, hashPassword } from '@/lib/auth/password'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
@@ -146,6 +147,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       const { error: flagErr } = await creds(sb).update({ must_change_password: true }).eq('journey_id', params.id)
       if (flagErr && !isMissingColumn(flagErr)) { /* прочие ошибки не критичны для выдачи */ }
     } catch { /* колонки нет до миграции — игнорируем */ }
+
+    // Сброс пароля выводит студентку со всех устройств (старый вход по
+    // прежнему паролю больше не действует).
+    await revokeSessionsBefore('student_credentials', 'journey_id', params.id)
 
     // Возвращаем открытый пароль ОДИН раз — сотрудник передаёт его студентке.
     return NextResponse.json({ email, password })

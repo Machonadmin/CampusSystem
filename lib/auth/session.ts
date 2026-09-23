@@ -1,12 +1,19 @@
 import { cookies } from 'next/headers'
 import { AUTH_CONFIG } from './config'
 import { signToken, verifyToken, type SessionPayload } from './jwt'
+import { checkLiveSession } from './live-session'
 
+/**
+ * Текущая сессия: подпись и срок токена + живая сверка с базой (аккаунт
+ * активен, пароль с тех пор не меняли; роли — текущие). См. live-session.ts.
+ */
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = cookies()
   const token = cookieStore.get(AUTH_CONFIG.cookieName)?.value
   if (!token) return null
-  return verifyToken(token)
+  const payload = await verifyToken(token)
+  if (!payload) return null
+  return checkLiveSession(payload)
 }
 
 export async function createSession(payload: Omit<SessionPayload, 'iat' | 'exp'>): Promise<void> {
@@ -45,4 +52,15 @@ function clearImpersonationOrigin(): void {
     maxAge: 0,
     path: '/',
   })
+}
+
+/**
+ * Выписать текущему пользователю новый токен с теми же данными. Нужен после
+ * revokeSessionsBefore (смена пароля): остальные устройства выходят, а браузер,
+ * в котором пароль сменили, остаётся в системе.
+ */
+export async function reissueSession(session: SessionPayload): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { iat, exp, nbf, jti, aud, iss, sub, ...payload } = session
+  await createSession(payload)
 }
