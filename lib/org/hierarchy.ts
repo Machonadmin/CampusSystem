@@ -9,8 +9,14 @@ import { todayISO } from '@/lib/dates'
  *   Человек B «выше» человека A, если B возглавляет подразделение A ИЛИ любое
  *   родительское подразделение над ним (departments.parent_id вверх).
  *
- * «Возглавляет» = departments.head_person_id ИЛИ активная позиция
- * staff_positions.is_head в этом подразделении.
+ * «Возглавляет» = активная позиция staff_positions.is_head в этом подразделении.
+ *
+ * Раньше сюда входило и departments.head_person_id — второе поле «глава»,
+ * которое НИЧЕГО не синхронизировало с первым. Пока их читали вместе,
+ * старшинство могло тихо зависеть от поля, которое правит совсем другой экран.
+ * Аудит на живой базе показал 21 единицу: 20 без главы вообще и одну, где оба
+ * поля указывали на одного человека, — расхождений не было ни одного, поэтому
+ * поле убрано, а не «выбрано между двумя».
  *
  * Деплой-безопасно: при любой ошибке/нехватке данных возвращаем false
  * («не выше») — чтобы неопределённость НЕ блокировала встречи по ошибке.
@@ -24,8 +30,8 @@ const today = () => todayISO()
  * «ниже» candidate.
  *
  * Вместо ~4 запросов и полного скана departments НА КАЖДОГО subject — считаем
- * «домен» candidate один раз: подразделения, которые он возглавляет (head_person_id
- * или активный is_head), развёрнутые ВНИЗ до всех потомков. Subject «ниже», если
+ * «домен» candidate один раз: подразделения, которые он возглавляет (активный
+ * is_head), развёрнутые ВНИЗ до всех потомков. Subject «ниже», если
  * любое из его активных подразделений входит в домен. Итого 3 запроса на весь
  * список. Деплой-безопасно: при ошибке возвращаем пустое множество.
  */
@@ -37,16 +43,15 @@ export async function subjectsBelow(candidatePersonId: string, subjectPersonIds:
     const sb = createServerClient()
     const t = today()
 
-    // (1) Дерево подразделений: parent_id (для спуска) + head_person_id.
-    const { data: depts } = await sb.from('departments').select('id, parent_id, head_person_id')
+    // (1) Дерево подразделений: parent_id (для спуска).
+    const { data: depts } = await sb.from('departments').select('id, parent_id')
     const childrenOf = new Map<string, string[]>()
     const headed = new Set<string>()
-    for (const d of (depts ?? []) as Array<{ id: string; parent_id: string | null; head_person_id: string | null }>) {
+    for (const d of (depts ?? []) as Array<{ id: string; parent_id: string | null }>) {
       if (d.parent_id) { const a = childrenOf.get(d.parent_id) ?? []; a.push(d.id); childrenOf.set(d.parent_id, a) }
-      if (d.head_person_id === candidatePersonId) headed.add(d.id)
     }
 
-    // (2) + активные is_head позиции candidate.
+    // (2) Активные is_head позиции candidate — единственный источник «главы».
     const { data: pos } = await sb.from('staff_positions')
       .select('department_id, end_date').eq('person_id', candidatePersonId).eq('is_head', true)
     for (const p of (pos ?? []) as Array<{ department_id: string | null; end_date: string | null }>) {

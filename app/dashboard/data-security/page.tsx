@@ -43,7 +43,7 @@ export default async function DataSecurityPage() {
     loadTree(lang),
     loadStaffList(lang),
     sb.from('departments')
-      .select('id, name, name_he, name_en, parent_id, head_person_id, sort_order, is_educational_institution')
+      .select('id, name, name_he, name_en, parent_id, sort_order, is_educational_institution')
       .order('name'),
     sb.from('staff_positions').select('person_id, department_id, is_head, end_date'),
   ])

@@ -14,7 +14,7 @@ import { buildUnitTree, seatReach, flattenUnits, type DepartmentInput, type Seat
 
 const dept = (id: string, parent: string | null, name: string, over: Partial<DepartmentInput> = {}): DepartmentInput => ({
   id, parent_id: parent, name, name_he: name, name_en: null,
-  head_person_id: null, sort_order: 0, is_educational_institution: false,
+  sort_order: 0, is_educational_institution: false,
   ...over,
 })
 
@@ -111,12 +111,17 @@ describe('buildUnitTree', () => {
     expect(roots.map(r => r.id)).toEqual(['self'])
   })
 
-  it('глава единицы виден отдельно от посадки', () => {
+  // Глава единицы теперь ровно один: активная посадка с is_head. Второе поле,
+  // departments.head_person_id, удалено — оно ничего не решало в правах, а
+  // экран мог показать одного человека, пока полномочия держал другой.
+  it('глава единицы виден по посадке с is_head', () => {
     const roots = buildUnitTree('he', [
       dept('root', null, 'מכון'),
-      dept('u', 'root', 'יחידה', { head_person_id: 'director' }),
-    ], [], TODAY)
-    expect(roots[0].children[0].headPersonId).toBe('director')
+      dept('u', 'root', 'יחידה'),
+    ], [seat('director', 'u', true), seat('secretary', 'u')], TODAY)
+    const unit = roots[0].children[0]
+    expect(unit.seats.find(s => s.isHead)?.personId).toBe('director')
+    expect(unit.seats.find(s => s.personId === 'secretary')?.isHead).toBe(false)
   })
 })
 
