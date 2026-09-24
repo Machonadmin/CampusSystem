@@ -1979,7 +1979,11 @@
       "hours_short": "h",
       "schedule": "Schedule",
       "no_data": "No teachers assigned",
-      "room": "Room"
+      "room": "Room",
+      "month_label": "Month",
+      "col_actual": "Actual this month",
+      "actual_hint": "\"Actual\" — lessons approved by the secretariat (the same number that goes into pay)",
+      "no_end_time_warning": "{n} approved lessons have no end time — not counted in actual hours"
     },
     "teacher_attendance": {
       "title": "Teacher attendance",
@@ -1988,7 +1992,7 @@
       "my_lessons_hint": "Mark that you taught the lesson. The secretariat will approve.",
       "my_lessons_empty": "No lessons in the date range",
       "pending_title": "Awaiting approval",
-      "pending_hint": "Teachers who marked attendance — approve or reject",
+      "pending_hint": "Teachers who marked attendance — approve or reject. Only approved lessons are paid.",
       "pending_empty": "No requests to approve",
       "report": "I was there",
       "re_report": "Mark again",
@@ -1996,7 +2000,10 @@
       "reject": "Reject",
       "status_reported": "Pending",
       "status_approved": "Approved",
-      "status_rejected": "Rejected"
+      "status_rejected": "Rejected",
+      "flag_two_teachers": "Two teachers reported",
+      "flag_via_student_attendance": "Reported via student attendance",
+      "flag_substitute": "Substitute"
     },
     "teaching_surveys": {
       "title": "Teaching evaluation",
@@ -2216,7 +2223,11 @@
       "source_contract": "Contract",
       "source_manual": "Manual",
       "set_quota": "Set quota",
-      "save": "Save"
+      "save": "Save",
+      "planned": "Planned",
+      "actual": "Actual",
+      "actual_hint": "\"Actual\" — lessons in these courses approved by the secretariat (as in pay).",
+      "no_end_time_warning": "{n} approved lessons have no end time — not counted in \"Actual\""
     },
     "kodesh_courses": {
       "title": "Kodesh courses",
@@ -3786,7 +3797,8 @@
       "sh_no_events": "No events this month",
       "sh_delete": "Delete",
       "sh_confirm_delete": "Delete this event?",
-      "sh_save": "Save"
+      "sh_save": "Save",
+      "teaching_no_end_time_warning": "{n} approved lessons have no end time — not included in pay. Add an end time to the lesson."
     }
   },
   "dormitory": {
@@ -5155,7 +5167,8 @@
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
     "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
     "task_student_tag_invalid": "The selected student was not found or does not match",
-    "task_student_tag_locked": "The student of an automatic admission task cannot be changed"
+    "task_student_tag_locked": "The student of an automatic admission task cannot be changed",
+    "payslip_month_approved": "The payslip for this month is already approved — teaching hours cannot be recalculated"
   },
   "workflow": {
     "error": "Error"

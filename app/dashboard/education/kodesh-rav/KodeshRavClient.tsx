@@ -25,6 +25,9 @@ interface Quota {
   source: string | null
   term_number: number | null
   assigned_hours: number
+  /** Факт: подтверждённые секретариатом уроки (как в зарплате). */
+  actual_hours?: number
+  actual_no_end_time?: number
   remaining: number | null
   over: boolean
 }
@@ -41,6 +44,7 @@ export default function KodeshRavClient() {
   const [approvalsForbidden, setApprovalsForbidden] = useState(false)
   const [quotasForbidden, setQuotasForbidden] = useState(false)
   const [year, setYear] = useState('')
+  const [noEndTime, setNoEndTime] = useState(0)
 
   // Инлайн-редактирование квоты.
   const [editTeacher, setEditTeacher] = useState<string | null>(null)
@@ -56,7 +60,7 @@ export default function KodeshRavClient() {
       ])
       setApprovalsForbidden(aRes.status === 403); setQuotasForbidden(qRes.status === 403)
       if (aRes.ok) { const b = await aRes.json(); setApprovals(b.approvals ?? []) }
-      if (qRes.ok) { const b = await qRes.json(); setQuotas(b.quotas ?? []) }
+      if (qRes.ok) { const b = await qRes.json(); setQuotas(b.quotas ?? []); setNoEndTime(Number(b.actual_no_end_time ?? 0)) }
     } finally { setLoading(false) }
   }, [])
 
@@ -150,7 +154,10 @@ export default function KodeshRavClient() {
             </label>
           )}
         </div>
-        {!quotasForbidden && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('quotas_hint')}</p>}
+        {!quotasForbidden && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('quotas_hint')} {t('actual_hint')}</p>}
+        {!quotasForbidden && !loading && noEndTime > 0 && (
+          <p style={{ fontSize: 12, color: 'var(--warn)', margin: 0 }}>{t('no_end_time_warning').replace('{n}', String(noEndTime))}</p>
+        )}
         {loading ? <SkeletonRows avatar={false} rows={4} /> : quotasForbidden ? <ForbiddenState /> : quotas.length === 0 ? (
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('quotas_empty')}</div>
         ) : (
@@ -158,7 +165,8 @@ export default function KodeshRavClient() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead><tr style={{ background: 'var(--surface-2)' }}>
                 <th style={th}>{t('teacher')}</th><th style={{ ...th, textAlign: 'center' }}>{t('approved')}</th>
-                <th style={{ ...th, textAlign: 'center' }}>{t('assigned')}</th><th style={{ ...th, textAlign: 'center' }}>{t('remaining')}</th>
+                <th style={{ ...th, textAlign: 'center' }}>{t('planned')}</th><th style={{ ...th, textAlign: 'center' }}>{t('actual')}</th>
+                <th style={{ ...th, textAlign: 'center' }}>{t('remaining')}</th>
                 <th style={th}>{t('source')}</th><th style={{ ...th, width: 180 }}></th>
               </tr></thead>
               <tbody>
@@ -169,6 +177,7 @@ export default function KodeshRavClient() {
                       <>
                         <td style={{ ...td, textAlign: 'center' }}><input value={editHours} onChange={e => setEditHours(e.target.value)} type="number" min={0} style={{ ...inp, width: 72 }} /></td>
                         <td style={{ ...td, textAlign: 'center', color: 'var(--text-muted)' }}>{q.assigned_hours}</td>
+                        <td style={{ ...td, textAlign: 'center', color: 'var(--text-muted)' }}>{q.actual_hours ?? 0}</td>
                         <td style={{ ...td, textAlign: 'center' }}>—</td>
                         <td style={td}>
                           <select value={editSource} onChange={e => setEditSource(e.target.value as 'contract' | 'manual')} style={inp}>
@@ -187,6 +196,10 @@ export default function KodeshRavClient() {
                       <>
                         <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>{q.approved_hours ?? '—'}</td>
                         <td style={{ ...td, textAlign: 'center', color: 'var(--text-muted)' }}>{q.assigned_hours}</td>
+                        <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>
+                          {q.actual_hours ?? 0}
+                          {(q.actual_no_end_time ?? 0) > 0 && <span title={t('no_end_time_warning').replace('{n}', String(q.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 4 }}>⚠</span>}
+                        </td>
                         <td style={{ ...td, textAlign: 'center', color: q.over ? 'var(--warn)' : 'var(--text)', fontWeight: q.over ? 700 : 400 }}>
                           {q.remaining ?? '—'}{q.over ? ` · ${t('over')}` : ''}
                         </td>

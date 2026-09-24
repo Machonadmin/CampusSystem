@@ -1979,7 +1979,11 @@
       "hours_short": "ש׳",
       "schedule": "מערכת שעות",
       "no_data": "אין מורים משובצים",
-      "room": "כיתה"
+      "room": "כיתה",
+      "month_label": "חודש",
+      "col_actual": "בפועל בחודש",
+      "actual_hint": "\"בפועל\" — שיעורים שהמזכירות אישרה (אותו מספר שנכנס לשכר)",
+      "no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נספרו בשעות בפועל"
     },
     "teacher_attendance": {
       "title": "נוכחות מורים",
@@ -1988,7 +1992,7 @@
       "my_lessons_hint": "סמן שהעברת את השיעור. המזכירות תאשר.",
       "my_lessons_empty": "אין שיעורים בטווח התאריכים",
       "pending_title": "ממתין לאישור",
-      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה",
+      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה. רק שיעור מאושר נכנס לשכר.",
       "pending_empty": "אין בקשות לאישור",
       "report": "הייתי בשיעור",
       "re_report": "סמן שוב",
@@ -1996,7 +2000,10 @@
       "reject": "דחה",
       "status_reported": "ממתין",
       "status_approved": "אושר",
-      "status_rejected": "נדחה"
+      "status_rejected": "נדחה",
+      "flag_two_teachers": "שני מורים דיווחו",
+      "flag_via_student_attendance": "דווח דרך נוכחות תלמידות",
+      "flag_substitute": "מילוי מקום"
     },
     "teaching_surveys": {
       "title": "הערכת הוראה",
@@ -2216,7 +2223,11 @@
       "source_contract": "חוזה",
       "source_manual": "ידני",
       "set_quota": "קביעת מכסה",
-      "save": "שמור"
+      "save": "שמור",
+      "planned": "מתוכנן",
+      "actual": "בפועל",
+      "actual_hint": "\"בפועל\" — שיעורים שהמזכירות אישרה בקורסים אלה (כמו בשכר).",
+      "no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נספרו ב\"בפועל\""
     },
     "kodesh_courses": {
       "title": "קורסים",
@@ -3786,7 +3797,8 @@
       "sh_no_events": "אין אירוחים לחודש זה",
       "sh_delete": "מחיקה",
       "sh_confirm_delete": "למחוק את האירוח?",
-      "sh_save": "שמירה"
+      "sh_save": "שמירה",
+      "teaching_no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נכללו בשכר. יש להשלים שעת סיום בשיעור."
     }
   },
   "dormitory": {
@@ -5155,7 +5167,8 @@
     "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
     "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם.",
     "task_student_tag_invalid": "התלמידה שנבחרה לא נמצאה או אינה תואמת",
-    "task_student_tag_locked": "לא ניתן לשנות תלמידה במשימה אוטומטית של ועדת הקבלה"
+    "task_student_tag_locked": "לא ניתן לשנות תלמידה במשימה אוטומטית של ועדת הקבלה",
+    "payslip_month_approved": "תלוש השכר לחודש זה כבר אושר — לא ניתן לחשב מחדש שעות הוראה"
   },
   "workflow": {
     "error": "שגיאה"

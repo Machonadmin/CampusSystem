@@ -288,6 +288,8 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       if (!res.ok) { toast(await readError(res), 'error'); return }
       const body = await res.json()
       toast(t('generate_result').replace('{created}', String(body.created ?? 0)).replace('{skipped}', String(body.skipped ?? 0)), 'success')
+      // Подтверждённые уроки без времени конца не начислены — предупреждаем.
+      if (Number(body.no_end_time ?? 0) > 0) toast(t('teaching_no_end_time_warning').replace('{n}', String(body.no_end_time)), 'info')
       await loadMonth()
     } catch {
       toast(t('generate_error'), 'error')
