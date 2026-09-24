@@ -671,7 +671,8 @@
         "external_studies": "External studies",
         "admitted": "Admitted",
         "admitted_conditional": "Admitted (conditional)",
-        "waitlisted": "To waitlist"
+        "waitlisted": "To waitlist",
+        "converted": "Handed to admission committee"
       },
       "modals": {
         "activate_title": "Activate skipped stage?",
@@ -759,7 +760,10 @@
         "social": "Social media",
         "call": "Phone call",
         "exhibition": "Exhibition",
-        "other": "Other"
+        "other": "Other",
+        "public_form": "Website form",
+        "public_form_parent": "Website form (parent)",
+        "public_form_representative": "Website form (representative)"
       },
       "relation": {
         "mother": "Mother",

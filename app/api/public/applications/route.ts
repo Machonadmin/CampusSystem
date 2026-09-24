@@ -38,8 +38,11 @@ const publicApplicationSchema = z.object({
   comment: z.string().trim().max(2000).optional().or(z.literal('')),
   // Ответы на кастомные поля, добавленные набором: { <fieldKey>: <answer> }.
   custom: z.record(z.string(), z.string().max(2000)).optional(),
-  // honeypot: реальные пользователи оставляют пустым
-  website: z.string().max(0).optional().or(z.literal('')),
+  // honeypot: реальные пользователи оставляют пустым. НЕ ограничиваем длину
+  // max(0): иначе заполненное ботом поле падало на валидации (400) раньше
+  // проверки ниже, и бот видел, что его поймали. Заполненное поле обрабатывается
+  // ниже фальшивым «успехом».
+  website: z.string().max(2000).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -56,7 +59,8 @@ export async function POST(request: NextRequest) {
 
     const body = await parseBody(request, publicApplicationSchema)
 
-    // 2. Honeypot: если заполнено — молча делаем вид, что приняли (не палим бота)
+    // 2. Honeypot: если заполнено — молча делаем вид, что приняли (не палим бота):
+    //    тот же ответ, что и при настоящем приёме, но ничего не создаём.
     if (body.website && body.website.length > 0) {
       return NextResponse.json({ success: true }, { status: 201 })
     }

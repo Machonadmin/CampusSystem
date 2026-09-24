@@ -57,6 +57,18 @@ export default function RecruitmentTab() {
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null)  // прогрессивное раскрытие строки лида
+  // Может ли пользователь править/удалять лидов (tab-access.recruitment_manage —
+  // то же условие, что проверяет сервер). Fail-closed: пока не известно или
+  // ошибка — «עריכה»/«מחיקה» не показываем (у «только просмотра» их не было бы).
+  const [canManageLeads, setCanManageLeads] = useState(false)
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/tab-access')
+      .then(r => (r.ok ? r.json() : null))
+      .then(a => { if (alive) setCanManageLeads(!!a && a.recruitment_manage === true) })
+      .catch(() => { /* нет данных — меню правки остаётся скрытым */ })
+    return () => { alive = false }
+  }, [])
 
   function openRowMenu(e: React.MouseEvent, id: string) {
     e.stopPropagation()
@@ -421,6 +433,9 @@ export default function RecruitmentTab() {
 
                   {/* Действия */}
                   <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '11px 8px', width: 48 }}>
+                    {/* Без права правки меню пустое (и «שחזור», и «עריכה»/«מחיקה» требуют
+                        manage_leads со scope='all') — кнопку ··· не показываем. */}
+                    {canManageLeads && (<>
                     <button
                       onClick={e => openRowMenu(e, lead.profile_id)}
                       style={{
@@ -477,6 +492,7 @@ export default function RecruitmentTab() {
                         )}
                       </div>
                     )}
+                    </>)}
                   </td>
                 </tr>
                 {open && (

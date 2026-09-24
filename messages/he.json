@@ -671,7 +671,8 @@
         "external_studies": "לימודים חיצוניים",
         "admitted": "התקבלה",
         "admitted_conditional": "התקבלה על תנאי",
-        "waitlisted": "לרשימת המתנה"
+        "waitlisted": "לרשימת המתנה",
+        "converted": "הועברה לוועדת קבלה"
       },
       "modals": {
         "activate_title": "להפעיל תת-שלב שדולג?",
@@ -759,7 +760,10 @@
         "social": "רשתות חברתיות",
         "call": "שיחת טלפון",
         "exhibition": "תערוכה",
-        "other": "אחר"
+        "other": "אחר",
+        "public_form": "טופס באתר",
+        "public_form_parent": "טופס באתר (הורה)",
+        "public_form_representative": "טופס באתר (נציג/ה)"
       },
       "relation": {
         "mother": "אם",

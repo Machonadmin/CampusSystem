@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, getEducationPrivilegeScope, type EducationPrivilege } from '@/lib/education/permissions'
+import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 
 /**
  * Привилегия управления по education_status journey. Правка карточки (person +
@@ -65,10 +66,85 @@ export async function DELETE(
 
     if (error) throw error
 
+    // Открытые задачи удалённого лида больше никому не нужны — отменяем их
+    // (не удаляем: история остаётся). Best-effort: удаление уже состоялось.
+    await cancelOpenLeadTasks(sb, params.id, session.person_id)
+
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+  }
+}
+
+/**
+ * Отмена ОТКРЫТЫХ задач лида при мягком удалении — чтобы они не висели у
+ * персонала («המשימות שלי»). Задачи лида — это:
+ *   • задачи этапов его процессов (tasks.stage_instance_id → stage_instances →
+ *     process_instances.journey_id);
+ *   • задачи с metadata.journey_id (задача «Новая заявка с сайта», автозадачи приёма).
+ * Статус 'cancelled' + completed_at — как отменяет задачи сам движок
+ * (complete_stage / close_process_early), плюс строка task_status_history.
+ * Никогда не бросает.
+ */
+async function cancelOpenLeadTasks(
+  sb: ReturnType<typeof createServerClient>,
+  journeyId: string,
+  actorId: string,
+): Promise<void> {
+  try {
+    const openStatuses = [...OPEN_TASK_STATUSES]
+    const found = new Map<string, string>() // task_id → текущий статус
+
+    const { data: pis } = await sb
+      .from('process_instances')
+      .select('id')
+      .eq('journey_id', journeyId)
+    const piIds = (pis ?? []).map(p => p.id)
+    if (piIds.length > 0) {
+      const { data: sis } = await sb
+        .from('stage_instances')
+        .select('id')
+        .in('process_instance_id', piIds)
+      const siIds = (sis ?? []).map(s => s.id)
+      if (siIds.length > 0) {
+        const { data: stageTasks } = await sb
+          .from('tasks')
+          .select('id, status')
+          .in('stage_instance_id', siIds)
+          .in('status', openStatuses)
+        for (const tk of (stageTasks ?? []) as Array<{ id: string; status: string }>) found.set(tk.id, tk.status)
+      }
+    }
+
+    const { data: metaTasks } = await sb
+      .from('tasks')
+      .select('id, status')
+      .contains('metadata', { journey_id: journeyId })
+      .in('status', openStatuses)
+    for (const tk of (metaTasks ?? []) as Array<{ id: string; status: string }>) found.set(tk.id, tk.status)
+
+    if (found.size === 0) return
+    const ids = [...found.keys()]
+    const { error: updErr } = await sb
+      .from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ status: 'cancelled', completed_at: new Date().toISOString() } as any)
+      .in('id', ids)
+    if (updErr) {
+      console.error('[leads/delete] cancel tasks:', updErr)
+      return
+    }
+    const { error: histErr } = await sb.from('task_status_history').insert(
+      ids.map(id => ({
+        task_id: id, actor_id: actorId, from_status: found.get(id), to_status: 'cancelled',
+        note: 'Лид удалён',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })) as any,
+    )
+    if (histErr) console.error('[leads/delete] task status history:', histErr)
+  } catch (e) {
+    console.error('[leads/delete] cancel tasks:', e)
   }
 }
 

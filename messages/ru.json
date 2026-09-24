@@ -671,7 +671,8 @@
         "external_studies": "Внешнее обучение",
         "admitted": "Принята",
         "admitted_conditional": "Условно принята",
-        "waitlisted": "В список ожидания"
+        "waitlisted": "В список ожидания",
+        "converted": "Передана в приёмную комиссию"
       },
       "modals": {
         "activate_title": "Активировать пропущенный подэтап?",
@@ -759,7 +760,10 @@
         "social": "Соцсети",
         "call": "Звонок",
         "exhibition": "Выставка",
-        "other": "Другое"
+        "other": "Другое",
+        "public_form": "Форма на сайте",
+        "public_form_parent": "Форма на сайте (родитель)",
+        "public_form_representative": "Форма на сайте (представитель)"
       },
       "relation": {
         "mother": "Мать",
