@@ -3412,7 +3412,19 @@
       "convert_to_applicant": "Передана в приём",
       "waitlisted": "В списке ожидания",
       "qualified": "Подходит",
-      "not_qualified": "Не подходит"
+      "not_qualified": "Не подходит",
+      "done_event_yes": "Записан на мероприятие",
+      "done_event_skip": "Без мероприятия",
+      "postponed": "Приём отложен",
+      "all_collected": "Все собраны",
+      "partial": "Частично собраны",
+      "not_provided": "Не предоставил",
+      "feedback_received": "Мероприятие состоялось",
+      "no_show": "Мероприятие не состоялось",
+      "refused": "Отказ от приезда",
+      "refer_to_psychologist": "Направить к психологу",
+      "exam_required": "Нужны вступительные экзамены",
+      "external_studies": "Внешнее обучение"
     },
     "process_names": {
       "Набор": "Набор",

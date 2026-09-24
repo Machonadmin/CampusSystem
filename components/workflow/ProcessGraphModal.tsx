@@ -90,7 +90,7 @@ function resolveGraphColors(): GraphColors {
 }
 
 /** Строит Mermaid-разметку графа из данных. */
-function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): string {
+function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS, label: (n: GraphNode) => string = n => n.name_ru): string {
   const ordered = [...data.nodes].sort((a, b) => a.sort_order - b.sort_order)
   const keyOf = new Map<string, string>()      // stage_template_id → mermaid node key (n0, n1…)
   ordered.forEach((n, i) => keyOf.set(n.id, `n${i}`))
@@ -100,7 +100,7 @@ function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): s
   // Узлы
   for (const n of ordered) {
     const key = keyOf.get(n.id)!
-    lines.push(`  ${key}["${esc(n.name_ru)}"]`)
+    lines.push(`  ${key}["${esc(label(n))}"]`)
   }
 
   // Рёбра — без меток финалов, только структура переходов
@@ -187,7 +187,8 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     let cancelled = false
     setRenderError('')
 
-    const markup = buildMermaid(data, resolveGraphColors())
+    // Подписи узлов на языке интерфейса (как в ProcessInfoBlock); name_ru — запасной.
+    const markup = buildMermaid(data, resolveGraphColors(), n => t(`process.stages.${n.code}`, n.name_ru))
 
     ;(async () => {
       try {
@@ -251,7 +252,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
             )}
             {data?.process_final && (
               <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
-                {t('process.graph.result')}: {t(`process.graph.finish_reason.${data.process_final}`, data.process_final)}
+                {t('process.graph.result')}: {t(`process.graph.finish_reason.${data.process_final}`, t(`acceptance_finals.${data.process_final}`, data.process_final))}
               </span>
             )}
           </div>

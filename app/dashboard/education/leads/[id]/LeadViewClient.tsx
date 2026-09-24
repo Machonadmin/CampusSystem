@@ -33,6 +33,7 @@ import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { countryLabel } from '@/lib/geo'
 import { BackButton } from '@/components/ui/BackButton'
 import { consumeRefreshOnReturn } from '@/lib/nav/refresh-on-return'
 import { EDUCATION_SECTION_ROUTES, educationSectionForStatus } from '@/lib/education/education-hub'
@@ -255,7 +256,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             <Field label={t('card.labels.birth_date')} value={formatDate(person.birth_date, lang)} />
             <Field label={t('card.labels.gender')} value={person.gender ? t(`card.gender.${person.gender}`, person.gender) : '—'} />
             <Field label={t('card.labels.marital_status')} value={person.marital_status ? t(`card.marital.${person.marital_status}`, person.marital_status) : '—'} />
-            <Field label={t('card.labels.citizenship')} value={person.nationality} />
+            <Field label={t('card.labels.citizenship')} value={person.nationality ? countryLabel(person.nationality, lang) : null} />
             <Field label={t('card.labels.passport')} value={person.passport_number} />
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, margin: '14px 0 6px' }}>
               {t('card.tabs.contacts')}
@@ -264,7 +265,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px 14px' }}>{phoneList(person.phones).map((p, i) => <PhoneLink key={i} phone={p} />)}</span>
               : '—'} />
             <Field label={t('card.labels.email')} value={person.email} />
-            <Field label={t('card.labels.country')} value={addr.country} />
+            <Field label={t('card.labels.country')} value={addr.country ? countryLabel(addr.country, lang) : null} />
             <Field label={t('card.labels.city')} value={addr.city} />
             <Field label={t('card.labels.street')} value={addr.street} />
             <Field label={t('card.labels.house')} value={addr.house} />

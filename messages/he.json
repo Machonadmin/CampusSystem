@@ -3412,7 +3412,19 @@
       "convert_to_applicant": "הועברה לקבלה",
       "waitlisted": "רשימת המתנה",
       "qualified": "מתאימה",
-      "not_qualified": "לא מתאימה"
+      "not_qualified": "לא מתאימה",
+      "done_event_yes": "רשום לאירוע",
+      "done_event_skip": "ללא אירוע",
+      "postponed": "קבלה נדחית",
+      "all_collected": "הכל נאסף",
+      "partial": "נאסף חלקית",
+      "not_provided": "לא סופק",
+      "feedback_received": "האירוע התקיים",
+      "no_show": "האירוע לא התקיים",
+      "refused": "סירב להגיע",
+      "refer_to_psychologist": "הפניה לפסיכולוג",
+      "exam_required": "נדרשים מבחני קבלה",
+      "external_studies": "לימודים חיצוניים"
     },
     "process_names": {
       "Набор": "גיוס",

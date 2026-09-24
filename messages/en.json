@@ -3412,7 +3412,19 @@
       "convert_to_applicant": "Handed to acceptance",
       "waitlisted": "Waitlisted",
       "qualified": "Qualified",
-      "not_qualified": "Not qualified"
+      "not_qualified": "Not qualified",
+      "done_event_yes": "Registered for event",
+      "done_event_skip": "Skip event",
+      "postponed": "Postponed",
+      "all_collected": "All collected",
+      "partial": "Partially collected",
+      "not_provided": "Not provided",
+      "feedback_received": "Event held",
+      "no_show": "Event not held",
+      "refused": "Refused to come",
+      "refer_to_psychologist": "Refer to psychologist",
+      "exam_required": "Entrance exams required",
+      "external_studies": "External studies"
     },
     "process_names": {
       "Набор": "Recruitment",
