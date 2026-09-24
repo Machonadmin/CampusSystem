@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken, isReadOnlySession } from '@/lib/auth/jwt'
 import { PROTECTED_MODULE_CODES, moduleCodeFromSegment } from '@/lib/modules/registry'
+import { todayISO } from '@/lib/dates'
 
 const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/']
 const PUBLIC_PAGES = ['/login', '/portal/login']
@@ -62,6 +63,29 @@ async function fetchAccessibleModules(roleCodes: string[], personId: string): Pr
   } catch { /* нет таблицы — оставляем ролевой список */ }
 
   return [...set]
+}
+
+/**
+ * Действующий глава хотя бы одной единицы (staff_positions.is_head, позиция не
+ * закрыта) — то же правило, что getHeadedUnitIds. Fail-closed: ошибка → false.
+ */
+async function isActiveUnitHead(personId: string): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SECRET_KEY
+    ?? (process.env.NODE_ENV === 'production' ? undefined : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  if (!url || !key) return false
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/staff_positions?person_id=eq.${personId}&is_head=eq.true&select=end_date`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    )
+    if (!res.ok) return false
+    const today = todayISO()
+    return ((await res.json()) as { end_date: string | null }[])
+      .some(r => r.end_date === null || r.end_date > today)
+  } catch {
+    return false
+  }
 }
 
 export async function middleware(request: NextRequest) {
@@ -128,7 +152,11 @@ export async function middleware(request: NextRequest) {
     if (moduleCode && PROTECTED_MODULES.has(moduleCode) && !pathname.startsWith('/api/')) {
       if (!session.roles.includes('superadmin')) {
         const accessible = await fetchAccessibleModules(session.roles, session.person_id)
-        if (!accessible.includes(moduleCode)) {
+        // «אבטחת מידע»: глава отдела входит и без data_security.access — в
+        // ограниченном режиме. Здесь только пропуск к странице; что именно ему
+        // видно, считает сама страница (lib/data-security/head-scope.ts).
+        if (!accessible.includes(moduleCode)
+          && !(moduleCode === 'data_security' && await isActiveUnitHead(session.person_id))) {
           return NextResponse.redirect(new URL('/dashboard', request.url))
         }
       }

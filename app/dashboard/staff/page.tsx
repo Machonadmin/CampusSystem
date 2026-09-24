@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
@@ -16,8 +17,8 @@ import EmployeeCard from './components/EmployeeCard'
 import HealthPanel from './components/HealthPanel'
 import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
 import {
-  RolesModal, AddUserModal, EditUserModal, RoleBadge,
-  type UserRow, type Role, type PersonResult,
+  AddUserModal, EditUserModal, RoleBadge,
+  type UserRow, type PersonResult,
 } from '@/app/dashboard/settings/users/UsersAccessPanel'
 import { roleLabel } from '@/lib/roles/role-label'
 import { getModuleColor } from '@/lib/module-colors'
@@ -107,8 +108,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   // Пространства имён «משתמשים וגישה» — переиспользуем её модалки прямо здесь,
   // раз вкладки слиты в одну (запрос владельца).
   const tUsers = useTranslations('settings.users')
-  const tCat = useTranslations('settings.categories')
   const me = useMe()
+  const router = useRouter()
   const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,8 +121,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 
   // Доступ/аккаунты (только superadmin — как и API /api/settings/users).
   const [users, setUsers] = useState<UserRow[]>([])
-  const [allRoles, setAllRoles] = useState<Role[]>([])
-  const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
   const [editTarget, setEditTarget] = useState<UserRow | null>(null)
   const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -155,10 +154,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
 
   const loadUsers = useCallback(async () => {
     if (!isSuperadmin) return
-    const [uRes, rRes] = await Promise.all([fetch('/api/settings/users'), fetch('/api/settings/roles')])
+    const uRes = await fetch('/api/settings/users')
     if (uRes.ok) setUsers(await uRes.json())
-    if (rRes.ok) setAllRoles(await rRes.json())
   }, [isSuperadmin])
+
+  // Роли и права правятся ТОЛЬКО в «אבטחת מידע» (решение владельца): здесь их
+  // лишь показываем, а «ניהול תפקידים» ведёт туда, сразу на этого человека.
+  const openInDataSecurity = (personId: string) =>
+    router.push(`/dashboard/data-security?tab=person&person=${encodeURIComponent(personId)}`)
 
   useEffect(() => { loadUsers() }, [loadUsers, refreshSignal, localRefresh])
 
@@ -217,7 +220,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   }
   function accessActions(user: UserRow): RowAction[] {
     return [
-      { key: 'roles', label: tUsers('manage_roles_button'), onClick: () => setRolesTarget(user) },
+      { key: 'roles', label: tUsers('manage_roles_button'), onClick: () => openInDataSecurity(user.person_id) },
       { key: 'account', label: tUsers('edit_button'), onClick: () => setEditTarget(user) },
     ]
   }
@@ -242,7 +245,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
             «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
             они отличаются). Единый экран делает всё: человек + должность +
-            подразделение + права + вход. Детальная форма осталась только как
+            подразделение + вход (права — только в «אבטחת מידע»). Детальная форма осталась только как
             «עריכת כל הפרטים» из карточки, логин — «צור התחברות» там же. */}
         {isSuperadmin ? (
           <PageActionButton
@@ -419,10 +422,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         )}
       </div>
 
-      {rolesTarget && (
-        <RolesModal user={rolesTarget} allRoles={allRoles} t={tUsers} tCat={tCat} tCommon={tCommon}
-          onClose={() => setRolesTarget(null)} onSaved={() => { setRolesTarget(null); setLocalRefresh(n => n + 1) }} />
-      )}
       {editTarget && (
         <EditUserModal user={editTarget} t={tUsers} tCommon={tCommon}
           onClose={() => setEditTarget(null)} onSaved={() => { setEditTarget(null); setLocalRefresh(n => n + 1) }} />
@@ -430,8 +429,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       {addPerson !== undefined && (
         <AddUserModal
           key={addPerson?.id ?? 'new'}
-          allRoles={allRoles}
-          t={tUsers} tCat={tCat} tCommon={tCommon}
+          t={tUsers} tCommon={tCommon}
           initialPerson={addPerson}
           onClose={() => setAddPerson(undefined)}
           onSaved={() => setLocalRefresh(n => n + 1)}
@@ -455,7 +453,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
             isSuperadmin={isSuperadmin}
             onClose={() => setCardTarget(null)}
             onEditDetails={editable ? () => { setCardTarget(null); onAdd(editable) } : null}
-            onManageRoles={cardUser ? () => { setCardTarget(null); setRolesTarget(cardUser) } : null}
+            onManageRoles={cardUser ? () => { setCardTarget(null); openInDataSecurity(cardUser.person_id) } : null}
             onEditAccount={cardUser ? () => { setCardTarget(null); setEditTarget(cardUser) } : null}
             onCreateLogin={!cardUser ? () => { setCardTarget(null); setAddPerson({ id: cardTarget.person_id, full_name: cardTarget.full_name, hebrew_name: cardTarget.hebrew_name, email: cardTarget.email }) } : null}
             onViewAs={() => viewAsUser(cardTarget.person_id)}
