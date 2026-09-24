@@ -137,6 +137,16 @@ export async function GET() {
     }
   } catch { /* deploy-безопасно */ }
 
+  // Имя для приветствия на главной. full_name хранится как «Фамилия Имя …», и
+  // главная брала первое слово — здоровалась по ФАМИЛИИ («ברוך הבא, כהן!»).
+  // Отдаём first_name отдельно. Ошибка чтения → null (главная просто без имени).
+  let first_name: string | null = null
+  try {
+    const sb3 = createServerClient()
+    const { data: pr } = await sb3.from('persons').select('first_name').eq('id', session.person_id).maybeSingle()
+    first_name = ((pr as { first_name: string | null } | null)?.first_name ?? '').trim() || null
+  } catch { /* deploy-безопасно */ }
+
   // «מרכז חברותא» — управляющий хаб (не журнал преподавателя). Доступ у
   // менеджера (staff-comp / manage_students), даже если он НЕ мора хавруты и у
   // роли нет модуля 'chavruta'. Отдаём флагом, чтобы сайдбар/главная показали
@@ -155,6 +165,7 @@ export async function GET() {
     person_id: session.person_id,
     login_email: session.login_email,
     full_name: session.full_name,
+    first_name,
     roles: session.roles,
     position_title,
     accessible_modules,

@@ -69,8 +69,9 @@ export default function SubjectsTab() {
         fetch(`/api/education/subjects?active_only=${showInactive ? 'false' : 'true'}`),
         fetch('/api/education/study-tracks'),
       ])
-      // 403 (study-tracks закрыт по правам; subjects открыт всем) → ForbiddenState вместо пустого списка с «+ מקצוע»
-      if (sResp.status === 403 || tResp.status === 403) { setForbidden(true); return }
+      // ForbiddenState только если закрыт сам список предметов; без study-tracks
+      // (403) экран работает, просто без фильтра по маршруту.
+      if (sResp.status === 403) { setForbidden(true); return }
       if (!sResp.ok) throw new Error(t('subjects.load_error').replace('{status}', String(sResp.status)))
       const sJson = await sResp.json()
       const tJson = tResp.ok ? await tResp.json() : { tracks: [] }

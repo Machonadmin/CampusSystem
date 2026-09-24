@@ -52,8 +52,10 @@ export default function KodeshCoursesClient() {
         fetch(`/api/education/class-groups?department_id=${KODESH_DEPT_ID}`),
         fetch('/api/education/teacher-approvals'),
       ])
-      // 403 (права даёт teacher-approvals; class-groups без прав отдаёт пустой список) → ForbiddenState
-      setForbidden(gRes.status === 403 || aRes.status === 403)
+      // ForbiddenState только если закрыт сам список курсов. 403 на teacher-approvals
+      // бывает и у законного зрителя (ראש מחלקה видит курсы, но не очередь рава) —
+      // тогда экран показываем, просто без пометок «ממתין».
+      setForbidden(gRes.status === 403)
       if (gRes.ok) { const b = await gRes.json(); setGroups(b.class_groups ?? []) }
       if (aRes.ok) { const b = await aRes.json(); setApprovals(b.approvals ?? []) }
     } finally { setLoading(false) }
