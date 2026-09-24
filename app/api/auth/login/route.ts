@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     const { data: readOnlyRow, error: _readOnlyErr } = await supabase
       .from('person_accounts')
       .select('read_only')
-      .eq('person_id', account.person_id)
-      .eq('login_email', account.login_email)
+      .eq('person_id', found.person_id)
+      .eq('login_email', found.login_email)
       .maybeSingle()
     const readOnly = (readOnlyRow as { read_only?: boolean } | null)?.read_only === true
 
