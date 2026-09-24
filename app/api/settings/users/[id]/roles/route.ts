@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   return session
 }
 
 // GET /api/settings/users/[id]/roles  — id = account id, pass person_id as query param
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()
@@ -24,18 +27,19 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
 // PUT /api/settings/users/[id]/roles — replace all roles
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await guard()
     const sb = createServerClient()
     const { person_id, role_ids } = await request.json() as { person_id: string; role_ids: string[] }
 
-    await sb.from('person_roles').delete().eq('person_id', person_id)
+    const { error: delErr } = await sb.from('person_roles').delete().eq('person_id', person_id)
+    if (delErr) throw delErr
 
     if (role_ids.length > 0) {
       const { error } = await sb.from('person_roles').insert(
@@ -47,6 +51,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

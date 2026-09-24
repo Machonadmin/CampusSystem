@@ -1,15 +1,35 @@
 import { SignJWT, jwtVerify, type JWTPayload as JosePayload } from 'jose'
-import { AUTH_CONFIG } from './config'
+import { AUTH_CONFIG, getJwtSecret } from './config'
 
 export interface SessionPayload extends JosePayload {
   person_id: string
   login_email: string
   full_name: string | null
   roles: string[]
+  // Тип принципала. Отсутствие поля ⇒ считаем 'staff' (обратная совместимость
+  // со старыми токенами). Студентка ВСЕГДА получает principal:'student' и
+  // student_journey_id, а roles:[] — она никогда не имеет ролей сотрудника.
+  principal?: 'staff' | 'student'
+  student_journey_id?: string
+  // Режим «просмотр как пользователь» (только superadmin): токен несёт личность
+  // ЦЕЛЕВОГО пользователя (person_id/roles — его), а imp_by/imp_by_name хранят,
+  // кто именно смотрит. Пока поле задано — сессия помечена как имперсонация:
+  // middleware переводит её в режим ТОЛЬКО ЧТЕНИЕ, а баннер даёт вернуться.
+  imp_by?: string
+  imp_by_name?: string | null
+  // Служебная учётная запись «только чтение» (person_accounts.read_only) —
+  // например, тестовый вход для агентов Claude. Middleware блокирует любой
+  // изменяющий вызов API так же, как в режиме «צפייה כמשתמש».
+  read_only?: boolean
+}
+
+/** Сессия, в которой запрещены любые изменения (имперсонация или read-only аккаунт). */
+export function isReadOnlySession(session: Pick<SessionPayload, 'imp_by' | 'read_only'>): boolean {
+  return !!session.imp_by || session.read_only === true
 }
 
 function getSecret(): Uint8Array {
-  return new TextEncoder().encode(AUTH_CONFIG.jwtSecret)
+  return new TextEncoder().encode(getJwtSecret())
 }
 
 export async function signToken(payload: Omit<SessionPayload, keyof JosePayload>): Promise<string> {

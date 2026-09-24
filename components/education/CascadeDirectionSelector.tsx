@@ -13,8 +13,8 @@ export interface CascadeValue {
 }
 
 interface Institution { id: string; name: string }
-interface Direction { id: string; name_ru: string; code: string | null; has_levels: boolean; sort_order: number }
-interface Level { id: string; name_ru: string; sort_order: number }
+interface Direction { id: string; name_ru: string; name?: string; code: string | null; has_levels: boolean; sort_order: number }
+interface Level { id: string; name_ru: string; name?: string; sort_order: number }
 
 interface Props {
   value: CascadeValue
@@ -26,10 +26,10 @@ interface Props {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '7px 10px', fontSize: 13,
-  border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+  border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
 }
 const lbl: React.CSSProperties = {
-  fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
+  fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block',
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -111,15 +111,15 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
       {/* Three selects in a horizontal grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'end' }}>
+      <div className="resp-grid-3" style={{ gap: '12px', alignItems: 'end' }}>
         {/* Учреждение */}
         <div>
           <label style={lbl}>{t('cascade.institution_label')}</label>
-          <select
+          <select aria-label={t('cascade.institution_label')}
             value={value.department_id ?? ''}
             onChange={e => handleInstitution(e.target.value)}
             disabled={disabled}
-            style={{ ...inp, color: value.department_id ? '#111827' : '#9CA3AF' }}
+            style={{ ...inp, color: value.department_id ? 'var(--text)' : 'var(--text-faint)' }}
           >
             <option value="">{t('cascade.institution_placeholder')}</option>
             {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
@@ -128,18 +128,18 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
 
         {/* Направление */}
         {loadingDirections ? (
-          <div style={{ fontSize: 12, color: '#9CA3AF', paddingBottom: 8 }}>{t('cascade.loading_directions')}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-faint)', paddingBottom: 8 }}>{t('cascade.loading_directions')}</div>
         ) : showDirections ? (
           <div>
             <label style={lbl}>{t('cascade.direction_label')}</label>
-            <select
+            <select aria-label={t('cascade.direction_label')}
               value={value.direction_id ?? ''}
               onChange={e => handleDirection(e.target.value)}
               disabled={disabled}
-              style={{ ...inp, color: value.direction_id ? '#111827' : '#9CA3AF' }}
+              style={{ ...inp, color: value.direction_id ? 'var(--text)' : 'var(--text-faint)' }}
             >
               <option value="">{t('cascade.direction_placeholder')}</option>
-              {directions!.map(d => <option key={d.id} value={d.id}>{d.name_ru}</option>)}
+              {directions!.map(d => <option key={d.id} value={d.id}>{d.name ?? d.name_ru}</option>)}
             </select>
           </div>
         ) : null}
@@ -148,14 +148,14 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
         {showLevels ? (
           <div>
             <label style={lbl}>{t('cascade.level_label')}</label>
-            <select
+            <select aria-label={t('cascade.level_label')}
               value={value.level_id ?? ''}
               onChange={e => handleLevel(e.target.value)}
               disabled={disabled}
-              style={{ ...inp, color: value.level_id ? '#111827' : '#9CA3AF' }}
+              style={{ ...inp, color: value.level_id ? 'var(--text)' : 'var(--text-faint)' }}
             >
               <option value="">{t('cascade.level_placeholder')}</option>
-              {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name_ru}</option>)}
+              {(levels ?? []).map(l => <option key={l.id} value={l.id}>{l.name ?? l.name_ru}</option>)}
             </select>
           </div>
         ) : null}
@@ -165,7 +165,7 @@ export default function CascadeDirectionSelector({ value, onChange, disabled = f
       {showFreeText && (
         <div>
           <label style={lbl}>{t('cascade.free_text_label')}</label>
-          <textarea
+          <textarea aria-label={t('cascade.free_text_label')}
             value={value.free_text ?? ''}
             onChange={e => handleFreeText(e.target.value)}
             disabled={disabled}

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDateLong } from '@/lib/i18n/format-date'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,9 +45,9 @@ function ScaleInput({ value, onChange, disabled, err }: {
         <button key={n} type="button" disabled={disabled} onClick={() => onChange(n)}
           style={{
             width: 44, height: 44, borderRadius: 8, fontSize: 15, fontWeight: 700,
-            border: `2px solid ${value === n ? '#BE185D' : err ? '#FCA5A5' : '#E5E7EB'}`,
-            backgroundColor: value === n ? '#BE185D' : '#fff',
-            color: value === n ? '#fff' : '#374151',
+            border: `2px solid ${value === n ? '#BE185D' : err ? 'var(--danger)' : 'var(--border)'}`,
+            backgroundColor: value === n ? '#BE185D' : 'var(--surface)',
+            color: value === n ? 'var(--surface)' : 'var(--text)',
             cursor: disabled ? 'default' : 'pointer', transition: 'all 0.1s',
           }}
         >{n}</button>
@@ -59,9 +61,9 @@ function YNPInput({ value, onChange, disabled, err }: {
 }) {
   const t = useTranslations('quality')
   const opts = [
-    { v: 'yes',     l: t('fill.option_yes'),     c: '#16A34A', bg: '#F0FDF4' },
-    { v: 'no',      l: t('fill.option_no'),      c: '#DC2626', bg: '#FEF2F2' },
-    { v: 'partial', l: t('fill.option_partial'), c: '#D97706', bg: '#FFFBEB' },
+    { v: 'yes',     l: t('fill.option_yes'),     c: 'var(--success)', bg: 'var(--success-tint)' },
+    { v: 'no',      l: t('fill.option_no'),      c: 'var(--danger)', bg: 'var(--danger-tint)' },
+    { v: 'partial', l: t('fill.option_partial'), c: 'var(--warn)', bg: 'var(--warn-tint)' },
   ] as const
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -71,8 +73,8 @@ function YNPInput({ value, onChange, disabled, err }: {
           <button key={o.v} type="button" disabled={disabled} onClick={() => onChange(o.v)}
             style={{
               padding: '7px 18px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: `2px solid ${sel ? o.c : err ? '#FCA5A5' : '#E5E7EB'}`,
-              backgroundColor: sel ? o.bg : '#fff', color: sel ? o.c : '#374151',
+              border: `2px solid ${sel ? o.c : err ? 'var(--danger)' : 'var(--border)'}`,
+              backgroundColor: sel ? o.bg : 'var(--surface)', color: sel ? o.c : 'var(--text)',
               cursor: disabled ? 'default' : 'pointer', transition: 'all 0.1s',
             }}
           >{o.l}</button>
@@ -105,21 +107,21 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
         return (
           <input type="number" value={typeof val === 'number' ? val : ''} disabled={disabled}
             onChange={e => updateVal(e.target.value !== '' ? Number(e.target.value) : null)}
-            style={{ width: 110, padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none' }} />
+            style={{ width: 110, padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none' }} />
         )
       case 'text_short':
         return (
-          <input type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
+          <input aria-label={t('fill.answer_placeholder_short')} type="text" value={typeof val === 'string' ? val : ''} disabled={disabled}
             placeholder={t('fill.answer_placeholder_short')}
             onChange={e => updateVal(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? '#F9FAFB' : '#fff' }} />
+            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
         )
       case 'text_long':
         return (
-          <textarea value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
+          <textarea aria-label={t('fill.answer_placeholder_long')} value={typeof val === 'string' ? val : ''} disabled={disabled} rows={3}
             placeholder={t('fill.answer_placeholder_long')}
             onChange={e => updateVal(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? '#F9FAFB' : '#fff' }} />
+            style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${err ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: disabled ? 'var(--surface-2)' : 'var(--surface)' }} />
         )
     }
   }
@@ -127,13 +129,13 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
   return (
     <div style={{ marginBottom: 22 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
-        <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, flex: 1 }}>
+        <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5, flex: 1 }}>
           {q.text}
-          {q.required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+          {q.required && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
         </span>
         {!disabled && (
           <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px 4px', borderRadius: 4, color: entry.comment ? '#3B82F6' : '#D1D5DB', flexShrink: 0, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px 4px', borderRadius: 4, color: entry.comment ? 'var(--accent)' : 'var(--border-strong)', flexShrink: 0, transition: 'color 0.15s' }}>
             💬
           </button>
         )}
@@ -141,13 +143,13 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
 
       {inputEl()}
 
-      {err && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
+      {err && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{t('fill.required_field')}</p>}
 
       {(commentOpen || (disabled && entry.comment)) && (
-        <textarea value={comment} disabled={disabled} rows={2}
+        <textarea aria-label={t('fill.comment_placeholder')} value={comment} disabled={disabled} rows={2}
           placeholder={t('fill.comment_placeholder')}
           onChange={e => updateComment(e.target.value)}
-          style={{ marginTop: 8, width: '100%', padding: '7px 10px', fontSize: 12, color: '#374151', border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', resize: 'vertical', backgroundColor: '#F9FAFB', boxSizing: 'border-box' }} />
+          style={{ marginTop: 8, width: '100%', padding: '7px 10px', fontSize: 12, color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 6, outline: 'none', resize: 'vertical', backgroundColor: 'var(--surface-2)', boxSizing: 'border-box' }} />
       )}
     </div>
   )
@@ -157,9 +159,9 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
 
 function BlockCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', marginBottom: 16, overflow: 'hidden' }}>
-      <div style={{ padding: '12px 20px', backgroundColor: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
-        <h3 style={{ fontSize: 13, fontWeight: 700, color: '#374151', margin: 0 }}>{title}</h3>
+    <div style={{ backgroundColor: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', marginBottom: 16, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 20px', backgroundColor: 'var(--surface-2)', borderBottom: '1px solid var(--surface-2)' }}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{title}</h3>
       </div>
       <div style={{ padding: '20px' }}>{children}</div>
     </div>
@@ -169,9 +171,9 @@ function BlockCard({ title, children }: { title: string; children: React.ReactNo
 // ── Status constants ──────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, [string, string]> = {
-  planned:     ['#EFF6FF', '#3B82F6'],
-  in_progress: ['#FFFBEB', '#D97706'],
-  completed:   ['#F0FDF4', '#16A34A'],
+  planned:     ['var(--accent-tint)', 'var(--accent)'],
+  in_progress: ['var(--warn-tint)', 'var(--warn)'],
+  completed:   ['var(--success-tint)', 'var(--success)'],
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -179,14 +181,17 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 export default function FillCheckPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const goBack = useSafeBack('/dashboard/quality-control')
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const { isOpen, isMobile } = useSidebar()
   const footerLeft = isMobile ? 0 : isOpen ? 240 : 56
 
   const [check, setCheck] = useState<CheckFull | null>(null)
   const [tmpl, setTmpl] = useState<TData | null>(null)
+  const [templateError, setTemplateError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -225,6 +230,7 @@ export default function FillCheckPage() {
         if (c.template_id) {
           const tr = await fetch(`/api/settings/quality-templates/${c.template_id}`)
           if (tr.ok) setTmpl(await tr.json())
+          else setTemplateError(true)
         }
       } finally {
         setLoading(false)
@@ -328,10 +334,10 @@ export default function FillCheckPage() {
 
   // ── Render guards ──
   if (loading) {
-    return <div style={{ padding: 48, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
+    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
   }
   if (!check) {
-    return <div style={{ padding: 48, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{t('fill.not_found')}</div>
+    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{t('fill.not_found')}</div>
   }
 
   const blocks = tmpl?.structure.blocks ?? []
@@ -339,12 +345,10 @@ export default function FillCheckPage() {
   const summaryBlock = blocks.find(b => b.type === 'summary')
   const contentBlocks = blocks.filter(b => b.type !== 'admin_info' && b.type !== 'summary')
 
-  const [sBg, sColor] = STATUS_COLOR[check.status] ?? ['#F3F4F6', '#6B7280']
+  const [sBg, sColor] = STATUS_COLOR[check.status] ?? ['var(--surface-2)', 'var(--text-muted)']
 
   function fmtDate(d: string) {
-    try {
-      return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
-    } catch { return d }
+    return formatDateLong(d, lang)
   }
 
   return (
@@ -359,8 +363,8 @@ export default function FillCheckPage() {
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', margin: '16px 0 20px', flexWrap: 'wrap', gap: 10 }}>
           <div>
-            <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>{t('fill.page_title')}</h1>
-            {tmpl && <p style={{ fontSize: 12, color: '#6B7280', marginTop: 3 }}>{tmpl.name}</p>}
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('fill.page_title')}</h1>
+            {tmpl && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{tmpl.name}</p>}
           </div>
           <span style={{ padding: '4px 14px', borderRadius: 20, backgroundColor: sBg, color: sColor, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
             {t(`status.${check.status}`, check.status)}
@@ -368,7 +372,7 @@ export default function FillCheckPage() {
         </div>
 
         {saveError && (
-          <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 8, fontSize: 13, color: '#DC2626' }}>
+          <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: 'var(--danger-tint)', border: '1px solid var(--danger-tint)', borderRadius: 8, fontSize: 13, color: 'var(--danger)' }}>
             {saveError}
           </div>
         )}
@@ -385,8 +389,8 @@ export default function FillCheckPage() {
               [t('fill.field_course_subject'), check.course_name ?? '—'],
             ].map(([label, value]) => (
               <div key={label}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 2, fontWeight: 600 }}>{label}</p>
-                <p style={{ fontSize: 13, color: '#111827', fontWeight: 500, margin: 0 }}>{value}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 2, fontWeight: 600 }}>{label}</p>
+                <p style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500, margin: 0 }}>{value}</p>
               </div>
             ))}
           </div>
@@ -398,35 +402,35 @@ export default function FillCheckPage() {
             <input type="checkbox" checked={startedOnTime} disabled={isRO}
               onChange={e => setStartedOnTime(e.target.checked)}
               style={{ width: 16, height: 16, accentColor: '#BE185D' }} />
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('fill.started_on_time')}</span>
+            <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{t('fill.started_on_time')}</span>
           </label>
 
           {!startedOnTime && (
-            <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 12, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '140px minmax(0, 1fr)', gap: 12, marginBottom: 14 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                   {t('fill.delay_minutes_label')}
-                  {errs['delayMin'] && <span style={{ color: '#EF4444' }}> *</span>}
+                  {errs['delayMin'] && <span style={{ color: 'var(--danger)' }}> *</span>}
                 </label>
                 <input type="number" min={1} value={delayMin ?? ''} disabled={isRO}
                   onChange={e => setDelayMin(e.target.value ? Number(e.target.value) : null)}
-                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: `1px solid ${errs['delayMin'] ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: `1px solid ${errs['delayMin'] ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.delay_reason_label')}</label>
-                <input type="text" value={delayReason} disabled={isRO} placeholder={t('fill.delay_reason_placeholder')}
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.delay_reason_label')}</label>
+                <input aria-label={t('fill.delay_reason_label')} type="text" value={delayReason} disabled={isRO} placeholder={t('fill.delay_reason_placeholder')}
                   onChange={e => setDelayReason(e.target.value)}
-                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             </div>
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.tech_issues_label')}</label>
-            <textarea value={techIssues} disabled={isRO} rows={2}
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.tech_issues_label')}</label>
+            <textarea aria-label={t('fill.tech_issues_label')} value={techIssues} disabled={isRO} rows={2}
               placeholder={t('fill.tech_issues_placeholder')}
               onChange={e => setTechIssues(e.target.value)}
-              style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? '#F9FAFB' : '#fff' }} />
+              style={{ width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
           </div>
         </BlockCard>
 
@@ -434,7 +438,7 @@ export default function FillCheckPage() {
         {contentBlocks.map(block => (
           <BlockCard key={block.id} title={block.title}>
             {(block.questions ?? []).length === 0 ? (
-              <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>{t('fill.no_questions_block')}</p>
+              <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: 0 }}>{t('fill.no_questions_block')}</p>
             ) : (
               (block.questions ?? []).map(q => (
                 <QuestionRow key={q.id} q={q} entry={getEntry(q)} onChange={e => setEntry(q, e)} disabled={isRO} err={errs[q.id]} />
@@ -444,8 +448,10 @@ export default function FillCheckPage() {
         ))}
 
         {!tmpl && (
-          <div style={{ backgroundColor: '#F9FAFB', borderRadius: 10, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16, textAlign: 'center' }}>
-            <p style={{ color: '#9CA3AF', fontSize: 13, margin: 0 }}>{t('fill.no_template_hint')}</p>
+          <div style={{ backgroundColor: templateError ? 'var(--danger-tint)' : 'var(--surface-2)', borderRadius: 10, border: `1px solid ${templateError ? 'var(--danger)' : 'var(--border)'}`, padding: '16px 20px', marginBottom: 16, textAlign: 'center' }}>
+            <p style={{ color: templateError ? 'var(--danger)' : 'var(--text-faint)', fontSize: 13, margin: 0 }}>
+              {templateError ? t('fill.template_load_error') : t('fill.no_template_hint')}
+            </p>
           </div>
         )}
 
@@ -463,30 +469,30 @@ export default function FillCheckPage() {
                 { key: 'actionItem', label: t('fill.action_item_label'), val: actionItem,  set: setActionItem,req: false },
               ].map(f => (
                 <div key={f.key}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                     {f.label}
-                    {f.req && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+                    {f.req && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
                   </label>
-                  <textarea value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
+                  <textarea aria-label={`${f.label}...`} value={f.val} disabled={isRO} rows={3} placeholder={`${f.label}...`}
                     onChange={e => f.set(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${errs[f.key] ? '#FCA5A5' : '#D1D5DB'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? '#F9FAFB' : '#fff' }} />
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: `1px solid ${errs[f.key] ? 'var(--danger)' : 'var(--border-strong)'}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
                 </div>
               ))}
 
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
-                  {t('fill.overall_rating_label')} <span style={{ color: '#EF4444' }}>*</span>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>
+                  {t('fill.overall_rating_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <ScaleInput value={rating} onChange={setRating} disabled={isRO} err={!!errs['rating']} />
-                {errs['rating'] && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{t('fill.required_field')}</p>}
+                {errs['rating'] && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{t('fill.required_field')}</p>}
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{t('fill.feedback_label')}</label>
-                <textarea value={feedback} disabled={isRO} rows={3}
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{t('fill.feedback_label')}</label>
+                <textarea aria-label={t('fill.feedback_label')} value={feedback} disabled={isRO} rows={3}
                   placeholder={t('fill.feedback_placeholder')}
                   onChange={e => setFeedback(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? '#F9FAFB' : '#fff' }} />
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box', backgroundColor: isRO ? 'var(--surface-2)' : 'var(--surface)' }} />
               </div>
             </div>
           )}
@@ -496,29 +502,30 @@ export default function FillCheckPage() {
       {/* ── Sticky footer ── */}
       <div style={{
         position: 'fixed', bottom: 0,
-        left: footerLeft, right: 0, zIndex: 50,
-        backgroundColor: '#fff', borderTop: '1px solid #E5E7EB',
+        insetInlineStart: footerLeft, insetInlineEnd: 0, zIndex: 50,
+        backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)',
         padding: '12px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
-        transition: 'left 0.2s ease',
+        transition: 'inset-inline-start 0.2s ease',
       }}>
         {saveError && (
-          <span style={{ fontSize: 12, color: '#DC2626', flex: 1, marginRight: 8 }}>{saveError}</span>
+          <span style={{ fontSize: 12, color: 'var(--danger)', flex: 1, marginInlineEnd: 8 }}>{saveError}</span>
         )}
-        <Link href="/dashboard/quality-control"
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, color: '#374151', textDecoration: 'none', backgroundColor: '#fff' }}>
+        {/* «Назад» — реальная история (на ту вкладку списка, откуда пришли). */}
+        <button type="button" onClick={goBack}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'inherit' }}>
           {tCommon('back')}
-        </Link>
+        </button>
         {!isRO && (
           <>
-            <button type="button" onClick={() => handleSave(false)} disabled={saving}
-              style={{ padding: '8px 18px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: saving ? 'not-allowed' : 'pointer', color: '#374151', fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
-              {saving ? t('fill.saving') : t('fill.save_draft')}
-            </button>
-            <button type="button" onClick={() => handleSave(true)} disabled={saving}
+            <SubmitButton type="button" onClick={() => handleSave(false)} loading={saving} loadingLabel={t('fill.saving')}
+              style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: saving ? 'not-allowed' : 'pointer', color: 'var(--text)', fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
+              {t('fill.save_draft')}
+            </SubmitButton>
+            <SubmitButton type="button" onClick={() => handleSave(true)} loading={saving} loadingLabel={t('fill.saving')}
               style={{ padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6, background: saving ? '#F9A8D4' : '#BE185D', cursor: saving ? 'not-allowed' : 'pointer', color: '#fff', fontWeight: 600 }}>
-              {saving ? t('fill.saving') : t('fill.complete_check')}
-            </button>
+              {t('fill.complete_check')}
+            </SubmitButton>
           </>
         )}
       </div>

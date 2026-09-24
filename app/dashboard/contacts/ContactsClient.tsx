@@ -1,0 +1,420 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { requiredFieldMsg } from '@/lib/i18n/required'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { Button } from '@/components/ui/Button'
+import { downloadCsv } from '@/lib/csv'
+import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
+import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+
+interface Contact {
+  id: string
+  name: string
+  contact_type: string
+  category: string
+  email: string | null
+  phone: string | null
+  address: string | null
+  website: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+}
+
+interface FormState {
+  name: string
+  contact_type: string
+  category: string
+  email: string
+  phone: string
+  address: string
+  website: string
+  contact_person: string
+  notes: string
+  is_active: boolean
+}
+
+const EMPTY_FORM: FormState = {
+  name: '', contact_type: 'organization', category: 'other',
+  email: '', phone: '', address: '', website: '',
+  contact_person: '', notes: '', is_active: true,
+}
+
+export default function ContactsClient({ canManage }: { canManage: boolean }) {
+  const t = useTranslations('contacts')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
+  const primary = getModuleColor('contacts', 'primary')
+  const light = getModuleColor('contacts', 'light')
+
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [stats, setStats] = useState<ContactStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+
+  // inline editor: null — закрыт; '' — новый контакт; иначе id редактируемого
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch('/api/contacts')
+      if (res.status === 403) { setError(t('list.forbidden')); setContacts([]); setStats(null); return }
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('list.load_error')); setContacts([]); setStats(null); return
+      }
+      const b = await res.json()
+      setContacts(b.contacts ?? [])
+      setStats(b.stats ?? null)
+    } catch {
+      setError(t('list.load_error')); setContacts([]); setStats(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => { load() }, [load])
+
+  const filtered = useMemo(() => {
+    let list = contacts
+    if (categoryFilter) list = list.filter(c => c.category === categoryFilter)
+    if (search.trim()) list = list.filter(c => matchesSearch(c, search))
+    return list
+  }, [contacts, search, categoryFilter])
+
+  function openNew() {
+    setForm(EMPTY_FORM)
+    setFormError(null)
+    setEditingId('')
+  }
+
+  function openEdit(c: Contact) {
+    if (!canManage) return
+    setForm({
+      name: c.name,
+      contact_type: c.contact_type,
+      category: c.category,
+      email: c.email ?? '',
+      phone: c.phone ?? '',
+      address: c.address ?? '',
+      website: c.website ?? '',
+      contact_person: c.contact_person ?? '',
+      notes: c.notes ?? '',
+      is_active: c.is_active,
+    })
+    setFormError(null)
+    setEditingId(c.id)
+  }
+
+  function closeForm() {
+    setEditingId(null)
+    setFormError(null)
+  }
+
+  async function save() {
+    if (!form.name.trim()) { setFormError(requiredFieldMsg(tCommon, t('fields.name'))); return }
+    if (form.email.trim() && !isValidEmail(form.email.trim())) {
+      setFormError(t('form.email_invalid')); return
+    }
+    setBusy(true); setFormError(null)
+    try {
+      const payload = {
+        name: form.name.trim(),
+        contact_type: form.contact_type,
+        category: form.category,
+        email: form.email.trim() || null,
+        phone: form.phone.trim() || null,
+        address: form.address.trim() || null,
+        website: form.website.trim() || null,
+        contact_person: form.contact_person.trim() || null,
+        notes: form.notes.trim() || null,
+        is_active: form.is_active,
+      }
+      const res = editingId === ''
+        ? await fetch('/api/contacts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await fetch(`/api/contacts/${editingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setFormError(b.error ?? t('errors.save')); return
+      }
+      closeForm()
+      await load()
+    } catch {
+      setFormError(t('errors.save'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove() {
+    if (!editingId) return
+    if (!(await confirmDialog({ message: t('delete_confirm'), tone: 'danger' }))) return
+    setBusy(true); setFormError(null)
+    try {
+      const res = await fetch(`/api/contacts/${editingId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setFormError(b.error ?? t('errors.action')); return
+      }
+      closeForm()
+      await load()
+    } catch {
+      setFormError(t('errors.action'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm(f => ({ ...f, [key]: value }))
+  }
+
+  function exportCsv() {
+    const headers = [t('list.name'), t('list.type'), t('list.category'), t('list.email'), t('list.phone')]
+    const data = filtered.map(c => [
+      c.name,
+      t(`types.${c.contact_type}`),
+      t(`categories.${c.category}`),
+      c.email ?? '',
+      c.phone ?? '',
+    ])
+    downloadCsv('contacts', [headers, ...data])
+  }
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} />
+
+      {/* Header */}
+      <ModuleHeader
+        module="contacts"
+        title={t('title')}
+        subtitle={t('list.subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={openNew} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)',
+              borderRadius: 8, background: 'var(--surface-2)', color: primary, cursor: 'pointer',
+            }}>
+              {t('list.new_contact')}
+            </button>
+          )}
+        </>}
+      />
+
+      {/* Stats bar */}
+      {stats && (
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 16px',
+          display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
+        }}>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}>
+            <b style={{ color: primary }}>{stats.total}</b> · {t('stats.total')}
+          </span>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}>
+            <b style={{ color: primary }}>{stats.active}</b> · {t('stats.active')}
+          </span>
+          {CONTACT_CATEGORIES.filter(cat => (stats.by_category[cat] ?? 0) > 0).map(cat => (
+            <span key={cat} style={{
+              fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
+              background: light, color: 'var(--violet)',
+            }}>
+              {t(`categories.${cat}`)} · {stats.by_category[cat]}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Search + category filter */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <input aria-label={t('list.search_placeholder')}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('list.search_placeholder')}
+          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
+        />
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
+        >
+          <option value="">{t('list.all_categories')}</option>
+          {CONTACT_CATEGORIES.map(cat => (
+            <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
+          ))}
+        </select>
+        <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ marginInlineStart: 'auto' }}>
+          <DownloadIcon /> {tCommon('export_csv')}
+        </Button>
+      </div>
+
+      {/* Inline editor */}
+      {canManage && editingId !== null && (
+        <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>
+            {editingId === '' ? t('form.new_title') : t('form.edit_title')}
+          </h2>
+          {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <Field label={`${t('fields.name')} *`}>
+              <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
+            </Field>
+            <Field label={t('fields.contact_type')}>
+              <select value={form.contact_type} onChange={e => setField('contact_type', e.target.value)} style={inp}>
+                {CONTACT_TYPES.map(tp => (
+                  <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t('fields.category')}>
+              <select value={form.category} onChange={e => setField('category', e.target.value)} style={inp}>
+                {CONTACT_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t('fields.email')}>
+              <input value={form.email} onChange={e => setField('email', e.target.value)} style={inp} />
+            </Field>
+            <Field label={t('fields.phone')}>
+              <input value={form.phone} onChange={e => setField('phone', e.target.value)} style={inp} />
+            </Field>
+            <Field label={t('fields.contact_person')}>
+              <input value={form.contact_person} onChange={e => setField('contact_person', e.target.value)} style={inp} />
+            </Field>
+            <Field label={t('fields.address')} full>
+              <input value={form.address} onChange={e => setField('address', e.target.value)} style={inp} />
+            </Field>
+            <Field label={t('fields.website')} full>
+              <input value={form.website} onChange={e => setField('website', e.target.value)} placeholder="https://" style={inp} />
+            </Field>
+            <Field label={t('fields.notes')} full>
+              <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} style={area} />
+            </Field>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.is_active}
+              onChange={e => setField('is_active', e.target.checked)}
+            />
+            {t('fields.is_active')}
+          </label>
+          <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            <Button onClick={closeForm} disabled={busy}>{tCommon('cancel')}</Button>
+            {editingId !== '' && (
+              <Button variant="danger" onClick={remove} disabled={busy} style={{ marginInlineStart: 'auto' }}>
+                {tCommon('delete')}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Directory list */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
+        {error ? (
+          <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+        ) : loading ? (
+          <SkeletonRows avatar={false} rows={6} />
+        ) : filtered.length === 0 ? (
+          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        ) : (
+          <div className="anim-rise" style={{ overflowX: 'auto' }}>
+            <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {[t('list.name'), t('list.type'), t('list.category'), t('list.email'), t('list.phone'), t('list.status')].map((h, i) => (
+                    <th key={i} style={th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(c => (
+                  <tr
+                    key={c.id}
+                    onClick={() => openEdit(c)}
+                    style={{ cursor: canManage ? 'pointer' : 'default' }}
+                    onMouseEnter={e => { if (canManage) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
+                  >
+                    <td style={td} data-label={t('list.name')}>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{c.name}</div>
+                      {c.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{c.contact_person}</div>}
+                    </td>
+                    <td style={td} data-label={t('list.type')}>{t(`types.${c.contact_type}`)}</td>
+                    <td style={td} data-label={t('list.category')}>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--violet)' }}>
+                        {t(`categories.${c.category}`)}
+                      </span>
+                    </td>
+                    <td style={td} data-label={t('list.email')}>{c.email || '—'}</td>
+                    <td style={td} data-label={t('list.phone')}>{c.phone || '—'}</td>
+                    <td style={td} data-label={t('list.status')}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
+                        background: c.is_active ? light : 'var(--surface-2)',
+                        color: c.is_active ? 'var(--violet)' : 'var(--text-faint)',
+                      }}>
+                        {c.is_active ? t('status.active') : t('status.inactive')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+  return (
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+      {label}
+      {children}
+    </label>
+  )
+}
+
+const th: React.CSSProperties = {
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+  textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
+}
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', background: 'var(--surface)', boxSizing: 'border-box' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+
+function btn(bg: string): React.CSSProperties {
+  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+}

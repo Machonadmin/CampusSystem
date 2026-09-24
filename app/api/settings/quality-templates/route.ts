@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-}
 
 async function requireSuperadmin() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   return session
 }
 
@@ -52,7 +50,7 @@ export async function GET() {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -62,8 +60,8 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
     const body = await request.json() as { name?: string; description?: string; structure?: unknown }
 
-    if (!body.name?.trim()) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
-    if (!body.structure)    return NextResponse.json({ error: 'Структура обязательна' }, { status: 400 })
+    if (!body.name?.trim()) return apiError('title_required', 400)
+    if (!body.structure)    return apiError('structure_required', 400)
 
     const { data, error } = await sb
       .from('quality_check_templates')
@@ -80,6 +78,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

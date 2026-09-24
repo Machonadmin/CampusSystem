@@ -90,6 +90,59 @@ API `GET /api/education/leads` собирает интересы и отдаёт
 Права на странице подбираются через `pickPrivilege(education_status, …)`
 (см. [permissions.md](./permissions.md)).
 
+## Карточка студента и учебный цикл
+
+Страница `app/dashboard/education/students/[id]/page.tsx` **переиспользует
+тот же клиент `LeadViewClient`**, что и карточка лида/абитуриента (никакого
+дублирования — компонент получил опциональные props вместо выделения
+отдельного `JourneyViewClient`). Открывается по `id` = **journey_id**; если
+`education_status` не из учебного цикла (`lead`/`applicant`) — редирект на
+`/dashboard/education/leads/[id]`.
+
+Отличия от карточки лида:
+
+- дополнительная вкладка **«Учебный цикл»** (`card.tabs.study`) с блоком
+  академических данных (подразделение / специальность / базовая группа /
+  курс / год набора / дата зачисления) и панелью смены статуса
+  **`components/education/StudentLifecyclePanel.tsx`**;
+- справа — тот же `ProcessInfoBlock` (процесс «Приём», если journey прошёл
+  через движок);
+- карточка read-only по личным/академическим полям (кнопки «Редактировать»
+  нет: единый edit-эндпоинт `/api/education/leads/[id]` принимает только
+  лидов; редактирование студента — отдельная задача).
+
+### Смена статуса (переходы учебного цикла)
+
+Панель показывает текущий статус, историю (`person_status_history`) и
+кнопки допустимых переходов (только при праве `manage_students`):
+
+| Из | В | Условие |
+|----|---|---------|
+| `student` | `on_leave` (академ. отпуск) | модалка: причина + дата (обязательно) |
+| `on_leave` | `student` (возврат) | подтверждение, без причины/даты |
+| `student` | `graduated` (выпуск) | модалка: причина + дата (обязательно) |
+| `student` | `expelled` (отчисление) | модалка: причина + дата (обязательно) |
+
+`graduated` и `expelled` — терминальные (переходов из них нет).
+
+**Сервер:** `POST /api/education/journeys/[id]/transition`
+(`{ to_status, reason?, effective_date? }`). Право `manage_students` в
+`primary_department`, затем вызов RPC **`transition_education_status`**
+(миграция `20260705120100`) — атомарно (одна транзакция) валидирует
+переход, обновляет `education_status` и пишет `person_status_history`
+(`comment` = причина, `changed_at` = дата). Тот же паттерн, что у конверсий
+движка (`complete_stage`). Недопустимый переход / отсутствие причины/даты →
+`22023` (→ HTTP 400).
+
+> **Требуется миграция enum.** Значения `on_leave | graduated | expelled |
+> lost` добавляются в `person_education_status` миграцией
+> `20260705120000_extend_education_status_enum.sql` (применять ПЕРВОЙ,
+> вручную через Supabase Dashboard). До её применения БД знает только
+> `lead | applicant | student | alumni`, и любая запись/фильтр по новым
+> значениям падает с `22P02`. Список студентов при этом не ломается: `GET
+> /api/education/journeys` при `22P02` повторяет запрос только с базовыми
+> статусами (fallback).
+
 ## Вкладки страницы «Образование»
 
 | Вкладка | Содержимое | Источник данных |
@@ -97,6 +150,18 @@ API `GET /api/education/leads` собирает интересы и отдаёт
 | Набор | Лиды (`education_status = 'lead'`) | `GET /api/education/leads` |
 | Приём | Абитуриенты (`status = 'applicant'`) | `GET /api/education/journeys?status=applicant&with_stages=1` |
 | Учёба | Студенты/группы | `components/.../StudyTab` |
+
+Клик по ФИО студента (`StudentsTab`) открывает карточку
+`students/[id]`. Фильтр статуса передаётся как набор `education_status`
+через запятую (`GET /api/education/students?status=…`), который прокси
+ограничивает подмножеством учебного цикла и передаёт в
+`GET /api/education/journeys` (поддерживает список статусов через `.in`):
+
+| Фильтр | `status` |
+|--------|----------|
+| «Активные и в отпуске» (по умолчанию) | `student,on_leave` |
+| «Только активные» | `student` |
+| «Все статусы» | `student,on_leave,graduated,expelled` |
 
 ### Список лидов (вкладка «Набор»)
 

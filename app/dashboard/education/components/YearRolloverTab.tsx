@@ -1,0 +1,153 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+
+interface Settings {
+  rollover_month: number
+  rollover_day: number
+  auto_enabled: boolean
+  last_rolled_year: number | null
+}
+
+const accent = getModuleColor('education')
+
+// Заморожено по просьбе владельца: авто/ручной переход отключены (см. lib/education/year-rollover).
+// Тут только отражаем это в UI — снять флаг вместе с ROLLOVER_FROZEN в движке.
+const FROZEN = true
+
+export default function YearRolloverTab() {
+  const t = useTranslations('education.study')
+  const [settings, setSettings] = useState<Settings | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const resp = await fetch('/api/education/year-rollover')
+      if (!resp.ok) throw new Error(t('common.error_generic'))
+      const json = await resp.json()
+      setSettings(json.settings ?? null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('common.error_unknown'))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => { load() }, [load])
+
+  async function save() {
+    if (!settings) return
+    setSaving(true)
+    try {
+      const resp = await fetch('/api/education/year-rollover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          rollover_month: settings.rollover_month,
+          rollover_day: settings.rollover_day,
+          auto_enabled: settings.auto_enabled,
+        }),
+      })
+      if (!resp.ok) { const e = await resp.json().catch(() => ({})); toast(e.error ?? t('common.error_generic'), 'error'); return }
+      const json = await resp.json()
+      setSettings(json.settings ?? settings)
+      toast(t('rollover.saved'), 'success')
+    } finally { setSaving(false) }
+  }
+
+  async function runNow() {
+    if (!(await confirmDialog({ message: t('rollover.run_confirm') }))) return
+    setRunning(true)
+    try {
+      const resp = await fetch('/api/education/year-rollover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'run' }),
+      })
+      const json = await resp.json().catch(() => ({}))
+      if (!resp.ok) { toast(json.error ?? t('common.error_generic'), 'error'); return }
+      if (json.ran) {
+        toast(t('rollover.run_done').replace('{promoted}', String(json.promoted)).replace('{graduated}', String(json.graduated)), 'success')
+      } else {
+        toast(t('rollover.run_skipped'), 'info')
+      }
+      load()
+    } finally { setRunning(false) }
+  }
+
+  const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
+
+  if (loading) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+  if (error) return <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
+  if (!settings) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('rollover.not_ready')}</div>
+
+  return (
+    <div style={{ maxWidth: 560 }}>
+      <p style={{ margin: '0 0 16px', fontSize: 12.5, color: 'var(--text-faint)' }}>{t('rollover.hint')}</p>
+
+      {FROZEN && (
+        <div style={{ margin: '0 0 16px', padding: '10px 14px', background: 'var(--warn-tint)', color: 'var(--warn)', border: '1px solid var(--warn)', borderRadius: 8, fontSize: 12.5, fontWeight: 500 }}>
+          {t('rollover.frozen')}
+        </div>
+      )}
+
+      <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 16, marginBottom: 14 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: FROZEN ? 'not-allowed' : 'pointer', marginBottom: 14, opacity: FROZEN ? 0.6 : 1 }}>
+          <input type="checkbox" disabled={FROZEN} checked={settings.auto_enabled} onChange={e => setSettings({ ...settings, auto_enabled: e.target.checked })} />
+          {t('rollover.auto_enabled')}
+        </label>
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div>
+            <label style={lbl}>{t('rollover.month')}</label>
+            <select aria-label={t('rollover.month')} style={inp} value={settings.rollover_month} onChange={e => setSettings({ ...settings, rollover_month: Number(e.target.value) })}>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>{t('rollover.day')}</label>
+            <select aria-label={t('rollover.day')} style={inp} value={settings.rollover_day} onChange={e => setSettings({ ...settings, rollover_day: Number(e.target.value) })}>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <SubmitButton
+            onClick={save}
+            loading={saving}
+            disabled={saving || FROZEN}
+            loadingLabel={t('common.saving')}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
+          >
+            {t('common.save')}
+          </SubmitButton>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+          {settings.last_rolled_year
+            ? t('rollover.last_run').replace('{year}', String(settings.last_rolled_year))
+            : t('rollover.never_run')}
+        </div>
+        <div style={{ flex: 1 }} />
+        <SubmitButton
+          onClick={runNow}
+          loading={running}
+          disabled={running || FROZEN}
+          loadingLabel={t('common.saving')}
+          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: running ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: running || FROZEN ? 0.6 : 1 }}
+        >
+          {t('rollover.run_now')}
+        </SubmitButton>
+      </div>
+    </div>
+  )
+}

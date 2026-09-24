@@ -1,0 +1,59 @@
+name: E2E
+
+# E2E-тесты Playwright против ЖИВОГО staging. Опциональны: пока не задан
+# секрет STAGING_URL, шаг с тестами пропускается, и workflow остаётся зелёным.
+# Так CI не падает до создания staging (Layer 2).
+#
+# Как включить после создания staging:
+#   Settings → Secrets and variables → Actions → New repository secret
+#     STAGING_URL          — https://<ваш-staging>.vercel.app
+#     STAGING_E2E_USER      — email тестового пользователя в staging (необязательно)
+#     STAGING_E2E_PASS      — его пароль (необязательно)
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check staging configured
+        id: gate
+        run: |
+          if [ -z "${{ secrets.STAGING_URL }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "STAGING_URL не задан — E2E пропущены (это ок до создания staging)."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Playwright browser
+        if: steps.gate.outputs.configured == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          E2E_BASE_URL: ${{ secrets.STAGING_URL }}
+          E2E_USER: ${{ secrets.STAGING_E2E_USER }}
+          E2E_PASS: ${{ secrets.STAGING_E2E_PASS }}
+        run: npm run test:e2e
+
+      - name: Upload report
+        if: steps.gate.outputs.configured == 'true' && !cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -1,25 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 async function requireSuperadmin() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('Доступ запрещён'), { status: 403 })
+    throw Object.assign(new Error(serverT('access_denied')), { status: 403 })
   return session
 }
 
 // PATCH /api/workflow/stage-finals/[id] — name_ru, is_positive, sort_order (code не меняем)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -27,19 +22,24 @@ export async function PATCH(
       name_ru?: string
       is_positive?: boolean
       sort_order?: number
+      closes_process?: boolean
+      process_finish_reason?: string | null
     }
 
     const patch: Record<string, unknown> = {}
     if (body.name_ru !== undefined) {
       if (!body.name_ru.trim())
-        return NextResponse.json({ error: 'name_ru не может быть пустым' }, { status: 400 })
+        return apiError('name_ru_not_empty', 400)
       patch.name_ru = body.name_ru.trim()
     }
     if (body.is_positive !== undefined) patch.is_positive = body.is_positive
     if (body.sort_order !== undefined)  patch.sort_order  = body.sort_order
+    if (body.closes_process !== undefined) patch.closes_process = body.closes_process
+    if (body.process_finish_reason !== undefined)
+      patch.process_finish_reason = body.process_finish_reason?.trim() || null
 
     if (Object.keys(patch).length === 0)
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
 
     const { data, error } = await sb
       .from('stage_finals')
@@ -48,20 +48,18 @@ export async function PATCH(
       .select('*')
       .maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Финал не найден' }, { status: 404 })
+    if (!data) return apiError('final_not_found', 404)
 
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
 // DELETE /api/workflow/stage-finals/[id] — физическое, с проверкой stage_instances.final_code
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -72,7 +70,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!final) return NextResponse.json({ error: 'Финал не найден' }, { status: 404 })
+    if (!final) return apiError('final_not_found', 404)
 
     // Проверяем, не использован ли этот финал в stage_instances
     const { data: usedInstances, error: iErr } = await sb
@@ -84,10 +82,7 @@ export async function DELETE(
     if (iErr) throw iErr
 
     if (usedInstances && usedInstances.length > 0)
-      return NextResponse.json(
-        { error: 'Нельзя удалить: есть подэтапы, завершённые с этим финалом' },
-        { status: 400 }
-      )
+      return apiError('cannot_delete_final_used', 400)
 
     const { error } = await sb.from('stage_finals').delete().eq('id', params.id)
     if (error) throw error
@@ -95,6 +90,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

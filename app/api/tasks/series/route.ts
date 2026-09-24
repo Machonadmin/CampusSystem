@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
+import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import {
   generateSeriesDates,
   validateRecurrenceRule,
@@ -11,11 +14,6 @@ import type {
   TaskInsert, TaskModule, TaskPriority, TaskAssigneeType, Json,
 } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 /**
  * POST /api/tasks/series — создание серии повторяющихся задач.
@@ -42,6 +40,7 @@ async function requireAuth() {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
+    if (session.principal === 'student') return apiError('forbidden', 403)
     const personId = session.person_id
 
     const body = await request.json() as {
@@ -58,34 +57,32 @@ export async function POST(request: NextRequest) {
       due_all_day?: boolean
       recurrence_rule?: RecurrenceRule
       watchers?: string[]
+      is_maintenance?: boolean
     }
 
     // ─── Валидация title ───
     const title = body.title?.trim()
     if (!title) {
-      return NextResponse.json({ error: 'Заголовок обязателен' }, { status: 400 })
+      return apiError('heading_required', 400)
     }
     if (title.length > 500) {
-      return NextResponse.json({ error: 'Заголовок слишком длинный (макс 500)' }, { status: 400 })
+      return apiError('heading_too_long_500', 400)
     }
 
     // ─── Валидация start_date ───
     if (!body.start_date || !/^\d{4}-\d{2}-\d{2}$/.test(body.start_date)) {
-      return NextResponse.json(
-        { error: 'start_date обязателен в формате YYYY-MM-DD' },
-        { status: 400 }
-      )
+      return apiError('start_date_required_ymd', 400)
     }
 
     // ─── Валидация recurrence_rule ───
     if (!body.recurrence_rule) {
-      return NextResponse.json({ error: 'recurrence_rule обязателен' }, { status: 400 })
+      return apiError('recurrence_rule_required', 400)
     }
     try {
       validateRecurrenceRule(body.recurrence_rule)
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string }
-      return NextResponse.json({ error: err.message ?? 'Невалидное правило' }, { status: err.status ?? 400 })
+      return NextResponse.json({ error: err.message ?? serverT('invalid_rule') }, { status: err.status ?? 400 })
     }
 
     // ─── Назначение ───
@@ -102,29 +99,29 @@ export async function POST(request: NextRequest) {
       status = 'pending'
     } else if (assigneeMode === 'person') {
       if (!body.assignee_id) {
-        return NextResponse.json({ error: 'Не указан исполнитель' }, { status: 400 })
+        return apiError('assignee_not_specified', 400)
       }
       assignee_type = 'person'
       assignee_id = body.assignee_id
       status = 'pending'
     } else if (assigneeMode === 'department') {
       if (!body.department_id) {
-        return NextResponse.json({ error: 'Не указан отдел' }, { status: 400 })
+        return apiError('department_not_specified', 400)
       }
       assignee_type = 'department'
       department_id = body.department_id
       status = 'unassigned'
     } else {
-      return NextResponse.json({ error: 'Неизвестный режим назначения' }, { status: 400 })
+      return apiError('unknown_assignment_mode', 400)
     }
 
     // ─── Сроки ───
     const due_all_day = body.due_all_day ?? true
     if (due_all_day && body.due_time) {
-      return NextResponse.json({ error: 'Если "весь день" — время не указывается' }, { status: 400 })
+      return apiError('allday_no_time', 400)
     }
     if (!due_all_day && !body.due_time) {
-      return NextResponse.json({ error: 'Если "весь день" выключен — нужно указать время' }, { status: 400 })
+      return apiError('not_allday_time_required', 400)
     }
 
     // ─── Генерация дат ───
@@ -133,18 +130,31 @@ export async function POST(request: NextRequest) {
       dates = generateSeriesDates(body.recurrence_rule, body.start_date)
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string }
-      return NextResponse.json({ error: err.message ?? 'Ошибка генерации дат' }, { status: err.status ?? 400 })
+      return NextResponse.json({ error: err.message ?? serverT('date_generation_error') }, { status: err.status ?? 400 })
     }
 
     // ─── Батч-вставка ───
     const series_id = crypto.randomUUID()
     const ruleJson = body.recurrence_rule as unknown as Json
 
+    const sb = createServerClient()
+
+    // Метка «задача по эксплуатации» — те же правила, что для разовой задачи
+    // (см. POST /api/tasks): решает сервер, а не клиент. Метка ставится на ВСЕ
+    // задачи серии: каждое повторение — отдельная работа для техслужбы.
+    // Метка из тела запроса снимается всегда — см. POST /api/tasks.
+    let metadata = sanitizeIncomingMetadata(body.metadata)
+    if (body.is_maintenance) {
+      // staff === null → метку не ставим (fail-closed), см. POST /api/tasks.
+      const staff = await maintenanceStaffPersonIds(sb)
+      metadata = withMaintenanceFlag(metadata, !!staff && canBeMaintenanceTask(assignee_type, assignee_id, staff))
+    }
+
     const rows: TaskInsert[] = dates.map((d, idx) => ({
       title,
       description: body.description?.trim() || null,
       module: body.module ?? 'general',
-      metadata: (body.metadata ?? {}) as Json,
+      metadata: metadata as Json,
       assignee_type,
       assignee_id,
       department_id,
@@ -159,7 +169,6 @@ export async function POST(request: NextRequest) {
       recurrence_position: idx + 1,
     }))
 
-    const sb = createServerClient()
     const { data: created, error: insertErr } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,18 +178,19 @@ export async function POST(request: NextRequest) {
 
     if (insertErr) {
       const m = mapDbError(insertErr)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     // ─── История (только первая задача серии) ───
     if (created && created.length > 0) {
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: created[0].id,
         actor_id: personId,
         from_status: null,
         to_status: status,
         note: `Серия создана (${created.length} задач)`,
       })
+      if (histErr) console.error('[tasks series POST] status history insert:', histErr)
     }
 
     // ─── Watchers ───
@@ -210,8 +220,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

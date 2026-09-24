@@ -1,18 +1,38 @@
-import type { Metadata } from 'next'
-import { Heebo } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import '@fontsource-variable/rubik/wght.css'
 import './globals.css'
 import { getCookieLocale } from '@/lib/i18n/locale'
 
-const heebo = Heebo({
-  subsets: ['hebrew', 'latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-heebo',
-  display: 'swap',
-})
+// Rubik вместо Heebo: у Heebo НЕТ кириллицы — русский интерфейс падал в
+// системный шрифт и типографика «смешивалась». Rubik покрывает все три языка
+// приложения (иврит + латиница + кириллица) одним начертанием.
+//
+// Шрифт лежит в пакете @fontsource-variable/rubik и отдаётся с нашего же
+// домена, а не качается с Google Fonts при сборке (next/font/google): на
+// Next 15 сборка в Vercel падала на загрузке шрифта с Google. Файлы разбиты по
+// алфавитам (unicode-range) — браузер скачивает только нужные. Имя семейства
+// подставляется в --font-heebo в globals.css.
 
 export const metadata: Metadata = {
   title: 'CampusSystem',
   description: 'Campus Management System',
+  // iOS «Добавить на экран Домой»: отдельное окно + название под иконкой.
+  appleWebApp: { capable: true, title: 'מכון חמש', statusBarStyle: 'default' },
+}
+
+// Без width=device-width мобильные браузеры рендерят страницу на ~980px и
+// «отдаляют» — тогда любая адаптивная вёрстка не работает. Это база для мобилы.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // Тема следует настройке устройства; сообщаем браузеру про обе схемы, чтобы
+  // нативные элементы (скроллбары, поля) красились под текущую тему.
+  colorScheme: 'light dark',
+  // Цвет системной панели браузера/PWA — под фон приложения в каждой теме.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#eef1f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f1218' },
+  ],
 }
 
 export default function RootLayout({
@@ -23,8 +43,16 @@ export default function RootLayout({
   const locale = getCookieLocale()
   const dir = locale === 'he' ? 'rtl' : 'ltr'
   return (
-    <html lang={locale} dir={dir} className={heebo.variable}>
-      <body>{children}</body>
+    <html lang={locale} dir={dir}>
+      <body>
+        {/* Применяем сохранённый выбор темы ДО отрисовки — без мигания. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   )
 }

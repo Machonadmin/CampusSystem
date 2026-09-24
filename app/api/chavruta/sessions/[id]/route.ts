@@ -1,0 +1,89 @@
+import type { Database } from '@/types/database'
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/session'
+import { canManageStaffComp } from '@/lib/finance/staff-comp'
+import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * Одна запись хавруты (журнал моры).
+ *   PATCH  { summary?, private_notes? } — редактирование журнала.
+ *   DELETE — удалить ошибочную запись.
+ * Право: автор (person_id == session.person_id) ИЛИ менеджер (canManageStaffComp).
+ * private_notes видят только автор+менеджер (ученице НИКОГДА — см. student-sync).
+ * Деплой-безопасно (42P01).
+ */
+
+async function loadOwner(sb: ReturnType<typeof createServerClient>, id: string): Promise<{ person_id: string; entry_type: string } | null | 'missing_table'> {
+  try {
+    const { data, error } = await sb.from('staff_work_entries').select('person_id, entry_type').eq('id', id).maybeSingle()
+    if (error) throw error
+    return (data as { person_id: string; entry_type: string } | null) ?? null
+  } catch (e) {
+    if (isMissingTable(e)) return 'missing_table'
+    throw e
+  }
+}
+
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (session.principal === 'student') return apiError('forbidden', 403)
+
+    const sb = createServerClient()
+    const owner = await loadOwner(sb, params.id)
+    if (owner === 'missing_table') return apiError('feature_not_migrated', 503)
+    if (!owner || owner.entry_type !== 'chavruta') return apiError('not_found', 404)
+    const isAuthor = owner.person_id === session.person_id
+    if (!isAuthor && !(await canManageStaffComp(session))) return apiError('forbidden', 403)
+
+    const body = await request.json().catch(() => ({})) as { summary?: string; private_notes?: string }
+    const patch: Database['public']['Tables']['staff_work_entries']['Update'] = {}
+    if (body.summary !== undefined) patch.summary = (body.summary ?? '').trim() || null
+    if (body.private_notes !== undefined) patch.private_notes = (body.private_notes ?? '').trim() || null
+    if (Object.keys(patch).length === 0) return apiError('invalid_reference', 400)
+
+    const { data, error } = await sb.from('staff_work_entries')
+      .update(patch).eq('id', params.id)
+      .select('id, entry_date, amount, student_journey_id, summary, private_notes, created_at')
+      .single()
+    if (error) {
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
+    return NextResponse.json({ session: data })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return errorResponse(e)
+  }
+}
+
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (session.principal === 'student') return apiError('forbidden', 403)
+
+    const sb = createServerClient()
+    const owner = await loadOwner(sb, params.id)
+    if (owner === 'missing_table') return apiError('feature_not_migrated', 503)
+    if (!owner || owner.entry_type !== 'chavruta') return apiError('not_found', 404)
+    const isAuthor = owner.person_id === session.person_id
+    if (!isAuthor && !(await canManageStaffComp(session))) return apiError('forbidden', 403)
+
+    const { error } = await sb.from('staff_work_entries').delete().eq('id', params.id)
+    if (error) {
+      if (isMissingTable(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
+    return NextResponse.json({ ok: true })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return errorResponse(e)
+  }
+}

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchAllPages, requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { todayISO } from '@/lib/dates'
 import { requireEducationPrivilege, canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { phoneList } from '@/lib/persons/phone'
 import type { StartProcessResult } from '@/lib/workflow/start-process'
 import { getActiveStagesWithTasks } from '@/lib/workflow/active-stages'
 import type {
@@ -10,11 +13,7 @@ import type {
   JourneyCommunityInsert,
 } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/leads
@@ -30,53 +29,80 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth()
     const ok = await canDoEducationInAny(session, 'view_leads')
-    if (!ok) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (!ok) return apiError('forbidden', 403)
+    // Область: лиды НЕ фильтруются по подразделению — намеренно (решение владельца).
+    // Лид ещё не привязан к מחלקה; распределение/сегментация происходит только
+    // когда он становится студенткой (там уже действует scope по подразделению).
     const sb = createServerClient()
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
+    const mineOnly = request.nextUrl.searchParams.get('mine') === '1'
 
     // Просмотр удалённых — только manage_leads + scope=all
     if (processStatus === 'deleted') {
       const scope = await getEducationPrivilegeScope(session, 'manage_leads')
-      if (scope !== 'all') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      if (scope !== 'all') return apiError('forbidden', 403)
     }
 
-    let journeysQuery = sb
-      .from('education_journeys')
-      .select('id, person_id, referral_source, application_date, opened_at, notes, updated_at, is_deleted')
-      .eq('education_status', 'lead')
-      .order('updated_at', { ascending: false })
-
-    if (processStatus === 'deleted') {
-      journeysQuery = journeysQuery.eq('is_deleted', true)
-    } else {
-      journeysQuery = journeysQuery.eq('is_deleted', false)
+    // recruitment_stage может отсутствовать на свежей БД (миграция ещё не
+    // применена) — deploy-safe: при 42703 (undefined_column) повторяем select
+    // без этой колонки и подставляем 'interested' по умолчанию.
+    // Колонки передаём как обычную строку (не литерал): recruitment_stage ещё
+    // нет в сгенерированных типах БД, поэтому строгий парсер select() её не знает.
+    type JourneyRow = {
+      id: string
+      person_id: string
+      referral_source: string | null
+      application_date: string | null
+      opened_at: string | null
+      notes: string | null
+      updated_at: string | null
+      is_deleted: boolean
+      recruitment_stage?: string | null
+    }
+    const baseCols = 'id, person_id, referral_source, application_date, opened_at, notes, updated_at, is_deleted'
+    const buildQuery = (cols: string) => {
+      const q = sb
+        .from('education_journeys')
+        .select(cols)
+        .eq('education_status', 'lead')
+        .order('updated_at', { ascending: false })
+      return processStatus === 'deleted' ? q.eq('is_deleted', true) : q.eq('is_deleted', false)
     }
 
-    const { data: journeys, error: jErr } = await journeysQuery
-
-    if (jErr) throw jErr
+    // Постранично + стабильный ключ сортировки (updated_at не уникален).
+    const pageOf = (cols: string) => (from: number, to: number) =>
+      buildQuery(cols).order('id', { ascending: true }).range(from, to)
+    let journeys: JourneyRow[]
+    try {
+      journeys = await fetchAllPages<JourneyRow>(pageOf(`${baseCols}, recruitment_stage`))
+    } catch (e) {
+      if (!isMissingColumn(e)) throw e
+      journeys = await fetchAllPages<JourneyRow>(pageOf(baseCols))
+    }
     if (!journeys || journeys.length === 0) return NextResponse.json([])
 
-    const personIds = journeys.map(j => j.person_id)
     const journeyIds = journeys.map(j => j.id)
 
     // Все process_instances для фильтрации по статусу
     const { data: allPi } = await sb
       .from('process_instances')
-      .select('id, journey_id, status')
+      .select('id, journey_id, status, created_by')
       .in('journey_id', journeyIds)
 
     const journeyHasActive = new Set<string>()
     const journeyHasTerminated = new Set<string>()
+    const journeyMine = new Set<string>()
     for (const pi of allPi ?? []) {
       if ((pi.status as string) === 'active') journeyHasActive.add(pi.journey_id as string)
       else if ((pi.status as string) === 'cancelled' || (pi.status as string) === 'completed') {
         journeyHasTerminated.add(pi.journey_id as string)
       }
+      if ((pi.created_by as string | null) === session.person_id) journeyMine.add(pi.journey_id as string)
     }
 
     const filteredJourneys = journeys.filter(j => {
+      if (mineOnly && !journeyMine.has(j.id)) return false // «мои лиды» — созданные мной
       if (processStatus === 'deleted') return true // already filtered in DB query
       if (processStatus === 'active') {
         // Показать: есть активный процесс ИЛИ вообще нет процесса
@@ -96,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     const [{ data: persons }, { data: interests }] = await Promise.all([
       sb.from('persons')
-        .select('id, full_name, email, phones, photo_url')
+        .select('id, full_name, hebrew_name, email, phones, photo_url')
         .in('id', filteredPersonIds),
       sb.from('lead_interests')
         .select('person_id, free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
@@ -127,13 +153,15 @@ export async function GET(request: NextRequest) {
         profile_id: j.id,
         person_id: j.person_id,
         full_name: person?.full_name ?? '',
+        hebrew_name: (person as unknown as { hebrew_name?: string | null })?.hebrew_name ?? null,
         email: person?.email ?? null,
-        phones: (person?.phones as string[]) ?? [],
+        phones: phoneList(person?.phones),
         photo_url: person?.photo_url ?? null,
         referral_source: j.referral_source ?? null,
         application_date: j.application_date ?? j.opened_at ?? null,
         updated_at: j.updated_at ?? null,
         is_deleted: (j as unknown as { is_deleted: boolean }).is_deleted ?? false,
+        recruitment_stage: (j as unknown as { recruitment_stage?: string | null }).recruitment_stage ?? 'interested',
         interests: interestMap.get(j.person_id) ?? [],
         active_stages_with_tasks: journeyStages.get(j.id) ?? [],
       }
@@ -142,7 +170,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -203,14 +231,14 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('id', body.person_id)
         .maybeSingle()
-      if (!person) return NextResponse.json({ error: 'Человек не найден' }, { status: 404 })
+      if (!person) return apiError('person_not_found', 404)
       personId = person.id
     } else {
       const leadFirstName = body.first_name?.trim() || body.full_name?.trim() || ''
-      if (!leadFirstName) return NextResponse.json({ error: 'ФИО обязательно' }, { status: 400 })
+      if (!leadFirstName) return apiError('full_name_required', 400)
       const leadLastName   = body.first_name?.trim() ? (body.last_name?.trim() || null) : null
       const leadMiddleName = body.first_name?.trim() ? (body.middle_name?.trim() || null) : null
-      if (!body.phone?.trim()) return NextResponse.json({ error: 'Телефон обязателен' }, { status: 400 })
+      if (!body.phone?.trim()) return apiError('phone_required', 400)
 
       const phones = body.phones && body.phones.length > 0
         ? body.phones.map(p => p.trim()).filter(Boolean)
@@ -238,7 +266,7 @@ export async function POST(request: NextRequest) {
         .select('id')
         .single()
 
-      if (personErr || !newPerson) throw personErr ?? new Error('Ошибка создания person')
+      if (personErr || !newPerson) throw personErr ?? new Error(serverT('person_creation_error'))
       personId = newPerson.id
     }
 
@@ -253,14 +281,11 @@ export async function POST(request: NextRequest) {
     let journeyId: string
     if (existingJourney) {
       if (existingJourney.education_status !== 'lead') {
-        return NextResponse.json(
-          { error: 'У этого человека уже есть активный journey с другим статусом' },
-          { status: 409 }
-        )
+        return apiError('person_has_active_journey', 409)
       }
       journeyId = existingJourney.id
     } else {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = todayISO()
       const journeyInsert: EducationJourneyInsert = {
         person_id: personId,
         education_status: 'lead',
@@ -276,7 +301,7 @@ export async function POST(request: NextRequest) {
         .insert(journeyInsert as any)
         .select('id')
         .single()
-      if (jErr || !newJourney) throw jErr ?? new Error('Ошибка создания journey')
+      if (jErr || !newJourney) throw jErr ?? new Error(serverT('journey_creation_error'))
       journeyId = newJourney.id
     }
 
@@ -371,17 +396,19 @@ export async function POST(request: NextRequest) {
       }
       // PRIMARY KEY (journey_id, community_id) — игнорим дубль (23505)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await sb.from('journey_communities').insert(jcInsert as any)
+      const { error: jcErr } = await sb.from('journey_communities').insert(jcInsert as any)
+      if (jcErr && jcErr.code !== '23505') console.error('[leads POST] journey_communities insert:', jcErr)
     }
 
     // person_status_history
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await sb.from('person_status_history').insert({
+    const { error: histErr } = await sb.from('person_status_history').insert({
       person_id: personId,
       from_status: null,
       to_status: 'lead',
       changed_by: session.person_id,
     } as any)
+    if (histErr) console.error('[leads POST] person_status_history insert:', histErr)
 
     // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание лида.
     // Атомарно через RPC start_process (см. migrations/20260702210000_*.sql).
@@ -393,7 +420,7 @@ export async function POST(request: NextRequest) {
       p_actor_id: session.person_id,
     })
     if (startErr) {
-      workflowError = startErr.message ?? 'Ошибка запуска процесса'
+      workflowError = startErr.message ?? serverT('process_start_error')
     } else {
       workflowResult = startResult as StartProcessResult
     }
@@ -404,6 +431,6 @@ export async function POST(request: NextRequest) {
     )
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

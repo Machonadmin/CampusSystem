@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 /**
  * POST /api/tasks/[id]/claim — взять задачу из пула отдела на себя.
@@ -23,10 +19,8 @@ async function requireAuth() {
  *   - claimed_at → NOW()
  *   - Запись в task_status_history
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const personId = session.person_id
@@ -49,29 +43,20 @@ export async function POST(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
 
     if (task.status !== 'unassigned') {
-      return NextResponse.json(
-        { error: 'Взять можно только задачу из пула (статус unassigned)' },
-        { status: 409 }
-      )
+      return apiError('claim_only_pool_task', 409)
     }
 
     if (!isSuperadmin) {
       if (!task.department_id) {
-        return NextResponse.json(
-          { error: 'У задачи не указан отдел' },
-          { status: 400 }
-        )
+        return apiError('task_department_not_specified', 400)
       }
       const myDepts = await getPersonDepartments(personId)
       if (!myDepts.includes(task.department_id)) {
-        return NextResponse.json(
-          { error: 'Взять можно только задачи из своего отдела' },
-          { status: 403 }
-        )
+        return apiError('claim_only_own_department', 403)
       }
     }
 
@@ -91,22 +76,20 @@ export async function POST(
 
     if (uErr) {
       if (uErr.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Задачу уже кто-то взял' },
-          { status: 409 }
-        )
+        return apiError('task_already_claimed', 409)
       }
       const m = mapDbError(uErr)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
-    await sb.from('task_status_history').insert({
+    const { error: histErr } = await sb.from('task_status_history').insert({
       task_id: params.id,
       actor_id: personId,
       from_status: 'unassigned',
       to_status: 'in_progress',
       note: statusNote || 'Задача взята из пула',
     })
+    if (histErr) console.error('[tasks claim] status history insert:', histErr)
 
     // Если указан комментарий — продублировать его в ленту task_comments,
     // чтобы он был виден в обсуждении, а не только в истории статусов.
@@ -125,8 +108,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

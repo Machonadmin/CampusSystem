@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { getSession, reissueSession } from '@/lib/auth/session'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { verifyPassword, hashPassword } from '@/lib/auth/password'
+import { throttleAuth } from '@/lib/auth/login-throttle'
+import { errorResponse } from '@/lib/api/handler'
 
 export async function PATCH(request: NextRequest) {
   try {
+    const throttled = throttleAuth(request, 'change-password')
+    if (throttled) return throttled
+
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
+    // /api/auth/* пропускается middleware мимо read-only проверки режима
+    // «צפייה כמשתמש», поэтому запрещаем смену пароля в этом режиме здесь.
+    if (session.imp_by) return apiError('forbidden', 403)
 
     const { current_password, new_password } = await request.json() as {
       current_password: string
@@ -14,21 +24,23 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!current_password || !new_password)
-      return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 })
+      return apiError('all_fields_required', 400)
     if (new_password.length < 8)
-      return NextResponse.json({ error: 'Новый пароль должен быть не менее 8 символов' }, { status: 400 })
+      return apiError('new_password_min_8', 400)
 
+    // Ищем по person_id И e-mail: если адрес потом передали другому аккаунту,
+    // старый токен с этим e-mail не должен дотянуться до чужого пароля.
     const sb = createServerClient()
     const { data: account, error: e1 } = await sb
       .from('person_accounts')
       .select('id, password_hash')
-      .eq('login_email', session.login_email)
+      .eq('person_id', session.person_id).eq('login_email', session.login_email)
       .single()
-    if (e1 || !account) return NextResponse.json({ error: 'Аккаунт не найден' }, { status: 404 })
+    if (e1 || !account) return apiError('account_not_found', 404)
 
-    if (!account.password_hash) return NextResponse.json({ error: 'Аккаунт не найден' }, { status: 404 })
+    if (!account.password_hash) return apiError('account_not_found', 404)
     const valid = await verifyPassword(current_password, account.password_hash)
-    if (!valid) return NextResponse.json({ error: 'Неверный текущий пароль' }, { status: 400 })
+    if (!valid) return apiError('invalid_current_password', 400)
 
     const password_hash = await hashPassword(new_password)
     const { error: e2 } = await sb
@@ -37,9 +49,21 @@ export async function PATCH(request: NextRequest) {
       .eq('id', account.id)
     if (e2) throw e2
 
+    // Любая успешная смена пароля снимает флаг обязательной смены (если он есть).
+    // Best-effort: до миграции колонки может не быть (42703) — не критично.
+    try {
+      await (sb as unknown as import('@supabase/supabase-js').SupabaseClient)
+        .from('person_accounts').update({ must_change_password: false }).eq('id', account.id)
+    } catch { /* колонки нет до миграции — игнорируем */ }
+
+    // Новый пароль закрывает все остальные входы (в т.ч. украденную куку);
+    // этот браузер получает свежий токен и остаётся в системе.
+    await revokeSessionsBefore('person_accounts', 'id', account.id)
+    await reissueSession(session)
+
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, fetchAllPages, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
+import { createNotifications } from '@/lib/notifications/create'
+import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
 } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+
+// PostgREST молча обрезает выдачу на db-max-rows (~1000). Список задач читаем
+// постранично и суммируем, чтобы не терять задачи. Вторичная сортировка по id —
+// стабильная пагинация.
+const PAGE = 1000
 
 // ─── GET /api/tasks ───────────────────────────────────────────────────────────
 // ?view=assigned|created|department|watching  (default: assigned)
@@ -32,63 +36,75 @@ export async function GET(request: NextRequest) {
 
     const sb = createServerClient()
 
-    let query = sb
-      .from('tasks')
-      .select(`
-        *,
-        assignee:persons!tasks_assignee_id_fkey(id, full_name),
-        creator:persons!tasks_creator_id_fkey(id, full_name),
-        department:departments(id, name)
-      `)
-      .order('created_at', { ascending: false })
-
-    // ─── Режим просмотра ───────────────────────────────────────────────────────
-    if (view === 'assigned') {
-      query = query.eq('assignee_id', personId)
-    } else if (view === 'created') {
-      query = query.eq('creator_id', personId)
-    } else if (view === 'department') {
-      const myDepts = await getPersonDepartments(personId)
-      if (myDepts.length === 0) return NextResponse.json({ tasks: [] })
-      query = query.in('department_id', myDepts)
-      if (departmentFilter) query = query.eq('department_id', departmentFilter)
+    // ─── Режим просмотра: предвычисляем фильтры (могут дать ранний пустой ответ) ─
+    let watchingTaskIds: string[] | null = null
+    let myDeptIds: string[] | null = null
+    if (view === 'department') {
+      myDeptIds = await getPersonDepartments(personId)
+      if (myDeptIds.length === 0) return NextResponse.json({ tasks: [] })
     } else if (view === 'watching') {
       const { data: watcherRows, error: wErr } = await sb
         .from('task_watchers')
         .select('task_id')
         .eq('person_id', personId)
       if (wErr) throw wErr
-      const taskIds = (watcherRows ?? []).map(r => r.task_id)
-      if (taskIds.length === 0) return NextResponse.json({ tasks: [] })
-      query = query.in('id', taskIds)
-    } else {
-      throw Object.assign(new Error('Неизвестный режим просмотра'), { status: 400 })
+      watchingTaskIds = (watcherRows ?? []).map(r => r.task_id)
+      if (watchingTaskIds.length === 0) return NextResponse.json({ tasks: [] })
+    } else if (view !== 'assigned' && view !== 'created') {
+      throw Object.assign(new Error(serverT('unknown_view_mode')), { status: 400 })
     }
 
-    // ─── Фильтр по статусу ────────────────────────────────────────────────────
-    if (statusFilter === 'all') {
-      // без фильтра
-    } else if (statusFilter && statusFilter !== 'active') {
-      query = query.eq('status', statusFilter as TaskStatus)
-    } else {
-      // 'active' или не указан — всё кроме completed/cancelled
-      query = query.not('status', 'in', '("completed","cancelled")')
+    // Собираем запрос заново на каждой странице (нельзя переиспользовать один
+    // PostgrestBuilder для нескольких await-ов).
+    const buildQuery = () => {
+      let query = sb
+        .from('tasks')
+        .select(`
+          *,
+          assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
+          creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name),
+          department:departments(id, name)
+        `)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+
+      if (view === 'assigned') {
+        query = query.eq('assignee_id', personId)
+      } else if (view === 'created') {
+        query = query.eq('creator_id', personId)
+      } else if (view === 'department') {
+        query = query.in('department_id', myDeptIds!)
+        if (departmentFilter) query = query.eq('department_id', departmentFilter)
+      } else if (view === 'watching') {
+        query = query.in('id', watchingTaskIds!)
+      }
+
+      // ─── Фильтр по статусу ───────────────────────────────────────────────────
+      if (statusFilter === 'all') {
+        // без фильтра
+      } else if (statusFilter && statusFilter !== 'active') {
+        query = query.eq('status', statusFilter as TaskStatus)
+      } else {
+        // 'active' или не указан — всё кроме completed/cancelled
+        query = query.not('status', 'in', '("completed","cancelled")')
+      }
+
+      if (moduleFilter) query = query.eq('module', moduleFilter)
+      if (priorityFilter) query = query.eq('priority', priorityFilter)
+      return query
     }
 
-    if (moduleFilter) query = query.eq('module', moduleFilter)
-    if (priorityFilter) query = query.eq('priority', priorityFilter)
+    type TaskListRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
+    const tasks = await fetchAllPages<TaskListRow>((from, to) => buildQuery().range(from, to), PAGE)
 
-    const { data, error } = await query
-    if (error) throw error
-
-    return NextResponse.json({ tasks: data ?? [] })
+    return NextResponse.json({ tasks })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -102,6 +118,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
+    // Задачи — инструмент сотрудников. Студенческий портальный токен (roles:[])
+    // не должен создавать задачи и слать уведомления сотрудникам.
+    if (session.principal === 'student') return apiError('forbidden', 403)
     const personId = session.person_id
 
     const body = await request.json() as {
@@ -117,13 +136,14 @@ export async function POST(request: NextRequest) {
       due_time?: string | null
       due_all_day?: boolean
       watchers?: string[]
+      is_maintenance?: boolean
     }
 
     // ─── Валидация заголовка ───────────────────────────────────────────────────
     const title = body.title?.trim()
-    if (!title) return NextResponse.json({ error: 'Заголовок обязателен' }, { status: 400 })
-    if (title.length > 500) return NextResponse.json({ error: 'Заголовок не должен превышать 500 символов' }, { status: 400 })
-    if (body.description && body.description.length > 10000) return NextResponse.json({ error: 'Описание не должно превышать 10000 символов' }, { status: 400 })
+    if (!title) return apiError('heading_required', 400)
+    if (title.length > 500) return apiError('heading_max_500', 400)
+    if (body.description && body.description.length > 10000) return apiError('description_max_10000', 400)
 
     // ─── Режим назначения ──────────────────────────────────────────────────────
     const assigneeMode = body.assignee_mode ?? 'me'
@@ -136,29 +156,47 @@ export async function POST(request: NextRequest) {
       assignee_id = personId
       status = 'in_progress'
     } else if (assigneeMode === 'person') {
-      if (!body.assignee_id) return NextResponse.json({ error: 'Не указан исполнитель' }, { status: 400 })
+      if (!body.assignee_id) return apiError('assignee_not_specified', 400)
       assignee_id = body.assignee_id
       status = 'pending'
     } else if (assigneeMode === 'department') {
-      if (!body.department_id) return NextResponse.json({ error: 'Не указан отдел' }, { status: 400 })
+      if (!body.department_id) return apiError('department_not_specified', 400)
       assignee_type = 'department'
       department_id = body.department_id
       status = 'unassigned'
     } else {
-      return NextResponse.json({ error: 'Неизвестный режим назначения' }, { status: 400 })
+      return apiError('unknown_assignment_mode', 400)
     }
 
     // ─── Валидация сроков ──────────────────────────────────────────────────────
     const due_all_day = body.due_all_day ?? true
-    if (due_all_day && body.due_time) return NextResponse.json({ error: 'Если "весь день" — время не указывается' }, { status: 400 })
-    if (!due_all_day && !body.due_time) return NextResponse.json({ error: 'Если "весь день" выключен — нужно указать время' }, { status: 400 })
-    if (body.due_time && !body.due_date) return NextResponse.json({ error: 'Время указано без даты' }, { status: 400 })
+    if (due_all_day && body.due_time) return apiError('allday_no_time', 400)
+    if (!due_all_day && !body.due_time) return apiError('not_allday_time_required', 400)
+    if (body.due_time && !body.due_date) return apiError('time_without_date', 400)
+
+    const sb = createServerClient()
+
+    // ─── Метка «задача по эксплуатации» ────────────────────────────────────────
+    // Автор ставит галочку в форме, но решает СЕРВЕР: флаг сохраняется, только
+    // если задача персонально назначена человеку с ролью техслужбы. Клиенту не
+    // верим — иначе любую задачу можно было бы выложить на доску техслужбы.
+    // Несовпадение (роль сняли между открытием формы и отправкой) не ломает
+    // создание задачи: флаг просто не ставится, и это видно на карточке.
+    // sanitizeIncomingMetadata снимает метку, пришедшую из тела запроса: иначе
+    // её можно было бы протащить мимо проверки роли, послав metadata напрямую.
+    let metadata = sanitizeIncomingMetadata(body.metadata)
+    if (body.is_maintenance) {
+      // staff === null — состав техслужбы прочитать не удалось; тогда метку НЕ
+      // ставим (fail-closed), задача создаётся как обычная.
+      const staff = await maintenanceStaffPersonIds(sb)
+      metadata = withMaintenanceFlag(metadata, !!staff && canBeMaintenanceTask(assignee_type, assignee_id, staff))
+    }
 
     const insert: TaskInsert = {
       title,
       description: body.description?.trim() || null,
       module: body.module ?? 'general',
-      metadata: (body.metadata ?? {}) as TaskInsert['metadata'],
+      metadata: metadata as TaskInsert['metadata'],
       assignee_type,
       assignee_id,
       department_id,
@@ -169,8 +207,6 @@ export async function POST(request: NextRequest) {
       due_time: body.due_time ?? null,
       due_all_day,
     }
-
-    const sb = createServerClient()
     const { data: task, error: insertError } = await sb
       .from('tasks')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -180,24 +216,39 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       const m = mapDbError(insertError)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     // ─── История статуса (создание) ────────────────────────────────────────────
-    await sb.from('task_status_history').insert({
+    const { error: histErr } = await sb.from('task_status_history').insert({
       task_id: task.id,
       actor_id: personId,
       from_status: null,
       to_status: status,
       note: 'Задача создана',
     })
+    if (histErr) console.error('[tasks POST] status history insert:', histErr)
 
     // ─── Watchers ──────────────────────────────────────────────────────────────
     if (body.watchers && body.watchers.length > 0) {
       const rows = body.watchers
         .filter(w => w !== personId)
         .map(person_id => ({ task_id: task.id, person_id, added_by: personId }))
-      if (rows.length > 0) await sb.from('task_watchers').insert(rows)
+      if (rows.length > 0) {
+        const { error: wErr } = await sb.from('task_watchers').insert(rows)
+        if (wErr) console.error('[tasks POST] watchers insert:', wErr)
+      }
+    }
+
+    // ─── Уведомление исполнителю (если назначено другому человеку) ───────────────
+    if (assignee_type === 'person' && assignee_id && assignee_id !== personId) {
+      await createNotifications(sb, [{
+        person_id: assignee_id,
+        type: 'task_assigned',
+        title: `משימה חדשה: ${title}`,
+        link: `/dashboard/tasks/${task.id}`,
+        metadata: { task_id: task.id },
+      }])
     }
 
     return NextResponse.json(task, { status: 201 })
@@ -205,8 +256,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
-type Params = { params: { stageInstanceId: string } }
+type Params = { params: Promise<{ stageInstanceId: string }> }
 
 async function getJourneyFromStage(sb: ReturnType<typeof createServerClient>, stageInstanceId: string) {
   const { data } = await sb
@@ -37,19 +39,20 @@ function managePrivilegeFor(status: string): 'manage_leads' | 'manage_applicants
 /**
  * GET /api/workflow/stages/[stageInstanceId]/events
  */
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(_req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
     const journey = await getJourneyFromStage(sb, params.stageInstanceId)
-    if (!journey) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
+    if (!journey) return apiError('substage_not_found', 404)
 
     const canView = await hasEducationPrivilege(session, viewPrivilegeFor(journey.education_status), {
       department_id: journey.primary_department_id ?? undefined,
     })
-    if (!canView) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (!canView) return apiError('forbidden', 403)
 
     const { data, error } = await sb
       .from('process_events')
@@ -66,7 +69,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       author: { full_name: string } | null;
     }
 
-    const result = (data ?? []).map((ev: RawEvent) => ({
+    const result = ((data ?? []) as unknown as RawEvent[]).map(ev => ({
       id: ev.id,
       event_type: ev.event_type,
       content: ev.content,
@@ -79,7 +82,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -87,29 +90,30 @@ export async function GET(_req: NextRequest, { params }: Params) {
  * POST /api/workflow/stages/[stageInstanceId]/events
  * Body: { event_type, content, metadata? }
  */
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const body = await req.json() as { event_type?: string; content?: string; metadata?: unknown }
 
     const MANUAL_TYPES = ['note', 'call', 'meeting', 'message', 'email']
     if (!body.event_type || !MANUAL_TYPES.includes(body.event_type)) {
-      return NextResponse.json({ error: 'Недопустимый тип события' }, { status: 400 })
+      return apiError('invalid_event_type', 400)
     }
     if (!body.content?.trim()) {
-      return NextResponse.json({ error: 'Текст события обязателен' }, { status: 400 })
+      return apiError('event_text_required', 400)
     }
 
     const sb = createServerClient()
     const journey = await getJourneyFromStage(sb, params.stageInstanceId)
-    if (!journey) return NextResponse.json({ error: 'Подэтап не найден' }, { status: 404 })
+    if (!journey) return apiError('substage_not_found', 404)
 
     const canManage = await hasEducationPrivilege(session, managePrivilegeFor(journey.education_status), {
       department_id: journey.primary_department_id ?? undefined,
     })
-    if (!canManage) return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+    if (!canManage) return apiError('forbidden', 403)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await sb.from('process_events').insert({
@@ -124,6 +128,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate as fmtDate } from '@/lib/i18n/format-date'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface CheckRow {
   id: string
@@ -29,15 +36,15 @@ interface CheckRow {
 }
 
 const STATUS_COLOR: Record<string, [string, string]> = {
-  planned:     ['#EFF6FF', '#3B82F6'],
-  in_progress: ['#FFFBEB', '#D97706'],
-  completed:   ['#F0FDF4', '#16A34A'],
+  planned:     ['var(--accent-tint)', 'var(--accent)'],
+  in_progress: ['var(--warn-tint)', 'var(--warn)'],
+  completed:   ['var(--success-tint)', 'var(--success)'],
 }
 
 const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
 
 function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?: string) => string }) {
-  const [bg, color] = STATUS_COLOR[status] ?? ['#F3F4F6', '#6B7280']
+  const [bg, color] = STATUS_COLOR[status] ?? ['var(--surface-2)', 'var(--text-muted)']
   return (
     <span style={{ padding: '2px 10px', borderRadius: 20, backgroundColor: bg, color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
       {t(`status.${status}`, status)}
@@ -46,11 +53,11 @@ function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?
 }
 
 function RatingStars({ rating }: { rating: number | null }) {
-  if (rating === null) return <span style={{ color: '#D1D5DB', fontSize: 12 }}>—</span>
+  if (rating === null) return <span style={{ color: 'var(--border-strong)', fontSize: 12 }}>—</span>
   return (
     <span style={{ fontSize: 13, color: '#F59E0B', fontWeight: 700 }}>
       {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
-      <span style={{ color: '#6B7280', fontWeight: 400, fontSize: 11, marginLeft: 4 }}>{rating}/5</span>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 11, marginInlineStart: 4 }}>{rating}/5</span>
     </span>
   )
 }
@@ -61,10 +68,13 @@ export default function QualityControlPage() {
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
-  const [tab, setTab] = useState<Tab>('planned')
+  // Вкладка в URL (?tab=): «назад» из проверки возвращает на ту же вкладку
+  // (напр. «היסטוריה»), а не на «מתוכננות» по умолчанию.
+  const [urlTab, setTab] = useUrlTab<Tab>({ allowed: ['planned', 'history', 'templates'], fallback: 'planned' })
   const [checks, setChecks] = useState<CheckRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [refresh, setRefresh] = useState(0)
@@ -82,24 +92,34 @@ export default function QualityControlPage() {
   const canCreateCheck   = hasFeatureAccess(featureAccess, 'quality_control', 'planned',   'can_create')
 
   const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
+  // Шаблоны из URL — только тем, кому вкладка видна.
+  const tab: Tab = urlTab === 'templates' && !canViewTemplates ? 'planned' : urlTab
+
+  // Дебаунс поиска — не бьём по API на каждой букве (как в staff/jewishness).
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(id)
+  }, [search])
 
   const load = useCallback(async () => {
     if (tab === 'templates') return
     setLoading(true)
     try {
       const params = new URLSearchParams({ tab })
-      if (search.trim()) params.set('search', search.trim())
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
       const res = await fetch(`/api/quality-control?${params}`)
       if (res.ok) setChecks(await res.json())
+      else toast(tCommon('load_error'), 'error')
     } finally {
       setLoading(false)
     }
-  }, [tab, search, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab, debouncedSearch, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load() }, [load])
 
   async function handleDelete(id: string, date: string) {
-    if (!confirm(t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date))) return
+    if (!(await confirmDialog({ message: t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date), tone: 'danger' }))) return
     setDeletingId(id)
     try {
       await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })
@@ -110,9 +130,7 @@ export default function QualityControlPage() {
   }
 
   function formatDate(d: string) {
-    try {
-      return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    } catch { return d }
+    return fmtDate(d, lang)
   }
 
   const tabs: { key: Tab; label: string; visible: boolean }[] = [
@@ -129,16 +147,7 @@ export default function QualityControlPage() {
       ]} />
 
       {/* Page header */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('quality_control'),
-          padding: '12px 24px',
-          boxShadow: '0 2px 8px rgba(236,72,153,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', margin: 0 }}>{t('title')}</h1>
-      </div>
+      <ModuleHeader module="quality_control" title={t('title')} />
 
       {/* Tabs */}
       <ModuleTabs
@@ -149,7 +158,7 @@ export default function QualityControlPage() {
       />
 
       {/* Content */}
-      <div style={{ backgroundColor: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
         {/* Templates tab */}
         {tab === 'templates' && (
           <TemplatesTab perms={templatePerms} />
@@ -160,14 +169,14 @@ export default function QualityControlPage() {
           <>
             {/* Search toolbar */}
             <div style={{
-              padding: '12px 16px', borderBottom: '1px solid #F3F4F6', backgroundColor: '#FAFAFA',
+              padding: '12px 16px', borderBottom: '1px solid var(--surface-2)', backgroundColor: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <input
+              <input aria-label={t('list.search_placeholder')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('list.search_placeholder')}
-                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 6, outline: 'none', width: 280 }}
+                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid var(--border)', borderRadius: 6, outline: 'none', width: 280 }}
               />
               <div style={{ flex: 1 }} />
               {canCreateCheck && (
@@ -182,17 +191,17 @@ export default function QualityControlPage() {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {loading ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
+                <SkeletonRows avatar={false} rows={6} />
               ) : checks.length === 0 ? (
-                <div style={{ padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+                <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
                   {tab === 'planned' ? t('list.no_planned') : t('list.no_history')}
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#F9FAFB' }}>
+                    <tr style={{ backgroundColor: 'var(--surface-2)' }}>
                       {[t('list.table_date_time'), t('list.table_teacher'), t('list.table_group_course'), t('list.table_observer'), t('list.table_status'), t('list.table_rating'), t('list.table_actions')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'start', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                           {h}
                         </th>
                       ))}
@@ -200,48 +209,46 @@ export default function QualityControlPage() {
                   </thead>
                   <tbody>
                     {checks.map((c, i) => (
-                      <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
-                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{formatDate(c.lesson_date)}</div>
-                          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
+                      <tr key={c.id} style={{ borderTop: '1px solid var(--surface-2)', backgroundColor: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+                        <td data-label={t('list.table_date_time')} style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{formatDate(c.lesson_date)}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.lesson_time.slice(0, 5)}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontSize: 13, color: '#374151' }}>{c.teacher_name ?? '—'}</div>
+                        <td data-label={t('list.table_teacher')} style={{ padding: '10px 14px' }}>
+                          <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.teacher_name ?? '—'}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          {c.group_name && <div style={{ fontSize: 13, color: '#374151' }}>{c.group_name}</div>}
-                          {c.course_name && <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{c.course_name}</div>}
-                          {!c.group_name && !c.course_name && <span style={{ color: '#D1D5DB', fontSize: 13 }}>—</span>}
+                        <td data-label={t('list.table_group_course')} style={{ padding: '10px 14px' }}>
+                          {c.group_name && <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.group_name}</div>}
+                          {c.course_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{c.course_name}</div>}
+                          {!c.group_name && !c.course_name && <span style={{ color: 'var(--border-strong)', fontSize: 13 }}>—</span>}
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontSize: 13, color: '#374151' }}>{c.observer_name ?? '—'}</div>
+                        <td data-label={t('list.table_observer')} style={{ padding: '10px 14px' }}>
+                          <div style={{ fontSize: 13, color: 'var(--text)' }}>{c.observer_name ?? '—'}</div>
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_status')} style={{ padding: '10px 14px' }}>
                           <StatusBadge status={c.status} t={t} />
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        <td data-label={t('list.table_rating')} style={{ padding: '10px 14px' }}>
                           <RatingStars rating={c.overall_rating} />
                         </td>
-                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                          <div style={{ display: 'flex', gap: 6 }}>
+                        <td data-label="" style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <Link
                               href={`/dashboard/quality-control/${c.id}`}
                               style={{
                                 padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 5, textDecoration: 'none',
-                                border: c.status === 'completed' ? '1px solid #D1D5DB' : '1px solid #BFDBFE',
-                                background: c.status === 'completed' ? '#F9FAFB' : '#EFF6FF',
-                                color: c.status === 'completed' ? '#374151' : '#1D4ED8',
+                                border: c.status === 'completed' ? '1px solid var(--border-strong)' : '1px solid #BFDBFE',
+                                background: c.status === 'completed' ? 'var(--surface-2)' : 'var(--accent-tint)',
+                                color: c.status === 'completed' ? 'var(--text)' : 'var(--info)',
                               }}
                             >
                               {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}
                             </Link>
-                            <button
-                              onClick={() => handleDelete(c.id, formatDate(c.lesson_date))}
-                              disabled={deletingId === c.id}
-                              style={{ padding: '4px 10px', fontSize: 11, border: '1px solid #FEE2E2', borderRadius: 5, background: '#FEF2F2', cursor: 'pointer', color: '#DC2626', fontWeight: 600, opacity: deletingId === c.id ? 0.5 : 1 }}
-                            >
-                              {tCommon('delete')}
-                            </button>
+                            <RowActionsMenu
+                              actions={[
+                                { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(c.id, formatDate(c.lesson_date)), disabled: deletingId === c.id, danger: true },
+                              ]}
+                            />
                           </div>
                         </td>
                       </tr>

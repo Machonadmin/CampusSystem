@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { signToken } from '@/lib/auth/jwt'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 
 export async function GET() {
   if (process.env.NODE_ENV !== 'development') {
-    return NextResponse.json({ error: 'Not available' }, { status: 403 })
+    return apiError('not_available', 403)
   }
 
   const token = await signToken({

@@ -1,6 +1,11 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
+
+// useLayoutEffect применяет коррекцию мобильного оффсета ДО отрисовки (без
+// «прыжка» с десктопной раскладки), но на сервере его нет — используем useEffect.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 interface SidebarCtx {
   isOpen: boolean
@@ -20,45 +25,80 @@ const SidebarContext = createContext<SidebarCtx>({
   setPin: () => {},
 })
 
+// «Образование/Учёба» — отдельное рабочее пространство: рейл автоматически
+// сворачивается в иконочный режим (запрос владельца), чтобы контент занимал
+// экран. Три пункта (набор/приём/учёба) остаются — как иконки; по toggle рейл
+// раскрывается с названиями.
+function isDenseRoute(pathname: string | null): boolean {
+  return (pathname ?? '').startsWith('/dashboard/education')
+}
+
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true)
+  const pathname = usePathname()
+  const dense = isDenseRoute(pathname)
+
+  // userOpen — глобальное предпочтение (персистится). eduOpen — временное
+  // состояние ВНУТРИ «Образования» (по умолчанию свёрнут; можно временно
+  // развернуть, при повторном входе снова свёрнут). Не персистится.
+  const [userOpen, setUserOpen] = useState(true)
+  const [eduOpen, setEduOpen] = useState(false)
   const [isPinned, setIsPinned] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  // На мобиле сайдбар — выдвижной ящик (drawer); его открытость — отдельное
+  // состояние, иначе гамбургер «мёртвый» и навигации на телефоне нет.
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const mobile = window.innerWidth < 768
     setIsMobile(mobile)
     if (mobile) {
-      setIsOpen(false)
+      setUserOpen(false)
       setIsPinned(false)
     } else {
       const savedOpen = localStorage.getItem('sidebar_open')
       const savedPin = localStorage.getItem('sidebar_pinned')
-      if (savedOpen !== null) setIsOpen(savedOpen === 'true')
+      if (savedOpen !== null) setUserOpen(savedOpen === 'true')
       if (savedPin !== null) setIsPinned(savedPin === 'true')
     }
 
     function onResize() {
       const m = window.innerWidth < 768
       setIsMobile(m)
-      if (m) setIsOpen(false)
+      if (m) { setUserOpen(false); setMobileOpen(false) }
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  // При каждом ВХОДЕ в плотный маршрут — свернуть (без персиста). Навигация
+  // между под-страницами «Образования» сюда не попадает (dense не меняется),
+  // поэтому ручное разворачивание внутри модуля сохраняется.
+  useEffect(() => { if (dense) setEduOpen(false) }, [dense])
+
+  // На мобиле закрываем ящик при переходе на другую страницу (иначе он
+  // остаётся поверх открытой страницы).
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  // Эффективное состояние: на мобиле — состояние ящика; в «Образовании» —
+  // eduOpen; иначе — глобальное предпочтение.
+  const isOpen = isMobile ? mobileOpen : (dense ? eduOpen : userOpen)
+
   const toggle = useCallback(() => {
-    setIsOpen(v => {
+    if (isMobile) { setMobileOpen(v => !v); return }
+    if (dense) { setEduOpen(v => !v); return }
+    setUserOpen(v => {
       const next = !v
-      if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', String(next))
+      localStorage.setItem('sidebar_open', String(next))
       return next
     })
-  }, [])
+  }, [isMobile, dense])
 
   const close = useCallback(() => {
-    setIsOpen(false)
-    if (window.innerWidth >= 768) localStorage.setItem('sidebar_open', 'false')
-  }, [])
+    if (isMobile) { setMobileOpen(false); return }
+    if (dense) { setEduOpen(false); return }
+    setUserOpen(false)
+    localStorage.setItem('sidebar_open', 'false')
+  }, [isMobile, dense])
 
   const setPin = useCallback((v: boolean) => {
     setIsPinned(v)

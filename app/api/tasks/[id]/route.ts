@@ -1,32 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
+import { createNotifications } from '@/lib/notifications/create'
+import { canBeMaintenanceTask, isMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
+import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
+// Упрощение по запросу владельца («ясно: выполнена или нет, без лишних опций»):
+// completed достижим НАПРЯМУЮ из любого открытого статуса — раньше pending
+// требовал двух PATCH подряд (pending→in_progress→completed), из-за чего
+// «✓ бук» на карточке был неатомарным. review/declined остаются в модели для
+// легаси-строк; у declined появились выходы (раньше это был тупик без кнопок).
 const ALLOWED_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  unassigned:  ['cancelled'],
-  pending:     ['in_progress', 'declined', 'cancelled'],
+  unassigned:  ['completed', 'cancelled'],
+  pending:     ['in_progress', 'completed', 'declined', 'cancelled'],
   in_progress: ['review', 'completed', 'declined', 'cancelled', 'pending'],
   review:      ['completed', 'in_progress', 'cancelled'],
   completed:   [],
   cancelled:   [],
-  declined:    ['pending', 'cancelled'],
+  declined:    ['pending', 'in_progress', 'completed', 'cancelled'],
 }
 
 // ─── GET /api/tasks/[id] ──────────────────────────────────────────────────────
 // Возвращает задачу + комментарии + watchers + история + объект access.
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -35,18 +37,18 @@ export async function GET(
       .from('tasks')
       .select(`
         *,
-        assignee:persons!tasks_assignee_id_fkey(id, full_name),
-        creator:persons!tasks_creator_id_fkey(id, full_name),
+        assignee:persons!tasks_assignee_id_fkey(id, full_name, hebrew_name),
+        creator:persons!tasks_creator_id_fkey(id, full_name, hebrew_name),
         department:departments(id, name)
       `)
       .eq('id', params.id)
       .maybeSingle()
 
     if (taskErr) throw taskErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) return NextResponse.json({ error: 'Нет доступа к задаче' }, { status: 403 })
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
+    if (!access.canView) return apiError('no_access_to_task', 403)
 
     const [
       { data: comments, error: cErr },
@@ -54,15 +56,15 @@ export async function GET(
       { data: history, error: hErr },
     ] = await Promise.all([
       sb.from('task_comments')
-        .select('*, author:persons!task_comments_author_id_fkey(id, full_name)')
+        .select('*, author:persons!task_comments_author_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('created_at', { ascending: true }),
       sb.from('task_watchers')
-        .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+        .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('added_at', { ascending: true }),
       sb.from('task_status_history')
-        .select('*, actor:persons!task_status_history_actor_id_fkey(id, full_name)')
+        .select('*, actor:persons!task_status_history_actor_id_fkey(id, full_name, hebrew_name)')
         .eq('task_id', params.id)
         .order('created_at', { ascending: false }),
     ])
@@ -78,18 +80,16 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
 // ─── PATCH /api/tasks/[id] ────────────────────────────────────────────────────
 // Изменение полей (canEdit) и/или смена статуса (canChangeStatus).
 // При смене статуса пишется запись в task_status_history.
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -106,6 +106,7 @@ export async function PATCH(
       assignee_id?: string | null
       assignee_type?: 'person' | 'department'
       department_id?: string | null
+      is_maintenance?: boolean
     }
 
     const { data: task, error: tErr } = await sb
@@ -114,25 +115,25 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (tErr) throw tErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) return NextResponse.json({ error: 'Нет доступа к задаче' }, { status: 403 })
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
+    if (!access.canView) return apiError('no_access_to_task', 403)
 
     const update: TaskUpdate = {}
 
     // ─── Поля, требующие canEdit ───────────────────────────────────────────────
-    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id'] as const
+    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance'] as const
     const hasEditFields = EDIT_KEYS.some(k => k in body)
 
     if (hasEditFields) {
       if (!access.canEdit) {
-        return NextResponse.json({ error: 'Изменять задачу может только автор' }, { status: 403 })
+        return apiError('only_author_can_edit_task', 403)
       }
       if (body.title !== undefined) {
         const t = body.title?.trim()
-        if (!t) return NextResponse.json({ error: 'Заголовок не может быть пустым' }, { status: 400 })
-        if (t.length > 500) return NextResponse.json({ error: 'Заголовок слишком длинный' }, { status: 400 })
+        if (!t) return apiError('heading_not_empty', 400)
+        if (t.length > 500) return apiError('heading_too_long', 400)
         update.title = t
       }
       if (body.description !== undefined) update.description = body.description?.trim() || null
@@ -143,6 +144,40 @@ export async function PATCH(
       if (body.assignee_id !== undefined) update.assignee_id = body.assignee_id
       if (body.assignee_type !== undefined) update.assignee_type = body.assignee_type
       if (body.department_id !== undefined) update.department_id = body.department_id
+
+      // ─── Метка «задача по эксплуатации» ──────────────────────────────────────
+      // Пересчитывается не только когда автор трогает галочку, но и когда он
+      // МЕНЯЕТ ИСПОЛНИТЕЛЯ: если помеченную задачу переназначили на человека вне
+      // техслужбы, метка снимается — иначе задача секретаря осталась бы висеть
+      // на доске техслужбы. Решает сервер, клиенту не верим (см. POST /api/tasks).
+      const flagTouched = body.is_maintenance !== undefined
+      const assigneeTouched = body.assignee_id !== undefined || body.assignee_type !== undefined
+      const currentFlag = isMaintenanceTask((task as { metadata?: unknown }).metadata)
+
+      if (flagTouched || (assigneeTouched && currentFlag)) {
+        const effectiveType = body.assignee_type !== undefined
+          ? body.assignee_type
+          : (task as { assignee_type: string }).assignee_type
+        const effectiveId = body.assignee_id !== undefined
+          ? body.assignee_id
+          : (task as { assignee_id: string | null }).assignee_id
+
+        const wanted = flagTouched ? !!body.is_maintenance : currentFlag
+        const staff = wanted ? await maintenanceStaffPersonIds(sb) : new Set<string>()
+
+        // staff === null — состав техслужбы прочитать не удалось. Это «не
+        // знаю», а не «не техслужба»: метку НЕ трогаем вовсе, иначе разовый сбой
+        // запроса стёр бы её у живой задачи (например при массовом
+        // переназначении), и вернуть её пришлось бы вручную.
+        if (staff) {
+          const allowed = wanted && canBeMaintenanceTask(effectiveType, effectiveId, staff)
+          if (allowed !== currentFlag) {
+            update.metadata = withMaintenanceFlag(
+              (task as { metadata?: unknown }).metadata, allowed,
+            ) as TaskUpdate['metadata']
+          }
+        }
+      }
     }
 
     // ─── Смена статуса ─────────────────────────────────────────────────────────
@@ -150,21 +185,18 @@ export async function PATCH(
 
     if (body.status !== undefined && body.status !== task.status) {
       if (!access.canChangeStatus) {
-        return NextResponse.json({ error: 'Менять статус может только автор или исполнитель' }, { status: 403 })
+        return apiError('only_author_or_assignee_status', 403)
       }
       const currentStatus = task.status as TaskStatus
       const allowed = ALLOWED_TRANSITIONS[currentStatus] ?? []
       if (!allowed.includes(body.status)) {
-        return NextResponse.json(
-          { error: `Переход ${currentStatus} → ${body.status} запрещён` },
-          { status: 400 }
-        )
+        return apiErrorWith('task_transition_forbidden', 400, { from: currentStatus, to: body.status })
       }
       if (body.status === 'declined' && !access.isAssignee && !access.isSuperadmin) {
-        return NextResponse.json({ error: 'Отказаться от задачи может только исполнитель' }, { status: 403 })
+        return apiError('only_assignee_can_release', 403)
       }
       if (body.status === 'cancelled' && !access.isCreator && !access.isSuperadmin) {
-        return NextResponse.json({ error: 'Отменить задачу может только автор' }, { status: 403 })
+        return apiError('only_author_can_cancel_task', 403)
       }
       update.status = body.status
       statusChange = { from: currentStatus, to: body.status }
@@ -176,7 +208,7 @@ export async function PATCH(
     }
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data: updated, error: uErr } = await sb
@@ -187,16 +219,39 @@ export async function PATCH(
       .select('*')
       .single()
 
-    if (uErr) { const m = mapDbError(uErr); return NextResponse.json({ error: m.message }, { status: m.status }) }
+    if (uErr) { const m = mapDbError(uErr); return errorResponse(m) }
 
     if (statusChange) {
-      await sb.from('task_status_history').insert({
+      const { error: histErr } = await sb.from('task_status_history').insert({
         task_id: params.id,
         actor_id: session.person_id,
         from_status: statusChange.from,
         to_status: statusChange.to,
         note: body.status_note?.trim() || null,
       })
+      if (histErr) console.error('[tasks PATCH] status history insert:', histErr)
+
+      // Уведомляем «другую сторону» о смене статуса (best-effort).
+      const creatorId = (task as { creator_id: string | null }).creator_id
+      const assigneeId = (task as { assignee_id: string | null }).assignee_id
+      const recipient = session.person_id === creatorId ? assigneeId : creatorId
+      const TITLE_HE: Partial<Record<TaskStatus, string>> = {
+        review:      'משימה נשלחה לבדיקתך',
+        completed:   'המשימה הושלמה',
+        declined:    'משימה נדחתה',
+        cancelled:   'משימה בוטלה',
+        in_progress: 'המשימה הוחזרה אליך',
+      }
+      const heading = TITLE_HE[statusChange.to]
+      if (recipient && recipient !== session.person_id && heading) {
+        await createNotifications(sb, [{
+          person_id: recipient,
+          type: 'task_status',
+          title: `${heading}: ${(task as { title: string }).title}`,
+          link: `/dashboard/tasks/${params.id}`,
+          metadata: { task_id: params.id, status: statusChange.to },
+        }])
+      }
 
       // Дублируем заметку смены статуса в общий фид комментариев, чтобы она
       // не «терялась» (видна только в истории). Ошибка вставки не должна
@@ -229,17 +284,15 @@ export async function PATCH(
     return NextResponse.json(updated)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
 // ─── DELETE /api/tasks/[id] ───────────────────────────────────────────────────
 // Только автор или суперадмин. Каскадно удаляет связанные записи (ON DELETE CASCADE).
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -250,12 +303,12 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (tErr) throw tErr
-    if (!task) return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+    if (!task) return apiError('task_not_found', 404)
 
     const isCreator = task.creator_id === session.person_id
     const isSuperadmin = session.roles?.includes('superadmin') ?? false
     if (!isCreator && !isSuperadmin) {
-      return NextResponse.json({ error: 'Удалить задачу может только автор' }, { status: 403 })
+      return apiError('only_author_can_delete_task', 403)
     }
 
     const { error: dErr } = await sb.from('tasks').delete().eq('id', params.id)
@@ -264,7 +317,7 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }

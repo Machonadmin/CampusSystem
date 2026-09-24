@@ -1,0 +1,597 @@
+'use client'
+
+// Полноэкранная панель «משתמשים וגישה» удалена — управление аккаунтами живёт
+// во вкладке «צוות ומשתמשים» хаба «ניהול עובדים» (запрос владельца: меньше
+// дублей). Здесь остались только переиспользуемые модалки и типы.
+import { useState, useRef } from 'react'
+import { useLang } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
+import { getModuleColor } from '@/lib/module-colors'
+import { personDisplayName } from '@/lib/persons/name'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
+import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+import { toastError, toastSuccess } from '@/components/ui/toast'
+
+export interface Role {
+  id: string
+  name: string
+  code: string
+  category: string
+}
+
+export interface UserRow {
+  account_id: string
+  person_id: string
+  full_name: string
+  hebrew_name?: string | null
+  photo_url: string | null
+  login_email: string
+  is_active: boolean
+  last_login: string | null
+  created_at: string
+  roles: { id: string; name: string; code: string }[]
+}
+
+type T = (key: string, fallback?: string) => string
+
+
+/**
+ * Чип роли/права.
+ *
+ * `module` задаёт цвет чипа. Раньше он был жёстко на --accent (бирюзовый), из-за
+ * чего на фиолетовой странице «Сотрудники» права выглядели зелёными — цветом,
+ * не имеющим отношения к разделу. Теперь чип берёт цвет своего модуля, и
+ * страница читается как одно целое. Без `module` остаётся прежний акцент.
+ *
+ * Цвет состояния (активен/заблокирован) НЕ трогаем: там цвет несёт смысл.
+ */
+export function RoleBadge({ name, module }: { name: string; module?: string }) {
+  const bg = module ? getModuleColor(module, 'light') : 'var(--accent-tint)'
+  const fg = module ? getModuleColor(module) : 'var(--accent)'
+  return (
+    // marginInlineEnd, а не marginRight: в RTL отступ обязан идти с другой стороны.
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 'var(--r-pill)', backgroundColor: bg, color: fg, fontSize: 'var(--fs-xs)', fontWeight: 500, marginInlineEnd: 4, marginBottom: 2 }}>
+      {name}
+    </span>
+  )
+}
+
+interface RolesModalProps {
+  user: UserRow
+  allRoles: Role[]
+  t: T
+  tCat: T
+  tCommon: T
+  onClose: () => void
+  onSaved: () => void
+}
+
+export function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
+  const { t: lang } = useLang()
+  const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    setSaving(true)
+    const res = await fetch(`/api/settings/users/${user.account_id}/roles`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      // person_id required by API to target the correct person_roles rows
+      body: JSON.stringify({ person_id: user.person_id, role_ids: [...selected] }),
+    })
+    setSaving(false)
+    if (res.ok) { toastSuccess(tCommon('saved')); onSaved(); onClose() }
+    else { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')) }
+  }
+
+  const grouped: Record<string, Role[]> = {}
+  for (const r of allRoles) {
+    // Модель рензе: legacy-роль показываем, только если она уже назначена этому
+    // пользователю (чтобы можно было снять), новые — не предлагаем.
+    if (isDeprecatedRole(r.code) && !selected.has(r.id)) continue
+    if (!grouped[r.category]) grouped[r.category] = []
+    grouped[r.category].push(r)
+  }
+
+  return (
+    <Modal onClose={onClose} maxWidth={520} panelStyle={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {personDisplayName(user)}</p>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
+          {Object.entries(grouped).map(([cat, roles]) => (
+            <div key={cat} style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{tCat(cat, cat)}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {roles.map(r => (
+                  <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.id)}
+                      onChange={e => {
+                        const next = new Set(selected)
+                        if (e.target.checked) next.add(r.id); else next.delete(r.id)
+                        setSelected(next)
+                      }}
+                      style={{ accentColor: 'var(--accent)' }}
+                    />
+                    <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</SubmitButton>
+        </div>
+    </Modal>
+  )
+}
+
+interface AddUserModalProps {
+  allRoles: Role[]
+  t: T
+  tCat: T
+  tCommon: T
+  onClose: () => void
+  onSaved: () => void
+  initialPerson?: PersonResult | null
+}
+
+export interface PersonResult { id: string; full_name: string; hebrew_name?: string | null; email: string | null }
+
+export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
+  const { t: lang } = useLang()
+  // Person search
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<PersonResult[]>([])
+  const [searching, setSearching] = useState(false)
+  // Pre-selected when navigated from HR "create login" (Task A).
+  const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(initialPerson ?? null)
+  const [createNew, setCreateNew] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Form fields
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState(initialPerson?.email ?? '')
+  const [password, setPassword] = useState('')
+  const [autoGen, setAutoGen] = useState(true)
+  const [roleIds, setRoleIds] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  function handleSearch(q: string) {
+    setQuery(q)
+    setSelectedPerson(null)
+    setCreateNew(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (q.length < 2) { setResults([]); return }
+    timerRef.current = setTimeout(async () => {
+      setSearching(true)
+      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(q)}`)
+      if (res.ok) setResults(await res.json())
+      setSearching(false)
+    }, 300)
+  }
+
+  function selectPerson(p: PersonResult) {
+    setSelectedPerson(p)
+    setCreateNew(false)
+    setQuery('')
+    setResults([])
+    if (p.email && !email) setEmail(p.email)
+  }
+
+  function clearSelection() {
+    setSelectedPerson(null)
+    setCreateNew(false)
+    setQuery('')
+    setResults([])
+  }
+
+  async function save() {
+    if (!email) { setErr(t('err_email_password_required')); return }
+    if (!autoGen && (!password || password.length < 8)) { setErr(t('err_password_min')); return }
+    if (!selectedPerson && !createNew) { setErr(t('err_select_person')); return }
+    if (createNew && !fullName.trim()) { setErr(t('err_enter_name')); return }
+
+    setSaving(true); setErr('')
+    const base = selectedPerson
+      ? { person_id: selectedPerson.id }
+      : { full_name: fullName.trim() }
+    const body = {
+      ...base,
+      login_email: email,
+      role_ids: roleIds,
+      ...(autoGen ? { generate_password: true } : { password }),
+    }
+
+    const res = await fetch('/api/settings/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json()
+    setSaving(false)
+    if (res.ok) {
+      onSaved()
+      if (data.generated_password) setGeneratedPassword(data.generated_password) // показать пароль, не закрывая
+      else onClose()
+    } else setErr(data.error ?? tCommon('error'))
+  }
+
+  const toggleRole = (id: string) =>
+    setRoleIds(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id])
+
+  const grouped: Record<string, Role[]> = {}
+  for (const r of allRoles) {
+    if (isDeprecatedRole(r.code)) continue // модель рензе: legacy не предлагаем новым
+    if (!grouped[r.category]) grouped[r.category] = []
+    grouped[r.category].push(r)
+  }
+
+  const personChosen = !!selectedPerson || createNew
+
+  async function copyPassword() {
+    if (!generatedPassword) return
+    try { await navigator.clipboard.writeText(generatedPassword); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
+  }
+
+  // После создания с авто-паролем — показываем пароль (один раз).
+  if (generatedPassword) {
+    return (
+      <Modal onClose={onClose} maxWidth={420} panelStyle={{ padding: 24, display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {copied ? t('copied') : t('copy_password')}
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal onClose={onClose} maxWidth={480} panelStyle={{ maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
+
+        {/* Header */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('add_modal_title')}</p>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+
+        {/* ── Step 1: person search — outside overflowY container so dropdown isn't clipped ── */}
+        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: '0 0 10px' }}>{err}</p>}
+
+          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>
+            {t('search_existing_person_hint')}
+          </p>
+
+          {selectedPerson && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--info)', backgroundColor: 'var(--info-tint)' }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{personDisplayName(selectedPerson)}</p>
+                {selectedPerson.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{selectedPerson.email}</p>}
+              </div>
+              <button onClick={clearSelection} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {createNew && !selectedPerson && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-strong)', backgroundColor: 'var(--surface-2)' }}>
+              <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{t('new_person_badge')}</p>
+              <button onClick={clearSelection} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+          )}
+
+          {!personChosen && (
+            <div style={{ position: 'relative' }}>
+              <input aria-label={t('search_name_email_placeholder')}
+                value={query}
+                onChange={e => handleSearch(e.target.value)}
+                placeholder={t('search_name_email_placeholder')}
+                autoComplete="off"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+              {(results.length > 0 || searching || query.length >= 2) && (
+                <div style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 100, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: 'var(--shadow)', marginTop: 4, overflow: 'hidden' }}>
+                  {searching && (
+                    <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
+                  )}
+                  {!searching && results.map(p => (
+                    <div
+                      key={p.id}
+                      onClick={() => selectPerson(p)}
+                      style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid var(--surface-2)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--surface-2)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                    >
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', margin: 0 }}>{personDisplayName(p)}</p>
+                      {p.email && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{p.email}</p>}
+                    </div>
+                  ))}
+                  {!searching && (
+                    <div
+                      onClick={() => { setCreateNew(true); setResults([]); setQuery('') }}
+                      style={{ padding: '10px 12px', cursor: 'pointer', color: 'var(--accent)', fontSize: 13, fontWeight: 500, borderTop: results.length > 0 ? '1px solid var(--border)' : 'none' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F0F4FF' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
+                    >
+                      {t('create_new_person_link')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Steps 2-4: scrollable area ── */}
+        <div style={{ overflowY: 'auto', padding: '14px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {createNew && (
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('full_name')} *</span>
+              <input
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+          )}
+
+          {personChosen && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Email *</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+                />
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('auto_generate')}</span>
+                </label>
+                {!autoGen && (
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('password_label')} *</span>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder={t('password_hint_placeholder')}
+                      autoComplete="new-password"
+                      style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+                    />
+                  </label>
+                )}
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 8 }}>{t('select_roles_title')}</p>
+                {Object.entries(grouped).map(([cat, roles]) => (
+                  <div key={cat} style={{ marginBottom: 12 }}>
+                    <p style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{tCat(cat, cat)}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {roles.map(r => (
+                        <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
+                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: 'var(--accent)' }} />
+                          <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <SubmitButton
+            onClick={save}
+            loading={saving}
+            disabled={saving || !personChosen}
+            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !personChosen) ? 'not-allowed' : 'pointer', opacity: (saving || !personChosen) ? 0.5 : 1 }}
+          >
+            {tCommon('save', 'Save')}
+          </SubmitButton>
+        </div>
+    </Modal>
+  )
+}
+
+// ── Reset-password modal ─────────────────────────────────────────────────────
+
+interface ResetPasswordModalProps {
+  user: UserRow
+  t: T
+  tCommon: T
+  onClose: () => void
+}
+
+function ResetPasswordModal({ user, t, tCommon, onClose }: ResetPasswordModalProps) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [autoGen, setAutoGen] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  async function save() {
+    if (!autoGen) {
+      if (password.length < 8) { setErr(t('err_password_min')); return }
+      if (password !== confirm) { setErr(t('password_mismatch')); return }
+    }
+    setSaving(true); setErr('')
+    const res = await fetch(`/api/settings/users/${user.account_id}/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(autoGen ? { generate_password: true } : { password }),
+    })
+    setSaving(false)
+    if (res.ok) {
+      const d = await res.json().catch(() => ({}))
+      if (d.generated_password) setGeneratedPassword(d.generated_password)
+      else { toastSuccess(tCommon('saved')); onClose() }
+    } else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
+  }
+
+  async function copyPassword() {
+    if (!generatedPassword) return
+    try { await navigator.clipboard.writeText(generatedPassword); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
+  }
+
+  if (generatedPassword) {
+    return (
+      <Modal onClose={onClose} maxWidth={420} zIndex={1100} panelStyle={{ padding: 24, display: 'grid', gap: 14 }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('password_reset_done')}</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
+            <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {copied ? t('copied') : t('copy_password')}
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
+          <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal onClose={onClose} maxWidth={400} zIndex={1100}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('reset_password_modal_title')}: {personDisplayName(user)}</p>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+            <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+            <span style={{ fontSize: 13, color: 'var(--text)' }}>{t('auto_generate')}</span>
+          </label>
+          {!autoGen && (
+            <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('new_password_label')} *</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder={t('password_hint_placeholder')}
+                  autoComplete="new-password"
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('confirm_password_label')} *</span>
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder={t('confirm_password_placeholder')}
+                  autoComplete="new-password"
+                  style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${confirm && confirm !== password ? 'var(--danger)' : 'var(--border-strong)'}`, fontSize: 13, outline: 'none' }}
+                />
+              </label>
+            </>
+          )}
+        </div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--danger)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{t('reset_password_button')}</SubmitButton>
+        </div>
+    </Modal>
+  )
+}
+
+// ── Edit-user modal ───────────────────────────────────────────────────────────
+
+interface EditUserModalProps {
+  user: UserRow
+  t: T
+  tCommon: T
+  onClose: () => void
+  onSaved: () => void
+}
+
+export function EditUserModal({ user, t, tCommon, onClose, onSaved }: EditUserModalProps) {
+  const [fullName, setFullName] = useState(user.full_name)
+  const [email, setEmail] = useState(user.login_email)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [pwdOpen, setPwdOpen] = useState(false)
+
+  async function save() {
+    if (!fullName.trim() || !email.trim()) { setErr(t('err_fields_empty')); return }
+    setSaving(true); setErr('')
+    const res = await fetch(`/api/settings/users/${user.account_id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name: fullName.trim(), login_email: email.trim() }),
+    })
+    setSaving(false)
+    if (res.ok) { toastSuccess(tCommon('saved')); onSaved(); onClose() }
+    else { const d = await res.json(); setErr(d.error ?? tCommon('error')) }
+  }
+
+  return (
+    <>
+      <Modal onClose={onClose} maxWidth={440}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('edit_modal_title')}</p>
+            <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+          </div>
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {err && <p style={{ color: 'var(--danger)', fontSize: 12, margin: 0 }}>{err}</p>}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('full_name')}</span>
+              <input
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{t('email')}</span>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', fontSize: 13, outline: 'none' }}
+              />
+            </label>
+          </div>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              onClick={() => setPwdOpen(true)}
+              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid var(--danger)', background: 'var(--danger-tint)', fontSize: 12, cursor: 'pointer', color: 'var(--danger)' }}
+            >
+              {t('reset_password_button')}
+            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
+              <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</SubmitButton>
+            </div>
+          </div>
+      </Modal>
+
+      {pwdOpen && <ResetPasswordModal user={user} t={t} tCommon={tCommon} onClose={() => setPwdOpen(false)} />}
+    </>
+  )
+}

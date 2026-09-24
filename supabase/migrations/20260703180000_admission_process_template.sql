@@ -16,6 +16,18 @@
 -- выполняет движок (complete_stage / close_process_early, см. 20260703170000).
 -- Фиксированные UUID + ON CONFLICT DO NOTHING — идемпотентно.
 
+-- 0. Колонки stage_finals.closes_process / process_finish_reason.
+--    ЭТА миграция — первая, кто их использует (INSERT ниже). Формально их
+--    «фиксирует» 20260724100000, но по дате она идёт ПОЗЖЕ, поэтому при чистом
+--    прогоне по порядку колонок ещё нет и сиды падали. Заводим их здесь, до
+--    первого использования (IF NOT EXISTS → на боевой/повторном прогоне no-op).
+--    Держит порядок миграций корректным и для acceptance (20260713170000) и
+--    medical (20260716140000), которые идут после этой.
+ALTER TABLE stage_finals
+  ADD COLUMN IF NOT EXISTS closes_process BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE stage_finals
+  ADD COLUMN IF NOT EXISTS process_finish_reason TEXT;
+
 -- 1. Шаблон процесса
 INSERT INTO process_templates (id, code, name_ru, description, is_active) VALUES
 ('ad000000-0000-4000-8000-000000000001', 'admission', 'Приём',

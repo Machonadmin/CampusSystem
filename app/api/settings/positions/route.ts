@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import type { PositionCategory, ReferencePositionInsert } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
-function isAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
+function isAdmin(session: Awaited<ReturnType<typeof requireStaff>>) {
   const roles = session.roles ?? []
   return roles.includes('superadmin') || roles.includes('admin') || roles.includes('hr_director')
 }
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Должность с таким названием уже существует' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('position_exists') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 const VALID_CATEGORIES: PositionCategory[] = ['academic', 'administrative', 'support']
@@ -27,7 +23,7 @@ const VALID_CATEGORIES: PositionCategory[] = ['academic', 'administrative', 'sup
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
     const params = request.nextUrl.searchParams
 
@@ -53,7 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ positions: data ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -63,9 +59,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     if (!isAdmin(session)) {
-      return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      return apiError('forbidden', 403)
     }
 
     const sb = createServerClient()
@@ -78,12 +74,9 @@ export async function POST(request: NextRequest) {
     }
 
     const name_ru = body.name_ru?.trim()
-    if (!name_ru) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
+    if (!name_ru) return apiError('title_required', 400)
     if (!body.category || !VALID_CATEGORIES.includes(body.category as PositionCategory)) {
-      return NextResponse.json(
-        { error: 'category должен быть одним из: academic, administrative, support' },
-        { status: 400 }
-      )
+      return apiError('category_enum', 400)
     }
 
     const insert: ReferencePositionInsert = {
@@ -99,12 +92,12 @@ export async function POST(request: NextRequest) {
     const { data, error } = await sb.from('reference_positions').insert(insert as any).select('*').single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

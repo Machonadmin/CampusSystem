@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { jsonError } from '@/lib/api/handler'
@@ -8,10 +9,8 @@ import { jsonError } from '@/lib/api/handler'
  * Право: persons.delete (сейчас scope=all только superadmin/tech_admin —
  * см. 20260702140000_persons_documents_privileges.sql, п.5).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { profileId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ profileId: string }> }) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'delete')
     const sb = createServerClient()
@@ -23,7 +22,7 @@ export async function DELETE(
       .single()
 
     if (profileErr || !profile) {
-      return NextResponse.json({ error: 'Сотрудник не найден' }, { status: 404 })
+      return apiError('employee_not_found', 404)
     }
 
     const today = new Date().toISOString().split('T')[0]

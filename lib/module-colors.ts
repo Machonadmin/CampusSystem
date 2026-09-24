@@ -1,41 +1,73 @@
-export const IMPLEMENTED_MODULES = new Set([
-  'education', 'tasks', 'settings', 'staff', 'quality_control',
-])
+// Состав обоих списков — из реестра модулей (lib/modules/registry.ts),
+// единственного источника правды. Раньше они жили здесь копиями и разошлись
+// с middleware, /api/auth/me и типом модулей прав.
+import { COLOURED_MODULE_CODES, IMPLEMENTED_MODULE_CODES } from '@/lib/modules/registry'
+
+const IMPLEMENTED_MODULES = new Set<string>(IMPLEMENTED_MODULE_CODES)
 
 export function isModuleImplemented(moduleCode: string): boolean {
   return IMPLEMENTED_MODULES.has(moduleCode)
 }
 
-export const MODULE_COLORS = {
-  dashboard:       { primary: '#3B82F6', light: '#DBEAFE', medium: '#60A5FA' },
-  persons:         { primary: '#2563EB', light: '#DBEAFE', medium: '#60A5FA' },
-  education:       { primary: '#10B981', light: '#D1FAE5', medium: '#34D399' },
-  staff:           { primary: '#8B5CF6', light: '#EDE9FE', medium: '#A78BFA' },
-  quality_control: { primary: '#EC4899', light: '#FCE7F3', medium: '#F472B6' },
-  tasks:           { primary: '#F59E0B', light: '#FEF3C7', medium: '#FBBF24' },
-  finance:         { primary: '#059669', light: '#D1FAE5', medium: '#10B981' },
-  dormitory:       { primary: '#06B6D4', light: '#CFFAFE', medium: '#22D3EE' },
-  food:            { primary: '#D97706', light: '#FEF3C7', medium: '#F59E0B' },
-  maintenance:     { primary: '#92400E', light: '#FEF3C7', medium: '#B45309' },
-  security:        { primary: '#DC2626', light: '#FEE2E2', medium: '#EF4444' },
-  alumni:          { primary: '#DB2777', light: '#FCE7F3', medium: '#EC4899' },
-  sponsors:        { primary: '#D97706', light: '#FEF3C7', medium: '#F59E0B' },
-  doctor:          { primary: '#059669', light: '#D1FAE5', medium: '#10B981' },
-  psychologist:    { primary: '#7C3AED', light: '#EDE9FE', medium: '#A78BFA' },
-  documents:       { primary: '#6B7280', light: '#F3F4F6', medium: '#9CA3AF' },
-  reports:         { primary: '#16A34A', light: '#DCFCE7', medium: '#22C55E' },
-  contacts:        { primary: '#DB2777', light: '#FCE7F3', medium: '#EC4899' },
-  settings:        { primary: '#1E40AF', light: '#E0E7FF', medium: '#6366F1' },
-} as const
+/**
+ * Цвета модулей — ТОКЕНЫ ТЕМЫ, а не фиксированные hex.
+ *
+ * Раньше здесь была таблица литеральных hex без тёмного варианта. Из-за этого
+ * food≡sponsors, alumni≡contacts, finance≡doctor совпадали байт-в-байт, а
+ * светлые оттенки использовались как фон «чипов» и в тёмной теме — почти белая
+ * плашка на тёмной поверхности. Значения переехали в app/globals.css
+ * (секция «Палитра модулей»), где у каждой роли есть светлый и тёмный вариант.
+ *
+ * Роли (см. подробный комментарий в globals.css):
+ *   primary → var(--mod-X)         текст/иконки/активные границы (меняется с темой)
+ *   light   → var(--mod-X-tint)    фон чипа                      (меняется с темой)
+ *   medium  → полупрозрачный primary — мягкая граница поверх tint; работает в
+ *             обеих темах, поэтому отдельный токен не нужен.
+ *
+ * ВАЖНО: функция возвращает `var(...)`, а не hex. Значит, к результату НЕЛЬЗЯ
+ * приклеивать hex-альфу (`${color}18`) — для прозрачности используйте
+ * color-mix(in oklab, <цвет> N%, transparent). Также результат нельзя
+ * передавать туда, где нужен литеральный цвет (парсер mermaid в classDef,
+ * canvas): там берите значения из getComputedStyle, как это делает
+ * components/workflow/ProcessGraphModal.tsx.
+ */
+
+// Модули, у которых есть палитра --mod-<code> в globals.css. Соответствие
+// реестра и самого CSS проверяет lib/modules/registry.test.ts: пометка без
+// переменной увела бы цвет в серый fallback.
+const KNOWN_MODULES = new Set<string>(COLOURED_MODULE_CODES)
 
 type Shade = 'primary' | 'light' | 'medium'
 
+/**
+ * Синонимы кодов. `studies` — это карточка «Учёба» на главной, но раздел за ней
+ * И ЕСТЬ модуль education, поэтому цвет у них обязан быть один.
+ *
+ * Без этой карты `studies` не попадал в KNOWN_MODULES и молча уезжал в серый
+ * fallback: на главной третий шаг конвейера рисовался серым, неотличимо от
+ * «Документов». Синоним, а не отдельный токен — чтобы раздел и его карточка не
+ * могли разъехаться при следующей правке палитры.
+ */
+const MODULE_ALIASES: Record<string, string> = { studies: 'education' }
+
+/** Имя CSS-переменной модуля; для неизвестного кода — нейтральный fallback. */
+function tokenBase(moduleCode: string): string {
+  const code = MODULE_ALIASES[moduleCode] ?? moduleCode
+  return KNOWN_MODULES.has(code) ? code : 'fallback'
+}
+
 export function getModuleColor(moduleCode: string, shade: Shade = 'primary'): string {
-  const palette = MODULE_COLORS[moduleCode as keyof typeof MODULE_COLORS]
-  if (!palette) return shade === 'light' ? '#F3F4F6' : '#6B7280'
-  return palette[shade]
+  const base = tokenBase(moduleCode)
+  if (shade === 'light') return `var(--mod-${base}-tint)`
+  if (shade === 'medium') return `color-mix(in oklab, var(--mod-${base}) 55%, transparent)`
+  return `var(--mod-${base})`
 }
 
 export function getModuleHeaderGradient(moduleCode: string): string {
-  return `linear-gradient(135deg, ${getModuleColor(moduleCode, 'medium')} 0%, ${getModuleColor(moduleCode, 'primary')} 100%)`
+  // Три стопа: светлее → базовый → чуть притемнённый хвост (perceptual oklab-mix).
+  // Берём -banner, а НЕ -mod-X: на шапке лежит белый текст (ModuleHeader,
+  // color:#fff), поэтому фон обязан остаться глубоким и в тёмной теме — пастель
+  // дала бы белое по светлому.
+  const banner = `var(--mod-${tokenBase(moduleCode)}-banner)`
+  return `linear-gradient(140deg, color-mix(in oklab, ${banner} 78%, #fff) 0%, ${banner} 62%, color-mix(in oklab, ${banner} 84%, #000) 100%)`
 }

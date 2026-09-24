@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import type { PrivilegeModule } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   return session
 }
 
@@ -31,7 +33,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -40,16 +42,39 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await guard()
     const sb = createServerClient()
+    type Scope = 'all' | 'department' | 'own'
     const { role_id, privileges } = await request.json() as {
       role_id: string
-      privileges: { module: string; privilege_code: string }[]
+      // scope опционален: если передан — используем его (напр. мастер «роль+посадка»
+      // задаёт department для не-access привилегий); иначе сохраняем прежний scope.
+      privileges: { module: string; privilege_code: string; scope?: Scope }[]
     }
 
-    await sb.from('role_privileges').delete().eq('role_id', role_id)
+    // Сохраняем существующий scope каждой привилегии: колонка role_privileges.scope
+    // имеет DEFAULT 'all', а старый UI шлёт только {module, privilege_code} без scope.
+    // Без этого delete+insert молча повышал бы scope='department' → 'all' (доступ
+    // ко всему кампусу) при любом сохранении роли — тихая эскалация прав.
+    const { data: existing } = await sb
+      .from('role_privileges')
+      .select('module, privilege_code, scope')
+      .eq('role_id', role_id)
+    const scopeByKey = new Map<string, Scope>(
+      (existing ?? []).map(r => [`${r.module}::${r.privilege_code}`, r.scope as Scope]),
+    )
+
+    const { error: delErr } = await sb.from('role_privileges').delete().eq('role_id', role_id)
+    if (delErr) throw delErr
 
     if (privileges.length > 0) {
       const { error } = await sb.from('role_privileges').insert(
-        privileges.map(p => ({ role_id, module: p.module as PrivilegeModule, privilege_code: p.privilege_code, granted_by: session.person_id }))
+        privileges.map(p => ({
+          role_id,
+          module: p.module as PrivilegeModule,
+          privilege_code: p.privilege_code,
+          granted_by: session.person_id,
+          // явный scope из запроса → прежний scope → 'all'.
+          scope: p.scope ?? scopeByKey.get(`${p.module}::${p.privilege_code}`) ?? ('all' as Scope),
+        }))
       )
       if (error) throw error
     }
@@ -57,6 +82,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

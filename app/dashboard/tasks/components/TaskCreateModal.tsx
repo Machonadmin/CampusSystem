@@ -1,8 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
+import { intlLocale } from '@/lib/i18n/format-date'
 import { PersonSelect } from '@/components/ui/person-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -12,36 +17,33 @@ type TaskKind     = 'once' | 'recurring'
 type DueTimeType  = 'allday' | 'exact'
 type SeriesEnd    = 'never' | 'until_date' | 'after_count'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Watcher   { id: string; full_name: string }
 
 // ── Locale-aware calendar helpers (Intl instead of hand-rolled name tables) ──
 
-function localeFor(lang: string): string {
-  return lang === 'he' ? 'he-IL' : lang === 'en' ? 'en-US' : 'ru-RU'
-}
 
 // 2024-01-01 is a Monday — used as a stable anchor week to derive localized weekday names.
 function weekdayLabel(lang: string, wd: number, format: 'short' | 'long'): string {
   const d = new Date(Date.UTC(2024, 0, wd))
-  return d.toLocaleDateString(localeFor(lang), { weekday: format, timeZone: 'UTC' })
+  return d.toLocaleDateString(intlLocale(lang), { weekday: format, timeZone: 'UTC' })
 }
 
 function monthLabel(lang: string, month1to12: number): string {
   const d = new Date(Date.UTC(2024, month1to12 - 1, 1))
-  return d.toLocaleDateString(localeFor(lang), { month: 'long', timeZone: 'UTC' })
+  return d.toLocaleDateString(intlLocale(lang), { month: 'long', timeZone: 'UTC' })
 }
 
 function formatFullDate(lang: string, iso: string): string {
-  return new Date(iso + 'T00:00:00Z').toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString(intlLocale(lang), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
 const PRIORITY_VALUES = ['urgent', 'high', 'normal', 'low'] as const
 const PRIORITY_COLORS: Record<typeof PRIORITY_VALUES[number], string> = {
-  urgent: '#DC2626', high: '#D97706', normal: '#2563EB', low: '#6B7280',
+  urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-muted)',
 }
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => todayISO()
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -77,10 +79,19 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   const [assigneeDepartmentId, setAssigneeDepartmentId] = useState<string>('')
   const [departments,          setDepartments]          = useState<Department[]>([])
 
+  // ── «это задача по эксплуатации» ──
+  // Галочка показывается ТОЛЬКО когда задача назначается человеку, у которого в
+  // настройках стоит роль техслужбы, и по умолчанию включена: раз уж выбрали
+  // техника, чаще всего это его работа. Снять её можно — «зайди на планёрку»
+  // не должно попадать на доску техслужбы.
+  const [maintenanceStaffIds, setMaintenanceStaffIds] = useState<Set<string>>(new Set())
+  const [isMaintenance,       setIsMaintenance]       = useState(true)
+
   // ── one-time due ──
   const [dueDate,     setDueDate]     = useState(today())
   const [dueTimeType, setDueTimeType] = useState<DueTimeType>('allday')
   const [dueTime,     setDueTime]     = useState('09:00')
+  const [addToCalendar, setAddToCalendar] = useState(false)
 
   // ── recurring ──
   const [frequency,            setFrequency]            = useState<RecurrenceFrequency>('weekly')
@@ -110,6 +121,23 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
       .then(d => setDepartments(Array.isArray(d) ? d : (d.departments ?? [])))
       .catch(() => {})
   }, [])
+
+  // ── кто из людей — техслужба (для галочки) ──
+  // Не критично: не загрузилось — галочки просто не будет, задача создастся как
+  // обычная.
+  useEffect(() => {
+    fetch('/api/tasks/maintenance-staff')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d?.person_ids)) setMaintenanceStaffIds(new Set(d.person_ids as string[])) })
+      .catch(() => {})
+  }, [])
+
+  // Каждый новый выбор исполнителя начинается со значения по умолчанию (вкл.),
+  // иначе снятая для предыдущего человека галочка «прилипла» бы к следующему.
+  useEffect(() => { setIsMaintenance(true) }, [assigneePersonId])
+
+  const showMaintenanceToggle =
+    assigneeMode === 'person' && !!assigneePersonId && maintenanceStaffIds.has(assigneePersonId)
 
   // ── toggle weekday ──
   function toggleWeekday(wd: number) {
@@ -157,6 +185,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         priority,
         module: 'general',
         watchers: watchers.map(w => w.id),
+        // Сервер всё равно перепроверит роль исполнителя и снимет метку, если
+        // человек не из техслужбы.
+        is_maintenance: showMaintenanceToggle && isMaintenance,
       }
 
       let resp: Response
@@ -202,6 +233,25 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         const j = await resp.json().catch(() => ({}))
         throw new Error(j.error ?? `${t('create_modal.error_unknown')} ${resp.status}`)
       }
+
+      // Опционально — сразу положить одноразовую задачу в личный календарь.
+      if (kind === 'once' && addToCalendar && dueDate) {
+        const created = await resp.json().catch(() => null) as { id?: string } | null
+        const allday = dueTimeType === 'allday'
+        await fetch('/api/calendar/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            event_date: dueDate,
+            event_time: !allday && dueTime ? dueTime : null,
+            source_type: 'task',
+            source_id: created?.id ?? null,
+            link: created?.id ? `/dashboard/tasks/${created.id}` : null,
+          }),
+        }).catch(() => { /* календарь не критичен для создания задачи */ })
+      }
+
       onSaved()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('create_modal.error_unknown'))
@@ -255,47 +305,35 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   // ── styles ──
   const inp: React.CSSProperties = {
     padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8,
-    outline: 'none', background: '#fff', color: '#1F2937', width: '100%', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8,
+    outline: 'none', background: 'var(--surface)', color: 'var(--text)', width: '100%', boxSizing: 'border-box',
   }
   const segBtn = (active: boolean): React.CSSProperties => ({
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: active ? 600 : 400,
-    border: '1px solid ' + (active ? '#F59E0B' : '#D1D5DB'),
+    border: '1px solid ' + (active ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: active ? '#FEF3C7' : '#fff',
-    color: active ? '#92400E' : '#374151',
+    background: active ? 'var(--warn-tint)' : 'var(--surface)',
+    color: active ? 'var(--warn)' : 'var(--text)',
   })
   const assigneeBtn = (mode: AssigneeMode): React.CSSProperties => ({
     flex: 1, padding: '7px 0', fontSize: 13, fontWeight: assigneeMode === mode ? 600 : 400,
-    border: '1px solid ' + (assigneeMode === mode ? '#F59E0B' : '#D1D5DB'),
+    border: '1px solid ' + (assigneeMode === mode ? '#F59E0B' : 'var(--border-strong)'),
     borderRadius: 8, cursor: 'pointer',
-    background: assigneeMode === mode ? '#FEF3C7' : '#fff',
-    color: assigneeMode === mode ? '#92400E' : '#374151',
+    background: assigneeMode === mode ? 'var(--warn-tint)' : 'var(--surface)',
+    color: assigneeMode === mode ? 'var(--warn)' : 'var(--text)',
   })
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 16,
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560,
-        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-      }}>
+    <Modal onClose={onClose} maxWidth={560} closeOnBackdrop panelStyle={{ borderRadius: 16, display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
         {/* Header */}
         <div style={{
-          padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
+          padding: '16px 20px', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('create_modal.title')}
           </h2>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#6B7280', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
         </div>
 
         {/* Body */}
@@ -303,8 +341,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Title */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
-            <input
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.name_label')} *</label>
+            <input aria-label={t('create_modal.name_label')}
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder={t('create_modal.name_placeholder')}
@@ -315,8 +353,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Description */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
-            <textarea
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.description_label')}</label>
+            <textarea aria-label={t('create_modal.description_label')}
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder={t('create_modal.description_placeholder')}
@@ -327,7 +365,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Kind toggle */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.type_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.type_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => setKind('once')}      style={segBtn(kind === 'once')}>{t('create_modal.type_once')}</button>
               <button type="button" onClick={() => setKind('recurring')} style={segBtn(kind === 'recurring')}>{t('create_modal.type_recurring')}</button>
@@ -336,7 +374,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Assignee */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.assignee_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.assignee_label')}</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <button type="button" onClick={() => setAssigneeMode('me')}         style={assigneeBtn('me')}>{t('create_modal.assignee_me')}</button>
               <button type="button" onClick={() => setAssigneeMode('person')}     style={assigneeBtn('person')}>{t('create_modal.assignee_person')}</button>
@@ -350,10 +388,33 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                 accentColor="#F59E0B"
               />
             )}
+            {showMaintenanceToggle && (
+              <div style={{
+                marginTop: 8, padding: '10px 12px', borderRadius: 8,
+                background: 'var(--surface-2)', border: '1px solid var(--border)',
+              }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={isMaintenance}
+                    onChange={e => setIsMaintenance(e.target.checked)}
+                    style={{ accentColor: 'var(--accent-strong)', marginTop: 2 }}
+                  />
+                  <span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
+                      🔧 {t('create_modal.maintenance_label')}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      {t('create_modal.maintenance_hint')}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
             {assigneeMode === 'department' && (
               <select value={assigneeDepartmentId} onChange={e => setAssigneeDepartmentId(e.target.value)} style={inp}>
                 <option value="">{t('create_modal.department_select_placeholder')}</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
               </select>
             )}
           </div>
@@ -361,7 +422,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
           {/* ── ONE-TIME DUE ── */}
           {kind === 'once' && (
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.due_label')}</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.due_label')}</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <button type="button" onClick={() => setDueTimeType('allday')} style={segBtn(dueTimeType === 'allday')}>{t('create_modal.due_allday')}</button>
                 <button type="button" onClick={() => setDueTimeType('exact')}  style={segBtn(dueTimeType === 'exact')}>{t('create_modal.due_exact')}</button>
@@ -372,6 +433,10 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                   <input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} style={{ ...inp, width: 110 }} />
                 )}
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer', userSelect: 'none' }}>
+                <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: 'var(--accent-strong)' }} />
+                <span style={{ fontSize: 13, color: 'var(--text)' }}>📅 {t('create_modal.add_to_calendar')}</span>
+              </label>
             </div>
           )}
 
@@ -380,40 +445,28 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             <>
               {/* Start date */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
-                <input type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.start_from_label')}</label>
+                <input aria-label={t('create_modal.start_from_label')} type="date" value={recurrenceStartDate} onChange={e => setRecurrenceStartDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
               </div>
 
-              {/* Frequency cards */}
+              {/* Frequency */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {FREQ_OPTIONS.map(opt => {
-                    const active = frequency === opt.value
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setFrequency(opt.value)}
-                        style={{
-                          padding: '10px 12px', textAlign: 'left',
-                          border: '2px solid ' + (active ? '#F59E0B' : '#E5E7EB'),
-                          borderRadius: 10, cursor: 'pointer',
-                          background: active ? '#FFFBEB' : '#fff',
-                        }}
-                      >
-                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? '#92400E' : '#1F2937' }}>{opt.label}</div>
-                        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{opt.sub}</div>
-                      </button>
-                    )
-                  })}
-                </div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.frequency_label')}</label>
+                <select aria-label={t('create_modal.frequency_label')}
+                  value={frequency}
+                  onChange={e => setFrequency(e.target.value as RecurrenceFrequency)}
+                  style={{ ...inp, maxWidth: 260 }}
+                >
+                  {FREQ_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label} — {opt.sub}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Weekly weekdays */}
               {frequency === 'weekly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.weekdays_label')}</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.weekdays_label')}</label>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {Array.from({ length: 7 }, (_, i) => i + 1).map(wd => {
                       const on = weekdays.includes(wd)
@@ -424,9 +477,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                           onClick={() => toggleWeekday(wd)}
                           style={{
                             width: 36, height: 36, borderRadius: '50%', fontSize: 12, fontWeight: on ? 600 : 400,
-                            border: '1px solid ' + (on ? '#F59E0B' : '#D1D5DB'),
-                            background: on ? '#F59E0B' : '#fff',
-                            color: on ? '#fff' : '#374151',
+                            border: '1px solid ' + (on ? '#F59E0B' : 'var(--border-strong)'),
+                            background: on ? '#F59E0B' : 'var(--surface)',
+                            color: on ? 'var(--surface)' : 'var(--text)',
                             cursor: 'pointer',
                           }}
                         >
@@ -441,8 +494,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {/* Monthly day */}
               {frequency === 'monthly' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
-                  <input
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_day_label')}</label>
+                  <input aria-label={t('create_modal.month_day_label')}
                     type="number" min={1} max={31} value={monthDay}
                     onChange={e => setMonthDay(e.target.value)}
                     placeholder={t('create_modal.month_day_placeholder')}
@@ -455,14 +508,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               {frequency === 'yearly' && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
-                    <select value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.month_label')}</label>
+                    <select aria-label={t('create_modal.month_label')} value={yearMonth} onChange={e => setYearMonth(e.target.value)} style={inp}>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthLabel(lang, m)}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
-                    <input
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.day_label')}</label>
+                    <input aria-label={t('create_modal.day_label')}
                       type="number" min={1} max={31} value={yearDay}
                       onChange={e => setYearDay(e.target.value)}
                       placeholder={t('create_modal.day_placeholder')}
@@ -474,7 +527,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
               {/* Optional time */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                   <input type="checkbox" checked={enableTime} onChange={e => setEnableTime(e.target.checked)} />
                   {t('create_modal.specific_time_label')}
                 </label>
@@ -486,23 +539,16 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
               {/* Series end */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  {([
-                    ['never',       t('create_modal.series_end_never')],
-                    ['until_date',  t('create_modal.series_end_until')],
-                    ['after_count', t('create_modal.series_end_after_count')],
-                  ] as const).map(([val, lbl]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setSeriesEnd(val)}
-                      style={segBtn(seriesEnd === val)}
-                    >
-                      {lbl}
-                    </button>
-                  ))}
-                </div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.series_end_label')}</label>
+                <select aria-label={t('create_modal.series_end_label')}
+                  value={seriesEnd}
+                  onChange={e => setSeriesEnd(e.target.value as SeriesEnd)}
+                  style={{ ...inp, maxWidth: 260, marginBottom: 8 }}
+                >
+                  <option value="never">{t('create_modal.series_end_never')}</option>
+                  <option value="until_date">{t('create_modal.series_end_until')}</option>
+                  <option value="after_count">{t('create_modal.series_end_after_count')}</option>
+                </select>
                 {seriesEnd === 'until_date' && (
                   <input type="date" value={seriesUntilDate} onChange={e => setSeriesUntilDate(e.target.value)} style={{ ...inp, maxWidth: 200 }} />
                 )}
@@ -513,14 +559,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                       onChange={e => setSeriesCount(e.target.value)}
                       style={{ ...inp, maxWidth: 100 }}
                     />
-                    <span style={{ fontSize: 13, color: '#6B7280' }}>{t('create_modal.occurrences_suffix')}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('create_modal.occurrences_suffix')}</span>
                   </div>
                 )}
               </div>
 
               {/* Preview */}
-              <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#374151' }}>
-                <span style={{ fontWeight: 600, color: '#6B7280', fontSize: 12 }}>{t('create_modal.next_occurrence_label')} </span>
+              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: 12 }}>{t('create_modal.next_occurrence_label')} </span>
                 {preview}
               </div>
             </>
@@ -528,7 +574,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Priority */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.priority_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.priority_label')}</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {PRIORITY_VALUES.map(p => {
                 const active = priority === p
@@ -540,10 +586,10 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                     onClick={() => setPriority(p)}
                     style={{
                       flex: 1, padding: '6px 0', fontSize: 12, fontWeight: active ? 700 : 400,
-                      border: '1px solid ' + (active ? color : '#D1D5DB'),
+                      border: '1px solid ' + (active ? color : 'var(--border-strong)'),
                       borderRadius: 8, cursor: 'pointer',
-                      background: active ? color + '18' : '#fff',
-                      color: active ? color : '#6B7280',
+                      background: active ? color + '18' : 'var(--surface)',
+                      color: active ? color : 'var(--text-muted)',
                     }}
                   >
                     {t(`priority.${p}`, p)}
@@ -555,19 +601,20 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Watchers */}
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 6 }}>{t('create_modal.watchers_label')}</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('create_modal.watchers_label')}</label>
             {watchers.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {watchers.map(w => (
                   <span key={w.id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '3px 8px', background: '#EFF6FF', borderRadius: 99,
-                    fontSize: 12, color: '#1E40AF',
+                    padding: '3px 8px', background: 'var(--accent-tint)', borderRadius: 99,
+                    fontSize: 12, color: 'var(--info)',
                   }}>
                     {w.full_name}
                     <button
                       type="button"
                       onClick={() => setWatchers(prev => prev.filter(x => x.id !== w.id))}
+                      aria-label={tCommon('delete')}
                       style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#60A5FA', fontSize: 14, lineHeight: 1, padding: 0 }}
                     >×</button>
                   </span>
@@ -584,7 +631,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
           {/* Error */}
           {error && (
-            <div style={{ padding: '10px 14px', background: '#FEE2E2', color: '#991B1B', borderRadius: 8, fontSize: 13 }}>
+            <div style={{ padding: '10px 14px', background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>
               {error}
             </div>
           )}
@@ -592,28 +639,29 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
 
         {/* Footer */}
         <div style={{
-          padding: '14px 20px', borderTop: '1px solid #E5E7EB',
+          padding: '14px 20px', borderTop: '1px solid var(--border)',
           display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0,
         }}>
           <button type="button" onClick={onClose}
-            style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', color: '#374151' }}>
+            style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}>
             {tCommon('cancel')}
           </button>
-          <button
+          <SubmitButton
             type="submit"
             form=""
             onClick={handleSubmit}
-            disabled={saving}
+            loading={saving}
+            loadingLabel={t('create_modal.creating_button')}
             style={{
               padding: '8px 20px', fontSize: 13, fontWeight: 600,
-              border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer',
-              background: '#F59E0B', color: '#fff', opacity: saving ? 0.7 : 1,
+              border: 'none', borderRadius: 8,
+              background: '#F59E0B', color: '#fff', opacity: saving ? 0.85 : 1,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
             }}
           >
-            {saving ? t('create_modal.creating_button') : (kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button'))}
-          </button>
+            {kind === 'once' ? t('create_modal.create_button') : t('create_modal.create_series_button')}
+          </SubmitButton>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

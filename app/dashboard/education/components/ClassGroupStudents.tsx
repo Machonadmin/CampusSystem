@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface StudentMini {
   id: string
@@ -24,9 +30,9 @@ interface Props {
 }
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: '#EFF6FF', color: '#1E40AF' },
-  expelled:  { background: '#F3F4F6', color: '#6B7280' },
+  on_leave:  { background: 'var(--warn-tint)', color: 'var(--warn)' },
+  graduated: { background: 'var(--accent-tint)', color: 'var(--accent-strong)' },
+  expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
 function plural(n: number, one: string, few: string, many: string): string {
@@ -48,39 +54,39 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
   }
 
   const handleRemove = async (studentId: string) => {
-    if (!confirm(t('class_groups.remove_student_confirm'))) return
+    if (!(await confirmDialog({ message: t('class_groups.remove_student_confirm'), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/class-groups/${groupId}/enrollments/${studentId}`, {
         method: 'DELETE',
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('class_groups.remove_student_failed'))
+        toast(err.error ?? t('class_groups.remove_student_failed'), 'error')
         return
       }
       onChange()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
   }
 
   const btnSmall: React.CSSProperties = {
-    padding: '4px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '4px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #E5E7EB', padding: 20 }}>
+    <div style={{ background: 'var(--surface)', borderRadius: 10, border: '1px solid var(--border)', padding: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('class_groups.students_section_title')}
-          <span style={{ fontWeight: 400, color: '#6B7280', marginLeft: 6, fontSize: 13 }}>
+          <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginInlineStart: 6, fontSize: 13 }}>
             ({students.length} {plural(students.length, t('class_groups.people_one'), t('class_groups.people_few'), t('class_groups.people_many'))})
           </span>
         </h2>
         <button
           onClick={() => setEnrolling(true)}
-          style={{ padding: '4px 10px', fontSize: 12, color: accentColor, borderColor: accentColor, background: '#fff', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
+          style={{ padding: '4px 10px', fontSize: 12, color: accentColor, borderColor: accentColor, background: 'var(--surface)', border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
         >
           {t('class_groups.enroll_students_button')}
         </button>
@@ -88,7 +94,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
 
       {/* Список */}
       {students.length === 0 ? (
-        <div style={{ color: '#9CA3AF', fontSize: 13, padding: '8px 0' }}>{t('class_groups.no_students')}</div>
+        <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('class_groups.no_students')}</div>
       ) : (
         <div>
           {students.map((s, i) => (
@@ -96,16 +102,21 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
               key={s.id}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 0', borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
+                padding: '10px 0', borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                  <Link
+                    href={`/dashboard/education/students/${s.id}`}
+                    style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', textDecoration: 'none' }}
+                    onMouseEnter={e => { const el = e.currentTarget; el.style.color = accentColor; el.style.textDecoration = 'underline' }}
+                    onMouseLeave={e => { const el = e.currentTarget; el.style.color = 'var(--text)'; el.style.textDecoration = 'none' }}
+                  >
                     {s.person?.full_name ?? '—'}
-                  </span>
+                  </Link>
                   {s.main_group && (
-                    <span style={{ fontSize: 12, color: '#6B7280', marginLeft: 8 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)', marginInlineStart: 8 }}>
                       {s.main_group.name}
                     </span>
                   )}
@@ -121,7 +132,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
               </div>
               <button
                 onClick={() => handleRemove(s.id)}
-                style={{ ...btnSmall, color: '#DC2626', borderColor: '#FCA5A5' }}
+                style={{ ...btnSmall, color: 'var(--danger)', borderColor: 'var(--danger)' }}
               >
                 {t('class_groups.remove_button')}
               </button>
@@ -163,6 +174,7 @@ interface EnrollModalProps {
 
 function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: EnrollModalProps) {
   const t = useTranslations('education.study')
+  const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
   const [candidates, setCandidates] = useState<CandidateStudent[]>([])
   const [loading, setLoading] = useState(false)
@@ -207,7 +219,7 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('class_groups.enroll_failed'))
+        toast(err.error ?? t('class_groups.enroll_failed'), 'error')
         return
       }
       const data = await resp.json().catch(() => ({}))
@@ -216,10 +228,10 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
       const msg = skipped > 0
         ? t('class_groups.enrolled_with_skipped').replace('{added}', String(added)).replace('{skipped}', String(skipped))
         : t('class_groups.enrolled_message').replace('{added}', String(added))
-      alert(msg)
+      toast(msg, 'success')
       onDone()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     } finally {
       setSaving(false)
     }
@@ -228,48 +240,37 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
   const enrolledSet = new Set(enrolledIds)
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 50, padding: 16,
-      }}
+    <Modal
+      onClose={onClose}
+      maxWidth={520}
+      closeOnBackdrop
+      panelStyle={{ padding: 24, maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}
     >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fff', borderRadius: 12, padding: 24,
-          width: '100%', maxWidth: 520,
-          maxHeight: '80vh', display: 'flex', flexDirection: 'column',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        }}
-      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('class_groups.enroll_modal_title')}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
-        <input
+        <input aria-label={t('class_groups.search_by_name_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('class_groups.search_by_name_placeholder')}
           autoFocus
           style={{
             width: '100%', padding: '8px 12px', fontSize: 13,
-            border: '1px solid #D1D5DB', borderRadius: 8,
+            border: '1px solid var(--border-strong)', borderRadius: 8,
             boxSizing: 'border-box', outline: 'none', marginBottom: 10,
           }}
         />
 
-        <div style={{ flex: 1, overflowY: 'auto', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+        <div style={{ flex: 1, overflowY: 'auto', borderRadius: 8, border: '1px solid var(--border)' }}>
           {loading && (
-            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>
+            <SkeletonRows />
           )}
           {!loading && candidates.length === 0 && (
-            <div style={{ padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.nothing_found')}</div>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.nothing_found')}</div>
           )}
           {!loading && candidates.map((s, i) => {
             const alreadyIn = enrolledSet.has(s.id)
@@ -280,10 +281,10 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '9px 12px',
-                  borderTop: i > 0 ? '1px solid #F3F4F6' : 'none',
+                  borderTop: i > 0 ? '1px solid var(--surface-2)' : 'none',
                   cursor: alreadyIn ? 'default' : 'pointer',
                   opacity: alreadyIn ? 0.45 : 1,
-                  background: isChecked ? `${accentColor}08` : 'transparent',
+                  background: isChecked ? `color-mix(in oklab, ${accentColor} 3%, transparent)` : 'transparent',
                 }}
               >
                 <input
@@ -294,30 +295,31 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
                   style={{ accentColor }}
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                     {s.person?.full_name ?? '—'}
                   </div>
                   {s.main_group && (
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>{s.main_group.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.main_group.name}</div>
                   )}
                 </div>
                 {alreadyIn && (
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>{t('class_groups.already_in_group')}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('class_groups.already_in_group')}</span>
                 )}
               </label>
             )
           })}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 14, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
           <button
             onClick={onClose} disabled={saving}
-            style={{ padding: '8px 16px', fontSize: 13, color: '#374151', background: '#fff', border: '1px solid #D1D5DB', borderRadius: 8, cursor: 'pointer' }}
+            style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
           >
             {t('common.cancel')}
           </button>
-          <button
-            onClick={handleEnroll} disabled={selected.size === 0 || saving}
+          <SubmitButton
+            onClick={handleEnroll} loading={saving} disabled={selected.size === 0 || saving}
+            loadingLabel={t('class_groups.enrolling_button')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
               background: accentColor, border: 'none', borderRadius: 8,
@@ -325,10 +327,9 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
               opacity: (selected.size === 0 || saving) ? 0.55 : 1,
             }}
           >
-            {saving ? t('class_groups.enrolling_button') : t('class_groups.enroll_button').replace('{count}', String(selected.size))}
-          </button>
+            {t('class_groups.enroll_button').replace('{count}', String(selected.size))}
+          </SubmitButton>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

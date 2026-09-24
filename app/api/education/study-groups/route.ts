@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { fetchAllPages } from '@/lib/api/handler'
+import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
+import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import type { StudyGroupInsert } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Базовая группа с таким названием уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись (department_id или specialty_id)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('base_group_exists') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference_dept_or_specialty_full') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /**
@@ -24,11 +22,15 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const params = request.nextUrl.searchParams
     const departmentId = params.get('department_id')
     const specialtyId = params.get('specialty_id')
     const activeOnly = params.get('active_only') !== 'false'
+
+    // Видимость по юниту (scope='department' → только свои подразделения).
+    const myDepts = await getEducationStructureDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ study_groups: [] })
 
     const sb = createServerClient()
     let qb = sb
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (departmentId) qb = qb.eq('department_id', departmentId)
     if (specialtyId) qb = qb.eq('specialty_id', specialtyId)
+    if (myDepts) qb = qb.in('department_id', myDepts)
     if (activeOnly) qb = qb.eq('is_active', true)
 
     const { data: groups, error } = await qb
@@ -46,16 +49,19 @@ export async function GET(request: NextRequest) {
     if (!groups || groups.length === 0) return NextResponse.json({ study_groups: [] })
 
     const groupIds = groups.map(g => g.id)
-    const { data: studentRows, error: cntErr } = await sb
-      .from('students')
-      .select('main_group_id')
+    // Считаем по education_journeys (таблица, заменившая legacy `students`, куда
+    // давно никто не пишет — счётчик показывал ноль). Активная студентка =
+    // education_status='student' (см. lib/education/journey-status).
+    const studentRows = await fetchAllPages<{ main_group_id: string | null }>((from, to) => sb
+      .from('education_journeys')
+      .select('main_group_id, id')
       .in('main_group_id', groupIds)
-      .eq('status', 'active')
-
-    if (cntErr) throw cntErr
+      .in('education_status', ACTIVE_STUDENT_STATUSES)
+      .order('id', { ascending: true })
+      .range(from, to))
 
     const countsByGroup = new Map<string, number>()
-    for (const row of studentRows ?? []) {
+    for (const row of (studentRows ?? []) as Array<{ main_group_id: string | null }>) {
       if (row.main_group_id) {
         countsByGroup.set(row.main_group_id, (countsByGroup.get(row.main_group_id) ?? 0) + 1)
       }
@@ -71,9 +77,9 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -95,8 +101,8 @@ export async function POST(request: NextRequest) {
     }
 
     const name = body.name?.trim()
-    if (!name) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
-    if (!body.department_id) return NextResponse.json({ error: 'department_id обязателен' }, { status: 400 })
+    if (!name) return apiError('title_required', 400)
+    if (!body.department_id) return apiError('department_id_required', 400)
 
     await requireEducationPrivilege('manage_study_groups', { department_id: body.department_id })
 
@@ -109,9 +115,9 @@ export async function POST(request: NextRequest) {
         .eq('id', body.specialty_id)
         .maybeSingle()
       if (specErr) throw specErr
-      if (!spec) return NextResponse.json({ error: 'Специальность не найдена' }, { status: 400 })
+      if (!spec) return apiError('specialty_not_found', 400)
       if (spec.department_id !== body.department_id) {
-        return NextResponse.json({ error: 'Специальность принадлежит другому подразделению' }, { status: 400 })
+        return apiError('specialty_other_department', 400)
       }
     }
 
@@ -134,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ ...data, counts: { students: 0 } }, { status: 201 })
@@ -142,8 +148,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

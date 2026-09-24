@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()
@@ -18,24 +21,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()
 
     // Re-parent children to this dept's parent before deleting
-    const { data: dept } = await sb.from('departments').select('parent_id').eq('id', params.id).single()
-    await sb.from('departments').update({ parent_id: dept?.parent_id ?? null }).eq('parent_id', params.id)
+    const { data: dept } = await sb.from('departments').select('parent_id').eq('id', params.id).maybeSingle()
+    const { error: reparentErr } = await sb.from('departments').update({ parent_id: dept?.parent_id ?? null }).eq('parent_id', params.id)
+    if (reparentErr) throw reparentErr
 
     const { error } = await sb.from('departments').delete().eq('id', params.id)
     if (error) throw error
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
-
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+import { getClassGroupTarget } from '@/lib/education/lesson-access'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/class-groups/[id]/enrollments
  * Список journeys (студентов), записанных в учебную группу.
+ * Право: view_students в контексте группы (как сиблинги lessons/assessments).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
-    await requireAuth()
     const sb = createServerClient()
+
+    const target = await getClassGroupTarget(sb, params.id)
+    if (!target) return apiError('group_not_found', 404)
+
+    await requireEducationPrivilege('view_students', target)
 
     const { data, error } = await sb
       .from('class_enrollments')
@@ -34,7 +33,7 @@ export async function GET(
           specialty_id,
           main_group_id,
           year_level,
-          person:persons(id, full_name, hebrew_name, email),
+          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name),
           main_group:study_groups(id, name)
         )
       `)
@@ -45,7 +44,7 @@ export async function GET(
     return NextResponse.json({ enrollments: data ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -60,10 +59,8 @@ export async function GET(
  * Идемпотентен: уже записанные пропускаются.
  * Возвращает: { added, already, total }.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       journey_ids?: string[]
@@ -72,10 +69,7 @@ export async function POST(
 
     const rawIds = body.journey_ids ?? body.student_ids
     if (!Array.isArray(rawIds) || rawIds.length === 0) {
-      return NextResponse.json(
-        { error: 'journey_ids обязателен (массив)' },
-        { status: 400 }
-      )
+      return apiError('journey_ids_required_array', 400)
     }
     const uniqueIds = Array.from(new Set(rawIds))
 
@@ -87,7 +81,7 @@ export async function POST(
       .eq('id', params.id)
       .maybeSingle()
     if (gErr) throw gErr
-    if (!group) return NextResponse.json({ error: 'Учебная группа не найдена' }, { status: 404 })
+    if (!group) return apiError('study_group_not_found', 404)
 
     await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
 
@@ -101,18 +95,12 @@ export async function POST(
     const foundIds = new Set((journeys ?? []).map(j => j.id))
     const missing = uniqueIds.filter(id => !foundIds.has(id))
     if (missing.length > 0) {
-      return NextResponse.json(
-        { error: `Journey не найдены: ${missing.join(', ')}` },
-        { status: 400 }
-      )
+      return apiErrorWith('journeys_not_found_list', 400, { ids: missing.join(', ') })
     }
 
     const nonStudents = (journeys ?? []).filter(j => j.education_status !== 'student')
     if (nonStudents.length > 0) {
-      return NextResponse.json(
-        { error: 'Запись возможна только для студентов (education_status=student)' },
-        { status: 400 }
-      )
+      return apiError('enroll_only_students', 400)
     }
 
     // Уже записанные
@@ -132,7 +120,7 @@ export async function POST(
       const { error: insErr } = await sb.from('class_enrollments').insert(rows as any)
       if (insErr) {
         if (insErr.code === '23503') {
-          return NextResponse.json({ error: 'Ссылка на несуществующую запись' }, { status: 400 })
+          return apiError('invalid_reference', 400)
         }
         throw insErr
       }
@@ -145,6 +133,6 @@ export async function POST(
     }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

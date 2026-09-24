@@ -9,6 +9,11 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check-env": "node scripts/check-env.mjs",
+    "gen:types": "npx --yes supabase@latest gen types typescript --db-url \"$SUPABASE_DB_URL\" --schema public > types/database.ts",
     "seed:workflow-recruitment": "tsx scripts/seed-workflow-recruitment.ts"
   },
   "repository": {
@@ -17,6 +22,8 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@fontsource-variable/rubik": "^5.3.0",
+    "@sentry/nextjs": "^10.67.0",
     "@supabase/supabase-js": "^2.103.3",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/bcryptjs": "^2.4.6",
@@ -29,16 +36,25 @@
     "date-fns": "^4.1.0",
     "jose": "^6.2.2",
     "mermaid": "^11.15.0",
-    "next": "^14.2.35",
-    "postcss": "^8.5.10",
-    "react": "^18.3.1",
+    "next": "^15.5.26",
+    "postcss": "^8.5.28",
+    "react": "^19.3.0",
     "react-datepicker": "^9.1.0",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.3.0",
     "tailwindcss": "^4.2.2",
     "typescript": "5.6.3",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "^4.21.0"
+    "@playwright/test": "^1.61.1",
+    "@types/web-push": "^3.6.4",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.26",
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

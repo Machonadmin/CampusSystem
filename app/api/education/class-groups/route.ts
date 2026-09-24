@@ -1,25 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { ClassGroupInsert } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
+import { isMissingColumn } from '@/lib/supabase/errors'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Учебная группа с таким именем уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
+  if (error.code === '23505') return { status: 409, message: serverT('study_group_name_exists') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
   if (error.code === '23514') {
     if (error.message?.includes('class_groups_period_consistency')) {
-      return { status: 400, message: 'period_end должен быть после period_start' }
+      return { status: 400, message: serverT('period_end_after_start') }
     }
-    return { status: 400, message: 'Нарушено ограничение БД' }
+    return { status: 400, message: serverT('db_constraint') }
   }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 const CLASS_GROUP_SELECT = `
@@ -40,7 +38,7 @@ async function buildTeachersAndCounts(
   const [enrollsRes, teachersRes] = await Promise.all([
     sb.from('class_enrollments').select('class_group_id').in('class_group_id', groupIds),
     sb.from('class_teachers')
-      .select('class_group_id, teacher_id, is_primary, person:persons(id, full_name)')
+      .select('class_group_id, teacher_id, is_primary, person:persons!class_teachers_teacher_id_fkey(id, full_name)')
       .in('class_group_id', groupIds),
   ])
 
@@ -77,12 +75,16 @@ async function buildTeachersAndCounts(
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const params = request.nextUrl.searchParams
     const departmentId = params.get('department_id')
     const subjectId = params.get('subject_id')
     const teacherId = params.get('teacher_id')
     const activeOnly = params.get('active_only') !== 'false'
+
+    // Видимость по юниту (scope='department' → только свои подразделения).
+    const myDepts = await getEducationStructureDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ class_groups: [] })
 
     const sb = createServerClient()
 
@@ -100,6 +102,7 @@ export async function GET(request: NextRequest) {
     let qb = sb.from('class_groups').select(CLASS_GROUP_SELECT).order('name')
     if (departmentId) qb = qb.eq('department_id', departmentId)
     if (subjectId) qb = qb.eq('subject_id', subjectId)
+    if (myDepts) qb = qb.in('department_id', myDepts)
     if (activeOnly) qb = qb.eq('is_active', true)
     if (groupIdFilter) qb = qb.in('id', groupIdFilter)
 
@@ -121,9 +124,9 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -140,6 +143,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as {
       name?: string
+      name_he?: string | null
+      name_en?: string | null
       subject_id?: string
       department_id?: string
       teacher_ids?: string[]
@@ -150,9 +155,9 @@ export async function POST(request: NextRequest) {
     }
 
     const name = body.name?.trim()
-    if (!name) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
-    if (!body.subject_id) return NextResponse.json({ error: 'subject_id обязателен' }, { status: 400 })
-    if (!body.department_id) return NextResponse.json({ error: 'department_id обязателен' }, { status: 400 })
+    if (!name) return apiError('title_required', 400)
+    if (!body.subject_id) return apiError('subject_id_required', 400)
+    if (!body.department_id) return apiError('department_id_required', 400)
 
     await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
 
@@ -164,9 +169,9 @@ export async function POST(request: NextRequest) {
       .eq('id', body.subject_id)
       .maybeSingle()
     if (sErr) throw sErr
-    if (!subject) return NextResponse.json({ error: 'Предмет не найден' }, { status: 400 })
+    if (!subject) return apiError('subject_not_found', 400)
     if (subject.department_id !== body.department_id) {
-      return NextResponse.json({ error: 'Предмет принадлежит другому подразделению' }, { status: 400 })
+      return apiError('subject_other_department', 400)
     }
 
     const uniqueTeacherIds = Array.from(new Set(body.teacher_ids ?? []))
@@ -189,7 +194,18 @@ export async function POST(request: NextRequest) {
       .single()
     if (insertErr) {
       const m = mapDbError(insertErr)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
+    }
+
+    // Переводы имени — отдельным deploy-safe апдейтом: если столбцов name_he/
+    // name_en ещё нет (миграция не применена), это тихо игнорируется и не роняет
+    // создание группы.
+    if ((body.name_he && body.name_he.trim()) || (body.name_en && body.name_en.trim())) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: trErr } = await (sb as any).from('class_groups')
+        .update({ name_he: body.name_he?.trim() || null, name_en: body.name_en?.trim() || null })
+        .eq('id', group.id)
+      if (trErr && !isMissingColumn(trErr)) { /* столбца нет — ок; иная ошибка не критична для создания */ }
     }
 
     let teachers: TeacherEntry[] = []
@@ -225,8 +241,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

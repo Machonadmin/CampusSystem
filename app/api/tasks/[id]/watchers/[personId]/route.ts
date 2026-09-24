@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { getTaskAccess } from '@/lib/tasks/access'
 import type { TaskRow } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 /**
  * DELETE /api/tasks/[id]/watchers/[personId] — снять наблюдателя.
  * Может: сам наблюдатель (отписаться), автор задачи, суперадмин.
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string; personId: string } }
+  _request: NextRequest,
+  props: { params: Promise<{ id: string; personId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -29,16 +26,13 @@ export async function DELETE(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
 
     const isSelf = params.personId === session.person_id
     if (!isSelf && !access.canEdit) {
-      return NextResponse.json(
-        { error: 'Снять наблюдателя может он сам, автор задачи или суперадмин' },
-        { status: 403 }
-      )
+      return apiError('remove_watcher_permission', 403)
     }
 
     const { error: dErr } = await sb
@@ -51,6 +45,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

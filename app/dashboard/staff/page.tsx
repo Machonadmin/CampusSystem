@@ -1,16 +1,40 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { personDisplayName } from '@/lib/persons/name'
+import type { Lang } from '@/lib/i18n/translations'
+import { useMe } from '@/lib/hooks/useMe'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import AddEmployeeModal from './components/AddEmployeeModal'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
+import RoleSeatWizard from './components/RoleSeatWizard'
+import MergeDuplicatesModal from './components/MergeDuplicatesModal'
+import EmployeeCard from './components/EmployeeCard'
+import HealthPanel from './components/HealthPanel'
+import { PositionsPanel } from '@/app/dashboard/settings/positions/PositionsPanel'
+import {
+  RolesModal, AddUserModal, EditUserModal, RoleBadge,
+  type UserRow, type Role, type PersonResult,
+} from '@/app/dashboard/settings/users/UsersAccessPanel'
+import { roleLabel } from '@/lib/roles/role-label'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { toast } from '@/components/ui/toast'
+import { RowActionsMenu, type RowAction } from '@/components/ui/RowActionsMenu'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   parent_id: string | null
   head_name: string | null
   employee_count: number
@@ -18,391 +42,12 @@ interface Department {
   description?: string | null
 }
 
-interface TreeNode extends Department { children: TreeNode[] }
 
-interface StaffMember {
-  id: string
-  person_id: string
-  full_name: string
-  position_ru: string
-  is_head: boolean
-  employment_type: string | null
-}
 
-function buildTree(depts: Department[]): TreeNode[] {
-  const map = new Map<string, TreeNode>()
-  for (const d of depts) map.set(d.id, { ...d, children: [] })
-  const roots: TreeNode[] = []
-  for (const node of map.values()) {
-    if (node.parent_id && map.has(node.parent_id)) map.get(node.parent_id)!.children.push(node)
-    else roots.push(node)
-  }
-  const sort = (nodes: TreeNode[]) => {
-    nodes.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.name.localeCompare(b.name))
-    nodes.forEach(n => sort(n.children))
-  }
-  sort(roots)
-  return roots
-}
 
-// ── Shared input styles ───────────────────────────────────────────────────────
 
-const inp: React.CSSProperties = {
-  width: '100%', padding: '7px 10px', fontSize: 13,
-  border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
-}
-const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block' }
 
-// ── Dept add modal ────────────────────────────────────────────────────────────
 
-function DeptAddModal({ depts, parentId, onClose, onSaved }: {
-  depts: Department[]
-  parentId: string | null
-  onClose: () => void
-  onSaved: () => void
-}) {
-  const [name, setName] = useState('')
-  const [selectedParent, setSelectedParent] = useState(parentId ?? '')
-  const [sortOrder, setSortOrder] = useState('0')
-  const [description, setDescription] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState('')
-
-  type D = Department & { children: D[] }
-  const map2 = new Map<string, D>()
-  for (const d of depts) map2.set(d.id, { ...d, children: [] })
-  const roots2: D[] = []
-  for (const node of map2.values()) {
-    if (node.parent_id && map2.has(node.parent_id)) map2.get(node.parent_id)!.children.push(node)
-    else roots2.push(node)
-  }
-  const parentOptions: { id: string; label: string }[] = []
-  function walkParents(node: D, depth: number) {
-    parentOptions.push({ id: node.id, label: '  '.repeat(depth) + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walkParents(c, depth + 1))
-  }
-  roots2.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walkParents(r, 0))
-
-  async function save() {
-    if (!name.trim()) { setErr('Название обязательно'); return }
-    setSaving(true)
-    const res = await fetch('/api/settings/departments', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), parent_id: selectedParent || null, sort_order: Number(sortOrder) || 0, description: description.trim() || null }),
-    })
-    setSaving(false)
-    if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Новый отдел</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
-        </div>
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label style={lbl}>Название (рус.) *</label>
-            <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()}
-              placeholder="Бухгалтерия" style={inp} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12 }}>
-            <div>
-              <label style={lbl}>Родительский отдел</label>
-              <select value={selectedParent} onChange={e => setSelectedParent(e.target.value)} style={inp}>
-                <option value="">Нет (корневой отдел)</option>
-                {parentOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Sort order</label>
-              <input type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={inp} />
-            </div>
-          </div>
-          <div>
-            <label style={lbl}>Описание отдела</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
-              style={{ ...inp, resize: 'vertical' }} placeholder="Краткое описание..." />
-          </div>
-          {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
-        </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
-          <button onClick={save} disabled={saving || !name.trim()}
-            style={{ padding: '7px 20px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Dept rename modal ─────────────────────────────────────────────────────────
-
-function DeptRenameModal({ node, onClose, onSaved }: { node: TreeNode; onClose: () => void; onSaved: () => void }) {
-  const [name, setName] = useState(node.name)
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    if (!name.trim()) return
-    setSaving(true)
-    await fetch(`/api/settings/departments/${node.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim() }),
-    })
-    setSaving(false); onSaved()
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Переименовать отдел</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
-        </div>
-        <div style={{ padding: '16px 20px' }}>
-          <input autoFocus value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} style={inp} />
-        </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
-          <button onClick={save} disabled={saving || !name.trim()}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !name.trim()) ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Staff position edit modal ─────────────────────────────────────────────────
-
-function StaffPositionEditModal({ member, onClose, onSaved }: {
-  member: StaffMember
-  onClose: () => void
-  onSaved: () => void
-}) {
-  const [position, setPosition] = useState(member.position_ru)
-  const [empType, setEmpType] = useState(member.employment_type ?? 'staff')
-  const [isHead, setIsHead] = useState(member.is_head)
-  const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState('')
-
-  async function save() {
-    if (!position.trim()) { setErr('Должность обязательна'); return }
-    setSaving(true)
-    const res = await fetch(`/api/staff/positions/${member.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ position_ru: position.trim(), employment_type: empType, is_head: isHead }),
-    })
-    setSaving(false)
-    if (res.ok) onSaved()
-    else { const d = await res.json(); setErr(d.error ?? 'Ошибка') }
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <p style={{ fontWeight: 600, fontSize: 15, color: '#1F2937', margin: 0 }}>Изменить должность</p>
-            <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{member.full_name}</p>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
-        </div>
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={lbl}>Должность *</label>
-            <input autoFocus value={position} onChange={e => setPosition(e.target.value)} style={inp} />
-          </div>
-          <div>
-            <label style={lbl}>Тип занятости</label>
-            <select value={empType} onChange={e => setEmpType(e.target.value)} style={inp}>
-              <option value="staff">Штат</option>
-              <option value="part_time">Частичная ставка</option>
-              <option value="intern">Стажёр</option>
-              <option value="volunteer">Волонтёр</option>
-              <option value="contractor">Подрядчик</option>
-            </select>
-          </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
-            <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} style={{ accentColor: '#3B82F6' }} />
-            Руководитель отдела
-          </label>
-          {err && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{err}</p>}
-        </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid #D1D5DB', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Отмена</button>
-          <button onClick={save} disabled={saving}
-            style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: getModuleColor('staff'), color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? 'Сохранение...' : 'Сохранить'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Tree row ──────────────────────────────────────────────────────────────────
-
-function TreeRow({ node, depth, depts, onAddChild, onRename, onDelete, onAddStaff, refreshSignal }: {
-  node: TreeNode; depth: number; depts: Department[]
-  onAddChild: (id: string) => void
-  onRename: (node: TreeNode) => void
-  onDelete: (node: TreeNode) => void
-  onAddStaff: (id: string) => void
-  refreshSignal: number
-}) {
-  const tStaff = useTranslations('staff')
-  const [expanded, setExpanded] = useState(true)
-  const [staffOpen, setStaffOpen] = useState(false)
-  const [staff, setStaff] = useState<StaffMember[]>([])
-  const [staffLoading, setStaffLoading] = useState(false)
-  const [editingMember, setEditingMember] = useState<StaffMember | null>(null)
-
-  useEffect(() => {
-    if (!staffOpen) return
-    setStaffLoading(true)
-    fetch(`/api/settings/departments/${node.id}/staff`)
-      .then(r => r.ok ? r.json() : [])
-      .then((d: StaffMember[]) => { setStaff(d); setStaffLoading(false) })
-  }, [staffOpen, node.id, refreshSignal])
-
-  async function deactivateMember(member: StaffMember) {
-    if (!confirm(`Деактивировать "${member.full_name}" (${member.position_ru})?\n\nСотрудник будет скрыт из списка, данные сохранятся.`)) return
-    const today = new Date().toISOString().split('T')[0]
-    const res = await fetch(`/api/staff/positions/${member.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ end_date: today }),
-    })
-    if (res.ok) setStaff(prev => prev.filter(s => s.id !== member.id))
-  }
-
-  const btnBase: React.CSSProperties = { padding: '3px 8px', borderRadius: 5, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500 }
-
-  return (
-    <>
-      <tr style={{ borderBottom: '1px solid #F3F4F6' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '#F9FAFB' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = '' }}>
-
-        <td style={{ padding: '7px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', paddingInlineStart: depth * 18 }}>
-            <button onClick={() => setExpanded(v => !v)}
-              style={{ width: 16, height: 16, flexShrink: 0, background: 'none', border: 'none', cursor: node.children.length ? 'pointer' : 'default', color: '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginInlineEnd: 5 }}>
-              {node.children.length > 0 && (
-                <svg style={{ width: 10, height: 10, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-            <span style={{ fontSize: 13, fontWeight: depth === 0 ? 600 : 400, color: '#1F2937' }}>{node.name}</span>
-          </div>
-        </td>
-
-        <td style={{ padding: '7px 12px', fontSize: 12, color: '#6B7280' }}>
-          {node.head_name ?? <span style={{ color: '#D1D5DB' }}>—</span>}
-        </td>
-
-        <td style={{ padding: '7px 12px' }}>
-          <button onClick={() => setStaffOpen(v => !v)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 10, backgroundColor: staffOpen ? '#DBEAFE' : '#F3F4F6', color: staffOpen ? '#1D4ED8' : '#6B7280', fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-            {node.employee_count} сотр.
-            <svg style={{ width: 9, height: 9, transform: staffOpen ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s' }} fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </td>
-
-        <td style={{ padding: '7px 12px' }}>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            <button onClick={() => onAddStaff(node.id)}
-              style={{ ...btnBase, border: 'none', background: getModuleColor('staff'), color: '#fff' }}>
-              + Сотрудник
-            </button>
-            <button onClick={() => onAddChild(node.id)}
-              style={{ ...btnBase, border: `1px solid ${getModuleColor('staff', 'medium')}`, background: getModuleColor('staff', 'light'), color: getModuleColor('staff') }}>
-              + Подотдел
-            </button>
-            <button onClick={() => onRename(node)}
-              style={{ ...btnBase, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
-              Переименовать
-            </button>
-            <button onClick={() => onDelete(node)}
-              style={{ ...btnBase, border: 'none', background: '#FEF2F2', color: '#DC2626' }}>
-              Удалить
-            </button>
-          </div>
-        </td>
-      </tr>
-
-      {staffOpen && (
-        <tr style={{ backgroundColor: '#F8FAFF' }}>
-          <td colSpan={4} style={{ padding: '6px 12px 10px' }}>
-            <div style={{ paddingInlineStart: depth * 18 + 40 }}>
-              {staffLoading ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Загрузка...</p>
-              ) : staff.length === 0 ? (
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Нет сотрудников</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {staff.map(s => (
-                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: '#fff', borderRadius: 7, border: '1px solid #E5E7EB' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#0369A1' }}>
-                        {s.full_name.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#1F2937', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.full_name}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
-                          {s.position_ru}
-                          {s.employment_type && s.employment_type !== 'staff' && ` · ${tStaff(`employment.${s.employment_type}`, s.employment_type)}`}
-                          {s.is_head && ' · Руководитель'}
-                        </p>
-                      </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => setEditingMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: '1px solid #BFDBFE', background: '#EFF6FF', fontSize: 11, cursor: 'pointer', color: '#1D4ED8' }}>
-                          Редактировать
-                        </button>
-                        <button onClick={() => deactivateMember(s)}
-                          style={{ padding: '2px 8px', borderRadius: 5, border: 'none', background: '#FEF2F2', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>
-                          Деактивировать
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </td>
-        </tr>
-      )}
-
-      {expanded && node.children.map(child => (
-        <TreeRow key={child.id} node={child} depth={depth + 1} depts={depts}
-          onAddChild={onAddChild} onRename={onRename} onDelete={onDelete}
-          onAddStaff={onAddStaff} refreshSignal={refreshSignal}
-        />
-      ))}
-
-      {editingMember && (
-        <StaffPositionEditModal
-          member={editingMember}
-          onClose={() => setEditingMember(null)}
-          onSaved={() => {
-            setEditingMember(null)
-            setStaffLoading(true)
-            fetch(`/api/settings/departments/${node.id}/staff`)
-              .then(r => r.ok ? r.json() : [])
-              .then((d: StaffMember[]) => { setStaff(d); setStaffLoading(false) })
-          }}
-        />
-      )}
-    </>
-  )
-}
 
 // ── Employees tab ─────────────────────────────────────────────────────────────
 
@@ -411,7 +56,9 @@ interface Employee {
   profile_id: string | null
   person_id: string
   full_name: string
+  hebrew_name?: string | null
   photo_url: string | null
+  gender: string | null
   phone: string | null
   email: string | null
   position: string
@@ -424,10 +71,10 @@ interface Employee {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  active:     { bg: '#ECFDF5', fg: '#065F46' },
-  sick_leave: { bg: '#FEF3C7', fg: '#92400E' },
-  vacation:   { bg: '#DBEAFE', fg: '#1E40AF' },
-  fired:      { bg: '#FEE2E2', fg: '#991B1B' },
+  active:     { bg: 'var(--success-tint)', fg: 'var(--success)' },
+  sick_leave: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  vacation:   { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  fired:      { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
 }
 
 function initials(name: string) {
@@ -436,7 +83,7 @@ function initials(name: string) {
 
 type DeptWithKids = Department & { children: DeptWithKids[] }
 
-function flattenDeptOptions(depts: Department[]): { id: string; label: string }[] {
+function flattenDeptOptions(depts: Department[], lang: Lang): { id: string; label: string }[] {
   const map = new Map<string, DeptWithKids>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: DeptWithKids[] = []
@@ -445,88 +92,201 @@ function flattenDeptOptions(depts: Department[]): { id: string; label: string }[
     else roots.push(node)
   }
   const out: { id: string; label: string }[] = []
+  const nm = (d: Department) => localizedDeptName(d, lang)
   function walk(node: DeptWithKids, depth: number) {
-    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
-    node.children.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => walk(c, depth + 1))
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + nm(node) })
+    node.children.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(c => walk(c, depth + 1))
   }
-  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  roots.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(r => walk(r, 0))
   return out
 }
 
-function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; depts: Department[]; refreshSignal: number }) {
+function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Employee) => void; depts: Department[]; refreshSignal: number }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  // Пространства имён «משתמשים וגישה» — переиспользуем её модалки прямо здесь,
+  // раз вкладки слиты в одну (запрос владельца).
+  const tUsers = useTranslations('settings.users')
+  const tCat = useTranslations('settings.categories')
+  const me = useMe()
+  const isSuperadmin = !!me?.roles.includes('superadmin')
   const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [localRefresh, setLocalRefresh] = useState(0)
-  const [editingEmployee, setEditingEmployee] = useState<string | null>(null)
-  const deptOptions = flattenDeptOptions(depts)
+  const { lang, t: langPack } = useLang()
+  const deptOptions = flattenDeptOptions(depts, lang)
+
+  // Доступ/аккаунты (только superadmin — как и API /api/settings/users).
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [allRoles, setAllRoles] = useState<Role[]>([])
+  const [rolesTarget, setRolesTarget] = useState<UserRow | null>(null)
+  const [editTarget, setEditTarget] = useState<UserRow | null>(null)
+  const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
+  const [wizardOpen, setWizardOpen] = useState(false)
+  const [mergeOpen, setMergeOpen] = useState(false)
+  // «Карточка сотрудника» — всё об одном человеке в одном месте; открывается
+  // кликом по строке (запрос владельца: «ניהול עובדים» вместо скрытого меню).
+  const [cardTarget, setCardTarget] = useState<Employee | null>(null)
+
+  function genderLabel(g: string | null): string | null {
+    if (g === 'male') return t('gender.male')
+    if (g === 'female') return t('gender.female')
+    return null
+  }
 
   useEffect(() => {
     const handle = setTimeout(async () => {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (search) params.set('search', search)
-      if (deptFilter) params.set('department', deptFilter)
-      const res = await fetch(`/api/staff?${params}`)
-      if (res.ok) setEmployees(await res.json())
-      setLoading(false)
+      try {
+        const params = new URLSearchParams()
+        if (search) params.set('search', search)
+        if (deptFilter) params.set('department', deptFilter)
+        const res = await fetch(`/api/staff?${params}`)
+        if (res.ok) setEmployees(await res.json())
+        else toast(tCommon('load_error'), 'error')
+      } catch {
+        toast(tCommon('load_error'), 'error')
+      } finally { setLoading(false) }
     }, search ? 250 : 0)
     return () => clearTimeout(handle)
-  }, [search, deptFilter, refreshSignal, localRefresh])
+  }, [search, deptFilter, refreshSignal, localRefresh, tCommon])
 
-  function handleEditEmployee(profileId: string) {
-    setEditingEmployee(profileId)
-    onAdd()
-  }
+  const loadUsers = useCallback(async () => {
+    if (!isSuperadmin) return
+    const [uRes, rRes] = await Promise.all([fetch('/api/settings/users'), fetch('/api/settings/roles')])
+    if (uRes.ok) setUsers(await uRes.json())
+    if (rRes.ok) setAllRoles(await rRes.json())
+  }, [isSuperadmin])
+
+  useEffect(() => { loadUsers() }, [loadUsers, refreshSignal, localRefresh])
+
+  const usersByPerson = new Map<string, UserRow>()
+  for (const u of users) usersByPerson.set(u.person_id, u)
+
+  // Люди с доступом, у которых НЕТ рабочего места (не «сотрудник») — их тоже
+  // показываем, чтобы после слияния вкладок никто не пропал.
+  const empPersonIds = new Set(employees.map(e => e.person_id))
+  const q = search.trim().toLowerCase()
+  const accessOnly = deptFilter ? [] : users.filter(u =>
+    !empPersonIds.has(u.person_id) &&
+    (!q || u.full_name.toLowerCase().includes(q) || u.login_email.toLowerCase().includes(q))
+  )
 
   async function handleDeleteEmployee(profileId: string, fullName: string) {
-    if (!confirm(`Вы уверены, что хотите удалить сотрудника ${fullName}?\n\nЭто действие нельзя отменить.`)) return
+    if (!(await confirmDialog({ message: `${t('delete_employee_confirm_q1')} ${fullName}?\n\n${t('delete_employee_confirm_q2')}`, tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/staff/${profileId}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'Ошибка при удалении')
+        toast(data.error || t('delete_error'), 'error')
         return
       }
       setLocalRefresh(n => n + 1)
     } catch {
-      alert('Ошибка при удалении сотрудника')
+      toast(t('delete_employee_error'), 'error')
     }
   }
 
+  // «צפייה כמשתמש»: superadmin переключается в сессию сотрудника (read-only) и
+  // видит систему его глазами. Возврат — через плашку внизу.
+  async function viewAsUser(personId: string) {
+    try {
+      const res = await fetch('/api/auth/impersonate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person_id: personId }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error || t('view_as_error'), 'error'); return }
+      window.location.href = '/dashboard'
+    } catch {
+      toast(t('view_as_error'), 'error')
+    }
+  }
+
+  // Ячейка «доступ/роли» + действия по аккаунту (для superadmin).
+  function accessCell(user: UserRow | undefined) {
+    if (!user) return <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_none')}</span>
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 240 }}>
+        {user.roles.slice(0, 3).map(r => <RoleBadge key={r.id} name={roleLabel(langPack.roles, r.code, r.name)} module="staff" />)}
+        {user.roles.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-faint)', alignSelf: 'center' }}>+{user.roles.length - 3}</span>}
+        {user.roles.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('access_no_roles')}</span>}
+      </div>
+    )
+  }
+  function accessActions(user: UserRow): RowAction[] {
+    return [
+      { key: 'roles', label: tUsers('manage_roles_button'), onClick: () => setRolesTarget(user) },
+      { key: 'account', label: tUsers('edit_button'), onClick: () => setEditTarget(user) },
+    ]
+  }
+
+  const hasAny = employees.length > 0 || accessOnly.length > 0
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Самопроверка: пустые экраны / логины без посадки / дубли. Рендерится
+          только когда есть что чинить. */}
+      {isSuperadmin && (
+        <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} />
+      )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
-          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }} />
+        <input aria-label={t('search_by')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
+          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
         <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
-          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', color: deptFilter ? '#1F2937' : '#9CA3AF', minWidth: 200 }}>
+          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        <PageActionButton
-          label={t('add_employee')}
-          onClick={onAdd}
-          accentColor={getModuleColor('staff')}
-        />
+        {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
+            «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
+            они отличаются). Единый экран делает всё: человек + должность +
+            подразделение + права + вход. Детальная форма осталась только как
+            «עריכת כל הפרטים» из карточки, логин — «צור התחברות» там же. */}
+        {isSuperadmin ? (
+          <PageActionButton
+            label={t('wizard.launch')}
+            onClick={() => setWizardOpen(true)}
+            accentColor={getModuleColor('staff')}
+          />
+        ) : (
+          /* Не-superadmin не может звать /api/staff/onboard — ему детальная форма. */
+          <button
+            onClick={() => onAdd()}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
+          >
+            {t('add_employee')}
+          </button>
+        )}
+        {isSuperadmin && (
+          <button
+            onClick={() => setMergeOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-strong)' }}
+          >
+            {t('merge.launch')}
+          </button>
+        )}
       </div>
 
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflowX: 'auto' }}>
+      <div className="anim-rise" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>{tCommon('loading')}</div>
-        ) : employees.length === 0 ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: '#9CA3AF' }}>
+          <SkeletonRows avatar={false} rows={6} />
+        ) : !hasAny ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {search || deptFilter ? t('no_results') : t('no_employees')}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                {[t('table.full_name'), t('table.position'), t('table.department'), t('table.phone'), t('table.email'), t('table.status'), ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9CA3AF', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+              <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                {[
+                  t('table.full_name'), t('table.position'), t('table.department'),
+                  t('table.phone'), t('table.email'),
+                  ...(isSuperadmin ? [t('table.access')] : []),
+                  t('table.status'), '',
+                ].map((h, i) => (
+                  <th key={h || `blank${i}`} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textAlign: 'start', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -534,11 +294,13 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
               {employees.map(emp => {
                 const statusKey = emp.status ?? 'active'
                 const sc = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
+                const user = usersByPerson.get(emp.person_id)
                 return (
-                  <tr key={emp.position_id} style={{ borderBottom: '1px solid #F9FAFB' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                  <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
+                    onClick={() => setCardTarget(emp)}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
-                    <td style={{ padding: '10px 14px' }}>
+                    <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         {emp.photo_url
                           // eslint-disable-next-line @next/next/no-img-element
@@ -546,50 +308,161 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
                           : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(emp.full_name)}</div>
                         }
                         <div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{emp.full_name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(emp)}</span>
+                            {genderLabel(emp.gender) && (
+                              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                                {genderLabel(emp.gender)}
+                              </span>
+                            )}
+                          </div>
                           {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>{t('dept.head_label')}</div>}
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>
+                    <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
                       <div>{emp.position}</div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
-                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.department_name ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>{emp.phone ?? '—'}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#374151' }}>{emp.email ?? '—'}</td>
-                    <td style={{ padding: '10px 14px' }}>
+                    <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
+                    <td data-label={t('table.phone')} onClick={e => e.stopPropagation()} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
+                    <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? user?.login_email ?? '—'}</td>
+                    {isSuperadmin && (
+                      <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
+                    )}
+                    <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
                       <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
                         {t(`status.${statusKey}`, statusKey)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <div style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
-                        <button
-                          onClick={() => emp.profile_id && handleEditEmployee(emp.profile_id)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#374151', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('edit')}
-                        </button>
-                        <button
-                          onClick={() => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name)}
-                          disabled={!emp.profile_id}
-                          style={{ padding: '5px 12px', fontSize: 12, border: '1px solid #FEE2E2', borderRadius: 6, background: '#FEF2F2', cursor: emp.profile_id ? 'pointer' : 'not-allowed', color: '#DC2626', opacity: emp.profile_id ? 1 : 0.5 }}
-                        >
-                          {tCommon('delete')}
-                        </button>
-                      </div>
+                    <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '10px 14px' }}>
+                      <RowActionsMenu
+                        accentColor={getModuleColor('staff')}
+                        actions={[
+                          // Доступ есть → управление ролями/аккаунтом; нет → создать вход.
+                          ...(isSuperadmin && user ? accessActions(user) : []),
+                          {
+                            key: 'view_as',
+                            label: t('view_as'),
+                            onClick: () => viewAsUser(emp.person_id),
+                            hidden: !isSuperadmin,
+                          },
+                          {
+                            key: 'login',
+                            label: t('create_login'),
+                            onClick: () => setAddPerson({ id: emp.person_id, full_name: emp.full_name, hebrew_name: emp.hebrew_name, email: emp.email }),
+                            hidden: !isSuperadmin || !!user,
+                          },
+                          { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
+                          {
+                            // Честный ярлык: API закрывает посадки (end_date), человек и
+                            // логин остаются — «מחיקה» вводила владельца в заблуждение.
+                            key: 'delete',
+                            label: t('end_employment'),
+                            onClick: () => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name),
+                            disabled: !emp.profile_id,
+                            danger: true,
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 )
               })}
+
+              {/* Люди с доступом, но без рабочего места (только superadmin). */}
+              {accessOnly.map(user => (
+                <tr key={`au_${user.account_id}`} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
+                  onClick={() => setCardTarget({
+                    position_id: `au_${user.account_id}`, profile_id: null, person_id: user.person_id,
+                    full_name: user.full_name, hebrew_name: user.hebrew_name, photo_url: user.photo_url,
+                    gender: null, phone: null, email: user.login_email, position: '', is_head: false,
+                    department_id: '', department_name: null, hire_date: null, employment_type: null, status: 'active',
+                  })}
+                  onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
+                  <td data-label={t('table.full_name')} style={{ padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {user.photo_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={user.photo_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(user.full_name)}</div>
+                      }
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
+                    </div>
+                  </td>
+                  <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{t('system_user')}</span>
+                  </td>
+                  <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
+                  <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
+                  <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{user.login_email}</td>
+                  <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
+                  <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
+                    <span style={{
+                      fontSize: 11, padding: '3px 10px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
+                      background: user.is_active ? 'var(--success-tint)' : 'var(--danger-tint)',
+                      color: user.is_active ? 'var(--success)' : 'var(--danger)',
+                    }}>
+                      {user.is_active ? tUsers('active') : tUsers('inactive')}
+                    </span>
+                  </td>
+                  <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '10px 14px' }}>
+                    <RowActionsMenu accentColor={getModuleColor('staff')} actions={accessActions(user)} />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {rolesTarget && (
+        <RolesModal user={rolesTarget} allRoles={allRoles} t={tUsers} tCat={tCat} tCommon={tCommon}
+          onClose={() => setRolesTarget(null)} onSaved={() => { setRolesTarget(null); setLocalRefresh(n => n + 1) }} />
+      )}
+      {editTarget && (
+        <EditUserModal user={editTarget} t={tUsers} tCommon={tCommon}
+          onClose={() => setEditTarget(null)} onSaved={() => { setEditTarget(null); setLocalRefresh(n => n + 1) }} />
+      )}
+      {addPerson !== undefined && (
+        <AddUserModal
+          key={addPerson?.id ?? 'new'}
+          allRoles={allRoles}
+          t={tUsers} tCat={tCat} tCommon={tCommon}
+          initialPerson={addPerson}
+          onClose={() => setAddPerson(undefined)}
+          onSaved={() => setLocalRefresh(n => n + 1)}
+        />
+      )}
+      {wizardOpen && (
+        <RoleSeatWizard onClose={() => setWizardOpen(false)} onDone={() => setLocalRefresh(n => n + 1)} />
+      )}
+      {mergeOpen && (
+        <MergeDuplicatesModal onClose={() => setMergeOpen(false)} onDone={() => setLocalRefresh(n => n + 1)} />
+      )}
+      {cardTarget && (() => {
+        const cardUser = usersByPerson.get(cardTarget.person_id) ?? null
+        const seats = employees.filter(e => e.person_id === cardTarget.person_id)
+        const editable = seats.find(s => s.profile_id) ?? null
+        return (
+          <EmployeeCard
+            person={cardTarget}
+            seats={seats}
+            user={cardUser}
+            isSuperadmin={isSuperadmin}
+            onClose={() => setCardTarget(null)}
+            onEditDetails={editable ? () => { setCardTarget(null); onAdd(editable) } : null}
+            onManageRoles={cardUser ? () => { setCardTarget(null); setRolesTarget(cardUser) } : null}
+            onEditAccount={cardUser ? () => { setCardTarget(null); setEditTarget(cardUser) } : null}
+            onCreateLogin={!cardUser ? () => { setCardTarget(null); setAddPerson({ id: cardTarget.person_id, full_name: cardTarget.full_name, hebrew_name: cardTarget.hebrew_name, email: cardTarget.email }) } : null}
+            onViewAs={() => viewAsUser(cardTarget.person_id)}
+            onDelete={editable?.profile_id ? () => { setCardTarget(null); handleDeleteEmployee(editable.profile_id!, cardTarget.full_name) } : null}
+          />
+        )
+      })()}
     </div>
   )
 }
@@ -599,37 +472,46 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: () => void; dept
 export default function StaffPage() {
   const t = useTranslations('staff')
   const tNav = useTranslations('navigation')
-  const tCommon = useTranslations('common')
-  const [activeTab, setActiveTab] = useState<string>('structure')
+  // Активная вкладка (צוות/תפקידים) — навигация: держим в URL (?tab=), чтобы
+  // «назад» возвращал на прежнюю вкладку, а deep-link/обновление открывали ту же.
+  // Старая ссылка ?tab=users (маршрут /settings/users) ведёт на слитую «staff».
+  //
+  // Вкладки «מבנה» здесь больше нет: оргструктура редактируется в «אבטחת מידע»
+  // → «יחידות המוסד». Две копии одного дерева разошлись бы по правилам, а
+  // единица — это НАСТОЯЩАЯ граница доступа, и решать, кого человек видит,
+  // должно одно место. Старая ссылка ?tab=structure ведёт на «צוות».
+  const [activeTab, setActiveTab] = useUrlTab({
+    allowed: ['staff', 'positions'] as const,
+    fallback: 'staff',
+    aliases: { users: 'staff', structure: 'staff' },
+  })
   const [depts, setDepts] = useState<Department[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [refreshSignal, setRefreshSignal] = useState(0)
 
-  type Modal =
-    | { type: 'add'; parentId: string | null }
-    | { type: 'rename'; node: TreeNode }
-    | null
-  const [modal, setModal] = useState<Modal>(null)
   const [addEmployeeDept, setAddEmployeeDept] = useState<string | undefined>(undefined)
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
+  // Подразделения нужны фильтру во вкладке «צוות». Дерево их больше не рисует,
+  // поэтому и скелетона со строкой ошибки здесь нет — но ПРИЧИНУ отказа терять
+  // нельзя, она уходит в тост: молчащий фильтр не объясним ни пользователю, ни
+  // поддержке.
   const load = useCallback(async () => {
-    setLoading(true)
-    const res = await fetch('/api/settings/departments')
-    if (!res.ok) { setError('Ошибка загрузки'); setLoading(false); return }
-    setDepts(await res.json()); setLoading(false)
-  }, [])
+    try {
+      const res = await fetch('/api/settings/departments')
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null
+        toast(body?.error || t('load_error'), 'error')
+        return
+      }
+      setDepts(await res.json())
+    } catch {
+      toast(t('load_error'), 'error')
+    }
+    // t стабилен в рамках языка; включаем в deps ради корректности хука.
+  }, [t])
 
   useEffect(() => { load() }, [load])
-
-  async function handleDelete(node: TreeNode) {
-    if (!confirm('Удалить отдел? Дочерние отделы будут перенесены выше.')) return
-    await fetch(`/api/settings/departments/${node.id}`, { method: 'DELETE' })
-    load()
-  }
-
-  const tree = buildTree(depts)
 
   return (
     <div className="p-6 space-y-5">
@@ -638,82 +520,48 @@ export default function StaffPage() {
         { label: t('title') },
       ]} />
 
-      <div style={{
-        background: getModuleHeaderGradient('staff'),
-        borderRadius: 12, padding: '12px 24px',
-        boxShadow: '0 2px 8px rgba(139,92,246,0.2)',
-      }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{t('title')}</h1>
-      </div>
+      <ModuleHeader module="staff" title={t('title')} />
 
       <ModuleTabs
         tabs={[
-          { key: 'structure', label: t('tabs.structure') },
+          // «צוות ומשתמשים» — сотрудники + доступ в ОДНОЙ вкладке (запрос владельца).
+          // Колонка «доступ» и управление аккаунтами внутри — только superadmin.
           { key: 'staff', label: t('tabs.staff') },
+          { key: 'positions', label: t('tabs.positions') },
         ]}
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={key => setActiveTab(key as 'staff' | 'positions')}
         accentColor={getModuleColor('staff')}
       />
 
-      {activeTab === 'structure' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <PageActionButton
-              label={t('add_dept')}
-              onClick={() => setModal({ type: 'add', parentId: null })}
-              accentColor={getModuleColor('staff')}
-            />
-          </div>
-
-          <div style={{ backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-            {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{tCommon('loading')}</div>
-            ) : error ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontSize: 13 }}>{error}</div>
-            ) : tree.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('no_depts')}</div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#FAFAFA' }}>
-                    {[t('dept.name_col'), t('dept.head_col'), t('dept.staff_col'), t('dept.actions_col')].map(h => (
-                      <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tree.map(node => (
-                    <TreeRow key={node.id} node={node} depth={0} depts={depts}
-                      onAddChild={id => setModal({ type: 'add', parentId: id })}
-                      onRename={n => setModal({ type: 'rename', node: n })}
-                      onDelete={handleDelete}
-                      onAddStaff={id => { setAddEmployeeDept(id); setAddEmployeeOpen(true) }}
-                      refreshSignal={refreshSignal}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Указатель вместо исчезнувшей вкладки. Без него тот, кто годами правил
+          оргструктуру здесь, просто не найдёт её и решит, что пропала — этот
+          круг уже был с деревом единиц. Ссылка видна всем: у кого нет доступа,
+          модуль сам объяснит, какого права не хватает. */}
+      <p style={{ margin: '0 0 4px', fontSize: 12.5, color: 'var(--text-muted)' }}>
+        {t('structure_moved')}{' '}
+        <Link href="/dashboard/data-security" style={{ color: 'var(--accent-strong)', fontWeight: 600 }}>
+          {t('structure_moved_link')}
+        </Link>
+      </p>
 
       {activeTab === 'staff' && (
-        <EmployeesTab onAdd={() => { setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }} depts={depts} refreshSignal={refreshSignal} />
+        <EmployeesTab
+          onAdd={(employee) => { setEditingEmployee(employee ?? null); setAddEmployeeDept(undefined); setAddEmployeeOpen(true) }}
+          depts={depts}
+          refreshSignal={refreshSignal}
+        />
       )}
 
-      {modal?.type === 'add' && (
-        <DeptAddModal depts={depts} parentId={modal.parentId} onClose={() => setModal(null)} onSaved={() => { setModal(null); load() }} />
-      )}
-      {modal?.type === 'rename' && (
-        <DeptRenameModal node={modal.node} onClose={() => setModal(null)} onSaved={() => { setModal(null); load() }} />
-      )}
+      {/* Каталог должностей. Управление доступом слито в вкладку «staff». */}
+      {activeTab === 'positions' && <PositionsPanel embedded />}
+
       {addEmployeeOpen && (
         <AddEmployeeModal
           defaultDepartmentId={addEmployeeDept}
-          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined) }}
-          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); load(); setRefreshSignal(s => s + 1) }}
+          editing={editingEmployee}
+          onClose={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null) }}
+          onSaved={() => { setAddEmployeeOpen(false); setAddEmployeeDept(undefined); setEditingEmployee(null); load(); setRefreshSignal(s => s + 1) }}
         />
       )}
     </div>

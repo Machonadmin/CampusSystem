@@ -32,7 +32,14 @@ function ShellContent({ children, userName, roles }: Props) {
           paddingInlineStart: mainStart,
           transition: 'padding-inline-start 0.2s ease',
           minHeight: '100vh',
-          backgroundColor: '#F9FAFB',
+          backgroundColor: 'var(--bg)',
+          color: 'var(--text)',
+          // Гарантия против горизонтального переполнения: любой слишком широкий
+          // элемент внутри обрезается, а не «раздвигает» страницу (из-за чего
+          // телефон отдалял всю раскладку и рейл наезжал на контент). clip (не
+          // hidden) не создаёт скролл-контейнер и не ломает position: sticky.
+          overflowX: 'clip',
+          maxWidth: '100%',
         }}
       >
         {children}

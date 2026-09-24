@@ -1,0 +1,248 @@
+import { createServerClient } from '@/lib/supabase/server'
+import { isMissingTable } from '@/lib/supabase/errors'
+import { pushNotificationRows } from '@/lib/notifications/create'
+
+type SB = ReturnType<typeof createServerClient>
+
+/**
+ * Материализует «созревшие» напоминания календаря в уведомления колокольчика —
+ * без внешнего планировщика. Вызывается при опросе GET /api/notifications: для
+ * событий пользователя с reminder_at <= now и ещё не сработавших (reminded_at
+ * IS NULL) создаётся уведомление, и только ПОСЛЕ успешной вставки проставляется
+ * reminded_at (если таблицы notifications нет — напоминание не теряется, попробуем
+ * снова). Best-effort: никогда не бросает, молча пропускает при отсутствии таблиц.
+ */
+/**
+ * Напоминания о дедлайнах задач: задачи, назначенные пользователю и активные,
+ * со сроком СЕГОДНЯ или ЗАВТРА, попадают в колокольчик — по одному уведомлению
+ * на задачу на дату (дедуп по metadata.task_id + due_date). Best-effort.
+ */
+export async function materializeTaskDeadlines(sb: SB, personId: string): Promise<void> {
+  try {
+    const d = new Date()
+    const p = (n: number) => String(n).padStart(2, '0')
+    const iso = (x: Date) => `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`
+    const today = iso(d)
+    const tomorrow = iso(new Date(d.getTime() + 86_400_000))
+
+    const { data: tasks, error } = await sb
+      .from('tasks')
+      .select('id, title, due_date')
+      .eq('assignee_id', personId)
+      .not('status', 'in', '("completed","cancelled","declined")')
+      .in('due_date', [today, tomorrow])
+      .limit(50)
+    if (error || !tasks || tasks.length === 0) return
+
+    for (const tk of tasks as Array<{ id: string; title: string; due_date: string }>) {
+      // Дедуп: уже уведомляли об этой задаче на эту дату?
+      const { data: existing } = await sb
+        .from('notifications')
+        .select('id')
+        .eq('person_id', personId)
+        .eq('type', 'task_due')
+        .contains('metadata', { task_id: tk.id, due_date: tk.due_date })
+        .limit(1)
+      if (existing && existing.length > 0) continue
+
+      const heading = tk.due_date === today ? 'משימה להיום' : 'משימה למחר'
+      const row = {
+        person_id: personId,
+        type: 'task_due',
+        title: `${heading}: ${tk.title}`,
+        link: `/dashboard/tasks/${tk.id}`,
+        metadata: { task_id: tk.id, due_date: tk.due_date },
+      }
+      const { error: nErr } = await sb
+        .from('notifications')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(row as any)
+      if (nErr && isMissingTable(nErr)) return // таблицы ещё нет
+      if (!nErr) await pushNotificationRows(sb, [row])
+    }
+  } catch {
+    /* тихо */
+  }
+}
+
+// ─── Пакетные версии для планировщика (cron) ─────────────────────────────────
+//
+// Ленивая материализация выше срабатывает только когда пользователь открывает
+// колокольчик. Если никто не заходит — напоминания не создаются. Эти пакетные
+// версии проходят по ВСЕМ пользователям и вызываются из /api/cron/reminders
+// (Vercel Cron). Best-effort, устойчивы к отсутствию таблиц (42P01).
+
+/** Дедлайны задач по ВСЕМ исполнителям (сегодня/завтра). Возвращает число созданных. */
+export async function materializeAllTaskDeadlines(sb: SB): Promise<number> {
+  let created = 0
+  try {
+    const d = new Date()
+    const p = (n: number) => String(n).padStart(2, '0')
+    const iso = (x: Date) => `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`
+    const today = iso(d)
+    const tomorrow = iso(new Date(d.getTime() + 86_400_000))
+
+    const { data: tasks, error } = await sb
+      .from('tasks')
+      .select('id, title, due_date, assignee_id')
+      .not('status', 'in', '("completed","cancelled","declined")')
+      .not('assignee_id', 'is', null)
+      .in('due_date', [today, tomorrow])
+      .limit(1000)
+    if (error || !tasks || tasks.length === 0) return 0
+
+    for (const tk of tasks as Array<{ id: string; title: string; due_date: string; assignee_id: string }>) {
+      const { data: existing } = await sb
+        .from('notifications')
+        .select('id')
+        .eq('person_id', tk.assignee_id)
+        .eq('type', 'task_due')
+        .contains('metadata', { task_id: tk.id, due_date: tk.due_date })
+        .limit(1)
+      if (existing && existing.length > 0) continue
+
+      const heading = tk.due_date === today ? 'משימה להיום' : 'משימה למחר'
+      const row = {
+        person_id: tk.assignee_id,
+        type: 'task_due',
+        title: `${heading}: ${tk.title}`,
+        link: `/dashboard/tasks/${tk.id}`,
+        metadata: { task_id: tk.id, due_date: tk.due_date },
+      }
+      const { error: nErr } = await sb
+        .from('notifications')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(row as any)
+      if (nErr && isMissingTable(nErr)) return created // таблицы ещё нет
+      if (!nErr) {
+        created++
+        await pushNotificationRows(sb, [row])
+      }
+    }
+  } catch {
+    /* тихо */
+  }
+  return created
+}
+
+/**
+ * Запасной путь для materializeAllDueReminders: вставляем по одному, чтобы
+ * единственная сбойная строка не отменяла всю пачку. Событие помечается
+ * сработавшим только если его уведомление реально создано.
+ */
+async function insertRemindersOneByOne(
+  sb: SB,
+  events: Array<{ id: string; title: string; link: string | null; owner_id: string }>,
+  nowIso: string,
+): Promise<number> {
+  let created = 0
+  for (const ev of events) {
+    const { error: rowErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert({
+        person_id: ev.owner_id,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      } as any)
+    if (rowErr) {
+      if (isMissingTable(rowErr)) return created
+      continue // конкретное событие пропускаем, остальные обрабатываем
+    }
+    await sb.from('calendar_events')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ reminded_at: nowIso } as any)
+      .eq('id', ev.id)
+    created++
+    await pushNotificationRows(sb, [{ person_id: ev.owner_id, title: ev.title, link: ev.link ?? '/dashboard/calendar' }])
+  }
+  return created
+}
+
+/** Созревшие напоминания календаря по ВСЕМ владельцам. Возвращает число созданных. */
+export async function materializeAllDueReminders(sb: SB): Promise<number> {
+  let created = 0
+  try {
+    const nowIso = new Date().toISOString()
+    const { data: due, error } = await sb
+      .from('calendar_events')
+      .select('id, title, link, owner_id')
+      .not('reminder_at', 'is', null)
+      .is('reminded_at', null)
+      .lte('reminder_at', nowIso)
+      .limit(1000)
+    if (error || !due || due.length === 0) return 0
+
+    // Одной пачкой: раньше на каждое созревшее напоминание уходило 2 запроса
+    // (insert + update), т.е. до 2000 запросов за один прогон cron.
+    const events = due as Array<{ id: string; title: string; link: string | null; owner_id: string }>
+    const { error: nErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(events.map(ev => ({
+        person_id: ev.owner_id,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      })) as any)
+    if (nErr) {
+      if (isMissingTable(nErr)) return created // таблицы ещё нет
+      // Пачка неделима: одна плохая строка (напр. удалённый owner_id → 23503)
+      // заблокировала бы ВСЕ напоминания и повторялась бы каждый прогон.
+      // Откатываемся на построчную вставку — медленнее, но живучее.
+      return insertRemindersOneByOne(sb, events, nowIso)
+    }
+    // Помечаем сработавшими только после успешной вставки уведомлений.
+    await sb.from('calendar_events')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ reminded_at: nowIso } as any)
+      .in('id', events.map(ev => ev.id))
+    created = events.length
+    await pushNotificationRows(sb, events.map(ev => ({ person_id: ev.owner_id, title: ev.title, link: ev.link ?? '/dashboard/calendar' })))
+  } catch {
+    /* тихо */
+  }
+  return created
+}
+
+export async function materializeDueReminders(sb: SB, personId: string): Promise<void> {
+  try {
+    const nowIso = new Date().toISOString()
+    const { data: due, error } = await sb
+      .from('calendar_events')
+      .select('id, title, link')
+      .eq('owner_id', personId)
+      .not('reminder_at', 'is', null)
+      .is('reminded_at', null)
+      .lte('reminder_at', nowIso)
+      .limit(50)
+    if (error || !due || due.length === 0) return
+
+    // Одной пачкой: этот путь выполняется на КАЖДОМ опросе колокольчика
+    // уведомлений, а раньше делал 2 запроса на каждое созревшее напоминание.
+    const events = due as Array<{ id: string; title: string; link: string | null }>
+    const { error: nErr } = await sb
+      .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(events.map(ev => ({
+        person_id: personId,
+        type: 'reminder',
+        title: ev.title,
+        link: ev.link ?? '/dashboard/calendar',
+        metadata: { calendar_event_id: ev.id },
+      })) as any)
+    // Помечаем сработавшими только если уведомления реально созданы.
+    if (!nErr) {
+      await sb.from('calendar_events')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ reminded_at: nowIso } as any)
+        .in('id', events.map(ev => ev.id))
+      await pushNotificationRows(sb, events.map(ev => ({ person_id: personId, title: ev.title, link: ev.link ?? '/dashboard/calendar' })))
+    }
+  } catch {
+    /* тихо — напоминания не критичны для отдачи уведомлений */
+  }
+}

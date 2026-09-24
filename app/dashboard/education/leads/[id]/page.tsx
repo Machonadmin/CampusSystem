@@ -1,3 +1,4 @@
+import { flattenPhones } from '@/lib/persons/phone'
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -9,7 +10,7 @@ import {
 import LeadViewClient, { type LeadViewData } from './LeadViewClient'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 type EduWriteScope = 'view' | 'manage'
@@ -21,15 +22,9 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
   return scope === 'manage' ? 'manage_students' : 'view_students'
 }
 
-/** Преобразует Json-поле phones в плоский массив строк. */
-function flattenPhones(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map(p => (typeof p === 'string' ? p : (p as { number?: string })?.number ?? ''))
-    .filter(Boolean)
-}
 
-export default async function LeadViewPage({ params }: Props) {
+export default async function LeadViewPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

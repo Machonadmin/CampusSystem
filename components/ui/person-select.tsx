@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { personDisplayName } from '@/lib/persons/name'
 
 interface Person {
   id: string
   full_name: string
+  hebrew_name?: string | null
   phone?: string | null
   email?: string | null
 }
@@ -27,6 +30,14 @@ interface PersonSelectProps {
   roleFilter?: 'teacher'
   allowShowAll?: boolean
   enrollOption?: EnrollOption
+  /**
+   * Альтернативный источник списка людей (напр. '/api/education/teachers').
+   * По умолчанию '/api/persons'. Нужен там, где у роли нет привилегии модуля
+   * «Люди», но есть право на профильный пул (преподаватели в «Обучении»).
+   */
+  source?: string
+  /** Показывать ли кнопку «+ добавить человека». По умолчанию true. */
+  allowAdd?: boolean
 }
 
 const personCache = new Map<string, Person>()
@@ -34,16 +45,19 @@ const personCache = new Map<string, Person>()
 export function PersonSelect({
   value,
   onChange,
-  placeholder = 'Выберите или добавьте человека...',
+  placeholder,
   style,
   label,
   required = false,
   disabled,
-  accentColor = '#3B82F6',
+  accentColor = 'var(--accent)',
   roleFilter,
   allowShowAll = false,
   enrollOption,
+  source,
+  allowAdd = true,
 }: PersonSelectProps) {
+  const t = useTranslations('persons')
   const [search, setSearch] = useState('')
   const [people, setPeople] = useState<Person[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -68,8 +82,15 @@ export function PersonSelect({
     if (selected?.id === value) return
     const cached = personCache.get(value)
     if (cached) { setSelected(cached); return }
-    fetch(`/api/persons/${value}`)
-      .then(r => r.ok ? r.json() : null)
+    // При кастомном source резолвим имя через него (?ids=), т.к. у роли может не
+    // быть доступа к /api/persons/[id] (модуль «Люди»). Иначе — прежний путь.
+    const resolve: Promise<Person | null> = source
+      ? fetch(`${source}?ids=${encodeURIComponent(value)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then((d: { people?: Person[] } | null) => d?.people?.[0] ?? null)
+      : fetch(`/api/persons/${value}`)
+          .then(r => r.ok ? r.json() : null)
+    resolve
       .then((p: Person | null) => {
         if (p) { personCache.set(p.id, p); setSelected(p) }
       })
@@ -104,14 +125,21 @@ export function PersonSelect({
       const params = new URLSearchParams()
       if (q.length >= 2) params.set('search', q)
       if (roleFilter && !(all ?? showAll)) params.set('role', roleFilter)
-      const url = `/api/persons${params.size > 0 ? '?' + params.toString() : ''}`
+      const base = source ?? '/api/persons'
+      const url = `${base}${params.size > 0 ? '?' + params.toString() : ''}`
       const res = await fetch(url)
       if (res.ok) {
         const data: { people: Person[] } = await res.json()
         setPeople(data.people ?? [])
+      } else {
+        // Не глотаем 403/500 молча — иначе «нет прав» выглядит как «никого не
+        // найдено» (именно так пикер преподавателей падал для unit_manager).
+        setPeople([])
+        const body = await res.json().catch(() => ({}))
+        setErrMsg((body as { error?: string }).error || t('error_loading'))
       }
     } catch {
-      setErrMsg('Ошибка загрузки')
+      setErrMsg(t('error_loading'))
     } finally {
       setLoading(false)
     }
@@ -167,28 +195,28 @@ export function PersonSelect({
         setNewPhone(''); setNewEmail('')
       } else {
         const e = await res.json()
-        setErrMsg(e.error ?? 'Ошибка')
+        setErrMsg(e.error ?? t('error_generic'))
       }
     } catch {
-      setErrMsg('Ошибка при добавлении')
+      setErrMsg(t('error_adding'))
     } finally {
       setAdding(false)
     }
   }
 
-  const displayValue = selected ? selected.full_name : search
+  const displayValue = selected ? personDisplayName(selected) : search
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', ...style }}>
       {label && (
-        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
           {label}
-          {required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+          {required && <span style={{ color: 'var(--danger)', marginInlineStart: 3 }}>*</span>}
         </label>
       )}
 
       <div style={{ position: 'relative' }}>
-        <input
+        <input aria-label={placeholder ?? t('select_or_add_placeholder')}
           value={displayValue}
           onChange={e => {
             const v = e.target.value
@@ -197,16 +225,17 @@ export function PersonSelect({
             if (!isOpen) setIsOpen(true)
           }}
           onFocus={openDropdown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('select_or_add_placeholder')}
           disabled={disabled}
           style={{
             width: '100%',
             padding: '8px 32px 8px 10px',
             fontSize: 13,
-            border: `1px solid ${selected ? '#86EFAC' : '#D1D5DB'}`,
+            border: `1px solid ${selected ? 'var(--accent)' : 'var(--border-strong)'}`,
             borderRadius: 6,
             outline: 'none',
-            backgroundColor: selected ? '#F0FDF4' : '#fff',
+            color: 'var(--text)',
+            backgroundColor: selected ? 'var(--accent-tint)' : 'var(--surface)',
             cursor: disabled ? 'not-allowed' : 'text',
             boxSizing: 'border-box',
           }}
@@ -214,80 +243,79 @@ export function PersonSelect({
         {selected ? (
           <button
             type="button"
+            aria-label={t('clear')}
             onClick={clearSelection}
             style={{
-              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', insetInlineEnd: 8, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0,
+              color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0,
             }}
           >×</button>
         ) : (
           <span style={{
-            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-            color: '#9CA3AF', fontSize: 11, pointerEvents: 'none',
+            position: 'absolute', insetInlineEnd: 8, top: '50%', transform: 'translateY(-50%)',
+            color: 'var(--text-faint)', fontSize: 11, pointerEvents: 'none',
           }}>▾</span>
         )}
       </div>
 
       {selected && (
         <div style={{ fontSize: 11, color: accentColor, marginTop: 2, paddingLeft: 2 }}>
-          ✓ Связано с записью в базе
+          ✓ {t('linked_to_record')}
         </div>
       )}
 
       {isOpen && !disabled && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0, zIndex: 300,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.12)', overflow: 'hidden',
+        <div className="anim-pop" style={{
+          position: 'absolute', top: 'calc(100% + 2px)', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 300,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
+          boxShadow: 'var(--shadow)', overflow: 'hidden',
         }}>
           {showAdd ? (
             <div style={{ padding: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 10 }}>
-                Новый человек
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
+                {t('new_person')}
               </div>
               {errMsg && (
                 <div style={{
                   padding: '6px 10px', marginBottom: 8, fontSize: 11,
-                  color: errMsg.startsWith('Человек создан') ? '#92400E' : '#B91C1C',
-                  background: errMsg.startsWith('Человек создан') ? '#FFFBEB' : '#FEF2F2',
-                  border: `1px solid ${errMsg.startsWith('Человек создан') ? '#FDE68A' : '#FCA5A5'}`,
-                  borderRadius: 5,
+                  color: 'var(--danger)', background: 'var(--danger-tint)',
+                  border: '1px solid var(--danger)', borderRadius: 5,
                 }}>{errMsg}</div>
               )}
-              <input
+              <input aria-label={t('last_name_placeholder')}
                 autoFocus
                 value={newLastName}
                 onChange={e => setNewLastName(e.target.value)}
-                placeholder="Фамилия *"
+                placeholder={t('last_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Escape') setShowAdd(false) }}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('first_name_placeholder')}
                 value={newFirstName}
                 onChange={e => setNewFirstName(e.target.value)}
-                placeholder="Имя *"
+                placeholder={t('first_name_placeholder')}
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowAdd(false) }}
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 4, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('middle_name_placeholder')}
                 value={newMiddleName}
                 onChange={e => setNewMiddleName(e.target.value)}
-                placeholder="Отчество (необяз.)"
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                placeholder={t('middle_name_placeholder')}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('phone_placeholder')}
                 value={newPhone}
                 onChange={e => setNewPhone(e.target.value)}
-                placeholder="Телефон (необяз.)"
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                placeholder={t('phone_placeholder')}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: 6, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
-              <input
+              <input aria-label={t('email_placeholder')}
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
-                placeholder="Email (необяз.)"
+                placeholder={t('email_placeholder')}
                 type="email"
-                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid #D1D5DB', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 8px', fontSize: 12, marginBottom: enrollOption ? 8 : 10, border: '1px solid var(--border-strong)', borderRadius: 5, outline: 'none', boxSizing: 'border-box' }}
               />
               {enrollOption && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10, cursor: 'pointer', userSelect: 'none' }}>
@@ -297,7 +325,7 @@ export function PersonSelect({
                     onChange={e => setEnrollChecked(e.target.checked)}
                     style={{ width: 14, height: 14, accentColor }}
                   />
-                  <span style={{ fontSize: 12, color: '#374151' }}>{enrollOption.label}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text)' }}>{enrollOption.label}</span>
                 </label>
               )}
               <div style={{ display: 'flex', gap: 6 }}>
@@ -307,29 +335,29 @@ export function PersonSelect({
                   disabled={!newLastName.trim() || !newFirstName.trim() || adding}
                   style={{
                     flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
-                    background: newLastName.trim() && newFirstName.trim() && !adding ? accentColor : '#E5E7EB',
-                    color: newLastName.trim() && newFirstName.trim() && !adding ? '#fff' : '#9CA3AF',
+                    background: newLastName.trim() && newFirstName.trim() && !adding ? accentColor : 'var(--border)',
+                    color: newLastName.trim() && newFirstName.trim() && !adding ? 'var(--surface)' : 'var(--text-faint)',
                     border: 'none', borderRadius: 5,
                     cursor: newLastName.trim() && newFirstName.trim() && !adding ? 'pointer' : 'not-allowed',
                   }}
-                >{adding ? 'Сохранение...' : 'Создать'}</button>
+                >{adding ? t('saving') : t('create')}</button>
                 <button
                   type="button"
                   onClick={() => { setShowAdd(false); setErrMsg('') }}
-                  style={{ padding: '7px 12px', fontSize: 12, color: '#6B7280', background: '#F3F4F6', border: 'none', borderRadius: 5, cursor: 'pointer' }}
-                >Отмена</button>
+                  style={{ padding: '7px 12px', fontSize: 12, color: 'var(--text-muted)', background: 'var(--surface-2)', border: 'none', borderRadius: 5, cursor: 'pointer' }}
+                >{t('cancel')}</button>
               </div>
             </div>
           ) : (
             <>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 {loading ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>Поиск...</div>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>{t('searching')}</div>
                 ) : errMsg ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#EF4444' }}>{errMsg}</div>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--danger)' }}>{errMsg}</div>
                 ) : people.length === 0 ? (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: '#9CA3AF' }}>
-                    {search.length >= 2 ? 'Ничего не найдено' : (roleFilter && !showAll ? 'Нет преподавателей' : 'Нет сохранённых людей')}
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-faint)' }}>
+                    {search.length >= 2 ? t('nothing_found') : ((roleFilter || source) && !showAll ? t('no_teachers') : t('no_saved_people'))}
                   </div>
                 ) : (
                   people.map(p => (
@@ -338,18 +366,18 @@ export function PersonSelect({
                       type="button"
                       onClick={() => selectPerson(p)}
                       style={{
-                        display: 'block', width: '100%', textAlign: 'left',
+                        display: 'block', width: '100%', textAlign: 'start',
                         padding: '9px 12px', background: 'none', border: 'none',
-                        borderBottom: '1px solid #F3F4F6', cursor: 'pointer',
+                        borderBottom: '1px solid var(--surface-2)', cursor: 'pointer',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>
-                        {p.full_name}
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
+                        {personDisplayName(p)}
                       </div>
                       {(p.phone || p.email) && (
-                        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>
                           {p.phone ?? p.email}
                         </div>
                       )}
@@ -357,32 +385,34 @@ export function PersonSelect({
                   ))
                 )}
               </div>
-              {allowShowAll && roleFilter && (
+              {allowShowAll && (roleFilter || source) && (
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-                  borderTop: '1px solid #F3F4F6', cursor: 'pointer', userSelect: 'none',
+                  borderTop: '1px solid var(--surface-2)', cursor: 'pointer', userSelect: 'none',
                 }}>
                   <input
                     type="checkbox"
                     checked={showAll}
                     onChange={e => setShowAll(e.target.checked)}
-                    style={{ width: 13, height: 13, accentColor: '#6B7280' }}
+                    style={{ width: 13, height: 13, accentColor: 'var(--text-muted)' }}
                   />
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>Показать всех</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('show_all')}</span>
                 </label>
               )}
-              <button
-                type="button"
-                onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  padding: '9px 12px', fontSize: 12, fontWeight: 600,
-                  color: accentColor, background: '#F9FAFB',
-                  border: 'none', borderTop: '1px solid #E5E7EB', cursor: 'pointer',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F3F4F6')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-              >+ Добавить нового человека</button>
+              {allowAdd && (
+                <button
+                  type="button"
+                  onClick={() => { setShowAdd(true); setNewLastName(search); setErrMsg('') }}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'start',
+                    padding: '9px 12px', fontSize: 12, fontWeight: 600,
+                    color: accentColor, background: 'var(--surface-2)',
+                    border: 'none', borderTop: '1px solid var(--border)', cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                >+ {t('add_new_person')}</button>
+              )}
             </>
           )}
         </div>

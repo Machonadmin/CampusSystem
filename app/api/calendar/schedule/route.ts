@@ -1,0 +1,156 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { mapDbError } from '@/lib/calendar/http'
+import { isIsoDate } from '@/lib/calendar/validation'
+import { resolveMyClassGroupIds } from '@/lib/calendar/my-classes'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * ЛИЧНЫЙ календарь — ФИКСИРОВАННОЕ недельное расписание моих групп. Read-only.
+ *
+ * GET /api/calendar/schedule?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   — повторяющиеся слоты (class_schedule_slots) тех же групп, что и уроки:
+ *     объединение «преподаватель ∪ студент» (resolveMyClassGroupIds). Слот НЕ
+ *     имеет даты (это правило «каждый вторник 10:00»), поэтому from/to здесь
+ *     только валидируются для единообразия API, но фильтром НЕ применяются:
+ *     разворот слотов в конкретные дни диапазона делает клиент чистой функцией
+ *     expandScheduleSlots. Если ни одной моей группы — { slots: [] }.
+ *
+ * Каждый слот: { id, class_group_id, day_of_week (ISO 1=Пн..7=Вс), start_time,
+ * end_time, room, class_group_name, subject_name, subject_name_he }.
+ */
+
+// Читаем постранично: слотов у активного пользователя может быть много.
+const PAGE = 1000
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await requireCalendarUser()
+    const sb = createServerClient()
+
+    // from/to валидируем (единообразие API), но к слотам не применяем —
+    // у слота нет даты, разворот в диапазон делает клиент.
+    const from = request.nextUrl.searchParams.get('from')?.trim()
+    const to = request.nextUrl.searchParams.get('to')?.trim()
+    if (from && !isIsoDate(from)) {
+      return apiError('from_must_be_date', 400)
+    }
+    if (to && !isIsoDate(to)) {
+      return apiError('to_must_be_date', 400)
+    }
+
+    // 1. Учебные группы для расписания. Руководитель/аresponsable за учёбу
+    //    (superadmin) видит расписание ВСЕХ — по запросу владельца («מנהלים
+    //    ואחראי לימודים צריכים לראות את הלו"ז של כולם»). Остальные — свои
+    //    группы (преподаватель ∪ студент).
+    // ПОЛНАЯ СИНХРОНИЗАЦИЯ (требование владельца): каждый видит расписание групп,
+    // где он ЗАКРЕПЛЁН (преподаватель ∪ студент) — ВСЕГДА, независимо от is_active
+    // (иначе урок преподавателя в неактивной группе пропадал из календаря, хотя
+    // «мои уроки сегодня» его показывали). superadmin ДОПОЛНИТЕЛЬНО видит все
+    // активные группы (лу"з всех).
+    const mine = await resolveMyClassGroupIds(sb, session.person_id)
+    let ids = mine
+    if (session.roles.includes('superadmin')) {
+      const { data: allG } = await sb.from('class_groups').select('id').eq('is_active', true)
+      ids = [...new Set([...mine, ...(allG ?? []).map(g => (g as { id: string }).id)])]
+    }
+    if (ids.length === 0) {
+      return NextResponse.json({ slots: [] })
+    }
+
+    // 2. Слоты этих групп (постранично). Тай-брейк по id — устойчивая пагинация.
+    type SlotRow = {
+      id: string
+      class_group_id: string
+      day_of_week: number
+      start_time: string
+      end_time: string
+      room: string | null
+      approval_status?: string   // миграция 20260826140000; может отсутствовать
+      subject_id?: string | null // миграция 20260915120000; может отсутствовать
+    }
+    const slotRows: SlotRow[] = []
+    {
+      let offset = 0
+      for (;;) {
+        // select('*') — деплой-безопасно: колонка approval_status может ещё не
+        // существовать. Слоты, ждущие אישור מנהל ('pending') или отклонённые
+        // ('rejected'), в календарь НЕ проецируем.
+        const { data, error } = await sb
+          .from('class_schedule_slots')
+          .select('*')
+          .in('class_group_id', ids)
+          .order('day_of_week', { ascending: true })
+          .order('start_time', { ascending: true })
+          .order('id', { ascending: true })
+          .range(offset, offset + PAGE - 1)
+        if (error) throw error
+        const page = (data ?? []) as SlotRow[]
+        slotRows.push(...page.filter(s => (s.approval_status ?? 'active') === 'active'))
+        if (page.length < PAGE) break
+        offset += PAGE
+      }
+    }
+
+    // 3. Имена групп + subject_id (набор групп ограничен — один .in()).
+    const groupById = new Map<string, { name: string; subject_id: string }>()
+    {
+      const { data, error } = await sb
+        .from('class_groups')
+        .select('id, name, subject_id')
+        .in('id', ids)
+      if (error) throw error
+      for (const g of data ?? []) groupById.set(g.id, { name: g.name, subject_id: g.subject_id })
+    }
+
+    // 4. Предметы (name + name_he) по subject_id этих групп.
+    // Фильтруем null/пустые subject_id: .in('id', [..., null]) → 22P02 (invalid uuid)
+    // и 400 на весь роут (у superadmin набор — все группы; одна с subject_id=null
+    // блокировала показ всего расписания). Тот же баг, что в lessons/route.ts.
+    // Предметы: и групповые, и заданные на самом слоте (миграция 20260915120000).
+    // Иначе личный календарь показывал бы предмет группы вместо предмета урока.
+    const subjectIds = Array.from(new Set([
+      ...Array.from(groupById.values()).map(g => g.subject_id),
+      ...slotRows.map(sl => sl.subject_id ?? null),
+    ].filter(Boolean) as string[]))
+    const subjectById = new Map<string, { name: string; name_he: string | null }>()
+    if (subjectIds.length > 0) {
+      const { data, error } = await sb
+        .from('subjects')
+        .select('id, name, name_he')
+        .in('id', subjectIds)
+      if (error) throw error
+      for (const s of data ?? []) subjectById.set(s.id, { name: s.name, name_he: s.name_he })
+    }
+
+    // 5. Сборка ответа.
+    const slots = slotRows.map(sl => {
+      const g = groupById.get(sl.class_group_id)
+      // Собственный предмет слота важнее предмета группы.
+      const subj = (sl.subject_id ? subjectById.get(sl.subject_id) : undefined)
+        ?? (g ? subjectById.get(g.subject_id) : undefined)
+      return {
+        id: sl.id,
+        class_group_id: sl.class_group_id,
+        day_of_week: sl.day_of_week,
+        start_time: sl.start_time,
+        end_time: sl.end_time,
+        room: sl.room,
+        class_group_name: g?.name ?? '',
+        subject_name: subj?.name ?? '',
+        subject_name_he: subj?.name_he ?? null,
+      }
+    })
+
+    return NextResponse.json({ slots })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}

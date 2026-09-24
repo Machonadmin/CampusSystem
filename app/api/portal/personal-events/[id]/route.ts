@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/session'
+import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * DELETE /api/portal/personal-events/[id] — удалить личное событие студентки.
+ * ПРИВАТНОСТЬ: только principal='student', и удаляем ТОЛЬКО если событие
+ * принадлежит journey из сессии (eq journey_id) — ученица не может удалить
+ * чужое. Деплой-безопасно (42P01).
+ */
+
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (session.principal !== 'student' || !session.student_journey_id) {
+      return apiError('forbidden', 403)
+    }
+
+    const sb = createServerClient()
+    try {
+      const { error } = await sb.from('student_personal_events')
+        .delete()
+        .eq('id', params.id)
+        .eq('journey_id', session.student_journey_id)
+      if (error) throw error
+    } catch (e) {
+      if (isMissingTable(e)) return apiError('feature_unavailable', 503)
+      throw e
+    }
+    return NextResponse.json({ ok: true })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return errorResponse(e)
+  }
+}

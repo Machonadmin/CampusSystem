@@ -1,0 +1,153 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { getAssessmentAccess } from '@/lib/education/lesson-access'
+import type { AssessmentUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
+
+function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
+  if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  if (error.code === '23514') return { status: 400, message: serverT('db_constraint_max_score') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
+}
+
+/**
+ * GET /api/education/assessments/[id]
+ * Одно задание вместе с его оценками.
+ * Право: view_students в контексте группы задания.
+ */
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const sb = createServerClient()
+
+    const access = await getAssessmentAccess(sb, params.id)
+    if (!access) return apiError('assignment_not_found', 404)
+
+    await requireEducationPrivilege('view_students', access.target)
+
+    const { data: grades, error } = await sb
+      .from('grades')
+      .select('id, journey_id, score, comment, graded_by, graded_at')
+      .eq('assessment_id', params.id)
+    if (error) throw error
+
+    return NextResponse.json({ ...access.assessment, grades: grades ?? [] })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}
+
+/**
+ * PATCH /api/education/assessments/[id]
+ * Редактирование задания. Право: set_grades в контексте группы задания.
+ * Разрешено менять: title, max_score, assessment_date, description.
+ */
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const body = await request.json() as {
+      title?: string
+      max_score?: number
+      assessment_date?: string | null
+      description?: string | null
+    }
+
+    const sb = createServerClient()
+
+    const access = await getAssessmentAccess(sb, params.id)
+    if (!access) return apiError('assignment_not_found', 404)
+
+    await requireEducationPrivilege('set_grades', access.target)
+
+    const update: AssessmentUpdate = {}
+    if (body.title !== undefined) {
+      const t = body.title?.trim()
+      if (!t) return apiError('title_field_not_empty', 400)
+      update.title = t
+    }
+    if (body.max_score !== undefined) {
+      const ms = Number(body.max_score)
+      if (!Number.isFinite(ms) || ms <= 0) {
+        return apiError('max_score_gt_0', 400)
+      }
+      update.max_score = ms
+    }
+    if (body.assessment_date !== undefined) update.assessment_date = body.assessment_date?.trim() || null
+    if (body.description !== undefined) update.description = body.description?.trim() || null
+
+    if (Object.keys(update).length === 0) {
+      return apiError('no_changes', 400)
+    }
+
+    // Понижение max_score недопустимо, если есть оценки, которые его превышают —
+    // иначе в БД останутся grades со score > max_score. Сначала их нужно исправить.
+    if (update.max_score !== undefined) {
+      const { count: overCount, error: overErr } = await sb
+        .from('grades')
+        .select('id', { count: 'exact', head: true })
+        .eq('assessment_id', params.id)
+        .gt('score', update.max_score)
+      if (overErr) throw overErr
+      if (overCount && overCount > 0) {
+        return apiErrorWith('max_score_below_existing_grades', 400, { max: update.max_score, count: overCount })
+      }
+    }
+
+    const { data, error } = await sb
+      .from('assessments')
+      .update(update)
+      .eq('id', params.id)
+      .select('*')
+      .single()
+    if (error) {
+      const m = mapDbError(error)
+      return errorResponse(m)
+    }
+
+    return NextResponse.json(data)
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}
+
+/**
+ * DELETE /api/education/assessments/[id]
+ * Удаление задания. Право: set_grades в контексте группы задания.
+ * Оценки удаляются каскадно (ON DELETE CASCADE).
+ */
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const sb = createServerClient()
+
+    const access = await getAssessmentAccess(sb, params.id)
+    if (!access) return apiError('assignment_not_found', 404)
+
+    await requireEducationPrivilege('set_grades', access.target)
+
+    const { error } = await sb.from('assessments').delete().eq('id', params.id)
+    if (error) throw error
+
+    return NextResponse.json({ ok: true })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { sanitizeOrSearch } from '@/lib/search/sanitize'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
 export async function GET(request: NextRequest) {
   try {
     await guard()
-    const q = request.nextUrl.searchParams.get('q') ?? ''
+    const q = sanitizeOrSearch(request.nextUrl.searchParams.get('q'))
     if (q.length < 2) return NextResponse.json([])
 
     const sb = createServerClient()
@@ -24,6 +27,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

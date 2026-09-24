@@ -1,0 +1,498 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { formatDate } from '@/lib/i18n/format-date'
+import { requiredFieldMsg } from '@/lib/i18n/required'
+import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+import { downloadCsv } from '@/lib/csv'
+import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Badge } from '@/components/ui/Badge'
+
+interface Ticket {
+  id: string
+  title: string
+  description: string | null
+  building_id: string | null
+  room_id: string | null
+  location_text: string | null
+  category: string
+  priority: string
+  status: string
+  assigned_to: string | null
+  reported_at: string
+  building_name: string | null
+  room_number: string | null
+  is_overdue: boolean
+}
+interface LocationBuilding {
+  id: string
+  name: string
+  code: string | null
+  rooms: { id: string; room_number: string; floor: number | null }[]
+}
+/**
+ * Задача из модуля «Задачи», помеченная автором как задача по эксплуатации.
+ * Это НЕ заявка: отдельной строки в maintenance_requests не существует, это та
+ * же самая задача, показанная здесь вторым экраном (см. lib/tasks/maintenance-link).
+ */
+interface MaintTask {
+  id: string
+  title: string
+  status: string
+  state: 'open' | 'done' | 'cancelled'
+  priority: string
+  due_date: string | null
+  assignee_name: string | null
+  creator_name: string | null
+}
+
+interface Stats {
+  status_counts: Record<string, number>
+  total_overdue: number
+  total: number
+}
+
+const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
+  open:        { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  in_progress: { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  resolved:    { bg: 'var(--success-tint)', fg: 'var(--success)' },
+  closed:      { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
+  cancelled:   { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
+}
+const PRIORITY_COLORS: Record<string, { bg: string; fg: string }> = {
+  urgent: { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
+  high:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
+  normal: { bg: 'var(--info-tint)', fg: 'var(--info)' },
+  low:    { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
+}
+
+export default function MaintenanceListClient({ canManage }: { canManage: boolean }) {
+  const router = useRouter()
+  const t = useTranslations('maintenance')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
+  const primary = getModuleColor('maintenance', 'primary')
+
+  const [items, setItems] = useState<Ticket[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // filters
+  const [fStatus, setFStatus] = useState('')
+  const [fPriority, setFPriority] = useState('')
+
+  // create form
+  const [locations, setLocations] = useState<LocationBuilding[]>([])
+  const [showForm, setShowForm] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [buildingId, setBuildingId] = useState('')
+  const [roomId, setRoomId] = useState('')
+  const [locationText, setLocationText] = useState('')
+  const [category, setCategory] = useState('other')
+  const [priority, setPriority] = useState('normal')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const qs = new URLSearchParams()
+      if (fStatus) qs.set('status', fStatus)
+      if (fPriority) qs.set('priority', fPriority)
+      const res = await fetch(`/api/maintenance/requests${qs.toString() ? `?${qs}` : ''}`)
+      if (res.status === 403) { setError(t('list.forbidden')); setItems([]); return }
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('list.load_error')); setItems([]); return
+      }
+      const b = await res.json()
+      setItems(b.requests ?? [])
+    } catch {
+      setError(t('list.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [fStatus, fPriority, t])
+
+  const loadStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/maintenance/stats')
+      if (res.ok) setStats(await res.json())
+    } catch { /* сводка не критична */ }
+  }, [])
+
+  const loadLocations = useCallback(async () => {
+    try {
+      const res = await fetch('/api/maintenance/locations')
+      if (res.ok) {
+        const b = await res.json()
+        setLocations(b.buildings ?? [])
+      }
+    } catch { /* пикер не критичен */ }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+  useEffect(() => { loadStats(); loadLocations() }, [loadStats, loadLocations])
+
+  const selectedBuilding = locations.find(b => b.id === buildingId) ?? null
+
+  async function submit() {
+    if (!title.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.title'))); return }
+    setBusy(true); setFormError(null)
+    try {
+      const res = await fetch('/api/maintenance/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+          building_id: buildingId || null,
+          room_id: roomId || null,
+          location_text: locationText.trim() || null,
+          category,
+          priority,
+        }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setFormError(b.error ?? t('form.save_error')); return
+      }
+      setTitle(''); setDescription(''); setBuildingId(''); setRoomId(''); setLocationText('')
+      setCategory('other'); setPriority('normal'); setShowForm(false)
+      await load(); await loadStats()
+    } catch {
+      setFormError(t('form.save_error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function locationLabel(r: Ticket): string {
+    const parts: string[] = []
+    if (r.building_name) parts.push(r.building_name)
+    if (r.room_number) parts.push(`${t('form.room')} ${r.room_number}`)
+    if (r.location_text) parts.push(r.location_text)
+    return parts.join(' · ') || '—'
+  }
+
+  function exportCsv() {
+    const headers = [t('form.title'), t('detail.location'), t('detail.set_priority'), t('list.filter_status')]
+    const data = items.map(r => [
+      r.title,
+      `${t(`category.${r.category}`)} · ${locationLabel(r)}`,
+      t(`priority.${r.priority}`),
+      t(`status.${r.status}`),
+    ])
+    downloadCsv('maintenance', [headers, ...data])
+  }
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('maintenance') },
+      ]} />
+
+      {/* Header */}
+      <ModuleHeader
+        module="maintenance"
+        title={tNav('maintenance')}
+        subtitle={t('list.subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={() => setShowForm(v => !v)} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+            }}>
+              + {t('list.new_ticket')}
+            </button>
+          )}
+        </>}
+      />
+
+      {/* Задачи по эксплуатации (из модуля «Задачи») — отдельным блоком.
+          Намеренно НЕ смешиваются с заявками и НЕ попадают в счётчики выше:
+          у задачи нет ни здания, ни категории, ни SLA, поэтому в общем списке
+          сводка бы «врала». */}
+      <MaintenanceTasksSection />
+
+      {/* Summary bar */}
+      {stats && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {/* Owner: пилюли с нулём — шум, показываем только ненулевые статусы. */}
+          {STATUSES.filter(s => (stats.status_counts[s] ?? 0) > 0).map(s => (
+            <SummaryPill
+              key={s}
+              label={t(`status.${s}`)}
+              value={stats.status_counts[s] ?? 0}
+              colors={STATUS_COLORS[s]}
+            />
+          ))}
+          {stats.total_overdue > 0 && (
+            <SummaryPill
+              label={t('list.overdue')}
+              value={stats.total_overdue}
+              colors={{ bg: 'var(--danger-tint)', fg: 'var(--danger)' }}
+              strong
+            />
+          )}
+        </div>
+      )}
+
+      {/* Create form */}
+      {showForm && canManage && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'grid', gap: 10 }}>
+          <input aria-label={`${t('form.title')} *`} value={title} onChange={e => setTitle(e.target.value)} placeholder={`${t('form.title')} *`} style={inp()} />
+          <textarea aria-label={t('form.description')} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('form.description')} rows={2} style={area} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <select value={buildingId} onChange={e => { setBuildingId(e.target.value); setRoomId('') }} style={sel(190)}>
+              <option value="">{t('form.select_building')}</option>
+              {locations.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+            <select value={roomId} onChange={e => setRoomId(e.target.value)} disabled={!selectedBuilding} style={sel(150)}>
+              <option value="">{t('form.select_room')}</option>
+              {(selectedBuilding?.rooms ?? []).map(r => <option key={r.id} value={r.id}>{r.room_number}</option>)}
+            </select>
+            <input aria-label={t('form.location_text')} value={locationText} onChange={e => setLocationText(e.target.value)} placeholder={t('form.location_text')} style={inp(200)} />
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <select value={category} onChange={e => setCategory(e.target.value)} style={sel(160)}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{t(`category.${c}`)}</option>)}
+            </select>
+            <select value={priority} onChange={e => setPriority(e.target.value)} style={sel(140)}>
+              {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
+            </select>
+            <SubmitButton onClick={submit} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <select value={fStatus} onChange={e => setFStatus(e.target.value)} style={sel(150)}>
+          <option value="">{t('list.filter_status')}</option>
+          {STATUSES.map(s => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+        </select>
+        <select value={fPriority} onChange={e => setFPriority(e.target.value)} style={sel(150)}>
+          <option value="">{t('list.filter_priority')}</option>
+          {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
+        </select>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={items.length === 0}
+          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '7px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: items.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: items.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+        >
+          <DownloadIcon /> {tCommon('export_csv')}
+        </button>
+      </div>
+
+      {/* Body */}
+      {error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+      ) : loading ? (
+        <SkeletonRows avatar={false} rows={6} />
+      ) : items.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+      ) : (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {items.map(r => {
+            const sc = STATUS_COLORS[r.status] ?? STATUS_COLORS.closed
+            const pc = PRIORITY_COLORS[r.priority] ?? PRIORITY_COLORS.low
+            return (
+              <div
+                key={r.id}
+                onClick={() => router.push(`/dashboard/maintenance/${r.id}`)}
+                style={{
+                  background: r.is_overdue ? 'var(--danger-tint)' : 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderInlineStart: `4px solid ${r.is_overdue ? 'var(--danger)' : pc.fg}`,
+                  borderRadius: 10, padding: '12px 16px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? 'var(--danger)' : pc.fg }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.borderInlineStartColor = r.is_overdue ? 'var(--danger)' : pc.fg }}
+              >
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{r.title}</span>
+                    {r.is_overdue && (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', letterSpacing: '0.04em' }}>
+                        {t('list.overdue')}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
+                    {t(`category.${r.category}`)} · {locationLabel(r)}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <Badge label={t(`priority.${r.priority}`)} colors={pc} />
+                  <Badge label={t(`status.${r.status}`)} colors={sc} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MaintenanceTasksSection() {
+  const router = useRouter()
+  const t = useTranslations('maintenance')
+  const { lang } = useLang()
+
+  const [tasks, setTasks] = useState<MaintTask[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  // Сколько человек вообще имеет роль техслужбы. Ноль — самая частая причина
+  // пустого списка: без роли галочка «это задача по эксплуатации» в форме
+  // задачи даже не появляется, и задача сюда попасть не может. null = не узнали.
+  const [staffCount, setStaffCount] = useState<number | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch(`/api/maintenance/tasks${showAll ? '?status=all' : ''}`)
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('tasks.load_error')); setTasks([]); return
+      }
+      const b = await res.json()
+      setTasks((b.tasks ?? []) as MaintTask[])
+      setStaffCount(typeof b.maintenance_people === 'number' ? b.maintenance_people : null)
+    } catch {
+      setError(t('tasks.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [showAll, t])
+
+  useEffect(() => { load() }, [load])
+
+  const STATE_COLORS: Record<MaintTask['state'], { bg: string; fg: string }> = {
+    open:      { bg: 'var(--info-tint)', fg: 'var(--info)' },
+    done:      { bg: 'var(--success-tint)', fg: 'var(--success)' },
+    cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
+  }
+
+  return (
+    <section style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 12, padding: 16, display: 'grid', gap: 12,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+        <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
+          🔧 {t('tasks.title')}
+          {!loading && tasks.length > 0 && (
+            <span style={{ marginInlineStart: 6, fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)', fontWeight: 600 }}>
+              {tasks.length}
+            </span>
+          )}
+        </h2>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('tasks.subtitle')}</span>
+        <button
+          type="button"
+          onClick={() => setShowAll(v => !v)}
+          style={{
+            marginInlineStart: 'auto', fontSize: 12, fontWeight: 600, padding: '5px 12px',
+            border: '1px solid var(--border-strong)', borderRadius: 8,
+            background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          {showAll ? t('tasks.show_open') : t('tasks.show_all')}
+        </button>
+      </div>
+
+      {error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+      ) : loading ? (
+        <SkeletonRows avatar={false} rows={2} />
+      ) : tasks.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-faint)', display: 'grid', gap: 4 }}>
+          <span>{t('tasks.empty')}</span>
+          {/* Пустой экран объясняет СЕБЯ: почему задача, дошедшая до исполнителя,
+              могла сюда не попасть. Ноль людей с ролью — отдельный, самый
+              частый случай, и он чинится в другом месте. */}
+          <span>{staffCount === 0 ? t('tasks.empty_no_staff') : t('tasks.empty_why')}</span>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {tasks.map(task => {
+            const pc = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.low
+            const sc = STATE_COLORS[task.state] ?? STATE_COLORS.open
+            return (
+              <button
+                key={task.id}
+                type="button"
+                title={t('tasks.open_task')}
+                onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+                style={{
+                  textAlign: 'start', font: 'inherit',
+                  background: 'var(--surface-2)', border: '1px solid var(--border)',
+                  borderInlineStart: `4px solid ${pc.fg}`,
+                  borderRadius: 10, padding: '10px 14px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                }}
+              >
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
+                    {task.title}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {task.assignee_name ?? t('tasks.unassigned')}
+                    {' · '}
+                    {task.due_date ? `${t('tasks.due')} ${formatDate(task.due_date, lang)}` : t('tasks.no_due')}
+                  </span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <Badge label={t(`priority.${task.priority}`)} colors={pc} />
+                  <Badge label={t(`tasks.state_${task.state}`)} colors={sc} />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function SummaryPill({ label, value, colors, strong }: { label: string; value: number; colors: { bg: string; fg: string }; strong?: boolean }) {
+  return (
+    <span style={{
+      fontSize: 12, fontWeight: strong ? 700 : 600, padding: '5px 12px', borderRadius: 999,
+      background: colors.bg, color: colors.fg, display: 'inline-flex', alignItems: 'center', gap: 6,
+    }}>
+      {label}
+      <span style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+    </span>
+  )
+}
+
+function inp(width?: number): React.CSSProperties {
+  return { width: width ?? '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
+}
+function sel(width: number): React.CSSProperties {
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
+}
+function btn(bg: string): React.CSSProperties {
+  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+}
+const area: React.CSSProperties = { width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }

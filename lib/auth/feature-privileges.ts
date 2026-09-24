@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from './session'
 import type { SessionPayload } from './jwt'
 
@@ -15,7 +16,7 @@ import type { SessionPayload } from './jwt'
 
 export type FeatureAction = 'can_view' | 'can_create' | 'can_edit' | 'can_delete'
 
-export async function hasFeaturePrivilege(
+async function hasFeaturePrivilege(
   session: SessionPayload | null,
   moduleCode: string,
   featureCode: string,
@@ -42,11 +43,11 @@ export async function requireFeaturePrivilege(
 ): Promise<SessionPayload> {
   const session = await getSession()
   if (!session) {
-    throw Object.assign(new Error('Не авторизован'), { status: 401 })
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
   const ok = await hasFeaturePrivilege(session, moduleCode, featureCode, action)
   if (!ok) {
-    throw Object.assign(new Error('Недостаточно прав'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   }
   return session
 }

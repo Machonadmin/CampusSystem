@@ -1,0 +1,455 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
+import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
+
+/**
+ * Вся логика карточки задачи (загрузка + действия + комментарии + наблюдатели +
+ * история) в одном хуке. Раньше она была ДВАЖДЫ скопирована — в модалке
+ * (TaskDetailModal) и на странице (/dashboard/tasks/[id]) по ~877 строк каждая.
+ * Теперь обе поверхности разделяют этот хук и общее тело <TaskDetailBody/>,
+ * различаясь лишь обрамлением (модалка/страница) и тем, что делать после
+ * действия (закрыть модалку / перезагрузить / уйти к списку).
+ *
+ * onAfterAction(kind):
+ *   'open' — действие сохранило задачу открытой (смена статуса, мягкая отмена);
+ *   'gone' — задача исчезла отсюда (удаление, отмена серии).
+ * Модалка закрывается в обоих случаях; страница перезагружается на 'open' и
+ * уходит к списку на 'gone'.
+ */
+
+export interface Comment {
+  id: string
+  task_id: string
+  author_id: string
+  author?: { id: string; full_name: string; hebrew_name?: string | null } | null
+  content: string
+  comment_type: TaskCommentType
+  created_at: string
+}
+
+export interface Watcher {
+  task_id: string
+  person_id: string
+  added_at: string
+  person?: { id: string; full_name: string; hebrew_name?: string | null } | null
+}
+
+export interface HistoryEntry {
+  id: string
+  task_id: string
+  actor_id: string
+  from_status: TaskStatus | null
+  to_status: TaskStatus
+  note: string | null
+  created_at: string
+  actor?: { id: string; full_name: string; hebrew_name?: string | null } | null
+}
+
+/** Права текущего пользователя на задачу — как их считает GET /api/tasks/[id]. */
+export interface TaskAccessView {
+  canView: boolean
+  canEdit: boolean
+  canChangeStatus: boolean
+  canDelete: boolean
+  isCreator: boolean
+  isAssignee: boolean
+  isMaintenanceViewer?: boolean
+}
+
+export interface TaskDetail extends TaskRow {
+  assignee?: { id: string; full_name: string; hebrew_name?: string | null } | null
+  department?: { id: string; name: string } | null
+  creator?: { id: string; full_name: string; hebrew_name?: string | null } | null
+}
+
+export type ActionKey =
+  | 'claim' | 'start' | 'review' | 'complete' | 'reopen'
+  | 'decline' | 'cancel' | 'delete' | 'cancelSeries'
+
+export interface ActionDef {
+  label: string
+  action: ActionKey
+  danger?: boolean
+  needsReason?: boolean
+}
+
+export interface SeriesPreview {
+  total: number
+  by_status: Record<string, number>
+}
+
+export interface UseTaskDetailOpts {
+  taskId: string
+  currentUserId: string | null
+  onAfterAction: (kind: 'open' | 'gone') => void
+  /**
+   * Полностраничная версия остаётся на месте и перезагружает задачу после
+   * действия, сохранившего её ('open'); модалка вместо этого закрывается, так
+   * что ей перезагрузка не нужна. Default false.
+   */
+  reloadOnOpenAction?: boolean
+}
+
+export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOpenAction }: UseTaskDetailOpts) {
+  const t = useTranslations('tasks')
+  const tCommon = useTranslations('common')
+
+  const [task,     setTask]     = useState<TaskDetail | null>(null)
+  const [access,   setAccess]   = useState<TaskAccessView | null>(null)
+  // Кто из людей — техслужба: нужен, чтобы показать переключатель «задача по
+  // эксплуатации» только там, где он что-то изменит (см. canMarkMaintenance).
+  const [maintenanceStaffIds, setMaintenanceStaffIds] = useState<Set<string>>(new Set())
+  const [comments, setComments] = useState<Comment[]>([])
+  const [watchers, setWatchers] = useState<Watcher[]>([])
+  const [history,  setHistory]  = useState<HistoryEntry[]>([])
+
+  const [loading,           setLoading]           = useState(true)
+  const [error,             setError]             = useState<string | null>(null)
+  const [actionInProgress,  setActionInProgress]  = useState(false)
+  const [showDeclineInput,  setShowDeclineInput]  = useState(false)
+  const [declineReason,     setDeclineReason]     = useState('')
+
+  const [newCommentText,    setNewCommentText]    = useState('')
+  const [postingComment,    setPostingComment]    = useState(false)
+
+  const [addingWatcher,     setAddingWatcher]     = useState(false)
+  const [newWatcherId,      setNewWatcherId]      = useState<string | null>(null)
+
+  const [showCancelSeriesDialog, setShowCancelSeriesDialog] = useState(false)
+  const [cancelSeriesMode,       setCancelSeriesMode]       = useState<'future' | 'all'>('future')
+  const [seriesPreview,          setSeriesPreview]          = useState<SeriesPreview | null>(null)
+  const [loadingPreview,         setLoadingPreview]         = useState(false)
+
+  useEffect(() => {
+    fetch('/api/tasks/maintenance-staff')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d?.person_ids)) setMaintenanceStaffIds(new Set(d.person_ids as string[])) })
+      .catch(() => { /* не загрузилось — переключатель просто не появится */ })
+  }, [])
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}`)
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.error ?? `${t('detail.load_error')} (${resp.status})`)
+      }
+      const data = await resp.json()
+      setTask(data.task as TaskDetail)
+      setAccess((data.access ?? null) as TaskAccessView | null)
+      setComments((data.comments ?? []) as Comment[])
+      setWatchers((data.watchers ?? []) as Watcher[])
+      setHistory((data.history ?? []) as HistoryEntry[])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setLoading(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskId])
+
+  useEffect(() => { load() }, [load])
+
+  // После успешного действия: 'gone' — задача исчезла (модалка закрывается /
+  // страница уходит к списку); 'open' — задача осталась (модалка закрывается,
+  // страница перезагружает её, если reloadOnOpenAction).
+  const finish = async (kind: 'open' | 'gone') => {
+    if (kind === 'open' && reloadOnOpenAction) await load()
+    onAfterAction(kind)
+  }
+
+  const loadSeriesPreview = useCallback(async (mode: 'future' | 'all') => {
+    if (!task?.recurrence_series_id) return
+    setLoadingPreview(true)
+    try {
+      let url = `/api/tasks/series/${task.recurrence_series_id}`
+      if (mode === 'future' && task.due_date) url += `?from_date=${task.due_date}`
+      const resp = await fetch(url)
+      if (!resp.ok) { setSeriesPreview(null); return }
+      const data = await resp.json()
+      setSeriesPreview({ total: data.total ?? 0, by_status: data.by_status ?? {} })
+    } catch {
+      setSeriesPreview(null)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }, [task?.recurrence_series_id, task?.due_date])
+
+  useEffect(() => {
+    if (showCancelSeriesDialog) loadSeriesPreview(cancelSeriesMode)
+  }, [cancelSeriesMode, showCancelSeriesDialog, loadSeriesPreview])
+
+  const getAvailableActions = (): ActionDef[] => {
+    if (!task || !currentUserId) return []
+    const isCreator  = task.creator_id  === currentUserId
+    const isAssignee = task.assignee_id === currentUserId
+
+    // Кнопки смены статуса показываем, только если сервер эту смену примет
+    // (PATCH требует автора/исполнителя/суперадмина). Раньше «בוצע» рисовалась
+    // всем, кто видит задачу, и наблюдатель или коллега получал в ответ красный
+    // 403. С доской техслужбы («техслужба видит техслужбу») это перестало быть
+    // редкостью: руководитель заходит именно в чужие задачи. Пока права не
+    // загружены — поведение прежнее, чтобы не мигать кнопками.
+    const canChangeStatus = access ? access.canChangeStatus : true
+
+    const out: ActionDef[] = []
+
+    // Упрощённая модель (запрос владельца): у открытой задачи главная кнопка —
+    // «בוצע». Потоки «שליחה לבדיקה» и «דחייה» убраны из UI (легаси-строки в
+    // review/declined продолжают отображаться и получают выход).
+    switch (task.status) {
+      case 'unassigned':
+        // «Взять» гейтится не canChangeStatus, а собственной проверкой отдела
+        // в POST /api/tasks/[id]/claim — поэтому кнопка остаётся.
+        out.push({ label: t('actions.claim'), action: 'claim' })
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
+        break
+      case 'pending':
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isAssignee) out.push({ label: t('actions.start'), action: 'start' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
+        break
+      case 'in_progress':
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
+        break
+      case 'review':
+        // Легаси: задачи, отправленные «на проверку» до упрощения.
+        if (canChangeStatus) out.push({ label: t('actions.mark_done'), action: 'complete' })
+        if (isCreator) out.push({ label: t('actions.reopen'), action: 'reopen' })
+        break
+      case 'declined':
+        // Легаси-тупик: раньше у отклонённой задачи не было НИ ОДНОЙ кнопки.
+        if (canChangeStatus) {
+          out.push({ label: t('actions.reopen'), action: 'reopen' })
+          out.push({ label: t('actions.mark_done'), action: 'complete' })
+        }
+        if (isCreator) out.push({ label: t('actions.cancel'), action: 'cancel', danger: true })
+        break
+    }
+
+    if (isCreator && task.recurrence_series_id && !['completed', 'cancelled'].includes(task.status)) {
+      out.push({ label: t('actions.cancel_series'), action: 'cancelSeries', danger: true })
+    }
+
+    // Удаление — отдельно от «Отмены»: создатель может удалить задачу совсем
+    // (в любом статусе). «Отмена» же теперь мягкая (статус → cancelled).
+    if (isCreator) out.push({ label: t('actions.delete'), action: 'delete', danger: true })
+
+    return out
+  }
+
+  const handleCancelSeries = async () => {
+    if (!task?.recurrence_series_id) return
+    setActionInProgress(true)
+    setError(null)
+    try {
+      let url = `/api/tasks/series/${task.recurrence_series_id}`
+      if (cancelSeriesMode === 'future' && task.due_date) url += `?from_date=${task.due_date}`
+      const resp = await fetch(url, { method: 'DELETE' })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('detail.cancel_series_failed'))
+        return
+      }
+      await finish('gone')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setActionInProgress(false)
+      setShowCancelSeriesDialog(false)
+    }
+  }
+
+  const handleAction = async (action: ActionKey, withReason?: boolean) => {
+    if (action === 'cancelSeries') {
+      setShowCancelSeriesDialog(true)
+      setCancelSeriesMode('future')
+      setSeriesPreview(null)
+      loadSeriesPreview('future')
+      return
+    }
+    if (withReason && !declineReason.trim()) {
+      setError(t('detail.decline_reason_required'))
+      return
+    }
+    setActionInProgress(true)
+    setError(null)
+    try {
+      let resp: Response
+      let gone = false
+
+      if (action === 'claim') {
+        resp = await fetch(`/api/tasks/${taskId}/claim`, { method: 'POST' })
+      } else if (action === 'delete') {
+        // Полное удаление — с подтверждением.
+        if (!(await confirmDialog({ message: t('detail.delete_confirm'), tone: 'danger' }))) { setActionInProgress(false); return }
+        resp = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
+        gone = true
+      } else if (action === 'cancel') {
+        // Мягкая отмена: статус → cancelled (раньше здесь было жёсткое DELETE).
+        resp = await fetch(`/api/tasks/${taskId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled' }),
+        })
+      } else {
+        const STATUS_BY_ACTION: Record<Exclude<ActionKey, 'claim' | 'cancel' | 'delete' | 'cancelSeries'>, TaskRow['status']> = {
+          start:    'in_progress',
+          review:   'review',
+          complete: 'completed',
+          reopen:   'in_progress',
+          decline:  'declined',
+        }
+        const newStatus = STATUS_BY_ACTION[action as Exclude<ActionKey, 'claim' | 'cancel' | 'delete' | 'cancelSeries'>]
+        const body: Record<string, unknown> = { status: newStatus }
+        if (action === 'decline' && declineReason.trim()) {
+          body.status_note = declineReason.trim()
+        }
+        resp = await fetch(`/api/tasks/${taskId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      }
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}))
+        setError(errData.error ?? t('detail.action_failed'))
+        return
+      }
+
+      setShowDeclineInput(false)
+      setDeclineReason('')
+      await finish(gone ? 'gone' : 'open')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setActionInProgress(false)
+    }
+  }
+
+  const handleAddComment = async () => {
+    if (!newCommentText.trim()) return
+    setPostingComment(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newCommentText.trim() }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('detail.comment_failed'))
+        return
+      }
+      setNewCommentText('')
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setPostingComment(false)
+    }
+  }
+
+  const handleAddWatcher = async () => {
+    if (!newWatcherId) return
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/watchers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person_id: newWatcherId }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('detail.add_watcher_failed'))
+        return
+      }
+      setNewWatcherId(null)
+      setAddingWatcher(false)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    }
+  }
+
+  const handleRemoveWatcher = async (personId: string) => {
+    setError(null)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}/watchers/${personId}`, { method: 'DELETE' })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('detail.remove_watcher_failed'))
+        return
+      }
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    }
+  }
+
+  /**
+   * Переключить метку «задача по эксплуатации». Сервер перепроверяет роль
+   * исполнителя и может метку не поставить — поэтому после ответа задача
+   * перечитывается, а не правится оптимистично.
+   */
+  async function toggleMaintenance(next: boolean) {
+    setError(null)
+    setActionInProgress(true)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_maintenance: next }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('card.maintenance_failed'))
+        return
+      }
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setActionInProgress(false)
+    }
+  }
+
+  /**
+   * Показывать ли переключатель «задача по эксплуатации».
+   * Включить метку можно только на задаче, персонально назначенной человеку из
+   * техслужбы — иначе сервер её не поставит, а пользователь получил бы 400
+   * «нет изменений». Уже помеченная задача показывает переключатель ВСЕГДА,
+   * чтобы метку можно было снять даже после того, как у исполнителя убрали роль.
+   */
+  const canMarkMaintenance =
+    !!task && (
+      isMaintenanceTask(task.metadata) ||
+      (task.assignee_type === 'person' && !!task.assignee_id && maintenanceStaffIds.has(task.assignee_id))
+    )
+
+  return {
+    // state
+    task, access, canMarkMaintenance, comments, watchers, history,
+    loading, error, actionInProgress,
+    showDeclineInput, declineReason,
+    newCommentText, postingComment,
+    addingWatcher, newWatcherId,
+    showCancelSeriesDialog, cancelSeriesMode, seriesPreview, loadingPreview,
+    // setters used by the view
+    setShowDeclineInput, setDeclineReason,
+    setNewCommentText, setAddingWatcher, setNewWatcherId,
+    setShowCancelSeriesDialog, setCancelSeriesMode,
+    // handlers
+    getAvailableActions, handleAction, handleCancelSeries,
+    handleAddComment, handleAddWatcher, handleRemoveWatcher, toggleMaintenance,
+    reload: load,
+  }
+}

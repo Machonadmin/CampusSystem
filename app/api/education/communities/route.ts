@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireEducationPrivilege, canDoEducationInAny } from '@/lib/education/permissions'
 import type { CommunityInsert } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 function mapDbError(error: { code?: string; message?: string }) {
-  if (error.code === '23505') return { status: 409, message: 'Община с таким названием в этом городе уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('community_exists_city') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /**
@@ -27,7 +24,7 @@ function mapDbError(error: { code?: string; message?: string }) {
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const sb = createServerClient()
     const params = request.nextUrl.searchParams
 
@@ -47,26 +44,28 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await qb
     if (error) throw error
-    return NextResponse.json({ communities: data ?? [] })
+    const canManage = await canDoEducationInAny(session, 'manage_communities')
+    return NextResponse.json({ communities: data ?? [], can_manage: canManage })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
 /**
  * POST /api/education/communities
- * Создать новую общину. Право: любой авторизованный.
+ * Создать новую общину. Право: education.manage_communities.
+ * Общины не привязаны к подразделению → проверка без target (scope='all').
  * Идемпотентен: при дубле (UNIQUE name+city+country) возвращает существующую.
  */
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth()
+    await requireEducationPrivilege('manage_communities')
     const body = await request.json() as Partial<CommunityInsert>
 
-    if (!body.name?.trim()) return NextResponse.json({ error: 'name обязателен' }, { status: 400 })
-    if (!body.country?.trim()) return NextResponse.json({ error: 'country обязателен' }, { status: 400 })
-    if (!body.city?.trim()) return NextResponse.json({ error: 'city обязателен' }, { status: 400 })
+    if (!body.name?.trim()) return apiError('name_field_required', 400)
+    if (!body.country?.trim()) return apiError('country_required', 400)
+    if (!body.city?.trim()) return apiError('city_required', 400)
 
     const sb = createServerClient()
     const insert: CommunityInsert = {
@@ -101,11 +100,11 @@ export async function POST(request: NextRequest) {
         if (existing) return NextResponse.json(existing, { status: 200 })
       }
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
     return NextResponse.json(data, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,0 +1,243 @@
+import { flattenPhones } from '@/lib/persons/phone'
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
+import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
+import { toCents, centsToNumber } from '@/lib/finance/money'
+import { sumDiscountCentsForCharges } from '@/lib/finance/discounts'
+import { mapDbError } from '@/lib/finance/http'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * GET /api/finance/students
+ *
+ * Список студентов (education_journeys со статусом 'student'), присоединённых
+ * к persons, с ВЫЧИСЛЯЕМЫМ балансом. Баланс не хранится (то же правило, что в
+ * ledger-роуте):
+ *   balance = Σ(finance_charges.amount   WHERE status='active')
+ *           − Σ(finance_discounts.amount по этим активным счетам)
+ *           − Σ(finance_payments.amount  WHERE status='approved')
+ * Считается пакетно (без N+1), в целых копейках.
+ *
+ * Право: finance.view.
+ *
+ * Фильтры:
+ *   ?search=...  — app-side по persons.full_name/hebrew_name/email/phones
+ *
+ * Ответ: { students: FinanceStudentListItem[] }
+ */
+
+const PERSON_SELECT =
+  'id, full_name, hebrew_name, email, phones, photo_url'
+
+
+// Размер страницы для агрегации баланса. PostgREST по умолчанию отдаёт не
+// более db-max-rows (обычно 1000) строк за запрос и МОЛЧА обрезает остальное.
+// Запросы ниже возвращают строку НА КАЖДОЕ начисление/платёж (не на студента),
+// поэтому при масштабе (сотни студентов) единый .in(...) обрезался бы и давал
+// неверный баланс. Читаем страницами по PAGE и суммируем в копейках.
+const PAGE = 1000
+
+/**
+ * Суммирует amount (в копейках) по journey_id для одного статуса, вычитывая
+ * ВСЕ строки постранично (устойчиво к db-max-rows). Возвращает Map journey→копейки.
+ */
+async function sumCentsByJourney(
+  sb: ReturnType<typeof createServerClient>,
+  table: 'finance_charges' | 'finance_payments',
+  journeyIds: string[],
+  status: 'active' | 'cancelled' | 'pending' | 'approved',
+): Promise<Map<string, number>> {
+  const acc = new Map<string, number>()
+  if (journeyIds.length === 0) return acc
+
+  let from = 0
+  for (;;) {
+    const { data, error } = await sb
+      .from(table)
+      .select('journey_id, amount')
+      .in('journey_id', journeyIds)
+      .eq('status', status)
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+
+    const rows = data ?? []
+    for (const r of rows) {
+      acc.set(r.journey_id, (acc.get(r.journey_id) ?? 0) + toCents(r.amount))
+    }
+    if (rows.length < PAGE) break
+    from += PAGE
+  }
+  return acc
+}
+
+/**
+ * Активные начисления по journey: суммы (копейки) + карта chargeId → journeyId
+ * (нужна, чтобы подтянуть скидки, привязанные к charge_id). Постранично.
+ */
+async function fetchActiveCharges(
+  sb: ReturnType<typeof createServerClient>,
+  journeyIds: string[],
+): Promise<{ cents: Map<string, number>; chargeToJourney: Map<string, string> }> {
+  const cents = new Map<string, number>()
+  const chargeToJourney = new Map<string, string>()
+  if (journeyIds.length === 0) return { cents, chargeToJourney }
+
+  let from = 0
+  for (;;) {
+    const { data, error } = await sb
+      .from('finance_charges')
+      .select('id, journey_id, amount')
+      .in('journey_id', journeyIds)
+      .eq('status', 'active')
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    const rows = (data ?? []) as Array<{ id: string; journey_id: string; amount: number | string }>
+    for (const r of rows) {
+      cents.set(r.journey_id, (cents.get(r.journey_id) ?? 0) + toCents(r.amount))
+      chargeToJourney.set(r.id, r.journey_id)
+    }
+    if (rows.length < PAGE) break
+    from += PAGE
+  }
+  return { cents, chargeToJourney }
+}
+
+/**
+ * Старейшая ПРОСРОЧЕННАЯ дата due_date активного начисления по journey.
+ * Точной привязки платежа к счёту нет (см. finance_billing), поэтому просрочка
+ * приближённая: студентка «в просрочке», если её ОБЩИЙ баланс > 0 и есть
+ * активный счёт с due_date в прошлом. Читаем постранично (db-max-rows).
+ */
+async function oldestPastDueByJourney(
+  sb: ReturnType<typeof createServerClient>,
+  journeyIds: string[],
+  todayStr: string,
+): Promise<Map<string, string>> {
+  const acc = new Map<string, string>()
+  if (journeyIds.length === 0) return acc
+  let from = 0
+  for (;;) {
+    const { data, error } = await sb
+      .from('finance_charges')
+      .select('journey_id, due_date')
+      .in('journey_id', journeyIds)
+      .eq('status', 'active')
+      .not('due_date', 'is', null)
+      .lt('due_date', todayStr)
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    const rows = (data ?? []) as Array<{ journey_id: string; due_date: string }>
+    for (const r of rows) {
+      const cur = acc.get(r.journey_id)
+      if (!cur || r.due_date < cur) acc.set(r.journey_id, r.due_date)
+    }
+    if (rows.length < PAGE) break
+    from += PAGE
+  }
+  return acc
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await requireFinancePrivilege('view')
+    const canCharge = await hasFinancePrivilege(session, 'create_invoice')
+    // Для шапки финансов: ссылку «доступ к финансам» видят только те, кто
+    // может им управлять (superadmin / approve_payment) — иначе она вела в стену.
+    const canManageAccess = session.roles.includes('superadmin')
+      || await hasFinancePrivilege(session, 'approve_payment')
+
+    const sb = createServerClient()
+
+    // Список студентов читаем постранично: единый select без .range() молча
+    // обрезался бы на db-max-rows (~1000), теряя студентов из списка И из
+    // агрегации баланса (journeyIds строится из этих строк). Тот же приём, что
+    // sumCentsByJourney ниже; вторичная сортировка по id — стабильная пагинация.
+    type JourneyRow = { id: string; person_id: string; opened_at: string; person: unknown }
+    const rows: JourneyRow[] = []
+    let jFrom = 0
+    for (;;) {
+      const { data, error } = await sb
+        .from('education_journeys')
+        .select(`
+          id, person_id, opened_at,
+          person:persons!applicant_profiles_person_id_fkey(${PERSON_SELECT})
+        `)
+        .eq('education_status', 'student')
+        .order('opened_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(jFrom, jFrom + PAGE - 1)
+      if (error) throw error
+      const page = (data ?? []) as JourneyRow[]
+      rows.push(...page)
+      if (page.length < PAGE) break
+      jFrom += PAGE
+    }
+    const journeyIds = rows.map(j => j.id)
+
+    // Баланс пакетно (без N+1, без float-дрейфа): активные начисления и
+    // подтверждённые платежи, каждое — постранично, чтобы не обрезаться на
+    // db-max-rows. Суммируем по journey_id в копейках.
+    const { cents: chargeCents, chargeToJourney } = await fetchActiveCharges(sb, journeyIds)
+    const payCents = await sumCentsByJourney(sb, 'finance_payments', journeyIds, 'approved')
+    const discountCents = await sumDiscountCentsForCharges(sb, chargeToJourney)
+    const todayStr = todayISO()
+    const pastDue = await oldestPastDueByJourney(sb, journeyIds, todayStr)
+    const todayMs = Date.parse(todayStr + 'T00:00:00Z')
+
+    let students = rows.map(j => {
+      const person = j.person as {
+        id?: string
+        full_name?: string | null
+        hebrew_name?: string | null
+        email?: string | null
+        phones?: unknown
+        photo_url?: string | null
+      } | null
+      const charged = chargeCents.get(j.id) ?? 0
+      const discount = discountCents.get(j.id) ?? 0
+      const paid = payCents.get(j.id) ?? 0
+      const balanceCents = charged - discount - paid
+      return {
+        journey_id: j.id,
+        person_id: person?.id ?? j.person_id,
+        full_name: person?.full_name ?? '',
+        hebrew_name: person?.hebrew_name ?? null,
+        email: person?.email ?? null,
+        phones: flattenPhones(person?.phones),
+        photo_url: person?.photo_url ?? null,
+        charges_total: centsToNumber(charged),
+        discounts_total: centsToNumber(discount),
+        payments_total: centsToNumber(paid),
+        balance: centsToNumber(balanceCents),
+        // Просрочка только у должниц (balance > 0): дней с самой старой
+        // просроченной due_date. null — нет просрочки.
+        overdue_days: balanceCents > 0 && pastDue.has(j.id)
+          ? Math.max(1, Math.round((todayMs - Date.parse(pastDue.get(j.id)! + 'T00:00:00Z')) / 86400000))
+          : null,
+      }
+    })
+
+    const search = request.nextUrl.searchParams.get('search')?.trim().toLowerCase()
+    if (search) {
+      students = students.filter(s =>
+        s.full_name.toLowerCase().includes(search) ||
+        (s.hebrew_name ?? '').toLowerCase().includes(search) ||
+        (s.email ?? '').toLowerCase().includes(search) ||
+        s.phones.join(' ').toLowerCase().includes(search)
+      )
+    }
+
+    return NextResponse.json({ students, can_charge: canCharge, can_manage_access: canManageAccess })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}

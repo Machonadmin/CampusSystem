@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { todayISO, localISODate } from '@/lib/dates'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { PersonSelect } from '@/components/ui/person-select'
 import PersonRelationField, { type PersonRelationValue, type RelationType } from '@/components/ui/PersonRelationField'
 import CascadeDirectionSelector, { type CascadeValue } from '@/components/education/CascadeDirectionSelector'
+import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,7 +37,9 @@ export interface EducationJourneyFormProps {
 const TAB_LABEL_KEYS_BASE = ['personal', 'contacts', 'family', 'community', 'directions', 'additional']
 const TAB_LABEL_KEYS_WITH_ACADEMIC = [...TAB_LABEL_KEYS_BASE, 'academic']
 
-const SOURCE_CODES = ['website', 'social', 'referral', 'call', 'exhibition', 'other']
+// Источники по бизнес-процессу v2 (док. «גיוס וקבלה», п. «מקור»):
+// התקשרה בעצמה / דרך אירוע או קהילה / המלצה / ייבוא רשימה.
+const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
 
 const MODE_CONFIG = {
   lead:      { titleKey: 'add_lead',      saveKey: 'create_lead' },
@@ -72,8 +77,8 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-        placeholder={placeholder ?? '+7...'}
+      <input aria-label={placeholder ?? '+7...'} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+        placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
   )
@@ -151,7 +156,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const [mainGroupId, setMainGroupId] = useState<string | null>(null)
   const [yearLevel, setYearLevel] = useState<string>('')
   const [yearStart, setYearStart] = useState<string>('')
-  const [enrolledAt, setEnrolledAt] = useState<string>(() => new Date().toISOString().slice(0, 10))
+  const [enrolledAt, setEnrolledAt] = useState<string>(() => todayISO())
 
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [specialties, setSpecialties] = useState<{ id: string; name: string; department_id: string }[]>([])
@@ -365,7 +370,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setMainGroupId(null)
     setYearLevel('')
     setYearStart('')
-    setEnrolledAt(new Date().toISOString().slice(0, 10))
+    setEnrolledAt(todayISO())
   }
 
   async function loadPersonData(id: string) {
@@ -429,8 +434,11 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
     setSaving(true)
     try {
       // Build communities list (applies regardless of view — bug fix)
+      // «Реальная» община = есть имя/контакт/телефон. Страна('Россия' по умолч.)
+      // и авто-заполненный город НЕ делают пустую запись валидной (иначе авто-город
+      // сохранял бы фантомные общины).
       const validCommunities = communities
-        .filter(c => c.name || c.contact_person || c.phone || c.country || c.city)
+        .filter(c => c.name || c.contact_person || c.phone)
         .map(c => ({ ...c, contacts: c.contacts.filter(x => x.value.trim()) }))
 
       if (journeyId) {
@@ -445,7 +453,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           middle_name: middleName.trim() || null,
           hebrew_name: hebrewName.trim() || null,
           gender: gender || null,
-          birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+          birth_date: birthDate ? localISODate(birthDate) : null,
           marital_status: maritalStatus || null,
           citizenship: citizenship || null,
           passport_number: passportNumber.trim() || null,
@@ -505,7 +513,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           if (validPhones.length > 1) body.phones = validPhones
           if (email) body.email = email.trim()
           if (gender) body.gender = gender
-          if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
+          if (birthDate) body.birth_date = localISODate(birthDate)
           if (hebrewName) body.hebrew_name = hebrewName.trim()
           if (maritalStatus) body.marital_status = maritalStatus
           if (citizenship) body.citizenship = citizenship.trim()
@@ -563,7 +571,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             middle_name: middleName.trim() || null,
             hebrew_name: hebrewName.trim() || null,
             gender: gender || null,
-            birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+            birth_date: birthDate ? localISODate(birthDate) : null,
             email: email.trim() || null,
             phones: validPhones,
           }
@@ -608,38 +616,38 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
   const lbl: React.CSSProperties = {
-    fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
+    fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block',
   }
 
   function renderTab() {
     const ro = view === 'existing'
-    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: '#F9FAFB' } : {}
+    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--surface-2)' } : {}
 
     switch (tabIdx) {
       case 0:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)', marginBottom: 4 }}>
                 {loadingPerson ? t('form.loading_data') : t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed var(--border-strong)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                 {photoPreview
                   ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', cursor: 'pointer', padding: '6px 14px', border: '1px solid var(--accent)', borderRadius: 8, display: 'inline-block' }}>
                   {t('form.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('form.photo_hint')}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('form.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               {!journeyId && (
@@ -652,24 +660,25 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                   ) : (
                     <div>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                        <input aria-label={t('form.ph.search')} autoFocus value={query} onChange={e => setQuery(e.target.value)}
                           placeholder={t('form.ph.search')} style={{ ...inp, width: 220 }} />
                         <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          aria-label={tCommon('close')}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
                       </div>
                       {(searching || results.length > 0) && (
-                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('form.searching')}</div>}
+                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', insetInlineEnd: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 'min(260px, 100%)', maxHeight: 220, overflowY: 'auto' }}>
+                          {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('form.searching')}</div>}
                           {results.map(p => (
                             <button key={p.id} onClick={() => selectPerson(p)}
-                              style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                              style={{ width: '100%', textAlign: 'start', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', fontSize: 13 }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                             >
-                              <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                              {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                              <div style={{ fontWeight: 500, color: 'var(--text)' }}>{p.full_name}</div>
+                              {p.email && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.email}</div>}
                             </button>
                           ))}
                         </div>
@@ -679,27 +688,27 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 </div>
               )}
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('form.last_name')} *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('form.ph.last_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('form.first_name')} *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('form.ph.first_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('form.ph.first_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('form.middle_name')}</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('form.ph.middle_name')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('form.middle_name')} value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('form.ph.middle_name')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('form.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('form.ph.hebrew_name')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.hebrew_name')} value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('form.ph.hebrew_name')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.gender')}</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('form.gender')} value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="female">{t('form.gender_female')}</option>
                 <option value="male">{t('form.gender_male')}</option>
@@ -711,7 +720,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.marital_status')}</label>
-              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('form.marital_status')} value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="single">{t('form.marital_single')}</option>
                 <option value="married">{t('form.marital_married')}</option>
@@ -725,22 +734,22 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.passport_number')}</label>
-              <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder={t('form.ph.passport')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.passport_number')} value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder={t('form.ph.passport')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
 
       case 1:
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          <div className="resp-grid-2" style={{ gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)', marginBottom: 4 }}>
                 {t('form.profile_readonly')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view === 'new' ? ' *' : ''}</label>
+                <label style={{ ...lbl, marginBottom: 0 }}>{t('form.phones')}{view !== 'existing' ? ' *' : ''}</label>
                 {!ro && <button onClick={() => setPhones(prev => [...prev, ''])}
                   style={{ fontSize: 12, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   {t('form.add_phone')}
@@ -752,7 +761,8 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
+                      aria-label={tCommon('delete')}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>
                       ×
                     </button>
                   )}
@@ -761,7 +771,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('form.email')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.email')} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.country')}</label>
@@ -769,23 +779,30 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.city')}</label>
-              <CitySelect country={country} value={city} onChange={setCity} disabled={ro} style={{ ...inp, ...dis }} />
+              <CitySelect country={country} value={city} onChange={v => {
+                setCity(v)
+                // Авто-заполнение: город общины по умолчанию = город проживания,
+                // пока пуст и в той же (или ещё не выбранной) стране. Ручной ввод не трогаем.
+                setCommunities(prev => prev.map(c =>
+                  (!c.city && (!c.country || c.country === country)) ? { ...c, city: v } : c,
+                ))
+              }} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.street')}</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('form.ph.street')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.street')} value={street} onChange={e => setStreet(e.target.value)} placeholder={t('form.ph.street')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.house')}</label>
-              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.house')} value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.apartment')}</label>
-              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.apartment')} value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('form.postal_code')}</label>
-              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('form.postal_code')} value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
           </div>
         )
@@ -794,7 +811,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {ro && (
-              <div style={{ background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA' }}>
+              <div style={{ background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--violet)' }}>
                 {t('form.profile_readonly')}
               </div>
             )}
@@ -832,7 +849,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         const communityContactTypes = (
           <>
             <option value="phone">{t('form.ct_phone')}</option>
-            <option value="email">Email</option>
+            <option value="email">{t('form.ct_email')}</option>
             <option value="whatsapp">WhatsApp</option>
             <option value="telegram">Telegram</option>
             <option value="address">{t('form.ct_address')}</option>
@@ -852,17 +869,18 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             {communities.map((comm, i) => {
               const isCard = communities.length > 1
               const wrap: React.CSSProperties = isCard
-                ? { background: '#F9FAFB', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
+                ? { background: 'var(--surface-2)', borderRadius: 10, padding: '14px 16px', marginBottom: 12, position: 'relative' }
                 : {}
               return (
                 <div key={i} style={wrap}>
                   {isCard && (
                     <button onClick={() => setCommunities(prev => prev.filter((_, ci) => ci !== i))}
-                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                      aria-label={tCommon('delete')}
+                      style={{ position: 'absolute', top: 10, insetInlineEnd: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: 0 }}>
                       ×
                     </button>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                  <div className="resp-grid-2" style={{ gap: '10px 16px' }}>
                     <div>
                       <label style={lbl}>{t('form.community_country')}</label>
                       <CountrySelect value={comm.country} onChange={ct => updateCommCountry(i, ct)} style={inp} />
@@ -879,7 +897,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={lbl}>{t('form.community_name')}</label>
-                      <input value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
+                      <input aria-label={t('form.community_name')} value={comm.name} onChange={e => updateComm(i, 'name', e.target.value)}
                         placeholder={t('form.ph.community_name')} style={inp} />
                     </div>
                     <div>
@@ -899,16 +917,16 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                     </div>
                     <div>
                       <label style={lbl}>{t('form.community_position')}</label>
-                      <input value={comm.position} onChange={e => updateComm(i, 'position', e.target.value)}
-                        placeholder={t('form.ph.community_position')} style={inp} />
+                      <CommunityRoleSelect value={comm.position} onChange={v => updateComm(i, 'position', v)}
+                        ariaLabel={t('form.community_position')} style={inp} />
                     </div>
                     <div>
                       <label style={lbl}>{t('form.community_phone')}</label>
                       <FlagPhone value={comm.phone} onChange={v => updateComm(i, 'phone', v)} inputStyle={inp} />
                     </div>
                     <div>
-                      <label style={lbl}>Email</label>
-                      <input type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
+                      <label style={lbl}>{t('form.ct_email')}</label>
+                      <input aria-label={t('form.ct_email')} type="email" value={comm.email} onChange={e => updateComm(i, 'email', e.target.value)}
                         placeholder={t('form.ph.community_email')} style={inp} />
                     </div>
                     {comm.contacts.map((cc, ci) => (
@@ -918,12 +936,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                           style={{ ...inp, flex: '0 0 130px', width: 'auto' }}>
                           {communityContactTypes}
                         </select>
-                        <input value={cc.value}
+                        <input aria-label={t('form.ph.contact_value')} value={cc.value}
                           onChange={e => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.map((x, xi) => xi === ci ? { ...x, value: e.target.value } : x) } : c))}
                           placeholder={t('form.ph.contact_value')} style={{ ...inp, flex: 1 }} />
                         <button
                           onClick={() => setCommunities(prev => prev.map((c, cj) => cj === i ? { ...c, contacts: c.contacts.filter((_, xi) => xi !== ci) } : c))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                          aria-label={tCommon('delete')}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                           ×
                         </button>
                       </div>
@@ -951,7 +970,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 4:
         return (
           <div>
-            <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontStyle: 'italic' }}>
               {t('form.directions_hint')}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
@@ -961,13 +980,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
             </div>
             {interests.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'flex-start', border: '1px solid #F3F4F6', borderRadius: 8, padding: 10 }}>
+              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'flex-start', border: '1px solid var(--surface-2)', borderRadius: 8, padding: 10 }}>
                 <div style={{ flex: 1 }}>
                   <CascadeDirectionSelector value={item} onChange={v => setInterestAt(idx, v)} />
                 </div>
                 {interests.length > 1 && (
                   <button onClick={() => setInterests(prev => prev.filter((_, i) => i !== idx))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
+                    aria-label={tCommon('delete')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1 }}>
                     ×
                   </button>
                 )}
@@ -981,14 +1001,14 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <label style={lbl}>{t('form.source_label')}</label>
-              <select value={source} onChange={e => setSource(e.target.value)} style={inp}>
+              <select aria-label={t('form.source_label')} value={source} onChange={e => setSource(e.target.value)} style={inp}>
                 <option value="">{t('form.source_not_specified')}</option>
                 {SOURCE_CODES.map(code => <option key={code} value={code}>{t(`card.source.${code}`)}</option>)}
               </select>
             </div>
             <div>
               <label style={lbl}>{t('form.comment')}</label>
-              <textarea value={comment} onChange={e => setComment(e.target.value)} rows={5}
+              <textarea aria-label={t('form.comment')} value={comment} onChange={e => setComment(e.target.value)} rows={5}
                 style={{ ...inp, resize: 'vertical' }} placeholder={t('form.ph.comment')} />
             </div>
           </div>
@@ -997,7 +1017,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
       case 6: {
         const isStudent = mode === 'student'
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
+          <div className="resp-grid-2" style={{ gap: '16px 20px' }}>
             <div>
               <label style={lbl}>{t('form.academic_department')}{isStudent && ' *'}</label>
               <select
@@ -1011,7 +1031,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_specialty')}</label>
-              <select
+              <select aria-label={t('form.academic_specialty')}
                 value={specialtyId ?? ''}
                 onChange={e => setSpecialtyId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
@@ -1023,7 +1043,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_base_group')}</label>
-              <select
+              <select aria-label={t('form.academic_base_group')}
                 value={mainGroupId ?? ''}
                 onChange={e => setMainGroupId(e.target.value || null)}
                 disabled={!primaryDepartmentId}
@@ -1035,17 +1055,17 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
             </div>
             <div>
               <label style={lbl}>{t('form.academic_course_class')}</label>
-              <input type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
+              <input aria-label={t('form.academic_course_class')} type="number" value={yearLevel} onChange={e => setYearLevel(e.target.value)}
                 placeholder={t('form.ph.course_class')} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('form.academic_enrollment_year')}</label>
-              <input type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
+              <input aria-label={t('form.academic_enrollment_year')} type="number" value={yearStart} onChange={e => setYearStart(e.target.value)}
                 placeholder={t('form.ph.enrollment_year')} style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('form.academic_enrollment_date')}</label>
-              <input type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
+              <input aria-label={t('form.academic_enrollment_date')} type="date" value={enrolledAt} onChange={e => setEnrolledAt(e.target.value)}
                 style={inp} />
             </div>
           </div>
@@ -1061,20 +1081,22 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   const saveLabel = journeyId ? t('form.save') : t(`form.${cfg.saveKey}`)
 
   const formInner = (
-    <div style={{ background: '#fff', borderRadius: 12, width: '100%', ...(inline ? {} : { maxWidth: 700, maxHeight: '90vh' }), display: 'flex', flexDirection: 'column', boxShadow: inline ? '0 1px 4px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.2)', border: inline ? '1px solid #E5E7EB' : 'none' }}>
+    <div style={inline
+      ? { background: 'var(--surface)', borderRadius: 14, width: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }
+      : { display: 'flex', flexDirection: 'column', width: '100%' }}>
 
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{formTitle}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{formTitle}</h2>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}
         <>
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>
-                {t('form.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('form.person_label')} <strong style={{ color: 'var(--text)' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -1088,17 +1110,17 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--text-faint)'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? getModuleColor('education') : (i < tabIdx ? getModuleColor('education', 'medium') : '#E5E7EB'),
-                  color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                  background: tabIdx === i ? getModuleColor('education') : (i < tabIdx ? getModuleColor('education', 'medium') : 'var(--border)'),
+                  color: i <= tabIdx ? 'var(--surface)' : 'var(--text-faint)',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
                 </span>
@@ -1106,35 +1128,35 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
             ))}
           </div>
-          <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+          <div style={{ flexShrink: 0, height: 1, background: 'var(--border)' }} />
         </>
 
         {/* Form body */}
         <div style={{ ...(inline ? {} : { height: 560 }), overflowY: 'auto', padding: '16px 24px 8px' }}>
           {loading
-            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: '#9CA3AF', fontSize: 14 }}>{t('form.loading')}</div>
+            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: 'var(--text-faint)', fontSize: 14 }}>{t('form.loading')}</div>
             : renderTab()}
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {inline
             ? <div />
-            : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
+            : <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)' }}>
                 {t('form.cancel')}
               </button>
           }
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {error && <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
-                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('form.back')}
               </button>
             )}
             {tabIdx < lastTabIdx && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 18px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('form.next')}
               </button>
             )}
@@ -1150,8 +1172,13 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
   if (inline) return formInner
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <Modal
+      onClose={onClose}
+      maxWidth={700}
+      zIndex={50}
+      panelStyle={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}
+    >
       {formInner}
-    </div>
+    </Modal>
   )
 }

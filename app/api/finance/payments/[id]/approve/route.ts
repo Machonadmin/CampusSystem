@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { mapDbError } from '@/lib/finance/http'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * POST /api/finance/payments/[id]/approve
+ *
+ * Подтвердить платёж: status 'pending' → 'approved', проставить approved_by /
+ * approved_at. Только подтверждённые платежи участвуют в балансе.
+ * Право: finance.approve_payment.
+ *
+ * 404 — платёж не найден.
+ * 409 — платёж не в статусе 'pending' (уже подтверждён или отменён): недопустимый
+ *   переход статуса, как в PATCH payments/[id] (правка подтверждённого — тоже 409).
+ */
+
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const session = await requireFinancePrivilege('approve_payment')
+
+    const sb = createServerClient()
+
+    const { data: payment, error: pErr } = await sb
+      .from('finance_payments')
+      .select('id, status')
+      .eq('id', params.id)
+      .maybeSingle()
+    if (pErr) throw pErr
+    if (!payment) return apiError('payment_not_found', 404)
+
+    if (payment.status !== 'pending') {
+      return apiErrorWith('payment_approve_only_pending', 409, { status: payment.status })
+    }
+
+    // Условная запись (атомарно, без TOCTOU): подтверждаем ТОЛЬКО если платёж всё
+    // ещё 'pending'. Если между проверкой выше и записью статус сменился
+    // (параллельный approve/cancel) — 0 строк → 409, а не двойное подтверждение.
+    const { data, error } = await sb
+      .from('finance_payments')
+      .update({
+        status: 'approved',
+        approved_by: session.person_id,
+        approved_at: new Date().toISOString(),
+      })
+      .eq('id', params.id)
+      .eq('status', 'pending')
+      .select('*')
+      .maybeSingle()
+    if (error) {
+      const m = mapDbError(error)
+      return errorResponse(m)
+    }
+    if (!data) {
+      return apiError('payment_not_pending', 409)
+    }
+
+    return NextResponse.json(data)
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string; code?: string }
+    if (e.code) {
+      const m = mapDbError(e)
+      return errorResponse(m)
+    }
+    return errorResponse(e)
+  }
+}

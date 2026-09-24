@@ -1,0 +1,332 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '@/lib/dates'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { toastError } from '@/components/ui/toast'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+
+interface Profile {
+  blood_type: string | null
+  chronic_conditions: string | null
+  allergies: string | null
+  medications: string | null
+  emergency_contact: string | null
+  notes: string | null
+}
+interface Visit {
+  id: string
+  visit_date: string
+  reason: string | null
+  diagnosis: string | null
+  treatment: string | null
+  follow_up_date: string | null
+  status: 'open' | 'closed'
+  notes: string | null
+}
+
+const EMPTY_PROFILE: Profile = {
+  blood_type: '', chronic_conditions: '', allergies: '',
+  medications: '', emergency_contact: '', notes: '',
+}
+
+interface Props {
+  journeyId: string
+  studentName: string
+  canManage: boolean
+}
+
+export default function DoctorStudentClient({ journeyId, studentName, canManage }: Props) {
+  const t = useTranslations('doctor')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
+  const primary = getModuleColor('doctor', 'primary')
+  const light = getModuleColor('doctor', 'light')
+
+  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE)
+  const [visits, setVisits] = useState<Visit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const [profileSaved, setProfileSaved] = useState(false)
+
+  // record-visit form
+  const [busy, setBusy] = useState(false)
+  const [visitError, setVisitError] = useState<string | null>(null)
+  const [vDate, setVDate] = useState(() => todayISO())
+  const [vReason, setVReason] = useState('')
+  const [vDiagnosis, setVDiagnosis] = useState('')
+  const [vTreatment, setVTreatment] = useState('')
+  const [vFollowUp, setVFollowUp] = useState('')
+  const [vNotes, setVNotes] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch(`/api/doctor/journeys/${journeyId}`)
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('visit.load_error')); return
+      }
+      const b = await res.json()
+      if (b.profile) {
+        setProfile({
+          blood_type: b.profile.blood_type ?? '',
+          chronic_conditions: b.profile.chronic_conditions ?? '',
+          allergies: b.profile.allergies ?? '',
+          medications: b.profile.medications ?? '',
+          emergency_contact: b.profile.emergency_contact ?? '',
+          notes: b.profile.notes ?? '',
+        })
+      } else {
+        setProfile(EMPTY_PROFILE)
+      }
+      setVisits(b.visits ?? [])
+    } catch {
+      setError(t('visit.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [journeyId, t])
+
+  useEffect(() => { load() }, [load])
+
+  async function saveProfile() {
+    setSavingProfile(true); setProfileError(null); setProfileSaved(false)
+    try {
+      const res = await fetch(`/api/doctor/journeys/${journeyId}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setProfileError(b.error ?? t('profile.save_error')); return
+      }
+      setProfileSaved(true)
+    } catch {
+      setProfileError(t('profile.save_error'))
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  async function recordVisit() {
+    if (!vDate) { setVisitError(t('visit.required')); return }
+    setBusy(true); setVisitError(null)
+    try {
+      const res = await fetch(`/api/doctor/journeys/${journeyId}/visits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visit_date: vDate,
+          reason: vReason || null,
+          diagnosis: vDiagnosis || null,
+          treatment: vTreatment || null,
+          follow_up_date: vFollowUp || null,
+          notes: vNotes || null,
+        }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setVisitError(b.error ?? t('visit.record_error')); return
+      }
+      setVReason(''); setVDiagnosis(''); setVTreatment(''); setVFollowUp(''); setVNotes('')
+      await load()
+    } catch {
+      setVisitError(t('visit.record_error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function setStatus(v: Visit, status: 'open' | 'closed') {
+    const confirmMsg = status === 'closed' ? t('visit.close_confirm') : t('visit.reopen_confirm')
+    if (!(await confirmDialog({ message: confirmMsg, tone: 'danger' }))) return
+    setBusy(true); setVisitError(null)
+    try {
+      const res = await fetch(`/api/doctor/visits/${v.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        toastError(b.error ?? t('visit.action_error')); return
+      }
+      await load()
+    } catch {
+      toastError(t('visit.action_error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function setField(key: keyof Profile, value: string) {
+    setProfile(p => ({ ...p, [key]: value }))
+    setProfileSaved(false)
+  }
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title'), href: '/dashboard/doctor' },
+        { label: studentName },
+      ]} />
+
+      <ModuleHeader module="doctor" title={studentName} actions={<BackButton fallback="/dashboard/doctor" />} />
+
+      {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
+      {loading ? (
+        <SkeletonRows />
+      ) : (
+        <>
+          {/* Medical profile */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
+            {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
+            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+              <Field label={t('profile.blood_type')}>
+                <input value={profile.blood_type ?? ''} onChange={e => setField('blood_type', e.target.value)} disabled={!canManage} style={inp} />
+              </Field>
+              <Field label={t('profile.emergency_contact')}>
+                <input value={profile.emergency_contact ?? ''} onChange={e => setField('emergency_contact', e.target.value)} disabled={!canManage} style={inp} />
+              </Field>
+              <Field label={t('profile.allergies')} full>
+                <textarea value={profile.allergies ?? ''} onChange={e => setField('allergies', e.target.value)} disabled={!canManage} rows={2} style={area} />
+              </Field>
+              <Field label={t('profile.chronic_conditions')} full>
+                <textarea value={profile.chronic_conditions ?? ''} onChange={e => setField('chronic_conditions', e.target.value)} disabled={!canManage} rows={2} style={area} />
+              </Field>
+              <Field label={t('profile.medications')} full>
+                <textarea value={profile.medications ?? ''} onChange={e => setField('medications', e.target.value)} disabled={!canManage} rows={2} style={area} />
+              </Field>
+              <Field label={t('profile.notes')} full>
+                <textarea value={profile.notes ?? ''} onChange={e => setField('notes', e.target.value)} disabled={!canManage} rows={2} style={area} />
+              </Field>
+            </div>
+            {canManage && (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+                {profileSaved && <span style={{ fontSize: 12, color: primary }}>{t('profile.saved')}</span>}
+              </div>
+            )}
+          </div>
+
+          {/* Record visit */}
+          {canManage && (
+            <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
+              {visitError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{visitError}</div>}
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                <Field label={t('visit.visit_date')}>
+                  <input type="date" value={vDate} onChange={e => setVDate(e.target.value)} style={inp} />
+                </Field>
+                <Field label={t('visit.follow_up_date')}>
+                  <input type="date" value={vFollowUp} onChange={e => setVFollowUp(e.target.value)} style={inp} />
+                </Field>
+                <Field label={t('visit.reason')} full>
+                  <input value={vReason} onChange={e => setVReason(e.target.value)} style={inp} />
+                </Field>
+                <Field label={t('visit.diagnosis')} full>
+                  <textarea value={vDiagnosis} onChange={e => setVDiagnosis(e.target.value)} rows={2} style={area} />
+                </Field>
+                <Field label={t('visit.treatment')} full>
+                  <textarea value={vTreatment} onChange={e => setVTreatment(e.target.value)} rows={2} style={area} />
+                </Field>
+                <Field label={t('visit.notes')} full>
+                  <textarea value={vNotes} onChange={e => setVNotes(e.target.value)} rows={2} style={area} />
+                </Field>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <SubmitButton onClick={recordVisit} loading={busy} style={btn(primary)}>{t('visit.record')}</SubmitButton>
+              </div>
+            </div>
+          )}
+
+          {/* Visit history */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.history_title')}</h2>
+            {visits.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('visit.no_visits')}</div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {[t('visit.visit_date'), t('visit.reason'), t('visit.diagnosis'), t('visit.follow_up_date'), t('visit.status'), ''].map((h, i) => (
+                        <th key={i} style={th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visits.map(v => (
+                      <tr key={v.id}>
+                        <td style={td} data-label={t('visit.visit_date')}>{v.visit_date}</td>
+                        <td style={td} data-label={t('visit.reason')}>{v.reason || '—'}</td>
+                        <td style={td} data-label={t('visit.diagnosis')}>{v.diagnosis || '—'}</td>
+                        <td style={td} data-label={t('visit.follow_up_date')}>{v.follow_up_date || '—'}</td>
+                        <td style={td} data-label={t('visit.status')}>
+                          <span style={{
+                            fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
+                            background: v.status === 'open' ? light : 'var(--surface-2)',
+                            color: v.status === 'open' ? 'var(--success)' : 'var(--text-muted)',
+                          }}>
+                            {t(`status.${v.status}`)}
+                          </span>
+                        </td>
+                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }} data-label="">
+                          {canManage && v.status === 'open' && (
+                            <SubmitButton onClick={() => setStatus(v, 'closed')} loading={busy} style={linkBtn(primary)}>{t('visit.close')}</SubmitButton>
+                          )}
+                          {canManage && v.status === 'closed' && (
+                            <SubmitButton onClick={() => setStatus(v, 'open')} loading={busy} style={linkBtn('var(--text-muted)')}>{t('visit.reopen')}</SubmitButton>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+  return (
+    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
+      {label}
+      {children}
+    </label>
+  )
+}
+
+const th: React.CSSProperties = {
+  textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+  textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 12px',
+  borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
+}
+const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '9px 12px', borderBottom: '1px solid var(--surface-2)' }
+const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', boxSizing: 'border-box' }
+const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
+
+function btn(bg: string): React.CSSProperties {
+  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+}
+function linkBtn(color: string): React.CSSProperties {
+  return { background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '2px 6px' }
+}

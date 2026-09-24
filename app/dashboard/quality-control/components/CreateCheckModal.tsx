@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
+import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { localISODate, localTodayISO } from '@/lib/dates'
 
 interface PersonOption { id: string; full_name: string }
 interface TemplateOption { id: string; name: string }
@@ -62,40 +65,41 @@ function PersonAutocomplete({
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-        {label} <span style={{ color: '#EF4444' }}>*</span>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
+        {label} <span style={{ color: 'var(--danger)' }}>*</span>
       </label>
-      <input
+      <input aria-label={t('create_modal.observer_placeholder')}
         value={query}
         onChange={e => handleInput(e.target.value)}
         onFocus={() => { if (options.length > 0 && !value) setOpen(true) }}
         placeholder={t('create_modal.observer_placeholder')}
         style={{
-          width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
-          borderRadius: 6, outline: 'none', backgroundColor: value ? '#F0FDF4' : '#fff',
-          borderColor: value ? '#86EFAC' : '#D1D5DB',
+          width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
+          borderRadius: 6, outline: 'none', color: 'var(--text)', backgroundColor: value ? 'var(--accent-tint)' : 'var(--surface)',
+          borderColor: value ? 'var(--accent)' : 'var(--border-strong)',
           boxSizing: 'border-box',
         }}
       />
       {value && (
         <button
           type="button"
+          aria-label={t('clear')}
           onClick={() => { onChange(null); setQuery(''); setOptions([]); setOpen(false) }}
-          style={{ position: 'absolute', right: 8, top: 28, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 16, lineHeight: 1 }}
+          style={{ position: 'absolute', insetInlineEnd: 8, top: 28, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16, lineHeight: 1 }}
         >×</button>
       )}
       {open && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-          background: '#fff', border: '1px solid #E5E7EB', borderRadius: 6,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: 2,
+          position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 50,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
+          boxShadow: 'var(--shadow)', marginTop: 2,
         }}>
           {options.map(p => (
             <div
               key={p.id}
               onClick={() => { onChange({ id: p.id, name: p.full_name }); setQuery(p.full_name); setOpen(false) }}
-              style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', color: '#374151' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#F9FAFB' }}
+              style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--surface-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '' }}
             >
               {p.full_name}
@@ -191,7 +195,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
         body: JSON.stringify({
           template_id: templateId || null,
           class_group_id: classGroupId || null,
-          lesson_date: lessonDate ? lessonDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          lesson_date: lessonDate ? localISODate(lessonDate) : localTodayISO(),
           lesson_time: lessonTime,
           observer_person_id: observer.id,
           teacher_person_id: teacher.id,
@@ -211,25 +215,21 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   }
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid #D1D5DB',
+    width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)',
     borderRadius: 6, outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4,
+    display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4,
   }
 
   const groupSelected = !freeInput && !!classGroupId
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{ backgroundColor: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={520} closeOnBackdrop>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{t('create_modal.title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('create_modal.title')}</h2>
+          <button onClick={onClose} aria-label={t('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
         </div>
 
         {/* Form */}
@@ -239,10 +239,10 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Template */}
             <div>
               <label style={labelStyle}>{t('create_modal.template_label')}</label>
-              <select
+              <select aria-label={t('create_modal.template_label')}
                 value={templateId}
                 onChange={e => setTemplateId(e.target.value)}
-                style={{ ...inputStyle, backgroundColor: '#fff' }}
+                style={{ ...inputStyle, backgroundColor: 'var(--surface)' }}
               >
                 <option value="">{t('create_modal.no_template_option')}</option>
                 {templates.map(tpl => (
@@ -255,13 +255,13 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
                 <label style={labelStyle}>
-                  {t('create_modal.lesson_date_label')} <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.lesson_date_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <DateInput value={lessonDate} onChange={setLessonDate} placeholder={t('create_modal.lesson_date_placeholder')} />
               </div>
               <div>
                 <label style={labelStyle}>
-                  {t('create_modal.time_label')} <span style={{ color: '#EF4444' }}>*</span>
+                  {t('create_modal.time_label')} <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="time"
@@ -284,7 +284,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   type="button"
                   onClick={toggleFreeInput}
                   style={{
-                    fontSize: 11, color: '#6B7280', background: 'none', border: 'none',
+                    fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none',
                     cursor: 'pointer', textDecoration: 'underline', padding: 0,
                   }}
                 >
@@ -293,7 +293,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
               </div>
 
               {freeInput ? (
-                <input
+                <input aria-label={t('create_modal.group_name_placeholder')}
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
                   placeholder={t('create_modal.group_name_placeholder')}
@@ -304,7 +304,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
                   value={classGroupId}
                   onChange={e => handleClassGroupChange(e.target.value)}
                   disabled={classGroupsLoading}
-                  style={{ ...inputStyle, backgroundColor: '#fff', opacity: classGroupsLoading ? 0.6 : 1 }}
+                  style={{ ...inputStyle, backgroundColor: 'var(--surface)', opacity: classGroupsLoading ? 0.6 : 1 }}
                 >
                   <option value="">{classGroupsLoading ? t('create_modal.loading_groups') : t('create_modal.select_group_placeholder')}</option>
                   {classGroups.map(g => (
@@ -319,19 +319,19 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Course / Subject */}
             <div>
               <label style={labelStyle}>{t('create_modal.course_subject_label')}</label>
-              <input
+              <input aria-label={t('create_modal.course_subject_label')}
                 value={courseName}
                 onChange={e => setCourseName(e.target.value)}
                 placeholder={t('create_modal.course_name_placeholder')}
                 readOnly={groupSelected}
                 style={{
                   ...inputStyle,
-                  backgroundColor: groupSelected ? '#F9FAFB' : '#fff',
-                  color: groupSelected ? '#6B7280' : '#111827',
+                  backgroundColor: groupSelected ? 'var(--surface-2)' : 'var(--surface)',
+                  color: groupSelected ? 'var(--text-muted)' : 'var(--text)',
                 }}
               />
               {groupSelected && (
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>
                   {t('create_modal.autofilled_hint')}
                 </div>
               )}
@@ -340,7 +340,7 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
             {/* Teacher */}
             <PersonAutocomplete label={t('create_modal.teacher_label')} value={teacher} onChange={setTeacher} />
             {groupSelected && classGroups.find(g => g.id === classGroupId)?.teachers.length ? (
-              <div style={{ marginTop: -10, fontSize: 11, color: '#9CA3AF' }}>
+              <div style={{ marginTop: -10, fontSize: 11, color: 'var(--text-faint)' }}>
                 {t('create_modal.teacher_autofilled_hint')}
               </div>
             ) : null}
@@ -348,34 +348,34 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
           </div>
 
           {error && (
-            <div style={{ marginTop: 14, padding: '8px 12px', backgroundColor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 6, fontSize: 12, color: '#DC2626' }}>
+            <div style={{ marginTop: 14, padding: '8px 12px', backgroundColor: 'var(--danger-tint)', border: '1px solid var(--danger-tint)', borderRadius: 6, fontSize: 12, color: 'var(--danger)' }}>
               {error}
             </div>
           )}
 
           {/* Footer */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '1px solid #F3F4F6' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--surface-2)' }}>
             <button
               type="button"
               onClick={onClose}
-              style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 6, background: '#fff', cursor: 'pointer', color: '#374151' }}
+              style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
             >
               {tCommon('cancel')}
             </button>
-            <button
+            <SubmitButton
               type="submit"
-              disabled={saving}
+              loading={saving}
+              loadingLabel={t('fill.saving', 'Saving...')}
               style={{
                 padding: '8px 20px', fontSize: 13, border: 'none', borderRadius: 6,
-                background: saving ? '#93C5FD' : '#3B82F6', cursor: saving ? 'not-allowed' : 'pointer',
+                background: saving ? '#93C5FD' : 'var(--accent)',
                 color: '#fff', fontWeight: 600,
               }}
             >
-              {saving ? t('fill.saving', 'Saving...') : t('create_modal.submit_button')}
-            </button>
+              {t('create_modal.submit_button')}
+            </SubmitButton>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

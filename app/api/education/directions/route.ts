@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedRefName } from '@/lib/education/localized-ref'
+import { getEducationStructureContainerFilter } from '@/lib/education/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/directions?department_id={uuid}
@@ -15,11 +20,18 @@ import { getSession } from '@/lib/auth/session'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const departmentId = request.nextUrl.searchParams.get('department_id')
     if (!departmentId) {
-      return NextResponse.json({ error: 'department_id обязателен' }, { status: 400 })
+      return apiError('department_id_required', 400)
+    }
+
+    // Видимость по юниту: менеджер со scope='department' не может перечислять
+    // направления чужого заведения — только те, что в его вертикали.
+    const myDepts = await getEducationStructureContainerFilter(session)
+    if (myDepts && !myDepts.includes(departmentId)) {
+      return NextResponse.json({ directions: [] })
     }
 
     const sb = createServerClient()
@@ -30,23 +42,29 @@ export async function GET(request: NextRequest) {
       .eq('id', departmentId)
       .maybeSingle()
     if (deptErr) throw deptErr
-    if (!dept) return NextResponse.json({ error: 'Учреждение не найдено' }, { status: 404 })
+    if (!dept) return apiError('institution_not_found', 404)
 
     if (!dept.is_educational_institution) {
       return NextResponse.json({ directions: [] })
     }
 
-    const { data, error } = await sb
+    // Мультиязычно: name_he/name_en — если миграция применена; иначе откат.
+    const lang = getCookieLocale()
+    const full = await sb
       .from('reference_directions')
-      .select('id, name_ru, code, has_levels, sort_order')
+      .select('id, name_ru, name_he, name_en, code, has_levels, sort_order')
       .eq('department_id', departmentId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
-    if (error) throw error
+    const rows = full.error
+      ? ((await sb.from('reference_directions').select('id, name_ru, code, has_levels, sort_order').eq('department_id', departmentId).eq('is_active', true).order('sort_order', { ascending: true })).data ?? [])
+      : (full.data ?? [])
+    const directions = (rows as Array<{ id: string; name_ru: string; name_he?: string | null; name_en?: string | null; code: string | null; has_levels: boolean; sort_order: number }>)
+      .map(d => ({ ...d, name: localizedRefName(d, lang) }))
 
-    return NextResponse.json({ directions: data ?? [] })
+    return NextResponse.json({ directions })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

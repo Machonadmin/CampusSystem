@@ -1,0 +1,201 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { requiredFieldMsg } from '@/lib/i18n/required'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+import { formatMoney } from '@/lib/finance/money'
+
+interface Plan {
+  id: string
+  name: string
+  code: string | null
+  description: string | null
+  includes_breakfast: boolean
+  includes_lunch: boolean
+  includes_dinner: boolean
+  price: number | null
+  period_label: string | null
+  is_active: boolean
+  active_count: number
+}
+
+
+export default function FoodPlansClient({ canManage }: { canManage: boolean }) {
+  const router = useRouter()
+  const t = useTranslations('food')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+
+  const [items, setItems] = useState<Plan[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [showForm, setShowForm] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [code, setCode] = useState('')
+  const [price, setPrice] = useState('')
+  const [period, setPeriod] = useState('')
+  const [breakfast, setBreakfast] = useState(true)
+  const [lunch, setLunch] = useState(true)
+  const [dinner, setDinner] = useState(true)
+
+  const primary = getModuleColor('food', 'primary')
+  const light = getModuleColor('food', 'light')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/food/plans')
+      if (res.status === 403) { setError(t('list.forbidden')); setItems([]); return }
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setError(b.error ?? t('list.load_error')); setItems([]); return
+      }
+      const b = await res.json()
+      setItems(b.plans ?? [])
+    } catch {
+      setError(t('list.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => { load() }, [load])
+
+  async function submit() {
+    if (!name.trim()) { setFormError(requiredFieldMsg(tCommon, t('form.name'))); return }
+    setBusy(true); setFormError(null)
+    try {
+      const res = await fetch('/api/food/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          code: code.trim() || null,
+          price: price.trim() === '' ? null : Number(price),
+          period_label: period.trim() || null,
+          includes_breakfast: breakfast,
+          includes_lunch: lunch,
+          includes_dinner: dinner,
+        }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setFormError(b.error ?? t('form.save_error')); return
+      }
+      setName(''); setCode(''); setPrice(''); setPeriod(''); setBreakfast(true); setLunch(true); setDinner(true); setShowForm(false)
+      await load()
+    } catch {
+      setFormError(t('form.save_error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('food') },
+      ]} />
+
+      {/* Header */}
+      <ModuleHeader
+        module="food"
+        title={tNav('food')}
+        subtitle={t('list.subtitle')}
+        actions={<>
+          {canManage && (
+            <button onClick={() => setShowForm(v => !v)} style={{
+              fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
+              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+            }}>
+              + {t('list.add_plan')}
+            </button>
+          )}
+        </>}
+      />
+
+      {/* Add form */}
+      {showForm && canManage && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+          <input aria-label={`${t('form.name')} *`} value={name} onChange={e => setName(e.target.value)} placeholder={`${t('form.name')} *`} style={inp(200)} />
+          <input aria-label={t('form.code')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('form.code')} style={inp(110)} />
+          <input aria-label={t('form.price')} value={price} onChange={e => setPrice(e.target.value)} placeholder={t('form.price')} type="number" min="0" step="0.01" style={inp(110)} />
+          <input aria-label={t('form.period')} value={period} onChange={e => setPeriod(e.target.value)} placeholder={t('form.period')} style={inp(160)} />
+          <label style={chk}><input type="checkbox" checked={breakfast} onChange={e => setBreakfast(e.target.checked)} /> {t('meal.breakfast')}</label>
+          <label style={chk}><input type="checkbox" checked={lunch} onChange={e => setLunch(e.target.checked)} /> {t('meal.lunch')}</label>
+          <label style={chk}><input type="checkbox" checked={dinner} onChange={e => setDinner(e.target.checked)} /> {t('meal.dinner')}</label>
+          <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+          {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
+        </div>
+      )}
+
+      {/* Body */}
+      {error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+      ) : loading ? (
+        <SkeletonRows rows={6} />
+      ) : items.length === 0 ? (
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+          {items.map(p => (
+            <div
+              key={p.id}
+              onClick={() => router.push(`/dashboard/food/${p.id}`)}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, cursor: 'pointer' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = primary }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{p.name}</div>
+                {!p.is_active && <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('list.inactive')}</span>}
+              </div>
+              {p.code && <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{p.code}</div>}
+
+              <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                {p.includes_breakfast && <MealPill label={t('meal.breakfast')} bg={light} color={primary} />}
+                {p.includes_lunch && <MealPill label={t('meal.lunch')} bg={light} color={primary} />}
+                {p.includes_dinner && <MealPill label={t('meal.dinner')} bg={light} color={primary} />}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: primary }}>
+                  {t('list.enrolled')}: {p.active_count}
+                </span>
+                {p.price !== null && <span style={{ fontSize: 13, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{formatMoney(p.price)}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MealPill({ label, bg, color }: { label: string; bg: string; color: string }) {
+  return (
+    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: bg, color }}>
+      {label}
+    </span>
+  )
+}
+
+function inp(width: number): React.CSSProperties {
+  return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
+}
+function btn(bg: string): React.CSSProperties {
+  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+}
+const chk: React.CSSProperties = { fontSize: 13, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }

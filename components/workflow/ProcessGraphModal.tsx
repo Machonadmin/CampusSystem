@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -41,9 +42,15 @@ interface Props {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Экранирует текст для подписи узла/ребра Mermaid (кавычки внутри "..."). */
+/**
+ * Экранирует текст для подписи узла/ребра Mermaid (кавычки внутри "...").
+ * < и > тоже: при securityLevel 'loose' подпись вставляется как HTML, и
+ * название этапа вида <img onerror=...> иначе стало бы разметкой.
+ */
 function esc(text: string): string {
-  return text.replace(/"/g, '&quot;').replace(/\n/g, ' ').trim() || '—'
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/\n/g, ' ').trim() || '—'
 }
 
 const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {
@@ -54,8 +61,42 @@ const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {
   cancelled: 'skipped',
 }
 
+/**
+ * Резолвит CSS-переменные темы в конкретные цвета. Mermaid НЕ понимает var(...)
+ * в classDef (его парсер ломается на `(`), поэтому подставляем hex/значения.
+ */
+interface GraphColors {
+  accentStrong: string; surface2: string; borderStrong: string; textFaint: string; border: string; textMuted: string
+  success: string; info: string
+}
+const DEFAULT_GRAPH_COLORS: GraphColors = {
+  accentStrong: '#2563EB', surface2: '#F3F4F6', borderStrong: '#D1D5DB',
+  textFaint: '#9CA3AF', border: '#E5E7EB', textMuted: '#6B7280',
+  success: '#2f9e6b', info: '#2563eb',
+}
+// Заливка «завершён»/«активен» — фиксированный светлый HEX, НЕ токен-tint:
+// tint'ы заданы как rgba(...), а парсер mermaid ломается на `(` и `,` в classDef.
+const COMPLETED_FILL = '#e6f5ee'
+const ACTIVE_FILL = '#e8f0fe'
+function resolveGraphColors(): GraphColors {
+  try {
+    const cs = getComputedStyle(document.documentElement)
+    const v = (name: string, fb: string) => (cs.getPropertyValue(name).trim() || fb)
+    return {
+      accentStrong: v('--accent-strong', DEFAULT_GRAPH_COLORS.accentStrong),
+      surface2: v('--surface-2', DEFAULT_GRAPH_COLORS.surface2),
+      borderStrong: v('--border-strong', DEFAULT_GRAPH_COLORS.borderStrong),
+      textFaint: v('--text-faint', DEFAULT_GRAPH_COLORS.textFaint),
+      border: v('--border', DEFAULT_GRAPH_COLORS.border),
+      textMuted: v('--text-muted', DEFAULT_GRAPH_COLORS.textMuted),
+      success: v('--success', DEFAULT_GRAPH_COLORS.success),
+      info: v('--info', DEFAULT_GRAPH_COLORS.info),
+    }
+  } catch { return DEFAULT_GRAPH_COLORS }
+}
+
 /** Строит Mermaid-разметку графа из данных. */
-function buildMermaid(data: GraphData): string {
+function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS): string {
   const ordered = [...data.nodes].sort((a, b) => a.sort_order - b.sort_order)
   const keyOf = new Map<string, string>()      // stage_template_id → mermaid node key (n0, n1…)
   ordered.forEach((n, i) => keyOf.set(n.id, `n${i}`))
@@ -81,11 +122,11 @@ function buildMermaid(data: GraphData): string {
   }
 
   // Классы статусов
-  lines.push('  classDef completed fill:#D1FAE5,stroke:#065F46,color:#065F46;')
-  lines.push('  classDef active fill:#DBEAFE,stroke:#2563EB,color:#1E40AF,stroke-width:2px;')
-  lines.push('  classDef waiting fill:#F3F4F6,stroke:#D1D5DB,color:#9CA3AF;')
-  lines.push('  classDef skipped fill:#F9FAFB,stroke:#E5E7EB,color:#9CA3AF;')
-  lines.push('  classDef pending fill:#FFFFFF,stroke:#D1D5DB,color:#6B7280;')
+  lines.push(`  classDef completed fill:${COMPLETED_FILL},stroke:${c.success},color:${c.success};`)
+  lines.push(`  classDef active fill:${ACTIVE_FILL},stroke:${c.accentStrong},color:${c.info},stroke-width:2px;`)
+  lines.push(`  classDef waiting fill:${c.surface2},stroke:${c.borderStrong},color:${c.textFaint};`)
+  lines.push(`  classDef skipped fill:${c.surface2},stroke:${c.border},color:${c.textFaint};`)
+  lines.push(`  classDef pending fill:#FFFFFF,stroke:${c.borderStrong},color:${c.textMuted};`)
 
   for (const n of ordered) {
     const key = keyOf.get(n.id)!
@@ -105,6 +146,7 @@ function buildMermaid(data: GraphData): string {
 
 export default function ProcessGraphModal({ processInstanceId, onClose, onStageClick }: Props) {
   const t = useTranslations('education')
+  const tCommon = useTranslations('common')
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -130,7 +172,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
       .catch(e => { if (!cancelled) setError((e as Error).message) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [processInstanceId])
+  }, [processInstanceId, t])
 
   // Регистрация глобального коллбэка клика по узлу (Mermaid securityLevel: 'loose').
   // stage_instance_id передаётся напрямую из click-директивы в Mermaid markup.
@@ -138,7 +180,6 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
   useEffect(() => {
     const w = window as unknown as { processGraphNodeClick?: (instanceId: string) => void }
     w.processGraphNodeClick = (instanceId: string) => {
-      console.log('[ProcessGraphModal] node clicked:', instanceId)
       if (instanceId) onStageClickRef.current(instanceId)
     }
     return () => { delete (window as unknown as { processGraphNodeClick?: unknown }).processGraphNodeClick }
@@ -152,7 +193,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     let cancelled = false
     setRenderError('')
 
-    const markup = buildMermaid(data)
+    const markup = buildMermaid(data, resolveGraphColors())
 
     ;(async () => {
       try {
@@ -170,14 +211,18 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     })()
 
     return () => { cancelled = true }
-  }, [data])
+  }, [data, t])
 
   const showGraph = !loading && !error && !renderError && !!data && data.nodes.length > 0
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    <Modal
+      onClose={onClose}
+      maxWidth={1100}
+      zIndex={70}
+      padding={24}
+      closeOnBackdrop
+      panelStyle={{ width: '80vw', height: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible', boxShadow: 'var(--shadow-lg)' }}
     >
       {/* Анимация пульсации активного узла + кликабельность */}
       <style>{`
@@ -196,28 +241,27 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         .proc-graph-svg svg { max-width: 100%; height: auto; }
       `}</style>
 
-      <div style={{ background: '#fff', borderRadius: 12, width: '80vw', height: '80vh', maxWidth: 1100, display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}>
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 14px', borderBottom: '1px solid var(--surface-2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{t('process.graph.title')}</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{t('process.graph.title')}</span>
             {data && (
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
-                ...(data.process_status === 'active' ? { background: '#D1FAE5', color: '#065F46' }
-                  : data.process_status === 'completed' ? { background: '#E5E7EB', color: '#374151' }
-                  : { background: '#FEE2E2', color: '#991B1B' }),
+                ...(data.process_status === 'active' ? { background: 'var(--success-tint)', color: 'var(--success)' }
+                  : data.process_status === 'completed' ? { background: 'var(--border)', color: 'var(--text)' }
+                  : { background: 'var(--danger-tint)', color: 'var(--danger)' }),
               }}>
                 {t(`process.process_status.${data.process_status}`, data.process_status)}
               </span>
             )}
             {data?.process_final && (
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
                 {t('process.graph.result')}: {t(`process.graph.finish_reason.${data.process_final}`, data.process_final)}
               </span>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>
+          <button type="button" aria-label={tCommon('close')} onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>
             ×
           </button>
         </div>
@@ -225,13 +269,13 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         {/* Body */}
         <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
           {loading && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
+            <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.loading')}</div>
           )}
           {!loading && (error || renderError) && (
-            <div style={{ color: '#EF4444', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
+            <div style={{ color: 'var(--danger)', fontSize: 13, alignSelf: 'center' }}>{error || renderError}</div>
           )}
           {!loading && !error && !renderError && data && data.nodes.length === 0 && (
-            <div style={{ color: '#9CA3AF', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>
+            <div style={{ color: 'var(--text-faint)', fontSize: 13, alignSelf: 'center' }}>{t('process.graph.no_data')}</div>
           )}
           {showGraph && (
             <div
@@ -243,15 +287,14 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+        <div style={{ flexShrink: 0, padding: '12px 20px 16px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
             {t('process.graph.click_hint')}
           </span>
-          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
             {t('process.close')}
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

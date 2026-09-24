@@ -1,13 +1,32 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from './session'
 import { getUserDepartmentIds } from '@/lib/education/permissions'
+import { reduceScopes, applyPersonGrants } from '@/lib/permissions/scope'
+import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
 import type { SessionPayload } from './jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
 
 /**
- * Универсальная проверка привилегий module.code (role_privileges), без
- * привязки к education. Используется там, где модуль (persons, documents,
- * ...) не имеет собственного специализированного helper'а.
+ * Универсальная проверка привилегий module.code. Используется там, где модуль
+ * (persons, staff) не имеет собственного специализированного helper'а.
+ *
+ * ─── Почему здесь читаются ещё и личные права ───────────────────────────────
+ *
+ * Раньше эта функция смотрела ТОЛЬКО в role_privileges. Пока права жили на
+ * должностях, разницы никто не замечал. Когда владелец снял права со всех
+ * должностей и перевёл их на людей (20260917180000), разница стала поломкой:
+ * гейт модуля (lib/permissions/module-gates.ts) личные права учитывает, а этот
+ * файл — нет. Человек увидел бы плитку «מאגר האנשים» в меню и получил 403 на
+ * самом экране — хуже, чем просто не видеть модуль.
+ *
+ * Теперь модель ровно та же, что в lib/permissions/module-factory.ts и в
+ * lib/education/permissions.ts: роль даёт scope (reduceScopes), сверху
+ * накладываются личные grant/deny (applyPersonGrants), где deny побеждает.
+ *
+ * Отсюда же следует, что проверка роли на входе больше не годится: человек
+ * БЕЗ единой должности, но с личной выдачей — это и есть модель, которую
+ * выбрал владелец, и раньше он получал бы отказ на пустом session.roles.
  *
  * Сознательно без in-memory кэша: такой кэш уже есть в
  * lib/education/permissions.ts и он не даёт реальной пользы на Vercel
@@ -26,31 +45,42 @@ async function loadScope(
   module: PrivilegeModule,
   code: string,
 ): Promise<PrivilegeScope | null> {
-  if (session.roles.length === 0) return null
+  // Токен студентки (портал) не несёт штатных прав, даже если этот же person
+  // где-то сотрудник (личная выдача по person_id) — как в education/permissions.
+  if (session.principal === 'student') return null
 
   const sb = createServerClient()
 
-  const { data: roleRows } = await sb
-    .from('roles')
-    .select('id')
-    .in('code', session.roles as RoleCode[])
-  if (!roleRows || roleRows.length === 0) return null
+  // ── Что даёт должность ────────────────────────────────────────────────────
+  // Ролей может не быть вовсе — тогда ролевая часть просто пустая, а решение
+  // примут личные строки ниже.
+  let fromRoles: Partial<Record<string, PrivilegeScope>> = {}
+  if (session.roles.length > 0) {
+    const { data: roleRows } = await sb
+      .from('roles')
+      .select('id')
+      .in('code', session.roles as RoleCode[])
 
-  const { data: privs } = await sb
-    .from('role_privileges')
-    .select('scope')
-    .eq('module', module)
-    .eq('privilege_code', code)
-    .in('role_id', roleRows.map(r => r.id))
-  if (!privs || privs.length === 0) return null
-
-  const rank: Record<PrivilegeScope, number> = { all: 3, department: 2, own: 1 }
-  let best: PrivilegeScope | null = null
-  for (const p of privs) {
-    const s = p.scope as PrivilegeScope
-    if (!best || rank[s] > rank[best]) best = s
+    if (roleRows && roleRows.length > 0) {
+      const { data: privs } = await sb
+        .from('role_privileges')
+        .select('privilege_code, scope')
+        .eq('module', module)
+        .eq('privilege_code', code)
+        .in('role_id', roleRows.map(r => r.id))
+      if (privs && privs.length > 0) {
+        fromRoles = reduceScopes<string>(privs) as Partial<Record<string, PrivilegeScope>>
+      }
+    }
   }
-  return best
+
+  // ── Что решили лично ──────────────────────────────────────────────────────
+  // Просроченные строки отбрасывает сам загрузчик. deny побеждает роль.
+  const grants = (await loadPersonModuleGrants(module, session.person_id))
+    .filter(g => g.code === code)
+
+  const effective = applyPersonGrants<string>(fromRoles, grants)
+  return (effective[code] as PrivilegeScope | undefined) ?? null
 }
 
 export async function hasPrivilege(
@@ -60,6 +90,13 @@ export async function hasPrivilege(
   target?: PrivilegeTarget,
 ): Promise<boolean> {
   if (!session) return false
+  // superadmin (кадровый principal, НЕ студенческий портал) — всегда всё, БЕЗ
+  // зависимости от строк role_privileges. Иначе суперадмин мог потерять права
+  // на persons.edit/create/delete, если роль superadmin пересохранили в
+  // редакторе ролей без этих привилегий (или миграция-сидер не выполнялась) —
+  // и тогда правка/удаление сотрудника отдавали 403. Симметрично с
+  // lib/permissions/module-factory.ts и lib/education/permissions.ts.
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) return true
   const scope = await loadScope(session, module, code)
   if (!scope) return false
   if (scope === 'all') return true
@@ -85,11 +122,11 @@ export async function requirePrivilege(
 ): Promise<SessionPayload> {
   const session = await getSession()
   if (!session) {
-    throw Object.assign(new Error('Не авторизован'), { status: 401 })
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
   const ok = await hasPrivilege(session, module, code, target)
   if (!ok) {
-    throw Object.assign(new Error('Недостаточно прав'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   }
   return session
 }

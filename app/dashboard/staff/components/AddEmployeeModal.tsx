@@ -4,11 +4,21 @@ import { useEffect, useRef, useState } from 'react'
 import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { roleLabel } from '@/lib/roles/role-label'
+import { isDeprecatedRole } from '@/lib/roles/deprecated'
+import { toast } from '@/components/ui/toast'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { Modal } from '@/components/ui/Modal'
+import { SubmitButton } from '@/components/ui/SubmitButton'
+import type { Lang } from '@/lib/i18n/translations'
+import { localISODate } from '@/lib/dates'
 
 interface Department {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   parent_id: string | null
 }
 
@@ -40,8 +50,8 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...wrapStyle }}>
       <span style={{ position: 'absolute', left: 10, fontSize: 15, pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}>{getPhoneFlag(value)}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-        placeholder={placeholder ?? '+7...'}
+      <input aria-label={placeholder ?? '+7...'} value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+        placeholder={placeholder ?? '+7...'} dir="ltr" inputMode="tel"
         style={{ ...inputStyle, paddingLeft: 34 }} />
     </div>
   )
@@ -50,7 +60,21 @@ function FlagPhone({ value, onChange, disabled, wrapStyle, inputStyle, placehold
 type ModalView = 'new' | 'existing'
 interface DeptOption { id: string; label: string }
 
-function flattenTree(depts: Department[]): DeptOption[] {
+// Passed when opening the modal to edit an existing employee (Task B).
+// Only the fields available on the staff-list row are needed here; the rest of
+// the person is fetched via /api/persons/[id] for prefill.
+export interface EditingEmployee {
+  person_id: string
+  position_id?: string | null
+  full_name?: string
+  department_id?: string | null
+  position?: string
+  hire_date?: string | null
+  employment_type?: string | null
+}
+
+function flattenTree(depts: Department[], lang: Lang): DeptOption[] {
+  const nm = (d: Department) => localizedDeptName(d, lang)
   const map = new Map<string, Department & { children: Department[] }>()
   for (const d of depts) map.set(d.id, { ...d, children: [] })
   const roots: (Department & { children: Department[] })[] = []
@@ -60,23 +84,26 @@ function flattenTree(depts: Department[]): DeptOption[] {
   }
   const out: DeptOption[] = []
   function walk(node: Department & { children: Department[] }, depth: number) {
-    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + node.name })
-    const children = (node.children as (Department & { children: Department[] })[]).sort((a, b) => a.name.localeCompare(b.name))
+    out.push({ id: node.id, label: '  '.repeat(depth) + (depth > 0 ? '└ ' : '') + nm(node) })
+    const children = (node.children as (Department & { children: Department[] })[]).sort((a, b) => nm(a).localeCompare(nm(b)))
     children.forEach(c => walk(c, depth + 1))
   }
-  roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => walk(r, 0))
+  roots.sort((a, b) => nm(a).localeCompare(nm(b))).forEach(r => walk(r, 0))
   return out
 }
 
 export default function AddEmployeeModal({
-  onClose, onSaved, defaultDepartmentId,
+  onClose, onSaved, defaultDepartmentId, editing,
 }: {
   onClose: () => void
   onSaved: () => void
   defaultDepartmentId?: string
+  editing?: EditingEmployee | null
 }) {
   const t = useTranslations('staff')
   const tCommon = useTranslations('common')
+  const { lang, t: langT } = useLang()
+  const isEditing = !!editing
 
   const MODAL_TABS = [
     t('add_modal.tab_personal'), t('add_modal.tab_contacts'), t('add_modal.tab_position'),
@@ -134,6 +161,12 @@ export default function AddEmployeeModal({
   const [hireDate, setHireDate] = useState<Date | null>(null)
   const [employmentType, setEmploymentType] = useState('staff')
   const [workSchedule, setWorkSchedule] = useState('')
+  // Роль в системе (перенесено из отдельной модалки «посадить на стул» —
+  // owner: одна форма добавления). Необязательно; назначается после сохранения
+  // через /api/staff/seat (superadmin, право manage_units или глава единицы).
+  const [rolesList, setRolesList] = useState<{ id: string; code: string; name: string }[]>([])
+  const [roleId, setRoleId] = useState('')
+  const [isHead, setIsHead] = useState(false)
 
   // Tab 3 — Документы и образование
   const [passportSeries, setPassportSeries] = useState('')
@@ -149,7 +182,7 @@ export default function AddEmployeeModal({
   const [contractNumber, setContractNumber] = useState('')
   const [contractDate, setContractDate] = useState<Date | null>(null)
   const [salary, setSalary] = useState('')
-  const [currency, setCurrency] = useState('ILS')
+  const [currency, setCurrency] = useState('RUB')
   const [contractFile, setContractFile] = useState<File | null>(null)
 
   // Tab 5 — Дополнительно
@@ -162,23 +195,32 @@ export default function AddEmployeeModal({
   useEffect(() => {
     fetch('/api/settings/departments')
       .then(r => r.ok ? r.json() : [])
-      .then((d: Department[]) => setDepartments(flattenTree(d)))
+      .then((d: Department[]) => setDepartments(flattenTree(d, lang)))
+      .catch(() => {})
     fetch('/api/settings/positions?active_only=true')
       .then(r => r.ok ? r.json() : { positions: [] })
       .then((d: { positions?: PositionOption[] }) => setPositions(d.positions ?? []))
       .catch(() => {})
-  }, [])
+    fetch('/api/settings/roles')
+      .then(r => r.ok ? r.json() : [])
+      .then((d: { id: string; code: string; name: string }[]) => setRolesList(Array.isArray(d) ? d.filter(x => !isDeprecatedRole(x.code)) : []))
+      .catch(() => {})
+    // lang в deps: имена подразделений локализуются при загрузке (flattenTree).
+  }, [lang])
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return }
     clearTimeout(timerRef.current)
     setSearching(true)
+    let alive = true // защита от гонки: медленный ранний ответ не перезапишет свежий
     timerRef.current = setTimeout(async () => {
-      const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(query)}`)
-      if (res.ok) setResults(await res.json())
-      setSearching(false)
+      try {
+        const res = await fetch(`/api/settings/persons/search?q=${encodeURIComponent(query)}`)
+        if (alive && res.ok) setResults(await res.json())
+      } catch { /* сеть упала — оставляем прежние результаты */ }
+      finally { if (alive) setSearching(false) }
     }, 300)
-    return () => clearTimeout(timerRef.current)
+    return () => { alive = false; clearTimeout(timerRef.current) }
   }, [query])
 
   function resetFields() {
@@ -191,7 +233,9 @@ export default function AddEmployeeModal({
   async function loadPersonData(id: string) {
     setLoadingPerson(true)
     try {
-      const res = await fetch(`/api/settings/persons/${id}`)
+      // Правильный существующий роут — /api/persons/[id]. Прежний
+      // /api/settings/persons/[id] не существует (был только .../search).
+      const res = await fetch(`/api/persons/${id}`)
       if (!res.ok) return
       const d = await res.json()
       setLastName(d.last_name ?? '')
@@ -203,8 +247,13 @@ export default function AddEmployeeModal({
       setMaritalStatus(d.marital_status ?? '')
       setCitizenship(d.citizenship ?? d.nationality ?? '')
       if (d.photo_url) setPhotoPreview(d.photo_url)
-      if (Array.isArray(d.phones) && d.phones.length > 0) setPhones(d.phones)
-      else if (d.phone) setPhones([d.phone])
+      // persons.phones каноничны как [{type, number}] — в форме телефоны строки.
+      if (Array.isArray(d.phones) && d.phones.length > 0) {
+        const nums = d.phones
+          .map((p: unknown) => typeof p === 'string' ? p : ((p as { number?: string })?.number ?? ''))
+          .filter((n: string) => n)
+        setPhones(nums.length > 0 ? nums : [''])
+      } else if (d.phone) setPhones([d.phone])
       if (d.email) setEmail(d.email)
       const addr = d.address ?? {}
       setCountry(addr.country ?? ''); setCity(addr.city ?? ''); setStreet(addr.street ?? '')
@@ -213,6 +262,27 @@ export default function AddEmployeeModal({
       setLoadingPerson(false)
     }
   }
+
+  // ── Edit mode (Task B): prefill from the passed employee + full person fetch.
+  // Fields stay editable (view='new'), but SAVE is disabled in edit mode — no
+  // person-update endpoint exists, and re-POSTing would create a duplicate
+  // person. See report.
+  useEffect(() => {
+    if (!editing) return
+    if (editing.department_id) setDepartmentId(editing.department_id)
+    if (editing.hire_date) setHireDate(new Date(editing.hire_date))
+    if (editing.employment_type) setEmploymentType(editing.employment_type)
+    loadPersonData(editing.person_id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing])
+
+  // Match the position by name once the reference list has loaded.
+  useEffect(() => {
+    if (!editing?.position || positions.length === 0) return
+    const m = positions.find(p => p.name_ru === editing.position)
+    if (m) setPositionId(m.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, positions])
 
   async function selectPerson(p: PersonResult) {
     setSelected(p); setView('existing'); setQuery(''); setResults([]); setTabIdx(0); setSearchExpanded(false)
@@ -236,8 +306,50 @@ export default function AddEmployeeModal({
 
   function goBack() { setError(''); setTabIdx(t => Math.max(t - 1, 0)) }
 
+  // Редактирование: обновляем поля персоны через PATCH /api/persons/[id]
+  // (full_name — генерируемая колонка, не трогаем) и должность, если сменилась.
+  // Дубликат НЕ создаётся — это НЕ POST.
+  async function handleSaveEdit() {
+    if (!editing) return
+    setError(''); setSaving(true)
+    try {
+      const validPhones = phones.filter(p => p.trim())
+      const personBody: Record<string, unknown> = {
+        last_name: lastName.trim() || null,
+        first_name: firstName.trim() || null,
+        middle_name: middleName.trim() || null,
+        hebrew_name: hebrewName.trim() || null,
+        gender: gender || null,
+        email: email.trim() || null,
+        phones: validPhones,
+        birth_date: birthDate ? localISODate(birthDate) : null,
+        marital_status: maritalStatus || null,
+        citizenship: citizenship.trim() || null,
+        address: { country, city, street, house, apartment, postal_code: postalCode },
+      }
+      const res = await fetch(`/api/persons/${editing.person_id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(personBody),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string }
+        setError(data.error ?? tCommon('error'))
+        return
+      }
+      // Должность (если запись позиции известна) — отражается в списке.
+      if (editing.position_id && positionId) {
+        await fetch(`/api/staff/positions/${editing.position_id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ position_id: positionId }),
+        })
+      }
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSave() {
     setError('')
+    if (isEditing) { await handleSaveEdit(); return }
     if (!departmentId) { setError(t('add_modal.error_department_required')); setTabIdx(2); return }
     if (!positionId) { setError(t('add_modal.error_position_required')); setTabIdx(2); return }
     if (!hireDate) { setError(t('add_modal.error_hire_date_required')); setTabIdx(2); return }
@@ -247,7 +359,7 @@ export default function AddEmployeeModal({
       const body: Record<string, unknown> = {
         department_id: departmentId,
         position_id: positionId,
-        hire_date: hireDate ? hireDate.toISOString().split('T')[0] : '',
+        hire_date: hireDate ? localISODate(hireDate) : '',
         employment_type: employmentType,
       }
 
@@ -265,7 +377,7 @@ export default function AddEmployeeModal({
         if (validPhones.length > 1) body.phones = validPhones
         if (email) body.email = email.trim()
         if (gender) body.gender = gender
-        if (birthDate) body.birth_date = birthDate.toISOString().split('T')[0]
+        if (birthDate) body.birth_date = localISODate(birthDate)
         if (hebrewName) body.hebrew_name = hebrewName.trim()
         if (maritalStatus) body.marital_status = maritalStatus
         if (citizenship) body.citizenship = citizenship.trim()
@@ -280,7 +392,7 @@ export default function AddEmployeeModal({
         body.passport = {
           series: passportSeries || undefined,
           number: passportNumber || undefined,
-          issue_date: passportIssueDate ? passportIssueDate.toISOString().split('T')[0] : undefined,
+          issue_date: passportIssueDate ? localISODate(passportIssueDate) : undefined,
           issued_by: passportIssuedBy || undefined,
         }
       }
@@ -295,7 +407,7 @@ export default function AddEmployeeModal({
       if (contractNumber || contractDate || salary) {
         body.contract = {
           number: contractNumber || undefined,
-          date: contractDate ? contractDate.toISOString().split('T')[0] : undefined,
+          date: contractDate ? localISODate(contractDate) : undefined,
           salary: salary ? Number(salary) : undefined,
           currency: currency || undefined,
           file_name: contractFile?.name,
@@ -313,6 +425,24 @@ export default function AddEmployeeModal({
         setError(data.error ?? tCommon('error'))
         return
       }
+
+      // Назначение роли (если выбрана) — тем же атомарным эндпоинтом «стула».
+      // Сбой роли НЕ отменяет создание сотрудника — предупреждаем тостом.
+      if (roleId) {
+        const created = await res.json().catch(() => ({})) as { person_id?: string }
+        const personId = created.person_id ?? (view === 'existing' && selected ? selected.id : null)
+        if (personId) {
+          const seatRes = await fetch('/api/staff/seat', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              person_id: personId, department_id: departmentId, position_id: positionId,
+              role_id: roleId, is_head: isHead,
+              hire_date: hireDate ? localISODate(hireDate) : null,
+            }),
+          })
+          if (!seatRes.ok) toast(t('add_modal.role_assign_failed'), 'error')
+        }
+      }
       onSaved()
     } finally {
       setSaving(false)
@@ -321,41 +451,41 @@ export default function AddEmployeeModal({
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '7px 10px', fontSize: 13,
-    border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', boxSizing: 'border-box',
   }
   const lbl: React.CSSProperties = {
-    fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 4, display: 'block',
+    fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block',
   }
   const cardStyle: React.CSSProperties = {
-    background: '#F9FAFB', borderRadius: 10, padding: '14px 16px',
+    background: 'var(--surface-2)', borderRadius: 10, padding: '14px 16px',
   }
 
   function renderTab() {
     const ro = view === 'existing'
-    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: '#F9FAFB' } : {}
+    const dis: React.CSSProperties = ro ? { opacity: 0.6, cursor: 'not-allowed', background: 'var(--surface-2)' } : {}
 
     switch (tabIdx) {
       case 0:
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--accent-strong)', marginBottom: 4 }}>
                 {loadingPerson ? t('add_modal.readonly_hint_loading') : t('add_modal.readonly_hint')}
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed #D1D5DB', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', border: '2px dashed var(--border-strong)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                 {photoPreview
                   ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <span style={{ fontSize: 28, opacity: 0.25 }}>◯</span>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', cursor: 'pointer', padding: '6px 14px', border: '1px solid #3B82F6', borderRadius: 8, display: 'inline-block' }}>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', cursor: 'pointer', padding: '6px 14px', border: '1px solid var(--accent)', borderRadius: 8, display: 'inline-block' }}>
                   {t('add_modal.upload_photo')}
                   <input type="file" accept="image/*" style={{ display: 'none' }}
                     onChange={e => { const f = e.target.files?.[0]; if (f) setPhotoPreview(URL.createObjectURL(f)) }} />
                 </label>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.photo_hint')}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('add_modal.photo_hint')}</div>
               </div>
               <div style={{ flex: 1 }} />
               <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -367,24 +497,25 @@ export default function AddEmployeeModal({
                 ) : (
                   <div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                      <input aria-label={t('add_modal.search_placeholder')} autoFocus value={query} onChange={e => setQuery(e.target.value)}
                         placeholder={t('add_modal.search_placeholder')} style={{ ...inp, width: 220 }} />
                       <button onClick={() => { setSearchExpanded(false); setQuery(''); setResults([]) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
+                        aria-label={tCommon('close')}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>
                         ×
                       </button>
                     </div>
                     {(searching || results.length > 0) && (
-                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 100, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 260, maxHeight: 220, overflowY: 'auto' }}>
-                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: '#9CA3AF' }}>{t('add_modal.searching')}</div>}
+                      <div style={{ position: 'absolute', top: 'calc(100% + 4px)', insetInlineEnd: 0, zIndex: 100, background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)', boxShadow: 'var(--shadow)', width: 'min(260px, 100%)', maxHeight: 220, overflowY: 'auto' }}>
+                        {searching && <div style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>{t('add_modal.searching')}</div>}
                         {results.map(p => (
                           <button key={p.id} onClick={() => selectPerson(p)}
-                            style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: 13 }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+                            style={{ width: '100%', textAlign: 'start', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--surface-2)', cursor: 'pointer', fontSize: 13 }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
                           >
-                            <div style={{ fontWeight: 500, color: '#1F2937' }}>{p.full_name}</div>
-                            {p.email && <div style={{ fontSize: 12, color: '#6B7280' }}>{p.email}</div>}
+                            <div style={{ fontWeight: 500, color: 'var(--text)' }}>{p.full_name}</div>
+                            {p.email && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.email}</div>}
                           </button>
                         ))}
                       </div>
@@ -393,27 +524,27 @@ export default function AddEmployeeModal({
                 )}
               </div>
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="resp-grid-3" style={{ gridColumn: '1 / -1', gap: 12 }}>
               <div>
                 <label style={lbl}>{t('add_modal.last_name')} *</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.last_name')} value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('add_modal.last_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('add_modal.first_name')} *</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('add_modal.first_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.first_name')} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('add_modal.first_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
               <div>
                 <label style={lbl}>{t('add_modal.middle_name')}</label>
-                <input value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('add_modal.middle_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+                <input aria-label={t('add_modal.middle_name')} value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder={t('add_modal.middle_name_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.hebrew_name')}</label>
-              <input value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder="Avraham" dir="ltr" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.hebrew_name')} value={hebrewName} onChange={e => setHebrewName(e.target.value)} placeholder={t('add_modal.hebrew_name_ph')} dir="rtl" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.gender')}</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('add_modal.gender')} value={gender} onChange={e => setGender(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="male">{t('add_modal.gender_male')}</option>
                 <option value="female">{t('add_modal.gender_female')}</option>
@@ -425,7 +556,7 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.marital_status')}</label>
-              <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
+              <select aria-label={t('add_modal.marital_status')} value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} disabled={ro} style={{ ...inp, ...dis }}>
                 <option value="">—</option>
                 <option value="single">{t('add_modal.marital_single')}</option>
                 <option value="married">{t('add_modal.marital_married')}</option>
@@ -449,7 +580,7 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             {ro && (
-              <div style={{ gridColumn: '1 / -1', background: '#EEF2FF', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: '#4338CA', marginBottom: 4 }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--accent-tint)', padding: '8px 12px', borderRadius: 6, fontSize: 12, color: 'var(--accent-strong)', marginBottom: 4 }}>
                 {t('add_modal.readonly_hint')}
               </div>
             )}
@@ -467,14 +598,15 @@ export default function AddEmployeeModal({
                     disabled={ro} wrapStyle={{ flex: 1 }} inputStyle={{ ...inp, ...dis }} />
                   {!ro && phones.length > 1 && (
                     <button onClick={() => setPhones(prev => prev.filter((_, pi) => pi !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
+                      aria-label={tCommon('delete')}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
                   )}
                 </div>
               ))}
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.email')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.email')} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.country')}</label>
@@ -486,19 +618,19 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.street')}</label>
-              <input value={street} onChange={e => setStreet(e.target.value)} placeholder={t('add_modal.street_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.street')} value={street} onChange={e => setStreet(e.target.value)} placeholder={t('add_modal.street_placeholder')} disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.house')}</label>
-              <input value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.house')} value={house} onChange={e => setHouse(e.target.value)} placeholder="123" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.apartment')}</label>
-              <input value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.apartment')} value={apartment} onChange={e => setApartment(e.target.value)} placeholder="45" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.postal_code')}</label>
-              <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
+              <input aria-label={t('add_modal.postal_code')} value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="6120001" disabled={ro} style={{ ...inp, ...dis }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -514,10 +646,11 @@ export default function AddEmployeeModal({
                     disabled={ro} style={{ ...inp, flex: '0 0 130px', width: 'auto', ...dis }}>
                     {CONTACT_TYPES.map(ct => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
                   </select>
-                  <input value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
+                  <input aria-label={t('add_modal.contact_value_placeholder')} value={c.value} onChange={e => setExtraContacts(prev => prev.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))}
                     placeholder={t('add_modal.contact_value_placeholder')} disabled={ro} style={{ ...inp, flex: 1, ...dis }} />
                   {!ro && <button onClick={() => setExtraContacts(prev => prev.filter((_, xi) => xi !== i))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
+                    aria-label={tCommon('delete')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 18, padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>}
                 </div>
               ))}
             </div>
@@ -529,14 +662,14 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.department')} *</label>
-              <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.department')} value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={inp}>
                 <option value="">{t('add_modal.select_department')}</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.position')} *</label>
-              <select value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
+              <select aria-label={t('add_modal.position')} value={positionId ?? ''} onChange={e => setPositionId(e.target.value || null)} style={inp}>
                 <option value="">{t('add_modal.select_position')}</option>
                 {positions.filter(p => p.category === 'academic').length > 0 && (
                   <optgroup label={t('add_modal.category_academic')}>
@@ -565,9 +698,22 @@ export default function AddEmployeeModal({
               <label style={lbl}>{t('add_modal.hire_date')} *</label>
               <DateInput value={hireDate} onChange={setHireDate} />
             </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>{t('seat_role')}</label>
+              <select aria-label={t('seat_role')} value={roleId} onChange={e => setRoleId(e.target.value)} style={inp}>
+                <option value="">{t('add_modal.role_none')}</option>
+                {rolesList.map(r => <option key={r.id} value={r.id}>{roleLabel(langT.roles, r.code, r.name)}</option>)}
+              </select>
+            </div>
+            {roleId && (
+              <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={isHead} onChange={e => setIsHead(e.target.checked)} />
+                {t('seat_is_head')}
+              </label>
+            )}
             <div>
               <label style={lbl}>{t('add_modal.employment_type')}</label>
-              <select value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.employment_type')} value={employmentType} onChange={e => setEmploymentType(e.target.value)} style={inp}>
                 <option value="staff">{t('add_modal.employment_staff')}</option>
                 <option value="part_time">{t('add_modal.employment_part_time')}</option>
                 <option value="hourly">{t('add_modal.employment_hourly')}</option>
@@ -576,7 +722,7 @@ export default function AddEmployeeModal({
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.work_schedule')}</label>
-              <select value={workSchedule} onChange={e => setWorkSchedule(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.work_schedule')} value={workSchedule} onChange={e => setWorkSchedule(e.target.value)} style={inp}>
                 <option value="">—</option>
                 <option value="5_2">{t('add_modal.schedule_5_2')}</option>
                 <option value="shift">{t('add_modal.schedule_shift')}</option>
@@ -591,15 +737,15 @@ export default function AddEmployeeModal({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.passport_section')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{t('add_modal.passport_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_series')}</label>
-                  <input value={passportSeries} onChange={e => setPassportSeries(e.target.value)} placeholder="1234" style={inp} />
+                  <input aria-label={t('add_modal.passport_series')} value={passportSeries} onChange={e => setPassportSeries(e.target.value)} placeholder="1234" style={inp} />
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_number')}</label>
-                  <input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="567890" style={inp} />
+                  <input aria-label={t('add_modal.passport_number')} value={passportNumber} onChange={e => setPassportNumber(e.target.value)} placeholder="567890" style={inp} />
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_issue_date')}</label>
@@ -607,16 +753,16 @@ export default function AddEmployeeModal({
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.passport_issued_by')}</label>
-                  <input value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder={t('add_modal.passport_issued_by_placeholder')} style={inp} />
+                  <input aria-label={t('add_modal.passport_issued_by')} value={passportIssuedBy} onChange={e => setPassportIssuedBy(e.target.value)} placeholder={t('add_modal.passport_issued_by_placeholder')} style={inp} />
                 </div>
               </div>
             </div>
             <div style={cardStyle}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>{t('add_modal.education_section')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{t('add_modal.education_section')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                 <div>
                   <label style={lbl}>{t('add_modal.education_level')}</label>
-                  <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} style={inp}>
+                  <select aria-label={t('add_modal.education_level')} value={educationLevel} onChange={e => setEducationLevel(e.target.value)} style={inp}>
                     <option value="">—</option>
                     <option value="higher">{t('add_modal.education_higher')}</option>
                     <option value="incomplete_higher">{t('add_modal.education_incomplete_higher')}</option>
@@ -626,15 +772,15 @@ export default function AddEmployeeModal({
                 </div>
                 <div>
                   <label style={lbl}>{t('add_modal.graduation_year')}</label>
-                  <input type="number" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} placeholder="2020" style={inp} />
+                  <input aria-label={t('add_modal.graduation_year')} type="number" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} placeholder="2020" style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>{t('add_modal.specialty')}</label>
-                  <input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder={t('add_modal.specialty_placeholder')} style={inp} />
+                  <input aria-label={t('add_modal.specialty')} value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder={t('add_modal.specialty_placeholder')} style={inp} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={lbl}>{t('add_modal.certificates')}</label>
-                  <textarea value={certificates} onChange={e => setCertificates(e.target.value)} rows={3}
+                  <textarea aria-label={t('add_modal.certificates')} value={certificates} onChange={e => setCertificates(e.target.value)} rows={3}
                     placeholder={t('add_modal.certificates_placeholder')} style={{ ...inp, resize: 'vertical' }} />
                 </div>
               </div>
@@ -647,7 +793,7 @@ export default function AddEmployeeModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.contract_number')}</label>
-              <input value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder={t('add_modal.contract_number_placeholder')} style={inp} />
+              <input aria-label={t('add_modal.contract_number')} value={contractNumber} onChange={e => setContractNumber(e.target.value)} placeholder={t('add_modal.contract_number_placeholder')} style={inp} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.contract_date')}</label>
@@ -655,30 +801,30 @@ export default function AddEmployeeModal({
             </div>
             <div>
               <label style={lbl}>{t('add_modal.salary')}</label>
-              <input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="10000" style={inp} />
+              <input aria-label={t('add_modal.salary')} type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="10000" style={inp} />
             </div>
             <div>
               <label style={lbl}>{t('add_modal.currency')}</label>
-              <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+              <select aria-label={t('add_modal.currency')} value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+                <option value="RUB">RUB (₽)</option>
                 <option value="ILS">ILS (₪)</option>
                 <option value="USD">USD ($)</option>
-                <option value="RUB">RUB (₽)</option>
                 <option value="EUR">EUR (€)</option>
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>{t('add_modal.attach_contract_file')}</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed #D1D5DB', borderRadius: 8, cursor: 'pointer', background: '#F9FAFB' }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#3B82F6', padding: '4px 12px', border: '1px solid #3B82F6', borderRadius: 6, background: '#fff' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: '1px dashed var(--border-strong)', borderRadius: 8, cursor: 'pointer', background: 'var(--surface-2)' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent)', padding: '4px 12px', border: '1px solid var(--accent)', borderRadius: 6, background: 'var(--surface)' }}>
                   {t('add_modal.choose_file')}
                 </span>
-                <span style={{ fontSize: 12, color: contractFile ? '#1F2937' : '#9CA3AF' }}>
+                <span style={{ fontSize: 12, color: contractFile ? 'var(--text)' : 'var(--text-faint)' }}>
                   {contractFile ? contractFile.name : t('add_modal.no_file_chosen')}
                 </span>
                 <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
                   onChange={e => setContractFile(e.target.files?.[0] ?? null)} />
               </label>
-              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{t('add_modal.file_optional_hint')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('add_modal.file_optional_hint')}</div>
             </div>
           </div>
         )
@@ -687,7 +833,7 @@ export default function AddEmployeeModal({
         return (
           <div>
             <label style={lbl}>{t('add_modal.comment')}</label>
-            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={6}
+            <textarea aria-label={t('add_modal.comment')} value={comment} onChange={e => setComment(e.target.value)} rows={6}
               style={{ ...inp, resize: 'vertical' }} placeholder={t('add_modal.comment_placeholder')} />
           </div>
         )
@@ -697,21 +843,20 @@ export default function AddEmployeeModal({
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+    <Modal onClose={onClose} maxWidth={700} panelStyle={{ display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
 
         {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid #F3F4F6' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1F2937', margin: 0 }}>{t('add_modal.title')}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 14px', borderBottom: '1px solid var(--surface-2)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{isEditing ? t('add_modal.edit_title') : t('add_modal.title')}</h2>
+          <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
         {/* Person indicator + tab steps */}
         <>
           {view === 'existing' && selected && (
             <div style={{ flexShrink: 0, padding: '10px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>
-                {t('add_modal.person_label')} <strong style={{ color: '#1F2937' }}>{selected.full_name}</strong>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('add_modal.person_label')} <strong style={{ color: 'var(--text)' }}>{selected.full_name}</strong>
               </span>
               <button onClick={() => { resetFields(); setView('new'); setSelected(null); setTabIdx(0); setSearchExpanded(true) }}
                 style={{ fontSize: 11, color: '#4BAED4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -725,17 +870,17 @@ export default function AddEmployeeModal({
                 style={{
                   flex: '1 1 0', padding: '8px 4px 10px', fontSize: 11,
                   fontWeight: tabIdx === i ? 600 : 400,
-                  color: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#9CA3AF'),
+                  color: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--text-faint)'),
                   background: 'none', border: 'none',
-                  borderBottom: tabIdx === i ? '2px solid #3B82F6' : '2px solid transparent',
+                  borderBottom: tabIdx === i ? '2px solid var(--accent)' : '2px solid transparent',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   transition: 'color 0.15s',
                 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: '50%', fontSize: 10, fontWeight: 700,
-                  background: tabIdx === i ? '#3B82F6' : (i < tabIdx ? '#4BAED4' : '#E5E7EB'),
-                  color: i <= tabIdx ? '#fff' : '#9CA3AF',
+                  background: tabIdx === i ? 'var(--accent)' : (i < tabIdx ? '#4BAED4' : 'var(--border)'),
+                  color: i <= tabIdx ? 'var(--surface)' : 'var(--text-faint)',
                 }}>
                   {i < tabIdx ? '✓' : i + 1}
                 </span>
@@ -743,7 +888,7 @@ export default function AddEmployeeModal({
               </button>
             ))}
           </div>
-          <div style={{ flexShrink: 0, height: 1, background: '#E5E7EB' }} />
+          <div style={{ flexShrink: 0, height: 1, background: 'var(--border)' }} />
         </>
 
         {/* Form body */}
@@ -752,33 +897,33 @@ export default function AddEmployeeModal({
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#6B7280' }}>
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px', borderTop: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)' }}>
             {tCommon('cancel')}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {error && <span style={{ fontSize: 12, color: '#EF4444', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
+            {error && <span style={{ fontSize: 12, color: 'var(--danger)', maxWidth: 220, textAlign: 'right' }}>{error}</span>}
             {tabIdx > 0 && (
               <button onClick={goBack}
-                style={{ padding: '8px 16px', border: '1px solid #D1D5DB', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                style={{ padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
                 {t('add_modal.back_button')}
               </button>
             )}
             {tabIdx < 5 && (
               <button onClick={goNext}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: 13 }}>
                 {t('add_modal.next_button')}
               </button>
             )}
-            {tabIdx === 5 && (
-              <button onClick={handleSave} disabled={saving}
-                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: '#3B82F6', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
-                {saving ? t('add_modal.saving') : t('add_modal.save_button')}
-              </button>
+            {/* В режиме редактирования «Сохранить» доступна на любой вкладке. */}
+            {(tabIdx === 5 || isEditing) && (
+              <SubmitButton onClick={handleSave} loading={saving} loadingLabel={t('add_modal.saving')}
+                style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--accent)', color: '#fff', fontSize: 13, opacity: saving ? 0.5 : 1 }}>
+                {t('add_modal.save_button')}
+              </SubmitButton>
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

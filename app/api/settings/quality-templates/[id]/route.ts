@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-}
 
 async function requireSuperadmin() {
   const session = await getSession()
   if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error('FORBIDDEN'), { status: 403 })
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireAuth()
     const sb = createServerClient()
@@ -25,22 +24,23 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       .single()
 
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
+    if (!data) return apiError('not_found', 404)
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
     const body = await request.json() as { name?: string; description?: string; structure?: unknown }
 
-    if (!body.name?.trim()) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
-    if (!body.structure)    return NextResponse.json({ error: 'Структура обязательна' }, { status: 400 })
+    if (!body.name?.trim()) return apiError('title_required', 400)
+    if (!body.structure)    return apiError('structure_required', 400)
 
     const { data, error } = await sb
       .from('quality_check_templates')
@@ -58,11 +58,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -73,10 +74,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       .eq('template_id', params.id)
 
     if ((count ?? 0) > 0) {
-      return NextResponse.json(
-        { error: `Шаблон используется в ${count} проверках и не может быть удалён` },
-        { status: 409 }
-      )
+      return apiErrorWith('quality_template_in_use', 409, { count })
     }
 
     const { error } = await sb
@@ -88,6 +86,6 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

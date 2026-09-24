@@ -1,20 +1,28 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
-import PageActionButton from '@/components/ui/PageActionButton'
-import EducationJourneyForm from '@/components/education/EducationJourneyForm'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { Caret } from '@/components/ui/Caret'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { yearLevelLabel } from '@/lib/education/year-level'
+import { toast } from '@/components/ui/toast'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
-interface Department { id: string; name: string }
+interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
 interface StudyGroup { id: string; name: string; department_id: string }
 
-type StudentStatus = 'active' | 'on_leave' | 'graduated' | 'expelled'
+/** Статусы учебного цикла (education_status в education_journeys). */
+type StudentStatus = 'student' | 'on_leave' | 'graduated' | 'expelled'
 
 interface Student {
   id: string
   person_id: string
-  status: StudentStatus
+  education_status: StudentStatus
   primary_department_id: string
   specialty_id: string | null
   main_group_id: string | null
@@ -33,20 +41,24 @@ interface Student {
   } | null
   main_group: { id: string; name: string; year_level: number | null } | null
   specialty: { id: string; name: string; code: string | null } | null
-  department: { id: string; name: string } | null
+  primary_department: { id: string; name: string } | null
 }
 
+// Цвет = только статус (правило цвета, спринт 0.3): токены success/warn/info/muted.
 const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
-  active:    { background: '#ECFDF5', color: '#065F46' },
-  on_leave:  { background: '#FFFBEB', color: '#92400E' },
-  graduated: { background: '#EFF6FF', color: '#1E40AF' },
-  expelled:  { background: '#F3F4F6', color: '#6B7280' },
+  student:   { background: 'var(--success-tint)', color: 'var(--success)' },
+  on_leave:  { background: 'var(--warn-tint)', color: 'var(--warn)' },
+  graduated: { background: 'var(--info-tint)', color: 'var(--info)' },
+  expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
 const accent = getModuleColor('education')
 
 export default function StudentsTab() {
   const t = useTranslations('education.study')
+  const tEdu = useTranslations('education')
+  const { lang } = useLang()
+  const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
   const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([])
@@ -57,13 +69,36 @@ export default function StudentsTab() {
   const [filterDept, setFilterDept] = useState('')
   const [filterGroup, setFilterGroup] = useState('')
   const [filterStatus, setFilterStatus] = useState('')  // '' = active+on_leave
+  // Каталог по маршруту и году (owner: «הפילטר שאני רוצה זה קטלוג על פי מסלולים»).
+  const [filterTrack, setFilterTrack] = useState('')
+  const [filterYear, setFilterYear] = useState('')
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
+  // Фильтры (подразделение/группа/статус) свёрнуты за одной кнопкой «Фильтры»,
+  // чтобы тулбар не пестрил — на виду поиск, фильтры и экспорт. Добавление
+  // студентки убрано из «Учёбы» (решение владельца): ученицы приходят из набора.
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  // ── Массовое назначение (bulk): класс / маршрут / кодеш ──
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkType, setBulkType] = useState<'class' | 'track' | 'kodesh'>('class')
+  const [bulkTarget, setBulkTarget] = useState('')
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null)
+  const [classGroups, setClassGroups] = useState<{ id: string; name: string }[]>([])
+  const [tracks, setTracks] = useState<{ id: string; name: string }[]>([])
+  const [kodeshGroups, setKodeshGroups] = useState<{ id: string; name: string }[]>([])
+  // «Видит всех, но управляет только своим юнитом» (глава кафедры кодеша:
+  // view_students='all', manage_students='department'). Тогда прячем действия,
+  // которые не сработают на студентках вне его юнита (класс/маршрут/переход
+  // года/закрытие), оставляя только назначение в кодеш.
+  const [manageRestricted, setManageRestricted] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const STATUS_LABEL: Record<StudentStatus, string> = {
-    active:    t('students.status_active'),
+    student:   t('students.status_student'),
     on_leave:  t('students.status_on_leave'),
     graduated: t('students.status_graduated'),
     expelled:  t('students.status_expelled'),
@@ -77,7 +112,14 @@ export default function StudentsTab() {
       if (q) params.set('search', q)
       if (filterDept) params.set('department_id', filterDept)
       if (filterGroup) params.set('main_group_id', filterGroup)
-      if (filterStatus) params.set('status', filterStatus)
+      if (filterTrack) params.set('track_id', filterTrack)
+      if (filterYear) params.set('year_level', filterYear)
+      // Фильтр статуса → набор education_status учебного цикла.
+      const statusSet =
+        filterStatus === 'active' ? 'student'
+        : filterStatus === 'all'  ? 'student,on_leave,graduated,expelled'
+        : 'student,on_leave'  // по умолчанию: учатся + в отпуске
+      params.set('status', statusSet)
 
       const resp = await fetch(`/api/education/students?${params}`)
       if (!resp.ok) throw new Error(t('students.load_error').replace('{status}', String(resp.status)))
@@ -88,7 +130,7 @@ export default function StudentsTab() {
     } finally {
       setLoading(false)
     }
-  }, [filterDept, filterGroup, filterStatus, t])
+  }, [filterDept, filterGroup, filterStatus, filterTrack, filterYear, t])
 
   // Загрузка справочников один раз
   useEffect(() => {
@@ -96,7 +138,10 @@ export default function StudentsTab() {
       fetch('/api/settings/departments').then(r => r.ok ? r.json() : []),
       fetch('/api/education/study-groups?active_only=false').then(r => r.ok ? r.json() : { study_groups: [] }),
     ]).then(([dJson, gJson]) => {
-      setDepartments(Array.isArray(dJson) ? dJson : (dJson.departments ?? []))
+      // Только учебные заведения (owner: «אוכל» и «אבטחה» в фильтре студенток —
+      // мусор). Поле false/undefined → не учебное → в фильтр не попадает.
+      const allDepts: Department[] = Array.isArray(dJson) ? dJson : (dJson.departments ?? [])
+      setDepartments(allDepts.filter(d => d.is_educational_institution === true))
       setStudyGroups((gJson.study_groups ?? []).map((g: { id: string; name: string; department_id: string }) => ({
         id: g.id, name: g.name, department_id: g.department_id,
       })))
@@ -113,156 +158,435 @@ export default function StudentsTab() {
   // Сбрасываем фильтр группы при смене подразделения
   useEffect(() => { setFilterGroup('') }, [filterDept])
 
+  // Справочники целей массового назначения (класс/маршрут/кодеш). Kodesh может
+  // вернуть 403 если пользователь не глава кодеша — тогда просто нет целей.
+  useEffect(() => {
+    fetch('/api/education/class-groups')
+      .then(r => r.ok ? r.json() : { class_groups: [] })
+      .then(j => setClassGroups(((j.class_groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+    fetch('/api/education/study-tracks')
+      .then(r => r.ok ? r.json() : { tracks: [] })
+      .then(j => setTracks(((j.tracks ?? []) as Array<{ id: string; name_he: string | null; name_ru: string | null; name_en: string | null; code: string }>)
+        .map(tk => ({ id: tk.id, name: tk.name_he || tk.name_ru || tk.name_en || tk.code }))))
+      .catch(() => {})
+    fetch('/api/education/kodesh/assignment')
+      .then(r => r.ok ? r.json() : { groups: [] })
+      .then(j => setKodeshGroups(((j.groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .catch(() => {})
+  }, [])
+
+  // Ограничен ли пользователь «только кодеш» в массовых действиях (см. выше).
+  useEffect(() => {
+    fetch('/api/education/launcher-access')
+      .then(r => (r.ok ? r.json() : {}))
+      .then((b: { students_view_all?: boolean; students_manage_all?: boolean }) => {
+        const restricted = b?.students_view_all === true && b?.students_manage_all !== true
+        setManageRestricted(restricted)
+        if (restricted) setBulkType('kodesh')
+      })
+      .catch(() => {})
+  }, [])
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  }
+  function toggleSelectAll() {
+    setSelected(prev => prev.size === students.length ? new Set() : new Set(students.map(s => s.id)))
+  }
+  function exitSelect() { setSelectMode(false); setSelected(new Set()) }
+
+  // Экспорт текущего (уже отфильтрованного сервером) списка учениц в CSV.
+  // BOM в начале — чтобы Excel правильно открыл иврит/кириллицу.
+  function exportCsv() {
+    const esc = (v: unknown): string => {
+      const s = v === null || v === undefined ? '' : String(v)
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const headers = [
+      t('students.export_col_name'), t('students.export_col_hebrew_name'),
+      t('students.export_col_phone'), t('students.export_col_email'),
+      t('students.export_col_department'), t('students.export_col_group'),
+      t('students.export_col_specialty'), t('students.export_col_year'),
+      t('students.export_col_status'),
+    ]
+    const rows = students.map(s => {
+      const p = s.person
+      const phone = (p?.phones ?? []).map(ph => ph.number).filter(Boolean)[0] ?? ''
+      const specialty = s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : ''
+      return [
+        p?.full_name ?? '', p?.hebrew_name ?? '', phone, p?.email ?? '',
+        s.primary_department?.name ?? '', s.main_group?.name ?? '', specialty,
+        s.year_level ?? '', STATUS_LABEL[s.education_status],
+      ].map(esc).join(',')
+    })
+    const csv = '﻿' + [headers.map(esc).join(','), ...rows].join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `students-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const bulkTargets = bulkType === 'class' ? classGroups : bulkType === 'track' ? tracks : kodeshGroups
+
+  async function applyBulk() {
+    if (!bulkTarget || selected.size === 0) return
+    setBulkBusy(true); setBulkMsg(null)
+    const ids = [...selected]
+    let ok = 0, fail = 0
+    if (bulkType === 'class') {
+      const res = await fetch(`/api/education/class-groups/${bulkTarget}/enrollments`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_ids: ids }),
+      })
+      if (res.ok) ok = ids.length; else fail = ids.length
+    } else {
+      for (const jid of ids) {
+        const url = bulkType === 'track' ? `/api/education/journeys/${jid}/track` : '/api/education/kodesh/assignment'
+        const body = bulkType === 'track' ? { track_id: bulkTarget } : { journey_id: jid, group_id: bulkTarget }
+        const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        if (res.ok) ok++; else fail++
+      }
+    }
+    setBulkBusy(false)
+    setBulkMsg(t('students.bulk.result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    loadStudents(search)
+  }
+
+  // Ручное повышение года (א→ב→ג): year_level += 1 у выбранных. По умолчанию —
+  // ручное действие (решение владельца).
+  async function advanceYear() {
+    if (selected.size === 0) return
+    const ok0 = await confirmDialog({
+      message: t('students.bulk.advance_confirm').replace('{n}', String(selected.size)),
+      confirmLabel: t('students.bulk.advance_year'),
+      cancelLabel: t('common.cancel'),
+    })
+    if (!ok0) return
+    setBulkBusy(true); setBulkMsg(null)
+    let ok = 0, fail = 0
+    for (const id of selected) {
+      const st = students.find(s => s.id === id)
+      const cur = st?.year_level ?? 0
+      const res = await fetch(`/api/education/journeys/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year_level: cur + 1 }),
+      })
+      if (res.ok) ok++; else fail++
+    }
+    setBulkBusy(false)
+    setBulkMsg(t('students.bulk.advance_result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    exitSelect()
+    loadStudents(search)
+  }
+
   const handleExpel = async (student: Student) => {
     const name = student.person?.full_name ?? t('students.expel_fallback_name')
-    if (!confirm(t('students.expel_confirm').replace('{name}', name))) return
+    const ok0 = await confirmDialog({
+      message: t('students.expel_confirm').replace('{name}', name),
+      confirmLabel: t('students.expel_button'),
+      cancelLabel: t('common.cancel'),
+      tone: 'danger',
+    })
+    if (!ok0) return
     try {
       const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
-        alert(err.error ?? t('students.expel_failed'))
+        toast(err.error ?? t('students.expel_failed'), 'error')
         return
       }
       loadStudents(search)
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('common.error_generic'))
+      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
     }
-  }
-
-  const handleSaved = () => {
-    setModalOpen(false)
-    loadStudents(search)
   }
 
   const filteredGroups = filterDept
     ? studyGroups.filter(g => g.department_id === filterDept)
     : studyGroups
 
-  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none' }
+  // Сколько фильтров активно — показываем счётчиком на кнопке «Фильтры».
+  const activeFilters = (filterDept ? 1 : 0) + (filterGroup ? 1 : 0) + (filterStatus ? 1 : 0)
+    + (filterTrack ? 1 : 0) + (filterYear ? 1 : 0)
+
+  const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
   const btnSecondary: React.CSSProperties = {
-    padding: '5px 10px', fontSize: 12, color: '#374151',
-    background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, color: 'var(--text)',
+    background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
 
   return (
     <div>
-      {/* Тулбар */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-        <input
+      {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + экспорт. */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: filtersOpen ? 10 : 16, flexWrap: 'wrap' }}>
+        <input aria-label={t('students.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('students.search_placeholder')}
-          style={{ ...inp, minWidth: 220, flex: '1 1 220px' }}
+          style={{ ...inp, minWidth: 220, flex: '1 1 240px' }}
         />
-        <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
-          <option value="">{t('students.all_departments')}</option>
-          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
-        <select
-          value={filterGroup}
-          onChange={e => setFilterGroup(e.target.value)}
-          disabled={filteredGroups.length === 0}
-          style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(v => !v)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+            background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
+            color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
+          }}
         >
-          <option value="">{t('students.all_groups')}</option>
-          {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
-          <option value="">{t('students.filter_active_on_leave')}</option>
-          <option value="active">{t('students.filter_active_only')}</option>
-          <option value="all">{t('students.filter_all')}</option>
-        </select>
-        <PageActionButton
-          label={t('students.add_button')}
-          onClick={() => setModalOpen(true)}
-          accentColor={accent}
-        />
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+          </svg>
+          {t('students.filters_label')}
+          {activeFilters > 0 && (
+            <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
+          )}
+          <Caret open={filtersOpen} variant="toggle" color="currentColor" />
+        </button>
+        <button
+          type="button"
+          onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+          style={{
+            padding: '7px 12px', fontSize: 13, cursor: 'pointer', borderRadius: 8, fontWeight: 600,
+            fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: `1px solid ${selectMode ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+            background: selectMode ? 'var(--accent-tint)' : 'var(--surface)',
+            color: selectMode ? 'var(--accent-strong)' : 'var(--text-muted)',
+          }}
+        >
+          {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
+        </button>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={students.length === 0}
+          title={t('students.export_button')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: students.length === 0 ? 'not-allowed' : 'pointer', borderRadius: 8, fontWeight: 600,
+            fontFamily: 'inherit', whiteSpace: 'nowrap', border: '1px solid var(--border-strong)',
+            background: 'var(--surface)', color: 'var(--text-muted)', opacity: students.length === 0 ? 0.5 : 1,
+          }}
+        >
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          {t('students.export_button')}
+        </button>
+        {/* Импорт студенток — здесь, рядом с экспортом (перенесён из «Настроек»:
+            owner — меньше карточек; импорт = операция над списком студенток). */}
+        <button
+          type="button"
+          onClick={() => router.push('/dashboard/education/students/import')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)',
+          }}
+        >
+          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          {tEdu('import.title')}
+        </button>
       </div>
 
-      {loading && <div style={{ padding: 32, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>{t('common.loading')}</div>}
+      {/* Свёрнутые фильтры — открываются по кнопке «Фильтры». */}
+      {filtersOpen && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8 }}>
+          {/* Каталог: маршрут + год — первыми (owner). */}
+          <select value={filterTrack} onChange={e => setFilterTrack(e.target.value)} style={inp}>
+            <option value="">{t('students.all_tracks')}</option>
+            {tracks.map(tk => <option key={tk.id} value={tk.id}>{tk.name}</option>)}
+          </select>
+          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} style={inp}>
+            <option value="">{t('students.all_years')}</option>
+            {[1, 2, 3, 4].map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
+          </select>
+          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={inp}>
+            <option value="">{t('students.all_departments')}</option>
+            {departments.map(d => <option key={d.id} value={d.id}>{localizedDeptName(d, lang)}</option>)}
+          </select>
+          <select
+            value={filterGroup}
+            onChange={e => setFilterGroup(e.target.value)}
+            disabled={filteredGroups.length === 0}
+            style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
+          >
+            <option value="">{t('students.all_groups')}</option>
+            {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
+            <option value="">{t('students.filter_active_on_leave')}</option>
+            <option value="active">{t('students.filter_active_only')}</option>
+            <option value="all">{t('students.filter_all')}</option>
+          </select>
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={() => { setFilterDept(''); setFilterGroup(''); setFilterStatus(''); setFilterTrack(''); setFilterYear('') }}
+              style={{ padding: '7px 10px', fontSize: 12.5, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--accent-strong)', fontWeight: 600, fontFamily: 'inherit' }}
+            >
+              {t('students.filters_clear')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Панель массового назначения */}
+      {selectMode && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', padding: '10px 14px', background: 'var(--surface)', border: '1px solid var(--accent-strong)', borderRadius: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{t('students.bulk.selected').replace('{n}', String(selected.size))}</span>
+          <select value={bulkType} onChange={e => { setBulkType(e.target.value as 'class' | 'track' | 'kodesh'); setBulkTarget('') }} style={inp}>
+            {!manageRestricted && <option value="class">{t('students.bulk.type_class')}</option>}
+            {!manageRestricted && <option value="track">{t('students.bulk.type_track')}</option>}
+            <option value="kodesh">{t('students.bulk.type_kodesh')}</option>
+          </select>
+          <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} style={{ ...inp, minWidth: 160 }}>
+            <option value="">{t('students.bulk.pick_target')}</option>
+            {bulkTargets.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+          </select>
+          <button
+            onClick={applyBulk}
+            disabled={bulkBusy || !bulkTarget || selected.size === 0}
+            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
+          >
+            {t('students.bulk.apply')}
+          </button>
+          {!manageRestricted && (
+            <>
+              <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 2px' }} />
+              <button
+                onClick={advanceYear}
+                disabled={bulkBusy || selected.size === 0}
+                style={{ ...inp, cursor: bulkBusy || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--surface)', color: 'var(--accent-strong)', borderColor: 'var(--accent-strong)', opacity: bulkBusy || selected.size === 0 ? 0.5 : 1 }}
+              >
+                {t('students.bulk.advance_year')}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {bulkMsg && (
+        <div style={{ padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 12, fontSize: 13, color: 'var(--text)' }}>{bulkMsg}</div>
+      )}
+
+      {loading && <SkeletonRows rows={6} />}
 
       {error && (
-        <div style={{ padding: 12, background: '#FEE2E2', color: '#991B1B', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+        <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
           {error}
         </div>
       )}
 
       {!loading && !error && (
         students.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-            {search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')}
-          </div>
+          <EmptyState text={search || filterDept || filterGroup || filterStatus ? t('students.empty_search') : t('students.empty_none')} />
         ) : (
-          <div style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflowX: 'auto' }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F9FAFB' }}>
+                <tr style={{ background: 'var(--surface-2)' }}>
+                  {selectMode && (
+                    <th style={{ ...thStyle, width: 36, textAlign: 'center' }}>
+                      <input type="checkbox" checked={students.length > 0 && selected.size === students.length} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
+                    </th>
+                  )}
                   <th style={thStyle}>{t('students.table_name')}</th>
-                  <th style={thStyle}>{t('students.table_contacts')}</th>
-                  <th style={thStyle}>{t('students.table_department')}</th>
-                  <th style={thStyle}>{t('students.table_group')}</th>
-                  <th style={thStyle}>{t('students.table_specialty')}</th>
-                  <th style={{ ...thStyle, width: 60, textAlign: 'center' }}>{t('students.table_year')}</th>
+                  <th style={thStyle} className="col-hide-sm">{t('students.table_department')}</th>
+                  <th style={thStyle} className="col-hide-sm">{t('students.table_group')}</th>
                   <th style={{ ...thStyle, width: 110 }}>{t('students.table_status')}</th>
-                  <th style={{ ...thStyle, width: 160 }}>{t('students.table_actions')}</th>
+                  <th style={thStyle}>{t('students.table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {students.map(s => {
                   const phone = s.person?.phones?.[0]?.number ?? null
-                  const expelled = s.status === 'expelled'
+                  const expelled = s.education_status === 'expelled'
+                  const cardHref = `/dashboard/education/students/${s.id}`
+                  const open = expandedId === s.id
+                  const colCount = selectMode ? 6 : 5
                   return (
-                    <tr
-                      key={s.id}
-                      style={{ borderTop: '1px solid #F3F4F6' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
-                    >
-                      <td style={{ ...tdStyle, fontWeight: 500 }}>
-                        {s.person?.full_name ?? '—'}
-                        {s.person?.hebrew_name && (
-                          <div style={{ fontSize: 11, color: '#9CA3AF', direction: 'rtl', textAlign: 'left' }}>{s.person.hebrew_name}</div>
+                    <Fragment key={s.id}>
+                      <tr
+                        onClick={() => setExpandedId(open ? null : s.id)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={open}
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(open ? null : s.id) } }}
+                        style={{ borderTop: '1px solid var(--surface-2)', cursor: 'pointer', background: open ? 'var(--surface-2)' : undefined }}
+                        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                      >
+                        {selectMode && (
+                          <td style={{ ...tdStyle, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                            <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ cursor: 'pointer' }} />
+                          </td>
                         )}
-                      </td>
-                      <td style={tdStyle}>
-                        {s.person?.email && <div style={{ color: '#374151' }}>{s.person.email}</div>}
-                        {phone && <div style={{ color: '#6B7280', fontSize: 12 }}>{phone}</div>}
-                        {!s.person?.email && !phone && <span style={{ color: '#D1D5DB' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.department?.name ?? '—'}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>{s.main_group?.name ?? <span style={{ color: '#D1D5DB' }}>—</span>}</td>
-                      <td style={{ ...tdStyle, color: '#6B7280' }}>
-                        {s.specialty
-                          ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name)
-                          : <span style={{ color: '#D1D5DB' }}>—</span>}
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#6B7280' }}>
-                        {s.year_level ?? <span style={{ color: '#D1D5DB' }}>—</span>}
-                      </td>
-                      <td style={tdStyle}>
-                        <span style={{
-                          fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
-                          ...STATUS_STYLE[s.status],
-                        }}>
-                          {STATUS_LABEL[s.status]}
-                        </span>
-                      </td>
-                      <td style={tdStyle}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => alert(t('students.edit_wip_alert'))} style={btnSecondary}>
-                            {t('common.edit')}
-                          </button>
-                          {!expelled && (
-                            <button
-                              onClick={() => handleExpel(s)}
-                              style={{ ...btnSecondary, color: '#DC2626', borderColor: '#FCA5A5' }}
-                            >
-                              {t('students.expel_button')}
-                            </button>
+                        <td style={{ ...tdStyle, fontWeight: 500 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                            <Caret open={open} />
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{s.person?.full_name ?? '—'}</span>
+                          </span>
+                          {s.person?.hebrew_name && (
+                            <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={tdStyle}>
+                          <span style={{
+                            fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
+                            ...(STATUS_STYLE[s.education_status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
+                          }}>
+                            {STATUS_LABEL[s.education_status] ?? s.education_status}
+                          </span>
+                        </td>
+                        <td style={tdStyle} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <button onClick={() => router.push(cardHref)} style={btnSecondary}>
+                              {t('students.open_card')}
+                            </button>
+                            {!expelled && !manageRestricted && (
+                              <button
+                                onClick={() => handleExpel(s)}
+                                style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              >
+                                {t('students.expel_button')}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {open && (
+                        <tr style={{ background: 'var(--surface-2)' }}>
+                          <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
+                            <div className="anim-expand" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
+                              <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department?.name ?? '—'} /></div>
+                              <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group?.name ?? '—'} /></div>
+                              <Detail label={t('students.table_contacts')} value={(s.person?.email || phone)
+                                ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px 14px', alignItems: 'center' }}>
+                                    {s.person?.email && <span>{s.person.email}</span>}
+                                    {phone && <PhoneLink phone={phone} />}
+                                  </span>
+                                : '—'} />
+                              <Detail label={t('students.table_specialty')} value={s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : '—'} />
+                              <Detail label={t('students.table_year')} value={s.year_level != null ? String(s.year_level) : '—'} />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -270,20 +594,22 @@ export default function StudentsTab() {
           </div>
         )
       )}
-
-      {modalOpen && (
-        <EducationJourneyForm
-          mode="student"
-          onClose={() => setModalOpen(false)}
-          onSaved={handleSaved}
-        />
-      )}
     </div>
   )
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '10px 12px', fontWeight: 600, color: '#374151',
-  textAlign: 'left', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap',
+  padding: '10px 12px', fontWeight: 600, color: 'var(--text)',
+  textAlign: 'start', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', color: '#1F2937' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', color: 'var(--text)' }
+
+// Пара «метка → значение» в раскрытой панели деталей строки.
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--text)' }}>{value}</div>
+    </div>
+  )
+}

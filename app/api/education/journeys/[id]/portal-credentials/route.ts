@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/session'
+import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { generatePassword, hashPassword } from '@/lib/auth/password'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
+import { clearLoginLockout } from '@/lib/auth/account-lockout'
+import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
+
+// student_credentials ещё нет в сгенерированных типах БД (миграция применяется
+// владельцем) — обращаемся к ней через нетипизированный клиент.
+function creds(sb: ReturnType<typeof createServerClient>) {
+  return sb.from('student_credentials')
+}
+
+/**
+ * Учётные данные портала студентки — управление сотрудником.
+ *
+ *   GET  → существует ли вход + login_email (без хеша пароля).
+ *   POST → создать/сбросить: генерирует пароль, хеширует, сохраняет и
+ *          ВОЗВРАЩАЕТ открытый пароль ОДИН раз ({ email, password }).
+ *
+ * Доступ: только сотрудник (никогда не студентка) — superadmin ИЛИ
+ * manage_students в подразделении journey. journey должна быть education_status='student'.
+ * Открытый пароль нигде не хранится.
+ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function gateStaff(journeyId: string): Promise<{ err: NextResponse } | {
+  sb: ReturnType<typeof createServerClient>
+  journey: { id: string; person_id: string; primary_department_id: string | null; education_status: string | null }
+}> {
+  const session = await getSession()
+  if (!session) return { err: apiError('unauthorized', 401) }
+  // Студентка НИКОГДА не управляет учётными данными.
+  if (session.principal === 'student') return { err: apiError('forbidden', 403) }
+
+  const sb = createServerClient()
+  const { data: journey } = await sb
+    .from('education_journeys')
+    .select('id, person_id, primary_department_id, education_status')
+    .eq('id', journeyId)
+    .maybeSingle()
+  if (!journey) return { err: apiError('journey_not_found', 404) }
+
+  const j = journey as { id: string; person_id: string; primary_department_id: string | null; education_status: string | null }
+  // Вход в портал — только для студенток.
+  if (j.education_status !== 'student') return { err: apiError('forbidden', 403) }
+
+  const allowed = session.roles.includes('superadmin')
+    || (await hasEducationPrivilege(session, 'manage_students', {
+      department_id: j.primary_department_id ?? undefined,
+    }))
+  if (!allowed) return { err: apiError('forbidden', 403) }
+
+  return { sb, journey: j }
+}
+
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const g = await gateStaff(params.id)
+    if ('err' in g) return g.err
+
+    const { data, error } = await creds(g.sb)
+      .select('login_email, is_active, last_login')
+      .eq('journey_id', params.id)
+      .maybeSingle()
+    if (error) {
+      if (isMissingTable(error)) return NextResponse.json({ exists: false })
+      throw error
+    }
+
+    if (!data) return NextResponse.json({ exists: false })
+    return NextResponse.json({
+      exists: true,
+      email: (data as { login_email: string }).login_email,
+      is_active: (data as { is_active: boolean }).is_active,
+      last_login: (data as { last_login: string | null }).last_login,
+    })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return errorResponse(e)
+  }
+}
+
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  try {
+    const g = await gateStaff(params.id)
+    if ('err' in g) return g.err
+    const { sb, journey } = g
+
+    const body = await request.json().catch(() => ({})) as { email?: string }
+    let email = (body.email ?? '').toLowerCase().trim()
+
+    // По умолчанию — email персоны.
+    if (!email) {
+      const { data: person } = await sb
+        .from('persons')
+        .select('email')
+        .eq('id', journey.person_id)
+        .maybeSingle()
+      email = ((person as { email?: string | null } | null)?.email ?? '').toLowerCase().trim()
+    }
+    if (!email) return apiError('invalid_email', 400)
+
+    // Генерация и хеш пароля (открытый текст не сохраняем — вернём один раз).
+    const password = generatePassword()
+    const password_hash = await hashPassword(password)
+
+    // Upsert по journey_id: одна учётка на journey. Сброс = обновление строки.
+    const { data: existing, error: selErr } = await creds(sb)
+      .select('id')
+      .eq('journey_id', params.id)
+      .maybeSingle()
+    if (selErr) {
+      if (isMissingTable(selErr)) return apiError('feature_unavailable', 503)
+      throw selErr
+    }
+
+    if (existing) {
+      const { error: updErr } = await creds(sb)
+        .update({ login_email: email, password_hash, is_active: true })
+        .eq('journey_id', params.id)
+      if (updErr) {
+        if ((updErr as { code?: string }).code === '23505') return apiError('email_in_use', 409)
+        throw updErr
+      }
+    } else {
+      const { error: insErr } = await creds(sb)
+        .insert({
+          journey_id: params.id,
+          person_id: journey.person_id,
+          login_email: email,
+          password_hash,
+          is_active: true,
+        })
+      if (insErr) {
+        if (isMissingTable(insErr)) return apiError('feature_unavailable', 503)
+        if ((insErr as { code?: string }).code === '23505') return apiError('email_in_use', 409)
+        throw insErr
+      }
+    }
+
+    // Временный пароль → при первом входе студентка обязана сменить его.
+    // Best-effort: до миграции колонки может не быть (42703) — не роняем выдачу.
+    try {
+      const { error: flagErr } = await creds(sb).update({ must_change_password: true }).eq('journey_id', params.id)
+      if (flagErr && !isMissingColumn(flagErr)) { /* прочие ошибки не критичны для выдачи */ }
+    } catch { /* колонки нет до миграции — игнорируем */ }
+
+    // Сброс пароля выводит студентку со всех устройств (старый вход по
+    // прежнему паролю больше не действует).
+    await revokeSessionsBefore('student_credentials', 'journey_id', params.id)
+    // Новый пароль — заодно снимаем блокировку входа после неудачных попыток.
+    await clearLoginLockout('student_credentials', 'journey_id', params.id)
+
+    // Возвращаем открытый пароль ОДИН раз — сотрудник передаёт его студентке.
+    return NextResponse.json({ email, password })
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return errorResponse(e)
+  }
+}

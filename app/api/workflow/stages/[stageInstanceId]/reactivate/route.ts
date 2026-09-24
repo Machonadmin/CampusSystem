@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
@@ -27,11 +28,12 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
  */
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { stageInstanceId: string } }
+  props: { params: Promise<{ stageInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const sb = createServerClient()
 
@@ -63,7 +65,14 @@ export async function POST(
       p_stage_instance_id: params.stageInstanceId,
       p_actor_id: session.person_id,
     })
-    if (rpcErr) throw rpcErr
+    if (rpcErr) {
+      // 22023 = RPC заблокировал переоткрытие (напр. следующий этап уже завершён).
+      // Отдаём дружелюбное сообщение вместо сырого текста функции.
+      if ((rpcErr as { code?: string }).code === '22023') {
+        return apiError('stage_reopen_blocked', 400)
+      }
+      throw rpcErr
+    }
 
     // Возврат обновлённого stage_instance
     const { data: updated } = await sb

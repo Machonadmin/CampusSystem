@@ -1,0 +1,178 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { getModuleColor } from '@/lib/module-colors'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface AlumniItem {
+  journey_id: string
+  person_id: string
+  full_name: string
+  hebrew_name: string | null
+  email: string | null
+  phones: string[]
+  photo_url: string | null
+  alumni_profile_id: string | null
+  graduation_year: number | null
+  institution: string | null
+  direction: string | null
+  current_location: string | null
+  current_occupation: string | null
+  notes: string | null
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '—'
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function AlumniPage() {
+  const router = useRouter()
+  const t = useTranslations('alumni')
+  const tNav = useTranslations('navigation')
+
+  const [items, setItems] = useState<AlumniItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/alumni')
+      if (res.status === 403) {
+        setError(t('list.forbidden'))
+        setItems([])
+        return
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(body.error ?? t('list.load_error'))
+        setItems([])
+        return
+      }
+      const body = await res.json()
+      setItems(body.alumni ?? [])
+    } catch {
+      setError(t('list.load_error'))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => { load() }, [load])
+
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? items.filter(a =>
+        a.full_name.toLowerCase().includes(q) ||
+        (a.hebrew_name ?? '').toLowerCase().includes(q) ||
+        (a.email ?? '').toLowerCase().includes(q) ||
+        (a.institution ?? '').toLowerCase().includes(q) ||
+        (a.direction ?? '').toLowerCase().includes(q))
+    : items
+
+  const primary = getModuleColor('alumni', 'primary')
+  const light = getModuleColor('alumni', 'light')
+
+  const th: React.CSSProperties = {
+    textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
+    textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 12px',
+    borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
+  }
+  const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '10px 12px', borderBottom: '1px solid var(--surface-2)' }
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('alumni') },
+      ]} />
+
+      {/* Header */}
+      <ModuleHeader module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
+
+      {/* Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <input aria-label={t('list.search_placeholder')}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('list.search_placeholder')}
+          style={{
+            flex: 1, maxWidth: 360, fontSize: 13, padding: '8px 12px',
+            border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
+          }}
+        />
+        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
+          {t('list.count')}: {filtered.length}
+        </span>
+      </div>
+
+      {/* Body */}
+      {error ? (
+        <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
+      ) : loading ? (
+        <SkeletonRows avatar={false} rows={6} />
+      ) : filtered.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+      ) : (
+        <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
+          <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={th}>{t('list.col_name')}</th>
+                <th style={th}>{t('list.col_graduation_year')}</th>
+                <th style={th}>{t('list.col_institution')}</th>
+                <th style={th}>{t('list.col_occupation')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => {
+                return (
+                  <tr
+                    key={a.journey_id}
+                    onClick={() => router.push(`/dashboard/alumni/${a.journey_id}`)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
+                  >
+                    <td data-label={t('list.col_name')} style={td}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                          background: light, color: primary,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, fontWeight: 700,
+                        }}>
+                          {a.photo_url
+                            ? <img src={a.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            : initials(a.full_name)}
+                        </div>
+                        <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
+                      </div>
+                    </td>
+                    <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
+                    <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+

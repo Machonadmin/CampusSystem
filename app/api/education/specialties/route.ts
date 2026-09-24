@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SpecialtyInsert } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Специальность с таким названием уже есть в этом подразделении' }
-  if (error.code === '23503') return { status: 400, message: 'Ссылка на несуществующую запись (department_id)' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('specialty_exists_department') }
+  if (error.code === '23503') return { status: 400, message: serverT('invalid_reference_department_id') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /**
@@ -23,10 +19,15 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  */
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
     const params = request.nextUrl.searchParams
     const departmentId = params.get('department_id')
     const activeOnly = params.get('active_only') !== 'false'
+
+    // Видимость по юниту: менеджер со scope='department' видит только специальности
+    // своих подразделений (см. getEducationStructureDeptFilter).
+    const myDepts = await getEducationStructureDeptFilter(session)
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ specialties: [] })
 
     const sb = createServerClient()
     let qb = sb
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
       .order('name')
 
     if (departmentId) qb = qb.eq('department_id', departmentId)
+    if (myDepts) qb = qb.in('department_id', myDepts)
     if (activeOnly) qb = qb.eq('is_active', true)
 
     const { data, error } = await qb
@@ -46,9 +48,9 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -68,11 +70,11 @@ export async function POST(request: NextRequest) {
     }
 
     const name = body.name?.trim()
-    if (!name) return NextResponse.json({ error: 'Название обязательно' }, { status: 400 })
-    if (!body.department_id) return NextResponse.json({ error: 'department_id обязателен' }, { status: 400 })
+    if (!name) return apiError('title_required', 400)
+    if (!body.department_id) return apiError('department_id_required', 400)
 
     if (body.code && body.code.length > 50) {
-      return NextResponse.json({ error: 'Код не может быть длиннее 50 символов' }, { status: 400 })
+      return apiError('code_max_50', 400)
     }
 
     await requireEducationPrivilege('manage_specialties', { department_id: body.department_id })
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -103,8 +105,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

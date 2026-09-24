@@ -1,3 +1,9 @@
+// Tables the curated Database interface below does not hand-maintain are pulled
+// from the auto-generated schema so their Row/Insert/Update stay authoritative.
+import type { Database as GeneratedDatabase } from './database.generated'
+// Коды модулей прав — из реестра модулей (единственный источник правды).
+import type { PrivilegeModuleCode } from '@/lib/modules/registry'
+
 export type Json =
   | string
   | number
@@ -66,11 +72,15 @@ export type RoleCode =
   | 'kitchen_head' | 'kitchen_staff'
   | 'technical_staff'
   | 'applicant' | 'alumni' | 'sponsor'
+  | 'head_of_studies' | 'jewishness_officer'
 
-export type PrivilegeModule =
-  | 'persons' | 'applicants' | 'education' | 'finance'
-  | 'dormitory' | 'food' | 'security' | 'doctor' | 'psychologist'
-  | 'alumni' | 'sponsors' | 'tasks' | 'documents' | 'reports' | 'settings'
+// Код модуля прав выводится из реестра модулей — единственного источника правды
+// (lib/modules/registry.ts). Раньше этот union писался здесь руками и отставал от
+// реальности: `staff` и `quality_control` выдаются миграцией 20260708140000, а
+// `recruitment`/`admission`/`studies` — миграцией 20260819120000, но в типе их не
+// было, из-за чего lib/education/permissions.ts кастовал их через
+// `as unknown as PrivilegeModule[]`.
+export type PrivilegeModule = PrivilegeModuleCode
 
 // ─── Row types ───────────────────────────────────────────────────────────────
 
@@ -154,6 +164,9 @@ export interface EducationJourneyRow {
   referral_source: string | null
   rejection_reason: string | null
 
+  // Приём: нужен ли пансион (гейтит этапы врача/психолога/общежития). NULL = не решено.
+  needs_dormitory: boolean | null
+
   // ЛЕГАСИ-поля (удалим в Part 2)
   community_contact_name: string | null
   community_contact_role: string | null
@@ -211,6 +224,7 @@ export type EducationJourneyInsert = {
   decision_date?: string | null
   referral_source?: string | null
   rejection_reason?: string | null
+  needs_dormitory?: boolean | null
   community_contact_name?: string | null
   community_contact_role?: string | null
   community_phone?: string | null
@@ -383,10 +397,17 @@ export interface StaffProfileRow {
 
 export interface DepartmentRow {
   id: string
+  /** Русское название — оно же значение по умолчанию для остальных языков. */
   name: string
+  // Добавлены миграцией 20260715280000, но в этот тип не попали: из-за этого
+  // select('name_he') отдавал unknown и не подходил под localizedDeptName.
+  name_he: string | null
+  name_en: string | null
   parent_id: string | null
-  head_person_id: string | null
   is_educational_institution: boolean
+  // Добавлены миграцией 20260504120000.
+  sort_order: number | null
+  description: string | null
   created_at: string
   updated_at: string
 }
@@ -463,16 +484,76 @@ export interface PersonRoleRow {
   created_at: string
 }
 
+/** Уровень права — только для шкалы на экране, проверки его не читают. */
+export type PrivilegeLevel = 'access' | 'view' | 'edit' | 'manage'
+/** Чувствительность права — только для пометки на экране. */
+export type PrivilegeRisk = 'normal' | 'sensitive' | 'critical'
+
 export interface ModulePrivilegeRow {
   id: string
   module: PrivilegeModule
   privilege_code: string
+  /** Историческая русская подпись. На экране не используется — см. name_ru. */
   privilege_name: string
   description: string | null
   sort_order: number
   created_at: string
   updated_at: string
+  // ── Каталог на трёх языках (20260916120000). Технический код на экране не
+  // показывается нигде, поэтому имя и объяснение обязательны по смыслу.
+  name_he: string | null
+  name_ru: string | null
+  name_en: string | null
+  description_he: string | null
+  description_ru: string | null
+  description_en: string | null
+  level: PrivilegeLevel | null
+  risk: PrivilegeRisk
+  /** Какие значения role_privileges.scope осмысленны для этого права. */
+  allowed_scopes: string[]
+  /** Код-замена 'module.code' для устаревшего права, иначе null. */
+  superseded_by: string | null
+  is_legacy: boolean
 }
+
+
+// ─── Дерево отображения прав (20260916130000) ────────────────────────────────
+// Читает ТОЛЬКО экран «Безопасность данных». Ни одна проверка доступа эти две
+// таблицы не касается, поэтому перестройка дерева не может ничего никому
+// открыть или закрыть.
+
+export interface SecurityTreeNodeRow {
+  id: string
+  /** null = корень: на экране выглядит отдельным модулем. */
+  parent_id: string | null
+  sort_order: number
+  name_he: string
+  name_ru: string | null
+  name_en: string | null
+  description_he: string | null
+  description_ru: string | null
+  description_en: string | null
+  /** Код модуля из lib/modules/registry.ts — даёт цвет, иконку и ссылку. */
+  module_code: string | null
+  icon: string | null
+  color: string | null
+  /** Привязка к подразделению: выдача такого узла идёт с scope=department. */
+  department_id: string | null
+  created_at: string
+  updated_at: string
+}
+export type SecurityTreeNodeInsert =
+  Omit<SecurityTreeNodeRow, 'id' | 'created_at' | 'updated_at'>
+export type SecurityTreeNodeUpdate = Partial<SecurityTreeNodeInsert>
+
+export interface SecurityTreeItemRow {
+  node_id: string
+  module: string
+  privilege_code: string
+  sort_order: number
+}
+export type SecurityTreeItemInsert = SecurityTreeItemRow
+export type SecurityTreeItemUpdate = Partial<SecurityTreeItemRow>
 
 export interface PersonPrivilegeRow {
   id: string
@@ -497,9 +578,17 @@ export type PersonFamilyInsert = Omit<PersonFamilyRow, 'id' | 'created_at'>
 /** Backward-compat алиас: ApplicantProfileInsert ≡ EducationJourneyInsert. */
 export type ApplicantProfileInsert = EducationJourneyInsert
 export type StaffProfileInsert = Omit<StaffProfileRow, 'id' | 'created_at' | 'updated_at'>
-export type DepartmentInsert = Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'> & {
-  is_educational_institution?: boolean
-}
+// name_he / name_en / sort_order / description необязательны при вставке:
+// у всех есть значение по умолчанию в БД, и существующий код их не передаёт.
+export type DepartmentInsert =
+  Omit<DepartmentRow, 'id' | 'created_at' | 'updated_at' | 'is_educational_institution'
+    | 'name_he' | 'name_en' | 'sort_order' | 'description'> & {
+    is_educational_institution?: boolean
+    name_he?: string | null
+    name_en?: string | null
+    sort_order?: number | null
+    description?: string | null
+  }
 export type StaffPositionInsert = Omit<StaffPositionRow, 'id' | 'created_at' | 'updated_at'>
 export type AlumniProfileInsert = Omit<AlumniProfileRow, 'id' | 'created_at' | 'updated_at'>
 export type SponsorProfileInsert = Omit<SponsorProfileRow, 'id' | 'created_at' | 'updated_at'>
@@ -801,9 +890,13 @@ export type SpecialtyUpdate = Partial<SpecialtyInsert>
 
 export interface SubjectRow {
   id: string
-  department_id: string
+  department_id: string | null
+  study_track_id: string | null
+  year_level: number | null
   name: string
   name_he: string | null
+  name_ru: string | null
+  name_en: string | null
   sort_order: number
   is_active: boolean
   created_at: string
@@ -811,9 +904,13 @@ export interface SubjectRow {
 }
 export interface SubjectInsert {
   id?: string
-  department_id: string
+  department_id?: string | null
+  study_track_id?: string | null
+  year_level?: number | null
   name: string
   name_he?: string | null
+  name_ru?: string | null
+  name_en?: string | null
   sort_order?: number
   is_active?: boolean
 }
@@ -928,6 +1025,196 @@ export interface ClassTeacherInsert {
   is_primary?: boolean
 }
 
+// ─── Lessons & Attendance (управление учёбой, фаза A) ──────────────────────────
+
+export type AttendanceStatus = 'present' | 'late' | 'absent'
+
+export interface LessonRow {
+  id: string
+  class_group_id: string
+  scheduled_date: string          // ISO date 'YYYY-MM-DD'
+  scheduled_time: string | null   // 'HH:MM:SS'
+  topic: string | null
+  description: string | null
+  location: string | null
+  is_cancelled: boolean
+  created_at: string
+  updated_at: string
+  created_by: string | null
+}
+export interface LessonInsert {
+  id?: string
+  class_group_id: string
+  scheduled_date: string
+  scheduled_time?: string | null
+  topic?: string | null
+  description?: string | null
+  location?: string | null
+  is_cancelled?: boolean
+  created_by?: string | null
+}
+export type LessonUpdate = Partial<Omit<LessonInsert, 'class_group_id' | 'created_by'>>
+
+export interface AttendanceRow {
+  id: string
+  lesson_id: string
+  journey_id: string
+  status: AttendanceStatus
+  created_at: string
+  updated_at: string
+  marked_by: string | null
+  marked_at: string | null
+}
+export interface AttendanceInsert {
+  id?: string
+  lesson_id: string
+  journey_id: string
+  status: AttendanceStatus
+  marked_by?: string | null
+  marked_at?: string | null
+}
+export type AttendanceUpdate = Partial<Omit<AttendanceInsert, 'lesson_id' | 'journey_id'>>
+
+
+// ─── Assessments & Grades (управление учёбой, фаза B: оценки) ──────────────────
+
+export interface AssessmentRow {
+  id: string
+  class_group_id: string
+  title: string
+  max_score: number
+  assessment_date: string | null   // ISO date 'YYYY-MM-DD'
+  description: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+}
+export interface AssessmentInsert {
+  id?: string
+  class_group_id: string
+  title: string
+  max_score?: number
+  assessment_date?: string | null
+  description?: string | null
+  created_by?: string | null
+}
+export type AssessmentUpdate = Partial<Omit<AssessmentInsert, 'class_group_id' | 'created_by'>>
+
+export interface GradeRow {
+  id: string
+  assessment_id: string
+  journey_id: string
+  score: number
+  comment: string | null
+  created_at: string
+  updated_at: string
+  graded_by: string | null
+  graded_at: string | null
+}
+export interface GradeInsert {
+  id?: string
+  assessment_id: string
+  journey_id: string
+  score: number
+  comment?: string | null
+  graded_by?: string | null
+  graded_at?: string | null
+}
+export type GradeUpdate = Partial<Omit<GradeInsert, 'assessment_id' | 'journey_id'>>
+
+// ─── Class schedule slots (управление учёбой: расписание) ─────────────────────
+
+export interface ScheduleSlotRow {
+  id: string
+  class_group_id: string
+  day_of_week: number             // ISO: 1=Mon .. 7=Sun
+  start_time: string              // 'HH:MM:SS'
+  end_time: string                // 'HH:MM:SS'
+  room: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  // Предмет и преподаватель САМОГО СЛОТА (миграция 20260915120000; опционально —
+  // деплой-безопасно до применения). NULL = наследовать от группы: предмет
+  // class_groups.subject_id и полный список class_teachers.
+  subject_id?: string | null
+  teacher_id?: string | null
+  // Утверждение кодеш-времени (миграция 20260826140000; опционально —
+  // деплой-безопасно до применения миграции).
+  approval_status?: 'active' | 'pending' | 'rejected'
+  requested_by?: string | null
+  approved_by?: string | null
+  decided_at?: string | null
+}
+export interface ScheduleSlotInsert {
+  id?: string
+  class_group_id: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  room?: string | null
+  created_by?: string | null
+  subject_id?: string | null
+  teacher_id?: string | null
+  approval_status?: 'active' | 'pending' | 'rejected'
+  requested_by?: string | null
+}
+export type ScheduleSlotUpdate = Partial<Omit<ScheduleSlotInsert, 'class_group_id' | 'created_by'>>
+
+// ─── Finance (биллинг обучения) ───────────────────────────────────────────────
+
+export interface FinanceChargeRow {
+  id: string
+  journey_id: string
+  amount: number
+  description: string
+  period_label: string | null
+  due_date: string | null          // ISO date 'YYYY-MM-DD'
+  status: 'active' | 'cancelled'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface FinanceChargeInsert {
+  id?: string
+  journey_id: string
+  amount: number
+  description: string
+  period_label?: string | null
+  due_date?: string | null
+  status?: 'active' | 'cancelled'
+  created_by?: string | null
+}
+export type FinanceChargeUpdate = Partial<Omit<FinanceChargeInsert, 'journey_id' | 'created_by'>>
+
+export interface FinancePaymentRow {
+  id: string
+  journey_id: string
+  amount: number
+  paid_at: string                  // ISO date 'YYYY-MM-DD'
+  method: string | null
+  reference: string | null
+  status: 'pending' | 'approved' | 'cancelled'
+  recorded_by: string | null
+  approved_by: string | null
+  approved_at: string | null
+  created_at: string
+  updated_at: string
+}
+export interface FinancePaymentInsert {
+  id?: string
+  journey_id: string
+  amount: number
+  paid_at: string
+  method?: string | null
+  reference?: string | null
+  status?: 'pending' | 'approved' | 'cancelled'
+  recorded_by?: string | null
+  approved_by?: string | null
+  approved_at?: string | null
+}
+export type FinancePaymentUpdate = Partial<Omit<FinancePaymentInsert, 'journey_id' | 'recorded_by'>>
+
 // ─── Workflow Engine ──────────────────────────────────────────────────────────
 
 export interface ProcessTemplateRow {
@@ -957,12 +1244,16 @@ export interface StageTemplateRow {
   is_optional:         boolean
   is_addable:          boolean
   sort_order:          number
+  required_role_code:  string | null   // role required to complete/sign this stage (NULL = no gate)
+  requires_signature:  boolean          // completion must carry a digital signature
   created_at:          string
   updated_at:          string
 }
-export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at' | 'updated_at'> & {
+export type StageTemplateInsert = Omit<StageTemplateRow, 'id' | 'created_at' | 'updated_at' | 'required_role_code' | 'requires_signature'> & {
   id?: string
   created_at?: string
+  required_role_code?: string | null
+  requires_signature?: boolean
 }
 export type StageTemplateUpdate = Partial<StageTemplateInsert>
 
@@ -1110,6 +1401,649 @@ export type PersonRoleUpdate = Partial<PersonRoleInsert>
 export type ModulePrivilegeUpdate = Partial<ModulePrivilegeInsert>
 export type PersonPrivilegeUpdate = Partial<PersonPrivilegeInsert>
 
+// ─── Dormitory (общежитие) ───────────────────────────────────────────────────
+
+export interface DormBuildingRow {
+  id: string
+  name: string
+  code: string | null
+  gender: 'male' | 'female' | 'mixed'
+  address: string | null
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface DormBuildingInsert {
+  id?: string
+  name: string
+  code?: string | null
+  gender?: 'male' | 'female' | 'mixed'
+  address?: string | null
+  notes?: string | null
+  is_active?: boolean
+}
+export type DormBuildingUpdate = Partial<DormBuildingInsert>
+
+export interface DormRoomRow {
+  id: string
+  building_id: string
+  room_number: string
+  floor: number | null
+  capacity: number
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface DormRoomInsert {
+  id?: string
+  building_id: string
+  room_number: string
+  floor?: number | null
+  capacity: number
+  notes?: string | null
+  is_active?: boolean
+}
+export type DormRoomUpdate = Partial<Omit<DormRoomInsert, 'building_id'>>
+
+export interface DormAssignmentRow {
+  id: string
+  room_id: string
+  journey_id: string
+  assigned_from: string            // ISO date 'YYYY-MM-DD'
+  assigned_to: string | null       // ISO date | null (open-ended)
+  status: 'active' | 'ended'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DormAssignmentInsert {
+  id?: string
+  room_id: string
+  journey_id: string
+  assigned_from: string
+  assigned_to?: string | null
+  status?: 'active' | 'ended'
+  created_by?: string | null
+}
+export type DormAssignmentUpdate = Partial<Omit<DormAssignmentInsert, 'room_id' | 'journey_id' | 'created_by'>>
+
+// ─── Food & Dining (питание) ─────────────────────────────────────────────────
+
+export interface MealPlanRow {
+  id: string
+  name: string
+  code: string | null
+  description: string | null
+  includes_breakfast: boolean
+  includes_lunch: boolean
+  includes_dinner: boolean
+  price: number | null
+  period_label: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface MealPlanInsert {
+  id?: string
+  name: string
+  code?: string | null
+  description?: string | null
+  includes_breakfast?: boolean
+  includes_lunch?: boolean
+  includes_dinner?: boolean
+  price?: number | null
+  period_label?: string | null
+  is_active?: boolean
+}
+export type MealPlanUpdate = Partial<MealPlanInsert>
+
+export interface MealEnrollmentRow {
+  id: string
+  meal_plan_id: string
+  journey_id: string
+  enrolled_from: string            // ISO date 'YYYY-MM-DD'
+  enrolled_to: string | null       // ISO date | null (open-ended)
+  status: 'active' | 'ended'
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MealEnrollmentInsert {
+  id?: string
+  meal_plan_id: string
+  journey_id: string
+  enrolled_from: string
+  enrolled_to?: string | null
+  status?: 'active' | 'ended'
+  created_by?: string | null
+}
+export type MealEnrollmentUpdate = Partial<Omit<MealEnrollmentInsert, 'meal_plan_id' | 'journey_id' | 'created_by'>>
+
+export interface DietaryProfileRow {
+  id: string
+  journey_id: string
+  restrictions: string | null
+  allergies: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DietaryProfileInsert {
+  id?: string
+  journey_id: string
+  restrictions?: string | null
+  allergies?: string | null
+  notes?: string | null
+}
+export type DietaryProfileUpdate = Partial<Omit<DietaryProfileInsert, 'journey_id'>>
+
+// ─── Maintenance (эксплуатация / обслуживание) ───────────────────────────────
+
+export interface MaintenanceRequestRow {
+  id: string
+  title: string
+  description: string | null
+  building_id: string | null
+  room_id: string | null
+  location_text: string | null
+  category: 'plumbing' | 'electrical' | 'furniture' | 'cleaning' | 'appliance' | 'other'
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+  reported_by: string | null
+  assigned_to: string | null
+  reported_at: string              // ISO timestamp
+  resolved_at: string | null       // ISO timestamp | null
+  created_at: string
+  updated_at: string
+}
+export interface MaintenanceRequestInsert {
+  id?: string
+  title: string
+  description?: string | null
+  building_id?: string | null
+  room_id?: string | null
+  location_text?: string | null
+  category?: 'plumbing' | 'electrical' | 'furniture' | 'cleaning' | 'appliance' | 'other'
+  priority?: 'low' | 'normal' | 'high' | 'urgent'
+  status?: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+  reported_by?: string | null
+  assigned_to?: string | null
+  reported_at?: string
+  resolved_at?: string | null
+}
+export type MaintenanceRequestUpdate = Partial<Omit<MaintenanceRequestInsert, 'reported_by'>>
+
+// ─── Security (безопасность / אבטחה: журнал инцидентов) ──────────────────────
+
+export interface SecurityIncidentRow {
+  id: string
+  occurred_at: string              // ISO timestamp
+  building_id: string | null
+  location_text: string | null
+  category: 'theft' | 'vandalism' | 'trespassing' | 'altercation' | 'fire' | 'medical' | 'property_damage' | 'other'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string | null
+  status: 'open' | 'investigating' | 'resolved' | 'closed'
+  reported_by: string | null
+  assigned_to: string | null
+  resolution: string | null
+  resolved_at: string | null       // ISO timestamp | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface SecurityIncidentInsert {
+  id?: string
+  occurred_at?: string
+  building_id?: string | null
+  location_text?: string | null
+  category?: 'theft' | 'vandalism' | 'trespassing' | 'altercation' | 'fire' | 'medical' | 'property_damage' | 'other'
+  severity?: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description?: string | null
+  status?: 'open' | 'investigating' | 'resolved' | 'closed'
+  reported_by?: string | null
+  assigned_to?: string | null
+  resolution?: string | null
+  resolved_at?: string | null
+  created_by?: string | null
+}
+export type SecurityIncidentUpdate = Partial<Omit<SecurityIncidentInsert, 'reported_by' | 'created_by'>>
+
+// ─── Doctor / Clinic (медпункт: медкарты и приёмы) ───────────────────────────
+
+export interface MedicalProfileRow {
+  id: string
+  journey_id: string
+  blood_type: string | null
+  chronic_conditions: string | null
+  allergies: string | null
+  medications: string | null
+  emergency_contact: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MedicalProfileInsert {
+  id?: string
+  journey_id: string
+  blood_type?: string | null
+  chronic_conditions?: string | null
+  allergies?: string | null
+  medications?: string | null
+  emergency_contact?: string | null
+  notes?: string | null
+}
+export type MedicalProfileUpdate = Partial<Omit<MedicalProfileInsert, 'journey_id'>>
+
+export interface MedicalVisitRow {
+  id: string
+  journey_id: string
+  visit_date: string               // ISO date 'YYYY-MM-DD'
+  reason: string | null
+  diagnosis: string | null
+  treatment: string | null
+  attended_by: string | null
+  follow_up_date: string | null    // ISO date | null
+  status: 'open' | 'closed'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface MedicalVisitInsert {
+  id?: string
+  journey_id: string
+  visit_date: string
+  reason?: string | null
+  diagnosis?: string | null
+  treatment?: string | null
+  attended_by?: string | null
+  follow_up_date?: string | null
+  status?: 'open' | 'closed'
+  notes?: string | null
+  created_by?: string | null
+}
+export type MedicalVisitUpdate = Partial<Omit<MedicalVisitInsert, 'journey_id' | 'created_by'>>
+
+// ─── Psychologist / Counseling (психолог: карты сопровождения и консультации) ─
+
+export interface PsychProfileRow {
+  id: string
+  journey_id: string
+  presenting_concerns: string | null
+  background: string | null
+  risk_level: 'none' | 'low' | 'medium' | 'high'
+  referral_source: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export interface PsychProfileInsert {
+  id?: string
+  journey_id: string
+  presenting_concerns?: string | null
+  background?: string | null
+  risk_level?: 'none' | 'low' | 'medium' | 'high'
+  referral_source?: string | null
+  notes?: string | null
+}
+export type PsychProfileUpdate = Partial<Omit<PsychProfileInsert, 'journey_id'>>
+
+export interface PsychSessionRow {
+  id: string
+  journey_id: string
+  session_date: string             // ISO date 'YYYY-MM-DD'
+  session_type: 'intake' | 'followup' | 'crisis' | 'group' | 'other'
+  summary: string | null
+  follow_up_date: string | null    // ISO date | null
+  status: 'open' | 'closed'
+  counselor_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface PsychSessionInsert {
+  id?: string
+  journey_id: string
+  session_date: string
+  session_type?: 'intake' | 'followup' | 'crisis' | 'group' | 'other'
+  summary?: string | null
+  follow_up_date?: string | null
+  status?: 'open' | 'closed'
+  counselor_id?: string | null
+  created_by?: string | null
+}
+export type PsychSessionUpdate = Partial<Omit<PsychSessionInsert, 'journey_id' | 'created_by'>>
+
+// ─── Documents (документы: пер-студенческий реестр с контролем срока) ─────────
+//
+// НОВАЯ чистая таблица document_records. НЕ путать с legacy-таблицами
+// document_types / document_categories / person_documents / journey_documents
+// (старый дизайн шаблонов/категорий) — они не используются этим модулем.
+
+export interface DocumentRecordRow {
+  id: string
+  journey_id: string
+  doc_type: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  title: string
+  issued_date: string | null       // ISO date 'YYYY-MM-DD' | null
+  expiry_date: string | null        // ISO date 'YYYY-MM-DD' | null
+  file_url: string | null
+  storage_path: string | null       // путь в приватном бакете Supabase Storage | null
+  file_name: string | null
+  mime_type: string | null
+  size_bytes: number | null
+  status: 'active' | 'archived'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DocumentRecordInsert {
+  id?: string
+  journey_id: string
+  doc_type?: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  title: string
+  issued_date?: string | null
+  expiry_date?: string | null
+  file_url?: string | null
+  storage_path?: string | null
+  file_name?: string | null
+  mime_type?: string | null
+  size_bytes?: number | null
+  status?: 'active' | 'archived'
+  notes?: string | null
+  created_by?: string | null
+}
+export type DocumentRecordUpdate = Partial<Omit<DocumentRecordInsert, 'journey_id' | 'created_by'>>
+
+// ─── Stage signatures (digital signature attached to a workflow stage completion) ───
+export interface StageSignatureRow {
+  id:                string
+  stage_instance_id: string
+  signed_by:         string           // server-set = the signer (never client input)
+  signer_name:       string           // snapshot of signer's full_name
+  signer_role_code:  string | null    // the stage's required role (capacity signed in)
+  signed_via:        'role' | 'override'
+  signature_kind:    'typed' | 'drawn'
+  typed_name:        string | null
+  drawing_path:      string | null    // storage_path in the private 'documents' bucket
+  final_code:        string | null
+  signed_at:         string
+  metadata:          Record<string, unknown>
+  created_at:        string
+}
+export interface StageSignatureInsert {
+  id?:               string
+  stage_instance_id: string
+  signed_by:         string
+  signer_name:       string
+  signer_role_code?: string | null
+  signed_via?:       'role' | 'override'
+  signature_kind:    'typed' | 'drawn'
+  typed_name?:       string | null
+  drawing_path?:     string | null
+  final_code?:       string | null
+  metadata?:         Record<string, unknown>
+}
+export type StageSignatureUpdate = Partial<StageSignatureInsert>
+
+// ─── App settings (global key/value config; single-org app) ───
+export interface AppSettingRow {
+  key:        string
+  value:      unknown
+  updated_at: string
+  updated_by: string | null
+}
+export interface AppSettingInsert {
+  key:         string
+  value:       unknown
+  updated_by?: string | null
+}
+export type AppSettingUpdate = Partial<Omit<AppSettingInsert, 'key'>>
+
+// ─── Notifications (личные уведомления в шапке) ──────────────────────────────
+export interface NotificationRow {
+  id:         string
+  person_id:  string
+  type:       string
+  title:      string
+  body:       string | null
+  link:       string | null
+  metadata:   Record<string, unknown>
+  read_at:    string | null
+  created_at: string
+}
+export interface NotificationInsert {
+  person_id: string
+  type?:     string
+  title:     string
+  body?:     string | null
+  link?:     string | null
+  metadata?: Record<string, unknown>
+}
+export type NotificationUpdate = Partial<Pick<NotificationRow, 'read_at'>>
+
+// ─── Study tracks (маршруты второй половины дня) ─────────────────────────────
+export interface StudyTrackRow {
+  id:            string
+  code:          string
+  name_he:       string
+  name_ru:       string
+  name_en:       string
+  department_id: string | null
+  category:      string | null
+  years_count:   number
+  sort_order:    number
+  is_active:     boolean
+  created_at:    string
+}
+export type StudyTrackInsert = Omit<StudyTrackRow, 'id' | 'created_at'>
+export type StudyTrackUpdate = Partial<StudyTrackInsert>
+
+export type StudyTrackRole = 'primary' | 'additional'
+export interface JourneyStudyTrackRow {
+  journey_id:   string
+  track_id:     string
+  role:         StudyTrackRole
+  notes:        string | null
+  year_level:   number
+  completed_at: string | null
+  updated_by:   string | null
+  updated_at:   string
+}
+export interface JourneyStudyTrackInsert {
+  journey_id:   string
+  track_id:     string
+  role?:        StudyTrackRole
+  notes?:       string | null
+  year_level?:  number
+  updated_by?:  string | null
+}
+export type JourneyStudyTrackUpdate = Partial<Omit<JourneyStudyTrackInsert, 'journey_id'>>
+
+// ─── Calendar events (личные события календаря + напоминания) ────────────────
+export interface CalendarEventRow {
+  id:          string
+  owner_id:    string
+  title:       string
+  notes:       string | null
+  event_date:  string
+  event_time:  string | null
+  all_day:     boolean
+  reminder_at: string | null
+  reminded_at: string | null
+  source_type: string
+  source_id:   string | null
+  link:        string | null
+  created_by:  string | null
+  created_at:  string
+}
+export interface CalendarEventInsert {
+  owner_id:    string
+  title:       string
+  notes?:      string | null
+  event_date:  string
+  event_time?: string | null
+  all_day?:    boolean
+  reminder_at?: string | null
+  source_type?: string
+  source_id?:  string | null
+  link?:       string | null
+  created_by?: string | null
+}
+export type CalendarEventUpdate = Partial<Omit<CalendarEventInsert, 'owner_id'>> & { reminded_at?: string | null }
+
+// ─── Contacts (контакты: справочник внешних контактов и организаций) ──────────
+//
+// САМОСТОЯТЕЛЬНЫЙ справочник — НЕ привязан к студентам (нет journey_id).
+
+export interface ContactRow {
+  id: string
+  name: string
+  contact_type: 'organization' | 'person'
+  category: 'supplier' | 'government' | 'partner' | 'emergency' | 'medical' | 'financial' | 'education' | 'other'
+  email: string | null
+  phone: string | null
+  address: string | null
+  website: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface ContactInsert {
+  id?: string
+  name: string
+  contact_type?: 'organization' | 'person'
+  category?: 'supplier' | 'government' | 'partner' | 'emergency' | 'medical' | 'financial' | 'education' | 'other'
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  website?: string | null
+  contact_person?: string | null
+  notes?: string | null
+  is_active?: boolean
+  created_by?: string | null
+}
+export type ContactUpdate = Partial<Omit<ContactInsert, 'created_by'>>
+
+// ─── Sponsors / Donations (спонсоры-доноры: справочник + реестр пожертвований) ─
+//
+// НОВЫЕ чистые таблицы `sponsors` и `donations`. НЕ путать с legacy
+// `sponsor_profiles` (SponsorProfileRow ниже/выше) от прежнего дизайна — тот
+// модуль их НЕ трогает. donations.sponsor_id → sponsors(id) ON DELETE CASCADE.
+
+export interface SponsorRow {
+  id: string
+  name: string
+  sponsor_type: 'individual' | 'organization' | 'foundation'
+  email: string | null
+  phone: string | null
+  address: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface SponsorInsert {
+  id?: string
+  name: string
+  sponsor_type?: 'individual' | 'organization' | 'foundation'
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  contact_person?: string | null
+  notes?: string | null
+  is_active?: boolean
+  created_by?: string | null
+}
+export type SponsorUpdate = Partial<Omit<SponsorInsert, 'created_by'>>
+
+export interface DonationRow {
+  id: string
+  sponsor_id: string
+  amount: number
+  donation_date: string            // ISO date 'YYYY-MM-DD'
+  purpose: string | null
+  campaign: string | null
+  method: string | null
+  status: 'pledged' | 'received' | 'cancelled'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface DonationInsert {
+  id?: string
+  sponsor_id: string
+  amount: number
+  donation_date: string
+  purpose?: string | null
+  campaign?: string | null
+  method?: string | null
+  status?: 'pledged' | 'received' | 'cancelled'
+  notes?: string | null
+  created_by?: string | null
+}
+export type DonationUpdate = Partial<Omit<DonationInsert, 'sponsor_id' | 'created_by'>>
+
+// ─── Календарь (личный, self-scoped по provider_id) ──────────────────────────
+
+export interface AppointmentRow {
+  id: string
+  provider_id: string
+  journey_id: string | null       // опциональный студент
+  title: string
+  reason: string | null
+  starts_at: string               // ISO timestamptz
+  ends_at: string                 // ISO timestamptz
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface AppointmentInsert {
+  id?: string
+  provider_id: string
+  journey_id?: string | null
+  title: string
+  reason?: string | null
+  starts_at: string
+  ends_at: string
+  status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
+  notes?: string | null
+  created_by?: string | null
+}
+export type AppointmentUpdate = Partial<Omit<AppointmentInsert, 'provider_id' | 'created_by'>>
+
+export interface CalendarBlockRow {
+  id: string
+  provider_id: string
+  block_date: string              // ISO date 'YYYY-MM-DD'
+  reason: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface CalendarBlockInsert {
+  id?: string
+  provider_id: string
+  block_date: string
+  reason?: string | null
+  created_by?: string | null
+}
+export type CalendarBlockUpdate = Partial<Omit<CalendarBlockInsert, 'provider_id' | 'created_by'>>
+
 // ─── Supabase Database interface ─────────────────────────────────────────────
 
 // Makes Row/Insert/Update satisfy supabase-js GenericTable (requires index sig)
@@ -1119,6 +2053,11 @@ type T<Row, Insert, Update> = {
   Update: Update & Record<string, unknown>
   Relationships: never[]
 }
+
+// Pulls a table's {Row, Insert, Update, Relationships} straight from the
+// auto-generated schema — used for tables not hand-maintained above.
+type Gen<K extends keyof GeneratedDatabase['public']['Tables']> =
+  GeneratedDatabase['public']['Tables'][K]
 
 export interface Database {
   public: {
@@ -1141,6 +2080,8 @@ export interface Database {
       role_privileges:   T<RolePrivilegeRow,    RolePrivilegeInsert,    RolePrivilegeUpdate>
       person_roles:      T<PersonRoleRow,       PersonRoleInsert,       PersonRoleUpdate>
       module_privileges: T<ModulePrivilegeRow,  ModulePrivilegeInsert,  ModulePrivilegeUpdate>
+      security_tree_nodes:       T<SecurityTreeNodeRow,          SecurityTreeNodeInsert,          SecurityTreeNodeUpdate>
+      security_tree_items:       T<SecurityTreeItemRow,          SecurityTreeItemInsert,          SecurityTreeItemUpdate>
       person_privileges:       T<PersonPrivilegeRow,          PersonPrivilegeInsert,          PersonPrivilegeUpdate>
       lead_interests:            T<LeadInterestRow,              LeadInterestInsert,              LeadInterestUpdate>
       person_status_history:     T<PersonStatusHistoryRow,       PersonStatusHistoryInsert,       PersonStatusHistoryUpdate>
@@ -1162,6 +2103,13 @@ export interface Database {
       class_groups:              T<ClassGroupRow,                ClassGroupInsert,                ClassGroupUpdate>
       class_enrollments:         T<ClassEnrollmentRow,           ClassEnrollmentInsert,           ClassEnrollmentUpdate>
       class_teachers:            T<ClassTeacherRow,              ClassTeacherInsert,              ClassTeacherInsert>
+      lessons:                   T<LessonRow,                    LessonInsert,                    LessonUpdate>
+      attendance:                T<AttendanceRow,                AttendanceInsert,                AttendanceUpdate>
+      assessments:               T<AssessmentRow,                AssessmentInsert,                AssessmentUpdate>
+      grades:                    T<GradeRow,                     GradeInsert,                     GradeUpdate>
+      class_schedule_slots:      T<ScheduleSlotRow,              ScheduleSlotInsert,              ScheduleSlotUpdate>
+      finance_charges:           T<FinanceChargeRow,             FinanceChargeInsert,             FinanceChargeUpdate>
+      finance_payments:          T<FinancePaymentRow,            FinancePaymentInsert,            FinancePaymentUpdate>
       process_templates:         T<ProcessTemplateRow,           ProcessTemplateInsert,           ProcessTemplateUpdate>
       stage_templates:           T<StageTemplateRow,             StageTemplateInsert,             StageTemplateUpdate>
       stage_task_templates:      T<StageTaskTemplateRow,         StageTaskTemplateInsert,         StageTaskTemplateUpdate>
@@ -1171,13 +2119,76 @@ export interface Database {
       process_instances:         T<ProcessInstanceRow,           ProcessInstanceInsert,           ProcessInstanceUpdate>
       stage_instances:           T<StageInstanceRow,             StageInstanceInsert,             StageInstanceUpdate>
       stage_actions:             T<StageActionRow,               StageActionInsert,               StageActionUpdate>
+      stage_signatures:          T<StageSignatureRow,            StageSignatureInsert,            StageSignatureUpdate>
+      app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
+      notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
+      study_tracks:              T<StudyTrackRow,                StudyTrackInsert,                StudyTrackUpdate>
+      journey_study_tracks:      T<JourneyStudyTrackRow,         JourneyStudyTrackInsert,         JourneyStudyTrackUpdate>
+      calendar_events:           T<CalendarEventRow,             CalendarEventInsert,             CalendarEventUpdate>
       document_categories:       T<DocumentCategoryRow,          DocumentCategoryRow,             Partial<DocumentCategoryRow>>
       document_types:            T<DocumentTypeRow,              DocumentTypeRow,                 Partial<DocumentTypeRow>>
       person_documents:          T<PersonDocumentRow,            PersonDocumentInsert,            PersonDocumentUpdate>
       audit_log:                 T<AuditLogRow,                  AuditLogInsert,                  AuditLogUpdate>
+      dorm_buildings:            T<DormBuildingRow,              DormBuildingInsert,              DormBuildingUpdate>
+      dorm_rooms:                T<DormRoomRow,                  DormRoomInsert,                  DormRoomUpdate>
+      dorm_assignments:          T<DormAssignmentRow,            DormAssignmentInsert,            DormAssignmentUpdate>
+      meal_plans:                T<MealPlanRow,                  MealPlanInsert,                  MealPlanUpdate>
+      meal_enrollments:          T<MealEnrollmentRow,            MealEnrollmentInsert,            MealEnrollmentUpdate>
+      dietary_profiles:          T<DietaryProfileRow,            DietaryProfileInsert,            DietaryProfileUpdate>
+      maintenance_requests:      T<MaintenanceRequestRow,        MaintenanceRequestInsert,        MaintenanceRequestUpdate>
+      security_incidents:        T<SecurityIncidentRow,          SecurityIncidentInsert,          SecurityIncidentUpdate>
+      medical_profiles:          T<MedicalProfileRow,            MedicalProfileInsert,            MedicalProfileUpdate>
+      medical_visits:            T<MedicalVisitRow,              MedicalVisitInsert,              MedicalVisitUpdate>
+      psych_profiles:            T<PsychProfileRow,              PsychProfileInsert,              PsychProfileUpdate>
+      psych_sessions:            T<PsychSessionRow,              PsychSessionInsert,              PsychSessionUpdate>
+      document_records:          T<DocumentRecordRow,            DocumentRecordInsert,            DocumentRecordUpdate>
+      contacts:                  T<ContactRow,                   ContactInsert,                   ContactUpdate>
+      sponsors:                  T<SponsorRow,                   SponsorInsert,                   SponsorUpdate>
+      donations:                 T<DonationRow,                  DonationInsert,                  DonationUpdate>
+      appointments:              T<AppointmentRow,               AppointmentInsert,               AppointmentUpdate>
+      calendar_blocks:           T<CalendarBlockRow,             CalendarBlockInsert,             CalendarBlockUpdate>
+      // ─── Tables pulled from the auto-generated schema (not hand-maintained) ───
+      absence_cases: Gen<'absence_cases'>
+      academic_year_settings: Gen<'academic_year_settings'>
+      admission_contracts: Gen<'admission_contracts'>
+      appointment_attendees: Gen<'appointment_attendees'>
+      buildings: Gen<'buildings'>
+      chavruta_pairs: Gen<'chavruta_pairs'>
+      chavruta_plus_assignments: Gen<'chavruta_plus_assignments'>
+      chavruta_teachers: Gen<'chavruta_teachers'>
+      finance_access_grants: Gen<'finance_access_grants'>
+      finance_discounts: Gen<'finance_discounts'>
+      jewishness_status_history: Gen<'jewishness_status_history'>
+      journey_structures: Gen<'journey_structures'>
+      journey_study_plans: Gen<'journey_study_plans'>
+      kodesh_exceptions: Gen<'kodesh_exceptions'>
+      lesson_notes: Gen<'lesson_notes'>
+      lesson_roster_overrides: Gen<'lesson_roster_overrides'>
+      process_events: Gen<'process_events'>
+      rooms: Gen<'rooms'>
+      semester_enrollments: Gen<'semester_enrollments'>
+      semesters: Gen<'semesters'>
+      staff_compensation: Gen<'staff_compensation'>
+      staff_event_attendees: Gen<'staff_event_attendees'>
+      staff_payslips: Gen<'staff_payslips'>
+      staff_work_entries: Gen<'staff_work_entries'>
+      student_credentials: Gen<'student_credentials'>
+      student_evaluations: Gen<'student_evaluations'>
+      student_messages: Gen<'student_messages'>
+      student_personal_events: Gen<'student_personal_events'>
+      teacher_attendance: Gen<'teacher_attendance'>
+      teacher_attendance_grants: Gen<'teacher_attendance_grants'>
+      teaching_survey_answers: Gen<'teaching_survey_answers'>
+      teaching_survey_questions: Gen<'teaching_survey_questions'>
+      teaching_survey_responses: Gen<'teaching_survey_responses'>
+      teaching_surveys: Gen<'teaching_surveys'>
     }
     Views: Record<string, never>
     Functions: {
+      advance_academic_year: {
+        Args: Record<string, never>
+        Returns: Array<{ graduated: number; promoted: number }>
+      }
       verify_login: {
         Args: { p_email: string }
         Returns: Array<{
@@ -1207,6 +2218,20 @@ export interface Database {
           department_id: string
         }
       }
+      merge_persons: {
+        Args: {
+          p_keep: string
+          p_remove: string
+          p_keep_fields?: Record<string, unknown>
+          p_actor?: string
+        }
+        Returns: {
+          kept: string
+          removed: string
+          refs_moved: number
+          refs_dropped: number
+        }
+      }
       reactivate_stage: {
         Args: { p_stage_instance_id: string; p_actor_id: string }
         Returns: { stage_instance_id: string }
@@ -1226,6 +2251,26 @@ export interface Database {
       complete_stage: {
         Args: { p_stage_instance_id: string; p_final_code: string; p_actor_id: string | null; p_result_data?: Record<string, unknown> | null }
         Returns: { stage_instance_id: string; activated_stage_ids: string[]; process_completed: boolean; finish_reason: string | null }
+      }
+      transition_education_status: {
+        Args: {
+          p_journey_id: string
+          p_to_status: string
+          p_actor_id: string | null
+          p_reason?: string | null
+          p_effective_date?: string | null
+        }
+        Returns: { journey_id: string; from_status: string; to_status: string }
+      }
+      acceptance_apply_dormitory_gating: {
+        Args: { p_journey_id: string; p_actor_id: string | null }
+        Returns: {
+          applied: boolean
+          reason?: string
+          needs_dormitory?: boolean
+          activated?: string[]
+          skipped?: string[]
+        }
       }
     }
     Enums: Record<string, never>

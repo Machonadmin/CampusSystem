@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
 import type { TaskRow } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
 /**
  * GET /api/tasks/[id]/watchers — список наблюдателей.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -29,16 +23,16 @@ export async function GET(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
     if (!access.canView) {
-      return NextResponse.json({ error: 'Нет доступа' }, { status: 403 })
+      return apiError('no_access', 403)
     }
 
     const { data, error } = await sb
       .from('task_watchers')
-      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
       .eq('task_id', params.id)
       .order('added_at', { ascending: true })
 
@@ -48,9 +42,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -58,10 +52,8 @@ export async function GET(
  * POST /api/tasks/[id]/watchers — добавить наблюдателя.
  * Body: { person_id: string } или { person_ids: string[] } (батч)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -69,7 +61,7 @@ export async function POST(
     const body = await request.json() as { person_id?: string; person_ids?: string[] }
     const personIds = body.person_ids ?? (body.person_id ? [body.person_id] : [])
     if (personIds.length === 0) {
-      return NextResponse.json({ error: 'Не указан наблюдатель' }, { status: 400 })
+      return apiError('observer_not_specified', 400)
     }
 
     const { data: task, error: tErr } = await sb
@@ -79,11 +71,14 @@ export async function POST(
       .maybeSingle()
     if (tErr) throw tErr
     if (!task) {
-      return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 })
+      return apiError('task_not_found', 404)
     }
-    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [])
-    if (!access.canView) {
-      return NextResponse.json({ error: 'Нет доступа' }, { status: 403 })
+    // Добавлять наблюдателей может только тот, кто может РЕДАКТИРОВАТЬ задачу
+    // (canEdit — как в PATCH /api/tasks/[id]). Раньше хватало canView, из-за чего
+    // любой зритель мог инъектировать наблюдателей.
+    const access = await getTaskAccess(task as unknown as TaskRow, session.person_id, session.roles ?? [], session)
+    if (!access.canEdit) {
+      return apiError('only_author_can_edit_task', 403)
     }
 
     const rows = personIds.map(person_id => ({
@@ -96,11 +91,11 @@ export async function POST(
     const { data, error } = await sb
       .from('task_watchers')
       .upsert(rows, { onConflict: 'task_id,person_id', ignoreDuplicates: true })
-      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name)')
+      .select('*, person:persons!task_watchers_person_id_fkey(id, full_name, hebrew_name)')
 
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ watchers: data ?? [] }, { status: 201 })
@@ -108,8 +103,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

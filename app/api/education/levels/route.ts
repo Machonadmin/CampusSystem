@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedRefName } from '@/lib/education/localized-ref'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/levels?direction_id={uuid}
@@ -13,11 +17,11 @@ import { getSession } from '@/lib/auth/session'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    if (!session) return apiError('unauthorized', 401)
 
     const directionId = request.nextUrl.searchParams.get('direction_id')
     if (!directionId) {
-      return NextResponse.json({ error: 'direction_id обязателен' }, { status: 400 })
+      return apiError('direction_id_required', 400)
     }
 
     const sb = createServerClient()
@@ -28,19 +32,24 @@ export async function GET(request: NextRequest) {
       .eq('id', directionId)
       .maybeSingle()
     if (dirErr) throw dirErr
-    if (!direction) return NextResponse.json({ error: 'Направление не найдено' }, { status: 404 })
+    if (!direction) return apiError('direction_not_found', 404)
 
-    const { data, error } = await sb
+    const lang = getCookieLocale()
+    const full = await sb
       .from('reference_levels')
-      .select('id, name_ru, sort_order')
+      .select('id, name_ru, name_he, name_en, sort_order')
       .eq('direction_id', directionId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
-    if (error) throw error
+    const rows = full.error
+      ? ((await sb.from('reference_levels').select('id, name_ru, sort_order').eq('direction_id', directionId).eq('is_active', true).order('sort_order', { ascending: true })).data ?? [])
+      : (full.data ?? [])
+    const levels = (rows as Array<{ id: string; name_ru: string; name_he?: string | null; name_en?: string | null; sort_order: number }>)
+      .map(l => ({ ...l, name: localizedRefName(l, lang) }))
 
-    return NextResponse.json({ levels: data ?? [] })
+    return NextResponse.json({ levels })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

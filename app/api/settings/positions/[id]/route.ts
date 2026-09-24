@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
 import type { PositionCategory, ReferencePositionUpdate } from '@/types/database'
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw Object.assign(new Error('Не авторизован'), { status: 401 })
-  return session
-}
 
-function isAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
+function isAdmin(session: Awaited<ReturnType<typeof requireStaff>>) {
   const roles = session.roles ?? []
   return roles.includes('superadmin') || roles.includes('admin') || roles.includes('hr_director')
 }
 
 const VALID_CATEGORIES: PositionCategory[] = ['academic', 'administrative', 'support']
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
     const { data, error } = await sb
       .from('reference_positions')
@@ -29,11 +23,11 @@ export async function GET(
       .eq('id', params.id)
       .maybeSingle()
     if (error) throw error
-    if (!data) return NextResponse.json({ error: 'Должность не найдена' }, { status: 404 })
+    if (!data) return apiError('position_not_found', 404)
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -41,14 +35,12 @@ export async function GET(
  * PATCH /api/settings/positions/[id]
  * Право: superadmin / admin / hr_director
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     if (!isAdmin(session)) {
-      return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      return apiError('forbidden', 403)
     }
 
     const sb = createServerClient()
@@ -67,21 +59,18 @@ export async function PATCH(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Должность не найдена' }, { status: 404 })
+    if (!current) return apiError('position_not_found', 404)
 
     const update: ReferencePositionUpdate = {}
     if (body.name_ru !== undefined) {
       const n = body.name_ru.trim()
-      if (!n) return NextResponse.json({ error: 'Название не может быть пустым' }, { status: 400 })
+      if (!n) return apiError('title_not_empty', 400)
       update.name_ru = n
     }
     if (body.name_he !== undefined) update.name_he = body.name_he?.trim() || null
     if (body.category !== undefined) {
       if (!VALID_CATEGORIES.includes(body.category as PositionCategory)) {
-        return NextResponse.json(
-          { error: 'category должен быть одним из: academic, administrative, support' },
-          { status: 400 }
-        )
+        return apiError('category_enum', 400)
       }
       update.category = body.category as PositionCategory
     }
@@ -90,7 +79,7 @@ export async function PATCH(
     if (body.sort_order  !== undefined) update.sort_order  = body.sort_order
 
     if (Object.keys(update).length === 0) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const { data, error } = await sb
@@ -102,7 +91,7 @@ export async function PATCH(
 
     if (error) {
       if (error.code === '23505') {
-        return NextResponse.json({ error: 'Должность с таким названием уже существует' }, { status: 409 })
+        return apiError('position_exists', 409)
       }
       throw error
     }
@@ -110,7 +99,7 @@ export async function PATCH(
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -119,14 +108,12 @@ export async function PATCH(
  * Мягкое удаление (is_active = false).
  * Право: superadmin / admin / hr_director
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     if (!isAdmin(session)) {
-      return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
+      return apiError('forbidden', 403)
     }
 
     const sb = createServerClient()
@@ -137,7 +124,7 @@ export async function DELETE(
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
-    if (!current) return NextResponse.json({ error: 'Должность не найдена' }, { status: 404 })
+    if (!current) return apiError('position_not_found', 404)
 
     const { data, error } = await sb
       .from('reference_positions')
@@ -150,6 +137,6 @@ export async function DELETE(
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

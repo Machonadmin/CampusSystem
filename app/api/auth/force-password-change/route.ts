@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/i18n/api-errors'
+import { createServerClient } from '@/lib/supabase/server'
+import { getSession, reissueSession } from '@/lib/auth/session'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
+import { hashPassword, passwordStrengthIssue } from '@/lib/auth/password'
+import { throttleAuth } from '@/lib/auth/login-throttle'
+import { errorResponse } from '@/lib/api/handler'
+
+/**
+ * POST /api/auth/force-password-change  { new_password }  (STAFF)
+ * Первая обязательная смена временного пароля. НЕ требует текущего пароля
+ * (пользователь только что вошёл), но разрешена ТОЛЬКО когда стоит флаг
+ * must_change_password — иначе это обычная смена через /api/auth/change-password.
+ * Ставит новый хеш и снимает флаг.
+ */
+
+export async function POST(request: NextRequest) {
+  try {
+    const throttled = throttleAuth(request, 'force-password-change')
+    if (throttled) return throttled
+
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    if (session.principal === 'student') return apiError('forbidden', 403)
+    // Режим «צפייה כמשתמש» — только чтение; /api/auth/* middleware не
+    // проверяет, поэтому здесь. Иначе смотрящий мог бы задать пароль человеку,
+    // у которого ещё стоит флаг обязательной смены.
+    if (session.imp_by) return apiError('forbidden', 403)
+
+    const { new_password } = await request.json().catch(() => ({})) as { new_password?: string }
+    const issue = passwordStrengthIssue(new_password ?? '')
+    if (issue) return apiError(issue === 'too_short' ? 'new_password_min_8' : 'password_need_letter_and_digit', 400)
+
+    const sb = createServerClient()
+    const { data: account } = await sb.from('person_accounts')
+      .select('id, must_change_password').eq('person_id', session.person_id).eq('login_email', session.login_email).maybeSingle()
+    if (!account) return apiError('account_not_found', 404)
+    if (!(account as { must_change_password?: boolean }).must_change_password) return apiError('forbidden', 403)
+
+    const password_hash = await hashPassword(new_password!)
+    const { error } = await sb.from('person_accounts')
+      .update({ password_hash, must_change_password: false }).eq('id', (account as { id: string }).id)
+    if (error) throw error
+    // Временный пароль мог видеть кто-то ещё: выходим везде, кроме этого браузера.
+    await revokeSessionsBefore('person_accounts', 'id', (account as { id: string }).id)
+    await reissueSession(session)
+    return NextResponse.json({ ok: true })
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    return errorResponse({ message: e.message, status: 500 })
+  }
+}

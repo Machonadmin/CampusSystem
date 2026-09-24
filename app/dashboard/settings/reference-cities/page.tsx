@@ -3,8 +3,13 @@
 import { useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { CountrySelect } from '@/components/ui/country-select'
-import { getModuleColor, getModuleHeaderGradient } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { getModuleColor } from '@/lib/module-colors'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { countryLabel } from '@/lib/geo'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface CityRow { id: string; country: string; city: string }
 
@@ -13,10 +18,11 @@ const accentLight = getModuleColor('settings', 'light')
 
 export default function ReferenceCitiesPage() {
   const t = useTranslations('settings.reference_cities')
+  const { lang } = useLang()
   const tNav = useTranslations('navigation')
   const [country, setCountry] = useState('Израиль')
   const [cities, setCities] = useState<CityRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newCity, setNewCity] = useState('')
   const [busy, setBusy] = useState(false)
@@ -42,7 +48,11 @@ export default function ReferenceCitiesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [country])
+  useEffect(() => {
+    load()
+    // load — обычная функция (не useCallback); эффект намеренно перезапускается по country.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country])
 
   async function addCity() {
     const trimmed = newCity.trim()
@@ -92,7 +102,7 @@ export default function ReferenceCitiesPage() {
   }
 
   async function deleteCity(id: string, cityName: string) {
-    if (!confirm(t('confirm_delete').replace('{name}', cityName))) return
+    if (!(await confirmDialog({ message: t('confirm_delete').replace('{name}', cityName), tone: 'danger' }))) return
     setBusy(true)
     setErrMsg('')
     try {
@@ -115,21 +125,10 @@ export default function ReferenceCitiesPage() {
         { label: t('title') },
       ]} />
 
-      <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{
-          background: getModuleHeaderGradient('settings'),
-          padding: '12px 24px',
-          boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
-        }}
-      >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF' }}>
-          {t('title')}
-        </h1>
-      </div>
+      <ModuleHeader module="settings" title={t('title')} />
 
       <div style={{ maxWidth: 420 }}>
-        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
           {t('country_label')}
         </label>
         <CountrySelect
@@ -137,17 +136,17 @@ export default function ReferenceCitiesPage() {
           onChange={setCountry}
           style={{
             width: '100%', padding: '8px 10px', fontSize: 13,
-            border: '1px solid #D1D5DB', borderRadius: 8, outline: 'none',
-            backgroundColor: '#fff',
+            border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none',
+            backgroundColor: 'var(--surface)',
           }}
         />
       </div>
 
       <div style={{
-        background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: 20,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             {t('cities_title')} ({cities.length})
           </h2>
           {!showAdd && (
@@ -166,20 +165,20 @@ export default function ReferenceCitiesPage() {
 
         {errMsg && (
           <div style={{
-            padding: '8px 12px', marginBottom: 12, background: '#FEF2F2',
-            border: '1px solid #FCA5A5', color: '#B91C1C', borderRadius: 6, fontSize: 12,
+            padding: '8px 12px', marginBottom: 12, background: 'var(--danger-tint)',
+            border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 6, fontSize: 12,
           }}>{errMsg}</div>
         )}
 
         {showAdd && (
           <div style={{
-            background: accentLight, border: `1px solid ${accent}33`,
+            background: accentLight, border: `1px solid color-mix(in oklab, ${accent} 20%, transparent)`,
             borderRadius: 8, padding: 14, marginBottom: 16,
           }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-              {t('city_name_in_country_label').replace('{country}', country)}
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
+              {t('city_name_in_country_label').replace('{country}', countryLabel(country, lang))}
             </label>
-            <input
+            <input aria-label={t('city_name_placeholder')}
               autoFocus
               value={newCity}
               onChange={e => setNewCity(e.target.value)}
@@ -190,29 +189,30 @@ export default function ReferenceCitiesPage() {
               placeholder={t('city_name_placeholder')}
               style={{
                 width: '100%', padding: '8px 10px', fontSize: 13,
-                border: '1px solid #D1D5DB', borderRadius: 6, outline: 'none',
+                border: '1px solid var(--border-strong)', borderRadius: 6, outline: 'none',
                 marginBottom: 10, boxSizing: 'border-box',
               }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
-              <button
+              <SubmitButton
                 onClick={addCity}
+                loading={busy}
+                loadingLabel={t('saving')}
                 disabled={!newCity.trim() || busy}
                 style={{
                   padding: '7px 14px', fontSize: 12, fontWeight: 600,
-                  background: newCity.trim() && !busy ? accent : '#E5E7EB',
-                  color: newCity.trim() && !busy ? '#fff' : '#9CA3AF',
+                  background: newCity.trim() && !busy ? accent : 'var(--border)',
+                  color: newCity.trim() && !busy ? 'var(--surface)' : 'var(--text-faint)',
                   border: 'none', borderRadius: 6,
-                  cursor: newCity.trim() && !busy ? 'pointer' : 'not-allowed',
                 }}
               >
-                {busy ? t('saving') : t('save_button')}
-              </button>
+                {t('save_button')}
+              </SubmitButton>
               <button
                 onClick={() => { setShowAdd(false); setNewCity(''); setErrMsg('') }}
                 style={{
-                  padding: '7px 14px', fontSize: 12, color: '#6B7280',
-                  background: '#fff', border: '1px solid #D1D5DB', borderRadius: 6, cursor: 'pointer',
+                  padding: '7px 14px', fontSize: 12, color: 'var(--text-muted)',
+                  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
                 }}
               >
                 {t('cancel')}
@@ -222,11 +222,9 @@ export default function ReferenceCitiesPage() {
         )}
 
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
-            {t('loading')}
-          </div>
+          <SkeletonRows avatar={false} />
         ) : cities.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
             {t('empty_none')}
           </div>
         ) : (
@@ -236,8 +234,8 @@ export default function ReferenceCitiesPage() {
                 key={c.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', background: '#F9FAFB',
-                  border: '1px solid #F3F4F6', borderRadius: 6,
+                  padding: '10px 12px', background: 'var(--surface-2)',
+                  border: '1px solid var(--surface-2)', borderRadius: 6,
                 }}
               >
                 {editingId === c.id ? (
@@ -267,26 +265,26 @@ export default function ReferenceCitiesPage() {
                     <button
                       onClick={() => setEditingId(null)}
                       style={{
-                        padding: '5px 10px', fontSize: 12, color: '#6B7280',
-                        background: '#fff', border: '1px solid #D1D5DB', borderRadius: 4, cursor: 'pointer',
+                        padding: '5px 10px', fontSize: 12, color: 'var(--text-muted)',
+                        background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('cancel')}</button>
                   </>
                 ) : (
                   <>
-                    <span style={{ flex: 1, fontSize: 13, color: '#1F2937' }}>{c.city}</span>
+                    <span style={{ flex: 1, fontSize: 13, color: 'var(--text)' }}>{c.city}</span>
                     <button
                       onClick={() => { setEditingId(c.id); setEditValue(c.city) }}
                       style={{
                         padding: '5px 10px', fontSize: 12, color: accent,
-                        background: '#fff', border: `1px solid ${accent}66`, borderRadius: 4, cursor: 'pointer',
+                        background: 'var(--surface)', border: `1px solid color-mix(in oklab, ${accent} 40%, transparent)`, borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('edit_button')}</button>
                     <button
                       onClick={() => deleteCity(c.id, c.city)}
                       style={{
-                        padding: '5px 10px', fontSize: 12, color: '#DC2626',
-                        background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 4, cursor: 'pointer',
+                        padding: '5px 10px', fontSize: 12, color: 'var(--danger)',
+                        background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 4, cursor: 'pointer',
                       }}
                     >{t('delete_button')}</button>
                   </>

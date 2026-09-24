@@ -1,42 +1,49 @@
 'use client'
 
 import type { TaskRow } from '@/types/database'
+import { todayISO } from '@/lib/dates'
+import { isOpenTaskStatus } from '@/lib/tasks/status'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
+import AddToCalendar from '@/components/calendar/AddToCalendar'
+// STATUS_COLORS / PRIORITY_COLORS — единая копия в TaskDetailBody (идентичны).
+import { STATUS_COLORS, PRIORITY_COLORS } from './TaskDetailBody'
 
 interface Props {
   tasks: TaskRow[]
   onTaskClick: (taskId: string) => void
+  // Массовый выбор (bulk). Если передан onToggleSelect — рисуем чекбоксы.
+  selectedIds?: Set<string>
+  onToggleSelect?: (taskId: string) => void
+  // Быстрое «✓ выполнено» с карточки (1 тап вместо 4 через bulk).
+  onQuickComplete?: (taskId: string) => void
+  completingIds?: Set<string>
 }
 
-const STATUS_COLORS: Record<TaskRow['status'], { bg: string; fg: string }> = {
-  unassigned:  { bg: '#F3F4F6', fg: '#374151' },
-  pending:     { bg: '#DBEAFE', fg: '#1E40AF' },
-  in_progress: { bg: '#FEF3C7', fg: '#92400E' },
-  review:      { bg: '#FCE7F3', fg: '#9D174D' },
-  completed:   { bg: '#D1FAE5', fg: '#065F46' },
-  cancelled:   { bg: '#F3F4F6', fg: '#6B7280' },
-  declined:    { bg: '#FEE2E2', fg: '#991B1B' },
-}
-
-const PRIORITY_COLORS: Record<TaskRow['priority'], string> = {
-  low:    '#9CA3AF',
-  normal: '#6B7280',
-  high:   '#F59E0B',
-  urgent: '#DC2626',
-}
-
-export default function TasksList({ tasks, onTaskClick }: Props) {
+export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSelect, onQuickComplete, completingIds }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {tasks.map(t => (
-        <TaskCard key={t.id} task={t} onClick={() => onTaskClick(t.id)} />
+        <TaskCard
+          key={t.id}
+          task={t}
+          onClick={() => onTaskClick(t.id)}
+          selectable={!!onToggleSelect}
+          selected={selectedIds?.has(t.id) ?? false}
+          onToggleSelect={onToggleSelect ? () => onToggleSelect(t.id) : undefined}
+          onQuickComplete={onQuickComplete ? () => onQuickComplete(t.id) : undefined}
+          completing={completingIds?.has(t.id) ?? false}
+        />
       ))}
     </div>
   )
 }
 
-function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
+function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuickComplete, completing }: {
+  task: TaskRow; onClick: () => void
+  selectable?: boolean; selected?: boolean; onToggleSelect?: () => void
+  onQuickComplete?: () => void; completing?: boolean
+}) {
   const t = useTranslations('tasks')
   const { lang } = useLang()
   const status = STATUS_COLORS[task.status]
@@ -44,16 +51,16 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
   const dueText = formatDue(task.due_date, task.due_time, task.due_all_day, lang)
   const isOverdue =
     !!task.due_date &&
-    task.due_date < new Date().toISOString().slice(0, 10) &&
-    !['completed', 'cancelled', 'declined'].includes(task.status)
+    task.due_date < todayISO() &&
+    isOpenTaskStatus(task.status)
 
   return (
     <div
       onClick={onClick}
       style={{
         display: 'flex',
-        background: '#fff',
-        border: '1px solid #E5E7EB',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderRadius: 10,
         cursor: 'pointer',
         overflow: 'hidden',
@@ -61,6 +68,16 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
     >
+      {/* Чекбокс массового выбора */}
+      {selectable && (
+        <div
+          onClick={e => { e.stopPropagation(); onToggleSelect?.() }}
+          style={{ display: 'flex', alignItems: 'center', padding: '0 4px 0 12px', flexShrink: 0 }}
+        >
+          <input type="checkbox" checked={!!selected} readOnly style={{ width: 16, height: 16, cursor: 'pointer' }} />
+        </div>
+      )}
+
       {/* Priority bar */}
       <div style={{ width: 4, background: priorityColor, flexShrink: 0 }} />
 
@@ -68,7 +85,7 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
       <div style={{ padding: '12px 16px', flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <div style={{
-            fontSize: 14, fontWeight: 600, color: '#111827',
+            fontSize: 14, fontWeight: 600, color: 'var(--text)',
             flex: 1, minWidth: 0,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
@@ -77,16 +94,34 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
 
           <span style={{
             padding: '2px 8px', fontSize: 11, fontWeight: 600,
-            background: status.bg, color: status.fg, borderRadius: 12,
+            background: status.bg, color: status.fg, borderRadius: 14,
             whiteSpace: 'nowrap', flexShrink: 0,
           }}>
             {t(`status.${task.status}`, task.status)}
           </span>
 
+          {onQuickComplete && isOpenTaskStatus(task.status) && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); if (!completing) onQuickComplete() }}
+              aria-label={t('card.mark_done')}
+              title={t('card.mark_done')}
+              disabled={completing}
+              style={{
+                flexShrink: 0, width: 26, height: 26, borderRadius: 999, cursor: completing ? 'default' : 'pointer',
+                border: '1.5px solid var(--success)', background: 'transparent', color: 'var(--success)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700, lineHeight: 1, opacity: completing ? 0.5 : 1,
+              }}
+            >
+              ✓
+            </button>
+          )}
+
           {dueText && (
             <span style={{
               fontSize: 12,
-              color: isOverdue ? '#DC2626' : '#6B7280',
+              color: isOverdue ? 'var(--danger)' : 'var(--text-muted)',
               fontWeight: isOverdue ? 600 : 400,
               whiteSpace: 'nowrap', flexShrink: 0,
             }}>
@@ -97,23 +132,34 @@ function TaskCard({ task, onClick }: { task: TaskRow; onClick: () => void }) {
 
         {task.description && (
           <div style={{
-            fontSize: 13, color: '#6B7280', marginBottom: 6,
+            fontSize: 13, color: 'var(--text-muted)', marginBottom: 6,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {task.description}
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: '#9CA3AF' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: 'var(--text-faint)' }}>
           <span>{t(`module.${task.module}`, task.module)}</span>
           {task.recurrence_series_id && (
             <span style={{
-              padding: '1px 8px', background: '#FEF3C7', color: '#92400E',
+              padding: '1px 8px', background: 'var(--warn-tint)', color: 'var(--warn)',
               borderRadius: 8, fontWeight: 500,
             }}>
               {t('card.series')}
             </span>
           )}
+          <span style={{ marginInlineStart: 'auto' }} onClick={e => e.stopPropagation()}>
+            <AddToCalendar
+              variant="link"
+              defaultTitle={task.title}
+              defaultDate={task.due_date ?? undefined}
+              defaultTime={!task.due_all_day && task.due_time ? task.due_time.slice(0, 5) : undefined}
+              sourceType="task"
+              sourceId={task.id}
+              link={`/dashboard/tasks/${task.id}`}
+            />
+          </span>
         </div>
       </div>
     </div>

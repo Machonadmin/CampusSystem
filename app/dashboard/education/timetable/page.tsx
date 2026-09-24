@@ -1,0 +1,474 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import { Breadcrumb } from '@/components/settings/Breadcrumb'
+import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
+import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { getModuleColor } from '@/lib/module-colors'
+import SlotFormModal, { type SlotFormSlot } from '@/components/education/SlotFormModal'
+import CancelLessonDialog from './CancelLessonDialog'
+
+interface Slot {
+  id: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  room: string | null
+  class_group_id: string
+  class_group_name: string
+  subject: string | null
+  unit: string | null
+  teachers: string[]
+  // Собственные предмет/преподаватель слота — нужны форме редактирования,
+  // чтобы она открылась с уже выбранными значениями, а не стёрла их.
+  subject_id: string | null
+  teacher_id: string | null
+  approval_status?: 'active' | 'pending'
+}
+interface Unit { id: string; name: string; name_he?: string | null; name_en?: string | null }
+
+const DAY_ORDER = [7, 1, 2, 3, 4, 5, 6] // Sun..Sat (Israel week)
+const hhmm = (t: string) => t.slice(0, 5)
+// Кодеш-время, ожидающее אישור מנהל — золото модуля «еврейство».
+const cardBtn: React.CSSProperties = {
+  padding: '3px 8px', fontSize: 11, color: 'var(--text)',
+  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
+}
+const PENDING_GOLD = '#ca8a04'
+const PENDING_TINT = 'rgba(202,138,4,0.13)'
+
+export default function TimetablePage() {
+  const t = useTranslations('education.timetable')
+  const tNav = useTranslations('navigation')
+  const tCommon = useTranslations('common')
+  const { lang } = useLang()
+
+  const [slots, setSlots] = useState<Slot[]>([])
+  const [conflicts, setConflicts] = useState<ScheduleConflict[]>([])
+  const [units, setUnits] = useState<Unit[]>([])
+  const [unit, setUnit] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [canEdit, setCanEdit] = useState(false)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overDay, setOverDay] = useState<number | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
+  // Тип вида: 'week' — по дням (текущий, с драгом); 'day' — «взгляд менеджера»:
+  // ось времени для одного дня, все параллельные уроки на одном времени видны
+  // разом (кто где и с кем в 14:00). По умолчанию — сегодня.
+  const [view, setView] = useState<'week' | 'day'>('week')
+
+  const accent = getModuleColor('education')
+  // Форма слота: null — закрыта, {create:true} — создание, иначе редактирование.
+  const [formSlot, setFormSlot] = useState<SlotFormSlot | { create: true } | null>(null)
+  const [cancelFor, setCancelFor] = useState<Slot | null>(null)
+  // Пометка «отменён на такую-то дату» держится до перезагрузки: сетка рисует
+  // ШАБЛОНЫ слотов и уроков не читает, так что после reload метка исчезает.
+  // Сам факт отмены при этом сохранён в lessons и виден в календаре.
+  const [cancelledOn, setCancelledOn] = useState<Map<string, string>>(new Map())
+  const jsDow = new Date().getDay() // 0=вс..6=сб
+  const [selDay, setSelDay] = useState<number>(jsDow === 0 ? 7 : jsDow)
+
+  const load = useCallback(async (u: string) => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/education/timetable${u ? `?unit=${u}` : ''}`)
+      if (res.ok) { const b = await res.json(); setSlots(b.slots ?? []); setConflicts(b.conflicts ?? []); if (b.units) setUnits(b.units); setCanEdit(!!b.can_edit) }
+      else toast(tCommon('load_error'), 'error')
+    } catch {
+      toast(tCommon('load_error'), 'error')
+    } finally { setLoading(false) }
+  }, [tCommon])
+  useEffect(() => { load(unit) }, [unit, load])
+
+  // Перетаскивание слота в другой день недели → PATCH day_of_week (время/комната
+  // те же). Не блокируем при конфликте — предупреждаем (решение владельца ז).
+  const moveToDay = useCallback(async (slotId: string, day: number) => {
+    const slot = slots.find(s => s.id === slotId)
+    if (!slot || slot.day_of_week === day) return
+    setSavingId(slotId)
+    // Оптимистично двигаем в UI.
+    setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: day } : s))
+    try {
+      const res = await fetch(`/api/education/schedule/slots/${slotId}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day_of_week: day }),
+      })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: slot.day_of_week } : s)) // откат
+        toast(b.error || t('move_failed', 'לא ניתן להזיז'), 'error')
+        return
+      }
+      const b = await res.json().catch(() => ({})) as { conflicts?: ScheduleConflict[] }
+      if (b.conflicts?.length) toast(t('moved_with_conflict', 'הוזז — יש התנגשות'), 'info')
+      else toast(t('moved_ok', 'הוזז'), 'success')
+      await load(unit) // пересчитать все конфликты в сетке
+    } catch {
+      setSlots(prev => prev.map(s => s.id === slotId ? { ...s, day_of_week: slot.day_of_week } : s))
+      toast(t('move_failed', 'לא ניתן להזיז'), 'error')
+    } finally { setSavingId(null) }
+  }, [slots, load, unit, t])
+
+  const conflicted = useMemo(() => conflictedSlotIds(conflicts), [conflicts])
+  // slotId → набор видов конфликта (teacher/room/students), чтобы показать какой именно.
+  const kindsBySlot = useMemo(() => {
+    const m = new Map<string, Set<ScheduleConflict['kind']>>()
+    for (const c of conflicts) {
+      for (const id of [c.slot_a, c.slot_b]) {
+        const set = m.get(id) ?? new Set<ScheduleConflict['kind']>()
+        set.add(c.kind); m.set(id, set)
+      }
+    }
+    return m
+  }, [conflicts])
+  const byDay = useMemo(() => {
+    const m = new Map<number, Slot[]>()
+    for (const s of slots) { const arr = m.get(s.day_of_week) ?? []; arr.push(s); m.set(s.day_of_week, arr) }
+    for (const arr of m.values()) arr.sort((a, b) => a.start_time.localeCompare(b.start_time))
+    return m
+  }, [slots])
+
+  // «Взгляд менеджера»: уроки выбранного дня, сгруппированные по времени начала —
+  // каждая строка времени показывает ВСЕ параллельные занятия сразу.
+  const dayTimeRows = useMemo(() => {
+    const list = (byDay.get(selDay) ?? [])
+    const m = new Map<string, Slot[]>()
+    for (const s of list) {
+      const k = hhmm(s.start_time)
+      const arr = m.get(k) ?? []; arr.push(s); m.set(k, arr)
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [byDay, selDay])
+
+  // Сводка дня: сколько уроков, сколько разных кабинетов и преподавателей заняты.
+  const daySummary = useMemo(() => {
+    const list = byDay.get(selDay) ?? []
+    const rooms = new Set<string>(), teachers = new Set<string>()
+    for (const s of list) {
+      if (s.room) rooms.add(s.room)
+      for (const tn of s.teachers) teachers.add(tn)
+    }
+    return { lessons: list.length, rooms: rooms.size, teachers: teachers.size, peak: dayTimeRows.reduce((mx, [, ss]) => Math.max(mx, ss.length), 0) }
+  }, [byDay, selDay, dayTimeRows])
+
+  // Открыть форму на уже существующем слоте: тащим и id предмета/преподавателя,
+  // иначе форма открылась бы пустой и сохранение стёрло бы их.
+  const toFormSlot = (s: Slot): SlotFormSlot => ({
+    id: s.id,
+    class_group_id: s.class_group_id,
+    day_of_week: s.day_of_week,
+    start_time: s.start_time,
+    end_time: s.end_time,
+    room: s.room,
+    subject_id: s.subject_id,
+    teacher_id: s.teacher_id,
+  })
+
+  const removeSlot = useCallback(async (s: Slot) => {
+    if (!(await confirmDialog({ message: t('delete_confirm', 'למחוק את השיעור?'), tone: 'danger' }))) return
+    try {
+      const res = await fetch(`/api/education/schedule/slots/${s.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}))
+        toast(b.error ?? tCommon('error'), 'error')
+        return
+      }
+      toast(t('deleted_ok', 'השיעור נמחק'), 'success')
+      await load(unit)
+    } catch {
+      toast(tCommon('error'), 'error')
+    }
+  }, [load, unit, t, tCommon])
+
+  /**
+   * Кнопки на карточке слота. draggable={false} и stopPropagation обязательны:
+   * иначе нажатие на кнопку начинало бы перетаскивание карточки.
+   */
+  // Обычные функции, а не компоненты: объявленный внутри render компонент —
+  // это новый тип на каждый рендер, и React размонтировал бы всю сетку карточек.
+  const renderActions = (s: Slot) => (
+    <div
+      draggable={false}
+      onDragStart={e => e.preventDefault()}
+      style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}
+    >
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); setFormSlot(toFormSlot(s)) }}
+        style={cardBtn}
+      >{t('action_edit', 'עריכה')}</button>
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); setCancelFor(s) }}
+        style={cardBtn}
+      >{t('action_cancel_lesson', 'ביטול שיעור')}</button>
+      <button type="button" draggable={false}
+        onClick={e => { e.stopPropagation(); removeSlot(s) }}
+        style={{ ...cardBtn, color: 'var(--danger)' }}
+      >{t('action_delete', 'מחיקה')}</button>
+    </div>
+  )
+
+  /** Содержимое карточки: предмет → группа → преподаватель → кабинет (по ТЗ). */
+  const renderBody = (s: Slot) => (
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginTop: 2 }}>
+        {s.subject || t('no_subject', 'ללא מקצוע')}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{s.class_group_name}</div>
+      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+        {s.teachers.length > 0 && <span>{s.teachers.join(', ')}</span>}
+        {s.room && <span>{s.teachers.length ? ' · ' : ''}{t('room')} {s.room}</span>}
+      </div>
+      {cancelledOn.has(s.id) && (
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--danger)', marginTop: 3 }}>
+          {t('cancelled_on', 'בוטל ב-{date}').replace('{date}', cancelledOn.get(s.id) ?? '')}
+        </div>
+      )}
+    </>
+  )
+
+  return (
+    <div className="p-6 space-y-5">
+      <Breadcrumb items={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('education'), href: '/dashboard/education' },
+        { label: t('title') },
+      ]} />
+
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+
+      {/* Toolbar */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <select value={unit} onChange={e => setUnit(e.target.value)}
+          style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
+          <option value="">{t('all_units')}</option>
+          {units.map(u => <option key={u.id} value={u.id}>{localizedDeptName(u, lang)}</option>)}
+        </select>
+        <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
+          {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
+        </span>
+        {canEdit && view === 'week' && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור ליום אחר')}</span>}
+        <div style={{ flex: 1 }} />
+        {/* Переключатель вида: по дням / взгляд менеджера (ось времени). */}
+        <div style={{ display: 'inline-flex', border: '1px solid var(--border-strong)', borderRadius: 9, overflow: 'hidden' }}>
+          {(['week', 'day'] as const).map(v => (
+            <button key={v} type="button" onClick={() => setView(v)} style={{
+              fontSize: 12.5, fontWeight: 600, padding: '7px 14px', cursor: 'pointer', border: 'none',
+              background: view === v ? 'var(--accent-strong)' : 'var(--surface)',
+              color: view === v ? '#fff' : 'var(--text-muted)',
+            }}>{v === 'week' ? t('view_week', 'לפי יום') : t('view_manager', 'תצוגת מנהל')}</button>
+          ))}
+        </div>
+        {/* Когда расписание пусто, эта кнопка не показывается: ниже, на пустом
+            экране, стоит такая же и заметнее. Две одинаковые кнопки на одной
+            странице читались как ошибка — владелец прислал снимок. */}
+        {canEdit && slots.length > 0 && (
+          <button type="button" onClick={() => setFormSlot({ create: true })} style={{
+            fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
+            border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+        )}
+      </div>
+
+      {/* Взгляд менеджера — выбор дня недели (по умолчанию сегодня). */}
+      {view === 'day' && !loading && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {DAY_ORDER.map(day => (
+            <button key={day} type="button" onClick={() => setSelDay(day)} style={{
+              fontSize: 12.5, fontWeight: 600, padding: '6px 13px', borderRadius: 999, cursor: 'pointer',
+              border: `1px solid ${selDay === day ? 'var(--accent)' : 'var(--border-strong)'}`,
+              background: selDay === day ? 'var(--accent-tint)' : 'var(--surface)',
+              color: selDay === day ? 'var(--accent-strong)' : 'var(--text-muted)',
+            }}>{t(`days.${day}`, String(day))}</button>
+          ))}
+        </div>
+      )}
+
+      {loading ? (
+        <SkeletonRows avatar={false} rows={6} />
+      ) : slots.length === 0 ? (
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>
+          <div>{t('no_slots')}</div>
+          {/* Пустой экран без кнопки — тупик: именно в этом состоянии заказчик и
+              оказался, построить расписание было неоткуда. */}
+          {canEdit && (
+            <button type="button" onClick={() => setFormSlot({ create: true })} style={{
+              marginTop: 14, fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8,
+              border: 'none', background: accent, color: '#fff', cursor: 'pointer',
+            }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+          )}
+        </div>
+      ) : view === 'week' ? (
+        <div style={{ overflowX: 'auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${DAY_ORDER.length}, minmax(150px, 1fr))`, gap: 10, minWidth: 900 }}>
+            {DAY_ORDER.map(day => (
+              <div key={day}
+                onDragOver={canEdit ? (e => { e.preventDefault(); setOverDay(day) }) : undefined}
+                onDragLeave={canEdit ? (() => setOverDay(prev => prev === day ? null : prev)) : undefined}
+                onDrop={canEdit ? (e => { e.preventDefault(); setOverDay(null); if (dragId) moveToDay(dragId, day) }) : undefined}
+                style={{ borderRadius: 10, transition: 'background 0.12s', background: overDay === day && dragId ? 'var(--accent-tint)' : 'transparent', padding: 2 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textAlign: 'center', padding: '6px 0', marginBottom: 6, borderBottom: '2px solid var(--border)' }}>
+                  {t(`days.${day}`, String(day))}
+                </div>
+                <div style={{ display: 'grid', gap: 8, minHeight: 40 }}>
+                  {(byDay.get(day) ?? []).map(s => {
+                    const bad = conflicted.has(s.id)
+                    const pending = s.approval_status === 'pending'
+                    return (
+                      <div key={s.id}
+                        draggable={canEdit}
+                        onDragStart={canEdit ? (e => { setDragId(s.id); e.dataTransfer.effectAllowed = 'move' }) : undefined}
+                        onDragEnd={canEdit ? (() => { setDragId(null); setOverDay(null) }) : undefined}
+                        style={{
+                        background: 'var(--surface)', borderRadius: 10, padding: '9px 11px',
+                        border: bad ? '1px solid var(--danger)' : pending ? `1px dashed ${PENDING_GOLD}` : '1px solid var(--border)',
+                        boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
+                        cursor: canEdit ? 'grab' : 'default',
+                        opacity: savingId === s.id ? 0.5 : dragId === s.id ? 0.4 : 1,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--accent-strong)' }}>
+                            {hhmm(s.start_time)}–{hhmm(s.end_time)}
+                          </span>
+                          {pending && (
+                            <span style={{ fontSize: 9.5, fontWeight: 700, color: PENDING_GOLD, background: PENDING_TINT, padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap' }}>
+                              {t('pending', 'ממתין לאישור')}
+                            </span>
+                          )}
+                        </div>
+                        {renderBody(s)}
+                        {bad && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                            {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
+                              <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
+                                ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {canEdit && renderActions(s)}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        // «Взгляд менеджера»: ось времени выбранного дня. Каждая строка — момент
+        // начала, справа все параллельные уроки этого времени (класс·מורה·חדר).
+        <div className="space-y-4">
+          {/* Сводка дня. */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {[
+              { label: t('mgr_lessons', 'שיעורים ביום'), value: daySummary.lessons },
+              { label: t('mgr_peak', 'שיא במקביל'), value: daySummary.peak },
+              { label: t('mgr_rooms', 'חדרים בשימוש'), value: daySummary.rooms },
+              { label: t('mgr_teachers', 'מורים פעילים'), value: daySummary.teachers },
+            ].map(m => (
+              <div key={m.label} style={{ flex: '1 1 130px', minWidth: 120, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 13px', boxShadow: 'var(--shadow)' }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-strong)', fontVariantNumeric: 'tabular-nums' }}>{m.value}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {dayTimeRows.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12 }}>
+              {t('mgr_empty_day', 'אין שיעורים ביום זה')}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {dayTimeRows.map(([time, ss]) => (
+                <div key={time} style={{ display: 'grid', gridTemplateColumns: 'minmax(66px, 78px) 1fr', gap: 12, alignItems: 'start' }}>
+                  {/* Ось времени. */}
+                  <div style={{ position: 'sticky', top: 0, textAlign: 'center', paddingTop: 4 }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 800, color: 'var(--accent-strong)' }}>{time}</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-faint)', marginTop: 2 }}>
+                      {t('mgr_parallel', '{n} במקביל').replace('{n}', String(ss.length))}
+                    </div>
+                  </div>
+                  {/* Параллельные уроки. */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {ss.map(s => {
+                      const bad = conflicted.has(s.id)
+                      const pending = s.approval_status === 'pending'
+                      return (
+                        <div key={s.id} style={{
+                          flex: '1 1 220px', minWidth: 190, maxWidth: 320,
+                          background: 'var(--surface)', borderRadius: 10, padding: '9px 12px',
+                          border: bad ? '1px solid var(--danger)' : pending ? `1px dashed ${PENDING_GOLD}` : '1px solid var(--border)',
+                          boxShadow: bad ? '0 0 0 3px var(--danger-tint)' : 'var(--shadow)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{s.subject || t('no_subject', 'ללא מקצוע')}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>–{hhmm(s.end_time)}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.class_group_name}</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 5, fontSize: 11.5, color: 'var(--text-muted)' }}>
+                            {s.teachers.length > 0 && (
+                              <span style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{s.teachers.join(', ')}</span>
+                            )}
+                            {s.room && (
+                              <span style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{t('room')} {s.room}</span>
+                            )}
+                            {pending && (
+                              <span style={{ fontWeight: 700, color: PENDING_GOLD, background: PENDING_TINT, padding: '2px 7px', borderRadius: 6 }}>{t('pending', 'ממתין לאישור')}</span>
+                            )}
+                          </div>
+                          {cancelledOn.has(s.id) && (
+                            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--danger)', marginTop: 4 }}>
+                              {t('cancelled_on', 'בוטל ב-{date}').replace('{date}', cancelledOn.get(s.id) ?? '')}
+                            </div>
+                          )}
+                          {canEdit && renderActions(s)}
+                          {bad && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+                              {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
+                                <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
+                                  ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Форма слота — та же, что в карточке группы (components/education/SlotFormModal). */}
+      {formSlot !== null && (
+        <SlotFormModal
+          slot={'create' in formSlot ? null : formSlot}
+          presetUnit={unit || undefined}
+          presetDay={view === 'day' ? selDay : undefined}
+          accentColor={accent}
+          onClose={() => setFormSlot(null)}
+          onDone={() => { setFormSlot(null); load(unit) }}
+        />
+      )}
+
+      {cancelFor && (
+        <CancelLessonDialog
+          slot={cancelFor}
+          accentColor={accent}
+          onClose={() => setCancelFor(null)}
+          onDone={dateISO => {
+            setCancelledOn(prev => new Map(prev).set(cancelFor.id, dateISO))
+            setCancelFor(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import type { PersonRelativeUpdate, RelationType } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 function mapDbError(error: { code?: string; message?: string }) {
-  if (error.code === '23505') return { status: 409, message: 'Такая связь уже существует' }
-  if (error.code === '23503') return { status: 400, message: 'Person или relative не существует' }
-  if (error.code === '23514') return { status: 400, message: 'Нельзя добавить самого себя как relative' }
-  return { status: 500, message: error.message ?? 'Ошибка БД' }
+  if (error.code === '23505') return { status: 409, message: serverT('relation_exists') }
+  if (error.code === '23503') return { status: 400, message: serverT('person_or_relative_not_exist') }
+  if (error.code === '23514') return { status: 400, message: serverT('cannot_add_self_relative') }
+  return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
 /**
@@ -21,8 +23,9 @@ function mapDbError(error: { code?: string; message?: string }) {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; relativeId: string } }
+  props: { params: Promise<{ id: string; relativeId: string }> }
 ) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const sb = createServerClient()
@@ -44,9 +47,9 @@ export async function DELETE(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -60,8 +63,9 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; relativeId: string } }
+  props: { params: Promise<{ id: string; relativeId: string }> }
 ) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const body = await request.json() as {
@@ -70,7 +74,7 @@ export async function PATCH(
     }
 
     if (body.relation_type === undefined && body.notes === undefined) {
-      return NextResponse.json({ error: 'Нет изменений' }, { status: 400 })
+      return apiError('no_changes', 400)
     }
 
     const sb = createServerClient()
@@ -95,11 +99,11 @@ export async function PATCH(
     `)
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     if (!data || data.length === 0) {
-      return NextResponse.json({ error: 'Связь не найдена' }, { status: 404 })
+      return apiError('relation_not_found', 404)
     }
 
     return NextResponse.json({ updated: data.length, relatives: data })
@@ -107,8 +111,8 @@ export async function PATCH(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? 'Ошибка' }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

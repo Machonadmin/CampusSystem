@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
+import HomeWidgets from '@/components/dashboard/HomeWidgets'
+import HomeAgenda from '@/components/dashboard/HomeAgenda'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
   full_name: string | null
   roles: string[]
   accessible_modules: string[]
+  position_title?: string | null
+  is_chavruta_teacher?: boolean
+  can_view_chavruta?: boolean
 }
 
 // ── Icons (Heroicons outline 24px) ───────────────────────────────────────────
@@ -19,6 +25,10 @@ const ICONS: Record<string, string> = {
     'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z',
   education:
     'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
+  jewishness:
+    'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
+  chavruta:
+    'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
   finance:
     'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z',
   dormitory:
@@ -36,6 +46,8 @@ const ICONS: Record<string, string> = {
     'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z',
   psychologist:
     'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
+  health:
+    'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z M12 8.25v6 M9 11.25h6',
   documents:
     'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
   reports:
@@ -55,98 +67,223 @@ const HREF_OVERRIDES: Record<string, string> = {
   quality_control: '/dashboard/quality-control',
 }
 
-// Full ordered list — always shown, implemented ones first
+// Плитки главной. «tasks» убрана (owner-декластеризация: задачи всегда в
+// верхней части бокового меню + виджет «Мои задачи» на этой же странице).
 const ALL_MODULE_CARDS = [
-  'persons', 'staff', 'quality_control', 'education', 'tasks', 'finance', 'dormitory', 'food',
-  'maintenance', 'security', 'alumni', 'sponsors', 'doctor', 'psychologist',
+  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'finance', 'dormitory', 'food',
+  'maintenance', 'security', 'alumni', 'sponsors', 'health',
   'documents', 'reports', 'contacts', 'settings',
 ]
 
-function ModuleIcon({ moduleKey, disabled }: { moduleKey: string; disabled?: boolean }) {
+// moduleKey выбирает РИСУНОК иконки, colorKey — ЦВЕТ. Обычно это одно и то же,
+// но у шагов учебного конвейера (набор/приём/учёба) общая иконка education и
+// РАЗНЫЕ цвета: иначе три карточки на главной выглядят одинаково.
+function ModuleIcon({ moduleKey, colorKey, disabled }: { moduleKey: string; colorKey?: string; disabled?: boolean }) {
   const path = ICONS[moduleKey] ?? ''
-  const iconColor = getModuleColor(moduleKey, 'primary')
+  const iconColor = getModuleColor(colorKey ?? moduleKey, 'primary')
+  // Плитка иконки красится тинтом цвета модуля (полупрозрачный primary поверх
+  // карточки) — работает в обеих темах и даёт каждой плитке цветовую личность.
+  const tile = disabled ? 'var(--surface-2)' : `color-mix(in oklab, ${iconColor} 14%, transparent)`
   return (
-    <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: disabled ? '#F3F4F6' : 'rgba(255,255,255,0.6)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg style={{ width: 22, height: 22, color: disabled ? '#9CA3AF' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div style={{ width: 46, height: 46, borderRadius: 13, backgroundColor: tile, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 23, height: 23, color: disabled ? 'var(--text-faint)' : iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={path} />
       </svg>
     </div>
   )
 }
 
+interface CardDef {
+  id: string       // unique React key
+  iconKey: string  // module code → рисунок иконки
+  colorKey?: string // module code → цвет (по умолчанию = iconKey)
+  label: string
+  desc: string
+  href: string
+  ready: boolean
+}
+
+// «Образование» показываем НЕ одной картой (она вела на одну вкладку, а
+// остальное — только через сайдбар), а отдельными картами по его разделам.
+// Каждая ведёт прямо в свой раздел и гейтится тем же tab-access, что и сайдбар.
+const EDUCATION_SUBCARDS = [
+  { id: 'recruitment', href: '/dashboard/education/recruitment', accessKey: 'recruitment' },
+  { id: 'admission',   href: '/dashboard/education/admission',   accessKey: 'admission' },
+  { id: 'studies',     href: '/dashboard/education/studies',     accessKey: 'study' },
+] as const
+
 export default function DashboardPage() {
   const { t } = useLang()
   const [user, setUser] = useState<MeResponse | null>(null)
+  const [eduAccess, setEduAccess] = useState<Record<string, boolean> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setUser(data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    let alive = true
+    Promise.all([
+      fetch('/api/auth/me').then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/education/tab-access').then(r => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([me, tabs]) => {
+      if (!alive) return
+      if (me) setUser(me)
+      if (tabs) setEduAccess(tabs)
+    }).finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
   }, [])
 
   const firstName = user?.full_name?.split(' ')[0] ?? null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
-  // Implemented modules first, then coming-soon modules
-  const visibleModules = [
-    ...ALL_MODULE_CARDS.filter(k => isModuleImplemented(k)),
-    ...ALL_MODULE_CARDS.filter(k => !isModuleImplemented(k)),
-  ]
+  // Only modules the user can actually open (accessible_modules from
+  // /api/auth/me) — a user must not even see modules they can't reach.
+  const accessible = user?.accessible_modules ?? []
+  // Owner-декластеризация: нереализованные модули («בקרוב») больше не рендерим —
+  // мёртвая плитка это шум. Появятся сами, когда isModuleImplemented станет true.
+  // «health» — объединённая плитка рофэ+психолога: видна при доступе к любому из них.
+  const cardAccessible = (k: string) =>
+    k === 'health' ? (accessible.includes('doctor') || accessible.includes('psychologist')) : accessible.includes(k)
+  const orderedKeys = ALL_MODULE_CARDS.filter(k => cardAccessible(k) && isModuleImplemented(k))
+
+  const cards: CardDef[] = []
+  for (const key of orderedKeys) {
+    if (key === 'education') {
+      for (const sub of EDUCATION_SUBCARDS) {
+        // Fail-closed (как в сайдбаре): показываем подкарту только при явном
+        // разрешении. Иначе при ошибке/задержке tab-access главная показывала
+        // раздел, который потом упирается в «нет доступа».
+        if (eduAccess?.[sub.accessKey] !== true) continue
+        cards.push({
+          // Иконка общая (это разделы «Учёбы»), цвет — свой у каждого шага.
+          id: sub.id, iconKey: 'education', colorKey: sub.id,
+          label: t.nav[sub.id as keyof typeof t.nav] ?? sub.id,
+          desc: t.moduleDesc[sub.id as keyof typeof t.moduleDesc] ?? '',
+          href: sub.href, ready: true,
+        })
+      }
+    } else {
+      cards.push({
+        id: key, iconKey: key,
+        label: t.nav[key as keyof typeof t.nav] ?? key,
+        desc: t.moduleDesc[key as keyof typeof t.moduleDesc] ?? '',
+        href: HREF_OVERRIDES[key] ?? `/dashboard/${key}`,
+        ready: isModuleImplemented(key),
+      })
+    }
+  }
+
+  // «חברותא» — не обычный модуль (доступ динамический). Мора хавруты → её журнал;
+  // менеджер хаба → מרכז חברותא. Без этой плитки такой пользователь видел пустую
+  // главную «модулей нет», хотя в сайдбаре ссылка есть.
+  if (user?.is_chavruta_teacher || user?.can_view_chavruta) {
+    cards.push({
+      id: 'chavruta', iconKey: 'chavruta',
+      label: t.nav.chavruta ?? 'חברותא',
+      desc: (t.moduleDesc as Record<string, string>).chavruta ?? '',
+      href: user?.is_chavruta_teacher ? '/dashboard/chavruta' : '/dashboard/education/chavruta',
+      ready: true,
+    })
+  }
 
   return (
     <div className="p-6 space-y-6">
       {/* Welcome banner */}
       <div
-        className="flex items-center justify-between rounded-xl overflow-hidden"
+        className="flex items-center justify-between rounded-xl overflow-hidden anim-rise"
         style={{
           background: getModuleHeaderGradient('dashboard'),
-          padding: '12px 24px',
-          boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+          padding: '20px 24px',
+          boxShadow: 'var(--shadow)',
+          gap: 12,
         }}
       >
-        <h1 style={{ fontSize: 15, fontWeight: 600, color: '#FFFFFF', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#fff', lineHeight: 1.3, margin: 0 }}>
           {greeting}
         </h1>
-        {user?.roles && user.roles.length > 0 && (
+        {/* Должность (напр. «מזכירת טורו») понятнее сырого кода роли; откат к роли. */}
+        {(user?.position_title || (user?.roles && user.roles.length > 0)) && (
           <span className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold text-white" style={{ backgroundColor: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(6px)' }}>
-            {t.roles[user.roles[0] as keyof typeof t.roles] ?? user.roles[0]}
+            {user?.position_title || (t.roles[user!.roles[0] as keyof typeof t.roles] ?? user!.roles[0])}
           </span>
         )}
       </div>
 
+      {/* Ежедневник: календарь под рукой прямо на главной (всегда виден) */}
+      <div className="anim-stagger" style={{ ['--i']: 1 } as React.CSSProperties}>
+        <HomeAgenda />
+      </div>
+
+      {/* Personal "what needs attention" widgets — hidden when everything is empty */}
+      <div className="anim-stagger" style={{ ['--i']: 2 } as React.CSSProperties}>
+        <HomeWidgets />
+      </div>
+
       {/* Modules grid */}
       <div>
-        <h2 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4">
+        <h2 className="text-sm font-bold tracking-widest uppercase mb-5" style={{ color: 'var(--text-faint)' }}>
           {t.availableModules}
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {visibleModules.map(key => {
-            const ready = isModuleImplemented(key)
-            const primary = getModuleColor(key, 'primary')
-            const lightBg = getModuleColor(key, 'light')
-            const name = t.nav[key as keyof typeof t.nav] ?? key
-            const desc = t.moduleDesc[key as keyof typeof t.moduleDesc] ?? ''
-            const cardStyle: React.CSSProperties = {
+        {loading ? (
+          // Пока /api/auth/me не ответил — скелет, а НЕ пустое состояние
+          // «модулей нет» (иначе на долю секунды мигает ложное сообщение).
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+            aria-busy="true"
+            aria-label={t.loadingData}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-3"
+                style={{
+                  padding: 20, borderRadius: 14, background: 'var(--surface)',
+                  border: '1px solid var(--border)', borderInlineStart: '4px solid var(--border-strong)',
+                }}
+              >
+                <Skeleton width={44} height={44} radius={12} />
+                <div>
+                  <Skeleton width="55%" height={13} />
+                  <div style={{ height: 8 }} />
+                  <Skeleton width="80%" height={11} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : cards.length === 0 ? (
+          <div style={{
+            border: '1px dashed var(--border-strong)', borderRadius: 14, padding: '28px 20px',
+            textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, background: 'var(--surface)',
+          }}>
+            {t.noModules}
+          </div>
+        ) : (
+        // Одна-две плитки (узкий доступ, напр. только гиюс) — во всю ширину,
+        // а не одинокая полу-плитка в сетке 2 колонок на телефоне.
+        <div className={cards.length <= 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-5' : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'}>
+          {cards.map((card, idx) => {
+            const ready = card.ready
+            const primary = getModuleColor(card.colorKey ?? card.iconKey, 'primary')
+            const name = card.label
+            const desc = card.desc
+            // Стаггер-задержку ограничиваем, чтобы дальние плитки не «висли».
+            const cardStyle = {
               position: 'relative',
               padding: 20,
-              backgroundColor: ready ? lightBg : '#F9FAFB',
-              borderLeft: `4px solid ${ready ? primary : '#E5E7EB'}`,
-              borderRadius: 12,
-              opacity: ready ? 1 : 0.65,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              transition: 'box-shadow 0.2s, transform 0.2s, opacity 0.2s',
-            }
+              backgroundColor: ready ? 'var(--surface)' : 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderInlineStart: `4px solid ${ready ? primary : 'var(--border-strong)'}`,
+              borderRadius: 14,
+              opacity: ready ? 1 : 0.7,
+              boxShadow: 'var(--shadow)',
+              ['--i']: Math.min(idx, 11),
+            } as React.CSSProperties
             const badge = !ready && (
               <span style={{
-                position: 'absolute', top: 10, right: 10,
-                background: '#F59E0B', color: '#fff',
+                position: 'absolute', top: 10, insetInlineEnd: 10,
+                background: 'var(--warn)', color: '#fff',
                 padding: '3px 8px', borderRadius: 6,
                 fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                boxShadow: 'var(--shadow)',
               }}>
                 {t.soon}
               </span>
@@ -154,37 +291,27 @@ export default function DashboardPage() {
             const inner = (
               <>
                 {badge}
-                <ModuleIcon moduleKey={key} disabled={!ready} />
+                <ModuleIcon moduleKey={card.iconKey} colorKey={card.colorKey} disabled={!ready} />
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : '#9CA3AF', lineHeight: 1.3, margin: 0 }}>{name}</p>
-                  <p style={{ fontSize: 12, color: ready ? '#4B5563' : '#9CA3AF', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: ready ? primary : 'var(--text-faint)', lineHeight: 1.3, margin: 0 }}>{name}</p>
+                  <p style={{ fontSize: 12, color: ready ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 3, lineHeight: 1.4 }}>{desc}</p>
                 </div>
               </>
             )
             return ready ? (
               <Link
-                key={key}
-                href={HREF_OVERRIDES[key] ?? `/dashboard/${key}`}
+                key={card.id}
+                href={card.href}
                 prefetch={false}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-3 anim-stagger card-interactive"
                 style={cardStyle}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.10)'
-                  el.style.transform = 'translateY(-2px)'
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
-                  el.style.transform = 'translateY(0)'
-                }}
               >
                 {inner}
               </Link>
             ) : (
               <div
-                key={key}
-                className="flex flex-col gap-3"
+                key={card.id}
+                className="flex flex-col gap-3 anim-stagger"
                 style={{ ...cardStyle, cursor: 'not-allowed' }}
               >
                 {inner}
@@ -192,6 +319,7 @@ export default function DashboardPage() {
             )
           })}
         </div>
+        )}
       </div>
     </div>
   )
