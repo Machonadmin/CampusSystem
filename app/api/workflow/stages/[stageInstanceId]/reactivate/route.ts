@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
+import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 
 type EduWriteScope = 'view' | 'manage'
 
@@ -72,6 +73,17 @@ export async function POST(
         return apiError('stage_reopen_blocked', 400)
       }
       throw rpcErr
+    }
+
+    // «שנה החלטה» / возврат этапа: вернуть подписанту задачу по этому этапу
+    // (RPC создаёт только задачи шаблона по колонке stage_instance_id, а задачи
+    // подписи приёма живут в metadata). Best-effort, идемпотентно.
+    if (journeyId) {
+      try {
+        await syncAcceptanceTasks(sb, journeyId, session.person_id)
+      } catch (taskErr) {
+        console.error('[reactivate] syncAcceptanceTasks:', taskErr)
+      }
     }
 
     // Возврат обновлённого stage_instance

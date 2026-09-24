@@ -3,7 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
-import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
+import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { getSignedUrl } from '@/lib/documents/storage'
 import { errorResponse } from '@/lib/api/handler'
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       || await hasEducationPrivilege(session, 'manage_applicants')
     const holdsStageRole = (requiredRoleCode: string | null): boolean => {
       if (!requiredRoleCode) return false
-      return requiredRoleCode.split(',').map(r => r.trim()).some(r => session.roles.includes(r))
+      return signerRoleCodes(requiredRoleCode).some(r => session.roles.includes(r))
     }
 
     // Инстансы процесса acceptance для journey.

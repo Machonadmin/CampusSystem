@@ -110,28 +110,39 @@ export async function POST(
     }
 
     // Подпись фиксируем ПОСЛЕ успешного завершения — личность строго из сессии.
+    // Этап к этому моменту УЖЕ закрыт (RPC закоммичен). Раньше ошибка записи
+    // подписи возвращала 500 и обрывала всё остальное (задачи следующего этапа,
+    // договор, уведомление, перевод в студентки) — процесс застревал в
+    // полу-состоянии. Теперь: одна повторная попытка, затем лог + предупреждение
+    // в ответе, а остальная работа выполняется в любом случае.
+    let signatureWarning: string | null = null
     if (validSig) {
       const signerName = session.full_name?.trim() || session.login_email || 'unknown'
-      const { error: sigErr } = await sb
+      const sigRow = {
+        stage_instance_id: params.stageInstanceId,
+        signed_by: session.person_id,
+        signer_name: signerName,
+        signer_role_code: ctx.requiredRoleCode,
+        signed_via: authority,
+        signature_kind: validSig.kind,
+        typed_name: validSig.typed_name,
+        drawing_path: validSig.drawing_path,
+        final_code: body.final_code,
+        metadata: validSig.metadata,
+      }
+      let { error: sigErr } = await sb
         .from('stage_signatures')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          stage_instance_id: params.stageInstanceId,
-          signed_by: session.person_id,
-          signer_name: signerName,
-          signer_role_code: ctx.requiredRoleCode,
-          signed_via: authority,
-          signature_kind: validSig.kind,
-          typed_name: validSig.typed_name,
-          drawing_path: validSig.drawing_path,
-          final_code: body.final_code,
-          metadata: validSig.metadata,
-        } as any)
+        .insert(sigRow as any)
       if (sigErr) {
-        return NextResponse.json(
-          { error: serverT('signature_record_failed'), code: 'signature_record_failed' },
-          { status: 500 },
-        )
+        ;({ error: sigErr } = await sb
+          .from('stage_signatures')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .insert(sigRow as any))
+      }
+      if (sigErr) {
+        console.error('[complete] stage signature insert (stage already completed):', sigErr)
+        signatureWarning = 'signature_record_failed'
       }
     }
 
@@ -295,7 +306,11 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({ ok: true, ...(result as CompleteStageResult) })
+    return NextResponse.json({
+      ok: true,
+      ...(result as CompleteStageResult),
+      ...(signatureWarning ? { signature_warning: signatureWarning, warning: serverT(signatureWarning) } : {}),
+    })
   } catch (err: unknown) {
     return jsonError(err)
   }

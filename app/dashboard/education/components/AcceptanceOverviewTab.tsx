@@ -42,7 +42,8 @@ interface Applicant {
 }
 
 // Порядок колонок обзора (медицинский может отсутствовать — тогда «—»).
-const STAGE_ORDER = ['academic', 'dormitory', 'jewishness', 'medical', 'medical_psych', 'final_approval'] as const
+// Порядок колонок = порядок последовательного приёма (acceptance_v2): яхадут → учёба → пансион → врач/психолог → финал.
+const STAGE_ORDER = ['jewishness', 'academic', 'dormitory', 'medical', 'medical_psych', 'final_approval'] as const
 
 type StatusFilter = 'active' | 'completed' | 'all'
 

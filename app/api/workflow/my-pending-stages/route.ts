@@ -4,7 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
-import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
+import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -57,8 +57,7 @@ export async function GET() {
       const req = s.stage_template?.required_role_code
       if (!req) return false
       if (isSuper) return true
-      const roles = req.split(',').map(r => r.trim()).filter(Boolean)
-      return roles.some(r => session.roles.includes(r))
+      return signerRoleCodes(req).some(r => session.roles.includes(r))
     })
 
     if (mine.length === 0) {
