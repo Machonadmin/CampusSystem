@@ -3,6 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { errorResponse } from '@/lib/api/handler'
+import { ACCEPTANCE_PROCESS_CODES, ACCEPTANCE_EARLY_CLOSE_BLOCKED } from '@/lib/workflow/acceptance-codes'
 
 /**
  * GET /api/workflow/processes/[processInstanceId]/closing-finals
@@ -24,7 +25,7 @@ export async function GET(
 
     const { data: pi, error: piErr } = await sb
       .from('process_instances')
-      .select('process_template_id')
+      .select('process_template_id, process_template:process_templates(code)')
       .eq('id', params.processInstanceId)
       .maybeSingle()
     if (piErr) throw piErr
@@ -48,7 +49,12 @@ export async function GET(
       .order('sort_order', { ascending: true })
     if (fErr) throw fErr
 
-    const result = (finals ?? []).map((f: { code: string; name_ru: string; is_positive: boolean }) => ({
+    // Приём: «התקבלה»/«לימודים חיצוניים» досрочно не предлагаем (решение владельца).
+    const procCode = (pi.process_template as unknown as { code: string | null } | null)?.code ?? null
+    const isAcceptance = procCode != null && ACCEPTANCE_PROCESS_CODES.includes(procCode)
+    const result = (finals ?? [])
+      .filter((f: { code: string }) => !(isAcceptance && ACCEPTANCE_EARLY_CLOSE_BLOCKED.includes(f.code)))
+      .map((f: { code: string; name_ru: string; is_positive: boolean }) => ({
       code: f.code,
       name_ru: f.name_ru,
       is_positive: f.is_positive,

@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { ACCEPTANCE_PROCESS_CODES, ACCEPTANCE_EARLY_CLOSE_BLOCKED } from '@/lib/workflow/acceptance-codes'
 import { flattenPhones } from '@/lib/persons/phone'
 
 interface CloseProcessEarlyResult {
@@ -54,11 +55,19 @@ export async function POST(
     // process_instance → journey → primary_department_id
     const { data: pi } = await sb
       .from('process_instances')
-      .select('journey_id')
+      .select('journey_id, process_template:process_templates(code)')
       .eq('id', params.processInstanceId)
       .maybeSingle()
 
     const journeyId = pi?.journey_id ?? null
+
+    // Решение владельца 2026-09-24: приём досрочным закрытием запрещён —
+    // раньше «התקבלה» делало студенткой без единой подписи, без договора и
+    // уведомления. Досрочно — только отказ/перенос; приём — через подписи этапов.
+    const procCode = (pi?.process_template as unknown as { code: string | null } | null)?.code ?? null
+    if (procCode && ACCEPTANCE_PROCESS_CODES.includes(procCode) && ACCEPTANCE_EARLY_CLOSE_BLOCKED.includes(body.final_code)) {
+      return apiError('acceptance_early_close_admit_blocked', 400)
+    }
 
     let targetDept: string | null = null
     let eduStatus: string | null = null

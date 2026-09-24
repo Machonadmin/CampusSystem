@@ -32,3 +32,10 @@ export function signerRoleCodes(requiredRoleCode: string | null | undefined): st
   for (const r of base) for (const alias of SIGNER_ROLE_ALIASES[r] ?? []) out.add(alias)
   return [...out]
 }
+
+/**
+ * Финалы приёма, которые НЕЛЬЗЯ выбрать досрочным закрытием («סגירת התהליך»).
+ * Решение владельца 2026-09-24: принять абитуриентку можно только через
+ * обычные подписи этапов; досрочно — только отказ/перенос.
+ */
+export const ACCEPTANCE_EARLY_CLOSE_BLOCKED: readonly string[] = ['admitted', 'admitted_conditional', 'external_studies']

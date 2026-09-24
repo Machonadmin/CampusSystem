@@ -5158,7 +5158,8 @@
     "series_over_limit": "The series exceeds the limit of {n} tasks",
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
     "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
-    "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing."
+    "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing.",
+    "acceptance_early_close_admit_blocked": "An applicant cannot be admitted via \"Close process\". Admission only goes through the stage signatures."
   },
   "workflow": {
     "error": "Error"
