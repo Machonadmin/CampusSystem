@@ -45,7 +45,7 @@ export async function GET() {
       .from('stage_instances')
       .select(`
         id, status, activated_at, notes, process_instance_id,
-        stage_template:stage_templates!inner(id, code, name_ru),
+        stage_template:stage_templates!inner(id, code, name_ru, required_role_code),
         process_instance:process_instances!inner(id, journey_id, status)
       `)
       .eq('stage_template.code', 'medical')
@@ -58,7 +58,7 @@ export async function GET() {
       activated_at: string | null
       notes: string | null
       process_instance_id: string
-      stage_template: { id: string; code: string; name_ru: string } | null
+      stage_template: { id: string; code: string; name_ru: string; required_role_code: string | null } | null
       process_instance: { id: string; journey_id: string; status: string } | null
     }>
 
@@ -83,7 +83,7 @@ export async function GET() {
     ] = await Promise.all([
       sb.from('education_journeys')
         .select(`
-          id, person_id, birth_date, gender, citizenship,
+          id, person_id, birth_date, gender, citizenship, needs_dormitory,
           person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url, birth_date, gender)
         `)
         .in('id', journeyIds),
@@ -135,6 +135,7 @@ export async function GET() {
       birth_date: string | null
       gender: string | null
       citizenship: string | null
+      needs_dormitory: boolean | null
       person: {
         id?: string; full_name?: string | null; hebrew_name?: string | null
         email?: string | null; phones?: unknown; photo_url?: string | null
@@ -142,9 +143,13 @@ export async function GET() {
       } | null
     }>()
     for (const j of (journeys ?? []) as unknown as Array<{
-      id: string; person_id: string; birth_date: string | null; gender: string | null; citizenship: string | null; person: unknown
+      id: string; person_id: string; birth_date: string | null; gender: string | null; citizenship: string | null
+      needs_dormitory: boolean | null; person: unknown
     }>) {
-      journeyById.set(j.id, { person_id: j.person_id, birth_date: j.birth_date, gender: j.gender, citizenship: j.citizenship, person: j.person as never })
+      journeyById.set(j.id, {
+        person_id: j.person_id, birth_date: j.birth_date, gender: j.gender, citizenship: j.citizenship,
+        needs_dormitory: j.needs_dormitory ?? null, person: j.person as never,
+      })
     }
 
     const docsByJourney = new Map<string, Array<Record<string, unknown>>>()
@@ -166,7 +171,7 @@ export async function GET() {
       visitsByJourney.set(v.journey_id, arr)
     }
 
-    const refersByProcess = new Map<string, Array<{ from_stage: string; note: string | null; signer_name: string | null; completed_at: string | null }>>()
+    const refersByProcess = new Map<string, Array<{ from_stage: string; from_stage_code: string | null; note: string | null; signer_name: string | null; completed_at: string | null }>>()
     for (const r of (referStages ?? []) as unknown as Array<{
       id: string; process_instance_id: string; notes: string | null; completed_at: string | null
       stage_template: { code: string; name_ru: string } | null
@@ -174,6 +179,8 @@ export async function GET() {
       const arr = refersByProcess.get(r.process_instance_id) ?? []
       arr.push({
         from_stage: r.stage_template?.name_ru ?? r.stage_template?.code ?? '—',
+        // Код этапа — клиент переводит название через education.process.stages.*
+        from_stage_code: r.stage_template?.code ?? null,
         note: r.notes ?? null,
         signer_name: signaturesByStage.get(r.id) ?? null,
         completed_at: r.completed_at,
@@ -181,13 +188,27 @@ export async function GET() {
       refersByProcess.set(r.process_instance_id, arr)
     }
 
+    // Право подписи — как stageSignerAuthority для ролевого этапа: носитель
+    // роли из required_role_code либо superadmin. Остальные (например, админ
+    // с доступом к модулю) видят очередь только для просмотра.
+    const canSignStage = (requiredRoleCode: string | null | undefined): boolean => {
+      if (session.roles.includes('superadmin')) return true
+      const required = (requiredRoleCode || 'doctor').split(',').map(r => r.trim()).filter(Boolean)
+      return required.some(r => session.roles.includes(r))
+    }
+
     // 3. Сборка ответа.
     const referrals = stages.map(s => {
       const journeyId = s.process_instance?.journey_id ?? null
       const j = journeyId ? journeyById.get(journeyId) : null
       const person = j?.person ?? null
+      const referList = journeyId ? (refersByProcess.get(s.process_instance_id) ?? []) : []
       return {
         stage_instance_id: s.id,
+        can_sign: canSignStage(s.stage_template?.required_role_code),
+        // Этап открыт без направления (гейтинг общежития: нужен пансион) —
+        // клиент показывает причину «открыто автоматически».
+        auto_reason: referList.length === 0 && j?.needs_dormitory === true ? 'dormitory' as const : null,
         activated_at: s.activated_at,
         journey_id: journeyId,
         applicant: {
@@ -201,7 +222,7 @@ export async function GET() {
           gender: person?.gender ?? j?.gender ?? null,
           citizenship: j?.citizenship ?? null,
         },
-        referrals: journeyId ? (refersByProcess.get(s.process_instance_id) ?? []) : [],
+        referrals: referList,
         documents: journeyId ? (docsByJourney.get(journeyId) ?? []) : [],
         medical_profile: journeyId ? (profileByJourney.get(journeyId) ?? null) : null,
         medical_visits: journeyId ? (visitsByJourney.get(journeyId) ?? []) : [],

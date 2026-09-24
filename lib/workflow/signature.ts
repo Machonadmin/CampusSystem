@@ -24,6 +24,17 @@ export interface ValidSignature {
 
 export type SignatureValidation = { error: string } | { ok: ValidSignature }
 
+// Нормализация имени для сравнения typed-подписи: trim, схлопывание пробелов,
+// удаление огласовок иврита (никуд/теамим U+0591–U+05C7), нижний регистр.
+export function normalizeSignerName(name: string): string {
+  return name
+    .normalize('NFC')
+    .replace(/[\u0591-\u05C7]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
 function metaOf(raw: SignatureInput): Record<string, unknown> {
   return raw.metadata && typeof raw.metadata === 'object'
     ? (raw.metadata as Record<string, unknown>)
@@ -37,7 +48,13 @@ function metaOf(raw: SignatureInput): Record<string, unknown> {
  */
 export function validateSignature(
   raw: SignatureInput | undefined | null,
-  opts: { method: SignatureMethod; signerFullName: string | null; stageInstanceId: string },
+  opts: {
+    method: SignatureMethod
+    signerFullName: string | null
+    stageInstanceId: string
+    // Дополнительные допустимые имена подписанта (например, имя на иврите из persons)
+    signerAltNames?: string[]
+  },
 ): SignatureValidation {
   if (!raw || typeof raw !== 'object') return { error: 'signature_required' }
 
@@ -52,8 +69,13 @@ export function validateSignature(
     const typed = typeof raw.typed_name === 'string' ? raw.typed_name.trim() : ''
     if (!typed) return { error: 'typed_name_required' }
     // Typed-подпись привязывается к настоящему имени подписанта.
-    const full = (opts.signerFullName ?? '').trim()
-    if (!full || typed.toLowerCase() !== full.toLowerCase()) return { error: 'typed_name_mismatch' }
+    // Допускается совпадение с любым из известных имён (после нормализации).
+    const target = normalizeSignerName(typed)
+    const names = [opts.signerFullName, ...(opts.signerAltNames ?? [])]
+      .filter((n): n is string => typeof n === 'string')
+      .map(normalizeSignerName)
+      .filter(n => n.length > 0)
+    if (!target || !names.includes(target)) return { error: 'typed_name_mismatch' }
     return { ok: { kind, typed_name: typed, drawing_path: null, metadata: metaOf(raw) } }
   }
 

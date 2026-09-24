@@ -154,6 +154,24 @@ export async function PUT(request: NextRequest) {
       return apiError('invalid_reference', 400)
     }
 
+    // Ворота spec §3.3 (как в GET): назначить в группу можно ТОЛЬКО студентку с
+    // финально одобренным еврейством И завершённым приёмом. Раньше PUT этого не
+    // проверял — прямым запросом можно было шибуцнуть любую журни. Снятие
+    // (group_id=null) не ограничиваем: убрать ошибочное назначение нужно всегда.
+    if (groupId !== null) {
+      const { data: jr, error: jrErr } = await sb
+        .from('education_journeys')
+        .select('education_status, jewishness_status')
+        .eq('id', journeyId)
+        .maybeSingle()
+      if (jrErr) throw jrErr
+      if (!jr) return apiError('not_found', 404)
+      const j = jr as { education_status: string | null; jewishness_status: string | null }
+      if (j.education_status !== 'student' || j.jewishness_status !== JEWISHNESS_FINAL_APPROVED) {
+        return apiError('kodesh_assign_no_jewishness_approval', 409)
+      }
+    }
+
     // Снять студентку со всех групп кодеша.
     if (kodeshGroupIds.length > 0) {
       const { error: delErr } = await sb

@@ -51,7 +51,7 @@ export async function GET() {
         teacher_home: false, students_view_all: true, students_manage_all: true,
         restrict_to_kodesh: false,
         kodesh_home: true, kodesh_rav: true, track_catalog: true, no_lesson_days: true,
-        student_alerts: true, finance_admin: true,
+        student_alerts: true, finance_admin: true, create_kodesh_course: true,
       })
     }
 
@@ -68,6 +68,7 @@ export async function GET() {
       manageKodesh, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
       manageTracks, manageClassGroupsMgr, manageAlerts,
       finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
+      createKodeshCourse,
     ] = await Promise.all([
       canManageEducationInAny(session, 'view_students'),
       canManageEducationInAny(session, 'manage_students'),
@@ -92,6 +93,9 @@ export async function GET() {
       hasFinancePrivilege(session, 'manage_budget'),
       hasFinancePrivilege(session, 'approve_discount'),
       canManageEducationInAny(session, 'manage_enrollments'),
+      // Не карточка, а флаг для экрана «קורסי קודש»: кнопка «+ קורס» — зеркало
+      // проверки POST /api/education/semester-groups/[id]/courses для кафедры кодеша.
+      hasEducationPrivilege(session, 'create_kodesh_course', { department_id: KODESH_DEPT_ID }),
     ])
     // Видит ли всех студенток института (view='all') и может ли всеми управлять
     // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
@@ -146,6 +150,7 @@ export async function GET() {
       student_alerts: viewStudentsAny || manageAlerts,
       finance_admin: (finView || finViewBalance || finManageBudget)
         || (finView || finApproveDiscount || manageEnrollmentsMgr),
+      create_kodesh_course: createKodeshCourse,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

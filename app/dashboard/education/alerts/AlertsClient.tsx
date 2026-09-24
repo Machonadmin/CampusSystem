@@ -230,7 +230,7 @@ function TypesModal({ types, onClose, onChanged, t }: { types: AlertType[]; onCl
       <h2 style={{ fontSize: 15, fontWeight: 600, margin: '0 0 14px', color: 'var(--text)' }}>{t('manage_types')}</h2>
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         <input aria-label={t('type_name')} value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('type_name')} dir="rtl" style={{ ...inp, flex: 1 }} />
-        <input aria-label="code" value={code} onChange={e => setCode(e.target.value)} placeholder="code" dir="ltr" style={{ ...inp, width: 110 }} />
+        <input aria-label={t('type_code_latin')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('type_code_latin')} dir="ltr" style={{ ...inp, width: 150 }} />
         <button onClick={add} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{tCommon('create')}</button>
       </div>
       <div style={{ display: 'grid', gap: 4, maxHeight: 320, overflowY: 'auto' }}>

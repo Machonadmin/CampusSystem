@@ -61,9 +61,23 @@ export async function POST(
     let validSig: ValidSignature | null = null
     if (ctx.requiresSignature || sigRaw != null) {
       const method = await getSignatureMethod()
+      // Альтернативные имена подписанта (иврит / имя+фамилия) для typed-подписи:
+      // раньше проходило только точное совпадение с full_name (напр. рус. vs иврит).
+      const { data: signerPerson } = await createServerClient()
+        .from('persons')
+        .select('hebrew_name, first_name, last_name')
+        .eq('id', session.person_id)
+        .maybeSingle()
+      const sp = signerPerson as { hebrew_name: string | null; first_name: string | null; last_name: string | null } | null
+      const signerAltNames = [
+        sp?.hebrew_name ?? '',
+        [sp?.first_name, sp?.last_name].filter(Boolean).join(' '),
+        [sp?.last_name, sp?.first_name].filter(Boolean).join(' '),
+      ].filter(n => n.trim().length > 0)
       const v = validateSignature(sigRaw as never, {
         method,
         signerFullName: session.full_name,
+        signerAltNames,
         stageInstanceId: params.stageInstanceId,
       })
       if ('error' in v) return apiError(v.error, 400)

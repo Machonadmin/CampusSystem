@@ -164,6 +164,14 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const tEv = useTranslations('events')
   const me = useMe()
 
+  // Подпись исхода этапа. Для этапа проверки еврейства исходы — это решения
+  // приёмной комиссии («אישור חלקי»), а не «נאסף חלקית» из общего словаря
+  // process.finals, поэтому сначала берём acceptance_finals.
+  const finalLabel = (stageCode: string | null | undefined, code: string, fallback: string) => {
+    const generic = t(`process.finals.${code}`, fallback)
+    return stageCode === 'jewishness' ? t(`acceptance_finals.${code}`, generic) : generic
+  }
+
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
@@ -456,7 +464,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       </span>
                       {stage.final_code && stage.status === 'completed' && (
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 'auto' }}>
-                          {t(`process.finals.${stage.final_code}`,
+                          {finalLabel(stage.stage_template?.code, stage.final_code,
                             stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code)}
                         </span>
                       )}
@@ -634,7 +642,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
                   {/* Events tab */}
                   {stageTab === 'events' && selectedStageId && (
-                    <StageEventsFeed stageInstanceId={selectedStageId} canManage={stageDetail.can_manage} />
+                    <StageEventsFeed stageInstanceId={selectedStageId} canManage={stageDetail.can_manage} stageCode={stageDetail.stage_template?.code ?? null} />
                   )}
 
                   {/* Tasks tab (default) */}
@@ -721,7 +729,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                                   transition: 'opacity 0.15s',
                                 }}
                               >
-                                {t(`process.finals.${final.code}`, final.name_ru)}
+                                {finalLabel(stageDetail.stage_template?.code, final.code, final.name_ru)}
                               </button>
                             )
                           })}
@@ -740,7 +748,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   {stageDetail.status === 'completed' && stageDetail.final_code && (
                     <div style={{ padding: '10px 14px', background: 'var(--success-tint)', border: '1px solid var(--success)', borderRadius: 8, fontSize: 13, color: 'var(--success)' }}>
                       {t('process.completed_with')} <strong>
-                        {t(`process.finals.${stageDetail.final_code}`,
+                        {finalLabel(stageDetail.stage_template?.code, stageDetail.final_code,
                           stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code)}
                       </strong>
                     </div>

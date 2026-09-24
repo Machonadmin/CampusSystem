@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useMe } from '@/lib/hooks/useMe'
 
 /**
  * Навигация в шапке модуля «Учёба». После наведения порядка (запрос владельца,
@@ -27,18 +28,22 @@ const linkChip: React.CSSProperties = {
 export default function EducationHeaderNav() {
   const t = useTranslations('education')
 
-  // Ссылка «אישורי שיבוץ» видна ТОЛЬКО מנהל כללי: запрос к /approvals вернёт 403
-  // остальным (тогда pending===null и ссылку не рисуем). Заодно показываем
-  // счётчик ожидающих запросов. Деплой-безопасно: до миграции список пуст.
+  // Ссылка «אישורי שיבוץ» видна ТОЛЬКО מנהל כללי: /approvals отдаёт 403
+  // остальным, поэтому запрос шлём только superadmin (без лишних 403 в консоли);
+  // иначе pending===null и ссылку не рисуем. Заодно показываем счётчик
+  // ожидающих запросов. Деплой-безопасно: до миграции список пуст.
+  const me = useMe()
+  const isSuperadmin = !!me?.roles?.includes('superadmin')
   const [pending, setPending] = useState<number | null>(null)
   useEffect(() => {
+    if (!isSuperadmin) return
     let alive = true
     fetch('/api/education/schedule/approvals')
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (alive && d) setPending((d.requests ?? []).length) })
       .catch(() => {})
     return () => { alive = false }
-  }, [])
+  }, [isSuperadmin])
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

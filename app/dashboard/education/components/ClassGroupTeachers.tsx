@@ -6,6 +6,11 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { useMe } from '@/lib/hooks/useMe'
+
+// Кафедра кодеша (клиентская копия константы, как в StudiesWorkspace и др.:
+// lib/education/kodesh-exceptions тянет серверный supabase-клиент).
+const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 
 interface Teacher {
   person_id: string
@@ -28,6 +33,13 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  // В курс кодеша преподавателя добавляют через предложение на утверждение
+  // рава (экран «קורסי קודש»), API отдаёт 403 — кнопку прячем. superadmin
+  // может добавить напрямую. (Рав с approve_kodesh_teacher тоже вправе, но
+  // ему кнопку не показываем: клиенту это право не известно, а утверждает он
+  // через очередь.)
+  const me = useMe()
+  const canAddDirectly = departmentId !== KODESH_DEPT_ID || !!me?.roles?.includes('superadmin')
 
   const handleAdd = async () => {
     if (!selectedId) return
@@ -100,7 +112,7 @@ export default function ClassGroupTeachers({ groupId, departmentId, teachers, on
         <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
           {t('class_groups.teachers_section_title')}
         </h2>
-        {!adding && (
+        {!adding && canAddDirectly && (
           <button
             onClick={() => { setAdding(true); setActionError(null) }}
             style={{ ...btnSmall, color: accentColor, borderColor: accentColor }}

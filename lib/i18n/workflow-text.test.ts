@@ -9,7 +9,14 @@ const t = (key: string, fallback?: string) => {
     'system.substage_cancelled': 'שלב בוטל',
     'system.substage_activated': 'שלב הופעל',
     'system.process_started': 'תהליך הופעל',
+    'system.substage_activated_manually': 'השלב הופעל ידנית',
+    'system.substage_reopened': 'השלב נפתח מחדש לשינוי החלטה',
+    'system.substage_activated_dormitory': 'השלב הופעל (נדרשת פנימייה)',
+    'system.dormitory_stage_restored': 'שלב הפנימייה הוחזר (נדרשת פנימייה)',
+    'system.dormitory_stage_skipped': 'שלב הפנימייה דולג (לא נדרשת פנימייה)',
+    'system.substage_activated_after_dormitory_skip': 'השלב הופעל (אחרי דילוג על פנימייה)',
     'finals.approved': 'אושר',
+    'finals.partial': 'נאסף חלקית',
     'process_names.Приём': 'קבלה',
   }
   return dict[key] ?? fallback ?? key
@@ -36,5 +43,27 @@ describe('translateSystemEvent', () => {
   })
   it('шаблон должен совпадать целиком (без ложных срабатываний по подстроке)', () => {
     expect(translateSystemEvent('см. Подэтап отменён вчера', t)).toBe('см. Подэтап отменён вчера')
+  })
+  it('переводит системные строки reactivate_stage и dormitory gating', () => {
+    expect(translateSystemEvent('Подэтап активирован вручную', t)).toBe('השלב הופעל ידנית')
+    expect(translateSystemEvent('Подэтап переоткрыт для изменения решения', t)).toBe('השלב נפתח מחדש לשינוי החלטה')
+    expect(translateSystemEvent('Подэтап активирован (нужен пансион)', t)).toBe('השלב הופעל (נדרשת פנימייה)')
+    expect(translateSystemEvent('Этап общежития возвращён (нужен пансион)', t)).toBe('שלב הפנימייה הוחזר (נדרשת פנימייה)')
+    expect(translateSystemEvent('Этап общежития пропущен (пансион не нужен)', t)).toBe('שלב הפנימייה דולג (לא נדרשת פנימייה)')
+    expect(translateSystemEvent('Подэтап активирован (пересчёт join после skip общежития)', t)).toBe('השלב הופעל (אחרי דילוג על פנימייה)')
+  })
+  it('«Подэтап активирован (<причина>)» с неизвестной причиной — общий перевод + причина как есть', () => {
+    expect(translateSystemEvent('Подэтап активирован (что-то новое)', t)).toBe('שלב הופעל (что-то новое)')
+  })
+  it('для этапа jewishness исход берётся из acceptance_finals', () => {
+    const tEdu = (key: string, fallback?: string) =>
+      ({ 'acceptance_finals.partial': 'אישור חלקי' } as Record<string, string>)[key] ?? fallback ?? key
+    expect(translateSystemEvent('Подэтап завершён: partial', t, { stageCode: 'jewishness', tEducation: tEdu }))
+      .toBe('שלב הושלם: אישור חלקי')
+    // другой этап — общий словарь
+    expect(translateSystemEvent('Подэтап завершён: partial', t, { stageCode: 'documents', tEducation: tEdu }))
+      .toBe('שלב הושלם: נאסף חלקית')
+    // без кода этапа — как раньше
+    expect(translateSystemEvent('Подэтап завершён: partial', t)).toBe('שלב הושלם: נאסף חלקית')
   })
 })

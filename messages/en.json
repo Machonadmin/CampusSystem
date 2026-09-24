@@ -1397,7 +1397,7 @@
       "load_error": "Failed to load the overview",
       "track_label": "Chol track",
       "track_later": "Assign later",
-      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject).",
+      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet. You can approve, but it's better to wait for their opinion.",
       "handle_in_module": "Handle in module",
       "stalled_title": "Waiting over {n} days:",
       "days_short": "{n}d"
@@ -2267,6 +2267,7 @@
       "student_required": "Select a student",
       "code_format": "Invalid code",
       "type_name": "Type name",
+      "type_code_latin": "Code (Latin letters)",
       "confirm_delete_type": "Delete type “{name}”?",
       "type_in_use": "Type is in use — deactivate instead",
       "deactivate": "Deactivate",
@@ -3418,7 +3419,13 @@
       "substage_completed": "Stage completed",
       "substage_cancelled": "Stage cancelled",
       "substage_activated": "Stage activated",
-      "process_started": "Process started"
+      "process_started": "Process started",
+      "substage_activated_manually": "Stage activated manually",
+      "substage_reopened": "Stage reopened to change the decision",
+      "substage_activated_dormitory": "Stage activated (dormitory needed)",
+      "dormitory_stage_restored": "Dormitory stage restored (dormitory needed)",
+      "dormitory_stage_skipped": "Dormitory stage skipped (no dormitory needed)",
+      "substage_activated_after_dormitory_skip": "Stage activated (after dormitory skip)"
     },
     "finals": {
       "approved": "Approved",
@@ -4122,7 +4129,10 @@
       "download": "Open",
       "final_approved": "Fit",
       "final_rejected": "Not fit",
-      "confirm": "Confirm & sign"
+      "confirm": "Confirm & sign",
+      "view": "View",
+      "reason_dormitory": "Opened automatically: dormitory needed",
+      "sign_only_role": "Only a doctor can sign here"
     }
   },
   "psychologist": {
@@ -4226,7 +4236,10 @@
       "download": "Open",
       "final_approved": "Fit",
       "final_rejected": "Not fit",
-      "confirm": "Confirm & sign"
+      "confirm": "Confirm & sign",
+      "view": "View",
+      "reason_dormitory": "Opened automatically: dormitory needed",
+      "sign_only_role": "Only a psychologist can sign here"
     }
   },
   "reports": {
@@ -4752,6 +4765,8 @@
     }
   },
   "errors": {
+    "kodesh_assign_no_jewishness_approval": "Cannot assign: no final approval of the Jewishness check",
+    "kodesh_teacher_via_approval": "Teachers for a kodesh course are added via a proposal for the Rav's approval",
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
@@ -5142,7 +5157,8 @@
     "series_max_repeats": "Maximum {n} repetitions in a series",
     "series_over_limit": "The series exceeds the limit of {n} tasks",
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
-    "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first."
+    "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
+    "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing."
   },
   "workflow": {
     "error": "Error"
@@ -5410,7 +5426,7 @@
     "cause_unknown": "Could not read the module privilege list. Please try again in a moment.",
     "has": "granted",
     "missing": "missing",
-    "fix_privilege": "An administrator can grant it in Settings → Roles (for the whole role) or Settings → Users & permissions (for this person only).",
+    "fix_privilege": "Whoever manages permissions can open this in \"Data security → By staff member\".",
     "fix_catalog": "This is an installation problem, not a permission one: the module privilege catalogue must be seeded in the database.",
     "back_home": "Back to home"
   },

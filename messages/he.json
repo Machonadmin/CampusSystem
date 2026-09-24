@@ -468,9 +468,9 @@
       "mark_in_process": "סמן כבתהליך"
     },
     "applicants": {
-      "no_data": "אין מועמדים",
+      "no_data": "אין מועמדות",
       "no_stages": "לא בטיפול",
-      "status_label": "מועמד",
+      "status_label": "מועמדת",
       "table": {
         "full_name": "שם",
         "application_date": "תאריך הגשה",
@@ -507,10 +507,10 @@
       "notes": "הערות",
       "academic": "נתונים אקדמיים",
       "add_lead": "הוספת ליד",
-      "add_applicant": "הוספת מועמד",
+      "add_applicant": "הוספת מועמדת",
       "add_student": "הוספת תלמידה",
       "create_lead": "יצירת ליד",
-      "create_applicant": "יצירת מועמד",
+      "create_applicant": "יצירת מועמדת",
       "create_student": "יצירת תלמידה",
       "edit_lead": "עריכת ליד",
       "saving": "שומר…",
@@ -663,7 +663,7 @@
         "feedback_received": "האירוע התקיים",
         "no_show": "האירוע לא התקיים",
         "refused": "סירבה להגיע",
-        "convert_to_applicant": "העבר למועמד",
+        "convert_to_applicant": "העבר לוועדת קבלה",
         "approved": "אושר",
         "refer_to_doctor": "הפניה לרופא",
         "refer_to_psychologist": "הפניה לפסיכולוג",
@@ -737,7 +737,7 @@
       },
       "status": {
         "lead": "ליד",
-        "applicant": "מועמד",
+        "applicant": "מועמדת",
         "student": "תלמידה",
         "graduated": "בוגר",
         "expelled": "הופסקו לימודיה",
@@ -745,7 +745,7 @@
       },
       "card_type": {
         "lead": "כרטיס ליד",
-        "applicant": "כרטיס מועמד",
+        "applicant": "כרטיס מועמדת",
         "student": "כרטיס תלמידה",
         "graduated": "כרטיס בוגר",
         "expelled": "כרטיס מורחק",
@@ -1397,7 +1397,7 @@
       "load_error": "שגיאה בטעינת הסקירה",
       "track_label": "מסלול חול",
       "track_later": "אבחר מאוחר יותר",
-      "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו — אי אפשר לאשר עדיין (אפשר לדחות).",
+      "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו. אפשר לאשר, אבל מומלץ לחכות לחוות דעתם.",
       "handle_in_module": "לטיפול במודול",
       "stalled_title": "ממתינות מעל {n} ימים:",
       "days_short": "{n} ימ׳"
@@ -2267,6 +2267,7 @@
       "student_required": "יש לבחור תלמידה",
       "code_format": "קוד לא תקין (אותיות קטנות/ספרות/קו תחתון)",
       "type_name": "שם הסוג",
+      "type_code_latin": "קוד (באנגלית)",
       "confirm_delete_type": "למחוק את הסוג «{name}»?",
       "type_in_use": "הסוג בשימוש — השבת אותו במקום למחוק",
       "deactivate": "השבת",
@@ -3418,7 +3419,13 @@
       "substage_completed": "השלב הושלם",
       "substage_cancelled": "השלב בוטל",
       "substage_activated": "השלב הופעל",
-      "process_started": "התהליך הופעל"
+      "process_started": "התהליך הופעל",
+      "substage_activated_manually": "השלב הופעל ידנית",
+      "substage_reopened": "השלב נפתח מחדש לשינוי החלטה",
+      "substage_activated_dormitory": "השלב הופעל (נדרשת פנימייה)",
+      "dormitory_stage_restored": "שלב הפנימייה הוחזר (נדרשת פנימייה)",
+      "dormitory_stage_skipped": "שלב הפנימייה דולג (לא נדרשת פנימייה)",
+      "substage_activated_after_dormitory_skip": "השלב הופעל (אחרי דילוג על פנימייה)"
     },
     "finals": {
       "approved": "אושר",
@@ -3430,7 +3437,7 @@
       "waitlisted": "רשימת המתנה",
       "qualified": "מתאימה",
       "not_qualified": "לא מתאימה",
-      "done_event_yes": "רשום לאירוע",
+      "done_event_yes": "רשומה לאירוע",
       "done_event_skip": "ללא אירוע",
       "postponed": "קבלה נדחית",
       "all_collected": "הכל נאסף",
@@ -4122,7 +4129,10 @@
       "download": "פתיחה",
       "final_approved": "כשירה",
       "final_rejected": "לא כשירה",
-      "confirm": "אישור וחתימה"
+      "confirm": "אישור וחתימה",
+      "view": "צפייה",
+      "reason_dormitory": "נפתח אוטומטית: המועמדת צריכה פנימייה",
+      "sign_only_role": "רק רופא/ה יכול/ה לחתום כאן"
     }
   },
   "psychologist": {
@@ -4226,7 +4236,10 @@
       "download": "פתיחה",
       "final_approved": "כשירה",
       "final_rejected": "לא כשירה",
-      "confirm": "אישור וחתימה"
+      "confirm": "אישור וחתימה",
+      "view": "צפייה",
+      "reason_dormitory": "נפתח אוטומטית: המועמדת צריכה פנימייה",
+      "sign_only_role": "רק פסיכולוג/ית יכול/ה לחתום כאן"
     }
   },
   "reports": {
@@ -4282,7 +4295,7 @@
       "open_sessions": "פגישות פתוחות",
       "status": {
         "lead": "ליד",
-        "applicant": "מועמד",
+        "applicant": "מועמדת",
         "student": "תלמידה",
         "on_leave": "חופשת לימודים",
         "graduated": "בוגר",
@@ -4752,6 +4765,8 @@
     }
   },
   "errors": {
+    "kodesh_assign_no_jewishness_approval": "אי אפשר לשבץ: אין אישור סופי בבירור יהדות",
+    "kodesh_teacher_via_approval": "מורה לקורס קודש מוסיפים דרך הצעה לאישור הרב",
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
@@ -5142,7 +5157,8 @@
     "series_max_repeats": "מקסימום {n} חזרות בסדרה",
     "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
     "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
-    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם."
+    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם.",
+    "handoff_missing_fields": "אי אפשר להעביר לוועדת קבלה: חסרים שם או טלפון."
   },
   "workflow": {
     "error": "שגיאה"
@@ -5164,7 +5180,7 @@
   },
   "apply": {
     "campus_title": "קמפוס «מכון חמש»",
-    "form_subtitle": "טופס הרשמה למועמדים",
+    "form_subtitle": "טופס הרשמה למועמדות",
     "honeypot_label": "אל תמלא שדה זה",
     "label_first_name": "שם פרטי",
     "label_last_name": "שם משפחה",
@@ -5410,7 +5426,7 @@
     "cause_unknown": "לא הצלחנו לקרוא את רשימת ההרשאות של המודול. נסו שוב בעוד רגע.",
     "has": "יש",
     "missing": "חסר",
-    "fix_privilege": "מנהל מערכת יכול להעניק זאת ב״הגדרות ← תפקידים״ (לתפקיד כולו) או ב״הגדרות ← משתמשים והרשאות״ (לאדם הזה בלבד).",
+    "fix_privilege": "מי שאחראי על ההרשאות יכול לפתוח זאת ב«אבטחת מידע ← לפי איש צוות».",
     "fix_catalog": "זו תקלת התקנה, לא הרשאה: צריך להשלים את קטלוג ההרשאות של המודול במסד הנתונים.",
     "back_home": "חזרה למסך הבית"
   },
