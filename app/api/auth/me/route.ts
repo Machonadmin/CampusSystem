@@ -43,7 +43,11 @@ export async function GET() {
   if (session.roles.includes('superadmin')) {
     accessible_modules = ALL_MODULE_CODES
     feature_access = ALL_FEATURES
-    is_chavruta_teacher = true
+    // НЕ true безусловно: флаг решает, куда ведёт пункт «חברותא» (журнал моры
+    // vs хаб). Журнал пускает только реальных мор, поэтому superadmin-не-мора
+    // получал «עמוד זה מיועד למורות חברותא». Видимость пункта у superadmin
+    // и так даёт can_view_chavruta / accessible_modules.
+    try { is_chavruta_teacher = await isChavrutaTeacher(createServerClient(), session.person_id) } catch { /* fail-closed → хаб */ }
   } else {
     const sb = createServerClient()
     try { is_chavruta_teacher = await isChavrutaTeacher(sb, session.person_id) } catch { /* деплой-безопасно */ }

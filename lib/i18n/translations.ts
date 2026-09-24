@@ -80,6 +80,7 @@ const ru = {
     contacts: 'Телефонная книга',
     settings: 'Роли, конфигурация',
     staff: 'Сотрудники, структура',
+    chavruta: 'Пары мора–ученица, журнал хавруты',
   },
   user: {
     profile: 'Профиль',
@@ -233,6 +234,7 @@ const he: typeof ru = {
     contacts: 'ספר טלפונים',
     settings: 'תפקידים, הגדרות',
     staff: 'עובדים, מבנה',
+    chavruta: 'שיוך מורה–תלמידה, יומן חברותא',
   },
   user: {
     profile: 'פרופיל',
@@ -386,6 +388,7 @@ const en: typeof ru = {
     contacts: 'Phone directory',
     settings: 'Roles, configuration',
     staff: 'Staff, structure',
+    chavruta: 'Teacher–student pairs, chavruta journal',
   },
   user: {
     profile: 'Profile',

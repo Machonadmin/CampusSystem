@@ -8,6 +8,7 @@ import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { headsOnlyKodesh } from '@/lib/education/kodesh-workspace'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
+import { canViewChavruta } from '@/lib/chavruta/access'
 import { createServerClient } from '@/lib/supabase/server'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -25,6 +26,8 @@ import { errorResponse } from '@/lib/api/handler'
  *   kodesh → canManageUnit(KODESH_DEPT_ID)
  *   semesters → manage_class_groups · structure → manage_subjects
  *   units → manage_study_groups · chavruta → преподаватель хеврусы
+ *   chavruta_hub → canViewChavruta (тот же гейт, что у страницы и API хаба
+ *                  «מרכז חברותא»: staff-comp ЛИБО manage_students)
  * Экраны модуля иудаики и прочие пункты (решение владельца: прятать карточку,
  * если экран всё равно покажет «אין לך הרשאה») — зеркало проверки главного GET:
  *   kodesh_home     → canManageKodesh (GET /api/education/kodesh/home)
@@ -56,7 +59,7 @@ export async function GET() {
         restrict_to_kodesh: false,
         kodesh_home: true, kodesh_rav: true, track_catalog: true, no_lesson_days: true,
         student_alerts: true, finance_admin: true, create_kodesh_course: true,
-        track_assignment: true,
+        track_assignment: true, chavruta_hub: true,
       })
     }
 
@@ -80,7 +83,7 @@ export async function GET() {
       manageKodesh, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
       manageTracks, manageClassGroupsMgr, manageAlerts,
       finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
-      createKodeshCourse,
+      createKodeshCourse, chavrutaHub,
     ] = await Promise.all([
       safe(canManageEducationInAny(session, 'view_students'), false),
       safe(canManageEducationInAny(session, 'manage_students'), false),
@@ -108,6 +111,8 @@ export async function GET() {
       // Не карточка, а флаг для экрана «קורסי קודש»: кнопка «+ קורס» — зеркало
       // проверки POST /api/education/semester-groups/[id]/courses для кафедры кодеша.
       safe(hasEducationPrivilege(session, 'create_kodesh_course', { department_id: KODESH_DEPT_ID }), false),
+      // Карточка «חברותא» (хаб) — зеркало гейта /dashboard/education/chavruta.
+      safe(canViewChavruta(session), false),
     ])
     // Видит ли всех студенток института (view='all') и может ли всеми управлять
     // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
@@ -165,6 +170,7 @@ export async function GET() {
         || (finView || finApproveDiscount || manageEnrollmentsMgr),
       create_kodesh_course: createKodeshCourse,
       track_assignment: manageStudents,
+      chavruta_hub: chavrutaHub,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

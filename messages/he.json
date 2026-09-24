@@ -5375,7 +5375,7 @@
     "not_a_teacher": "עמוד זה מיועד למורות חברותא",
     "feature_not_ready": "התכונה עדיין אינה פעילה",
     "teachers_title": "מורות חברותא",
-    "teachers_subtitle": "ניהול רשימת מורות החברותא",
+    "teachers_subtitle": "רשימת מורות החברותא — לצפייה בלבד",
     "add_teacher": "הוספת מורה",
     "source_kodesh": "אוטומטי (קודש)",
     "source_manual": "ידני",
@@ -5401,7 +5401,7 @@
     "teacher_added": "המורה נוספה",
     "teacher_removed": "המורה הוסרה",
     "hub_title": "מרכז חברותא",
-    "hub_subtitle": "מאגר מורות, שיוך חברותות ומעקב מפגשים",
+    "hub_subtitle": "מאגר מורות ושיוך תלמידות למורות החברותא",
     "pool_title": "מאגר מורות",
     "assign_title": "שיוך חברותא",
     "assign_hint": "שייכי מורה לתלמידה למעקב אחר חברותות. השיוך אינו משפיע על שכר.",
@@ -5415,7 +5415,10 @@
     "teacher_journal_title": "יומן מפגשים",
     "open_teacher_journal": "פתחי יומן מפגשי חברותא",
     "forbidden_hub": "אין לך הרשאה לנהל חברותות",
-    "error": "אירעה שגיאה"
+    "error": "אירעה שגיאה",
+    "managed_in_hub_note": "מורות וחברותות מנהלים במרכז החברותא",
+    "open_hub": "למרכז החברותא",
+    "unpair": "ביטול שיוך"
   },
   "impersonation": {
     "viewing_as": "אתה צופה כ־{name}",

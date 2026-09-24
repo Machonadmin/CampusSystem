@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
+import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
+import { createServerClient } from '@/lib/supabase/server'
 import ChavrutaHubClient from './ChavrutaHubClient'
 
 /**
@@ -18,6 +20,10 @@ export default async function ChavrutaHubPage() {
   if (!(await canViewChavruta(session))) redirect('/dashboard/education')
 
   const canManage = await canManageChavruta(session)
+  // Кнопка «פתחי יומן» — только реальной море хавруты: журнал пускает лишь
+  // мор, менеджер-не-мора получал там «לא מורה». Fail-closed: ошибка → кнопки нет.
+  let isTeacher = false
+  try { isTeacher = await isChavrutaTeacher(createServerClient(), session.person_id) } catch { /* fail-closed */ }
 
-  return <ChavrutaHubClient canManage={canManage} />
+  return <ChavrutaHubClient canManage={canManage} isTeacher={isTeacher} />
 }

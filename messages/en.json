@@ -5375,7 +5375,7 @@
     "not_a_teacher": "This page is for chavruta teachers",
     "feature_not_ready": "This feature is not enabled yet",
     "teachers_title": "Chavruta teachers",
-    "teachers_subtitle": "Manage the chavruta teachers list",
+    "teachers_subtitle": "Chavruta teachers list — view only",
     "add_teacher": "Add teacher",
     "source_kodesh": "Automatic (kodesh)",
     "source_manual": "Manual",
@@ -5401,7 +5401,7 @@
     "teacher_added": "Teacher added",
     "teacher_removed": "Teacher removed",
     "hub_title": "Chavruta Center",
-    "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
+    "hub_subtitle": "Teacher pool and teacher–student chavruta pairing",
     "pool_title": "Teacher pool",
     "assign_title": "Chavruta pairing",
     "assign_hint": "Pair a teacher with a student to track chavrutas. The pairing does not affect pay.",
@@ -5415,7 +5415,10 @@
     "teacher_journal_title": "Session journal",
     "open_teacher_journal": "Open chavruta session journal",
     "forbidden_hub": "You do not have permission to manage chavrutas",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "managed_in_hub_note": "Chavruta teachers and pairings are managed in the Chavruta hub",
+    "open_hub": "Go to the Chavruta hub",
+    "unpair": "Unpair"
   },
   "impersonation": {
     "viewing_as": "Viewing as {name}",
