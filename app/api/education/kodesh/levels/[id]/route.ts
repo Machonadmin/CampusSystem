@@ -16,10 +16,8 @@ import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
  *
  * Право: manage_class_groups на кафедре иудаики (как переименование).
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as { is_active?: boolean }
     if (typeof body.is_active !== 'boolean') return apiError('no_changes', 400)
