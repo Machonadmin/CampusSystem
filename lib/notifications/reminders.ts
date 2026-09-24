@@ -246,3 +246,72 @@ export async function materializeDueReminders(sb: SB, personId: string): Promise
     /* тихо — напоминания не критичны для отдачи уведомлений */
   }
 }
+
+// ─── Тихие напоминания по задачам этапов (без срока) ─────────────────────────
+//
+// Решение владельца 2026-09-24: у задач этапов процесса (набор и т.п.) НЕ
+// ставим срок (due_date) — никаких дедлайнов и «просрочено». Но число дней из
+// шаблона (stage_task_templates.default_due_days) используем как момент ОДНОГО
+// напоминания в колокольчик/на телефон: «משימה עדיין פתוחה». Одно напоминание
+// на задачу (дедуп по metadata.task_id, type='task_nudge'). Только задачи,
+// назначенные конкретному человеку. Best-effort, миграция не нужна.
+
+const DAY_MS = 86_400_000
+
+/** Пора ли напомнить: прошло не меньше `days` полных суток с создания задачи. */
+export function isStageTaskNudgeDue(createdAt: string, days: number | null | undefined, now: Date = new Date()): boolean {
+  if (days == null || !Number.isFinite(days) || days <= 0) return false
+  const created = Date.parse(createdAt)
+  if (Number.isNaN(created)) return false
+  return now.getTime() - created >= days * DAY_MS
+}
+
+export async function materializeStageTaskNudges(sb: SB, now: Date = new Date()): Promise<number> {
+  let created = 0
+  try {
+    const { data: tasks, error } = await sb
+      .from('tasks')
+      .select('id, title, assignee_id, created_at, stage_task_template:stage_task_templates(default_due_days)')
+      .not('status', 'in', '("completed","cancelled","declined")')
+      .not('stage_task_template_id', 'is', null)
+      .is('due_date', null)
+      .eq('assignee_type', 'person')
+      .not('assignee_id', 'is', null)
+      .limit(1000)
+    if (error || !tasks || tasks.length === 0) return 0
+
+    type Row = { id: string; title: string; assignee_id: string; created_at: string; stage_task_template: { default_due_days: number | null } | null }
+    for (const tk of tasks as unknown as Row[]) {
+      if (!isStageTaskNudgeDue(tk.created_at, tk.stage_task_template?.default_due_days, now)) continue
+
+      const { data: existing } = await sb
+        .from('notifications')
+        .select('id')
+        .eq('person_id', tk.assignee_id)
+        .eq('type', 'task_nudge')
+        .contains('metadata', { task_id: tk.id })
+        .limit(1)
+      if (existing && existing.length > 0) continue
+
+      const row = {
+        person_id: tk.assignee_id,
+        type: 'task_nudge',
+        title: `תזכורת: המשימה עדיין פתוחה — ${tk.title}`,
+        link: `/dashboard/tasks/${tk.id}`,
+        metadata: { task_id: tk.id },
+      }
+      const { error: nErr } = await sb
+        .from('notifications')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(row as any)
+      if (nErr && isMissingTable(nErr)) return created
+      if (!nErr) {
+        created++
+        await pushNotificationRows(sb, [row])
+      }
+    }
+  } catch {
+    /* тихо */
+  }
+  return created
+}

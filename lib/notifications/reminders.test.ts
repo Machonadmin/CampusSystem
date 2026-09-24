@@ -128,3 +128,23 @@ describe('materializeAllDueReminders', () => {
     expect(pushed.map(r => r.person_id).sort()).toEqual(['p0', 'p2'])
   })
 })
+
+import { isStageTaskNudgeDue } from './reminders'
+
+describe('isStageTaskNudgeDue — одно напоминание по задаче этапа без срока', () => {
+  const created = '2026-09-20T10:00:00Z'
+  it('напоминает, когда прошло N суток', () => {
+    expect(isStageTaskNudgeDue(created, 2, new Date('2026-09-22T10:00:00Z'))).toBe(true)
+    expect(isStageTaskNudgeDue(created, 2, new Date('2026-09-25T00:00:00Z'))).toBe(true)
+  })
+  it('рано — не напоминает', () => {
+    expect(isStageTaskNudgeDue(created, 2, new Date('2026-09-22T09:59:00Z'))).toBe(false)
+  })
+  it('без числа дней в шаблоне — никогда', () => {
+    expect(isStageTaskNudgeDue(created, null, new Date('2027-01-01T00:00:00Z'))).toBe(false)
+    expect(isStageTaskNudgeDue(created, 0, new Date('2027-01-01T00:00:00Z'))).toBe(false)
+  })
+  it('битая дата — никогда', () => {
+    expect(isStageTaskNudgeDue('nope', 2, new Date())).toBe(false)
+  })
+})
