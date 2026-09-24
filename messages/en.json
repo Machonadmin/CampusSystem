@@ -1059,7 +1059,7 @@
         "year_3": "Year 3",
         "year_4": "Year 4",
         "semester_price_label": "Semester price (₽)",
-        "semester_price_hint": "Default 210000 ₽, editable. Two semesters are created automatically.",
+        "semester_price_hint": "Price for a new semester, if this track and year have no semester yet",
         "track_required": "Select a track",
         "all_tracks": "All tracks",
         "sem_button": "Semesters",
@@ -1072,7 +1072,8 @@
         "sem_none": "No semesters for this subject",
         "name_ru_label": "Name (Russian)",
         "name_en_label": "Name (English)",
-        "add_semester": "Add semester"
+        "add_to_semesters": "Add to semesters",
+        "sem_shared_hint": "Shared semester for all subjects of this track and year — price and status are edited in the semester window"
       },
       "specialties": {
         "add_button": "Specialty",
@@ -5169,7 +5170,9 @@
     "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing.",
     "acceptance_early_close_admit_blocked": "An applicant cannot be admitted via \"Close process\". Admission only goes through the stage signatures.",
     "semester_exists": "A semester with the same track, year and semester number already exists: {name}",
-    "track_no_department": "The subject's track has no department — cannot create a semester"
+    "track_no_department": "The subject's track has no department — cannot create a semester",
+    "subject_already_in_semesters": "The subject is already in semester 1 and semester 2 of its track and year",
+    "subject_courses_no_privilege": "Subject created, but you are not allowed to create courses — it was not added to semesters"
   },
   "workflow": {
     "error": "Error"

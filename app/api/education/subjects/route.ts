@@ -3,9 +3,10 @@ import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SubjectInsert } from '@/types/database'
-import { createSubjectSemesters, DEFAULT_SEMESTER_PRICE, isSubjectNameTaken } from '@/lib/education/subject-semesters'
+import { ensureSubjectInTrackSemesters, DEFAULT_SEMESTER_PRICE, isSubjectNameTaken } from '@/lib/education/subject-semesters'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -62,9 +63,15 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/education/subjects
  * Модель: מקצוע висит на МАРШРУТЕ (study_track) + ГОДЕ (year_level).
- * department выводится из маршрута (для прав/видимости). При создании
- * автоматически заводятся 2 семестра (class_groups, term_number 1/2) с ценой.
- * Право: manage_subjects в подразделении маршрута.
+ * department выводится из маршрута (для прав/видимости). При создании предмет
+ * добавляется КУРСОМ в семестр 1 и семестр 2 маршрута + года (решение владельца
+ * 2026-09-24: один семестр — несколько предметов). Нет такого семестра — он
+ * создаётся один раз с ценой tuition_amount; цена существующего семестра не
+ * меняется.
+ * Право: manage_subjects в подразделении маршрута; для добавления в семестры —
+ * то же право, что у POST /semester-groups/[id]/courses (кодеш —
+ * create_kodesh_course, иначе manage_class_groups). Без него предмет создаётся,
+ * но в семестры не добавляется (warning).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -95,13 +102,17 @@ export async function POST(request: NextRequest) {
     // Маршрут → ответственное подразделение (для прав и видимости).
     const { data: track, error: trackErr } = await sb
       .from('study_tracks')
-      .select('id, department_id')
+      .select('id, department_id, code, name_he, name_ru, name_en')
       .eq('id', body.study_track_id)
       .single()
     if (trackErr || !track) return apiError('study_track_required', 400)
-    const trackDeptId = (track as { department_id: string | null }).department_id
+    const trackRow = track as {
+      id: string; department_id: string | null
+      code: string | null; name_he: string | null; name_ru: string | null; name_en: string | null
+    }
+    const trackDeptId = trackRow.department_id
 
-    await requireEducationPrivilege('manage_subjects', { department_id: trackDeptId ?? undefined })
+    const session = await requireEducationPrivilege('manage_subjects', { department_id: trackDeptId ?? undefined })
 
     // Предупреждение о дубликате: предмет с тем же именем (name_he или name) уже
     // есть на том же маршруте + году. force === true — создать всё равно.
@@ -141,32 +152,34 @@ export async function POST(request: NextRequest) {
       return errorResponse(m)
     }
 
-    // Автосоздание 2 семестров под предмет (общий хелпер createSubjectSemesters).
-    // Требует department (NOT NULL на class_groups). Если у маршрута нет
-    // подразделения — пропускаем с warning, предмет всё равно создан.
-    // Проверка дубликата семестра здесь не нужна: семестры только что созданного
-    // предмета не могут совпасть по subject_id.
-    const subjectId = (data as { id: string }).id
+    // Добавление предмета курсом в семестр 1 и 2 маршрута + года (общий хелпер
+    // ensureSubjectInTrackSemesters). Требует department (NOT NULL на
+    // class_groups): если у маршрута нет подразделения — пропускаем с warning,
+    // предмет всё равно создан.
+    const subjectRow = data as { id: string; name: string; name_he: string | null }
     let warning: string | undefined
+    // tuition_amount из формы — цена ТОЛЬКО для вновь создаваемого семестра.
     const price = typeof body.tuition_amount === 'number' && body.tuition_amount >= 0
       ? body.tuition_amount
       : DEFAULT_SEMESTER_PRICE
 
-    // Имя семестра — на иврите (система ивритоцентрична): «עיצוב · 1».
-    const semBaseName = nameHe || name
-    if (trackDeptId) {
-      const res = await createSubjectSemesters(sb, {
-        subjectId,
-        baseName: semBaseName,
-        departmentId: trackDeptId,
-        studyTrackId: body.study_track_id,
-        yearLevel: body.year_level,
-        terms: [1, 2],
-        price,
-      })
-      if (res.failed > 0) warning = serverT('subject_semesters_partial')
-    } else {
+    if (!trackDeptId) {
       warning = serverT('subject_no_track_department')
+    } else {
+      // Право на создание курса — как в POST /semester-groups/[id]/courses.
+      const coursePriv = trackDeptId === KODESH_DEPT_ID ? 'create_kodesh_course' : 'manage_class_groups'
+      const canAddCourses = await hasEducationPrivilege(session, coursePriv, { department_id: trackDeptId })
+      if (!canAddCourses) {
+        warning = serverT('subject_courses_no_privilege')
+      } else {
+        const res = await ensureSubjectInTrackSemesters(sb, {
+          subject: { id: subjectRow.id, name: subjectRow.name, name_he: subjectRow.name_he },
+          track: trackRow,
+          yearLevel: body.year_level,
+          price,
+        })
+        if (res.notMigrated || res.failed > 0) warning = serverT('subject_semesters_partial')
+      }
     }
 
     return NextResponse.json(warning ? { ...data, warning } : data, { status: 201 })

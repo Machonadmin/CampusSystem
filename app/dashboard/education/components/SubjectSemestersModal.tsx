@@ -5,7 +5,6 @@ import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
-import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Semester {
   id: string
@@ -13,6 +12,8 @@ interface Semester {
   term_number: number | null
   tuition_amount: number | null
   sem_status: string | null
+  /** null — семестр-контейнер маршрута + года (предмет в нём курсом). */
+  subject_id: string | null
 }
 
 interface Props {
@@ -23,7 +24,13 @@ interface Props {
 
 const accent = getModuleColor('education')
 
-/** מסך הסמסטרים של מקצוע — צפייה ועריכה של מחיר וסטטוס במקום אחד. */
+/**
+ * מסך הסמסטרים של מקצוע. Показывает и старые семестры «по предмету»
+ * (subject_id = предмет; цена и статус редактируются здесь, как раньше), и
+ * общие семестры-контейнеры маршрута + года, где предмет стоит курсом, —
+ * они здесь только для просмотра: их цена общая для всех предметов семестра
+ * и меняется в окне семестра.
+ */
 export default function SubjectSemestersModal({ subjectId, subjectName, onClose }: Props) {
   const t = useTranslations('education.study')
   const tCommon = useTranslations('common')
@@ -43,6 +50,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
       const list: Semester[] = (json.semester_groups ?? []).map((s: Semester) => ({
         id: s.id, name: s.name, term_number: s.term_number,
         tuition_amount: s.tuition_amount, sem_status: s.sem_status,
+        subject_id: s.subject_id ?? null,
       }))
       setRows(list)
     } catch (e) {
@@ -54,27 +62,24 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
 
   useEffect(() => { load() }, [load])
 
-  // «הוסף סמסטר»: сервер сам выбирает наименьший недостающий номер и цену
-  // (как у существующих семестров предмета). 409 semester_exists → подтверждение
-  // «ליצור בכל זאת?» и повтор с force: true. После успеха — перезагрузка списка.
-  async function addSemester(force = false) {
+  // «הוסף לסמסטרים»: сервер добавляет предмет курсом в семестр 1 и 2 его
+  // маршрута + года (создаёт семестр, если его нет). 409
+  // subject_already_in_semesters — уже везде есть, показываем сообщение.
+  // После успеха — перезагрузка списка.
+  async function addToSemesters() {
     setAdding(true)
     try {
       const resp = await fetch(`/api/education/subjects/${subjectId}/semesters`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(force ? { force: true } : {}),
+        body: JSON.stringify({}),
       })
+      const json = await resp.json().catch(() => ({})) as { error?: string; failed?: number }
       if (!resp.ok) {
-        const e = await resp.json().catch(() => ({})) as { error?: string; code?: string }
-        if (!force && resp.status === 409 && e.code === 'semester_exists') {
-          const ok = await confirmDialog({ message: `${e.error ?? ''}\n\n${t('common.create_anyway_confirm')}` })
-          if (ok) { await addSemester(true); return }
-          return
-        }
-        toast(e.error ?? t('common.error_generic'), 'error')
+        toast(json.error ?? t('common.error_generic'), resp.status === 409 ? 'info' : 'error')
         return
       }
+      if (json.failed && json.failed > 0) toast(t('common.error_generic'), 'error')
       await load()
     } catch (e) {
       toast(e instanceof Error ? e.message : t('common.error_send_generic'), 'error')
@@ -132,7 +137,17 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('subjects.sem_none')}</div>
         )}
 
-        {!loading && !error && rows.map(row => (
+        {!loading && !error && rows.map(row => row.subject_id === null ? (
+          // Семестр-контейнер: только просмотр (цена общая для всех предметов семестра).
+          <div key={row.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>{row.name}</div>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--text)' }}>
+              <span>{t('subjects.semester_price_label')}: {row.tuition_amount ?? '—'}</span>
+              <span>{t('subjects.sem_status_label')}: {row.sem_status === 'closed' ? t('subjects.sem_closed') : t('subjects.sem_open')}</span>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>{t('subjects.sem_shared_hint')}</div>
+          </div>
+        ) : (
           <div key={row.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 14, marginBottom: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>
               {t('subjects.semester_word')} {row.term_number ?? '—'}
@@ -172,11 +187,11 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
           {/* Кнопка видна и когда у предмета 0 семестров (только не во время загрузки/ошибки). */}
           {!loading && !error ? (
             <button
-              onClick={() => addSemester()}
+              onClick={() => addToSemesters()}
               disabled={adding}
               style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 8, cursor: adding ? 'wait' : 'pointer', opacity: adding ? 0.6 : 1 }}
             >
-              + {t('subjects.add_semester')}
+              + {t('subjects.add_to_semesters')}
             </button>
           ) : <span />}
           <button

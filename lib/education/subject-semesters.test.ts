@@ -1,23 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { nextMissingTerm, pickSemesterPrice, isSubjectNameTaken, DEFAULT_SEMESTER_PRICE } from './subject-semesters'
-
-describe('nextMissingTerm', () => {
-  it('нет семестров → 1', () => {
-    expect(nextMissingTerm([])).toBe(1)
-  })
-  it('1 и 2 заняты → 3', () => {
-    expect(nextMissingTerm([1, 2])).toBe(3)
-  })
-  it('дыра в середине → наименьший свободный', () => {
-    expect(nextMissingTerm([1, 3, 4])).toBe(2)
-  })
-  it('нет 1 → 1', () => {
-    expect(nextMissingTerm([2, 3])).toBe(1)
-  })
-  it('null/0/дубли игнорируются', () => {
-    expect(nextMissingTerm([null, undefined, 0, 1, 1, -2])).toBe(2)
-  })
-})
+import {
+  pickSemesterPrice, isSubjectNameTaken, DEFAULT_SEMESTER_PRICE,
+  buildContainerSemesterName, pickOldestContainer,
+} from './subject-semesters'
 
 describe('pickSemesterPrice', () => {
   it('явная цена (в т.ч. 0) побеждает', () => {
@@ -49,5 +34,46 @@ describe('isSubjectNameTaken', () => {
   it('нет совпадения / пустые кандидаты → false', () => {
     expect(isSubjectNameTaken(rows, ['אחר', 'Other'])).toBe(false)
     expect(isSubjectNameTaken(rows, [null, '  '])).toBe(false)
+  })
+})
+
+describe('buildContainerSemesterName', () => {
+  it('маршрут · שנה <буква> · סמסטר N', () => {
+    expect(buildContainerSemesterName('עיצוב גרפי', 1, 1)).toBe('עיצוב גרפי · שנה א · סמסטר 1')
+    expect(buildContainerSemesterName('עיצוב גרפי', 2, 2)).toBe('עיצוב גרפי · שנה ב · סמסטר 2')
+  })
+  it('пустое имя маршрута пропускается', () => {
+    expect(buildContainerSemesterName('  ', 3, 1)).toBe('שנה ג · סמסטר 1')
+    expect(buildContainerSemesterName(null, 1, 2)).toBe('שנה א · סמסטר 2')
+  })
+  it('без года — «ללא שנה»', () => {
+    expect(buildContainerSemesterName('X', null, 1)).toBe('X · ללא שנה · סמסטר 1')
+  })
+})
+
+describe('pickOldestContainer', () => {
+  it('пусто → null', () => {
+    expect(pickOldestContainer([])).toBeNull()
+  })
+  it('самый ранний created_at', () => {
+    const r = pickOldestContainer([
+      { id: 'a', created_at: '2026-09-02T00:00:00Z' },
+      { id: 'b', created_at: '2026-09-01T00:00:00Z' },
+      { id: 'c', created_at: '2026-09-03T00:00:00Z' },
+    ])
+    expect(r?.id).toBe('b')
+  })
+  it('равные даты или их нет — по id', () => {
+    expect(pickOldestContainer([
+      { id: 'z', created_at: '2026-09-01T00:00:00Z' },
+      { id: 'm', created_at: '2026-09-01T00:00:00Z' },
+    ])?.id).toBe('m')
+    expect(pickOldestContainer([{ id: 'q' }, { id: 'd', created_at: null }])?.id).toBe('d')
+  })
+  it('строки с датой раньше строк без даты', () => {
+    expect(pickOldestContainer([
+      { id: 'a', created_at: null },
+      { id: 'b', created_at: '2026-09-05T00:00:00Z' },
+    ])?.id).toBe('b')
   })
 })
