@@ -1520,7 +1520,7 @@
     },
     "units": {
       "title": "ניהול צוות היחידה",
-      "subtitle": "הוסף מזכירות ומורים והגדר לכל אחד הרשאות",
+      "subtitle": "הוסף מזכירות ומורים ליחידה. ההרשאות נקבעות באבטחת מידע",
       "pick_unit": "בחר יחידה",
       "no_units": "אינך מנהל יחידת לימוד",
       "members": "חברי הצוות",
@@ -1560,7 +1560,9 @@
       "extra_minutes": "זמן נוסף לנוכחות (דק׳)",
       "save": "שמור",
       "role_deputy": "סגן",
-      "deputy_hint": "מתחיל ללא הרשאות — אתה מעניק לו הרשאות מהרשימה למטה."
+      "deputy_hint": "מתחיל ללא הרשאות — ההרשאות נקבעות באבטחת מידע.",
+      "edit_in_data_security": "ערוך הרשאות באבטחת מידע",
+      "perms_readonly_hint": "הרשאות וזמן נוסף נקבעים באבטחת מידע."
     },
     "placements": {
       "title": "שיבוצים",
@@ -2804,7 +2806,7 @@
       "hire_date": "תאריך קבלה לעבודה",
       "is_head": "ראש היחידה (מנהל את הצוות)",
       "make_login": "ליצור התחברות למערכת",
-      "make_login_hint": "בלי זה — האדם משובץ עם הרשאות, אבל לא יכול להיכנס למערכת.",
+      "make_login_hint": "בלי זה — האדם משובץ, אבל לא יכול להיכנס למערכת.",
       "login_email": "אימייל להתחברות",
       "password_auto": "סיסמה תיווצר אוטומטית ותוצג בסיום.",
       "summary": "סיכום",
@@ -2825,7 +2827,7 @@
       "err_login": "יצירת ההתחברות נכשלה",
       "empty_list_hint": "הרשימה לא נטענה — רעננו את הדף ונסו שוב.",
       "screen_title": "הוספת בעל תפקיד",
-      "screen_sub": "הכל במסך אחד — אדם, תפקיד, מחלקה, הרשאות והתחברות",
+      "screen_sub": "הכל במסך אחד — אדם, תפקיד, מחלקה והתחברות",
       "sec_who": "מי זה?",
       "who_existing": "אדם קיים",
       "who_new": "אדם חדש",
@@ -2868,7 +2870,8 @@
       "err_person": "יצירת האדם נכשלה",
       "err_onboard": "השמירה נכשלה — נסו שוב.",
       "dup_warn": "רגע — נמצאו אנשים דומים במאגר. אם זה אותו אדם, בחר אותו במקום ליצור כפילות:",
-      "dup_pick": "בחר את הקיים"
+      "dup_pick": "בחר את הקיים",
+      "set_permissions_link": "קבע הרשאות באבטחת מידע"
     },
     "merge": {
       "launch": "מיזוג כפילויות",
@@ -3149,7 +3152,9 @@
       "copy_password": "העתק",
       "copied": "הועתק ✓",
       "done": "סיום",
-      "password_reset_done": "הסיסמה אופסה! הסיסמה החדשה:"
+      "password_reset_done": "הסיסמה אופסה! הסיסמה החדשה:",
+      "permissions_in_data_security_hint": "ההתחברות נוצרת ללא תפקידים. תפקידים והרשאות נקבעים באבטחת מידע.",
+      "permissions_in_data_security_link": "קבע הרשאות באבטחת מידע ←"
     },
     "roles": {
       "code": "קוד",
@@ -3665,7 +3670,9 @@
       "portal_toggle_failed": "לא ניתן לעדכן את הנראות",
       "portal_migration_missing": "התכונה אינה זמינה — יש להחיל את מיגרציית מסד הנתונים",
       "charged_total": "חויב",
-      "paid_total": "שולם"
+      "paid_total": "שולם",
+      "managed_in_data_security": "הגישה לכספים מנוהלת כעת באבטחת מידע, בכרטיס של כל עובד. כאן מוצגת רק הרשימה.",
+      "edit_in_data_security": "ערוך באבטחת מידע"
     },
     "staff": {
       "title": "תלושי שכר",
@@ -5540,6 +5547,23 @@
     "unit_open_person": "ההרשאות שלו",
     "unit_all_seated": "כל אנשי הצוות כבר משויכים כאן",
     "units_people_hint": "לחיצה על שם יחידה מראה מי יושב בה ומאפשרת להוסיף או להסיר אנשי צוות. החץ שמימין פותח את היחידות שתחתיה.",
-    "units_children_count": "{n} יחידות בפנים"
+    "units_children_count": "{n} יחידות בפנים",
+    "extras_roles_title": "תפקידים",
+    "extras_roles_readonly": "רק מנהל מערכת יכול לשנות תפקידים",
+    "extras_roles_save": "שמירת תפקידים",
+    "extras_roles_saved": "התפקידים נשמרו",
+    "extras_roles_save_error": "לא ניתן לשמור את התפקידים",
+    "extras_finance_title": "גישה לכספים",
+    "extras_finance_readonly": "רק מנהל כספים יכול לשנות גישה לכספים",
+    "extras_finance_none": "אין גישה לכספים",
+    "extras_finance_grant_all": "תן גישה לכל התלמידות",
+    "limited_note": "גישה מצומצמת: הצוות שלך וההרשאות שיש לך",
+    "extras_attendance_title": "זמן נוסף לרישום נוכחות",
+    "extras_attendance_none": "אינו משובץ כמורה ביחידה שאתה רשאי לראות",
+    "extras_attendance_minutes": "דקות נוספות",
+    "extras_attendance_save": "שמור",
+    "extras_attendance_saved": "הזמן הנוסף נשמר",
+    "extras_attendance_save_error": "לא ניתן לשמור את הזמן הנוסף",
+    "extras_attendance_readonly": "רק ראש היחידה יכול לשנות את הזמן הנוסף"
   }
 }

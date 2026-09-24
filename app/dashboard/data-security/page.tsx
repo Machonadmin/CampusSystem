@@ -11,6 +11,7 @@ import {
 import { loadTree, loadStaffList } from '@/lib/data-security/load'
 import { buildUnitTree, type DepartmentInput, type SeatInput } from '@/lib/data-security/units'
 import { todayISO } from '@/lib/dates'
+import { getHeadScope, pruneTreeToGrantable, pruneUnitsToHeaded } from '@/lib/data-security/head-scope'
 import DataSecurityClient from './DataSecurityClient'
 
 /**
@@ -26,7 +27,11 @@ export default async function DataSecurityPage() {
   if (!session) redirect('/login')
 
   const canView = await hasDataSecurityPrivilege(session, 'access')
-  if (!canView) {
+  // Глава отдела без 'access' получает ограниченный режим: только его команда
+  // и только права, которые есть у него самого (lib/data-security/head-scope.ts).
+  // Сервер проверяет то же самое в /api/data-security/person/[personId].
+  const headScope = canView ? null : await getHeadScope(session)
+  if (!canView && !headScope) {
     // Не молчаливый редирект: он неотличим от поломки. Экран называет
     // недостающее право и место, где его выдать.
     const diagnosis = await diagnoseModuleAccess(
@@ -61,6 +66,23 @@ export default async function DataSecurityPage() {
     (seatRes.data ?? []) as unknown as SeatInput[],
     todayISO(),
   )
+
+  if (headScope) {
+    // Ограниченный режим: общий вид скрыт, посадка не правится, список людей —
+    // только команда, дерево — только выдаваемое, единицы — только его ветки.
+    return (
+      <DataSecurityClient
+        initialTree={pruneTreeToGrantable(tree, headScope.grantable)}
+        initialUnits={pruneUnitsToHeaded(units, headScope.headedUnitIds)}
+        staff={staff.filter(s => headScope.personIds.has(s.personId))}
+        departments={[]}
+        canGrant
+        canManageTree={false}
+        canManageUnits={false}
+        limited
+      />
+    )
+  }
 
   return (
     <DataSecurityClient
