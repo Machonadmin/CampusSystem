@@ -54,9 +54,9 @@ const BASE_ENUM_STATUSES: ReadonlyArray<JourneyStatus> =
 const JOURNEY_SELECT = `
   *,
   person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, gender, birth_date),
-  primary_department:departments!education_journeys_primary_department_id_fkey(id, name),
+  primary_department:departments!education_journeys_primary_department_id_fkey(id, name, name_he, name_en),
   specialty:specialties!education_journeys_specialty_id_fkey(id, name, code),
-  main_group:study_groups(id, name, year_level),
+  main_group:study_groups(id, name, name_he, year_level),
   desired_department:departments!education_journeys_desired_department_id_fkey(id, name),
   desired_specialty:specialties!education_journeys_desired_specialty_id_fkey(id, name, code)
 `

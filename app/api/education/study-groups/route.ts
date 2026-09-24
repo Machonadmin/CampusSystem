@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
     let qb = sb
       .from('study_groups')
-      .select('*, department:departments(id, name), specialty:specialties(id, name, code)')
+      .select('*, department:departments(id, name, name_he, name_en), specialty:specialties(id, name, code)')
       .order('year_level', { nullsFirst: false })
       .order('name')
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await sb
       .from('study_groups')
       .insert(insert as any)
-      .select('*, department:departments(id, name), specialty:specialties(id, name, code)')
+      .select('*, department:departments(id, name, name_he, name_en), specialty:specialties(id, name, code)')
       .single()
 
     if (error) {

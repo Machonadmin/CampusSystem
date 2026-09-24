@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { parseStudySection, STUDIES_NAV_KEYS, type StudySection } from '@/lib/education/studies-nav'
@@ -97,10 +97,20 @@ export default function StudyTab() {
   }, [])
   const railCollapsed = collapsed && !isMobile
 
+  // На телефоне рельс — горизонтальная полоса с прокруткой: активный пункт мог
+  // оказаться за краем экрана. Докручиваем его в видимую область при смене
+  // раздела (и при первом показе рельса, когда стала известна роль).
+  const activeItemRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = activeItemRef.current
+    if (!el || typeof el.scrollIntoView !== 'function') return
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [active, teacherHome])
+
   const railItem = (key: Section, label: string): React.ReactNode => {
     const isActive = active === key
     return (
-      <div key={key} style={{ position: 'relative' }}>
+      <div key={key} ref={isActive ? activeItemRef : undefined} style={{ position: 'relative' }}>
         {isActive && (
           <span style={{
             position: 'absolute', top: 6, bottom: 6, width: 3, borderRadius: 3,
