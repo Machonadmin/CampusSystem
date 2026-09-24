@@ -61,9 +61,6 @@
     "sent": "נשלח",
     "action_failed": "הפעולה נכשלה, נסו שוב",
     "city_input_placeholder": "הזינו שם עיר",
-    "city_choose_from_list": "בחרו מהרשימה",
-    "select_city": "בחרו עיר",
-    "other_city": "עיר אחרת",
     "select_country": "בחרו מדינה",
     "popular_countries": "מדינות נפוצות",
     "all_countries": "כל המדינות",
@@ -3089,7 +3086,6 @@
     "tabs": {
       "users": "משתמשים",
       "roles": "תפקידים והרשאות",
-      "reference_cities": "רשימת ערים",
       "reference_positions": "תוארי משרה",
       "workflows": "תבניות תהליכים",
       "audit": "יומן שינויים"
@@ -3169,28 +3165,6 @@
       "err_both_fields": "יש למלא את שני השדות",
       "priv_name_placeholder": "צפייה ברשומות",
       "error": "שגיאה"
-    },
-    "reference_cities": {
-      "title": "רשימת ערים",
-      "desc": "ניהול רשימת ערים לפי מדינה",
-      "country_label": "מדינה",
-      "cities_title": "ערים",
-      "add_city_button": "+ הוספת עיר",
-      "city_name_in_country_label": "שם העיר במדינה \"{country}\"",
-      "city_name_placeholder": "לדוגמה: פתח תקווה",
-      "save_button": "הוספה",
-      "saving": "שומר…",
-      "cancel": "ביטול",
-      "edit_save_button": "שמירה",
-      "edit_button": "עריכה",
-      "delete_button": "מחיקה",
-      "loading": "טוען…",
-      "empty_none": "אין עדיין ערים למדינה זו",
-      "confirm_delete": "למחוק את העיר \"{name}\"?",
-      "error_load": "שגיאה בטעינה",
-      "error_add": "ההוספה נכשלה",
-      "error_save": "השמירה נכשלה",
-      "error_delete": "המחיקה נכשלה"
     },
     "reference_positions": {
       "title": "תוארי משרה",

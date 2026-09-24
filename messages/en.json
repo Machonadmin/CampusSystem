@@ -61,9 +61,6 @@
     "sent": "Sent",
     "action_failed": "Action failed, please try again",
     "city_input_placeholder": "Enter city name",
-    "city_choose_from_list": "Choose from list",
-    "select_city": "Select city",
-    "other_city": "Other city",
     "select_country": "Select country",
     "popular_countries": "Popular countries",
     "all_countries": "All countries",
@@ -3089,7 +3086,6 @@
     "tabs": {
       "users": "Users",
       "roles": "Roles & Permissions",
-      "reference_cities": "Cities Reference",
       "reference_positions": "Positions Reference",
       "workflows": "Process Templates",
       "audit": "Change log"
@@ -3169,28 +3165,6 @@
       "err_both_fields": "Fill in both fields",
       "priv_name_placeholder": "View records",
       "error": "Error"
-    },
-    "reference_cities": {
-      "title": "Cities Reference",
-      "desc": "Manage list of cities by country",
-      "country_label": "Country",
-      "cities_title": "Cities",
-      "add_city_button": "+ Add City",
-      "city_name_in_country_label": "City name in \"{country}\"",
-      "city_name_placeholder": "E.g.: Petah Tikva",
-      "save_button": "Add",
-      "saving": "Saving...",
-      "cancel": "Cancel",
-      "edit_save_button": "Save",
-      "edit_button": "Edit",
-      "delete_button": "Delete",
-      "loading": "Loading...",
-      "empty_none": "No cities for this country yet",
-      "confirm_delete": "Delete city \"{name}\"?",
-      "error_load": "Load error",
-      "error_add": "Error adding",
-      "error_save": "Save error",
-      "error_delete": "Delete error"
     },
     "reference_positions": {
       "title": "Positions Reference",

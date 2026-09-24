@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 const accent = getModuleColor('education')
@@ -30,6 +31,7 @@ export default function KodeshCoursesClient() {
   const [approvals, setApprovals] = useState<Approval[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
 
   const [createFor, setCreateFor] = useState<string | null>(null) // level id
   const [newName, setNewName] = useState('')
@@ -50,6 +52,8 @@ export default function KodeshCoursesClient() {
         fetch(`/api/education/class-groups?department_id=${KODESH_DEPT_ID}`),
         fetch('/api/education/teacher-approvals'),
       ])
+      // 403 (права даёт teacher-approvals; class-groups без прав отдаёт пустой список) → ForbiddenState
+      setForbidden(gRes.status === 403 || aRes.status === 403)
       if (gRes.ok) { const b = await gRes.json(); setGroups(b.class_groups ?? []) }
       if (aRes.ok) { const b = await aRes.json(); setApprovals(b.approvals ?? []) }
     } finally { setLoading(false) }
@@ -121,6 +125,7 @@ export default function KodeshCoursesClient() {
   const linkBtn: React.CSSProperties = { fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }
 
   if (loading) return <SkeletonRows rows={6} />
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>

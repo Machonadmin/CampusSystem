@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Program { id: string; name: string; institution_name: string | null }
 
@@ -45,15 +46,18 @@ export default function RecruitmentFormSettingsPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
-    setLoading(true); setError(null)
+    setLoading(true); setError(null); setForbidden(false)
     try {
       const [cRes, pRes] = await Promise.all([
         fetch('/api/education/recruitment/form-config'),
         fetch('/api/public/programs'),
       ])
+      // 403 — нет прав: ForbiddenState вместо «ошибки загрузки»
+      if (cRes.status === 403) { setForbidden(true); return }
       if (!cRes.ok) { setError(t('load_error')); return }
       setCfg(await cRes.json())
       setPrograms(pRes.ok ? await pRes.json() : [])
@@ -192,6 +196,8 @@ export default function RecruitmentFormSettingsPage() {
 
       {loading ? (
         <SkeletonRows />
+      ) : forbidden ? (
+        <ForbiddenState />
       ) : error ? (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
       ) : cfg ? (

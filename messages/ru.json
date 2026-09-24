@@ -61,9 +61,6 @@
     "sent": "Отправлено",
     "action_failed": "Не удалось выполнить, попробуйте ещё раз",
     "city_input_placeholder": "Введите название города",
-    "city_choose_from_list": "Выбрать из списка",
-    "select_city": "Выберите город",
-    "other_city": "Другой город",
     "select_country": "Выберите страну",
     "popular_countries": "Популярные страны",
     "all_countries": "Все страны",
@@ -3089,7 +3086,6 @@
     "tabs": {
       "users": "Пользователи",
       "roles": "Роли и права",
-      "reference_cities": "Справочник городов",
       "reference_positions": "Справочник должностей",
       "workflows": "Шаблоны процессов",
       "audit": "Журнал изменений"
@@ -3169,28 +3165,6 @@
       "err_both_fields": "Заполните оба поля",
       "priv_name_placeholder": "Просмотр записей",
       "error": "Ошибка"
-    },
-    "reference_cities": {
-      "title": "Справочник городов",
-      "desc": "Управление списком городов по странам",
-      "country_label": "Страна",
-      "cities_title": "Города",
-      "add_city_button": "+ Добавить город",
-      "city_name_in_country_label": "Название города в стране «{country}»",
-      "city_name_placeholder": "Например: Петах-Тиква",
-      "save_button": "Добавить",
-      "saving": "Сохранение...",
-      "cancel": "Отмена",
-      "edit_save_button": "Сохранить",
-      "edit_button": "Изменить",
-      "delete_button": "Удалить",
-      "loading": "Загрузка...",
-      "empty_none": "Для этой страны пока нет городов",
-      "confirm_delete": "Удалить город «{name}»?",
-      "error_load": "Ошибка загрузки",
-      "error_add": "Ошибка добавления",
-      "error_save": "Ошибка сохранения",
-      "error_delete": "Ошибка удаления"
     },
     "reference_positions": {
       "title": "Справочник должностей",

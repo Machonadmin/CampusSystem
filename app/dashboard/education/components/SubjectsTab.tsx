@@ -9,6 +9,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Track {
   id: string
@@ -50,6 +51,7 @@ export default function SubjectsTab() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
 
   const [filterTrack, setFilterTrack] = useState('')
   const [showInactive, setShowInactive] = useState(false)
@@ -61,11 +63,14 @@ export default function SubjectsTab() {
   const loadData = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setForbidden(false)
     try {
       const [sResp, tResp] = await Promise.all([
         fetch(`/api/education/subjects?active_only=${showInactive ? 'false' : 'true'}`),
         fetch('/api/education/study-tracks'),
       ])
+      // 403 (study-tracks закрыт по правам; subjects открыт всем) → ForbiddenState вместо пустого списка с «+ מקצוע»
+      if (sResp.status === 403 || tResp.status === 403) { setForbidden(true); return }
       if (!sResp.ok) throw new Error(t('subjects.load_error').replace('{status}', String(sResp.status)))
       const sJson = await sResp.json()
       const tJson = tResp.ok ? await tResp.json() : { tracks: [] }
@@ -110,6 +115,8 @@ export default function SubjectsTab() {
     padding: '5px 10px', fontSize: 12, color: 'var(--text)',
     background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
+
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div>

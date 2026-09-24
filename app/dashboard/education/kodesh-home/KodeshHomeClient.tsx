@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Prep {
   students_total: number; assigned: number; unassigned: number
@@ -21,6 +22,7 @@ export default function KodeshHomeClient() {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
   const [view, setView] = useState<'prep' | 'semester' | null>(null)
 
   useEffect(() => {
@@ -40,6 +42,8 @@ export default function KodeshHomeClient() {
           // иначе (перед открытием) → экран подготовки. Пользователь может
           // переключить вручную.
           setView(currentActive ? 'semester' : 'prep')
+        } else if (homeRes.status === 403) {
+          setForbidden(true) // нет прав — показываем ForbiddenState, а не «ошибку загрузки»
         } else {
           setError(true)
         }
@@ -49,6 +53,7 @@ export default function KodeshHomeClient() {
     })()
   }, [])
 
+  if (forbidden) return <ForbiddenState />
   // Ошибка загрузки → сообщение, а не вечный скелетон (данные не пришли — view остаётся null).
   if (error) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)', fontSize: 14 }}>{tCommon('load_error')}</div>
   if (loading || view === null) return <SkeletonRows rows={6} />
