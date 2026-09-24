@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase/server'
 
 // ЗАМОРОЖЕНО по просьбе владельца (пока не используем переход года). Ни авто-, ни
 // ручной запуск НЕ выполняет продвижение/выпуск. Чтобы разморозить — снять флаг.
-const ROLLOVER_FROZEN = true
+export const ROLLOVER_FROZEN = true
 
 
 export interface RolloverSettings {
