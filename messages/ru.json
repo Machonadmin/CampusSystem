@@ -1779,7 +1779,7 @@
         "granted_by": "Одобрил(а)",
         "ongoing": "бессрочно"
       },
-      "levels_manage": "Управление названиями уровней",
+      "levels_manage": "Управление уровнями",
       "levels_hide": "Скрыть управление уровнями",
       "levels_rename": "Переименовать",
       "levels_save": "Сохранить",
@@ -1789,7 +1789,15 @@
       "suggest_clear": "Очистить",
       "suggest_chip": "Предложено",
       "suggest_approve": "Утвердить",
-      "suggest_graduated": "Выпуск"
+      "suggest_graduated": "Выпуск",
+      "levels_add_ph": "Название нового уровня (на иврите)",
+      "levels_add": "Добавить уровень",
+      "levels_archive": "Скрыть",
+      "levels_archive_confirm": "Скрыть уровень «{name}»? Он пропадёт из шибуца и списков, но останется в истории. Его можно вернуть.",
+      "levels_archived_show": "Скрытые уровни",
+      "levels_archived_empty": "Скрытых уровней нет",
+      "levels_restore": "Вернуть",
+      "levels_empty": "Уровней пока нет"
     },
     "student_calendar": {
       "title": "Календарь",
@@ -5032,6 +5040,7 @@
     "database_error": "Ошибка базы данных",
     "state_conflict": "Конфликт состояния",
     "invalid_input": "Некорректные входные данные",
+    "invalid_url": "Ссылка должна начинаться с https:// (или http://)",
     "validation_error": "Ошибка валидации",
     "db_constraint_amount_status": "Нарушено ограничение БД (проверьте сумму/статус)",
     "db_constraint_amount_type_status": "Нарушено ограничение БД (проверьте сумму/тип/статус)",
@@ -5124,7 +5133,9 @@
     "dorm_student_overlap": "У студента уже есть назначение, пересекающееся по датам",
     "dorm_room_number_exists": "Комната с таким номером уже есть в этом здании",
     "series_max_repeats": "Максимум {n} повторений в серии",
-    "series_over_limit": "Серия превышает лимит в {n} задач"
+    "series_over_limit": "Серия превышает лимит в {n} задач",
+    "kodesh_level_hide_has_students": "Нельзя скрыть уровень — к нему приписано студенток: {count}. Сначала переведите их в другой уровень.",
+    "kodesh_level_hide_has_courses": "Нельзя скрыть уровень — в нём активных курсов: {count}. Сначала закройте или перенесите курсы."
   },
   "workflow": {
     "error": "Ошибка"

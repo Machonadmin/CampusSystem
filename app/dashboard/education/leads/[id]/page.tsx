@@ -10,7 +10,7 @@ import {
 import LeadViewClient, { type LeadViewData } from './LeadViewClient'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 type EduWriteScope = 'view' | 'manage'
@@ -23,7 +23,8 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
 }
 
 
-export default async function LeadViewPage({ params }: Props) {
+export default async function LeadViewPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

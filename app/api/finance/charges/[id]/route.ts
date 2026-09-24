@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { mapDbError } from '@/lib/finance/http'
 import { isIsoDate } from '@/lib/finance/validation'
 import type { FinanceChargeUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * PATCH  /api/finance/charges/[id]  — редактировать начисление, в т.ч. отменить
@@ -15,10 +16,8 @@ import type { FinanceChargeUpdate } from '@/types/database'
  * 404 — если начисление не найдено.
  */
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFinancePrivilege('create_invoice')
 
@@ -86,7 +85,7 @@ export async function PATCH(
       .maybeSingle()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
     if (!data) {
       return apiError('charge_status_changed_retry', 409)
@@ -97,16 +96,14 @@ export async function PATCH(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFinancePrivilege('create_invoice')
 
@@ -128,8 +125,8 @@ export async function DELETE(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

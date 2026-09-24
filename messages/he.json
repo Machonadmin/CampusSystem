@@ -1779,7 +1779,7 @@
         "granted_by": "אושר על ידי",
         "ongoing": "ללא תאריך סיום"
       },
-      "levels_manage": "ניהול שמות רמות",
+      "levels_manage": "ניהול רמות",
       "levels_hide": "הסתר ניהול רמות",
       "levels_rename": "שנה שם",
       "levels_save": "שמור",
@@ -1789,7 +1789,15 @@
       "suggest_clear": "נקה",
       "suggest_chip": "מוצע",
       "suggest_approve": "אשר",
-      "suggest_graduated": "סיימה"
+      "suggest_graduated": "סיימה",
+      "levels_add_ph": "שם הרמה החדשה",
+      "levels_add": "הוסף רמה",
+      "levels_archive": "הסתר",
+      "levels_archive_confirm": "להסתיר את הרמה \"{name}\"? היא תיעלם מהשיבוץ ומהרשימות, אך תישמר בהיסטוריה. אפשר להחזיר אותה.",
+      "levels_archived_show": "רמות מוסתרות",
+      "levels_archived_empty": "אין רמות מוסתרות",
+      "levels_restore": "החזר",
+      "levels_empty": "אין עדיין רמות"
     },
     "student_calendar": {
       "title": "יומן",
@@ -5032,6 +5040,7 @@
     "database_error": "שגיאת מסד נתונים",
     "state_conflict": "התנגשות מצב",
     "invalid_input": "נתוני קלט לא תקינים",
+    "invalid_url": "הקישור חייב להתחיל ב-https:// (או http://)",
     "validation_error": "שגיאת אימות",
     "db_constraint_amount_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סטטוס)",
     "db_constraint_amount_type_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סוג/סטטוס)",
@@ -5124,7 +5133,9 @@
     "dorm_student_overlap": "לתלמידה כבר יש שיבוץ שחופף בתאריכים",
     "dorm_room_number_exists": "חדר עם מספר זה כבר קיים בבניין",
     "series_max_repeats": "מקסימום {n} חזרות בסדרה",
-    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות"
+    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
+    "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
+    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם."
   },
   "workflow": {
     "error": "שגיאה"

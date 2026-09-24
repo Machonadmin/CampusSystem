@@ -1,8 +1,7 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { fetchAllPages } from '@/lib/api/handler'
+import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 
@@ -100,6 +99,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ students, counts, signature_method })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

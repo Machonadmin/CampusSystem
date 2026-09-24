@@ -27,7 +27,9 @@
 - **מיגרציות ב־DB:** נכתבות ידנית ב־`supabase/migrations/`, וה**משתמש מריץ
   אותן ידנית ב־Supabase SQL Editor**. אף פעם לא אוטומטי. "Success. No rows
   returned" זו הצלחה תקינה. אם Supabase שואל על RLS → הבחירה הנכונה היא
-  **"Run without RLS"** (הפרויקט מכבה RLS, service key עוקף).
+  **"Run and enable RLS"**: מאז מיגרציה `20260908120000` RLS **מודלק** על כל
+  הטבלאות (deny-all, בלי policies), ה־service key של השרת עוקף אותו, ולכן
+  האפליקציה לא מושפעת. טבלה בלי RLS הייתה פתוחה למפתח הציבורי.
 - **לפני כל מיזוג:** אם הקוד קורא עמודות/טבלאות חדשות — המיגרציה חייבת לרוץ
   ב־Supabase **לפני** המיזוג, אחרת הפרודקשן ייפול.
 - **בכל צעד לבדוק:** `npx tsc --noEmit` + `npm test` (מעל 430 טסטים) +
@@ -80,7 +82,7 @@
 
 - **Frontend/Backend:** Next.js 14 App Router, TypeScript 5.6, React 18,
   Tailwind CSS 4.
-- **DB:** Supabase (PostgreSQL). **RLS מכובה בכל הפרויקט** (service key).
+- **DB:** Supabase (PostgreSQL). **RLS מודלק בכל הפרויקט** (deny-all; השרת עובד עם service key שעוקף אותו).
 - **Auth:** JWT מותאם אישית (`jose` HS256, cookie `campus_session` httpOnly,
   `bcryptjs`). **לא** Supabase Auth.
 - **מודל הרשאות:** `persons` (רכזת; `full_name` עמודה מחושבת מ־first/last/

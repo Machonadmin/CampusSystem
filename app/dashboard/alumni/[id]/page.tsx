@@ -9,7 +9,7 @@ import type { AlumniProfileData } from '@/components/alumni/AlumniProfilePanel'
 import AlumniCardClient from './AlumniCardClient'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 
@@ -18,7 +18,8 @@ interface Props {
  * LeadViewClient (данные + история — только просмотр) и добавляет
  * редактируемую панель профиля выпускника (правка — под alumni.manage).
  */
-export default async function AlumniViewPage({ params }: Props) {
+export default async function AlumniViewPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

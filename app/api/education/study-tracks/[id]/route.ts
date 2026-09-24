@@ -25,7 +25,8 @@ const updateSchema = z.object({
   department_id: z.string().uuid().nullish(),
 })
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, updateSchema)
     await requireEducationPrivilege('manage_tracks')
@@ -58,7 +59,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireEducationPrivilege('manage_tracks')
     const sb = createServerClient()

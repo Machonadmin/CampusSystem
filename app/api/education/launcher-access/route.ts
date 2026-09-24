@@ -9,6 +9,7 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { headsOnlyKodesh } from '@/lib/education/kodesh-workspace'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { createServerClient } from '@/lib/supabase/server'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/launcher-access — какие карточки пусковой панели «Учёбы»
@@ -148,6 +149,6 @@ export async function GET() {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

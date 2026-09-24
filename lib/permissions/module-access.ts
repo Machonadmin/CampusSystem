@@ -13,6 +13,9 @@ import type { RoleCode } from '@/types/database'
  * ли ему bypass (обычно да: проверяй roles.includes('superadmin') ДО вызова).
  */
 export async function getAccessibleModules(session: SessionPayload): Promise<string[]> {
+  // Токен студентки не открывает штатных модулей (личная выдача по person_id
+  // относится к её сотрудницкому входу, не к порталу).
+  if (session.principal === 'student') return []
   const sb = createServerClient()
   const set = new Set<string>()
 

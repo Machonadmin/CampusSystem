@@ -42,9 +42,15 @@ interface Props {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Экранирует текст для подписи узла/ребра Mermaid (кавычки внутри "..."). */
+/**
+ * Экранирует текст для подписи узла/ребра Mermaid (кавычки внутри "...").
+ * < и > тоже: при securityLevel 'loose' подпись вставляется как HTML, и
+ * название этапа вида <img onerror=...> иначе стало бы разметкой.
+ */
 function esc(text: string): string {
-  return text.replace(/"/g, '&quot;').replace(/\n/g, ' ').trim() || '—'
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/\n/g, ' ').trim() || '—'
 }
 
 const STATUS_CLASS: Record<NonNullable<NodeStatus>, string> = {

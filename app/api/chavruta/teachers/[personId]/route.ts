@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageChavruta } from '@/lib/chavruta/access'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * DELETE /api/chavruta/teachers/[personId] — убрать РУЧНОГО мору хавруты.
  * Кодеш-учителей так удалить нельзя (они авто), поэтому удаляем лишь строку из
  * chavruta_teachers. Право — как staff-comp manage. Деплой-безопасно.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { personId: string } },
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -33,6 +32,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

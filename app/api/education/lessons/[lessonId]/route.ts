@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess } from '@/lib/education/lesson-access'
 import type { LessonUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -17,10 +18,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * Один урок вместе с его посещаемостью.
  * Право: view_students в контексте группы урока.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -40,9 +39,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -51,10 +50,8 @@ export async function GET(
  * Редактирование урока. Право: set_lesson_topics в контексте группы урока.
  * Разрешено менять: scheduled_date, scheduled_time, topic, description, location, is_cancelled.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       scheduled_date?: string
@@ -96,7 +93,7 @@ export async function PATCH(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data)
@@ -104,9 +101,9 @@ export async function PATCH(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -115,10 +112,8 @@ export async function PATCH(
  * Удаление урока. Право: set_lesson_topics в контексте группы урока.
  * Посещаемость удаляется каскадно (ON DELETE CASCADE).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -135,8 +130,8 @@ export async function DELETE(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

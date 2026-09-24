@@ -8,6 +8,7 @@ import { parseOptionalUuid } from '@/lib/education/slot-fields'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { detectSlotConflicts } from '@/lib/education/slot-conflict-check'
 import type { ScheduleSlotInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -31,10 +32,8 @@ function timeToSeconds(t: string): number | null {
  * Список слотов расписания группы, по дню недели и времени начала.
  * Право: view_students в контексте группы.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -56,9 +55,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -69,10 +68,8 @@ export async function GET(
  * Body: { day_of_week (1-7), start_time, end_time (> start_time), room? }
  * created_by = текущий пользователь.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       day_of_week?: number
@@ -155,7 +152,7 @@ export async function POST(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     // Колонки, добавленные поздними миграциями (building_id/room_id —
@@ -210,8 +207,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

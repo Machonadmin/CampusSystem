@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { getTaskAccess } from '@/lib/tasks/access'
@@ -27,10 +27,8 @@ const ALLOWED_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 
 // ─── GET /api/tasks/[id] ──────────────────────────────────────────────────────
 // Возвращает задачу + комментарии + watchers + история + объект access.
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -82,18 +80,16 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
 // ─── PATCH /api/tasks/[id] ────────────────────────────────────────────────────
 // Изменение полей (canEdit) и/или смена статуса (canChangeStatus).
 // При смене статуса пишется запись в task_status_history.
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -223,7 +219,7 @@ export async function PATCH(
       .select('*')
       .single()
 
-    if (uErr) { const m = mapDbError(uErr); return NextResponse.json({ error: m.message }, { status: m.status }) }
+    if (uErr) { const m = mapDbError(uErr); return errorResponse(m) }
 
     if (statusChange) {
       const { error: histErr } = await sb.from('task_status_history').insert({
@@ -288,17 +284,15 @@ export async function PATCH(
     return NextResponse.json(updated)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
 // ─── DELETE /api/tasks/[id] ───────────────────────────────────────────────────
 // Только автор или суперадмин. Каскадно удаляет связанные записи (ON DELETE CASCADE).
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -323,7 +317,7 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
