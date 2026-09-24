@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { fetchAllPages } from '@/lib/api/handler'
+import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
@@ -97,6 +97,6 @@ export async function GET(_request: NextRequest) {
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (isMissingTable(e)) return NextResponse.json({ students: [] })
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

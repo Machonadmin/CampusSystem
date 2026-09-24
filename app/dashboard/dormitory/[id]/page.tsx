@@ -8,7 +8,8 @@ import DormBuildingDetailClient from './DormBuildingDetailClient'
  * Карточка здания: комнаты + занятость + назначения. Просмотр — dormitory.view.
  * Действия (добавить комнату, назначить/завершить) гейтятся canManage.
  */
-export default async function DormBuildingPage({ params }: { params: { id: string } }) {
+export default async function DormBuildingPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

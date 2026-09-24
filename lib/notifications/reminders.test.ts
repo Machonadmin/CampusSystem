@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Пуш на телефон проверяем отдельно: здесь только факт вызова.
+const pushNotificationRows = vi.fn(async (_sb: unknown, _rows: unknown[]) => {})
+vi.mock('@/lib/notifications/create', () => ({
+  pushNotificationRows: (sb: unknown, rows: unknown[]) => pushNotificationRows(sb, rows),
+}))
+
 import { materializeAllDueReminders } from './reminders'
+
+beforeEach(() => pushNotificationRows.mockClear())
 
 // Созревшие напоминания рассылаются ОДНОЙ пачкой (раньше — 2 запроса на каждое
 // событие, до 2000 за прогон cron). Но пачка неделима, поэтому одна сбойная
@@ -96,5 +105,26 @@ describe('materializeAllDueReminders', () => {
       (c.table === 'calendar_events' && c.methods.includes('update')))
     expect(order[0].table).toBe('notifications')
     expect(order[1].table).toBe('calendar_events')
+  })
+
+  it('созревшие напоминания уходят и пушем на телефон, не только в колокольчик', async () => {
+    const { client } = makeClient(rows(2), () => null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await materializeAllDueReminders(client as any)
+    const pushed = pushNotificationRows.mock.calls.flatMap(c => c[1] as Array<{ person_id: string }>)
+    expect(pushed.map(r => r.person_id).sort()).toEqual(['p0', 'p1'])
+  })
+
+  it('при построчном откате пуш получают только реально созданные напоминания', async () => {
+    const notifyError = (rs: unknown[]) => {
+      if (rs.length > 1) return { code: '23503', message: 'batch fails' }
+      const r = rs[0] as { person_id?: string }
+      return r?.person_id === 'p1' ? { code: '23503', message: 'bad owner' } : null
+    }
+    const { client } = makeClient(rows(3), notifyError)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await materializeAllDueReminders(client as any)
+    const pushed = pushNotificationRows.mock.calls.flatMap(c => c[1] as Array<{ person_id: string }>)
+    expect(pushed.map(r => r.person_id).sort()).toEqual(['p0', 'p2'])
   })
 })

@@ -9,10 +9,8 @@ import { jsonError } from '@/lib/api/handler'
  * Право: persons.delete (сейчас scope=all только superadmin/tech_admin —
  * см. 20260702140000_persons_documents_privileges.sql, п.5).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { profileId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ profileId: string }> }) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'delete')
     const sb = createServerClient()

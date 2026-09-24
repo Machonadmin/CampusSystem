@@ -1,10 +1,11 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/journeys/[id]/handoff — цель «Передать в приёмную комиссию».
@@ -22,13 +23,14 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 const CONVERT_FINAL = 'convert_to_applicant'
 
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_leads', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'view_leads', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     // Активный процесс «Набор» для journey.
@@ -39,6 +41,23 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .eq('process_template.code', 'recruitment')
       .eq('status', 'active')
     const instanceIds = (pis ?? []).map(p => p.id)
+
+    // Закрытый/отменённый набор — чтобы на карточке отличить «этап конверсии
+    // ещё не дошёл» от «процесса нет вообще» и предложить запустить заново
+    // (второй шанс упавшему лиду). Берём последний по времени завершения.
+    let lastClosed: { finished_at: string | null; finish_reason: string | null } | null = null
+    if (instanceIds.length === 0) {
+      const { data: closed } = await sb
+        .from('process_instances')
+        .select('finished_at, finish_reason, process_template:process_templates!inner(code)')
+        .eq('journey_id', params.id)
+        .eq('process_template.code', 'recruitment')
+        .neq('status', 'active')
+        .order('finished_at', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const row = (closed ?? [])[0] as { finished_at: string | null; finish_reason: string | null } | undefined
+      if (row) lastClosed = { finished_at: row.finished_at, finish_reason: row.finish_reason }
+    }
 
     let stageInstanceId: string | null = null
     if (instanceIds.length > 0) {
@@ -63,10 +82,11 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     // Обязательные поля лида для передачи: имя + телефон.
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('person:persons!applicant_profiles_person_id_fkey(first_name, full_name, phones)')
+      .select('education_status, person:persons!applicant_profiles_person_id_fkey(first_name, full_name, phones)')
       .eq('id', params.id)
       .maybeSingle()
     const person = (journey?.person as unknown as { first_name?: string | null; full_name?: string | null; phones?: unknown } | null) ?? null
+    const eduStatus = (journey as { education_status?: string | null } | null)?.education_status ?? null
 
     const missing: string[] = []
     if (!(person?.first_name?.trim() || person?.full_name?.trim())) missing.push('name')
@@ -76,9 +96,18 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       stage_instance_id: stageInstanceId,
       ready: stageInstanceId != null && missing.length === 0,
       missing,
+      has_active_process: instanceIds.length > 0,
+      last_closed: lastClosed,
+      // Статус journey отдаём ЯВНО: карточка лида — Server Component, и её
+      // education_status приезжает из Router Cache, который после конверсии
+      // (уход через router.push, без refresh — он дал бы 403 рекрутёру без
+      // view_applicants) остаётся прежним. Из-за этого на уже переведённой
+      // девушке снова показывалась кнопка «Передать в приёмную комиссию».
+      // Этот ответ всегда свежий, поэтому решение принимает он, а не пропс.
+      education_status: eduStatus,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

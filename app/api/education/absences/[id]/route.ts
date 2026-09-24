@@ -1,11 +1,12 @@
 import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
 import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * PATCH /api/education/absences/[id]
@@ -14,7 +15,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Доступ: manage_students / superadmin ЛИБО сотрудник подразделения, которому
  * случай сейчас назначен (принимающая сторона может обработать/передать дальше).
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -26,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (!row) return apiError('substage_not_found', 404)
       const caseRow = row as { id: string; journey_id: string; assigned_department_id: string | null; note: string | null; status: string }
 
-      const isManager = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
+      const isManager = session.roles.includes('superadmin') || (await canDoEducationInAny(session, 'manage_students'))
       const myDepts = isManager ? [] : await getUserDepartmentIds(session.person_id)
       const canAct = isManager || (!!caseRow.assigned_department_id && myDepts.includes(caseRow.assigned_department_id))
       if (!canAct) return apiError('forbidden', 403)
@@ -69,6 +71,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

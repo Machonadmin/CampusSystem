@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -279,6 +280,7 @@ export default function FinanceLedgerClient({
             )}
           </>
         ) : undefined}
+        actions={<BackButton fallback="/dashboard/finance" />}
       />
 
       {error ? (

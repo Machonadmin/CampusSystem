@@ -9,7 +9,8 @@ import PsychologistStudentClient from './PsychologistStudentClient'
  * запись консультации, закрытие/переоткрытие. Просмотр — psychologist.view.
  * Действия гейтятся canManage (с сервера). [id] = journey_id. ЧУВСТВИТЕЛЬНЫЕ ДАННЫЕ.
  */
-export default async function PsychologistStudentPage({ params }: { params: { id: string } }) {
+export default async function PsychologistStudentPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

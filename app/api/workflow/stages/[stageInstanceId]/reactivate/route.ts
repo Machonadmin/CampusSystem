@@ -28,8 +28,9 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
  */
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { stageInstanceId: string } }
+  props: { params: Promise<{ stageInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

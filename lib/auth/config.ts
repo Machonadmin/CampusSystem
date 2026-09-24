@@ -4,6 +4,9 @@ const DEFAULT_INSECURE_SECRET = 'change-me-in-production-min-32-chars!!'
 
 export const AUTH_CONFIG = {
   cookieName: 'campus_session',
+  // Куда «צפייה כמשתמש» откладывает собственный токен superadmin'а на время
+  // просмотра (см. /api/auth/impersonate и /api/auth/stop-impersonate).
+  impOrigCookieName: 'campus_imp_orig',
   cookieMaxAge: 60 * 60 * 24 * 7, // 7 days
   jwtExpiresIn: '7d',
 } as const

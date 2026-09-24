@@ -76,6 +76,18 @@ export function jsonError(err: unknown): NextResponse {
 }
 
 /**
+ * Ответ из catch для ошибок вида { status?, message? } (в том числе результата
+ * mapDbError). 4xx — текст как есть (его бросили намеренно: «нет прав», «не
+ * найдено»); 5xx — общий текст: сырой текст ошибки БД (имена таблиц, колонок,
+ * ограничений) клиенту не отдаём, он уходит в серверный лог.
+ */
+export function errorResponse(e: { status?: number; message?: string }): NextResponse {
+  const status = e.status ?? 500
+  if (status >= 500) return internalError(e)
+  return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status })
+}
+
+/**
  * Ответ 500 без утечки деталей. В проде клиент получает общий текст+код
  * ('internal_error'), а настоящая ошибка уходит в серверный лог. В dev/test
  * оставляем текст в ответе — так отладка не страдает.

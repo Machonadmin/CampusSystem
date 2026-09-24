@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { requireFinancePrivilege, hasFinancePrivilege } from '@/lib/finance/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Плата за обучение (שכר לימוד) по РЕАЛЬНЫМ семестрам.
@@ -68,6 +68,6 @@ export async function GET() {
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     if (isMissingRelation(e)) return NextResponse.json({ semesters: [], can_manage: false })
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

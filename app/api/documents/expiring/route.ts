@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
 import { mapDbError } from '@/lib/documents/http'
 import { isExpired, isExpiringSoon, daysUntilExpiry } from '@/lib/documents/expiry'
 import { todayISO } from '@/lib/documents/records-server'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/documents/expiring — worklist по всем студентам: АКТИВНЫЕ документы с
@@ -93,8 +93,8 @@ export async function GET() {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { materializeDueReminders, materializeTaskDeadlines } from '@/lib/notifications/reminders'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/notifications — мои последние уведомления + число непрочитанных.
@@ -45,6 +46,6 @@ export async function GET() {
     return NextResponse.json({ notifications, unread })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

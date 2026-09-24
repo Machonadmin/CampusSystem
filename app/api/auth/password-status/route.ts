@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/auth/password-status → { must_change: boolean }
@@ -23,7 +23,7 @@ export async function GET() {
         return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
       }
       const { data } = await sb.from('person_accounts')
-        .select('must_change_password').eq('login_email', session.login_email).maybeSingle()
+        .select('must_change_password').eq('person_id', session.person_id).eq('login_email', session.login_email).maybeSingle()
       return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
     } catch (e) {
       if (isMissingRelation(e)) return NextResponse.json({ must_change: false })
@@ -31,6 +31,6 @@ export async function GET() {
     }
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

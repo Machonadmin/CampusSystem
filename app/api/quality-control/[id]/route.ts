@@ -20,7 +20,8 @@ async function requireQcAccess(sb: ReturnType<typeof createServerClient>, id: st
   await requireFeaturePrivilege('quality_control', featureForStatus(row.status), action)
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     await requireQcAccess(sb, params.id, 'can_view')
@@ -51,7 +52,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     await requireQcAccess(sb, params.id, 'can_edit')
@@ -86,7 +88,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     await requireQcAccess(sb, params.id, 'can_delete')

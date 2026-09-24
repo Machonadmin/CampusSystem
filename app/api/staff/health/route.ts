@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/staff/health — самопроверка «ניהול עובדים» (запрос владельца:
@@ -106,6 +107,6 @@ export async function GET() {
     return NextResponse.json({ blank_screen, no_seat })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

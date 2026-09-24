@@ -5,7 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
 import { sanitizeOrSearch } from '@/lib/search/sanitize'
-import { parseBody, jsonError } from '@/lib/api/handler'
+import { parseBody, jsonError, errorResponse } from '@/lib/api/handler'
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ people })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 

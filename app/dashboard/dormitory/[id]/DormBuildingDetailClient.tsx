@@ -5,6 +5,7 @@ import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -222,6 +223,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
         module="dormitory"
         title={buildingName}
         subtitle={<>{t('list.occupied')}: {totals.occupied} / {totals.capacity} · {t('list.rooms')}: {rooms.length}</>}
+        actions={<BackButton fallback="/dashboard/dormitory" />}
       />
 
       {/* Rooms section */}

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { isJewishnessStatus, setJewishnessStatus } from '@/lib/jewishness/status'
 import { canSetJewishnessStatus } from '@/lib/jewishness/two-step'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefits'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/jewishness/journeys/[journeyId]/status
@@ -19,7 +20,8 @@ import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefi
  *
  * Право: jewishness.access (superadmin — в обход).
  */
-export async function POST(request: NextRequest, { params }: { params: { journeyId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ journeyId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireJewishnessAccess()
 
@@ -67,6 +69,6 @@ export async function POST(request: NextRequest, { params }: { params: { journey
     return NextResponse.json({ ok: true, status: body.status })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

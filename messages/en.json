@@ -1489,7 +1489,13 @@
       "converting": "Handing off…",
       "confirm": "Hand this applicant off to the acceptance committee? Acceptance will start.",
       "error": "Handoff failed",
-      "not_ready": "Handoff to the admissions committee opens once the earlier recruitment stages (contact, documents, event) are completed."
+      "not_ready": "Handoff to the admissions committee opens once the earlier recruitment stages (contact, documents, event) are completed.",
+      "no_process": "No recruitment process was started for her. You can start one now — the first stage opens immediately.",
+      "process_closed": "Her recruitment process was closed. You can start it again for a second chance — the earlier history is kept.",
+      "start_process": "Start recruitment",
+      "restart_process": "Restart recruitment",
+      "starting": "Starting…",
+      "start_error": "Could not start the process"
     },
     "timeline": {
       "title": "Timeline",
@@ -5042,6 +5048,7 @@
     "database_error": "Database error",
     "state_conflict": "State conflict",
     "invalid_input": "Invalid input data",
+    "invalid_url": "The link must start with https:// (or http://)",
     "validation_error": "Validation error",
     "db_constraint_amount_status": "Database constraint violated (check amount/status)",
     "db_constraint_amount_type_status": "Database constraint violated (check amount/type/status)",
@@ -5212,7 +5219,12 @@
     "push_failed": "Could not enable notifications on this device",
     "push_ios_install": "To get notifications on iPhone, open the system from the Home Screen icon (not Safari).",
     "push_denied": "Notifications are blocked. To enable: device Settings → the app/Safari → allow notifications.",
-    "push_unsupported": "This device or browser does not support push notifications. Try from the installed app."
+    "push_unsupported": "This device or browser does not support push notifications. Try from the installed app.",
+    "push_active": "Phone notifications are on for this device",
+    "push_test": "Send test notification",
+    "push_test_sent": "Test notification sent. It should appear on your phone within a few seconds.",
+    "push_test_no_devices": "The server doesn't know any of your devices. Close and reopen the app and try again.",
+    "push_test_failed": "Sending the notification failed (code {code})"
   },
   "add_to_calendar": {
     "button": "Add to calendar",
