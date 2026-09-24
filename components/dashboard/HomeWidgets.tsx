@@ -390,8 +390,16 @@ function MyAbsencesWidget({ onData }: { onData: () => void }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/education/absences?status=open')
-      if (res.ok) { const b = await res.json(); const s = (b.items ?? []) as MyAbsence[]; setItems(s); if (s.length) onData() }
+      // «Открытые» = все нерешённые: open (ещё не передан) + in_handling (передан подразделению).
+      const [rOpen, rHandling] = await Promise.all([
+        fetch('/api/education/absences?status=open'),
+        fetch('/api/education/absences?status=in_handling'),
+      ])
+      if (rOpen.ok || rHandling.ok) {
+        const s: MyAbsence[] = []
+        for (const r of [rOpen, rHandling]) if (r.ok) { const b = await r.json(); s.push(...((b.items ?? []) as MyAbsence[])) }
+        setItems(s); if (s.length) onData()
+      }
     } catch { /* тихо */ } finally { setLoaded(true) }
   }, [onData])
   useEffect(() => { load() }, [load])
