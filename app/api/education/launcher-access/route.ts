@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { headsOnlyKodesh } from '@/lib/education/kodesh-workspace'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { createServerClient } from '@/lib/supabase/server'
 
@@ -71,7 +72,11 @@ export async function GET() {
     // классам) и «שיבוץ מסלולים» (маршруты): это управление чужими юнитами,
     // которое он всё равно не сможет применить. Оставляем кодеш + управление
     // преподаванием кодеша + отчёты (владелец: «קודש + ניהול הוראת הקודש»).
+    // Решение владельца (24.09.2026): сужаем только того, кто отвечает ТОЛЬКО за
+    // кодеш. Глава кодеша, который возглавляет и другие единицы (директор
+    // института), видит светские учёбы полностью.
     const restrictToKodesh = students_view_all && !students_manage_all
+      && kodesh && await headsOnlyKodesh(session.person_id)
     // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
     // year/term), которыми управляют только на уровне всего института (scope='all',
     // как в /api/education/semesters). Менеджер юнита (scope='department') работает
