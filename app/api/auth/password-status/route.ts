@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/auth/password-status → { must_change: boolean }
@@ -31,6 +31,6 @@ export async function GET() {
     }
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

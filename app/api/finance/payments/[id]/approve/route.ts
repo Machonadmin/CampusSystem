@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { mapDbError } from '@/lib/finance/http'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/finance/payments/[id]/approve
@@ -51,7 +52,7 @@ export async function POST(_request: NextRequest, props: { params: Promise<{ id:
       .maybeSingle()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
     if (!data) {
       return apiError('payment_not_pending', 409)
@@ -62,8 +63,8 @@ export async function POST(_request: NextRequest, props: { params: Promise<{ id:
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

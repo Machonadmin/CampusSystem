@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/education/class-groups/[id]/teachers
@@ -73,6 +74,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     return NextResponse.json({ added: newIds.length, teacher_ids: newIds })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

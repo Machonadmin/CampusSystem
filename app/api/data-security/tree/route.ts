@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadTree } from '@/lib/data-security/load'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Дерево отображения прав.
@@ -23,7 +24,7 @@ export async function GET() {
     return NextResponse.json(await loadTree(getCookieLocale()))
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -76,6 +77,6 @@ export async function PATCH(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     // Триггер петли отдаёт P0001 с понятным текстом — отдаём его как есть.
     const status = e.status ?? (e.code === 'P0001' ? 409 : 500)
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status })
+    return errorResponse({ message: e.message, status })
   }
 }

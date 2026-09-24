@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { serverT } from '@/lib/i18n/api-errors'
 import { verifyToken } from '@/lib/auth/jwt'
 import { AUTH_CONFIG } from '@/lib/auth/config'
+import { errorResponse } from '@/lib/api/handler'
 
 const ORIG_COOKIE = AUTH_CONFIG.impOrigCookieName
 
@@ -44,6 +44,6 @@ export async function POST() {
     return NextResponse.json({ ok: true, relogin: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

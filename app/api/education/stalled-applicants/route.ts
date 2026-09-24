@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/stalled-applicants?days=N
@@ -137,6 +138,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ applicants, days })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { requireFinancePrivilege } from '@/lib/finance/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * PATCH /api/finance/semester-tuition/[id]
@@ -79,6 +80,6 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     return NextResponse.json({ ok: true, id: params.id, tuition_amount: amount, charges_created: created, ...(warning ? { warning } : {}) })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

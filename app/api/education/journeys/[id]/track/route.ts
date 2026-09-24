@@ -7,6 +7,7 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
 import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
+import { errorResponse } from '@/lib/api/handler'
 /**
  * Учебные маршруты студентки (spec §3.2): один ГЛАВНЫЙ (primary) + опциональные
  * дополнительные (additional, напр. Туро). Первая половина дня — иудаизм для всех
@@ -76,7 +77,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     return NextResponse.json({ track: primary, tracks })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -163,7 +164,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -181,6 +182,6 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

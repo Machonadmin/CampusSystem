@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { expandDepartmentTree, type DepartmentEdge } from '@/lib/permissions/scope'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/staff/scope-preview?department_id={uuid}
@@ -94,6 +95,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

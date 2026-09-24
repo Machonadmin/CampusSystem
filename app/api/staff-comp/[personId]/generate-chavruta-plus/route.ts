@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/staff-comp/[personId]/generate-chavruta-plus?year&month
@@ -89,6 +90,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     return NextResponse.json({ created, skipped, basis })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

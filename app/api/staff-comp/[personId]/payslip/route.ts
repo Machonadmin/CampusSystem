@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStaffComp, canApprovePayslip, monthRange, sumEntries } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Расчётный лист сотрудника за месяц.
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ perso
     return NextResponse.json({ period: { year, month }, groups, total, payslip })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -92,6 +93,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     return NextResponse.json({ payslip: data })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

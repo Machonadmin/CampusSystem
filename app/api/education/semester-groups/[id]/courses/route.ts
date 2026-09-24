@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Курсы внутри семестра. Курс = class_groups, у которого parent_semester_id
@@ -73,7 +74,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (isMissingRelation(e)) return NextResponse.json({ courses: [] })
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -165,6 +166,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code === '23505') return apiError('study_group_name_exists', 409)
     if (e.code === '23503') return apiError('invalid_reference', 400)
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

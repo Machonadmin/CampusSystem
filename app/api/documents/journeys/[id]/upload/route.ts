@@ -9,6 +9,7 @@ import { isDocType, isIsoDate, isDocCategory } from '@/lib/documents/validation'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
 import type { DocumentRecordInsert } from '@/types/database'
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/documents/journeys/[id]/upload — загрузка РЕАЛЬНОГО файла (multipart)
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     // Категория — deploy-safe: колонки может ещё не быть (42703) → тихо пропускаем.
@@ -132,8 +133,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

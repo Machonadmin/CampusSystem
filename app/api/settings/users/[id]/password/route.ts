@@ -4,6 +4,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
 import { revokeSessionsBefore } from '@/lib/auth/live-session'
+import { clearLoginLockout } from '@/lib/auth/account-lockout'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
@@ -31,6 +33,8 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
     // Сброс пароля администратором выводит человека со всех устройств: если
     // пароль сбрасывают из-за утечки, старая сессия не должна продолжать жить.
     await revokeSessionsBefore('person_accounts', 'id', params.id)
+    // Новый пароль — заодно снимаем блокировку входа после неудачных попыток.
+    await clearLoginLockout('person_accounts', 'id', params.id)
 
     // Сгенерированный (временный) пароль → пользователь обязан сменить его при
     // первом входе. Best-effort: до миграции колонки может не быть (42703).
@@ -44,7 +48,7 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
     return NextResponse.json({ ok: true, generated_password: wasGenerated ? password : undefined })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 

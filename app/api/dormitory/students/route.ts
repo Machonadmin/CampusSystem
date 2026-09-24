@@ -1,11 +1,11 @@
 import { flattenPhones } from '@/lib/persons/phone'
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
 import { isActiveOn, type Assignment } from '@/lib/dormitory/occupancy'
 import { todayISO } from '@/lib/dormitory/occupancy-server'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/dormitory/students — студенты (education_journeys status='student')
@@ -126,8 +126,8 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

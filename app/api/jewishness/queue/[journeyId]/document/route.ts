@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { uploadDocument, isAllowedMime, MAX_UPLOAD_BYTES } from '@/lib/documents/storage'
 import { isDocType } from '@/lib/documents/validation'
 import { notifyOwnerOfDocument } from '@/lib/notifications/journey-owner'
 import type { DocumentRecordInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/jewishness/queue/[journeyId]/document — загрузка документа
@@ -94,6 +95,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
     return NextResponse.json({ document: rec }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

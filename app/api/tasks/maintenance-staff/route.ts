@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireStaff } from '@/lib/api/handler'
-import { serverT } from '@/lib/i18n/api-errors'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { createServerClient } from '@/lib/supabase/server'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 
@@ -29,6 +28,6 @@ export async function GET() {
     return NextResponse.json({ person_ids: ids ? [...ids] : [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

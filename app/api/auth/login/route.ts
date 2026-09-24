@@ -4,7 +4,11 @@ import { createServerClient } from '@/lib/supabase/server'
 import { verifyLoginPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
 import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
-import { throttleAuth } from '@/lib/auth/login-throttle'
+import { throttleAuth, tooManyAttempts } from '@/lib/auth/login-throttle'
+import {
+  selectLoginRow, lockedForSec, recordFailedLogin, recordSuccessfulLogin,
+  unknownLockedForSec, recordUnknownFailure,
+} from '@/lib/auth/account-lockout'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 export async function POST(request: NextRequest) {
@@ -22,23 +26,29 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const normalizedEmail = email.toLowerCase().trim()
 
-    // 1. Fetch the account record
-    const { data: account, error: accountError } = await supabase
-      .from('person_accounts')
-      .select('person_id, login_email, password_hash, is_active')
-      .eq('login_email', normalizedEmail)
-      .single()
+    // 1. Fetch the account record (с полями блокировки, если миграция применена)
+    const { row: found } = await selectLoginRow<{
+      person_id: string; login_email: string; password_hash: string | null; is_active: boolean
+    }>('person_accounts', 'person_id, login_email, password_hash, is_active', normalizedEmail)
 
     // Пароль проверяем ДО любых других ответов и одинаково по времени для
     // любого адреса (verifyLoginPassword). «Аккаунт заблокирован» говорим только
     // тому, кто ввёл верный пароль, — иначе по этому ответу можно было бы
     // узнать, что такой адрес в системе существует.
-    const found = accountError ? null : account
     const passwordValid = await verifyLoginPassword(password, found?.password_hash)
 
+    // После 10 неудач подряд вход закрыт на 15 минут даже с верным паролем
+    // (lib/auth/account-lockout.ts). Для несуществующих адресов — тот же ответ.
+    const lockedSec = found ? lockedForSec(found) : unknownLockedForSec(`staff:${normalizedEmail}`)
+    if (lockedSec > 0) return tooManyAttempts(lockedSec)
+
     if (!found || !passwordValid) {
+      if (found) await recordFailedLogin('person_accounts', normalizedEmail, found)
+      else recordUnknownFailure(`staff:${normalizedEmail}`)
       return apiError('invalid_credentials', 401)
     }
+
+    await recordSuccessfulLogin('person_accounts', normalizedEmail, found)
 
     if (!found.is_active) {
       return apiError('account_locked', 403)

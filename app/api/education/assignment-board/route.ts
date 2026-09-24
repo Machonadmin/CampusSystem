@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { fetchAllPages } from '@/lib/api/handler'
+import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
@@ -144,6 +144,6 @@ export async function GET() {
     return NextResponse.json({ groups: outGroups, students: studentsPool, teachers: teachersPool })
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

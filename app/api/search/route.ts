@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { sanitizeOrSearch } from '@/lib/search/sanitize'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/search?q= — глобальный поиск людей (по ФИО / ивр. имени / email).
@@ -114,6 +115,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

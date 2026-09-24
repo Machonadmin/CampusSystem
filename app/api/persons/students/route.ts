@@ -6,6 +6,7 @@ import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { getSession } from '@/lib/auth/session'
 import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { mapDbError } from '@/lib/persons/http'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/persons/students
@@ -129,8 +130,8 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
