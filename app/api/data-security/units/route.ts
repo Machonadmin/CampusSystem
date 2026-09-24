@@ -61,8 +61,9 @@ interface UnitBody {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_units')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_units')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const body = await request.json() as UnitBody
 
     // Ивритское имя обязательно: технического идентификатора на экране быть
@@ -88,8 +89,9 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_units')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_units')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const body = await request.json() as UnitBody
     if (!body.id) return apiError('invalid_reference', 400)
 
@@ -133,8 +135,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_units')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_units')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const id = request.nextUrl.searchParams.get('id')
     if (!id) return apiError('invalid_reference', 400)
 

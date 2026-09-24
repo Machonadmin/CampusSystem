@@ -100,6 +100,15 @@ export async function GET() {
     accessible_modules = visibleModules(
       effectivePrivileges(rolePrivilegeRows, personPrivilegeRows, Date.now()),
     )
+
+    // «בקרת איכות»: список проверок (/api/quality-control) пускает только при
+    // feature_privileges quality_control.planned|history.can_view. Одного
+    // модульного 'access' мало — без фичи человек видел пункт меню и плитку,
+    // а страница отвечала 403. Видит ⇔ может открыть (решение владельца).
+    const qc = feature_access.quality_control
+    if (!(qc?.planned?.can_view || qc?.history?.can_view)) {
+      accessible_modules = accessible_modules.filter(m => m !== 'quality_control')
+    }
   }
 
   // Должность-ярлык для подписи в шапке (напр. «מזכירת טורו»). Живой запрос

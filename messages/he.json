@@ -17,7 +17,7 @@
     "open": "מעבר למודול",
     "section_education": "לימודים",
     "section_finance": "כספים",
-    "section_dormitory": "מעונות",
+    "section_dormitory": "פנימייה",
     "section_food": "הזנה",
     "section_medical": "רפואה",
     "section_counseling": "ייעוץ",
@@ -153,10 +153,10 @@
     "home": "ראשי",
     "education": "חינוך",
     "settings": "הגדרות",
-    "alumni": "בוגרים",
+    "alumni": "בוגרות",
     "finance": "כספים",
-    "dormitory": "מעונות",
-    "food": "הזנה",
+    "dormitory": "פנימייה",
+    "food": "הזנה / מטבח",
     "maintenance": "תחזוקה",
     "security": "אבטחה",
     "logo_alt": "מכון חמש",
@@ -1752,7 +1752,7 @@
       "gen_all_busy": "יוצר…",
       "gen_all_result": "נוצרו {created} · דולגו {skipped} · נכשלו {failed}",
       "gen_all_hint": "יוצר שיעורי קודש לכל הכיתות לפי מערכת השעות, לכל תקופת הלימוד (רק מוסיף, לא מוחק)",
-      "title": "שיבוץ קודש",
+      "title": "הכנת הסמסטר",
       "subtitle": "כל תלמידה חייבת להיות משובצת לקבוצת קודש (הכיתה שלה)",
       "unassigned_count": "{n} ממתינות לשיבוץ קודש",
       "group_col": "קבוצת קודש",
@@ -2063,7 +2063,7 @@
       "do_resolve": "סגור טיפול"
     },
     "teachers_hub": {
-      "title": "מורים",
+      "title": "מורות",
       "subtitle": "שעות הוראה ונוכחות מורים במקום אחד",
       "tab_hours": "שעות",
       "tab_attendance": "נוכחות"
@@ -2200,7 +2200,7 @@
       "save": "שמור"
     },
     "kodesh_courses": {
-      "title": "קורסי קודש",
+      "title": "קורסים",
       "subtitle": "קורסים לפי רמה, שעות, מורות",
       "create_hint": "יצירת קורס מוגבלת לרב; בחירת מורות ואישורן דרך הרב.",
       "no_levels": "אין רמות קודש",
@@ -2315,7 +2315,7 @@
       "more": "עוד",
       "prep": "הכנת הסמסטר",
       "alerts": "התראות ומשימות",
-      "calendar": "לוח שנה ומערכת שעות",
+      "calendar": "מערכת שעות",
       "courses": "קורסים",
       "teachers": "מורות",
       "students": "תלמידות",
@@ -3082,7 +3082,7 @@
   },
   "settings": {
     "title": "הגדרות",
-    "system_title": "הגדרות מערכת",
+    "system_title": "הגדרות",
     "tabs": {
       "users": "משתמשים",
       "roles": "תפקידים והרשאות",
@@ -3218,7 +3218,7 @@
       "finance": "כספים",
       "legal": "משפטי",
       "education": "חינוך",
-      "dormitory": "מעונות",
+      "dormitory": "פנימייה",
       "medical": "רפואה",
       "security": "אבטחה",
       "maintenance": "תחזוקה",
@@ -3765,7 +3765,7 @@
       "add_building": "בניין",
       "empty": "אין עדיין בניינים",
       "load_error": "שגיאה בטעינת הנתונים",
-      "forbidden": "אין הרשאה לצפייה במעונות",
+      "forbidden": "אין הרשאה לצפייה בפנימייה",
       "rooms": "חדרים",
       "occupied": "תפוסים",
       "free": "פנויים"
@@ -4228,7 +4228,7 @@
     "cards": {
       "students": "סטודנטים",
       "finance": "כספים",
-      "dormitory": "מעונות",
+      "dormitory": "פנימייה",
       "food": "הזנה",
       "maintenance": "תחזוקה",
       "clinic": "מרפאה",
@@ -4549,7 +4549,7 @@
     }
   },
   "persons": {
-    "title": "אנשים",
+    "title": "מאגר אנשים",
     "tabs": {
       "staff": "צוות",
       "students": "תלמידים",
@@ -4736,6 +4736,7 @@
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
+    "person_privileges_moved": "עריכת הרשאות אישיות עברה לאבטחת מידע — כאן לא ניתן לשמור שינויים",
     "stage_reopen_blocked": "לא ניתן לשנות את ההחלטה כעת — השלב הבא כבר טופל",
     "no_access": "אין גישה",
     "no_view_permission": "אין הרשאת צפייה",

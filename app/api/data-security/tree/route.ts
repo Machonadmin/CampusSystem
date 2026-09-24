@@ -35,8 +35,9 @@ export async function PATCH(request: NextRequest) {
   try {
     // Перестройка дерева — отдельное право от выдачи: она безопасна, потому что
     // меняет только показ, и держать её вместе с 'grant' было бы неверно.
-    await requireDataSecurityPrivilege('manage_tree')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_tree')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
 
     const { moves } = await request.json() as { moves?: Move[] }
     if (!Array.isArray(moves) || moves.length === 0) {

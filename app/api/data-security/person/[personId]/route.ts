@@ -43,7 +43,8 @@ interface Override {
 export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
   try {
     const session = await requireDataSecurityPrivilege('grant')
-    const sb = createServerClient()
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const personId = params.personId
     if (!personId) return apiError('invalid_reference', 400)
 

@@ -28,8 +28,9 @@ interface SeatBody {
 
 export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
   try {
-    await requireDataSecurityPrivilege('manage_units')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_units')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const personId = params.personId
     if (!personId) return apiError('invalid_reference', 400)
 

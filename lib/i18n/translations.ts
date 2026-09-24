@@ -255,7 +255,7 @@ const he: typeof ru = {
     curator: 'מחנך',
     student: 'סטודנט',
     pupil: 'תלמיד',
-    dorm_director: 'מנהל מעונות',
+    dorm_director: 'מנהל פנימייה',
     embait: 'עמבית',
     mashgiach: 'משגיח',
     doctor: 'רופא',
