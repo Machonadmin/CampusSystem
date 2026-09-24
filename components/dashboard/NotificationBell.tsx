@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
-import { enablePush, getPushState, registerSW, type PushState } from '@/lib/push/client'
+import { enablePush, getPushState, registerSW, sendTestPush, syncPush, type PushState } from '@/lib/push/client'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 
 interface Notification {
@@ -32,13 +32,14 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Web Push: регистрируем service worker при монтировании шапки и выясняем,
-  // подписано ли ЭТО устройство — если нет, показываем кнопку включения.
+  // Web Push: регистрируем service worker при монтировании шапки, тихо сверяем
+  // подписку с сервером (если разрешение уже есть) и выясняем, подписано ли ЭТО
+  // устройство — если нет, показываем кнопку включения.
   const [pushState, setPushState] = useState<PushState>('unsupported')
   const [pushBusy, setPushBusy] = useState(false)
   useEffect(() => {
     let alive = true
-    registerSW().then(() => getPushState()).then(s => { if (alive) setPushState(s) })
+    registerSW().then(() => syncPush()).then(() => getPushState()).then(s => { if (alive) setPushState(s) })
     return () => { alive = false }
   }, [])
 
@@ -53,6 +54,19 @@ export default function NotificationBell() {
         // объясняем текстом в самой панели, для остальных — тост.
         if (reason !== 'denied' && reason !== 'ios-needs-install') toastError(t('push_failed'))
       }
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  async function onTestPush() {
+    setPushBusy(true)
+    try {
+      const r = await sendTestPush()
+      if (!r || r.noKeys) toastError(t('push_test_failed').replace('{code}', '—'))
+      else if (r.devices === 0) toastError(t('push_test_no_devices'))
+      else if (r.sent > 0) toastSuccess(t('push_test_sent'))
+      else toastError(t('push_test_failed').replace('{code}', r.failed.join(', ') || '—'))
     } finally {
       setPushBusy(false)
     }
@@ -145,6 +159,21 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
+
+          {/* Устройство подписано — даём проверить цепочку целиком тестовым пушем. */}
+          {pushState === 'subscribed' && (
+            <div className="px-4 py-2 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
+              <span className="text-xs leading-snug" style={{ color: 'var(--text-muted)' }}>{t('push_active')}</span>
+              <button
+                onClick={onTestPush}
+                disabled={pushBusy}
+                className="text-xs font-medium whitespace-nowrap hover:underline"
+                style={{ color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: pushBusy ? 'default' : 'pointer', opacity: pushBusy ? 0.6 : 1 }}
+              >
+                {t('push_test')}
+              </button>
+            </div>
+          )}
 
           {/* Пуши на телефон. Показываем ВСЕГДА, кроме уже подписанного
               устройства — со своим текстом на каждый случай, чтобы владелец
