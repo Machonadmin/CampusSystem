@@ -149,7 +149,11 @@ export async function POST(request: NextRequest) {
       // Решение владельца (24.09.2026): задача этапа «יצירת קשר» лида с сайта
       // идёт всей מחלקת גיוס (пул отдела), а не системному пользователю, которому
       // её назначает start_process (default_assignee_type='creator' → actor).
-      // Лиды, заведённые сотрудницей, по-прежнему получает она сама. Best-effort.
+      // И она ЕДИНСТВЕННАЯ: контакты заявки дописываются в её описание, отдельная
+      // задача «Новая заявка с сайта» создаётся только если этапной задачи нет
+      // (процесс не стартовал / нет отдела). Лиды, заведённые сотрудницей,
+      // по-прежнему получает она сама. Best-effort.
+      let movedStageTask = false
       if (dept?.id && !startErr) {
         try {
           const { data: pis } = await sb
@@ -162,25 +166,40 @@ export async function POST(request: NextRequest) {
             : { data: [] as { id: string }[] }
           const siIds = (sis ?? []).map(x => x.id)
           if (siIds.length > 0) {
-            const { error: moveErr } = await sb
+            const { data: stageTasks, error: readErr } = await sb
               .from('tasks')
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .update({ assignee_type: 'department', department_id: dept.id, assignee_id: null, status: 'unassigned' } as any)
+              .select('id, description')
               .in('stage_instance_id', siIds)
               .eq('assignee_id', SYSTEM_PERSON_ID)
-            if (moveErr) console.error('[public/applications] stage task → גיוס:', moveErr)
+            if (readErr) throw readErr
+            for (const t of (stageTasks ?? []) as { id: string; description: string | null }[]) {
+              const description = [`${applicantName}\n${base.description}`, t.description?.trim()]
+                .filter(Boolean).join('\n\n')
+              const { error: moveErr } = await sb
+                .from('tasks')
+                .update({
+                  assignee_type: 'department', department_id: dept.id, assignee_id: null,
+                  status: 'unassigned', description,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any)
+                .eq('id', t.id)
+              if (moveErr) console.error('[public/applications] stage task → גיוס:', moveErr)
+              else movedStageTask = true
+            }
           }
         } catch (moveErr) {
           console.error('[public/applications] stage task → גיוס:', moveErr)
         }
       }
 
-      const insert = dept?.id
-        ? { ...base, assignee_type: 'department' as const, department_id: dept.id, status: 'unassigned' as const }
-        : { ...base, assignee_type: 'unassigned' as const, status: 'unassigned' as const }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: taskErr } = await sb.from('tasks').insert(insert as any)
-      if (taskErr) console.error('[public/applications] staff notification:', taskErr)
+      if (!movedStageTask) {
+        const insert = dept?.id
+          ? { ...base, assignee_type: 'department' as const, department_id: dept.id, status: 'unassigned' as const }
+          : { ...base, assignee_type: 'unassigned' as const, status: 'unassigned' as const }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: taskErr } = await sb.from('tasks').insert(insert as any)
+        if (taskErr) console.error('[public/applications] staff notification:', taskErr)
+      }
     } catch (notifyErr) {
       console.error('[public/applications] staff notification:', notifyErr)
     }
