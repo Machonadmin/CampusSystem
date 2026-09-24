@@ -1,10 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { PersonSelect } from '@/components/ui/person-select'
-import { toast } from '@/components/ui/toast'
-import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -31,6 +29,11 @@ function formatDate(d: string | null, lang: string): string {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+//
+// Только просмотр. Решение владельца: доступ к финансам (как и любые права)
+// выдаётся и снимается ТОЛЬКО в «אבטחת מידע» → вид по сотруднику. Здесь —
+// список действующих грантов и ссылка на человека туда. Маршруты
+// /api/finance/access остаются: ими пользуется «אבטחת מידע».
 
 export default function FinanceAccessPage() {
   const t = useTranslations('finance.access')
@@ -41,8 +44,6 @@ export default function FinanceAccessPage() {
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [personId, setPersonId] = useState<string | null>(null)
-  const [granting, setGranting] = useState(false)
 
   const primary = getModuleColor('finance', 'primary')
 
@@ -73,43 +74,6 @@ export default function FinanceAccessPage() {
 
   useEffect(() => { load() }, [load])
 
-  async function grantAll() {
-    if (!personId || granting) return
-    setGranting(true)
-    try {
-      const res = await fetch('/api/finance/access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ person_id: personId, scope: 'all' }),
-      })
-      if (!res.ok) {
-        toast(t('grant_failed'), 'error')
-        return
-      }
-      toast(t('granted'), 'success')
-      setPersonId(null)
-      await load()
-    } catch {
-      toast(t('grant_failed'), 'error')
-    } finally {
-      setGranting(false)
-    }
-  }
-
-  async function revoke(id: string) {
-    if (!(await confirmDialog({ message: t('revoke_confirm'), tone: 'danger' }))) return
-    try {
-      const res = await fetch(`/api/finance/access/${id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        toast(t('grant_failed'), 'error')
-        return
-      }
-      await load()
-    } catch {
-      toast(t('grant_failed'), 'error')
-    }
-  }
-
   const th: React.CSSProperties = {
     textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 12px',
@@ -132,34 +96,9 @@ export default function FinanceAccessPage() {
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{t('forbidden')}</div>
       ) : (
         <>
-          {/* Add global access */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
-              {t('grant_all_title')}
-            </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <PersonSelect
-                  value={personId}
-                  onChange={id => setPersonId(id)}
-                  placeholder={t('pick_employee')}
-                  accentColor={primary}
-                />
-              </div>
-              <button
-                onClick={grantAll}
-                disabled={!personId || granting}
-                style={{
-                  fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, border: 'none',
-                  background: primary, color: '#fff',
-                  cursor: !personId || granting ? 'default' : 'pointer',
-                  opacity: !personId || granting ? 0.5 : 1,
-                }}
-              >
-                {t('grant_all_button')}
-              </button>
-            </div>
-          </div>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>
+            {t('managed_in_data_security')}
+          </p>
 
           {/* Grants list */}
           {error ? (
@@ -190,16 +129,12 @@ export default function FinanceAccessPage() {
                       </td>
                       <td data-label={t('col_created')} style={td}>{formatDate(g.created_at, lang)}</td>
                       <td data-label="" style={{ ...td, textAlign: 'end' }}>
-                        <button
-                          onClick={() => revoke(g.id)}
-                          style={{
-                            fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 7,
-                            background: 'var(--surface)', color: 'var(--danger)',
-                            border: '1px solid var(--border-strong)', cursor: 'pointer',
-                          }}
+                        <Link
+                          href={`/dashboard/data-security?tab=person&person=${encodeURIComponent(g.person_id)}`}
+                          style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', whiteSpace: 'nowrap' }}
                         >
-                          {t('revoke')}
-                        </button>
+                          {t('edit_in_data_security')}
+                        </Link>
                       </td>
                     </tr>
                   ))}

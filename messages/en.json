@@ -2795,7 +2795,7 @@
       "hire_date": "Hire date",
       "is_head": "Unit head (manages the team)",
       "make_login": "Create a system login",
-      "make_login_hint": "Without it the person is seated with permissions but can't log in.",
+      "make_login_hint": "Without it the person is seated but can't log in.",
       "login_email": "Login email",
       "password_auto": "A password will be generated and shown at the end.",
       "summary": "Summary",
@@ -2816,7 +2816,7 @@
       "err_login": "Failed to create the login",
       "empty_list_hint": "The list did not load — refresh the page and try again.",
       "screen_title": "Add a role-holder",
-      "screen_sub": "Everything on one screen — person, position, unit, access and login",
+      "screen_sub": "Everything on one screen — person, position, unit and login",
       "sec_who": "Who is it?",
       "who_existing": "Existing person",
       "who_new": "New person",
@@ -2859,7 +2859,8 @@
       "err_person": "Failed to create the person",
       "err_onboard": "Save failed — please try again.",
       "dup_warn": "Wait — similar people already exist. If this is the same person, pick them instead of creating a duplicate:",
-      "dup_pick": "Pick existing"
+      "dup_pick": "Pick existing",
+      "set_permissions_link": "Set permissions in Data Security"
     },
     "merge": {
       "launch": "Merge duplicates",
@@ -3141,7 +3142,9 @@
       "copy_password": "Copy",
       "copied": "Copied ✓",
       "done": "Done",
-      "password_reset_done": "Password reset! New password:"
+      "password_reset_done": "Password reset! New password:",
+      "permissions_in_data_security_hint": "The login is created without roles. Roles and permissions are set in Data Security.",
+      "permissions_in_data_security_link": "Set permissions in Data Security →"
     },
     "roles": {
       "code": "Code",
@@ -3667,7 +3670,9 @@
       "portal_toggle_failed": "Failed to update visibility",
       "portal_migration_missing": "Feature unavailable — apply the database migration",
       "charged_total": "Charged",
-      "paid_total": "Paid"
+      "paid_total": "Paid",
+      "managed_in_data_security": "Finance access is now managed in Data Security, on each employee's page. This page only shows the list.",
+      "edit_in_data_security": "Edit in Data Security"
     },
     "staff": {
       "title": "Staff payslips",
@@ -5537,6 +5542,15 @@
     "unit_open_person": "Their permissions",
     "unit_all_seated": "Every staff member is already here",
     "units_people_hint": "Clicking a unit name shows who sits there and lets you add or remove staff. The arrow opens the units beneath it.",
-    "units_children_count": "{n} units inside"
+    "units_children_count": "{n} units inside",
+    "extras_roles_title": "Roles",
+    "extras_roles_readonly": "Only a system administrator can change roles",
+    "extras_roles_save": "Save roles",
+    "extras_roles_saved": "Roles saved",
+    "extras_roles_save_error": "Failed to save roles",
+    "extras_finance_title": "Finance access",
+    "extras_finance_readonly": "Only a finance manager can change finance access",
+    "extras_finance_none": "No finance access",
+    "extras_finance_grant_all": "Grant access to all students"
   }
 }

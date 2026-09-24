@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -37,11 +38,24 @@ export default function DataSecurityClient({
   const [tree, setTree] = useState(initialTree)
   const [units, setUnits] = useState(initialUnits)
   /**
+   * Глубокая ссылка ?tab=person&person=<personId> — так другие экраны (сотрудники,
+   * доступ к финансам, мастер «בעל תפקיד») открывают правку прав конкретного
+   * человека: редактируются права ТОЛЬКО здесь, остальные экраны лишь показывают.
+   */
+  const urlPerson = useSearchParams().get('person')
+  /**
    * Человек, выбранный в дереве единиц кнопкой «его права». Посадка и права —
    * два разных решения, поэтому дерево не открывает права само, а переводит
    * на вкладку, где их утверждают.
    */
-  const [focusPersonId, setFocusPersonId] = useState<string | null>(null)
+  const [focusPersonId, setFocusPersonId] = useState<string | null>(() => urlPerson)
+
+  // Ссылка сменилась при уже открытом экране — переводим фокус на нового
+  // человека. Зависимость — строка, а не весь searchParams: иначе смена ?tab=
+  // сбрасывала бы выбор, сделанный кнопкой «его права» в дереве.
+  useEffect(() => {
+    if (urlPerson) setFocusPersonId(urlPerson)
+  }, [urlPerson])
 
   const [tab, setTab] = useUrlTab({
     allowed: ['general', 'person'] as const,

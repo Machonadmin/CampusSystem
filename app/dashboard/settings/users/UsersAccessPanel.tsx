@@ -3,15 +3,17 @@
 // Полноэкранная панель «משתמשים וגישה» удалена — управление аккаунтами живёт
 // во вкладке «צוות ומשתמשים» хаба «ניהול עובדים» (запрос владельца: меньше
 // дублей). Здесь остались только переиспользуемые модалки и типы.
+//
+// Роли человеку здесь больше НЕ назначаются (решение владельца): права и роли
+// правятся только в «אבטחת מידע» → вид по сотруднику. Поэтому модалка ролей
+// удалена, а создание входа идёт без ролей и подсказывает, куда идти дальше.
 import { useState, useRef } from 'react'
-import { useLang } from '@/lib/i18n/LanguageContext'
-import { roleLabel } from '@/lib/roles/role-label'
+import Link from 'next/link'
 import { getModuleColor } from '@/lib/module-colors'
 import { personDisplayName } from '@/lib/persons/name'
-import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
-import { toastError, toastSuccess } from '@/components/ui/toast'
+import { toastSuccess } from '@/components/ui/toast'
 
 export interface Role {
   id: string
@@ -57,85 +59,8 @@ export function RoleBadge({ name, module }: { name: string; module?: string }) {
   )
 }
 
-interface RolesModalProps {
-  user: UserRow
-  allRoles: Role[]
-  t: T
-  tCat: T
-  tCommon: T
-  onClose: () => void
-  onSaved: () => void
-}
-
-export function RolesModal({ user, allRoles, t, tCat, tCommon, onClose, onSaved }: RolesModalProps) {
-  const { t: lang } = useLang()
-  const [selected, setSelected] = useState<Set<string>>(new Set(user.roles.map(r => r.id)))
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    setSaving(true)
-    const res = await fetch(`/api/settings/users/${user.account_id}/roles`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      // person_id required by API to target the correct person_roles rows
-      body: JSON.stringify({ person_id: user.person_id, role_ids: [...selected] }),
-    })
-    setSaving(false)
-    if (res.ok) { toastSuccess(tCommon('saved')); onSaved(); onClose() }
-    else { const b = await res.json().catch(() => ({})); toastError(b.error ?? tCommon('action_failed')) }
-  }
-
-  const grouped: Record<string, Role[]> = {}
-  for (const r of allRoles) {
-    // Модель рензе: legacy-роль показываем, только если она уже назначена этому
-    // пользователю (чтобы можно было снять), новые — не предлагаем.
-    if (isDeprecatedRole(r.code) && !selected.has(r.id)) continue
-    if (!grouped[r.category]) grouped[r.category] = []
-    grouped[r.category].push(r)
-  }
-
-  return (
-    <Modal onClose={onClose} maxWidth={520} panelStyle={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflowY: 'visible' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{t('roles_modal_title')}: {personDisplayName(user)}</p>
-          <button onClick={onClose} aria-label={tCommon('close')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
-        </div>
-        <div style={{ overflowY: 'auto', padding: '12px 20px', flex: 1 }}>
-          {Object.entries(grouped).map(([cat, roles]) => (
-            <div key={cat} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{tCat(cat, cat)}</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {roles.map(r => (
-                  <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(r.id)}
-                      onChange={e => {
-                        const next = new Set(selected)
-                        if (e.target.checked) next.add(r.id); else next.delete(r.id)
-                        setSelected(next)
-                      }}
-                      style={{ accentColor: 'var(--accent)' }}
-                    />
-                    <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{ padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer', color: 'var(--text)' }}>{tCommon('cancel')}</button>
-          <SubmitButton onClick={save} loading={saving} style={{ padding: '7px 16px', borderRadius: 8, backgroundColor: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{tCommon('save', 'Save')}</SubmitButton>
-        </div>
-    </Modal>
-  )
-}
-
 interface AddUserModalProps {
-  allRoles: Role[]
   t: T
-  tCat: T
   tCommon: T
   onClose: () => void
   onSaved: () => void
@@ -144,8 +69,7 @@ interface AddUserModalProps {
 
 export interface PersonResult { id: string; full_name: string; hebrew_name?: string | null; email: string | null }
 
-export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
-  const { t: lang } = useLang()
+export function AddUserModal({ t, tCommon, onClose, onSaved, initialPerson }: AddUserModalProps) {
   // Person search
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PersonResult[]>([])
@@ -160,10 +84,11 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
   const [email, setEmail] = useState(initialPerson?.email ?? '')
   const [password, setPassword] = useState('')
   const [autoGen, setAutoGen] = useState(true)
-  const [roleIds, setRoleIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  /** Человек созданного входа — для ссылки «קבע הרשאות באבטחת מידע». */
+  const [createdPersonId, setCreatedPersonId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   function handleSearch(q: string) {
@@ -208,7 +133,7 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
     const body = {
       ...base,
       login_email: email,
-      role_ids: roleIds,
+      // role_ids не передаём: вход создаётся без ролей (API по умолчанию []).
       ...(autoGen ? { generate_password: true } : { password }),
     }
 
@@ -221,20 +146,24 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
     setSaving(false)
     if (res.ok) {
       onSaved()
-      if (data.generated_password) setGeneratedPassword(data.generated_password) // показать пароль, не закрывая
-      else onClose()
+      // Не закрываем: показываем пароль (если сгенерирован) и подсказку, что
+      // права задаются в «אבטחת מידע» — без неё новый вход откроет пустой экран.
+      if (data.generated_password) setGeneratedPassword(data.generated_password)
+      setCreatedPersonId(data.person_id ?? selectedPerson?.id ?? '')
     } else setErr(data.error ?? tCommon('error'))
   }
 
-  const toggleRole = (id: string) =>
-    setRoleIds(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id])
-
-  const grouped: Record<string, Role[]> = {}
-  for (const r of allRoles) {
-    if (isDeprecatedRole(r.code)) continue // модель рензе: legacy не предлагаем новым
-    if (!grouped[r.category]) grouped[r.category] = []
-    grouped[r.category].push(r)
-  }
+  const dataSecurityHref = createdPersonId
+    ? `/dashboard/data-security?tab=person&person=${encodeURIComponent(createdPersonId)}`
+    : '/dashboard/data-security'
+  const permissionsHint = (
+    <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0 }}>
+      {t('permissions_in_data_security_hint')}{' '}
+      <Link href={dataSecurityHref} onClick={onClose} style={{ color: 'var(--accent-strong)', fontWeight: 600 }}>
+        {t('permissions_in_data_security_link')}
+      </Link>
+    </p>
+  )
 
   const personChosen = !!selectedPerson || createNew
 
@@ -243,11 +172,14 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
     try { await navigator.clipboard.writeText(generatedPassword); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
   }
 
-  // После создания с авто-паролем — показываем пароль (один раз).
-  if (generatedPassword) {
+  // После создания: пароль (один раз, если сгенерирован) + куда идти за правами.
+  if (createdPersonId !== null) {
     return (
       <Modal onClose={onClose} maxWidth={420} panelStyle={{ padding: 24, display: 'grid', gap: 14 }}>
-          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>{t('generated_password_title')}</p>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', margin: 0 }}>
+            {generatedPassword ? t('generated_password_title') : tCommon('saved')}
+          </p>
+          {generatedPassword && (<>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <code style={{ flex: 1, fontSize: 18, fontWeight: 700, letterSpacing: 1, color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px', userSelect: 'all', textAlign: 'center' }}>{generatedPassword}</code>
             <button onClick={copyPassword} style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: copied ? 'var(--success)' : 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -255,6 +187,8 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
             </button>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('generated_password_hint')}</p>
+          </>)}
+          {permissionsHint}
           <button onClick={onClose} style={{ justifySelf: 'end', padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--text)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('done')}</button>
       </Modal>
     )
@@ -336,7 +270,7 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
           )}
         </div>
 
-        {/* ── Steps 2-4: scrollable area ── */}
+        {/* ── Steps 2-3: scrollable area ── */}
         <div style={{ overflowY: 'auto', padding: '14px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {createNew && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -379,22 +313,8 @@ export function AddUserModal({ allRoles, t, tCat, tCommon, onClose, onSaved, ini
                   </label>
                 )}
               </div>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 8 }}>{t('select_roles_title')}</p>
-                {Object.entries(grouped).map(([cat, roles]) => (
-                  <div key={cat} style={{ marginBottom: 12 }}>
-                    <p style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{tCat(cat, cat)}</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {roles.map(r => (
-                        <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}>
-                          <input type="checkbox" checked={roleIds.includes(r.id)} onChange={() => toggleRole(r.id)} style={{ accentColor: 'var(--accent)' }} />
-                          <span style={{ fontSize: 13, color: 'var(--text)' }}>{roleLabel(lang.roles, r.code, r.name)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {/* Выбора ролей здесь нет: роли и права — только в «אבטחת מידע». */}
+              {permissionsHint}
             </>
           )}
         </div>

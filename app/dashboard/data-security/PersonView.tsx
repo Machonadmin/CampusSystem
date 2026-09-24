@@ -11,6 +11,7 @@ import type { ResolvedPrivilege } from '@/lib/data-security/person'
 import type { StaffSummary, PersonAccess } from '@/lib/data-security/load'
 import type { UnitNode } from '@/lib/data-security/units'
 import SeatEditor from './SeatEditor'
+import PersonAccessExtras from './PersonAccessExtras'
 import {
   LevelBadge, RiskBadge, ScopeBadge, SourceBadge, PrivilegeName,
   AreaTile, BackToAreas, cardStyle, type T,
@@ -352,6 +353,7 @@ export default function PersonView({
                 )}
               </div>
             </div>
+            <PersonAccessExtras personId={personId} roles={access.roles} t={t} onChanged={() => load(personId)} />
 
             <div className="ds-row" style={{ marginBottom: 12 }}>
               {area && <BackToAreas label={t('back_to_areas')} onClick={() => setAreaId(null)} />}
