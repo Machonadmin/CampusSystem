@@ -32,6 +32,16 @@ interface FinanceStudent {
   overdue_days: number | null
 }
 
+/** Сводка сбора с сервера (lib/reports/metrics.loadFinanceTotals — та же, что в «דוחות»). */
+interface FinanceSummary {
+  charged: number
+  discounts: number
+  collected: number
+  outstanding: number
+  collection_rate: number
+  debtor_count: number
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function initials(name: string) {
@@ -47,6 +57,7 @@ export default function FinancePage() {
   const tCommon = useTranslations('common')
 
   const [items, setItems] = useState<FinanceStudent[]>([])
+  const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   // Поиск и сортировка переживают переход в карточку и «חזרה» (sessionStorage).
@@ -79,16 +90,19 @@ export default function FinancePage() {
       if (res.status === 403) {
         setError(t('list.forbidden'))
         setItems([])
+        setSummary(null)
         return
       }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         setError(body.error ?? t('list.load_error'))
         setItems([])
+        setSummary(null)
         return
       }
       const body = await res.json()
       setItems(body.students ?? [])
+      setSummary(body.summary ?? null)
       setCanCharge(!!body.can_charge)
       setCanManageAccess(!!body.can_manage_access)
     } catch {
@@ -148,17 +162,18 @@ export default function FinancePage() {
 
   const primary = getModuleColor('finance', 'primary')
 
-  // Сводка сбора по всем студенткам (не по фильтру): сколько начислено, оплачено,
-  // сколько осталось. Даёт мгновенную картину «где мы» + мини-график доли сбора.
-  const totals = items.reduce((a, s) => {
-    a.charged += s.charges_total
-    a.discounts += s.discounts_total ?? 0
-    a.paid += s.payments_total
-    return a
-  }, { charged: 0, discounts: 0, paid: 0 })
+  // Сводка сбора — считается на СЕРВЕРЕ единым загрузчиком (тот же, что в
+  // «דוחות»), по всем journey с начислениями, а не суммой строк списка.
+  // Остаток НЕ обрезается нулём: отрицательный = переплата (как в «דוחות»);
+  // MiniBar сам игнорирует отрицательные сегменты.
+  const totals = {
+    charged: summary?.charged ?? 0,
+    discounts: summary?.discounts ?? 0,
+    paid: summary?.collected ?? 0,
+  }
   const hasDiscounts = totals.discounts > 0.005
-  const outstanding = Math.max(0, totals.charged - totals.discounts - totals.paid)
-  const collectedPct = totals.charged > 0 ? Math.round(totals.paid / totals.charged * 100) : 0
+  const outstanding = summary?.outstanding ?? 0
+  const collectedPct = summary?.collection_rate ?? 0
 
   // Экспорт текущего (отфильтрованного) списка в CSV — для месячного сбора.
   function exportDebtors() {

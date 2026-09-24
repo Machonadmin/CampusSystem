@@ -11,7 +11,7 @@ import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { hasPsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { pageAll } from '@/lib/reports/paging'
-import { toCents, centsToNumber } from '@/lib/finance/money'
+import { loadFinanceTotals } from '@/lib/reports/metrics'
 import { isActiveOn as isDormActiveOn } from '@/lib/dormitory/occupancy'
 import { isActiveOn as isFoodActiveOn } from '@/lib/food/enrollment'
 import { documentStats } from '@/lib/documents/expiry'
@@ -43,37 +43,19 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
 // Каждый возвращает данные секции или null, если у студента нет данных в модуле.
 // Ошибки БД пробрасываются и маппятся в catch роута.
 
-/** Финансы: Σ active charges − Σ approved payments, суммы в целых копейках. */
+/**
+ * Финансы: единый загрузчик (lib/reports/metrics.loadFinanceTotals), по правилу
+ * баланса ledger-роута: outstanding = Σ active charges − Σ скидок по ним −
+ * Σ approved payments (раньше скидки здесь не вычитались — баг). Суммы в копейках.
+ */
 async function loadFinance(sb: Sb, journeyId: string): Promise<OverviewFinance | null> {
-  const chargeRows = await pageAll<{ amount: number | string }>((from, to) =>
-    sb
-      .from('finance_charges')
-      .select('amount')
-      .eq('journey_id', journeyId)
-      .eq('status', 'active')
-      .order('id', { ascending: true })
-      .range(from, to),
-  )
-  const payRows = await pageAll<{ amount: number | string }>((from, to) =>
-    sb
-      .from('finance_payments')
-      .select('amount')
-      .eq('journey_id', journeyId)
-      .eq('status', 'approved')
-      .order('id', { ascending: true })
-      .range(from, to),
-  )
-  if (chargeRows.length === 0 && payRows.length === 0) return null
-
-  let chargedCents = 0
-  for (const r of chargeRows) chargedCents += toCents(r.amount)
-  let collectedCents = 0
-  for (const r of payRows) collectedCents += toCents(r.amount)
-
+  const { summary, row_count } = await loadFinanceTotals(sb, { scope: { journeyIds: [journeyId] } })
+  if (row_count === 0) return null
   return {
-    charged: centsToNumber(chargedCents),
-    collected: centsToNumber(collectedCents),
-    outstanding: centsToNumber(chargedCents - collectedCents),
+    charged: summary.charged,
+    discounts: summary.discounts,
+    collected: summary.collected,
+    outstanding: summary.outstanding,
   }
 }
 

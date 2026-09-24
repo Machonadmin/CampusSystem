@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
+import { loadAdmissionFunnel } from '@/lib/reports/metrics'
 
 /**
  * GET /api/education/recruitment-report — READ-ONLY.
@@ -23,16 +24,6 @@ import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 // «Таблица/колонка ещё не мигрированы» → мягко деградируем до пустого результата.
 function isSoft(err: unknown): boolean {
   return isMissingRelation(err)
-}
-
-// education_status, которые «дошли» дальше лида (статус кумулятивен: студентка
-// когда-то была лидом). Зеркалит admission-funnel.
-const BEYOND_LEAD = ['applicant', 'student', 'on_leave', 'graduated', 'expelled']
-const BEYOND_APPLICANT = ['student', 'on_leave', 'graduated', 'expelled']
-
-function pct(part: number, whole: number): number {
-  if (whole <= 0) return 0
-  return Math.round((part / whole) * 1000) / 10
 }
 
 type LeadJourney = {
@@ -108,36 +99,21 @@ export async function GET() {
 
     const sb = createServerClient()
 
-    // ─── 1. Все journeys (срез по статусу для воронки) ────────────────────
-    // Читаем один раз id+status, живые (не soft-deleted). При отсутствии
-    // таблицы/колонки — пустая воронка.
-    let statusRows: Array<{ education_status: string | null }> = []
+    // ─── 1. Воронка — ЕДИНЫЙ источник с «דוחות» (/api/reports/admission-funnel):
+    // lib/reports/metrics.loadAdmissionFunnel, живые (не soft-deleted) journeys.
+    // При отсутствии таблицы/колонки — пустая воронка.
+    let conversion = empty.conversion
     try {
-      statusRows = await fetchAllPages<{ education_status: string | null }>((from, to) => sb
-        .from('education_journeys')
-        .select('education_status, is_deleted, id')
-        .eq('is_deleted', false)
-        .order('id', { ascending: true })
-        .range(from, to))
+      const f = await loadAdmissionFunnel(sb)
+      conversion = {
+        leads: f.funnel.leads,
+        applicants: f.funnel.applicants,
+        students: f.funnel.students,
+        lead_to_applicant: f.conversion.lead_to_applicant,
+        applicant_to_student: f.conversion.applicant_to_student,
+      }
     } catch (e) {
       if (!isSoft(e)) throw e
-    }
-
-    const byStatus: Record<string, number> = {}
-    for (const r of statusRows) {
-      const s = r.education_status ?? 'unknown'
-      byStatus[s] = (byStatus[s] ?? 0) + 1
-    }
-    const leads = byStatus['lead'] ?? 0
-    const reachedApplicant = BEYOND_LEAD.reduce((s, k) => s + (byStatus[k] ?? 0), 0)
-    const reachedStudent = BEYOND_APPLICANT.reduce((s, k) => s + (byStatus[k] ?? 0), 0)
-    const everLead = leads + reachedApplicant
-    const conversion = {
-      leads,
-      applicants: byStatus['applicant'] ?? 0,
-      students: byStatus['student'] ?? 0,
-      lead_to_applicant: pct(reachedApplicant, everLead),
-      applicant_to_student: pct(reachedStudent, reachedApplicant),
     }
 
     // ─── 2. Лиды с полями для разбивок ────────────────────────────────────

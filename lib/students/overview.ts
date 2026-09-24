@@ -33,6 +33,8 @@ export interface OverviewEducation {
 /** Финансы: суммы в валютных единицах с двумя знаками (Σ active − Σ approved). */
 export interface OverviewFinance {
   charged: number
+  /** Σ скидок по активным счетам (вычитается из outstanding). */
+  discounts?: number
   collected: number
   outstanding: number
 }

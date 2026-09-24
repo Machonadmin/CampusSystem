@@ -26,6 +26,7 @@
     "label_opened_at": "Открыт",
     "label_charged": "Начислено",
     "label_collected": "Оплачено",
+    "label_discounts": "Скидки",
     "label_outstanding": "Остаток",
     "label_building": "Здание",
     "label_room": "Комната",

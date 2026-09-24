@@ -26,6 +26,7 @@
     "label_opened_at": "Opened",
     "label_charged": "Charged",
     "label_collected": "Collected",
+    "label_discounts": "Discounts",
     "label_outstanding": "Outstanding",
     "label_building": "Building",
     "label_room": "Room",

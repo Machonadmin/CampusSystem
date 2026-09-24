@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
-import { pageAll } from '@/lib/reports/paging'
-import { securitySummary } from '@/lib/reports/summaries'
+import { loadIncidentStats } from '@/lib/reports/metrics'
 
 /**
  * GET /api/reports/security — READ-ONLY.
@@ -22,16 +21,9 @@ export async function GET() {
     await requireReportModule('security')
     const sb = createServerClient()
 
-    const incidents = await pageAll<{ status: string; severity: string }>(
-      (from, to) =>
-        sb
-          .from('security_incidents')
-          .select('status, severity')
-          .order('id', { ascending: true })
-          .range(from, to),
-    )
-
-    return NextResponse.json(securitySummary(incidents))
+    // ЕДИНЫЙ источник с модулем (/api/security/stats): loadIncidentStats.
+    const { active, open, investigating, by_severity } = await loadIncidentStats(sb)
+    return NextResponse.json({ active, open, investigating, by_severity })
   } catch (err: unknown) {
     return errorResponse(err)
   }

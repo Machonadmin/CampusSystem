@@ -118,6 +118,7 @@ export default function StudentOverviewTab({ journeyId }: Props) {
               return (
                 <>
                   <Row label={t('label_charged')} value={formatMoney(f.charged)} />
+                  {(f.discounts ?? 0) > 0.005 && <Row label={t('label_discounts')} value={`−${formatMoney(f.discounts ?? 0)}`} />}
                   <Row label={t('label_collected')} value={formatMoney(f.collected)} />
                   <Row label={t('label_outstanding')} value={formatMoney(f.outstanding)} strong />
                 </>
