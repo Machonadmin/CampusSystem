@@ -23,6 +23,8 @@ export const WIDGET_IDS = [
   'my_lessons',
   'recent_leads',
   'stalled',
+  'my_alerts',
+  'my_absences',
 ] as const
 export type WidgetId = (typeof WIDGET_IDS)[number]
 

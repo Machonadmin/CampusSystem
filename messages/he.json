@@ -41,7 +41,14 @@
     "section_documents": "מסמכים",
     "label_doc_total": "מסמכים פעילים",
     "label_doc_expiring": "עומדים לפוג",
-    "label_doc_expired": "פג תוקף"
+    "label_doc_expired": "פג תוקף",
+    "open_now_title": "פתוח עכשיו",
+    "open_now_empty": "אין פריטים פתוחים",
+    "open_now_error": "טעינת הפריטים הפתוחים נכשלה",
+    "open_now_type_alert": "התראה",
+    "open_now_type_absence": "היעדרות",
+    "open_now_type_task": "משימה",
+    "open_now_open": "פתח"
   },
   "common": {
     "actions": "פעולות",
@@ -2267,7 +2274,8 @@
       "confirm_delete_type": "למחוק את הסוג «{name}»?",
       "type_in_use": "הסוג בשימוש — השבת אותו במקום למחוק",
       "deactivate": "השבת",
-      "activate": "הפעל"
+      "activate": "הפעל",
+      "student_filter_clear": "הצג את כל ההתראות"
     },
     "kodesh_home": {
       "title": "דף הבית של מחלקת היהדות",
@@ -2423,7 +2431,8 @@
       "maintenance_badge": "תחזוקה",
       "maintenance_toggle": "משימת תחזוקה",
       "maintenance_toggle_hint": "מוצגת גם במודול התחזוקה",
-      "maintenance_failed": "לא הצלחנו לעדכן את סימון התחזוקה"
+      "maintenance_failed": "לא הצלחנו לעדכן את סימון התחזוקה",
+      "student_label": "תלמידה קשורה"
     },
     "module": {
       "general": "כללי",
@@ -2531,7 +2540,11 @@
       "preview_yearly": "{day} ב{month} בכל שנה{time}",
       "add_to_calendar": "הוסף גם ליומן שלי",
       "maintenance_label": "זו משימת תחזוקה",
-      "maintenance_hint": "תוצג לו גם במודול התחזוקה, לא רק במשימות"
+      "maintenance_hint": "תוצג לו גם במודול התחזוקה, לא רק במשימות",
+      "student_label": "תלמידה קשורה (לא חובה)",
+      "student_none": "ללא תלמידה",
+      "student_search": "חיפוש תלמידה…",
+      "student_empty": "לא נמצאו תלמידות"
     }
   },
   "staff": {
@@ -5139,7 +5152,9 @@
     "series_max_repeats": "מקסימום {n} חזרות בסדרה",
     "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
     "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
-    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם."
+    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם.",
+    "task_student_tag_invalid": "התלמידה שנבחרה לא נמצאה או אינה תואמת",
+    "task_student_tag_locked": "לא ניתן לשנות תלמידה במשימה אוטומטית של ועדת הקבלה"
   },
   "workflow": {
     "error": "שגיאה"
@@ -5271,7 +5286,9 @@
       "students": "תלמידות",
       "collection": "אחוז גבייה"
     },
-    "my_maintenance": "קריאות התחזוקה שלי"
+    "my_maintenance": "קריאות התחזוקה שלי",
+    "my_alerts": "התראות פתוחות",
+    "my_absences": "היעדרויות פתוחות"
   },
   "search": {
     "placeholder": "חיפוש אדם…",

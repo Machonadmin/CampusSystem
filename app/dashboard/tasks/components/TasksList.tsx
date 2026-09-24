@@ -6,11 +6,16 @@ import { isOpenTaskStatus } from '@/lib/tasks/status'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateShort } from '@/lib/i18n/format-date'
 import AddToCalendar from '@/components/calendar/AddToCalendar'
+import type { TaskStudentRef } from '@/lib/tasks/student-tag'
+import StudentChip from './StudentChip'
 // STATUS_COLORS / PRIORITY_COLORS — единая копия в TaskDetailBody (идентичны).
 import { STATUS_COLORS, PRIORITY_COLORS } from './TaskDetailBody'
 
+/** Строка списка: API добавляет `student` к задачам с меткой «תלמידה קשורה». */
+type TaskListItem = TaskRow & { student?: TaskStudentRef | null }
+
 interface Props {
-  tasks: TaskRow[]
+  tasks: TaskListItem[]
   onTaskClick: (taskId: string) => void
   // Массовый выбор (bulk). Если передан onToggleSelect — рисуем чекбоксы.
   selectedIds?: Set<string>
@@ -40,7 +45,7 @@ export default function TasksList({ tasks, onTaskClick, selectedIds, onToggleSel
 }
 
 function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuickComplete, completing }: {
-  task: TaskRow; onClick: () => void
+  task: TaskListItem; onClick: () => void
   selectable?: boolean; selected?: boolean; onToggleSelect?: () => void
   onQuickComplete?: () => void; completing?: boolean
 }) {
@@ -141,6 +146,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuick
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: 'var(--text-faint)' }}>
           <span>{t(`module.${task.module}`, task.module)}</span>
+          <StudentChip student={task.student} />
           {task.recurrence_series_id && (
             <span style={{
               padding: '1px 8px', background: 'var(--warn-tint)', color: 'var(--warn)',

@@ -42,6 +42,8 @@ const WIDGET_LABEL_KEY: Record<WidgetId, string> = {
   my_lessons: 'my_lessons_today',
   recent_leads: 'recent_leads',
   stalled: 'stalled',
+  my_alerts: 'my_alerts',
+  my_absences: 'my_absences',
 }
 
 export default function ProfilePage() {

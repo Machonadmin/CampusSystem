@@ -19,6 +19,8 @@ type SeriesEnd    = 'never' | 'until_date' | 'after_count'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Watcher   { id: string; full_name: string }
+/** Строка поиска תלמידות — ответ /api/persons/students (как в диалоге календаря). */
+interface StudentOpt { journey_id: string; person_id: string; full_name: string; hebrew_name: string | null }
 
 // ── Locale-aware calendar helpers (Intl instead of hand-rolled name tables) ──
 
@@ -106,6 +108,17 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   const [seriesUntilDate,      setSeriesUntilDate]      = useState('')
   const [seriesCount,          setSeriesCount]          = useState('10')
 
+  // ── «תלמידה קשורה» (необязательно) ──
+  // Пикер показывается, только если смотрящему доступен справочник תלמידות
+  // (/api/persons/students ответил 200 — там та же проверка права, что и
+  // везде: persons.view или education.view_students). Сервер всё равно
+  // перепроверит, что journey принадлежит выбранному человеку.
+  const [canPickStudent, setCanPickStudent] = useState(false)
+  const [student,        setStudent]        = useState<StudentOpt | null>(null)
+  const [studentSearch,  setStudentSearch]  = useState('')
+  const [studentOpts,    setStudentOpts]    = useState<StudentOpt[]>([])
+  const [studentOpen,    setStudentOpen]    = useState(false)
+
   // ── watchers ──
   const [watchers,         setWatchers]         = useState<Watcher[]>([])
   const [watcherPersonId,  setWatcherPersonId]  = useState<string | null>(null)
@@ -131,6 +144,27 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
       .then(d => { if (Array.isArray(d?.person_ids)) setMaintenanceStaffIds(new Set(d.person_ids as string[])) })
       .catch(() => {})
   }, [])
+
+  // ── есть ли доступ к справочнику תלמידות (для пикера) ──
+  useEffect(() => {
+    fetch('/api/persons/students?pageSize=1')
+      .then(r => setCanPickStudent(r.ok))
+      .catch(() => {})
+  }, [])
+
+  // Поиск תלמידות с дебаунсом (тот же приём, что в диалоге встречи календаря).
+  useEffect(() => {
+    if (!studentOpen) return
+    const h = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/persons/students?pageSize=20&search=${encodeURIComponent(studentSearch)}`)
+        if (!res.ok) return
+        const b = await res.json()
+        setStudentOpts(b.students ?? [])
+      } catch { /* оставляем прежний список */ }
+    }, 250)
+    return () => clearTimeout(h)
+  }, [studentSearch, studentOpen])
 
   // Каждый новый выбор исполнителя начинается со значения по умолчанию (вкл.),
   // иначе снятая для предыдущего человека галочка «прилипла» бы к следующему.
@@ -188,6 +222,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         // Сервер всё равно перепроверит роль исполнителя и снимет метку, если
         // человек не из техслужбы.
         is_maintenance: showMaintenanceToggle && isMaintenance,
+        // Метка «תלמידה קשורה» — в tasks.metadata (сервер пропускает только эту пару).
+        metadata: student ? { student_person_id: student.person_id, journey_id: student.journey_id } : undefined,
       }
 
       let resp: Response
@@ -362,6 +398,62 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }}
             />
           </div>
+
+          {/* Related student (optional) */}
+          {canPickStudent && (
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('create_modal.student_label')}</label>
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => { setStudentOpen(o => !o); if (!studentOpen) setStudentSearch('') }}
+                  style={{ ...inp, textAlign: 'start', cursor: 'pointer', color: student ? 'var(--text)' : 'var(--text-faint)', paddingInlineEnd: 30 }}
+                >
+                  {student ? (student.hebrew_name || student.full_name || '—') : t('create_modal.student_none')}
+                </button>
+                {student && (
+                  <button
+                    type="button"
+                    onClick={() => setStudent(null)}
+                    aria-label={tCommon('delete')}
+                    style={{ position: 'absolute', top: 7, insetInlineEnd: 10, fontSize: 12, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >✕</button>
+                )}
+                {studentOpen && (
+                  <div style={{
+                    position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20,
+                    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, boxShadow: 'var(--shadow-lg)',
+                    maxHeight: 220, overflowY: 'auto',
+                  }}>
+                    <input
+                      value={studentSearch}
+                      onChange={e => setStudentSearch(e.target.value)}
+                      placeholder={t('create_modal.student_search')}
+                      style={{ ...inp, borderRadius: 0, border: 'none', borderBottom: '1px solid var(--surface-2)' }}
+                      autoFocus
+                    />
+                    {studentOpts.length === 0 ? (
+                      <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '8px 12px' }}>{t('create_modal.student_empty')}</div>
+                    ) : studentOpts.map(s => (
+                      <button
+                        key={s.journey_id}
+                        type="button"
+                        onClick={() => { setStudent(s); setStudentOpen(false) }}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'start',
+                          fontSize: 13, color: 'var(--text)', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                      >
+                        {s.hebrew_name || s.full_name || '—'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Kind toggle */}
           <div>

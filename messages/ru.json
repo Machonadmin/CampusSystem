@@ -41,7 +41,14 @@
     "section_documents": "Документы",
     "label_doc_total": "Активных",
     "label_doc_expiring": "Истекают скоро",
-    "label_doc_expired": "Просрочено"
+    "label_doc_expired": "Просрочено",
+    "open_now_title": "Открыто сейчас",
+    "open_now_empty": "Нет открытых пунктов",
+    "open_now_error": "Не удалось загрузить открытые пункты",
+    "open_now_type_alert": "Оповещение",
+    "open_now_type_absence": "Отсутствие",
+    "open_now_type_task": "Задача",
+    "open_now_open": "Открыть"
   },
   "common": {
     "actions": "Действия",
@@ -2267,7 +2274,8 @@
       "confirm_delete_type": "Удалить тип «{name}»?",
       "type_in_use": "Тип используется — деактивируйте",
       "deactivate": "Деактивировать",
-      "activate": "Активировать"
+      "activate": "Активировать",
+      "student_filter_clear": "Показать все оповещения"
     },
     "kodesh_home": {
       "title": "Главная кафедры иудаики",
@@ -2423,7 +2431,8 @@
       "maintenance_badge": "Эксплуатация",
       "maintenance_toggle": "Задача по эксплуатации",
       "maintenance_toggle_hint": "Показывается также в модуле «Эксплуатация»",
-      "maintenance_failed": "Не удалось изменить отметку «эксплуатация»"
+      "maintenance_failed": "Не удалось изменить отметку «эксплуатация»",
+      "student_label": "Связанная студентка"
     },
     "module": {
       "general": "Общее",
@@ -2531,7 +2540,11 @@
       "preview_yearly": "{day} {month} каждого года{time}",
       "add_to_calendar": "Также добавить в мой календарь",
       "maintenance_label": "Это задача по эксплуатации",
-      "maintenance_hint": "Появится у него ещё и в модуле «Эксплуатация», не только в задачах"
+      "maintenance_hint": "Появится у него ещё и в модуле «Эксплуатация», не только в задачах",
+      "student_label": "Связанная студентка (необязательно)",
+      "student_none": "Без студентки",
+      "student_search": "Поиск студентки…",
+      "student_empty": "Студентки не найдены"
     }
   },
   "staff": {
@@ -5139,7 +5152,9 @@
     "series_max_repeats": "Максимум {n} повторений в серии",
     "series_over_limit": "Серия превышает лимит в {n} задач",
     "kodesh_level_hide_has_students": "Нельзя скрыть уровень — к нему приписано студенток: {count}. Сначала переведите их в другой уровень.",
-    "kodesh_level_hide_has_courses": "Нельзя скрыть уровень — в нём активных курсов: {count}. Сначала закройте или перенесите курсы."
+    "kodesh_level_hide_has_courses": "Нельзя скрыть уровень — в нём активных курсов: {count}. Сначала закройте или перенесите курсы.",
+    "task_student_tag_invalid": "Выбранная студентка не найдена или не совпадает",
+    "task_student_tag_locked": "Нельзя менять студентку у автозадачи приёмной комиссии"
   },
   "workflow": {
     "error": "Ошибка"
@@ -5271,7 +5286,9 @@
       "students": "Студентки",
       "collection": "Собираемость"
     },
-    "my_maintenance": "Мои заявки на обслуживание"
+    "my_maintenance": "Мои заявки на обслуживание",
+    "my_alerts": "Открытые оповещения",
+    "my_absences": "Открытые отсутствия"
   },
   "search": {
     "placeholder": "Поиск человека…",

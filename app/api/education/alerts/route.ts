@@ -10,7 +10,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
 /**
  * Оповещения по студенткам (student_alerts, spec §3.8/§4.4).
  *
- * GET — список с фильтрами (state/type_code/severity/student_id) ИЛИ counts=1 +
+ * GET — список с фильтрами (state/type_code/severity/student_id; state=open —
+ *   все незакрытые; handler=1 — только для manage_alerts) ИЛИ counts=1 +
  *   student_ids=a,b — счётчики открытых (state<>'closed') по студенткам.
  *   Чувствительные строки (is_sensitive) видны только с view_sensitive_alerts
  *   (иначе исключаются и из списка, и из счётчиков). Право: view_students.
@@ -32,6 +33,12 @@ export async function GET(request: NextRequest) {
     if (!allowed) return apiError('forbidden', 403)
 
     const url = new URL(request.url)
+    // ?handler=1 — блок «העבודה שלי» на главной показывается ТОЛЬКО тем, кто
+    // обрабатывает оповещения (manage_alerts; решение владельца). Остальным —
+    // 403, и блок прячется, как прочие блоки главной.
+    if (url.searchParams.get('handler') === '1' && !(await hasEducationPrivilege(session, 'manage_alerts'))) {
+      return apiError('forbidden', 403)
+    }
     const sb = createServerClient()
     const seeSensitive = await canSeeSensitive(session)
 
@@ -60,7 +67,10 @@ export async function GET(request: NextRequest) {
       let q = (sb.from('student_alerts') as any)
         .select('id, student_id, type_code, source_module, severity, title, body, reported_by, state, handled_by, handled_at, is_sensitive, created_at, student:persons!student_alerts_student_id_fkey(id, full_name, hebrew_name)')
         .order('created_at', { ascending: false })
-      const state = url.searchParams.get('state'); if (state) q = q.eq('state', state)
+      // state=open — «все незакрытые» (state<>'closed'), как в режиме счётчиков.
+      const state = url.searchParams.get('state')
+      if (state === 'open') q = q.neq('state', 'closed')
+      else if (state) q = q.eq('state', state)
       const typeCode = url.searchParams.get('type_code'); if (typeCode) q = q.eq('type_code', typeCode)
       const severity = url.searchParams.get('severity'); if (severity) q = q.eq('severity', severity)
       const studentId = url.searchParams.get('student_id'); if (studentId) q = q.eq('student_id', studentId)

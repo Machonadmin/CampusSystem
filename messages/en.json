@@ -41,7 +41,14 @@
     "section_documents": "Documents",
     "label_doc_total": "Active",
     "label_doc_expiring": "Expiring soon",
-    "label_doc_expired": "Expired"
+    "label_doc_expired": "Expired",
+    "open_now_title": "Open now",
+    "open_now_empty": "No open items",
+    "open_now_error": "Failed to load open items",
+    "open_now_type_alert": "Alert",
+    "open_now_type_absence": "Absence",
+    "open_now_type_task": "Task",
+    "open_now_open": "Open"
   },
   "common": {
     "actions": "Actions",
@@ -2267,7 +2274,8 @@
       "confirm_delete_type": "Delete type “{name}”?",
       "type_in_use": "Type is in use — deactivate instead",
       "deactivate": "Deactivate",
-      "activate": "Activate"
+      "activate": "Activate",
+      "student_filter_clear": "Show all alerts"
     },
     "kodesh_home": {
       "title": "Judaism department home",
@@ -2423,7 +2431,8 @@
       "maintenance_badge": "Maintenance",
       "maintenance_toggle": "Maintenance task",
       "maintenance_toggle_hint": "Also shown in the Maintenance module",
-      "maintenance_failed": "Could not update the maintenance flag"
+      "maintenance_failed": "Could not update the maintenance flag",
+      "student_label": "Related student"
     },
     "module": {
       "general": "General",
@@ -2531,7 +2540,11 @@
       "preview_yearly": "{month} {day} every year{time}",
       "add_to_calendar": "Also add to my calendar",
       "maintenance_label": "This is a maintenance task",
-      "maintenance_hint": "It will also show in the Maintenance module, not only in Tasks"
+      "maintenance_hint": "It will also show in the Maintenance module, not only in Tasks",
+      "student_label": "Related student (optional)",
+      "student_none": "No student",
+      "student_search": "Search student…",
+      "student_empty": "No students found"
     }
   },
   "staff": {
@@ -5139,7 +5152,9 @@
     "series_max_repeats": "Maximum {n} repetitions in a series",
     "series_over_limit": "The series exceeds the limit of {n} tasks",
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
-    "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first."
+    "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
+    "task_student_tag_invalid": "The selected student was not found or does not match",
+    "task_student_tag_locked": "The student of an automatic admission task cannot be changed"
   },
   "workflow": {
     "error": "Error"
@@ -5271,7 +5286,9 @@
       "students": "Students",
       "collection": "Collection"
     },
-    "my_maintenance": "My maintenance requests"
+    "my_maintenance": "My maintenance requests",
+    "my_alerts": "Open alerts",
+    "my_absences": "Open absences"
   },
   "search": {
     "placeholder": "Search a person…",
