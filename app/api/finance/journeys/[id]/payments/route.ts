@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageStudentFinance } from '@/lib/finance/access'
@@ -7,6 +7,7 @@ import { mapDbError } from '@/lib/finance/http'
 import { isIsoDate } from '@/lib/finance/validation'
 import type { FinancePaymentInsert } from '@/types/database'
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/finance/journeys/[id]/payments
@@ -24,10 +25,8 @@ import { isMissingColumn } from '@/lib/supabase/errors'
  * 404 — если journey не найден.
  */
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -99,7 +98,7 @@ export async function POST(
     }
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -107,8 +106,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

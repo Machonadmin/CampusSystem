@@ -7,6 +7,8 @@ import { canViewJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType } from '@/lib/documents/validation'
 import type { DocumentRecordInsert } from '@/types/database'
+import { cleanExternalUrl } from '@/lib/safe-url'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET  /api/documents/journeys/[id] — документы студента (свежие сверху). [id] =
@@ -20,10 +22,8 @@ const DOC_COLS = '*'
 
 const PAGE = 1000
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
@@ -58,16 +58,14 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireDocumentsPrivilege('manage')
 
@@ -110,6 +108,9 @@ export async function POST(
       }
     }
 
+    const fileUrl = cleanExternalUrl(body.file_url)
+    if (fileUrl === undefined) return apiError('invalid_url', 400)
+
     const sb = createServerClient()
 
     const { data: journey, error: jErr } = await sb
@@ -123,7 +124,7 @@ export async function POST(
       title,
       issued_date: issued,
       expiry_date: expiry,
-      file_url: body.file_url?.trim() || null,
+      file_url: fileUrl,
       notes: body.notes?.trim() || null,
       status: 'active',
       created_by: session.person_id,
@@ -137,7 +138,7 @@ export async function POST(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -145,8 +146,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

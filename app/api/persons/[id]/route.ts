@@ -7,19 +7,18 @@ import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { redactSensitivePerson } from '@/lib/persons/redact'
 import { getSession } from '@/lib/auth/session'
 import { canReadPersonInEducationScope } from '@/lib/education/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Доступ: либо модуль «Люди» (persons.view — весь справочник), либо
     // образовательный доступ к ЭТОМУ человеку (менеджер юнита читает карточку
     // человека своего юнита — без доступа ко всему справочнику института).
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-    const allowed = await hasPersonsPrivilege(session, 'view')
-      || await canReadPersonInEducationScope(session, params.id)
+    const allowed = (await hasPersonsPrivilege(session, 'view'))
+      || (await canReadPersonInEducationScope(session, params.id))
     if (!allowed) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 
     const sb = createServerClient()
@@ -57,7 +56,7 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -85,10 +84,8 @@ const patchSchema = z.object({
  * наличии persons.view_sensitive — иначе эти поля из payload игнорируются
  * (не затираем). Обновляем лишь переданные ключи.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requirePrivilege('persons', 'edit')
 
@@ -129,6 +126,6 @@ export async function PATCH(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

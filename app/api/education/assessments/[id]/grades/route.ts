@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { GradeInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -27,10 +28,8 @@ type EnrollRow = {
  * студент отдаётся со своей оценкой или как ещё не оценённый (null).
  * Право: view_students в контексте группы задания.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -93,9 +92,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -108,10 +107,8 @@ export async function GET(
  * graded_at = сейчас. Каждый score в диапазоне [0, max_score]; каждый journey
  * должен быть записан в группу задания.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       entries?: { journey_id?: string; score?: number; comment?: string | null }[]
@@ -176,7 +173,7 @@ export async function POST(
       .upsert(rows as any, { onConflict: 'assessment_id,journey_id' })
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ graded: rows.length }, { status: 201 })
@@ -184,8 +181,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

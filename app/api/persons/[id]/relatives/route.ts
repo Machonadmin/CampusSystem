@@ -3,7 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
-import { parseBody } from '@/lib/api/handler'
+import { parseBody, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { canReadPersonInEducationScope } from '@/lib/education/permissions'
@@ -29,17 +29,15 @@ function mapDbError(error: { code?: string; message?: string }) {
  * Ответ: [{ id, relation_type, notes, created_at,
  *           relative: { id, full_name, email, phone } }]
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Как и GET /api/persons/[id]: либо persons.view, либо образовательный
     // доступ к этому человеку (менеджер юнита видит родственников своего человека).
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
-    const allowed = await hasPersonsPrivilege(session, 'view')
-      || await canReadPersonInEducationScope(session, params.id)
+    const allowed = (await hasPersonsPrivilege(session, 'view'))
+      || (await canReadPersonInEducationScope(session, params.id))
     if (!allowed) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
     const sb = createServerClient()
 
@@ -86,9 +84,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -103,10 +101,8 @@ const relativeSchema = z.object({
  * Body: { relative_id, relation_type, notes? }
  * Право: persons.edit
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requirePrivilege('persons', 'edit')
     const body = await parseBody(request, relativeSchema)
@@ -135,7 +131,7 @@ export async function POST(
 
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -143,8 +139,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

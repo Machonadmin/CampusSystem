@@ -7,6 +7,7 @@ import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
@@ -32,10 +33,8 @@ type EnrollRow = {
  * записанный студент отдаётся со своим статусом или как не отмеченный (null).
  * Право: view_students в контексте группы урока.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -148,9 +147,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -162,10 +161,8 @@ export async function GET(
  * Upsert по паре (lesson_id, journey_id); marked_by = текущий пользователь,
  * marked_at = сейчас. Каждый journey должен быть записан в группу урока.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       entries?: { journey_id?: string; status?: string }[]
@@ -274,7 +271,7 @@ export async function POST(
       .upsert(rows as any, { onConflict: 'lesson_id,journey_id' })
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ marked: rows.length }, { status: 201 })
@@ -282,8 +279,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

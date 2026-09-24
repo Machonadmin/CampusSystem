@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny } from '@/lib/education/permissions'
 import { isMissingRelation } from '@/lib/supabase/errors'
-import { fetchAllPages } from '@/lib/api/handler'
+import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/recruitment-report — READ-ONLY.
@@ -267,6 +267,6 @@ export async function GET() {
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     if (isSoft(err)) return NextResponse.json(empty)
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadStaffList } from '@/lib/data-security/load'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Список сотрудников для левой колонки экрана «по сотруднику».
@@ -14,6 +14,6 @@ export async function GET() {
     return NextResponse.json(await loadStaffList(getCookieLocale()))
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

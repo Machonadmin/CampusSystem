@@ -1778,7 +1778,7 @@
         "granted_by": "אושר על ידי",
         "ongoing": "ללא תאריך סיום"
       },
-      "levels_manage": "ניהול שמות רמות",
+      "levels_manage": "ניהול רמות",
       "levels_hide": "הסתר ניהול רמות",
       "levels_rename": "שנה שם",
       "levels_save": "שמור",
@@ -1788,7 +1788,15 @@
       "suggest_clear": "נקה",
       "suggest_chip": "מוצע",
       "suggest_approve": "אשר",
-      "suggest_graduated": "סיימה"
+      "suggest_graduated": "סיימה",
+      "levels_add_ph": "שם הרמה החדשה",
+      "levels_add": "הוסף רמה",
+      "levels_archive": "הסתר",
+      "levels_archive_confirm": "להסתיר את הרמה \"{name}\"? היא תיעלם מהשיבוץ ומהרשימות, אך תישמר בהיסטוריה. אפשר להחזיר אותה.",
+      "levels_archived_show": "רמות מוסתרות",
+      "levels_archived_empty": "אין רמות מוסתרות",
+      "levels_restore": "החזר",
+      "levels_empty": "אין עדיין רמות"
     },
     "student_calendar": {
       "title": "יומן",
@@ -2814,7 +2822,7 @@
       "err_privs": "התפקיד נוצר אך שמירת ההרשאות נכשלה",
       "err_seat": "השיבוץ נכשל",
       "err_login": "יצירת ההתחברות נכשלה",
-      "empty_list_hint": "הרשימה לא נטענה — רענן את הדף ונסה שוב.",
+      "empty_list_hint": "הרשימה לא נטענה — רעננו את הדף ונסו שוב.",
       "screen_title": "הוספת בעל תפקיד",
       "screen_sub": "הכל במסך אחד — אדם, תפקיד, מחלקה, הרשאות והתחברות",
       "sec_who": "מי זה?",
@@ -2986,7 +2994,7 @@
       "tech_issues_placeholder": "תאר תקלות טכניות, אם היו…",
       "no_questions_block": "אין שאלות",
       "no_template_hint": "לא נבחרה תבנית — יש למלא את חלק הסיכום למטה",
-      "template_load_error": "טעינת רשימת הבדיקה נכשלה — רענן את הדף ונסה שוב",
+      "template_load_error": "טעינת רשימת הבדיקה נכשלה — רעננו את הדף ונסו שוב",
       "summary_title": "סיכום הבדיקה",
       "strengths_label": "חוזקות השיעור",
       "areas_label": "תחומים לשיפור",
@@ -5040,6 +5048,7 @@
     "database_error": "שגיאת מסד נתונים",
     "state_conflict": "התנגשות מצב",
     "invalid_input": "נתוני קלט לא תקינים",
+    "invalid_url": "הקישור חייב להתחיל ב-https:// (או http://)",
     "validation_error": "שגיאת אימות",
     "db_constraint_amount_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סטטוס)",
     "db_constraint_amount_type_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סוג/סטטוס)",
@@ -5132,7 +5141,9 @@
     "dorm_student_overlap": "לתלמידה כבר יש שיבוץ שחופף בתאריכים",
     "dorm_room_number_exists": "חדר עם מספר זה כבר קיים בבניין",
     "series_max_repeats": "מקסימום {n} חזרות בסדרה",
-    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות"
+    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
+    "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
+    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם."
   },
   "workflow": {
     "error": "שגיאה"
@@ -5212,7 +5223,7 @@
     "push_active": "התראות בטלפון פעילות במכשיר זה",
     "push_test": "שלח התראת בדיקה",
     "push_test_sent": "התראת בדיקה נשלחה. היא אמורה להופיע בטלפון תוך כמה שניות.",
-    "push_test_no_devices": "השרת לא מכיר אף מכשיר שלך. סגור ופתח את האפליקציה ונסה שוב.",
+    "push_test_no_devices": "השרת לא מכיר אף מכשיר שלכם. סגרו ופתחו את האפליקציה ונסו שוב.",
     "push_test_failed": "שליחת ההתראה נכשלה (קוד {code})"
   },
   "add_to_calendar": {

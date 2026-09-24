@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { verifyPassword } from '@/lib/auth/password'
+import { verifyLoginPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
 import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
-import { throttleAuth } from '@/lib/auth/login-throttle'
+import { throttleAuth, tooManyAttempts } from '@/lib/auth/login-throttle'
+import {
+  selectLoginRow, lockedForSec, recordFailedLogin, recordSuccessfulLogin,
+  unknownLockedForSec, recordUnknownFailure,
+} from '@/lib/auth/account-lockout'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 export async function POST(request: NextRequest) {
@@ -22,47 +26,46 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const normalizedEmail = email.toLowerCase().trim()
 
-    // 1. Fetch the account record
-    const { data: account, error: accountError } = await supabase
-      .from('person_accounts')
-      .select('person_id, login_email, password_hash, is_active')
-      .eq('login_email', normalizedEmail)
-      .single()
+    // 1. Fetch the account record (с полями блокировки, если миграция применена)
+    const { row: found } = await selectLoginRow<{
+      person_id: string; login_email: string; password_hash: string | null; is_active: boolean
+    }>('person_accounts', 'person_id, login_email, password_hash, is_active', normalizedEmail)
 
-    if (accountError) {
+    // Пароль проверяем ДО любых других ответов и одинаково по времени для
+    // любого адреса (verifyLoginPassword). «Аккаунт заблокирован» говорим только
+    // тому, кто ввёл верный пароль, — иначе по этому ответу можно было бы
+    // узнать, что такой адрес в системе существует.
+    const passwordValid = await verifyLoginPassword(password, found?.password_hash)
+
+    // После 10 неудач подряд вход закрыт на 15 минут даже с верным паролем
+    // (lib/auth/account-lockout.ts). Для несуществующих адресов — тот же ответ.
+    const lockedSec = found ? lockedForSec(found) : unknownLockedForSec(`staff:${normalizedEmail}`)
+    if (lockedSec > 0) return tooManyAttempts(lockedSec)
+
+    if (!found || !passwordValid) {
+      if (found) await recordFailedLogin('person_accounts', normalizedEmail, found)
+      else recordUnknownFailure(`staff:${normalizedEmail}`)
       return apiError('invalid_credentials', 401)
     }
 
-    if (!account) {
-      return apiError('invalid_credentials', 401)
-    }
+    await recordSuccessfulLogin('person_accounts', normalizedEmail, found)
 
-    if (!account.is_active) {
+    if (!found.is_active) {
       return apiError('account_locked', 403)
-    }
-
-    if (!account.password_hash) {
-      return apiError('invalid_credentials', 401)
-    }
-
-    const passwordValid = await verifyPassword(password, account.password_hash)
-
-    if (!passwordValid) {
-      return apiError('invalid_credentials', 401)
     }
 
     // 2. Fetch person's full name
     const { data: person } = await supabase
       .from('persons')
       .select('full_name')
-      .eq('id', account.person_id)
+      .eq('id', found.person_id)
       .single()
 
     // 3. Fetch assigned role ids, then look up role codes
     const { data: personRoleRows } = await supabase
       .from('person_roles')
       .select('role_id')
-      .eq('person_id', account.person_id)
+      .eq('person_id', found.person_id)
 
     const roleIds = (personRoleRows ?? []).map(r => r.role_id)
 
@@ -75,11 +78,22 @@ export async function POST(request: NextRequest) {
       roleRows?.forEach(r => roles.push(r.code))
     }
 
+    // Служебный read-only аккаунт (тестовый вход для Claude). Отдельным запросом:
+    // до миграции 20260924100000 колонки нет — тогда ошибка и обычный вход.
+    const { data: readOnlyRow, error: _readOnlyErr } = await supabase
+      .from('person_accounts')
+      .select('read_only')
+      .eq('person_id', found.person_id)
+      .eq('login_email', found.login_email)
+      .maybeSingle()
+    const readOnly = (readOnlyRow as { read_only?: boolean } | null)?.read_only === true
+
     await createSession({
-      person_id: account.person_id,
-      login_email: account.login_email,
+      person_id: found.person_id,
+      login_email: found.login_email,
       full_name: person?.full_name ?? null,
       roles,
+      ...(readOnly ? { read_only: true } : {}),
     })
 
     // Посадка §10: управляющая кафедрой иудаики открывается сразу на дом иудаики.
@@ -88,7 +102,7 @@ export async function POST(request: NextRequest) {
     let kodeshHome = false
     try {
       kodeshHome = await isKodeshDepartmentWorkspace({
-        person_id: account.person_id,
+        person_id: found.person_id,
         roles,
         principal: 'staff',
       } as SessionPayload)
@@ -98,12 +112,12 @@ export async function POST(request: NextRequest) {
     supabase
       .from('person_accounts')
       .update({ last_login: new Date().toISOString() })
-      .eq('person_id', account.person_id)
+      .eq('person_id', found.person_id)
       .then()
 
     return NextResponse.json({
-      person_id: account.person_id,
-      login_email: account.login_email,
+      person_id: found.person_id,
+      login_email: found.login_email,
       full_name: person?.full_name ?? null,
       roles,
       kodesh_home: kodeshHome,

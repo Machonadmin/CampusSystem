@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinance, canViewStudentFinanceFull } from '@/lib/finance/access'
@@ -7,6 +7,7 @@ import { computeLedgerTotals } from '@/lib/finance/money'
 import { mapDbError } from '@/lib/finance/http'
 import { getActiveContract } from '@/lib/admission/benefits'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/finance/journeys/[id]/ledger
@@ -31,10 +32,8 @@ const PERSON_SELECT =
 // всему набору. Тот же приём, что в app/api/finance/students/route.ts.
 const PAGE = 1000
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -198,8 +197,8 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getVapidKeys } from '@/lib/push/webpush'
 
@@ -17,6 +17,6 @@ export async function GET() {
     return NextResponse.json({ key: vapid.publicKey })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

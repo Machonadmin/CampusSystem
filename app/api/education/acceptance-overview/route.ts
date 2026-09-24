@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/acceptance-overview?status=active|completed|all
@@ -180,6 +181,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ applicants, signature_method })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
 import { canManageStudentFinance } from '@/lib/finance/access'
 import { toCents, centsToNumber } from '@/lib/finance/money'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Скидка на счёт (הנחה). Уменьшает долг по счёту. Требует ПРИЧИНУ и подпись
@@ -16,7 +17,8 @@ import { toCents, centsToNumber } from '@/lib/finance/money'
  * POST body: { percent: number, reason?: string, typed_name?: string }
  */
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -89,6 +91,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ discount: data }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -90,6 +90,14 @@ export function makeModulePermissions<P extends string>(moduleName: string): Mod
   }
 
   async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
+    // Изоляция портала — как в lib/education/permissions.ts: токен студентки не
+    // несёт штатных прав модуля, даже если этот же person где-то сотрудник
+    // (person_privileges по person_id). Кэш не трогаем: ключ person_id общий для
+    // staff- и student-входа одного человека.
+    if (session.principal === 'student') {
+      return { privileges: {}, expiresAt: Date.now() + CACHE_TTL_MS }
+    }
+
     const cached = getCached(session.person_id)
     if (cached) return cached
 

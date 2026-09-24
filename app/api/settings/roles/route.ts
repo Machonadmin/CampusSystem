@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { normalizeRoleCode, roleCodeChangeError } from '@/lib/auth/reserved-roles'
 import type { RoleCode, RoleCategory } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
@@ -20,7 +21,7 @@ export async function GET() {
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -48,6 +49,6 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code === '23505') return apiError('role_code_exists', 409)
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

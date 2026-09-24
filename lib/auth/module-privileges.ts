@@ -45,6 +45,10 @@ async function loadScope(
   module: PrivilegeModule,
   code: string,
 ): Promise<PrivilegeScope | null> {
+  // Токен студентки (портал) не несёт штатных прав, даже если этот же person
+  // где-то сотрудник (личная выдача по person_id) — как в education/permissions.
+  if (session.principal === 'student') return null
+
   const sb = createServerClient()
 
   // ── Что даёт должность ────────────────────────────────────────────────────

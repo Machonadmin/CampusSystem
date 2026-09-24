@@ -5,6 +5,7 @@ import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseFlexibleDate, splitFullName, normalizeGender, dedupeKey } from '@/lib/education/import-map'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/education/students/import
@@ -160,6 +161,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

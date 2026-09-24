@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
   const session = await getSession()
@@ -11,7 +12,8 @@ async function guard() {
 }
 
 // GET /api/settings/users/[id]/roles  — id = account id, pass person_id as query param
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(data ?? [])
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -49,6 +51,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

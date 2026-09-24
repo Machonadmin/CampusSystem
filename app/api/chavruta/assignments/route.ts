@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { fetchAllPages } from '@/lib/api/handler'
+import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
@@ -98,7 +98,7 @@ export async function GET() {
     return NextResponse.json({ assignments, students })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -134,6 +134,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ assignment: data }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

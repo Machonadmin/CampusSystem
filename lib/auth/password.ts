@@ -35,6 +35,24 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
+// bcrypt-хэш случайной строки, которую никто не знает. Сравнение с ним всегда
+// даёт false, но занимает столько же времени, сколько настоящее.
+const DUMMY_HASH = '$2b$12$awgdauhzHhAyR5rhDkyC/.8TIJjPO.Kv14SHogDU7st5.11EqOm1q'
+
+/**
+ * Проверка пароля для входа, одинаковая по времени для любого e-mail. Если
+ * аккаунта нет (hash пустой), всё равно выполняем bcrypt со спрятанным хэшем:
+ * иначе ответ на несуществующий адрес приходил бы заметно быстрее, и по
+ * скорости ответа можно было бы узнать, какие адреса в системе есть.
+ */
+export async function verifyLoginPassword(password: string, hash: string | null | undefined): Promise<boolean> {
+  if (!hash) {
+    await bcrypt.compare(password, DUMMY_HASH)
+    return false
+  }
+  return bcrypt.compare(password, hash)
+}
+
 /**
  * «Более сильный» пароль (требование владельца при первой смене): минимум 8
  * символов И хотя бы одна буква И хотя бы одна цифра. Возвращает код проблемы

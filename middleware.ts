@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AUTH_CONFIG } from '@/lib/auth/config'
-import { verifyToken } from '@/lib/auth/jwt'
+import { verifyToken, isReadOnlySession } from '@/lib/auth/jwt'
 import { PROTECTED_MODULE_CODES, moduleCodeFromSegment } from '@/lib/modules/registry'
 
 const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/']
@@ -91,7 +91,8 @@ export async function middleware(request: NextRequest) {
   // API блокируется, чтобы владелец, глядя глазами сотрудника, ничего случайно
   // не менял от его имени. Выход из режима — /api/auth/stop-impersonate — уже
   // пропущен выше как публичный префикс (/api/auth/).
-  if (session.imp_by && pathname.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+  // Тот же замок держит служебный read-only аккаунт (тестовый вход для Claude).
+  if (isReadOnlySession(session) && pathname.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     const loc = request.cookies.get('campus_locale')?.value
     const lang = loc === 'he' || loc === 'en' ? loc : 'ru'
     return NextResponse.json({ error: READONLY_MSG[lang], code: 'impersonation_readonly' }, { status: 403 })

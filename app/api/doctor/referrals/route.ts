@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/doctor/referrals — очередь «Направленные к врачу» (מטופלות).
@@ -210,6 +211,6 @@ export async function GET() {
     return NextResponse.json({ referrals, finals: finals ?? [], signature_method })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
