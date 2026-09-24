@@ -79,8 +79,24 @@ export interface TreeNode {
   icon: string | null
   color: string | null
   departmentId: string | null
+  /**
+   * Подписи на всех трёх языках как они лежат в базе — только для формы
+   * правки. name/description выше уже выбраны под язык экрана, и форма, взяв
+   * их, записала бы русский текст в поле иврита, а пустые RU/EN стёрли бы
+   * существующие переводы.
+   */
+  texts: NodeTexts
   children: TreeNode[]
   items: CatalogEntry[]
+}
+
+export interface NodeTexts {
+  name_he: string
+  name_ru: string
+  name_en: string
+  description_he: string
+  description_ru: string
+  description_en: string
 }
 
 export interface BuiltTree {
@@ -145,6 +161,14 @@ export function buildTree(
       icon: n.icon,
       color: n.color,
       departmentId: n.department_id,
+      texts: {
+        name_he: n.name_he ?? '',
+        name_ru: n.name_ru ?? '',
+        name_en: n.name_en ?? '',
+        description_he: n.description_he ?? '',
+        description_ru: n.description_ru ?? '',
+        description_en: n.description_en ?? '',
+      },
       children: [],
       items: [],
     })

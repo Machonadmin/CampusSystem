@@ -60,7 +60,14 @@ export function ScopeBadge({ scope, departments, t }: {
     ? departments.join(' · ')
     : t(`scope_${scope}`)
   return (
-    <span style={{ ...chip, background: 'var(--violet-tint)', color: 'var(--violet)' }}>
+    // Список единиц бывает длинным («מחלקה משפטית · גיוס · …»), а chip держит
+    // текст в одну строку (nowrap) — и полоса вылезала за край карточки.
+    // Этому значку разрешён перенос в пределах ширины строки.
+    <span style={{
+      ...chip, background: 'var(--violet-tint)', color: 'var(--violet)',
+      display: 'inline-block', whiteSpace: 'normal', overflowWrap: 'anywhere',
+      maxWidth: '100%', lineHeight: 1.5,
+    }}>
       {label}
     </span>
   )

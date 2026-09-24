@@ -60,3 +60,36 @@ export function toSeatPayload(seats: readonly PersonSeat[]): {
 } {
   return { units: seats.map(s => ({ department_id: s.departmentId, is_head: s.isHead })) }
 }
+
+/** Строка staff_positions — ровно то, что нужно для расчёта посадок. */
+export interface PositionRowInput {
+  department_id: string | null
+  is_head: boolean
+  end_date: string | null
+}
+
+/**
+ * ПРЯМЫЕ посадки человека — без расширения вниз по дереву.
+ *
+ * Окно «שינוי שיוך» раньше начинало с PersonAccess.departments, а там уже
+ * расширенная область (единица + всё, что под ней, getUserDepartmentIds). В
+ * итоге окно отмечало все под-единицы, а «ראש היחידה» всегда был снят —
+ * сохранение без правок сажало человека в каждую под-единицу отдельно и
+ * снимало с него главенство. Здесь — те же правила действующей посадки, что и
+ * в маршруте посадки (end_date пуст или в будущем), и «глава» побеждает при
+ * двух записях на одну единицу, как в buildUnitTree.
+ */
+export function activeSeatsFromPositions(
+  rows: readonly PositionRowInput[],
+  todayISO: string,
+): PersonSeat[] {
+  const out: PersonSeat[] = []
+  for (const r of rows) {
+    if (!r.department_id) continue
+    if (!(r.end_date === null || r.end_date > todayISO)) continue
+    const existing = out.find(s => s.departmentId === r.department_id)
+    if (existing) existing.isHead = existing.isHead || !!r.is_head
+    else out.push({ departmentId: r.department_id, isHead: !!r.is_head })
+  }
+  return out
+}

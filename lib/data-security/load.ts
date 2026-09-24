@@ -9,6 +9,8 @@ import {
 } from './tree'
 import { resolvePersonPrivileges, type ResolvedPrivilege } from './person'
 import { pickLang } from './localize'
+import { activeSeatsFromPositions, type PersonSeat } from './seating'
+import { todayISO } from '@/lib/dates'
 
 // ─── Загрузка данных экрана «Безопасность данных» ────────────────────────────
 //
@@ -128,6 +130,12 @@ export interface PersonAccess {
   positionTitle: string | null
   /** Подписи подразделений, в которых человек сидит, — они задают область. */
   departments: { id: string; name: string }[]
+  /**
+   * Прямые посадки (без под-единиц) с признаком главы — с них начинает окно
+   * «שינוי שיוך». departments выше для этого не годится: там уже расширенная
+   * вниз область, и признака главы в ней нет.
+   */
+  seats: PersonSeat[]
   /** Роли человека: подписи, не коды. */
   roles: { id: string; name: string }[]
   privileges: ResolvedPrivilege[]
@@ -186,6 +194,13 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
 
   const pos = positions?.[0]
 
+  // Та же выборка, что читает маршрут посадки, и то же правило «действует».
+  const { data: seatRows, error: seatErr } = await sb
+    .from('staff_positions')
+    .select('department_id, is_head, end_date')
+    .eq('person_id', personId)
+  if (seatErr) throw seatErr
+
   return {
     personId,
     name: (lang === 'he' && person.hebrew_name) ? person.hebrew_name : (person.full_name ?? ''),
@@ -194,6 +209,7 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
       id: d.id,
       name: localizedDeptName(d, lang),
     })),
+    seats: activeSeatsFromPositions(seatRows ?? [], todayISO()),
     roles: (roleRows ?? []).map(r => ({ id: r.id, name: r.name })),
     privileges: resolvePersonPrivileges(
       (rolePrivileges ?? []) as { module: string; privilege_code: string; scope: string }[],
