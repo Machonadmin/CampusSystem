@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string }
@@ -12,6 +14,7 @@ interface Student { journey_id: string; name: string; department: { id: string; 
 export default function TrackAssignmentPage() {
   const t = useTranslations('education.track_assign')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
 
@@ -58,10 +61,11 @@ export default function TrackAssignmentPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 

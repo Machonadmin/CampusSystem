@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import PeriodSelector from '@/components/education/PeriodSelector'
@@ -185,7 +186,7 @@ export default function KodeshAssignmentPage() {
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       <PeriodSelector onChange={s => setPeriodReadOnly(s.readOnly)} />
 

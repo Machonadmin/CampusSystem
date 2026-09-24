@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -21,6 +23,7 @@ type DragPayload = { kind: Mode; id: string; name: string }
 export default function AssignmentBoardClient() {
   const t = useTranslations('education.assignment_board')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
 
   const [groups, setGroups] = useState<Group[]>([])
   const [students, setStudents] = useState<StudentPool[]>([])
@@ -96,10 +99,11 @@ export default function AssignmentBoardClient() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {!loaded ? (
         <SkeletonRows />

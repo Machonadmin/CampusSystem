@@ -5,6 +5,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
@@ -72,6 +74,7 @@ function toForm(c: Community): FormState {
 export default function CommunitiesPage() {
   const t = useTranslations('education.communities')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=settings')
   const tCommon = useTranslations('common')
 
   const [communities, setCommunities] = useState<Community[]>([])
@@ -197,6 +200,7 @@ export default function CommunitiesPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -205,6 +209,7 @@ export default function CommunitiesPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={<>
+          <BackButton fallback={sectionCrumb.href} />
           {canManage && (
             <button onClick={openNew} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)',

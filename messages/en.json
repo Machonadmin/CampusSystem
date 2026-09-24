@@ -4323,6 +4323,7 @@
         "dormitory": "Dormitory",
         "jewishness": "Jewishness",
         "medical": "Medical",
+        "medical_psych": "Psychologist",
         "final_approval": "Final approval"
       }
     },

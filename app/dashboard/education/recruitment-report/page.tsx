@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ─── Типы ответа API ────────────────────────────────────────────────────────
@@ -29,6 +31,7 @@ type T = (key: string, fallback?: string) => string
 export default function RecruitmentReportPage() {
   const t = useTranslations('education.recruitment_report')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('recruitment')
 
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
@@ -51,10 +54,11 @@ export default function RecruitmentReportPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {forbidden ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('forbidden')}</div>
