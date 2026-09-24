@@ -3,7 +3,6 @@
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
-import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import FinanceAdminClient from './FinanceAdminClient'
 
@@ -11,18 +10,18 @@ import FinanceAdminClient from './FinanceAdminClient'
  * Финансовые дефолты + утверждение скидок + просрочки (spec §3.9). Для
  * финансовой роли (НЕ Chana): редактирование гейтится на API (manage_budget /
  * approve_discount). §6.2 (кто утверждает) — открыт: владелец назначит роль.
+ * Решение владельца 4 (24.09.2026): экран относится к модулю «כספים» — вход из
+ * шапки /dashboard/finance, крошки ведут туда же. Маршрут прежний.
  */
 export default function FinanceAdminPage() {
   const tNav = useTranslations('navigation')
-  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.finance_admin')
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        sectionCrumb,
+        { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('title') },
       ]} />
 
@@ -34,7 +33,7 @@ export default function FinanceAdminPage() {
         </svg>}
         title={t('title')}
         subtitle={t('subtitle')}
-        actions={<BackButton fallback={sectionCrumb.href} />}
+        actions={<BackButton fallback="/dashboard/finance" />}
       />
 
       <FinanceAdminClient />

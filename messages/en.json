@@ -224,7 +224,8 @@
       "late": "Late",
       "absent": "Absent",
       "unmarked": "unmarked",
-      "none": "Not marked"
+      "none": "Not marked",
+      "marked_on_teacher_screen": "Attendance is marked on the teacher's lesson screen"
     },
     "grades": {
       "tab_grades": "Grades",
@@ -1185,7 +1186,9 @@
         "people_one": "person",
         "people_few": "people",
         "people_many": "people",
-        "add_confirm_button": "Add"
+        "add_confirm_button": "Add",
+        "create_from_semester_hint": "New groups and courses are opened from the semester.",
+        "create_from_semester_link": "Go to semesters"
       },
       "students": {
         "search_placeholder": "Search by name, phone, email…",

@@ -224,7 +224,8 @@
       "late": "איחורים",
       "absent": "היעדרות",
       "unmarked": "טרם סומנו",
-      "none": "טרם סומן"
+      "none": "טרם סומן",
+      "marked_on_teacher_screen": "סימון נוכחות נעשה במסך השיעור של המורה"
     },
     "grades": {
       "tab_grades": "ציונים",
@@ -1185,7 +1186,9 @@
         "people_one": "איש",
         "people_few": "אנשים",
         "people_many": "אנשים",
-        "add_confirm_button": "הוספה"
+        "add_confirm_button": "הוספה",
+        "create_from_semester_hint": "קבוצות וקורסים חדשים נפתחים מתוך הסמסטר.",
+        "create_from_semester_link": "לסמסטרים"
       },
       "students": {
         "search_placeholder": "חיפוש לפי שם, טלפון, אימייל…",

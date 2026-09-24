@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
-import PageActionButton from '@/components/ui/PageActionButton'
+import Link from 'next/link'
 import ClassGroupModal from './ClassGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
@@ -66,7 +66,9 @@ export default function ClassGroupsTab() {
   const [filterSubject, setFilterSubject] = useState('')
   const [showInactive, setShowInactive] = useState(false)
 
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
+  // Только 'edit': создание отсюда убрано (решение владельца 7, 24.09.2026) —
+  // новые קבוצות/קורסים открываются только из семестра.
+  const [modalMode, setModalMode] = useState<'edit' | null>(null)
   const [editingGroup, setEditingGroup] = useState<ClassGroup | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)  // прогрессивное раскрытие: детали строки по клику
 
@@ -156,11 +158,15 @@ export default function ClassGroupsTab() {
           {t('common.show_inactive')}
         </label>
         <div style={{ flex: 1 }} />
-        <PageActionButton
-          label={t('class_groups.add_button')}
-          onClick={() => { setEditingGroup(null); setModalMode('create') }}
-          accentColor={accent}
-        />
+        {/* Кнопки «+ קבוצת לימוד» здесь больше нет (решение владельца 7, 24.09.2026):
+            классы и курсы создаются ТОЛЬКО из семестра (קורסי סמסטר / קורסי קודש).
+            Настройки — просмотр и правка существующих. API не менялся. */}
+        <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+          {t('class_groups.create_from_semester_hint')}{' '}
+          <Link href="/dashboard/education/studies?sec=semester_groups" style={{ color: accent, fontWeight: 600 }}>
+            {t('class_groups.create_from_semester_link')}
+          </Link>
+        </span>
       </div>
 
       {loading && <SkeletonRows avatar={false} rows={6} />}

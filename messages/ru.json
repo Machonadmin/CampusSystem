@@ -224,7 +224,8 @@
       "late": "Опоздали",
       "absent": "Отсутствовали",
       "unmarked": "не отм.",
-      "none": "Не отмечено"
+      "none": "Не отмечено",
+      "marked_on_teacher_screen": "Посещаемость отмечается на экране урока у преподавателя"
     },
     "grades": {
       "tab_grades": "Оценки",
@@ -1185,7 +1186,9 @@
         "people_one": "человек",
         "people_few": "человека",
         "people_many": "человек",
-        "add_confirm_button": "Добавить"
+        "add_confirm_button": "Добавить",
+        "create_from_semester_hint": "Новые группы и курсы открываются из семестра.",
+        "create_from_semester_link": "К семестрам"
       },
       "students": {
         "search_placeholder": "Поиск по имени, телефону, email…",
