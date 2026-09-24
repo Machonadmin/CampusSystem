@@ -36,13 +36,15 @@ import {
 type Decision = 'inherit' | 'grant' | 'deny'
 
 export default function PersonView({
-  tree, staff, units, canGrant, canManageUnits, t, lang, focusPersonId,
+  tree, staff, units, canGrant, canManageUnits, limited = false, t, lang, focusPersonId,
 }: {
   tree: BuiltTree
   staff: StaffSummary[]
   units: UnitNode[]
   canGrant: boolean
   canManageUnits: boolean
+  /** Ограниченный режим главы отдела: роли и финансы не показываются. */
+  limited?: boolean
   t: T
   lang: string
   /** Человек, выбранный в дереве единиц: вкладка открывается сразу на нём. */
@@ -353,7 +355,14 @@ export default function PersonView({
                 )}
               </div>
             </div>
-            <PersonAccessExtras personId={personId} roles={access.roles} t={t} onChanged={() => load(personId)} />
+            <PersonAccessExtras
+              personId={personId}
+              roles={access.roles}
+              units={units}
+              limited={limited}
+              t={t}
+              onChanged={() => load(personId)}
+            />
 
             <div className="ds-row" style={{ marginBottom: 12 }}>
               {area && <BackToAreas label={t('back_to_areas')} onClick={() => setAreaId(null)} />}

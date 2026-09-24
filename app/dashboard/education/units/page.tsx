@@ -43,9 +43,6 @@ export default function UnitTeamPage() {
   const [units, setUnits] = useState<Unit[]>([])
   const [unitId, setUnitId] = useState<string>('')
   const [members, setMembers] = useState<Member[]>([])
-  // Тумблеры прав принадлежат главе единицы, а не всякому, кто сюда вошёл:
-  // держатель manage_units правит состав, но права не раздаёт. Решает сервер.
-  const [canGrantPrivileges, setCanGrantPrivileges] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
@@ -71,28 +68,13 @@ export default function UnitTeamPage() {
       if (res.ok) {
         const b = await res.json()
         setMembers(b.members ?? [])
-        setCanGrantPrivileges(b.can_grant_privileges === true)
       }
-      else { setMembers([]); setCanGrantPrivileges(false); toastError(tCommon('load_error')) }
+      else { setMembers([]); toastError(tCommon('load_error')) }
     } catch {
-      setMembers([]); setCanGrantPrivileges(false); toastError(tCommon('load_error'))
+      setMembers([]); toastError(tCommon('load_error'))
     } finally { setMembersLoading(false) }
   }, [tCommon])
   useEffect(() => { if (unitId) loadMembers(unitId) }, [unitId, loadMembers])
-
-  async function togglePriv(personId: string, code: string, on: boolean) {
-    const revert = () => setMembers(prev => prev.map(m => m.person_id === personId ? { ...m, privileges: { ...m.privileges, [code]: !on } } : m))
-    setMembers(prev => prev.map(m => m.person_id === personId ? { ...m, privileges: { ...m.privileges, [code]: on } } : m))
-    // Раньше ответ не читался вовсе: отказ сервера оставлял галочку включённой,
-    // и экран показывал право, которого нет.
-    try {
-      const res = await fetch(`/api/education/units/${unitId}/members/${personId}/privileges`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ privileges: { [code]: on } }),
-      })
-      if (!res.ok) { revert(); toastError(tCommon('action_failed')) }
-    } catch { revert(); toastError(tCommon('action_failed')) }
-  }
 
   async function removeMember(personId: string) {
     await fetch(`/api/education/units/${unitId}/members/${personId}`, { method: 'DELETE' })
@@ -164,26 +146,37 @@ export default function UnitTeamPage() {
                     )}
                   </div>
 
-                  {/* Permission toggles — heads have full access by role, so no toggles */}
+                  {/* Права и доп. время — только ПРОСМОТР. Решение владельца: права
+                      правятся только в «אבטחת מידע»; ссылка ведёт на этого человека.
+                      Состав (добавить/убрать) — это посадка, не право, и остаётся здесь. */}
                   {!m.is_head && (
                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-faint)', marginBottom: 10 }}>{t('units.perms_title')}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>{t('units.perms_title')}</span>
+                        <Link
+                          href={`/dashboard/data-security?tab=person&person=${encodeURIComponent(m.person_id)}`}
+                          style={{ marginInlineStart: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', textDecoration: 'none' }}
+                        >{t('units.edit_in_data_security')}</Link>
+                      </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
                         {GRANTABLE.map(code => {
                           const on = !!m.privileges[code]
                           return (
-                            <label key={code} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: canGrantPrivileges ? 'var(--text)' : 'var(--text-muted)', cursor: canGrantPrivileges ? 'pointer' : 'default', padding: '6px 8px', borderRadius: 8, background: on ? 'var(--accent-tint)' : 'transparent' }}>
-                              <input type="checkbox" checked={on} disabled={!canGrantPrivileges}
-                                onChange={e => togglePriv(m.person_id, code, e.target.checked)}
+                            <label key={code} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: on ? 'var(--text)' : 'var(--text-muted)', cursor: 'default', padding: '6px 8px', borderRadius: 8, background: on ? 'var(--accent-tint)' : 'transparent' }}>
+                              <input type="checkbox" checked={on} disabled readOnly
                                 style={{ accentColor: accent, width: 16, height: 16 }} />
                               {t(`units.priv.${code}`, code)}
                             </label>
                           )
                         })}
                       </div>
-                      {m.role === 'teacher' && canGrantPrivileges && (
-                        <ExtraMinutes unitId={unitId} personId={m.person_id} initial={m.extra_minutes} accent={accent} />
+                      {m.role === 'teacher' && (
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)' }}>{t('units.extra_minutes')}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{m.extra_minutes ?? 0}</span>
+                        </div>
                       )}
+                      <p style={{ margin: '10px 0 0', fontSize: 11.5, color: 'var(--text-faint)' }}>{t('units.perms_readonly_hint')}</p>
                     </div>
                   )}
                 </div>
@@ -198,37 +191,6 @@ export default function UnitTeamPage() {
           onClose={() => setAddOpen(false)}
           onDone={() => { setAddOpen(false); loadMembers(unitId) }} />
       )}
-    </div>
-  )
-}
-
-function ExtraMinutes({ unitId, personId, initial, accent }: { unitId: string; personId: string; initial: number; accent: string }) {
-  const t = useTranslations('education')
-  const [val, setVal] = useState(String(initial ?? 0))
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  async function save() {
-    setSaving(true); setSaved(false)
-    try {
-      const res = await fetch(`/api/education/units/${unitId}/members/${personId}/attendance-grant`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ extra_minutes: Number(val) || 0 }),
-      })
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 1600) }
-    } finally { setSaving(false) }
-  }
-
-  return (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)' }}>{t('units.extra_minutes')}</span>
-      <input type="number" min={0} value={val} onChange={e => setVal(e.target.value)}
-        style={{ width: 80, padding: '6px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)' }} />
-      <SubmitButton onClick={save} loading={saving}
-        style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', opacity: saving ? 0.6 : 1 }}>
-        {t('units.save')}
-      </SubmitButton>
-      {saved && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>✓</span>}
     </div>
   )
 }

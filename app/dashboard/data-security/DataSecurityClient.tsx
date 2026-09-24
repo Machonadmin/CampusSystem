@@ -22,7 +22,7 @@ import PersonView from './PersonView'
  * ссылка открывала тот же — как в остальных модулях (lib/nav/useUrlTab).
  */
 export default function DataSecurityClient({
-  initialTree, initialUnits, staff, departments, canGrant, canManageTree, canManageUnits,
+  initialTree, initialUnits, staff, departments, canGrant, canManageTree, canManageUnits, limited = false,
 }: {
   initialTree: BuiltTree
   initialUnits: UnitNode[]
@@ -31,6 +31,12 @@ export default function DataSecurityClient({
   canGrant: boolean
   canManageTree: boolean
   canManageUnits: boolean
+  /**
+   * Ограниченный режим главы отдела: только его команда и только права, которые
+   * есть у него самого. Общего вида нет. Границу держит сервер — экран лишь
+   * не показывает того, что сервер всё равно отклонит.
+   */
+  limited?: boolean
 }) {
   const t = useTranslations('data_security')
   const tNav = useTranslations('navigation')
@@ -57,10 +63,12 @@ export default function DataSecurityClient({
     if (urlPerson) setFocusPersonId(urlPerson)
   }, [urlPerson])
 
-  const [tab, setTab] = useUrlTab({
+  const [urlTab, setTab] = useUrlTab({
     allowed: ['general', 'person'] as const,
     fallback: 'general',
   })
+  // В ограниченном режиме общего вида нет вовсе — всегда «по сотруднику».
+  const tab = limited ? 'person' : urlTab
 
   const tabButton = (key: 'general' | 'person', label: string) => (
     <button
@@ -85,13 +93,17 @@ export default function DataSecurityClient({
         module="data_security"
         title={t('title')}
         subtitle={t('subtitle')}
-        actions={
+        actions={limited ? undefined : (
           <div style={{ display: 'flex', background: 'var(--surface-2)', borderRadius: 10, padding: 3, gap: 2 }}>
             {tabButton('general', t('tab_general'))}
             {tabButton('person', t('tab_person'))}
           </div>
-        }
+        )}
       />
+
+      {limited && (
+        <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>{t('limited_note')}</p>
+      )}
 
       {tab === 'general' ? (
         <GeneralView
@@ -114,6 +126,7 @@ export default function DataSecurityClient({
           units={units}
           canGrant={canGrant}
           canManageUnits={canManageUnits}
+          limited={limited}
           t={t}
           lang={lang}
           focusPersonId={focusPersonId}

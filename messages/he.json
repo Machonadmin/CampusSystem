@@ -1519,7 +1519,7 @@
     },
     "units": {
       "title": "ניהול צוות היחידה",
-      "subtitle": "הוסף מזכירות ומורים והגדר לכל אחת הרשאות",
+      "subtitle": "הוסף מזכירות ומורים ליחידה. ההרשאות נקבעות באבטחת מידע",
       "pick_unit": "בחר יחידה",
       "no_units": "אינך מנהל יחידת לימוד",
       "members": "חברי הצוות",
@@ -1559,7 +1559,9 @@
       "extra_minutes": "זמן נוסף לנוכחות (דק׳)",
       "save": "שמור",
       "role_deputy": "סגן",
-      "deputy_hint": "מתחיל ללא הרשאות — אתה מאשר לו יכולות מהרשימה למטה."
+      "deputy_hint": "מתחיל ללא הרשאות — ההרשאות נקבעות באבטחת מידע.",
+      "edit_in_data_security": "ערוך הרשאות באבטחת מידע",
+      "perms_readonly_hint": "הרשאות וזמן נוסף נקבעים באבטחת מידע."
     },
     "placements": {
       "title": "שיבוצים",
@@ -5551,6 +5553,14 @@
     "extras_finance_title": "גישה לכספים",
     "extras_finance_readonly": "רק מנהל כספים יכול לשנות גישה לכספים",
     "extras_finance_none": "אין גישה לכספים",
-    "extras_finance_grant_all": "תן גישה לכל התלמידות"
+    "extras_finance_grant_all": "תן גישה לכל התלמידות",
+    "limited_note": "גישה מצומצמת: הצוות שלך וההרשאות שיש לך",
+    "extras_attendance_title": "זמן נוסף לרישום נוכחות",
+    "extras_attendance_none": "אינו משובץ כמורה ביחידה שאתה רשאי לראות",
+    "extras_attendance_minutes": "דקות נוספות",
+    "extras_attendance_save": "שמור",
+    "extras_attendance_saved": "הזמן הנוסף נשמר",
+    "extras_attendance_save_error": "לא ניתן לשמור את הזמן הנוסף",
+    "extras_attendance_readonly": "רק ראש היחידה יכול לשנות את הזמן הנוסף"
   }
 }

@@ -1519,7 +1519,7 @@
     },
     "units": {
       "title": "Unit team",
-      "subtitle": "Add secretaries and teachers, set each one’s permissions",
+      "subtitle": "Add secretaries and teachers to the unit. Permissions are set in Data Security",
       "pick_unit": "Select unit",
       "no_units": "You don’t manage a study unit",
       "members": "Team members",
@@ -1559,7 +1559,9 @@
       "extra_minutes": "Extra attendance time (min)",
       "save": "Save",
       "role_deputy": "Deputy",
-      "deputy_hint": "Starts with no permissions — you grant abilities from the list below."
+      "deputy_hint": "Starts with no permissions — permissions are set in Data Security.",
+      "edit_in_data_security": "Edit permissions in Data Security",
+      "perms_readonly_hint": "Permissions and extra time are set in Data Security."
     },
     "placements": {
       "title": "Placements",
@@ -5551,6 +5553,14 @@
     "extras_finance_title": "Finance access",
     "extras_finance_readonly": "Only a finance manager can change finance access",
     "extras_finance_none": "No finance access",
-    "extras_finance_grant_all": "Grant access to all students"
+    "extras_finance_grant_all": "Grant access to all students",
+    "limited_note": "Limited access: your team and the permissions you hold",
+    "extras_attendance_title": "Extra time for marking attendance",
+    "extras_attendance_none": "Not seated as a teacher in a unit you can see",
+    "extras_attendance_minutes": "Extra minutes",
+    "extras_attendance_save": "Save",
+    "extras_attendance_saved": "Extra time saved",
+    "extras_attendance_save_error": "Could not save the extra time",
+    "extras_attendance_readonly": "Only the unit head can change the extra time"
   }
 }

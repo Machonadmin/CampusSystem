@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
+import { getSession } from '@/lib/auth/session'
+import { hasDataSecurityPrivilege } from '@/lib/data-security/permissions'
+import {
+  getHeadScope, getLimitedGrantContext, saveHeadOverrides, type SubmittedOverride,
+} from '@/lib/data-security/head-scope'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadPersonAccess } from '@/lib/data-security/load'
@@ -21,7 +26,14 @@ import type { PrivilegeModule } from '@/types/database'
 
 export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {
   try {
-    await requireDataSecurityPrivilege('access')
+    // Полный доступ — как раньше. Иначе глава отдела видит только свою команду
+    // (lib/data-security/head-scope.ts); всем остальным — прежняя проверка
+    // 'access', она и отвечает 401/403.
+    const session = await getSession()
+    const headSees = session && !(await hasDataSecurityPrivilege(session, 'access'))
+      ? (await getHeadScope(session))?.personIds.has(params.personId) === true
+      : false
+    if (!headSees) await requireDataSecurityPrivilege('access')
     const access = await loadPersonAccess(params.personId, getCookieLocale())
     if (!access) return apiError('person_not_found', 404)
     return NextResponse.json(access)
@@ -40,6 +52,10 @@ interface Override {
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
+  // Глава отдела без права 'grant' — свой, ограниченный путь (putAsHead ниже).
+  const headCtx = await getLimitedGrantContext().catch(() => null)
+  if (headCtx) return putAsHead(request, params.personId, headCtx)
+
   try {
     const session = await requireDataSecurityPrivilege('grant')
     const sb = createServerClient()
@@ -83,6 +99,34 @@ export async function PUT(request: NextRequest, { params }: { params: { personId
     // администратор увидел бы старую картину сразу после сохранения и решил,
     // что сохранение не сработало.
     clearDataSecurityPermissionsCache(personId)
+
+    const access = await loadPersonAccess(personId, getCookieLocale())
+    return NextResponse.json(access)
+  } catch (err: unknown) {
+    const e = err as { status?: number; message?: string }
+    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+  }
+}
+
+/**
+ * Сохранение главой отдела: только своя команда и только то, что есть у него
+ * самого. Строки вне этого набора остаются в БД как были — см. mergeHeadOverrides.
+ */
+async function putAsHead(
+  request: NextRequest,
+  personId: string,
+  ctx: NonNullable<Awaited<ReturnType<typeof getLimitedGrantContext>>>,
+) {
+  try {
+    if (!personId) return apiError('invalid_reference', 400)
+    if (!ctx.scope.personIds.has(personId)) return apiError('forbidden', 403)
+
+    const { overrides } = await request.json() as { overrides?: SubmittedOverride[] }
+    if (!Array.isArray(overrides)) return apiError('invalid_reference', 400)
+
+    const result = await saveHeadOverrides(ctx, personId, overrides.filter(o => o.module && o.privilege_code))
+    if (result === 'forbidden') return apiError('forbidden', 403)
+    if (result === 'invalid') return apiError('invalid_reference', 400)
 
     const access = await loadPersonAccess(personId, getCookieLocale())
     return NextResponse.json(access)

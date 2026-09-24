@@ -9,6 +9,7 @@ import { canViewChavruta } from '@/lib/chavruta/access'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
 import { ALL_MODULE_CODES as REGISTRY_ALL_MODULE_CODES } from '@/lib/modules/registry'
 import type { RoleCode } from '@/types/database'
+import { getHeadedUnitIds } from '@/lib/education/unit-access'
 
 // Список модулей, которые видит superadmin. Берётся из реестра модулей
 // (lib/modules/registry.ts) — единственного источника правды; раньше жил здесь
@@ -100,6 +101,18 @@ export async function GET() {
     accessible_modules = visibleModules(
       effectivePrivileges(rolePrivilegeRows, personPrivilegeRows, Date.now()),
     )
+
+    // Глава отдела видит «אבטחת מידע» в ограниченном режиме (своя команда и
+    // только свои права) — пункт меню нужен и ему. Права модуля при этом НЕ
+    // выдаются: страница и маршруты сами считают область главы
+    // (lib/data-security/head-scope.ts). Fail-closed: ошибка → пункта нет.
+    if (!accessible_modules.includes('data_security') && session.principal !== 'student') {
+      try {
+        if ((await getHeadedUnitIds(session.person_id)).length > 0) {
+          accessible_modules = [...accessible_modules, 'data_security']
+        }
+      } catch { /* fail-closed */ }
+    }
   }
 
   // Должность-ярлык для подписи в шапке (напр. «מזכירת טורו»). Живой запрос
