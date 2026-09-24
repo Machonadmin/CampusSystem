@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -75,7 +76,9 @@ export default function PersonsClient() {
   const primary = getModuleColor('persons', 'primary')
   const light = getModuleColor('persons', 'light')
 
-  const [tab, setTab] = useState<Tab>('staff')
+  // Вкладка в URL (?tab=): «назад» из карточки человека возвращает на ту же
+  // вкладку (студенты/лиды), а не на «צוות» по умолчанию.
+  const [tab, setTab] = useUrlTab<Tab>({ allowed: ['staff', 'students', 'leads'], fallback: 'staff' })
   const [search, setSearch] = useState('')
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)

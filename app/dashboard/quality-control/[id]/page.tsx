@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useSafeBack } from '@/lib/hooks/useSafeBack'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
@@ -181,6 +181,7 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 export default function FillCheckPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const goBack = useSafeBack('/dashboard/quality-control')
   const t = useTranslations('quality')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
@@ -510,10 +511,11 @@ export default function FillCheckPage() {
         {saveError && (
           <span style={{ fontSize: 12, color: 'var(--danger)', flex: 1, marginInlineEnd: 8 }}>{saveError}</span>
         )}
-        <Link href="/dashboard/quality-control"
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text)', textDecoration: 'none', backgroundColor: 'var(--surface)' }}>
+        {/* «Назад» — реальная история (на ту вкладку списка, откуда пришли). */}
+        <button type="button" onClick={goBack}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'inherit' }}>
           {tCommon('back')}
-        </Link>
+        </button>
         {!isRO && (
           <>
             <SubmitButton type="button" onClick={() => handleSave(false)} loading={saving} loadingLabel={t('fill.saving')}

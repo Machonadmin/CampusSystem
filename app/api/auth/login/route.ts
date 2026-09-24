@@ -68,11 +68,22 @@ export async function POST(request: NextRequest) {
       roleRows?.forEach(r => roles.push(r.code))
     }
 
+    // Служебный read-only аккаунт (тестовый вход для Claude). Отдельным запросом:
+    // до миграции 20260924100000 колонки нет — тогда ошибка и обычный вход.
+    const { data: readOnlyRow, error: _readOnlyErr } = await supabase
+      .from('person_accounts')
+      .select('read_only')
+      .eq('person_id', account.person_id)
+      .eq('login_email', account.login_email)
+      .maybeSingle()
+    const readOnly = (readOnlyRow as { read_only?: boolean } | null)?.read_only === true
+
     await createSession({
       person_id: found.person_id,
       login_email: found.login_email,
       full_name: person?.full_name ?? null,
       roles,
+      ...(readOnly ? { read_only: true } : {}),
     })
 
     // Посадка §10: управляющая кафедрой иудаики открывается сразу на дом иудаики.

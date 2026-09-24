@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button, buttonStyle } from '@/components/ui/Button'
@@ -247,7 +248,9 @@ export default function SponsorDetailClient({
         const b = await res.json().catch(() => ({}))
         setSFormError(b.error ?? t('errors.action')); return
       }
-      router.push('/dashboard/sponsors')
+      // replace, а не push: удалённой карточки не должно остаться в истории
+      // (иначе «назад» со списка открывал бы несуществующего спонсора).
+      router.replace('/dashboard/sponsors')
     } catch {
       setSFormError(t('errors.action'))
     } finally {
@@ -279,6 +282,7 @@ export default function SponsorDetailClient({
           {t(`types.${sponsor.sponsor_type}`)}
           {!sponsor.is_active && <> · {t('status.inactive')}</>}
         </>}
+        actions={<BackButton fallback="/dashboard/sponsors" />}
       />
 
       {/* Sponsor details / editor */}

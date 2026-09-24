@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -33,6 +33,9 @@ import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { BackButton } from '@/components/ui/BackButton'
+import { consumeRefreshOnReturn } from '@/lib/nav/refresh-on-return'
+import { EDUCATION_SECTION_ROUTES, educationSectionForStatus } from '@/lib/education/education-hub'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -187,6 +190,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel }: Props) {
   const router = useRouter()
+  const pathname = usePathname()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
@@ -197,6 +201,14 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const moduleLabel = navContext?.moduleLabel ?? tNav('education')
   const moduleHref = navContext?.moduleHref ?? '/dashboard/education'
   const headerColorKey = navContext?.colorKey ?? 'education'
+  // Средняя крошка («גיוס» / «קבלה» / «לימודים») ведёт в СВОЙ список раздела,
+  // а не на хаб «חינוך» (раньше из карточки лида крошка «גיוס» уводила в «חינוך»).
+  const sectionHref = navContext ? moduleHref : EDUCATION_SECTION_ROUTES[educationSectionForStatus(data.status)]
+
+  // Вернулись сюда после сохранения формы правки — back отдаёт кэш, обновляем.
+  useEffect(() => {
+    if (consumeRefreshOnReturn(pathname)) router.refresh()
+  }, [pathname, router])
 
   // Пустые вкладки не показываем (owner): фону/данным набора нечего показать у
   // свежего лида — вкладка исчезает, а не рендерит «нет данных».
@@ -368,7 +380,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         { label: moduleLabel, href: moduleHref },
         ...(() => {
           const crumb = navContext ? navContext.sectionLabel : sectionLabel
-          return crumb ? [{ label: crumb, href: moduleHref }] : []
+          return crumb ? [{ label: crumb, href: sectionHref }] : []
         })(),
         { label: person.full_name || cardTypeLabel },
       ]} />
@@ -396,18 +408,23 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           </span>
         }
         subtitle={<>{cardTypeLabel} · {t('card.labels.created')}: {formatDate(data.createdAt, lang)}</>}
-        actions={!showEditButton ? undefined : (
-          <button
-            onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit`)}
-            style={{
-              padding: '8px 14px', fontSize: 13, fontWeight: 500,
-              background: 'var(--surface-2)', color: 'var(--success)',
-              border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
-            }}
-          >
-            {t('card.labels.edit')}
-          </button>
-        )}
+        actions={<>
+          {/* «Назад» = реальная история: карточку открывают из разных мест (גיוס,
+              קבלה, לימודים, кружок, יהדות, задачи) — возвращаемся ровно туда. */}
+          <BackButton fallback={sectionHref} />
+          {showEditButton && (
+            <button
+              onClick={() => router.push(`/dashboard/education/${routeBase}/${data.journeyId}/edit?from=card`)}
+              style={{
+                padding: '8px 14px', fontSize: 13, fontWeight: 500,
+                background: 'var(--surface-2)', color: 'var(--success)',
+                border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
+              }}
+            >
+              {t('card.labels.edit')}
+            </button>
+          )}
+        </>}
       />
 
       {/* Tabs */}

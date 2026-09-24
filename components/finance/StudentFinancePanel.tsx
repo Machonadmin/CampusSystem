@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
@@ -138,13 +139,13 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
             </div>
           </div>
           {access.can_open_card !== false && (
-            <a
+            <Link
               href={`/dashboard/finance/${journeyId}`}
               className="no-underline"
               style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, background: 'var(--surface-2)', color: primary, border: '1px solid var(--border-strong)' }}
             >
               {t('open_card')}
-            </a>
+            </Link>
           )}
         </div>
       )}
