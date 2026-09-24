@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { journeyScopeDepartment } from '@/lib/education/journey-target'
 
 /**
  * Комбинированная проверка доступа к документам, привязанным к journey.
@@ -10,7 +11,8 @@ import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/
  * (прежнее поведение — НЕ ослабляется), ЛИБО авторизован в «Образовании» на
  * этой journey: superadmin, либо education-привилегия по статусу journey
  * (lead→manage/view_leads, applicant→…_applicants, иначе …_students) в её
- * подразделении (primary_department_id).
+ * подразделении (journeyScopeDepartment: у студентки primary, у лида и
+ * абитуриентки desired).
  *
  * Студентка (principal='student') НИКОГДА не проходит эту проверку.
  *
@@ -47,14 +49,14 @@ async function canDoJourneyDocs(
   // 3) Education-авторизация на конкретной journey.
   const { data } = await sb
     .from('education_journeys')
-    .select('education_status, primary_department_id')
+    .select('education_status, primary_department_id, desired_department_id')
     .eq('id', journeyId)
     .maybeSingle()
   if (!data) return false
 
-  const row = data as { education_status: string | null; primary_department_id: string | null }
+  const row = data as { education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }
   return hasEducationPrivilege(session, pickPrivilege(row.education_status, scope), {
-    department_id: row.primary_department_id ?? undefined,
+    department_id: journeyScopeDepartment(row) ?? undefined,
   })
 }
 

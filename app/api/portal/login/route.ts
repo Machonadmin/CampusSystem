@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { verifyPassword } from '@/lib/auth/password'
+import { verifyLoginPassword } from '@/lib/auth/password'
 import { createSession } from '@/lib/auth/session'
 import { throttleAuth } from '@/lib/auth/login-throttle'
 
@@ -40,10 +40,12 @@ export async function POST(request: NextRequest) {
       .eq('login_email', normalizedEmail)
       .maybeSingle()
 
-    if (credError || !cred) {
-      return apiError('invalid_credentials', 401)
-    }
-    if (!cred.is_active || !cred.password_hash) {
+    // Пароль сверяем первым и одинаково по времени для любого адреса
+    // (verifyLoginPassword): иначе несуществующий адрес отвечал бы быстрее, и по
+    // скорости ответа можно было бы узнать, какие адреса в системе есть.
+    const found = credError ? null : cred
+    const passwordValid = await verifyLoginPassword(password, found?.password_hash)
+    if (!found || !passwordValid || !found.is_active) {
       return apiError('invalid_credentials', 401)
     }
 
@@ -51,16 +53,10 @@ export async function POST(request: NextRequest) {
     const { data: journey } = await supabase
       .from('education_journeys')
       .select('id, education_status')
-      .eq('id', cred.journey_id)
+      .eq('id', found.journey_id)
       .maybeSingle()
 
     if (!journey || journey.education_status !== 'student') {
-      return apiError('invalid_credentials', 401)
-    }
-
-    // 3. Проверка пароля.
-    const passwordValid = await verifyPassword(password, cred.password_hash)
-    if (!passwordValid) {
       return apiError('invalid_credentials', 401)
     }
 
@@ -68,23 +64,23 @@ export async function POST(request: NextRequest) {
     const { data: person } = await supabase
       .from('persons')
       .select('full_name')
-      .eq('id', cred.person_id)
+      .eq('id', found.person_id)
       .maybeSingle()
 
     await createSession({
-      person_id: cred.person_id,
-      login_email: cred.login_email,
+      person_id: found.person_id,
+      login_email: found.login_email,
       full_name: person?.full_name ?? null,
       roles: [],
       principal: 'student',
-      student_journey_id: cred.journey_id,
+      student_journey_id: found.journey_id,
     })
 
     // Отметка времени входа (best-effort; ошибку игнорируем).
     try {
       await creds(supabase)
         .update({ last_login: new Date().toISOString() })
-        .eq('journey_id', cred.journey_id)
+        .eq('journey_id', found.journey_id)
     } catch { /* ignore */ }
 
     return NextResponse.json({ ok: true })

@@ -7,6 +7,7 @@ import { canViewJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType } from '@/lib/documents/validation'
 import type { DocumentRecordInsert } from '@/types/database'
+import { cleanExternalUrl } from '@/lib/safe-url'
 
 /**
  * GET  /api/documents/journeys/[id] — документы студента (свежие сверху). [id] =
@@ -110,6 +111,9 @@ export async function POST(
       }
     }
 
+    const fileUrl = cleanExternalUrl(body.file_url)
+    if (fileUrl === undefined) return apiError('invalid_url', 400)
+
     const sb = createServerClient()
 
     const { data: journey, error: jErr } = await sb
@@ -123,7 +127,7 @@ export async function POST(
       title,
       issued_date: issued,
       expiry_date: expiry,
-      file_url: body.file_url?.trim() || null,
+      file_url: fileUrl,
       notes: body.notes?.trim() || null,
       status: 'active',
       created_by: session.person_id,

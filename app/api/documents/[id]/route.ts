@@ -7,6 +7,7 @@ import { canManageJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType, isDocStatus } from '@/lib/documents/validation'
 import type { DocumentRecordUpdate } from '@/types/database'
+import { cleanExternalUrl } from '@/lib/safe-url'
 
 /**
  * GET    /api/documents/[id] — документ по id (view).
@@ -118,7 +119,11 @@ export async function PATCH(
       }
     }
 
-    if (body.file_url !== undefined) update.file_url = body.file_url?.trim() || null
+    if (body.file_url !== undefined) {
+      const fileUrl = cleanExternalUrl(body.file_url)
+      if (fileUrl === undefined) return apiError('invalid_url', 400)
+      update.file_url = fileUrl
+    }
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {

@@ -5,6 +5,7 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { isIsoDate } from '@/lib/calendar/validation'
 import type { CalendarEventInsert } from '@/types/database'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { cleanAppLink } from '@/lib/safe-url'
 
 /**
  * Личные события календаря пользователя.
@@ -68,6 +69,9 @@ export async function POST(request: NextRequest) {
     if (!title) return apiError('title_field_required', 400)
     if (!body.event_date || !isIsoDate(body.event_date)) return apiError('from_must_be_date', 400)
 
+    const link = cleanAppLink(body.link)
+    if (link === undefined) return apiError('invalid_url', 400)
+
     const time = body.event_time?.trim() || null
     const insert: CalendarEventInsert = {
       owner_id: session.person_id,
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
       reminder_at: body.reminder_at?.trim() || null,
       source_type: body.source_type?.trim() || 'manual',
       source_id: body.source_id?.trim() || null,
-      link: body.link?.trim() || null,
+      link,
       created_by: session.person_id,
     }
 

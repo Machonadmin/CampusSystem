@@ -23,7 +23,7 @@ export async function GET() {
         return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
       }
       const { data } = await sb.from('person_accounts')
-        .select('must_change_password').eq('login_email', session.login_email).maybeSingle()
+        .select('must_change_password').eq('person_id', session.person_id).eq('login_email', session.login_email).maybeSingle()
       return NextResponse.json({ must_change: !!(data as { must_change_password?: boolean } | null)?.must_change_password })
     } catch (e) {
       if (isMissingRelation(e)) return NextResponse.json({ must_change: false })

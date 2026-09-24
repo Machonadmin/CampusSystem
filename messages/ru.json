@@ -5040,6 +5040,7 @@
     "database_error": "Ошибка базы данных",
     "state_conflict": "Конфликт состояния",
     "invalid_input": "Некорректные входные данные",
+    "invalid_url": "Ссылка должна начинаться с https:// (или http://)",
     "validation_error": "Ошибка валидации",
     "db_constraint_amount_status": "Нарушено ограничение БД (проверьте сумму/статус)",
     "db_constraint_amount_type_status": "Нарушено ограничение БД (проверьте сумму/тип/статус)",

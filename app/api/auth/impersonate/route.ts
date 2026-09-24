@@ -6,7 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { signToken } from '@/lib/auth/jwt'
 import { AUTH_CONFIG } from '@/lib/auth/config'
 
-const ORIG_COOKIE = 'campus_imp_orig'
+const ORIG_COOKIE = AUTH_CONFIG.impOrigCookieName
 
 /**
  * POST /api/auth/impersonate — «צפייה כמשתמש».
