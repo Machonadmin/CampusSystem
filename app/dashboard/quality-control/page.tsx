@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
@@ -69,7 +70,9 @@ export default function QualityControlPage() {
   const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
-  const [tab, setTab] = useState<Tab>('planned')
+  // Вкладка в URL (?tab=): «назад» из проверки возвращает на ту же вкладку
+  // (напр. «היסטוריה»), а не на «מתוכננות» по умолчанию.
+  const [urlTab, setTab] = useUrlTab<Tab>({ allowed: ['planned', 'history', 'templates'], fallback: 'planned' })
   const [checks, setChecks] = useState<CheckRow[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -89,6 +92,8 @@ export default function QualityControlPage() {
   const canCreateCheck   = hasFeatureAccess(featureAccess, 'quality_control', 'planned',   'can_create')
 
   const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
+  // Шаблоны из URL — только тем, кому вкладка видна.
+  const tab: Tab = urlTab === 'templates' && !canViewTemplates ? 'planned' : urlTab
 
   // Дебаунс поиска — не бьём по API на каждой букве (как в staff/jewishness).
   const [debouncedSearch, setDebouncedSearch] = useState('')

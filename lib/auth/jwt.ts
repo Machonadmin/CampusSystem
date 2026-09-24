@@ -17,6 +17,15 @@ export interface SessionPayload extends JosePayload {
   // middleware переводит её в режим ТОЛЬКО ЧТЕНИЕ, а баннер даёт вернуться.
   imp_by?: string
   imp_by_name?: string | null
+  // Служебная учётная запись «только чтение» (person_accounts.read_only) —
+  // например, тестовый вход для агентов Claude. Middleware блокирует любой
+  // изменяющий вызов API так же, как в режиме «צפייה כמשתמש».
+  read_only?: boolean
+}
+
+/** Сессия, в которой запрещены любые изменения (имперсонация или read-only аккаунт). */
+export function isReadOnlySession(session: Pick<SessionPayload, 'imp_by' | 'read_only'>): boolean {
+  return !!session.imp_by || session.read_only === true
 }
 
 function getSecret(): Uint8Array {

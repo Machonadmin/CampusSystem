@@ -31,22 +31,69 @@ const VAPID_SUBJECT = 'mailto:oficepresident@gmail.com'
 
 let cachedVapid: VapidKeys | null = null
 
-/** Возвращает VAPID-ключи, генерируя и сохраняя их при первом обращении. */
+function isVapid(v: unknown): v is VapidKeys {
+  const k = v as VapidKeys | null
+  return !!k && typeof k.publicKey === 'string' && !!k.publicKey
+    && typeof k.privateKey === 'string' && !!k.privateKey
+}
+
+/** Читает сохранённые ключи. `ok:false` — ошибка чтения (НЕ «ключей нет»). */
+async function readVapid(sb: SB): Promise<{ ok: true; keys: VapidKeys | null; exists: boolean } | { ok: false }> {
+  const { data, error } = await sb
+    .from('app_settings')
+    .select('value')
+    .eq('key', VAPID_SETTING)
+    .maybeSingle()
+  if (error) {
+    console.error('[push] vapid read:', error)
+    return { ok: false }
+  }
+  const value = (data as { value?: unknown } | null)?.value
+  return { ok: true, keys: isVapid(value) ? value : null, exists: !!data }
+}
+
+/**
+ * Возвращает VAPID-ключи, генерируя и сохраняя их при первом обращении.
+ *
+ * Ключи генерируются РОВНО один раз за жизнь системы. Если они сменятся, ВСЕ
+ * уже подписанные устройства молча перестают получать пуши (push-сервис
+ * отвечает 403: подписка сделана под другой ключ). Поэтому:
+ *   • ошибка чтения ≠ «ключей нет» — при сбое БД возвращаем null и НЕ
+ *     перегенерируем (раньше getAppSetting отдавал fallback на любую ошибку,
+ *     и временный сбой затирал ключи новыми);
+ *   • первая запись — «вставить, если нет» (ignoreDuplicates), а затем
+ *     перечитываем: при одновременном холодном старте двух инстансов оба
+ *     используют ключи победителя, а не каждый свои.
+ */
 export async function getVapidKeys(): Promise<VapidKeys | null> {
   if (cachedVapid) return cachedVapid
   try {
-    const existing = await getAppSetting<VapidKeys | null>(VAPID_SETTING, null)
-    if (existing?.publicKey && existing?.privateKey) {
-      cachedVapid = existing
-      return existing
+    const sb = createServerClient()
+    const first = await readVapid(sb)
+    if (!first.ok) return null
+    if (first.keys) {
+      cachedVapid = first.keys
+      return first.keys
     }
+
     const generated = webpush.generateVAPIDKeys()
-    // updated_by — UUID REFERENCES persons(id); для системной записи только null
-    // (строка 'system:webpush' роняла вставку → ключи не сохранялись → пуши
-    //  не включались НИ НА ОДНОМ устройстве, включая Android).
-    await setAppSetting(VAPID_SETTING, generated, null)
-    cachedVapid = generated
-    return generated
+    // updated_by — UUID REFERENCES persons(id); для системной записи только null.
+    // Строка есть, но значение битое — перезаписываем; строки нет — вставляем,
+    // не трогая чужую, если её успели создать параллельно.
+    const { error: wErr } = await sb
+      .from('app_settings')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .upsert({ key: VAPID_SETTING, value: generated as any, updated_by: null, updated_at: new Date().toISOString() },
+        { onConflict: 'key', ignoreDuplicates: !first.exists })
+    if (wErr) {
+      console.error('[push] vapid write:', wErr)
+      return null
+    }
+
+    const stored = await readVapid(sb)
+    if (!stored.ok || !stored.keys) return null
+    cachedVapid = stored.keys
+    return stored.keys
   } catch (e) {
     console.error('[push] vapid keys:', e)
     return null
@@ -60,6 +107,8 @@ function subsKey(personId: string): string {
 /** Добавляет/обновляет подписку устройства (дедуп по endpoint). */
 export async function addSubscription(personId: string, sub: StoredSub): Promise<void> {
   const list = await getAppSetting<StoredSub[]>(subsKey(personId), [])
+  // Клиент пересылает подписку при каждом открытии — не пишем, если она уже есть.
+  if (list.some(s => s.endpoint === sub.endpoint && s.keys?.p256dh === sub.keys.p256dh && s.keys?.auth === sub.keys.auth)) return
   const next = [...list.filter(s => s.endpoint !== sub.endpoint), sub].slice(-5) // максимум 5 устройств
   await setAppSetting(subsKey(personId), next, personId)
 }
@@ -76,16 +125,28 @@ export interface PushPayload {
   link?: string | null
 }
 
+export interface PushResult {
+  /** Сколько устройств пользователя подписано на сервере. */
+  devices: number
+  sent: number
+  /** Коды ответов push-сервиса по неудачным устройствам (0 — сетевая ошибка). */
+  failed: number[]
+  /** Нет VAPID-ключей (сбой БД) — пуши не отправлялись вовсе. */
+  noKeys?: boolean
+}
+
 /**
  * Шлёт пуш на все устройства пользователя. Best-effort: ошибки логируются,
  * протухшие подписки удаляются, наружу ничего не бросается.
  */
-export async function sendPushToPerson(_sb: SB, personId: string, payload: PushPayload): Promise<void> {
+export async function sendPushToPerson(_sb: SB, personId: string, payload: PushPayload): Promise<PushResult> {
+  const result: PushResult = { devices: 0, sent: 0, failed: [] }
   try {
     const vapid = await getVapidKeys()
-    if (!vapid) return
+    if (!vapid) return { ...result, noKeys: true }
     const subs = await getAppSetting<StoredSub[]>(subsKey(personId), [])
-    if (subs.length === 0) return
+    result.devices = subs.length
+    if (subs.length === 0) return result
 
     webpush.setVapidDetails(VAPID_SUBJECT, vapid.publicKey, vapid.privateKey)
     const body = JSON.stringify({
@@ -98,17 +159,19 @@ export async function sendPushToPerson(_sb: SB, personId: string, payload: PushP
       subs.map(s => webpush.sendNotification(
         { endpoint: s.endpoint, keys: s.keys },
         body,
-        { TTL: 3600 },
+        // urgency high — иначе Android в режиме экономии (Doze) придерживает
+        // «обычные» пуши до пробуждения экрана.
+        { TTL: 24 * 3600, urgency: 'high' },
       )),
     )
     // Чистим мёртвые подписки (устройство отписалось/переустановило браузер).
     const dead: string[] = []
     results.forEach((r, i) => {
-      if (r.status === 'rejected') {
-        const code = (r.reason as { statusCode?: number })?.statusCode
-        if (code === 404 || code === 410) dead.push(subs[i].endpoint)
-        else console.error('[push] send:', r.reason)
-      }
+      if (r.status === 'fulfilled') { result.sent++; return }
+      const code = (r.reason as { statusCode?: number })?.statusCode ?? 0
+      result.failed.push(code)
+      if (code === 404 || code === 410) dead.push(subs[i].endpoint)
+      else console.error('[push] send:', code, (r.reason as { body?: string })?.body ?? r.reason)
     })
     if (dead.length > 0) {
       const alive = subs.filter(s => !dead.includes(s.endpoint))
@@ -117,4 +180,5 @@ export async function sendPushToPerson(_sb: SB, personId: string, payload: PushP
   } catch (e) {
     console.error('[push] sendPushToPerson:', e)
   }
+  return result
 }

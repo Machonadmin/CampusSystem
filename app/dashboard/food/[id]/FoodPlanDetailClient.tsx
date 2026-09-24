@@ -5,6 +5,7 @@ import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -196,6 +197,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
         module="food"
         title={planName}
         subtitle={<>{t('list.enrolled')}: {activeShown}</>}
+        actions={<BackButton fallback="/dashboard/food" />}
       />
 
       {panelError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{panelError}</div>}
