@@ -98,6 +98,16 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
+  // Escape закрывает открытую панель (слушатель — только пока она открыта).
+  useEffect(() => {
+    if (!open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+
   async function markRead(id?: string) {
     try {
       await fetch('/api/notifications/read', {
