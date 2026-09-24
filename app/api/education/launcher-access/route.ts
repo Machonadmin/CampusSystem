@@ -36,7 +36,11 @@ import { errorResponse } from '@/lib/api/handler'
  *   finance_admin   → GET finance/settings ИЛИ GET finance/discount-approvals
  *                     (экран без ForbiddenState; без обоих — пустая страница)
  *   «קורסי קודש» гейта нет: её GET class-groups открыт любому вошедшему.
- * Deploy-безопасно: при любой ошибке карточка не скрывается (fail-open).
+ *   track_assignment → canManageEducationInAny manage_students (GET track-assignment:
+ *                     scope 'department'/'all'; не карточка, а ссылки дашборда
+ *                     «ממתינות לשיבוץ»)
+ * Fail-closed: если проверка права упала — это право считается НЕ выданным
+ * (false). Раньше ошибка оставляла карточку видимой, и клик вёл в 403.
  */
 export async function GET() {
   try {
@@ -52,10 +56,18 @@ export async function GET() {
         restrict_to_kodesh: false,
         kodesh_home: true, kodesh_rav: true, track_catalog: true, no_lesson_days: true,
         student_alerts: true, finance_admin: true, create_kodesh_course: true,
+        track_assignment: true,
       })
     }
 
     const sb = createServerClient()
+    // Fail-closed: упавшая проверка = права нет (false / scope null), а не 500
+    // на весь ответ (клиент тогда показал бы все карточки).
+    const safe = <T,>(p: Promise<T>, fallback: T): Promise<T> =>
+      p.catch((err: unknown) => {
+        console.error('[launcher-access] access check failed', err)
+        return fallback
+      })
     // ВАЖНО: управленческие карточки гейтим на manage-уровень (scope
     // 'department'/'all'), а НЕ canDoEducationInAny (который true и для 'own').
     // Иначе преподаватель (view_students='own' — только свои группы) видел бы
@@ -70,32 +82,32 @@ export async function GET() {
       finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
       createKodeshCourse,
     ] = await Promise.all([
-      canManageEducationInAny(session, 'view_students'),
-      canManageEducationInAny(session, 'manage_students'),
-      canManageEducationInAny(session, 'manage_subjects'),
-      canManageEducationInAny(session, 'manage_study_groups'),
-      canManageUnit(session, KODESH_DEPT_ID),
-      isChavrutaTeacher(sb, session.person_id).catch(() => false),
-      getEducationPrivilegeScope(session, 'manage_class_groups'),
-      canDoEducationInAny(session, 'view_students'),
-      getEducationPrivilegeScope(session, 'view_students'),
-      getEducationPrivilegeScope(session, 'manage_students'),
+      safe(canManageEducationInAny(session, 'view_students'), false),
+      safe(canManageEducationInAny(session, 'manage_students'), false),
+      safe(canManageEducationInAny(session, 'manage_subjects'), false),
+      safe(canManageEducationInAny(session, 'manage_study_groups'), false),
+      safe(canManageUnit(session, KODESH_DEPT_ID), false),
+      safe(isChavrutaTeacher(sb, session.person_id), false),
+      safe(getEducationPrivilegeScope(session, 'manage_class_groups'), null),
+      safe(canDoEducationInAny(session, 'view_students'), false),
+      safe(getEducationPrivilegeScope(session, 'view_students'), null),
+      safe(getEducationPrivilegeScope(session, 'manage_students'), null),
       // ↓ зеркала проверок главного GET экранов (см. шапку файла)
-      canManageKodesh(session),
-      canManageEducationInAny(session, 'manage_class_teachers'),
-      canDoEducationInAny(session, 'approve_kodesh_teacher'),
-      canDoEducationInAny(session, 'set_teacher_quota'),
-      hasEducationPrivilege(session, 'manage_tracks'),
-      canManageEducationInAny(session, 'manage_class_groups'),
-      hasEducationPrivilege(session, 'manage_alerts'),
-      hasFinancePrivilege(session, 'view'),
-      hasFinancePrivilege(session, 'view_student_balance'),
-      hasFinancePrivilege(session, 'manage_budget'),
-      hasFinancePrivilege(session, 'approve_discount'),
-      canManageEducationInAny(session, 'manage_enrollments'),
+      safe(canManageKodesh(session), false),
+      safe(canManageEducationInAny(session, 'manage_class_teachers'), false),
+      safe(canDoEducationInAny(session, 'approve_kodesh_teacher'), false),
+      safe(canDoEducationInAny(session, 'set_teacher_quota'), false),
+      safe(hasEducationPrivilege(session, 'manage_tracks'), false),
+      safe(canManageEducationInAny(session, 'manage_class_groups'), false),
+      safe(hasEducationPrivilege(session, 'manage_alerts'), false),
+      safe(hasFinancePrivilege(session, 'view'), false),
+      safe(hasFinancePrivilege(session, 'view_student_balance'), false),
+      safe(hasFinancePrivilege(session, 'manage_budget'), false),
+      safe(hasFinancePrivilege(session, 'approve_discount'), false),
+      safe(canManageEducationInAny(session, 'manage_enrollments'), false),
       // Не карточка, а флаг для экрана «קורסי קודש»: кнопка «+ קורס» — зеркало
       // проверки POST /api/education/semester-groups/[id]/courses для кафедры кодеша.
-      hasEducationPrivilege(session, 'create_kodesh_course', { department_id: KODESH_DEPT_ID }),
+      safe(hasEducationPrivilege(session, 'create_kodesh_course', { department_id: KODESH_DEPT_ID }), false),
     ])
     // Видит ли всех студенток института (view='all') и может ли всеми управлять
     // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
@@ -112,7 +124,8 @@ export async function GET() {
     // кодеш. Глава кодеша, который возглавляет и другие единицы (директор
     // института), видит светские учёбы полностью.
     const restrictToKodesh = students_view_all && !students_manage_all
-      && kodesh && await headsOnlyKodesh(session.person_id)
+      // Сбой проверки → сужаем (true): fail-closed прячет, а не открывает.
+      && kodesh && await safe(headsOnlyKodesh(session.person_id), true)
     // Карточка «סמסטרים» ведёт на ИНСТИТУТСКИЕ семестры (общая с финансами таблица
     // year/term), которыми управляют только на уровне всего института (scope='all',
     // как в /api/education/semesters). Менеджер юнита (scope='department') работает
@@ -151,6 +164,7 @@ export async function GET() {
       finance_admin: (finView || finViewBalance || finManageBudget)
         || (finView || finApproveDiscount || manageEnrollmentsMgr),
       create_kodesh_course: createKodeshCourse,
+      track_assignment: manageStudents,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

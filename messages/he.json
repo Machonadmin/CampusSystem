@@ -984,7 +984,7 @@
         "launch_subjects": "מקצועות",
         "launch_units": "יחידות לימוד",
         "launch_reports": "דוחות",
-        "launch_teachers": "מורים",
+        "launch_teachers": "מורות",
         "launch_kodesh_courses": "קורסי קודש",
         "launch_kodesh_rav": "אישורי הרב",
         "launch_no_lesson_days": "ימים ללא לימודים",
@@ -1309,7 +1309,7 @@
       },
       "settings_card_catalogs": "מקצועות והתמחויות",
       "settings_card_groups": "קבוצות",
-      "settings_card_units": "יחידות ומבנה"
+      "settings_card_units": "ניהול צוות היחידה"
     },
     "docs_error": "שגיאה",
     "docs_loading": "טוען מסמכים…",

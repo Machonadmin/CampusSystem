@@ -8,7 +8,7 @@ import { Launcher } from './StudiesDashboard'
 // только данные). Все действия «Учёбы» сгруппированы в одном месте.
 export default function StudiesActions() {
   const t = useTranslations('education.study.dashboard')
-  // null = ещё грузим (скелет); {} = ошибка (fail-open); объект = реальный доступ.
+  // null = ещё грузим (скелет); {} = ошибка (fail-closed: карточки с acc скрыты); объект = реальный доступ.
   const [access, setAccess] = useState<Record<string, boolean> | null>(null)
 
   useEffect(() => {

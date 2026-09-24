@@ -65,6 +65,10 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
   const [caseState, setCaseState] = useState<Record<string, 'busy' | 'done'>>({})
   // null = карточка скрыта (нет права view_applicants / эндпойнт недоступен).
   const [stalled, setStalled] = useState<StalledApplicant[] | null>(null)
+  // Ссылки «ממתינות לשיבוץ» → /track-assignment видны только с тем же правом,
+  // что проверяет экран (launcher-access.track_assignment = manage_students
+  // scope 'department'/'all'). Ошибка/нет ключа → false (fail-closed).
+  const [canTrackAssign, setCanTrackAssign] = useState(false)
 
   // Авто-переход учебного года ОТКЛЮЧЁН (owner: «סיכמנו שזה יהיה מבוטל כרגע
   // ולא יעברו לי שנה») — год двигается только вручную с экрана «מעבר שנה».
@@ -73,12 +77,13 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
     let alive = true
     async function load() {
       const dow = todayIsoDow()
-      const [studentsRes, timetableRes, pendingRes, atRiskRes, stalledRes] = await Promise.allSettled([
+      const [studentsRes, timetableRes, pendingRes, atRiskRes, stalledRes, accessRes] = await Promise.allSettled([
         fetch('/api/education/journeys?status=student'),
         fetch('/api/education/timetable'),
         fetch('/api/education/track-assignment'),
         fetch('/api/education/at-risk'),
         fetch('/api/education/stalled-applicants'),
+        fetch('/api/education/launcher-access'),
       ])
 
       // Активные студентки
@@ -113,6 +118,11 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         const body = await stalledRes.value.json().catch(() => null)
         const list = body?.applicants
         if (alive) setStalled(Array.isArray(list) ? list : null)
+      }
+
+      if (accessRes.status === 'fulfilled' && accessRes.value.ok) {
+        const body = await accessRes.value.json().catch(() => null)
+        if (alive) setCanTrackAssign(body?.track_assignment === true)
       }
 
       if (alive) setLoading(false)
@@ -168,7 +178,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         )}
         <Kpi value="…" num={loading ? undefined : todaySlots.length} label={t('kpi_lessons_today')} tone="info" href="/dashboard/education/timetable" />
         {(loading || pending.length > 0) && (
-          <Kpi value="…" num={loading ? undefined : pending.length} label={t('kpi_pending')} tone="warn" href="/dashboard/education/track-assignment" />
+          <Kpi value="…" num={loading ? undefined : pending.length} label={t('kpi_pending')} tone="warn" href={canTrackAssign ? '/dashboard/education/track-assignment' : undefined} />
         )}
       </div>
 
@@ -308,7 +318,7 @@ export default function StudiesDashboard({ onOpenStudents }: { onOpenStudents?: 
         <div style={card}>
           <h5 style={cardHead}>
             {t('pending_title')}
-            <Link href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</Link>
+            {canTrackAssign && <Link href="/dashboard/education/track-assignment" style={moreLink}>{t('view_all')}</Link>}
           </h5>
           {loading ? (
             <SkeletonRows rows={4} />
@@ -384,9 +394,9 @@ function Empty({ text }: { text: string }) {
 // ─── Пусковая панель: всё, что можно сделать под «Учёбой», сгруппировано ───────
 // Каждая карточка ведёт на отдельный маршрут (href). Подписи через t(key,
 // fallback) — падают на иврит, если ключа ещё нет (парити-тест не затрагивается).
-// `acc` — ключ в ответе /api/education/launcher-access: карточка скрывается,
-// если доступ явно false (клик всё равно упёрся бы в 403). Нет ключа → всегда
-// видна (структурные пункты рельса).
+// `acc` — ключ в ответе /api/education/launcher-access: карточка видна только
+// при доступе true (клик иначе упёрся бы в 403). Без acc → всегда видна
+// (структурные пункты рельса).
 type LItem = { key: string; fb: string; icon: string; href: string; acc?: string }
 
 const LIC = {
@@ -429,7 +439,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_student_alerts', fb: 'התראות ומשימות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
     { key: 'launch_finance_admin', fb: 'כספים והנחות', icon: LIC.cog, href: '/dashboard/education/finance-admin', acc: 'finance_admin' },
     // Объединённая «מורים» (часы + посещаемость) вместо двух карточек.
-    { key: 'launch_teachers', fb: 'מורים', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
+    { key: 'launch_teachers', fb: 'מורות', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
     { key: 'launch_absences', fb: 'טיפול בהיעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
     // «חברותא» убрана (owner: дубль): модуль «חברותא» есть в главном боковом
@@ -451,8 +461,9 @@ export function Launcher({ t, access }: { t: ReturnType<typeof useTranslations>;
       </div>
     )
   }
-  // Карточка видна только при явно НЕ‑false доступе (fail‑closed).
-  const visible = (it: LItem) => !it.acc || access[it.acc] !== false
+  // Fail-closed: карточка с acc видна только при явном true. Ошибка ответа
+  // ({}) или отсутствующий ключ → скрыта (иначе клик вёл бы в 403).
+  const visible = (it: LItem) => !it.acc || access[it.acc] === true
   const groups = LGROUPS
     .map(g => ({ ...g, items: g.items.filter(visible) }))
     .filter(g => g.items.length > 0)
