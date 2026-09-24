@@ -21,11 +21,16 @@ export async function createSession(payload: Omit<SessionPayload, 'iat' | 'exp'>
 }
 
 export function clearSession(): void {
-  cookies().set(AUTH_CONFIG.cookieName, '', {
+  const opts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     maxAge: 0,
     path: '/',
-  })
+  }
+  cookies().set(AUTH_CONFIG.cookieName, '', opts)
+  // Выход во время «צפייה כמשתמש»: сохранённый токен админа (campus_imp_orig,
+  // см. /api/auth/impersonate) тоже удаляем — иначе на этом устройстве его можно
+  // было бы восстановить через публичный stop-impersonate без пароля.
+  cookies().set('campus_imp_orig', '', opts)
 }
