@@ -21,7 +21,7 @@ export async function notifyDepartmentAbsence(
   await createNotifications(sb, recipients.map(pid => ({
     person_id: pid,
     type: 'absence_transfer',
-    title: 'טיפול בהעדרות הועבר אליכם',
+    title: 'טיפול בהיעדרות הועבר אליכם',
     body: `${studentName}${note ? ' — ' + note : ''}`,
     link: '/dashboard/education/absences',
     metadata: { department_id: departmentId },

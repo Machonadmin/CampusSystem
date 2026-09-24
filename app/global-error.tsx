@@ -32,7 +32,7 @@ export default function GlobalError({
               onClick={() => reset()}
               style={{ fontSize: 15, fontWeight: 600, padding: '11px 26px', border: 'none', borderRadius: 9, background: '#0f766e', color: '#fff', cursor: 'pointer' }}
             >
-              נסה שוב
+              נסו שוב
             </button>
           </div>
         </div>

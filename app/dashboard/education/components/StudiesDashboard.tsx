@@ -430,7 +430,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_finance_admin', fb: 'כספים והנחות', icon: LIC.cog, href: '/dashboard/education/finance-admin', acc: 'finance_admin' },
     // Объединённая «מורים» (часы + посещаемость) вместо двух карточек.
     { key: 'launch_teachers', fb: 'מורים', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
-    { key: 'launch_absences', fb: 'טיפול בהעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
+    { key: 'launch_absences', fb: 'טיפול בהיעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
     // «חברותא» убрана (owner: дубль): модуль «חברותא» есть в главном боковом
     // меню и ведёт менеджера на тот же хаб.
