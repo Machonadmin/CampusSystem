@@ -1031,7 +1031,9 @@
         "error_generic": "Error",
         "error_delete_generic": "Delete error",
         "error_send_generic": "Submission error",
-        "error_unknown": "Unknown error"
+        "error_unknown": "Unknown error",
+        "create_anyway_confirm": "Create anyway?",
+        "save_anyway_confirm": "Save anyway?"
       },
       "subjects": {
         "add_button": "Subject",
@@ -1069,7 +1071,8 @@
         "sem_saved": "Saved",
         "sem_none": "No semesters for this subject",
         "name_ru_label": "Name (Russian)",
-        "name_en_label": "Name (English)"
+        "name_en_label": "Name (English)",
+        "add_semester": "Add semester"
       },
       "specialties": {
         "add_button": "Specialty",
@@ -1256,7 +1259,7 @@
         "year_label": "Hebrew year (cohort)",
         "year_placeholder": "5785",
         "year_level_label": "Year (1/2/3)",
-        "name_field_label": "Group name",
+        "name_field_label": "Semester name",
         "term_label": "Term number",
         "track_label": "Track",
         "track_placeholder": "— select a track —",
@@ -4995,7 +4998,7 @@
     "unsupported_status_enum_migration": "Unsupported status (check whether the enum migration has been applied)",
     "community_exists_city": "A community with this name already exists in this city",
     "specialty_exists_department": "A specialty with this name already exists in this department",
-    "subject_exists": "This subject already exists",
+    "subject_exists": "A subject with this name already exists on the same track and year",
     "position_exists": "A position with this name already exists",
     "city_exists": "This city already exists",
     "slot_exists_day_time": "A slot for this day and time already exists",
@@ -5164,7 +5167,9 @@
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
     "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
     "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing.",
-    "acceptance_early_close_admit_blocked": "An applicant cannot be admitted via \"Close process\". Admission only goes through the stage signatures."
+    "acceptance_early_close_admit_blocked": "An applicant cannot be admitted via \"Close process\". Admission only goes through the stage signatures.",
+    "semester_exists": "A semester with the same track, year and semester number already exists: {name}",
+    "track_no_department": "The subject's track has no department — cannot create a semester"
   },
   "workflow": {
     "error": "Error"

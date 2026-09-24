@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface Semester {
   id: string
@@ -30,6 +31,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -51,6 +53,35 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
   }, [subjectId, t])
 
   useEffect(() => { load() }, [load])
+
+  // «הוסף סמסטר»: сервер сам выбирает наименьший недостающий номер и цену
+  // (как у существующих семестров предмета). 409 semester_exists → подтверждение
+  // «ליצור בכל זאת?» и повтор с force: true. После успеха — перезагрузка списка.
+  async function addSemester(force = false) {
+    setAdding(true)
+    try {
+      const resp = await fetch(`/api/education/subjects/${subjectId}/semesters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(force ? { force: true } : {}),
+      })
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({})) as { error?: string; code?: string }
+        if (!force && resp.status === 409 && e.code === 'semester_exists') {
+          const ok = await confirmDialog({ message: `${e.error ?? ''}\n\n${t('common.create_anyway_confirm')}` })
+          if (ok) { await addSemester(true); return }
+          return
+        }
+        toast(e.error ?? t('common.error_generic'), 'error')
+        return
+      }
+      await load()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t('common.error_send_generic'), 'error')
+    } finally {
+      setAdding(false)
+    }
+  }
 
   function patchRow(id: string, patch: Partial<Semester>) {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)))
@@ -137,7 +168,17 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
           </div>
         ))}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
+          {/* Кнопка видна и когда у предмета 0 семестров (только не во время загрузки/ошибки). */}
+          {!loading && !error ? (
+            <button
+              onClick={() => addSemester()}
+              disabled={adding}
+              style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, color: accent, background: 'var(--surface)', border: `1px solid ${accent}`, borderRadius: 8, cursor: adding ? 'wait' : 'pointer', opacity: adding ? 0.6 : 1 }}
+            >
+              + {t('subjects.add_semester')}
+            </button>
+          ) : <span />}
           <button
             onClick={onClose}
             style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}

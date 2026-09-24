@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
@@ -11,6 +11,7 @@ import {
 } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 import { notifyFinanceSemesterOpened } from '@/lib/finance/notify-semester-opened'
+import { findDuplicateSemester } from '@/lib/education/subject-semesters'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -195,6 +196,7 @@ export async function POST(request: NextRequest) {
       period_end?: string | null
       teachers?: TeacherInput[]
       student_journey_ids?: string[]
+      force?: boolean
     }
 
     const name = body.name?.trim()
@@ -204,6 +206,18 @@ export async function POST(request: NextRequest) {
     const session = await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
 
     const sb = createServerClient()
+
+    // (1b) Предупреждение о дубликате: семестр с тем же маршрутом + годом +
+    // номером уже есть (subject_id здесь не задаётся — сравниваем без него).
+    // force === true — создать всё равно. Проверка best-effort (деплой-безопасна).
+    if (body.force !== true) {
+      const dup = await findDuplicateSemester(sb, {
+        studyTrackId: body.study_track_id,
+        yearLevel: body.year_level,
+        termNumber: body.term_number,
+      })
+      if (dup) return apiErrorWith('semester_exists', 409, { name: dup.name })
+    }
 
     // (2) Вставка class_groups с новыми колонками (untyped). При 42703 —
     // вставляем только базовые колонки и возвращаем warning, чтобы данные не

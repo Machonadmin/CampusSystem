@@ -1031,7 +1031,9 @@
         "error_generic": "שגיאה",
         "error_delete_generic": "המחיקה נכשלה",
         "error_send_generic": "השליחה נכשלה",
-        "error_unknown": "שגיאה לא ידועה"
+        "error_unknown": "שגיאה לא ידועה",
+        "create_anyway_confirm": "ליצור בכל זאת?",
+        "save_anyway_confirm": "לשמור בכל זאת?"
       },
       "subjects": {
         "add_button": "מקצוע",
@@ -1069,7 +1071,8 @@
         "sem_saved": "נשמר",
         "sem_none": "אין למקצוע סמסטרים",
         "name_ru_label": "שם ברוסית",
-        "name_en_label": "שם באנגלית"
+        "name_en_label": "שם באנגלית",
+        "add_semester": "הוסף סמסטר"
       },
       "specialties": {
         "add_button": "התמחות",
@@ -1256,7 +1259,7 @@
         "year_label": "שנה עברית (מחזור)",
         "year_placeholder": "תשפ״ה",
         "year_level_label": "שנה (א/ב/ג)",
-        "name_field_label": "שם הקבוצה",
+        "name_field_label": "שם הסמסטר",
         "term_label": "מספר סמסטר",
         "track_label": "מסלול",
         "track_placeholder": "— בחר מסלול —",
@@ -4995,7 +4998,7 @@
     "unsupported_status_enum_migration": "סטטוס לא נתמך (בדוק אם מיגרציית ה-enum הוחלה)",
     "community_exists_city": "קהילה בשם זה כבר קיימת בעיר זו",
     "specialty_exists_department": "התמחות בשם זה כבר קיימת במחלקה זו",
-    "subject_exists": "מקצוע כזה כבר קיים",
+    "subject_exists": "כבר קיים מקצוע בשם הזה באותו מסלול ובאותה שנה",
     "position_exists": "תואר משרה בשם זה כבר קיים",
     "city_exists": "עיר כזו כבר קיימת",
     "slot_exists_day_time": "משבצת ליום ולשעה אלה כבר קיימת",
@@ -5164,7 +5167,9 @@
     "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
     "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם.",
     "handoff_missing_fields": "אי אפשר להעביר לוועדת קבלה: חסרים שם או טלפון.",
-    "acceptance_early_close_admit_blocked": "אי אפשר לקבל מועמדת דרך «סגירת התהליך». קבלה נעשית רק דרך החתימות בשלבים."
+    "acceptance_early_close_admit_blocked": "אי אפשר לקבל מועמדת דרך «סגירת התהליך». קבלה נעשית רק דרך החתימות בשלבים.",
+    "semester_exists": "כבר קיים סמסטר עם אותו מסלול, שנה ומספר סמסטר: {name}",
+    "track_no_department": "למסלול של המקצוע אין מחלקה משויכת — לא ניתן ליצור סמסטר"
   },
   "workflow": {
     "error": "שגיאה"

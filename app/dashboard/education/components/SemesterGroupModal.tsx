@@ -7,7 +7,8 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { yearLevelLabel } from '@/lib/education/year-level'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import YearLevelSelect from './YearLevelSelect'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null; department_id: string | null; years_count: number | null }
@@ -140,7 +141,12 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
     // Подразделение наследуется от маршрута; без него сохранить нельзя.
     const deptId = selectedTrack?.department_id ?? ''
     if (!deptId) { setError(t('semester_groups.track_no_department')); return }
+    await send(deptId, false)
+  }
 
+  // force=true — повторная отправка после подтверждения (сервер вернул 409
+  // semester_exists: семестр с тем же маршрутом + годом + номером уже есть).
+  const send = async (deptId: string, force: boolean) => {
     setSaving(true)
     setError(null)
     try {
@@ -165,6 +171,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         teachers: teacherPayload,
         student_journey_ids: Array.from(selectedStudents),
       }
+      if (force) payload.force = true
 
       const url = mode === 'create'
         ? '/api/education/semester-groups'
@@ -176,7 +183,13 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         body: JSON.stringify(payload),
       })
       if (!resp.ok) {
-        const errJson = await resp.json().catch(() => ({}))
+        const errJson = await resp.json().catch(() => ({})) as { error?: string; code?: string }
+        if (!force && resp.status === 409 && errJson.code === 'semester_exists') {
+          const ok = await confirmDialog({
+            message: `${errJson.error ?? ''}\n\n${t(mode === 'create' ? 'common.create_anyway_confirm' : 'common.save_anyway_confirm')}`,
+          })
+          if (ok) { await send(deptId, true); return }
+        }
         setError(errJson.error ?? `${t('common.error_generic')} ${resp.status}`)
         setSaving(false)
         return
@@ -249,10 +262,15 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.year_level_label')} *</label>
-              <select aria-label={t('semester_groups.year_level_label')} value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp} disabled={!trackId}>
-                <option value="">—</option>
-                {Array.from({ length: maxYears }, (_, i) => i + 1).map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
-              </select>
+              <YearLevelSelect
+                ariaLabel={t('semester_groups.year_level_label')}
+                value={yearLevel}
+                onChange={setYearLevel}
+                yearsCount={maxYears}
+                includeEmpty
+                disabled={!trackId}
+                style={inp}
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('semester_groups.year_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>

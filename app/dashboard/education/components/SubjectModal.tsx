@@ -6,6 +6,8 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import YearLevelSelect from './YearLevelSelect'
 
 interface Track {
   id: string
@@ -28,10 +30,17 @@ interface SubjectInitial {
   year_level: number | null
 }
 
+/** Предзаполнение при создании (например, из контекста маршрута/года). Пока не используется. */
+interface SubjectDefaults {
+  study_track_id?: string
+  year_level?: number
+}
+
 interface Props {
   mode: 'create' | 'edit'
   initial: SubjectInitial | null
   tracks: Track[]
+  defaults?: SubjectDefaults
   onClose: () => void
   onSaved: () => void
 }
@@ -45,7 +54,7 @@ function trackName(tr: Track, lang: string): string {
   return tr.name_ru
 }
 
-export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }: Props) {
+export default function SubjectModal({ mode, initial, tracks, defaults, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
@@ -56,22 +65,27 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
   // сохраняем прежнее значение, у новых предметов — 0.
   const [sortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
-  const [trackId, setTrackId] = useState(initial?.study_track_id ?? '')
-  const [yearLevel, setYearLevel] = useState(String(initial?.year_level ?? 1))
+  // defaults — только при создании (при редактировании значения берутся из initial).
+  const createDefaults = mode === 'create' ? defaults : undefined
+  const [trackId, setTrackId] = useState(initial?.study_track_id ?? createDefaults?.study_track_id ?? '')
+  const [yearLevel, setYearLevel] = useState(String(initial?.year_level ?? createDefaults?.year_level ?? 1))
   const [price, setPrice] = useState(String(DEFAULT_PRICE))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // שנים אפשריות תלויות במסלול הנבחר (years_count). ברירת מחדל 4.
+  // שנים אפשריות תלויות במסלול הנבחר (years_count). ברירת מחדל 4 — в YearLevelSelect.
   const selectedTrack = tracks.find(tr => tr.id === trackId)
-  const maxYears = Math.min(4, Math.max(1, selectedTrack?.years_count ?? 4))
-  const YEARS = Array.from({ length: maxYears }, (_, i) => i + 1)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!nameHe.trim()) { setError(requiredFieldMsg(tCommon, t('subjects.name_field_label'))); return }
     if (!trackId) { setError(requiredFieldMsg(tCommon, t('subjects.track_label'))); return }
+    await send(false)
+  }
 
+  // force=true — повторная отправка после подтверждения «ליצור בכל זאת?»
+  // (сервер вернул 409 subject_exists: такой предмет уже есть на маршруте+году).
+  const send = async (force: boolean) => {
     setSaving(true)
     setError(null)
     try {
@@ -85,6 +99,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
       }
       if (mode === 'create') payload.tuition_amount = Number(price) >= 0 ? Number(price) : DEFAULT_PRICE
       if (mode === 'edit') payload.is_active = isActive
+      if (force) payload.force = true
 
       const url = mode === 'create'
         ? '/api/education/subjects'
@@ -96,7 +111,13 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
         body: JSON.stringify(payload),
       })
       if (!resp.ok) {
-        const errJson = await resp.json().catch(() => ({}))
+        const errJson = await resp.json().catch(() => ({})) as { error?: string; code?: string }
+        if (mode === 'create' && !force && resp.status === 409 && errJson.code === 'subject_exists') {
+          const ok = await confirmDialog({
+            message: `${errJson.error ?? ''}\n\n${t('common.create_anyway_confirm')}`,
+          })
+          if (ok) { await send(true); return }
+        }
         setError(errJson.error ?? `${t('common.error_generic')} ${resp.status}`)
         setSaving(false)
         return
@@ -159,7 +180,7 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
                   const id = e.target.value
                   setTrackId(id)
                   const tr = tracks.find(x => x.id === id)
-                  const max = Math.min(4, Math.max(1, tr?.years_count ?? 4))
+                  const max = Math.max(1, tr?.years_count ?? 4)
                   if (Number(yearLevel) > max) setYearLevel('1')
                 }}
                 style={inp}
@@ -172,11 +193,13 @@ export default function SubjectModal({ mode, initial, tracks, onClose, onSaved }
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('subjects.year_label')} *</label>
-              <select aria-label={t('subjects.year_label')} value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp}>
-                {YEARS.map(y => (
-                  <option key={y} value={y}>{t(`subjects.year_${y}`)}</option>
-                ))}
-              </select>
+              <YearLevelSelect
+                ariaLabel={t('subjects.year_label')}
+                value={yearLevel}
+                onChange={setYearLevel}
+                yearsCount={selectedTrack?.years_count}
+                style={inp}
+              />
             </div>
           </div>
 

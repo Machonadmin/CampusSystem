@@ -5,6 +5,7 @@ import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SubjectInsert } from '@/types/database'
+import { createSubjectSemesters, DEFAULT_SEMESTER_PRICE, isSubjectNameTaken } from '@/lib/education/subject-semesters'
 
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -58,9 +59,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/** מחיר ברירת המחדל לסמסטר (₽) — ניתן לשינוי בעת היצירה ואחריה. */
-const DEFAULT_SEMESTER_PRICE = 210000
-
 /**
  * POST /api/education/subjects
  * Модель: מקצוע висит на МАРШРУТЕ (study_track) + ГОДЕ (year_level).
@@ -79,6 +77,7 @@ export async function POST(request: NextRequest) {
       year_level?: number
       tuition_amount?: number
       sort_order?: number
+      force?: boolean
     }
 
     const nameHe = body.name_he?.trim() || null
@@ -104,6 +103,20 @@ export async function POST(request: NextRequest) {
 
     await requireEducationPrivilege('manage_subjects', { department_id: trackDeptId ?? undefined })
 
+    // Предупреждение о дубликате: предмет с тем же именем (name_he или name) уже
+    // есть на том же маршруте + году. force === true — создать всё равно.
+    if (body.force !== true) {
+      const { data: sameSlot, error: dupErr } = await sb
+        .from('subjects')
+        .select('id, name, name_he')
+        .eq('study_track_id', body.study_track_id)
+        .eq('year_level', body.year_level)
+      // Ошибка чтения (нет колонки и т.п.) — проверку пропускаем, создание не ломаем.
+      if (!dupErr && isSubjectNameTaken(sameSlot ?? [], [nameHe, name])) {
+        return apiError('subject_exists', 409)
+      }
+    }
+
     const insert: SubjectInsert = {
       name,
       name_he: nameHe,
@@ -128,9 +141,11 @@ export async function POST(request: NextRequest) {
       return errorResponse(m)
     }
 
-    // Автосоздание 2 семестров под предмет. Требует department (NOT NULL на
-    // class_groups). Если у маршрута нет подразделения — пропускаем с warning,
-    // предмет всё равно создан.
+    // Автосоздание 2 семестров под предмет (общий хелпер createSubjectSemesters).
+    // Требует department (NOT NULL на class_groups). Если у маршрута нет
+    // подразделения — пропускаем с warning, предмет всё равно создан.
+    // Проверка дубликата семестра здесь не нужна: семестры только что созданного
+    // предмета не могут совпасть по subject_id.
     const subjectId = (data as { id: string }).id
     let warning: string | undefined
     const price = typeof body.tuition_amount === 'number' && body.tuition_amount >= 0
@@ -140,22 +155,16 @@ export async function POST(request: NextRequest) {
     // Имя семестра — на иврите (система ивритоцентрична): «עיצוב · 1».
     const semBaseName = nameHe || name
     if (trackDeptId) {
-      for (const term of [1, 2]) {
-        const semInsert: Record<string, unknown> = {
-          name: `${semBaseName} · ${term}`,
-          department_id: trackDeptId,
-          subject_id: subjectId,
-          study_track_id: body.study_track_id,
-          year_level: body.year_level,
-          is_semester: true,
-          sem_status: 'open',
-          term_number: term,
-          tuition_amount: price,
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: semErr } = await sb.from('class_groups').insert(semInsert as any)
-        if (semErr) warning = serverT('subject_semesters_partial')
-      }
+      const res = await createSubjectSemesters(sb, {
+        subjectId,
+        baseName: semBaseName,
+        departmentId: trackDeptId,
+        studyTrackId: body.study_track_id,
+        yearLevel: body.year_level,
+        terms: [1, 2],
+        price,
+      })
+      if (res.failed > 0) warning = serverT('subject_semesters_partial')
     } else {
       warning = serverT('subject_no_track_department')
     }
