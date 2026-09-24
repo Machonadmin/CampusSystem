@@ -104,7 +104,10 @@ interface Props {
 // Успешное закрытие приёма движок кодирует как process 'cancelled' + finish_reason
 // 'admitted'/'admitted_conditional' (ветка A). Для пользователя это «Принята», а не
 // «Отменён» — показываем зелёным с ярлыком финала, чтобы не пугало «בוטל».
-const POSITIVE_CLOSE_REASONS = new Set(['admitted', 'admitted_conditional'])
+// Так же закрывается набор при УСПЕШНОЙ передаче в приёмную комиссию
+// (finish_reason 'converted') — это «הועברה לוועדת קבלה», а не красное «בוטל».
+// 'external_studies' — тоже положительный исход приёма.
+const POSITIVE_CLOSE_REASONS = new Set(['admitted', 'admitted_conditional', 'converted', 'external_studies'])
 
 function processStatusStyle(status: string): React.CSSProperties {
   if (status === 'active') return { background: 'var(--success-tint)', color: 'var(--success)' }

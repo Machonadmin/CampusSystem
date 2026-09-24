@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { generateLessonsForGroup } from '@/lib/education/lesson-generation'
 import { MS_PER_DAY, parseDateUTC } from '@/lib/education/schedule-dates'
+import { errorResponse } from '@/lib/api/handler'
 
 const MAX_RANGE_DAYS = 366
 
@@ -27,10 +28,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * scheduled_time)). Никогда не UPDATE/DELETE; не трогает вручную созданные
  * и отменённые уроки. Возвращает { created, skipped }.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Тело необязательно (период может браться из группы) — пустой body допустим.
     let body: { from?: string; to?: string } = {}
@@ -82,8 +81,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

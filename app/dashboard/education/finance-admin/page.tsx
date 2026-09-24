@@ -2,6 +2,8 @@
 
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import FinanceAdminClient from './FinanceAdminClient'
 
@@ -12,6 +14,7 @@ import FinanceAdminClient from './FinanceAdminClient'
  */
 export default function FinanceAdminPage() {
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.finance_admin')
 
   return (
@@ -19,6 +22,7 @@ export default function FinanceAdminPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -30,6 +34,7 @@ export default function FinanceAdminPage() {
         </svg>}
         title={t('title')}
         subtitle={t('subtitle')}
+        actions={<BackButton fallback={sectionCrumb.href} />}
       />
 
       <FinanceAdminClient />

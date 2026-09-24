@@ -5,6 +5,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -238,7 +239,7 @@ export default function TimetablePage() {
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

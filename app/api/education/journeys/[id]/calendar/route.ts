@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
@@ -7,6 +7,7 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/journeys/[id]/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD
@@ -18,7 +19,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Право: view_students в подразделении студентки (или superadmin) — как карточка.
  * Деплой-безопасно к отсутствию таблиц (пустой список).
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       if (session.student_journey_id !== params.id) return apiError('forbidden', 403)
     } else {
       const allowed = session.roles.includes('superadmin')
-        || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+        || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
       if (!allowed) return apiError('forbidden', 403)
     }
 
@@ -128,6 +130,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ lessons: out, meetings })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

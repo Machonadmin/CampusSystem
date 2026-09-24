@@ -9,7 +9,8 @@ import MaintenanceDetailClient from './MaintenanceDetailClient'
  * назначение, приоритет, описание. Просмотр — maintenance.view. Действия под
  * maintenance.manage гейтятся флагом canManage (с сервера).
  */
-export default async function MaintenanceRequestPage({ params }: { params: { id: string } }) {
+export default async function MaintenanceRequestPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

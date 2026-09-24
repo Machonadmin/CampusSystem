@@ -220,7 +220,8 @@ function StatusBadge({ status, label }: { status: string; label: string }) {
 
 function StudentRow({ student, primary, onOpen }: { student: ListStudent; primary: string; onOpen: () => void }) {
   const t = useTranslations('jewishness')
-  const name = student.hebrew_name || student.full_name || '—'
+  // Основное имя — полное (full_name); ивритское имя показывается рядом вторым, если отличается.
+  const name = student.full_name || student.hebrew_name || '—'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '1px solid var(--border)', borderRadius: 10, background: 'var(--surface)' }}>
@@ -287,7 +288,7 @@ function DetailModal({
 
   useEffect(() => { loadDetail() }, [loadDetail])
 
-  const name = detail ? (detail.applicant.hebrew_name || detail.applicant.full_name || '—') : '—'
+  const name = detail ? (detail.applicant.full_name || detail.applicant.hebrew_name || '—') : '—'
 
   return (
     <Modal
@@ -302,7 +303,7 @@ function DetailModal({
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{name}</div>
-            {detail?.applicant.hebrew_name && detail.applicant.hebrew_name !== detail.applicant.full_name && (
+            {detail?.applicant.hebrew_name && detail.applicant.full_name && detail.applicant.hebrew_name !== detail.applicant.full_name && (
               <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{detail.applicant.hebrew_name}</div>
             )}
           </div>

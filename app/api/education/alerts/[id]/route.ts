@@ -17,7 +17,8 @@ const patchSchema = z.object({
   body: z.string().trim().max(5000).nullish(),
 })
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, patchSchema)
     const session = await requireEducationPrivilege('manage_alerts')

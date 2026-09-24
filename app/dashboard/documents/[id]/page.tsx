@@ -9,7 +9,8 @@ import DocumentsStudentClient from './DocumentsStudentClient'
  * добавления, архивирование/удаление. Просмотр — documents.view. Действия
  * гейтятся canManage (с сервера). [id] = journey_id.
  */
-export default async function DocumentsStudentPage({ params }: { params: { id: string } }) {
+export default async function DocumentsStudentPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

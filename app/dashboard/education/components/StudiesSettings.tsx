@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import SubjectsTab from './SubjectsTab'
 import SpecialtiesTab from './SpecialtiesTab'
@@ -20,6 +20,12 @@ import YearRolloverTab from './YearRolloverTab'
 // Ничего не удалено из системы — только сведено.
 
 type Sub = 'catalogs' | 'groups' | 'buildings' | 'year_rollover'
+const SUBS: readonly Sub[] = ['catalogs', 'groups', 'buildings', 'year_rollover']
+
+/** Подэкран из ?sub= (неизвестное/пустое → null = корень настроек). */
+function parseSub(raw: string | null): Sub | null {
+  return raw != null && (SUBS as readonly string[]).includes(raw) ? (raw as Sub) : null
+}
 
 const ICON: Record<string, string> = {
   catalogs: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
@@ -34,7 +40,19 @@ export default function StudiesSettings() {
   const t = useTranslations('education.study')
   const tEdu = useTranslations('education')
   const router = useRouter()
-  const [sub, setSub] = useState<Sub | null>(null)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // Открытый подэкран — в URL (?sub=, рядом с ?sec=settings), как разделы рельса
+  // в StudyTab: router.push → браузерный «назад» возвращает к корню настроек,
+  // а обновление страницы / deep-link открывают тот же подэкран.
+  const sub = parseSub(searchParams.get('sub'))
+  const setSub = useCallback((next: Sub | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (next) params.set('sub', next)
+    else params.delete('sub')
+    const qs = params.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
+  }, [router, pathname, searchParams])
   // Внутренний переключатель объединённых карточек.
   const [catalogView, setCatalogView] = useState<'subjects' | 'specialties'>('subjects')
   const [groupsView, setGroupsView] = useState<'study_groups' | 'class_groups'>('study_groups')

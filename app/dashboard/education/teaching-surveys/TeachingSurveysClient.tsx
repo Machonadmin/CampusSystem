@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
@@ -17,6 +19,7 @@ interface SurveyRow { id: string; title: string; is_open: boolean; created_at: s
 export default function TeachingSurveysClient() {
   const t = useTranslations('education.teaching_surveys')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
   const deptName = (d: Dept | null | undefined) => d ? (lang === 'he' ? (d.name_he || d.name) : lang === 'en' ? (d.name_en || d.name) : d.name) : ''
@@ -88,10 +91,11 @@ export default function TeachingSurveysClient() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <input aria-label={t('survey_title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('survey_title_placeholder')}

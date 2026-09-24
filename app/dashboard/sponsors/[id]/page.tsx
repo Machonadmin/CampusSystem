@@ -6,7 +6,7 @@ import SponsorDetailClient from './SponsorDetailClient'
 import type { SponsorRow } from '@/types/database'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 /**
@@ -16,7 +16,8 @@ interface Props {
  * canManage, вычисленным на сервере. Сами пожертвования тянет клиент через
  * /api/sponsors/[id]/donations, чтобы обновляться после каждой мутации.
  */
-export default async function SponsorDetailPage({ params }: Props) {
+export default async function SponsorDetailPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

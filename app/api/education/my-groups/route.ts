@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/my-groups
@@ -57,6 +58,6 @@ export async function GET() {
     return NextResponse.json({ groups: out })
   } catch (err: unknown) {
     const e = err as { message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: 500 })
+    return errorResponse({ message: e.message, status: 500 })
   }
 }

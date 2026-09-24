@@ -114,11 +114,11 @@ function seed() {
 }
 
 const get = (personId: string) =>
-  GET(new NextRequest(`http://localhost/api/data-security/person/${personId}`), { params: { personId } })
+  GET(new NextRequest(`http://localhost/api/data-security/person/${personId}`), { params: Promise.resolve({ personId }) })
 const put = (personId: string, overrides: unknown[]) =>
   PUT(new NextRequest(`http://localhost/api/data-security/person/${personId}`, {
     method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ overrides }),
-  }), { params: { personId } })
+  }), { params: Promise.resolve({ personId }) })
 
 const ppWrites = () => db.writes.filter(w => w.table === 'person_privileges')
 

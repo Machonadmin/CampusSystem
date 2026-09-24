@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 
 interface MeResponse {
   full_name: string | null
+  first_name?: string | null
   roles: string[]
   accessible_modules: string[]
   position_title?: string | null
@@ -131,7 +132,9 @@ export default function DashboardPage() {
     return () => { alive = false }
   }, [])
 
-  const firstName = user?.full_name?.split(' ')[0] ?? null
+  // Только настоящее имя (first_name). Раньше брали первое слово full_name —
+  // а это фамилия. Нет имени → приветствие без имени.
+  const firstName = user?.first_name || null
   const greeting = firstName ? `${t.welcome}, ${firstName}!` : `${t.welcome}!`
 
   // Only modules the user can actually open (accessible_modules from

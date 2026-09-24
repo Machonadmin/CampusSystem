@@ -7,6 +7,8 @@ export interface Me {
   full_name: string | null
   roles: string[]
   position_title?: string | null
+  /** Модули, которые человек может открыть (из /api/auth/me). */
+  accessible_modules?: string[]
 }
 
 // Модульный кэш: /api/auth/me тянется один раз на всё приложение.

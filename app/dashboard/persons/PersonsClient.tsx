@@ -11,6 +11,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { useSessionState } from '@/lib/hooks/useSessionState'
 
 type Tab = 'staff' | 'students' | 'leads'
 
@@ -79,7 +80,8 @@ export default function PersonsClient() {
   // Вкладка в URL (?tab=): «назад» из карточки человека возвращает на ту же
   // вкладку (студенты/лиды), а не на «צוות» по умолчанию.
   const [tab, setTab] = useUrlTab<Tab>({ allowed: ['staff', 'students', 'leads'], fallback: 'staff' })
-  const [search, setSearch] = useState('')
+  // Поиск переживает переход в карточку и «חזרה» (sessionStorage).
+  const [search, setSearch, searchReady] = useSessionState('persons.search', '')
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -90,11 +92,21 @@ export default function PersonsClient() {
   // бьём БД на каждое нажатие клавиши.
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  // true после того, как восстановленный из sessionStorage поиск сразу (без
+  // дебаунса) попал в debouncedSearch — только тогда делаем первый запрос,
+  // иначе был бы лишний запрос с пустым поиском и мелькание списка.
+  const [searchSynced, setSearchSynced] = useState(false)
   useEffect(() => {
+    if (!searchReady) return
+    if (!searchSynced) {
+      setDebouncedSearch(search.trim())
+      setSearchSynced(true)
+      return
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [search])
+  }, [search, searchReady, searchSynced])
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -147,7 +159,7 @@ export default function PersonsClient() {
     }
   }, [tab, debouncedSearch, t])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { if (searchSynced) load() }, [load, searchSynced])
 
   // Догрузка следующей страницы (вкладки staff/students; у «лидов» свой
   // эндпойнт, отдающий всех сразу). Ошибку не показываем баннером: уже

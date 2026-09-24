@@ -7,6 +7,7 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
 import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
+import { errorResponse } from '@/lib/api/handler'
 /**
  * Учебные маршруты студентки (spec §3.2): один ГЛАВНЫЙ (primary) + опциональные
  * дополнительные (additional, напр. Туро). Первая половина дня — иудаизм для всех
@@ -39,13 +40,14 @@ async function requireManage(sb: ReturnType<typeof createServerClient>, journeyI
   return session
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const allowed = session.roles.includes('superadmin')
-      || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+      || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     // 1:N select. Deploy-safe: 42703 (нет role/year_level до миграции) → base select.
@@ -75,11 +77,12 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ track: primary, tracks })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     const session = await requireManage(sb, params.id)
@@ -161,11 +164,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     await requireManage(sb, params.id)
@@ -178,6 +182,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

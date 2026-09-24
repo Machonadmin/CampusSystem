@@ -9,12 +9,15 @@ import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Caret } from '@/components/ui/Caret'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
 import { PhoneLink } from '@/components/ui/PhoneLink'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
-interface StudyGroup { id: string; name: string; department_id: string }
+interface StudyGroup { id: string; name: string; name_he?: string | null; department_id: string }
+/** Цель массового назначения: имя локализуем при рендере (localizedName). */
+interface NamedOption { id: string; name: string; name_he?: string | null; name_en?: string | null }
 
 /** Статусы учебного цикла (education_status в education_journeys). */
 type StudentStatus = 'student' | 'on_leave' | 'graduated' | 'expelled'
@@ -39,9 +42,9 @@ interface Student {
     gender: string | null
     birth_date: string | null
   } | null
-  main_group: { id: string; name: string; year_level: number | null } | null
+  main_group: { id: string; name: string; name_he?: string | null; year_level: number | null } | null
   specialty: { id: string; name: string; code: string | null } | null
-  primary_department: { id: string; name: string } | null
+  primary_department: { id: string; name: string; name_he?: string | null; name_en?: string | null } | null
 }
 
 // Цвет = только статус (правило цвета, спринт 0.3): токены success/warn/info/muted.
@@ -86,9 +89,9 @@ export default function StudentsTab() {
   const [bulkTarget, setBulkTarget] = useState('')
   const [bulkBusy, setBulkBusy] = useState(false)
   const [bulkMsg, setBulkMsg] = useState<string | null>(null)
-  const [classGroups, setClassGroups] = useState<{ id: string; name: string }[]>([])
-  const [tracks, setTracks] = useState<{ id: string; name: string }[]>([])
-  const [kodeshGroups, setKodeshGroups] = useState<{ id: string; name: string }[]>([])
+  const [classGroups, setClassGroups] = useState<NamedOption[]>([])
+  const [tracks, setTracks] = useState<NamedOption[]>([])
+  const [kodeshGroups, setKodeshGroups] = useState<NamedOption[]>([])
   // «Видит всех, но управляет только своим юнитом» (глава кафедры кодеша:
   // view_students='all', manage_students='department'). Тогда прячем действия,
   // которые не сработают на студентках вне его юнита (класс/маршрут/переход
@@ -142,8 +145,8 @@ export default function StudentsTab() {
       // мусор). Поле false/undefined → не учебное → в фильтр не попадает.
       const allDepts: Department[] = Array.isArray(dJson) ? dJson : (dJson.departments ?? [])
       setDepartments(allDepts.filter(d => d.is_educational_institution === true))
-      setStudyGroups((gJson.study_groups ?? []).map((g: { id: string; name: string; department_id: string }) => ({
-        id: g.id, name: g.name, department_id: g.department_id,
+      setStudyGroups((gJson.study_groups ?? []).map((g: { id: string; name: string; name_he?: string | null; department_id: string }) => ({
+        id: g.id, name: g.name, name_he: g.name_he ?? null, department_id: g.department_id,
       })))
     }).catch(() => {})
   }, [])
@@ -163,7 +166,7 @@ export default function StudentsTab() {
   useEffect(() => {
     fetch('/api/education/class-groups')
       .then(r => r.ok ? r.json() : { class_groups: [] })
-      .then(j => setClassGroups(((j.class_groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .then(j => setClassGroups(((j.class_groups ?? []) as NamedOption[]).map(g => ({ id: g.id, name: g.name, name_he: g.name_he ?? null, name_en: g.name_en ?? null }))))
       .catch(() => {})
     fetch('/api/education/study-tracks')
       .then(r => r.ok ? r.json() : { tracks: [] })
@@ -172,7 +175,7 @@ export default function StudentsTab() {
       .catch(() => {})
     fetch('/api/education/kodesh/assignment')
       .then(r => r.ok ? r.json() : { groups: [] })
-      .then(j => setKodeshGroups(((j.groups ?? []) as Array<{ id: string; name: string }>).map(g => ({ id: g.id, name: g.name }))))
+      .then(j => setKodeshGroups(((j.groups ?? []) as NamedOption[]).map(g => ({ id: g.id, name: g.name, name_he: g.name_he ?? null, name_en: g.name_en ?? null }))))
       .catch(() => {})
   }, [])
 
@@ -216,7 +219,8 @@ export default function StudentsTab() {
       const specialty = s.specialty ? (s.specialty.code ? `[${s.specialty.code}] ${s.specialty.name}` : s.specialty.name) : ''
       return [
         p?.full_name ?? '', p?.hebrew_name ?? '', phone, p?.email ?? '',
-        s.primary_department?.name ?? '', s.main_group?.name ?? '', specialty,
+        s.primary_department ? localizedDeptName(s.primary_department, lang) : '',
+        s.main_group ? localizedName(s.main_group, lang) : '', specialty,
         s.year_level ?? '', STATUS_LABEL[s.education_status],
       ].map(esc).join(',')
     })
@@ -423,7 +427,7 @@ export default function StudentsTab() {
             style={{ ...inp, opacity: filteredGroups.length === 0 ? 0.5 : 1 }}
           >
             <option value="">{t('students.all_groups')}</option>
-            {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+            {filteredGroups.map(g => <option key={g.id} value={g.id}>{localizedName(g, lang)}</option>)}
           </select>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={inp}>
             <option value="">{t('students.filter_active_on_leave')}</option>
@@ -453,7 +457,7 @@ export default function StudentsTab() {
           </select>
           <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} style={{ ...inp, minWidth: 160 }}>
             <option value="">{t('students.bulk.pick_target')}</option>
-            {bulkTargets.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+            {bulkTargets.map(x => <option key={x.id} value={x.id}>{localizedName(x, lang)}</option>)}
           </select>
           <button
             onClick={applyBulk}
@@ -542,8 +546,8 @@ export default function StudentsTab() {
                             <div style={{ fontSize: 11, color: 'var(--text-faint)', direction: 'rtl', textAlign: 'start', marginTop: 2, marginInlineStart: 16 }}>{s.person.hebrew_name}</div>
                           )}
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.primary_department?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.main_group?.name ?? <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.primary_department ? localizedDeptName(s.primary_department, lang) : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.main_group ? localizedName(s.main_group, lang) : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={tdStyle}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
@@ -572,8 +576,8 @@ export default function StudentsTab() {
                         <tr style={{ background: 'var(--surface-2)' }}>
                           <td colSpan={colCount} style={{ padding: '2px 16px 14px' }}>
                             <div className="anim-expand" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
-                              <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department?.name ?? '—'} /></div>
-                              <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group?.name ?? '—'} /></div>
+                              <div className="sm-only"><Detail label={t('students.table_department')} value={s.primary_department ? localizedDeptName(s.primary_department, lang) : '—'} /></div>
+                              <div className="sm-only"><Detail label={t('students.table_group')} value={s.main_group ? localizedName(s.main_group, lang) : '—'} /></div>
                               <Detail label={t('students.table_contacts')} value={(s.person?.email || phone)
                                 ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px 14px', alignItems: 'center' }}>
                                     {s.person?.email && <span>{s.person.email}</span>}

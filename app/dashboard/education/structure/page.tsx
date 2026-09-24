@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
@@ -10,11 +11,12 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 
 interface Unit { id: string; name: string }
-interface Node { id: string; name: string; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
+interface Node { id: string; name: string; name_he?: string | null; name_en?: string | null; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
 
 export default function StructurePage() {
   const t = useTranslations('education.structure')
   const tNav = useTranslations('navigation')
+  const { lang } = useLang()
 
   const [units, setUnits] = useState<Unit[]>([])
   const [unit, setUnit] = useState('')
@@ -103,8 +105,8 @@ export default function StructurePage() {
   }
 
   const nodeOptions = useMemo(
-    () => nodes.map(n => ({ id: n.id, label: (n.tier ? `${n.tier} · ` : '') + n.name })),
-    [nodes],
+    () => nodes.map(n => ({ id: n.id, label: (n.tier ? `${n.tier} · ` : '') + localizedName(n, lang) })),
+    [nodes, lang],
   )
 
   return (
@@ -151,6 +153,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
   nodeOptions: { id: string; label: string }[]
   t: (k: string, f?: string) => string
 }) {
+  const { lang } = useLang()
   const [adding, setAdding] = useState(false)
   const [addName, setAddName] = useState('')
   const [addTier, setAddTier] = useState('')
@@ -186,7 +189,7 @@ function TreeNode({ node, depth, index, siblingCount, childrenOf, busy, onAdd, o
                 <svg style={{ width: 15, height: 15, marginInlineEnd: 5, verticalAlign: '-2px', display: 'inline' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                 </svg>
-              )}{node.name}
+              )}{localizedName(node, lang)}
             </span>
             {node.head && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 99, padding: '1px 8px' }}>

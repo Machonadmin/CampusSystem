@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageUnit } from '@/lib/education/unit-access'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Один узел структуры единицы (под-единица = department в её поддереве).
@@ -46,7 +47,11 @@ async function guard(unitId: string, nodeId: string) {
   return { sb, all }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { unitId: string; nodeId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ unitId: string; nodeId: string }> }
+) {
+  const params = await props.params
   try {
     const g = await guard(params.unitId, params.nodeId)
     if (g.err) return g.err
@@ -67,11 +72,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { unitId
     return NextResponse.json({ id: params.nodeId, name, tier })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { unitId: string; nodeId: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  props: { params: Promise<{ unitId: string; nodeId: string }> }
+) {
+  const params = await props.params
   try {
     const g = await guard(params.unitId, params.nodeId)
     if (g.err) return g.err
@@ -90,6 +99,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { unitId: 
     return NextResponse.json({ removed: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

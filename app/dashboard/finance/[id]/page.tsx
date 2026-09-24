@@ -7,7 +7,7 @@ import { canViewStudentFinanceFull, canManageStudentFinance } from '@/lib/financ
 import FinanceLedgerClient from './FinanceLedgerClient'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 /**
@@ -17,7 +17,8 @@ interface Props {
  * Сами данные ПНК тянет клиент через /api/finance/journeys/[id]/ledger,
  * чтобы обновляться после каждой мутации.
  */
-export default async function FinanceStudentPage({ params }: Props) {
+export default async function FinanceStudentPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

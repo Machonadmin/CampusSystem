@@ -8,6 +8,8 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -37,6 +39,7 @@ interface Member {
 export default function UnitTeamPage() {
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=settings')
   const tCommon = useTranslations('common')
   const accent = getModuleColor('education')
 
@@ -86,6 +89,7 @@ export default function UnitTeamPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('units.title') },
       ]} />
 
@@ -94,6 +98,7 @@ export default function UnitTeamPage() {
         title={t('units.title')}
         subtitle={t('units.subtitle')}
         actions={<>
+          <BackButton fallback={sectionCrumb.href} />
           {/* «מבנה יחידות» живёт здесь (в настройках учёбы одна карточка на юниты). */}
           <Link href="/dashboard/education/structure" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', background: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '7px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             {t('study.dashboard.launch_structure')}

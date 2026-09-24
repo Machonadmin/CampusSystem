@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { todayISO } from '@/lib/dates'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/staff/onboard — «הוספת בעל תפקיד» одним действием.
@@ -205,6 +206,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, person_id: personId, generated_password: generatedPassword }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

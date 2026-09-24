@@ -1,10 +1,11 @@
 import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT, apiError } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageStaffComp } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * PATCH / DELETE рабочей записи. Право: manage staff-comp. Деплой-безопасно.
@@ -13,7 +14,8 @@ function ent(sb: ReturnType<typeof createServerClient>) {
   return sb.from('staff_work_entries')
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -43,11 +45,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ entry: data })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -62,6 +65,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

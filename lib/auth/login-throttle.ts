@@ -28,8 +28,13 @@ export function throttleAuth(
   const ip = clientIp(request.headers)
   const rl = rateLimit(`${bucket}:${ip}`, limit, windowMs)
   if (rl.ok) return null
+  return tooManyAttempts(rl.retryAfterSec)
+}
+
+/** Ответ 429 «слишком много попыток» (лимит по IP или блокировка аккаунта). */
+export function tooManyAttempts(retryAfterSec: number): NextResponse {
   return NextResponse.json(
     { error: serverT('too_many_attempts'), code: 'too_many_attempts' },
-    { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
+    { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
   )
 }

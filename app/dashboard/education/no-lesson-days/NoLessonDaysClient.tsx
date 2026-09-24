@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 const accent = getModuleColor('education')
@@ -37,6 +38,7 @@ export default function NoLessonDaysClient() {
   const [dayTypes, setDayTypes] = useState<DayType[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
   const [showTypes, setShowTypes] = useState(false)
 
   // Форма добавления дня.
@@ -58,6 +60,8 @@ export default function NoLessonDaysClient() {
     setLoading(true)
     try {
       const res = await fetch(`/api/education/no-lesson-days${yr ? `?year=${encodeURIComponent(yr)}` : ''}`)
+      // 403 → ForbiddenState вместо формы добавления и пустого списка
+      setForbidden(res.status === 403)
       if (res.ok) { const b = await res.json(); setDays(b.days ?? []) }
     } finally { setLoading(false) }
   }, [])
@@ -131,6 +135,8 @@ export default function NoLessonDaysClient() {
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
   const btn: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }
   const rowSel: React.CSSProperties = { padding: '4px 8px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
+
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div style={{ display: 'grid', gap: 20 }}>

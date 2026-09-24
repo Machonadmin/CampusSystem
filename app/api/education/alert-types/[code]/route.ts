@@ -21,7 +21,8 @@ const updateSchema = z.object({
   sort_order: z.number().int().min(0).max(9999).optional(),
 })
 
-export async function PUT(request: NextRequest, { params }: { params: { code: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ code: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, updateSchema)
     await requireEducationPrivilege('manage_alerts')
@@ -43,7 +44,8 @@ export async function PUT(request: NextRequest, { params }: { params: { code: st
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { code: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ code: string }> }) {
+  const params = await props.params
   try {
     await requireEducationPrivilege('manage_alerts')
     const sb = createServerClient()

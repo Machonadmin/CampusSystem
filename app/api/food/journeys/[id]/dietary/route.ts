@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFoodPrivilege } from '@/lib/food/permissions'
 import { mapDbError } from '@/lib/food/http'
 import type { DietaryProfileInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/food/journeys/[id]/dietary — диет-профиль студента (view). null,
@@ -12,10 +13,8 @@ import type { DietaryProfileInsert } from '@/types/database'
  *   Один профиль на journey (UNIQUE journey_id) — upsert по journey_id.
  */
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('view')
 
@@ -33,16 +32,14 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('manage')
 
@@ -74,7 +71,7 @@ export async function PUT(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data)
@@ -82,8 +79,8 @@ export async function PUT(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

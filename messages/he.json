@@ -17,7 +17,7 @@
     "open": "מעבר למודול",
     "section_education": "לימודים",
     "section_finance": "כספים",
-    "section_dormitory": "מעונות",
+    "section_dormitory": "פנימייה",
     "section_food": "הזנה",
     "section_medical": "רפואה",
     "section_counseling": "ייעוץ",
@@ -61,9 +61,6 @@
     "sent": "נשלח",
     "action_failed": "הפעולה נכשלה, נסו שוב",
     "city_input_placeholder": "הזינו שם עיר",
-    "city_choose_from_list": "בחרו מהרשימה",
-    "select_city": "בחרו עיר",
-    "other_city": "עיר אחרת",
     "select_country": "בחרו מדינה",
     "popular_countries": "מדינות נפוצות",
     "all_countries": "כל המדינות",
@@ -156,10 +153,10 @@
     "home": "ראשי",
     "education": "חינוך",
     "settings": "הגדרות",
-    "alumni": "בוגרים",
+    "alumni": "בוגרות",
     "finance": "כספים",
-    "dormitory": "מעונות",
-    "food": "הזנה",
+    "dormitory": "פנימייה",
+    "food": "הזנה / מטבח",
     "maintenance": "תחזוקה",
     "security": "אבטחה",
     "logo_alt": "מכון חמש",
@@ -674,7 +671,8 @@
         "external_studies": "לימודים חיצוניים",
         "admitted": "התקבלה",
         "admitted_conditional": "התקבלה על תנאי",
-        "waitlisted": "לרשימת המתנה"
+        "waitlisted": "לרשימת המתנה",
+        "converted": "הועברה לוועדת קבלה"
       },
       "modals": {
         "activate_title": "להפעיל תת-שלב שדולג?",
@@ -762,7 +760,10 @@
         "social": "רשתות חברתיות",
         "call": "שיחת טלפון",
         "exhibition": "תערוכה",
-        "other": "אחר"
+        "other": "אחר",
+        "public_form": "טופס באתר",
+        "public_form_parent": "טופס באתר (הורה)",
+        "public_form_representative": "טופס באתר (נציג/ה)"
       },
       "relation": {
         "mother": "אם",
@@ -1757,7 +1758,7 @@
       "gen_all_busy": "יוצר…",
       "gen_all_result": "נוצרו {created} · דולגו {skipped} · נכשלו {failed}",
       "gen_all_hint": "יוצר שיעורי קודש לכל הכיתות לפי מערכת השעות, לכל תקופת הלימוד (רק מוסיף, לא מוחק)",
-      "title": "שיבוץ קודש",
+      "title": "הכנת הסמסטר",
       "subtitle": "כל תלמידה חייבת להיות משובצת לקבוצת קודש (הכיתה שלה)",
       "unassigned_count": "{n} ממתינות לשיבוץ קודש",
       "group_col": "קבוצת קודש",
@@ -1780,7 +1781,7 @@
         "granted_by": "אושר על ידי",
         "ongoing": "ללא תאריך סיום"
       },
-      "levels_manage": "ניהול שמות רמות",
+      "levels_manage": "ניהול רמות",
       "levels_hide": "הסתר ניהול רמות",
       "levels_rename": "שנה שם",
       "levels_save": "שמור",
@@ -1790,7 +1791,15 @@
       "suggest_clear": "נקה",
       "suggest_chip": "מוצע",
       "suggest_approve": "אשר",
-      "suggest_graduated": "סיימה"
+      "suggest_graduated": "סיימה",
+      "levels_add_ph": "שם הרמה החדשה",
+      "levels_add": "הוסף רמה",
+      "levels_archive": "הסתר",
+      "levels_archive_confirm": "להסתיר את הרמה \"{name}\"? היא תיעלם מהשיבוץ ומהרשימות, אך תישמר בהיסטוריה. אפשר להחזיר אותה.",
+      "levels_archived_show": "רמות מוסתרות",
+      "levels_archived_empty": "אין רמות מוסתרות",
+      "levels_restore": "החזר",
+      "levels_empty": "אין עדיין רמות"
     },
     "student_calendar": {
       "title": "יומן",
@@ -2068,7 +2077,7 @@
       "do_resolve": "סגור טיפול"
     },
     "teachers_hub": {
-      "title": "מורים",
+      "title": "מורות",
       "subtitle": "שעות הוראה ונוכחות מורים במקום אחד",
       "tab_hours": "שעות",
       "tab_attendance": "נוכחות"
@@ -2205,7 +2214,7 @@
       "save": "שמור"
     },
     "kodesh_courses": {
-      "title": "קורסי קודש",
+      "title": "קורסים",
       "subtitle": "קורסים לפי רמה, שעות, מורות",
       "create_hint": "יצירת קורס מוגבלת לרב; בחירת מורות ואישורן דרך הרב.",
       "no_levels": "אין רמות קודש",
@@ -2320,7 +2329,7 @@
       "more": "עוד",
       "prep": "הכנת הסמסטר",
       "alerts": "התראות ומשימות",
-      "calendar": "לוח שנה ומערכת שעות",
+      "calendar": "מערכת שעות",
       "courses": "קורסים",
       "teachers": "מורות",
       "students": "תלמידות",
@@ -3088,11 +3097,10 @@
   },
   "settings": {
     "title": "הגדרות",
-    "system_title": "הגדרות מערכת",
+    "system_title": "הגדרות",
     "tabs": {
       "users": "משתמשים",
       "roles": "תפקידים והרשאות",
-      "reference_cities": "רשימת ערים",
       "reference_positions": "תוארי משרה",
       "workflows": "תבניות תהליכים",
       "audit": "יומן שינויים"
@@ -3175,28 +3183,6 @@
       "priv_name_placeholder": "צפייה ברשומות",
       "error": "שגיאה"
     },
-    "reference_cities": {
-      "title": "רשימת ערים",
-      "desc": "ניהול רשימת ערים לפי מדינה",
-      "country_label": "מדינה",
-      "cities_title": "ערים",
-      "add_city_button": "+ הוספת עיר",
-      "city_name_in_country_label": "שם העיר במדינה \"{country}\"",
-      "city_name_placeholder": "לדוגמה: פתח תקווה",
-      "save_button": "הוספה",
-      "saving": "שומר…",
-      "cancel": "ביטול",
-      "edit_save_button": "שמירה",
-      "edit_button": "עריכה",
-      "delete_button": "מחיקה",
-      "loading": "טוען…",
-      "empty_none": "אין עדיין ערים למדינה זו",
-      "confirm_delete": "למחוק את העיר \"{name}\"?",
-      "error_load": "שגיאה בטעינה",
-      "error_add": "ההוספה נכשלה",
-      "error_save": "השמירה נכשלה",
-      "error_delete": "המחיקה נכשלה"
-    },
     "reference_positions": {
       "title": "תוארי משרה",
       "desc": "תוארי משרה של עובדים: הוראה, ניהול, תמיכה",
@@ -3249,7 +3235,7 @@
       "finance": "כספים",
       "legal": "משפטי",
       "education": "חינוך",
-      "dormitory": "מעונות",
+      "dormitory": "פנימייה",
       "medical": "רפואה",
       "security": "אבטחה",
       "maintenance": "תחזוקה",
@@ -3443,7 +3429,19 @@
       "convert_to_applicant": "הועברה לקבלה",
       "waitlisted": "רשימת המתנה",
       "qualified": "מתאימה",
-      "not_qualified": "לא מתאימה"
+      "not_qualified": "לא מתאימה",
+      "done_event_yes": "רשום לאירוע",
+      "done_event_skip": "ללא אירוע",
+      "postponed": "קבלה נדחית",
+      "all_collected": "הכל נאסף",
+      "partial": "נאסף חלקית",
+      "not_provided": "לא סופק",
+      "feedback_received": "האירוע התקיים",
+      "no_show": "האירוע לא התקיים",
+      "refused": "סירב להגיע",
+      "refer_to_psychologist": "הפניה לפסיכולוג",
+      "exam_required": "נדרשים מבחני קבלה",
+      "external_studies": "לימודים חיצוניים"
     },
     "process_names": {
       "Набор": "גיוס",
@@ -3786,7 +3784,7 @@
       "add_building": "בניין",
       "empty": "אין עדיין בניינים",
       "load_error": "שגיאה בטעינת הנתונים",
-      "forbidden": "אין הרשאה לצפייה במעונות",
+      "forbidden": "אין הרשאה לצפייה בפנימייה",
       "rooms": "חדרים",
       "occupied": "תפוסים",
       "free": "פנויים"
@@ -4249,7 +4247,7 @@
     "cards": {
       "students": "סטודנטים",
       "finance": "כספים",
-      "dormitory": "מעונות",
+      "dormitory": "פנימייה",
       "food": "הזנה",
       "maintenance": "תחזוקה",
       "clinic": "מרפאה",
@@ -4330,6 +4328,7 @@
         "dormitory": "פנימייה",
         "jewishness": "בירור יהדות",
         "medical": "חוות דעת רפואית",
+        "medical_psych": "חוות דעת פסיכולוג",
         "final_approval": "אישור סופי"
       }
     },
@@ -4569,7 +4568,7 @@
     }
   },
   "persons": {
-    "title": "אנשים",
+    "title": "מאגר אנשים",
     "tabs": {
       "staff": "צוות",
       "students": "תלמידים",
@@ -4756,6 +4755,7 @@
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
+    "person_privileges_moved": "עריכת הרשאות אישיות עברה לאבטחת מידע — כאן לא ניתן לשמור שינויים",
     "stage_reopen_blocked": "לא ניתן לשנות את ההחלטה כעת — השלב הבא כבר טופל",
     "no_access": "אין גישה",
     "no_view_permission": "אין הרשאת צפייה",
@@ -5047,6 +5047,7 @@
     "database_error": "שגיאת מסד נתונים",
     "state_conflict": "התנגשות מצב",
     "invalid_input": "נתוני קלט לא תקינים",
+    "invalid_url": "הקישור חייב להתחיל ב-https:// (או http://)",
     "validation_error": "שגיאת אימות",
     "db_constraint_amount_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סטטוס)",
     "db_constraint_amount_type_status": "הופר אילוץ במסד הנתונים (בדוק סכום/סוג/סטטוס)",
@@ -5139,7 +5140,9 @@
     "dorm_student_overlap": "לתלמידה כבר יש שיבוץ שחופף בתאריכים",
     "dorm_room_number_exists": "חדר עם מספר זה כבר קיים בבניין",
     "series_max_repeats": "מקסימום {n} חזרות בסדרה",
-    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות"
+    "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
+    "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
+    "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם."
   },
   "workflow": {
     "error": "שגיאה"

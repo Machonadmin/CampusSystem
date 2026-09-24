@@ -20,10 +20,11 @@ function pickManagePrivilege(status: string | null): EducationPrivilege {
 }
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function StudentEditPage({ params }: Props) {
+export default async function StudentEditPage(props: Props) {
+  const params = await props.params
   const sb = createServerClient()
 
   const { data: journey } = await sb

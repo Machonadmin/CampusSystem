@@ -202,6 +202,7 @@ const entry = (module: string, code: string): CatalogEntry => ({
 const node = (id: string, items: CatalogEntry[], children: TreeNode[] = []): TreeNode => ({
   id, parentId: null, sortOrder: 0, name: id, description: null, moduleCode: null,
   icon: null, color: null, departmentId: null, children, items,
+  texts: { name_he: id, name_ru: id, name_en: '', description_he: '', description_ru: '', description_en: '' },
 })
 
 describe('pruneTreeToGrantable', () => {
@@ -225,7 +226,8 @@ describe('pruneTreeToGrantable', () => {
 
 describe('pruneUnitsToHeaded', () => {
   const u = (id: string, children: UnitNode[] = []): UnitNode => ({
-    id, parentId: null, name: id, isEducational: false, seatCount: 0, seats: [], seatCountDeep: 0, children,
+    id, parentId: null, name: id, isEducational: false, seatCount: 0, seats: [], seatCountDeep: 0,
+    names: { he: id, ru: id, en: '' }, children,
   })
   it('корнями становятся возглавляемые единицы, остальное скрыто', () => {
     const roots = [u('inst', [u('college', [u('streamA')]), u('kitchen')])]

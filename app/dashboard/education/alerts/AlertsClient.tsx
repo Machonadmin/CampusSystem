@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const accent = getModuleColor('education')
 
@@ -29,6 +30,7 @@ export default function AlertsClient() {
   const [types, setTypes] = useState<AlertType[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
 
   const [fState, setFState] = useState('')
   const [fType, setFType] = useState('')
@@ -53,6 +55,8 @@ export default function AlertsClient() {
         fetch(`/api/education/alerts?${qs.toString()}`),
         fetch('/api/education/alert-types?active_only=false'),
       ])
+      // 403 → ForbiddenState вместо «אין התראות» с кнопками создания
+      setForbidden(aRes.status === 403)
       if (aRes.ok) { const b = await aRes.json(); setAlerts(b.alerts ?? []) }
       if (tRes.ok) { const b = await tRes.json(); setTypes(b.types ?? []) }
     } finally { setLoading(false) }
@@ -72,6 +76,8 @@ export default function AlertsClient() {
 
   const sevColor = (s: string) => s === 'critical' ? 'var(--danger)' : s === 'warning' ? 'var(--warn)' : 'var(--text-muted)'
   const inp: React.CSSProperties = { padding: '6px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }
+
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>

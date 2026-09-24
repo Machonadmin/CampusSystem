@@ -6,9 +6,11 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import SubjectModal from './SubjectModal'
 import SubjectSemestersModal from './SubjectSemestersModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Track {
   id: string
@@ -50,6 +52,7 @@ export default function SubjectsTab() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
 
   const [filterTrack, setFilterTrack] = useState('')
   const [showInactive, setShowInactive] = useState(false)
@@ -61,11 +64,15 @@ export default function SubjectsTab() {
   const loadData = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setForbidden(false)
     try {
       const [sResp, tResp] = await Promise.all([
         fetch(`/api/education/subjects?active_only=${showInactive ? 'false' : 'true'}`),
         fetch('/api/education/study-tracks'),
       ])
+      // ForbiddenState только если закрыт сам список предметов; без study-tracks
+      // (403) экран работает, просто без фильтра по маршруту.
+      if (sResp.status === 403) { setForbidden(true); return }
       if (!sResp.ok) throw new Error(t('subjects.load_error').replace('{status}', String(sResp.status)))
       const sJson = await sResp.json()
       const tJson = tResp.ok ? await tResp.json() : { tracks: [] }
@@ -81,7 +88,7 @@ export default function SubjectsTab() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (subj: Subject) => {
-    if (!(await confirmDialog({ message: t('subjects.confirm_delete').replace('{name}', subj.name), tone: 'danger' }))) return
+    if (!(await confirmDialog({ message: t('subjects.confirm_delete').replace('{name}', localizedName(subj, lang)), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/subjects/${subj.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -110,6 +117,8 @@ export default function SubjectsTab() {
     padding: '5px 10px', fontSize: 12, color: 'var(--text)',
     background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
+
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div>
@@ -180,7 +189,7 @@ export default function SubjectsTab() {
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
-                    <td style={tdStyle} data-label={t('subjects.table_name')}>{s.name}</td>
+                    <td style={tdStyle} data-label={t('subjects.table_name')}>{localizedName(s, lang)}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.track_label')}>{trackName(s.track, lang)}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.year_label')}>{s.year_level ? t(`subjects.year_${s.year_level}`) : '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('subjects.table_sort_order')}>{s.sort_order}</td>
@@ -234,7 +243,7 @@ export default function SubjectsTab() {
       {semSubject && (
         <SubjectSemestersModal
           subjectId={semSubject.id}
-          subjectName={semSubject.name}
+          subjectName={localizedName(semSubject, lang)}
           onClose={() => setSemSubject(null)}
         />
       )}

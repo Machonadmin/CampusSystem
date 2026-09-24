@@ -7,6 +7,8 @@ import { canManageJourneyDocs } from '@/lib/documents/journey-access'
 import { mapDbError } from '@/lib/documents/http'
 import { isIsoDate, isDocType, isDocStatus } from '@/lib/documents/validation'
 import type { DocumentRecordUpdate } from '@/types/database'
+import { cleanExternalUrl } from '@/lib/safe-url'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET    /api/documents/[id] — документ по id (view).
@@ -19,10 +21,8 @@ import type { DocumentRecordUpdate } from '@/types/database'
 
 const DOC_COLS = '*'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDocumentsPrivilege('view')
 
@@ -37,16 +37,14 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDocumentsPrivilege('manage')
 
@@ -118,7 +116,11 @@ export async function PATCH(
       }
     }
 
-    if (body.file_url !== undefined) update.file_url = body.file_url?.trim() || null
+    if (body.file_url !== undefined) {
+      const fileUrl = cleanExternalUrl(body.file_url)
+      if (fileUrl === undefined) return apiError('invalid_url', 400)
+      update.file_url = fileUrl
+    }
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 
     if (Object.keys(update).length === 0) {
@@ -133,7 +135,7 @@ export async function PATCH(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data)
@@ -141,16 +143,14 @@ export async function PATCH(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
@@ -179,7 +179,7 @@ export async function DELETE(
       .eq('id', params.id)
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json({ ok: true })
@@ -187,8 +187,8 @@ export async function DELETE(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

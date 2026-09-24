@@ -25,10 +25,16 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
   onSaved: (next: PersonAccess) => void
 }) {
   const flat = flattenUnits(units)
+  // Начинаем с ПРЯМЫХ посадок и их признака главы. person.departments сюда не
+  // годится: там область, уже расширенная на под-единицы, — окно отметило бы
+  // их все, и сохранение без правок посадило бы человека в каждую отдельно,
+  // а «ראש היחידה» (которого там нет) снялся бы.
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(person.departments.map(d => d.id)),
+    () => new Set(person.seats.map(s => s.departmentId)),
   )
-  const [heads, setHeads] = useState<Set<string>>(new Set())
+  const [heads, setHeads] = useState<Set<string>>(
+    () => new Set(person.seats.filter(s => s.isHead).map(s => s.departmentId)),
+  )
   const [reach, setReach] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 

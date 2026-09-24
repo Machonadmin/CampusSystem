@@ -14,6 +14,8 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { useSessionState } from '@/lib/hooks/useSessionState'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
 import {
@@ -33,15 +35,19 @@ export default function RecruitmentTab() {
   const { lang } = useLang()
 
   const [leads, setLeads] = useState<Lead[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [search, setSearch] = useState('')
+  // 403 (например, «מחוקים» — только manage_leads на всё учреждение) — это права, а не сбой.
+  const [forbidden, setForbidden] = useState(false)
+  // Поиск и фильтры переживают переход в карточку и «חזרה» (sessionStorage).
+  const [search, setSearch, searchReady] = useSessionState('recruitment.search', '')
   // 'quick' — короткая форма (по умолчанию); 'full' — старый 6-шаговый мастер.
   const [addOpen, setAddOpen] = useState<null | 'quick' | 'full'>(null)
   const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [processStatus, setProcessStatus] = useState<ProcessStatusFilter>('active')
-  const [mineOnly, setMineOnly] = useState(false)
+  const [processStatus, setProcessStatus, statusReady] = useSessionState<ProcessStatusFilter>('recruitment.processStatus', 'active')
+  const [mineOnly, setMineOnly, mineReady] = useSessionState('recruitment.mineOnly', false)
+  const filtersReady = searchReady && statusReady && mineReady
   const [filtersOpen, setFiltersOpen] = useState(false)
   const activeFilters = (processStatus !== 'active' ? 1 : 0) + (mineOnly ? 1 : 0)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
@@ -51,6 +57,18 @@ export default function RecruitmentTab() {
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null)  // прогрессивное раскрытие строки лида
+  // Может ли пользователь править/удалять лидов (tab-access.recruitment_manage —
+  // то же условие, что проверяет сервер). Fail-closed: пока не известно или
+  // ошибка — «עריכה»/«מחיקה» не показываем (у «только просмотра» их не было бы).
+  const [canManageLeads, setCanManageLeads] = useState(false)
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/tab-access')
+      .then(r => (r.ok ? r.json() : null))
+      .then(a => { if (alive) setCanManageLeads(!!a && a.recruitment_manage === true) })
+      .catch(() => { /* нет данных — меню правки остаётся скрытым */ })
+    return () => { alive = false }
+  }, [])
 
   function openRowMenu(e: React.MouseEvent, id: string) {
     e.stopPropagation()
@@ -68,10 +86,12 @@ export default function RecruitmentTab() {
   const loadLeads = useCallback(async () => {
     setLoading(true)
     setLoadError(false)
+    setForbidden(false)
     // Не-ok/сеть → явная ошибка, а не ложное «нет лидов» (и не вечный скелетон).
     try {
       const res = await fetch(`/api/education/leads?process_status=${processStatus}${mineOnly ? '&mine=1' : ''}`)
       if (res.ok) setLeads(await res.json())
+      else if (res.status === 403) setForbidden(true)
       else setLoadError(true)
     } catch {
       setLoadError(true)
@@ -80,7 +100,7 @@ export default function RecruitmentTab() {
     }
   }, [processStatus, mineOnly])
 
-  useEffect(() => { loadLeads() }, [loadLeads])
+  useEffect(() => { if (filtersReady) loadLeads() }, [loadLeads, filtersReady])
 
   async function confirmDelete() {
     if (!deleteTarget) return
@@ -264,6 +284,8 @@ export default function RecruitmentTab() {
       <div style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
+        ) : forbidden ? (
+          <ForbiddenState />
         ) : loadError ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>
             {tCommon('load_error')}
@@ -411,6 +433,9 @@ export default function RecruitmentTab() {
 
                   {/* Действия */}
                   <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '11px 8px', width: 48 }}>
+                    {/* Без права правки меню пустое (и «שחזור», и «עריכה»/«מחיקה» требуют
+                        manage_leads со scope='all') — кнопку ··· не показываем. */}
+                    {canManageLeads && (<>
                     <button
                       onClick={e => openRowMenu(e, lead.profile_id)}
                       style={{
@@ -467,6 +492,7 @@ export default function RecruitmentTab() {
                         )}
                       </div>
                     )}
+                    </>)}
                   </td>
                 </tr>
                 {open && (

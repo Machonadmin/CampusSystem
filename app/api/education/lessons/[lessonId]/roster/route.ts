@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Разовый ростер урока: гости (journeys вне группы), добавленные ТОЛЬКО на этот
@@ -23,10 +24,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
   return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } },
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json().catch(() => ({})) as { journey_id?: string }
     const journeyId = (body.journey_id ?? '').trim()
@@ -57,15 +56,13 @@ export async function POST(
     return NextResponse.json({ added: true }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } },
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const journeyId = (request.nextUrl.searchParams.get('journey_id') ?? '').trim()
     if (!journeyId) return apiError('entry_journey_id_required', 400)
@@ -86,7 +83,7 @@ export async function DELETE(
     return NextResponse.json({ removed: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
-    if (e.code) { const m = mapDbError(e); return NextResponse.json({ error: m.message }, { status: m.status }) }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    if (e.code) { const m = mapDbError(e); return errorResponse(m) }
+    return errorResponse(e)
   }
 }

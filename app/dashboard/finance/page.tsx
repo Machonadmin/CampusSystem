@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { MiniBar } from '@/components/ui/MiniBar'
 import { formatMoney } from '@/lib/finance/money'
+import { useSessionState } from '@/lib/hooks/useSessionState'
 import { downloadCsv } from '@/lib/csv'
 import { PhoneLink } from '@/components/ui/PhoneLink'
 
@@ -48,10 +49,14 @@ export default function FinancePage() {
   const [items, setItems] = useState<FinanceStudent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
+  // Поиск и сортировка переживают переход в карточку и «חזרה» (sessionStorage).
+  const [search, setSearch, searchReady] = useSessionState('finance.search', '')
   // Гашение месячного сбора: только должницы + сортировка (имя/долг/просрочка).
   const [debtorsOnly, setDebtorsOnly] = useState(false)
-  const [sortBy, setSortBy] = useState<'name' | 'balance' | 'overdue'>('name')
+  const [sortBy, setSortBy, sortReady] = useSessionState<'name' | 'balance' | 'overdue'>('finance.sort', 'name')
+  // Фильтрация клиентская — запрос от них не зависит; пока значения не
+  // восстановлены, держим скелетон, чтобы не мелькнул неотфильтрованный список.
+  const filtersReady = searchReady && sortReady
   const [canCharge, setCanCharge] = useState(false)
   const [canManageAccess, setCanManageAccess] = useState(false)
 
@@ -311,7 +316,7 @@ export default function FinancePage() {
       {/* Body */}
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
-      ) : loading ? (
+      ) : (loading || !filtersReady) ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>

@@ -7,6 +7,7 @@ import { isIsoDate, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * ЛИЧНЫЙ календарь + СИНХРОНИЗАЦИЯ. GET отдаёт две группы встреч:
@@ -202,9 +203,9 @@ export async function GET(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -264,7 +265,7 @@ export async function POST(request: NextRequest) {
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     // Участники: можно пригласить ЛЮБОГО человека. Кто ВЫШЕ создателя по
@@ -299,8 +300,8 @@ export async function POST(request: NextRequest) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

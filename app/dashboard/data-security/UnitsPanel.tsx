@@ -10,6 +10,7 @@ import type { UnitNode } from '@/lib/data-security/units'
 import { flattenUnits } from '@/lib/data-security/units'
 import type { StaffSummary } from '@/lib/data-security/load'
 import { personSeats, withSeat, withoutSeat, toSeatPayload } from '@/lib/data-security/seating'
+import { changedFields } from '@/lib/data-security/edit-patch'
 import { cardStyle, type T } from './shared'
 
 // ─── Учебные единицы: НАСТОЯЩАЯ граница доступа ──────────────────────────────
@@ -225,7 +226,7 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
               <IconBtn label={t('units_new_under').replace('{name}', node.name)} disabled={busy}
                 onClick={() => setEditing({ parent_id: node.id, name_he: '', name: '', name_en: '' })}>+</IconBtn>
               <IconBtn label={t('units_edit')} disabled={busy}
-                onClick={() => setEditing({ id: node.id, parent_id: node.parentId, name_he: node.name, name: '', name_en: '' })}>✎</IconBtn>
+                onClick={() => setEditing({ id: node.id, parent_id: node.parentId, name_he: node.names.he, name: node.names.ru, name_en: node.names.en })}>✎</IconBtn>
               <IconBtn label={t('units_delete')} disabled={busy} onClick={() => remove(node)}>✕</IconBtn>
             </span>
           )}
@@ -368,7 +369,7 @@ function UnitEditor({ form, options, t, busy, onClose, onSave }: {
   t: T
   busy: boolean
   onClose: () => void
-  onSave: (payload: UnitForm) => void
+  onSave: (payload: Partial<UnitForm>) => void
 }) {
   const [state, setState] = useState(form)
   const [err, setErr] = useState('')
@@ -433,9 +434,24 @@ function UnitEditor({ form, options, t, busy, onClose, onSave }: {
       <SubmitButton
         loading={busy}
         onClick={() => {
-          if (!state.name_he.trim()) { setErr(t('name_he_required')); return }
+          // Пустое имя на иврите останавливает, только если его стёрли сейчас:
+          // у старой единицы без ивритского имени перенос не должен требовать
+          // заодно переводить её название.
+          if (!state.name_he.trim() && (!state.id || state.name_he !== form.name_he)) {
+            setErr(t('name_he_required')); return
+          }
           setErr('')
-          onSave(state)
+          if (!state.id) { onSave(state); return }
+          // Правка: только изменённые поля. Раньше поля RU/EN открывались
+          // пустыми, а иврит — с подписью на языке экрана, и сохранение стирало
+          // английское название и писало чужой язык в поле иврита.
+          const changed: Partial<UnitForm> = changedFields(
+            { name_he: form.name_he, name: form.name, name_en: form.name_en },
+            { name_he: state.name_he, name: state.name, name_en: state.name_en },
+          )
+          if (state.parent_id !== form.parent_id) changed.parent_id = state.parent_id
+          if (Object.keys(changed).length === 0) { onClose(); return }
+          onSave({ ...changed, id: state.id })
         }}
         style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: getModuleColor('data_security'), color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
       >{t('save')}</SubmitButton>

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { signToken } from '@/lib/auth/jwt'
 import { AUTH_CONFIG } from '@/lib/auth/config'
+import { errorResponse } from '@/lib/api/handler'
 
-const ORIG_COOKIE = 'campus_imp_orig'
+const ORIG_COOKIE = AUTH_CONFIG.impOrigCookieName
 
 /**
  * POST /api/auth/impersonate — «צפייה כמשתמש».
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Логин-имейл цели (если есть аккаунт) — только для отображения.
     const { data: acc } = await sb.from('person_accounts').select('login_email').eq('person_id', body.person_id).maybeSingle()
 
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const origToken = cookieStore.get(AUTH_CONFIG.cookieName)?.value
     if (!origToken) return apiError('unauthorized', 401)
 
@@ -76,6 +77,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

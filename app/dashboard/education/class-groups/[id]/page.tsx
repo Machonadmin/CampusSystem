@@ -6,7 +6,7 @@ import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import ClassGroupCardClient from './ClassGroupCardClient'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 /**
@@ -22,7 +22,8 @@ interface Props {
  *   canSetGrades      — education.set_grades
  * и передаёт их клиентскому компоненту.
  */
-export default async function ClassGroupCardPage({ params }: Props) {
+export default async function ClassGroupCardPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

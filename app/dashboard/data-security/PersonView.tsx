@@ -133,14 +133,26 @@ export default function PersonView({
     setSaving(true)
     try {
       // Отправляется ПОЛНЫЙ список личных решений: и уже существующие, и новые.
-      // Маршрут заменяет их целиком — как и старый экран личных прав.
-      const overrides: { module: string; privilege_code: string; is_granted: boolean }[] = []
+      // Маршрут сравнивает его с базой и трогает только изменившиеся строки —
+      // срок, причина и «кто выдал» у остальных сохраняются.
+      const overrides: { module: string; privilege_code: string; is_granted: boolean; expires_at?: null }[] = []
       const keys = new Set<string>([...resolved.keys(), ...draft.keys()])
       for (const key of keys) {
         const [moduleCode, code] = key.split('::')
+        const r = resolved.get(key)
+        // Просроченная личная строка, которую сейчас не трогали, — это история
+        // («было открыто до…»). Её отправляем как есть, чтобы сохранение по
+        // другой строке не стёрло её молча.
+        if (r?.expired && !draft.has(key)) {
+          overrides.push({ module: moduleCode, privilege_code: code, is_granted: r.source === 'personal_grant' })
+          continue
+        }
         const d = decisionOf(key)
-        if (d === 'grant') overrides.push({ module: moduleCode, privilege_code: code, is_granted: true })
-        else if (d === 'deny') overrides.push({ module: moduleCode, privilege_code: code, is_granted: false })
+        // Решение, заново принятое по просроченной строке, — бессрочное: иначе
+        // «פתוח» сохранился бы со старым, уже истёкшим сроком и не действовал.
+        const renew = r?.expired ? { expires_at: null } : {}
+        if (d === 'grant') overrides.push({ module: moduleCode, privilege_code: code, is_granted: true, ...renew })
+        else if (d === 'deny') overrides.push({ module: moduleCode, privilege_code: code, is_granted: false, ...renew })
       }
       const res = await fetch(`/api/data-security/person/${personId}`, {
         method: 'PUT',
