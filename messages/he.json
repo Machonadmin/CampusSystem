@@ -4663,7 +4663,18 @@
     "relation_community_contact": "איש קשר בקהילה",
     "relation_emergency_contact": "איש קשר לחירום",
     "relation_other": "אחר",
-    "clear": "ניקוי"
+    "clear": "ניקוי",
+    "person_link": {
+      "possible_match": "התאמה אפשרית",
+      "confirm": "אשר",
+      "reject": "לא אותו אדם",
+      "linked_to": "מקושר לאדם במאגר",
+      "linked_generic": "מקושר למאגר האנשים",
+      "unlink": "בטל קישור",
+      "pending_filter": "ממתין לאישור",
+      "action_error": "הפעולה נכשלה",
+      "unlink_confirm": "לבטל את הקישור לאדם במאגר?"
+    }
   },
   "calendar": {
     "form_invitees": "משתתפים",

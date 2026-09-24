@@ -4663,7 +4663,18 @@
     "relation_community_contact": "Контакт в общине",
     "relation_emergency_contact": "Экстренный контакт",
     "relation_other": "Другое",
-    "clear": "Очистить"
+    "clear": "Очистить",
+    "person_link": {
+      "possible_match": "Возможное совпадение",
+      "confirm": "Подтвердить",
+      "reject": "Не тот же человек",
+      "linked_to": "Связан с человеком в базе",
+      "linked_generic": "Связан с базой людей",
+      "unlink": "Отвязать",
+      "pending_filter": "Ожидает подтверждения",
+      "action_error": "Не удалось выполнить действие",
+      "unlink_confirm": "Снять связь с человеком в базе?"
+    }
   },
   "calendar": {
     "form_invitees": "Участники",

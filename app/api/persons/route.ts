@@ -6,6 +6,7 @@ import { requirePrivilege } from '@/lib/auth/module-privileges'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
 import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { parseBody, jsonError, errorResponse } from '@/lib/api/handler'
+import { insertBarePerson } from '@/lib/persons/create'
 
 export async function GET(request: NextRequest) {
   try {
@@ -125,13 +126,10 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
 
     if (!body.enroll_as_teacher) {
-      const phones = body.phone?.trim() ? [{ type: 'mobile', number: body.phone.trim() }] : []
-      const { data, error } = await sb
-        .from('persons')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({ last_name: lastName, first_name: firstName, middle_name: middleName, email: body.email?.trim() || null, phones } as any)
-        .select('id, full_name, email')
-        .single()
+      const { data, error } = await insertBarePerson(sb, {
+        last_name: lastName, first_name: firstName, middle_name: middleName,
+        email: body.email, phone: body.phone,
+      })
       if (error) throw error
 
       return NextResponse.json({

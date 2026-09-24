@@ -4663,7 +4663,18 @@
     "relation_community_contact": "Community contact",
     "relation_emergency_contact": "Emergency contact",
     "relation_other": "Other",
-    "clear": "Clear"
+    "clear": "Clear",
+    "person_link": {
+      "possible_match": "Possible match",
+      "confirm": "Confirm",
+      "reject": "Not the same person",
+      "linked_to": "Linked to person",
+      "linked_generic": "Linked to the people database",
+      "unlink": "Unlink",
+      "pending_filter": "Pending confirmation",
+      "action_error": "Action failed",
+      "unlink_confirm": "Remove the link to the person in the database?"
+    }
   },
   "calendar": {
     "form_invitees": "Participants",

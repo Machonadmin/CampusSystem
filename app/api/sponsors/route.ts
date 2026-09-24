@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
+import { requireSponsorsPrivilege, hasSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
 import { isSponsorType } from '@/lib/sponsors/validation'
 import { matchesSponsorSearch } from '@/lib/sponsors/donations'
@@ -9,6 +9,11 @@ import { loadDonationAggregates, receivedForSponsor } from '@/lib/sponsors/donat
 import { syncSponsorToContacts } from '@/lib/contacts/sync-sponsor'
 import type { SponsorRow, SponsorInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { isMissingColumn } from '@/lib/supabase/errors'
+import {
+  PERSON_LINK_COLS, attachPersonLinks, autoLinkRecordToPerson, canViewPersonsSafe,
+  type RawLinkCols,
+} from '@/lib/persons/record-link'
 
 /**
  * GET  /api/sponsors — справочник доноров (view). Фильтры ?search (app-side,
@@ -28,7 +33,7 @@ const PAGE = 1000
 
 export async function GET(request: NextRequest) {
   try {
-    await requireSponsorsPrivilege('view')
+    const session = await requireSponsorsPrivilege('view')
 
     const params = request.nextUrl.searchParams
     const type = params.get('type')
@@ -43,17 +48,21 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
 
     // Весь справочник доноров постранично.
-    const all: SponsorRow[] = []
+    // Решение №11: колонки связи с persons читаем вместе со строкой; пока
+    // миграция не применена (42703/PGRST204) — откат к базовым колонкам.
+    const all: Array<SponsorRow & RawLinkCols> = []
     let offset = 0
+    let linkMigrated = true
     for (;;) {
       const { data, error } = await sb
         .from('sponsors')
-        .select(SPONSOR_COLS)
+        .select(linkMigrated ? `${SPONSOR_COLS}, ${PERSON_LINK_COLS}` : SPONSOR_COLS)
         .order('name', { ascending: true })
         .order('id', { ascending: true })   // тотальная сортировка — стабильный OFFSET
         .range(offset, offset + PAGE - 1)
+      if (error && linkMigrated && isMissingColumn(error)) { linkMigrated = false; all.length = 0; offset = 0; continue }
       if (error) throw error
-      const batch = (data ?? []) as unknown as SponsorRow[]
+      const batch = (data ?? []) as unknown as Array<SponsorRow & RawLinkCols>
       all.push(...batch)
       if (batch.length < PAGE) break
       offset += PAGE
@@ -78,7 +87,11 @@ export async function GET(request: NextRequest) {
       sponsors = sponsors.filter(s => matchesSponsorSearch(s, search))
     }
 
-    return NextResponse.json({ sponsors, stats: aggregates.stats })
+    const canManage = await hasSponsorsPrivilege(session, 'manage')
+    const canViewPersons = await canViewPersonsSafe(session)
+    const withLinks = await attachPersonLinks(sb, sponsors, { canManage, canViewPersons }, linkMigrated)
+
+    return NextResponse.json({ sponsors: withLinks, stats: aggregates.stats })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
@@ -149,12 +162,20 @@ export async function POST(request: NextRequest) {
 
     // Владелец: реквизиты донора (имя/телефон/почта) сохраняются и в контактах
     // (category='financial'). Best-effort — не влияет на успех создания.
+    const sponsorId = (data as { id: string }).id
     await syncSponsorToContacts(sb, {
+      id: sponsorId,
       name, email: insert.email ?? null, phone: insert.phone ?? null,
       sponsor_type: insert.sponsor_type ?? null, created_by: session.person_id,
     })
 
-    return NextResponse.json(data, { status: 201 })
+    // Решение №11: связь с центральной персоной — best-effort ПОСЛЕ записи,
+    // никогда не ломает сохранение (до миграции — молча 'skipped').
+    const person_link = await autoLinkRecordToPerson(sb, 'sponsors', sponsorId, {
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
