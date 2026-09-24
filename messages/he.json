@@ -225,7 +225,8 @@
       "absent": "היעדרות",
       "unmarked": "טרם סומנו",
       "none": "טרם סומן",
-      "marked_on_teacher_screen": "סימון נוכחות נעשה במסך השיעור של המורה"
+      "marked_on_teacher_screen": "סימון נוכחות נעשה במסך השיעור של המורה",
+      "correction_by_head": "תיקון נוכחות (ראש יחידה / מנהל)"
     },
     "grades": {
       "tab_grades": "ציונים",

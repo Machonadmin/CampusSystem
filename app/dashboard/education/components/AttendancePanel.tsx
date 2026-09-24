@@ -28,6 +28,19 @@ interface GuestResult { id: string; name: string }
 interface Props {
   lesson: LessonItem
   canMarkAttendance: boolean
+  /**
+   * Подсказка вместо стандартной «צפייה בלבד — אין הרשאה» (режим просмотра).
+   * Решение владельца 8 (24.09.2026): журнал курса и общий календарь показывают
+   * посещаемость только для чтения и объясняют, где её отмечают. Экран учителя
+   * проп не передаёт — там всё как было.
+   */
+  readOnlyHint?: string
+  /**
+   * Пометка над панелью в режиме редактирования. Журнал курса передаёт её для
+   * исправления посещаемости руководителем (ראש יחידה / מנהל). Экран учителя
+   * проп не передаёт.
+   */
+  editNote?: string
   accentColor: string
   onClose: () => void
   onSaved: () => void
@@ -51,7 +64,7 @@ function formatDate(lang: string, iso: string): string {
 
 // ── Компонент ─────────────────────────────────────────────────────────────────
 
-export default function AttendancePanel({ lesson, canMarkAttendance, accentColor, onClose, onSaved }: Props) {
+export default function AttendancePanel({ lesson, canMarkAttendance, readOnlyHint, editNote, accentColor, onClose, onSaved }: Props) {
   const t = useTranslations('education.journal')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
@@ -218,7 +231,13 @@ export default function AttendancePanel({ lesson, canMarkAttendance, accentColor
 
         {!canMarkAttendance && (
           <div style={{ fontSize: 12, color: 'var(--warn)', background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
-            {t('att_readonly_hint')}
+            {readOnlyHint ?? t('att_readonly_hint')}
+          </div>
+        )}
+
+        {canMarkAttendance && editNote && (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
+            {editNote}
           </div>
         )}
 

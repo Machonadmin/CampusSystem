@@ -225,7 +225,8 @@
       "absent": "Absent",
       "unmarked": "unmarked",
       "none": "Not marked",
-      "marked_on_teacher_screen": "Attendance is marked on the teacher's lesson screen"
+      "marked_on_teacher_screen": "Attendance is marked on the teacher's lesson screen",
+      "correction_by_head": "Attendance correction (unit head / manager)"
     },
     "grades": {
       "tab_grades": "Grades",

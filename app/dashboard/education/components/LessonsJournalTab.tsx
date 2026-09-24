@@ -32,7 +32,13 @@ export interface LessonItem {
 interface Props {
   groupId: string
   canManageLessons: boolean
-  canMarkAttendance: boolean
+  /**
+   * Исправление посещаемости в журнале курса (решение владельца 8, 24.09.2026):
+   * только ראש יחידה группы / superadmin / mark_attendance со scope='all'.
+   * Обычный учитель группы видит здесь посещаемость только для чтения —
+   * отмечает он её в экране урока.
+   */
+  canCorrectAttendance: boolean
   accentColor: string
 }
 
@@ -49,7 +55,7 @@ function formatTime(time: string | null): string {
 
 // ── Компонент ─────────────────────────────────────────────────────────────────
 
-export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAttendance, accentColor }: Props) {
+export default function LessonsJournalTab({ groupId, canManageLessons, canCorrectAttendance, accentColor }: Props) {
   const t = useTranslations('education.journal')
   const tAtt = useTranslations('education.attendance')
   const { lang } = useLang()
@@ -268,11 +274,15 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canMarkAt
         />
       )}
 
-      {/* Панель посещаемости */}
+      {/* Панель посещаемости (решение владельца 8, 24.09.2026): отмечают в экране
+          урока у учителя; здесь — только исправление руководителем (включая
+          прошедшие уроки), остальным — просмотр с подсказкой. */}
       {attendanceLesson && (
         <AttendancePanel
           lesson={attendanceLesson}
-          canMarkAttendance={canMarkAttendance}
+          canMarkAttendance={canCorrectAttendance}
+          readOnlyHint={tAtt('marked_on_teacher_screen')}
+          editNote={tAtt('correction_by_head')}
           accentColor={accentColor}
           onClose={() => setAttendanceLesson(null)}
           onSaved={load}

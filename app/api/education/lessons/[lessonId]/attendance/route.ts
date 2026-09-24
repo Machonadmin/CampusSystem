@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { getHeadedUnitIds } from '@/lib/education/unit-access'
+import { getSession } from '@/lib/auth/session'
 import { getLessonAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import { loadKodeshGroupIds, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
 import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
@@ -188,11 +190,22 @@ export async function POST(request: NextRequest, props: { params: Promise<{ less
     const access = await getLessonAccess(sb, params.lessonId)
     if (!access) return apiError('lesson_not_found', 404)
 
-    const session = await requireEducationPrivilege('mark_attendance', access.target)
+    // Решение владельца 24.09.2026: учитель отмечает только в своём окне (экран
+    // урока), а ИСПРАВЛЯТЬ (в т.ч. прошедшие уроки) из журнала курса может
+    // руководитель подразделения группы и менеджер (mark_attendance на всё
+    // учреждение). Руководителю отдельное право не нужно — достаточно is_head.
+    const current = await getSession()
+    if (!current) return apiError('unauthorized', 401)
+    const groupDept = (access.target as { department_id?: string | null }).department_id ?? null
+    const isUnitHead = !!groupDept && (await getHeadedUnitIds(current.person_id)).includes(groupDept)
+    const session = isUnitHead ? current : await requireEducationPrivilege('mark_attendance', access.target)
 
-    // Окно редактирования: руководитель (manage_students) правит всегда; учитель
-    // — только во время урока + 30 мин (+ персональное доп. время из грантов).
-    const isManager = await hasEducationPrivilege(session, 'manage_students', access.target)
+    // Окно редактирования: руководитель (manage_students), руководитель
+    // подразделения и менеджер уровня учреждения правят всегда; учитель —
+    // только во время урока + 30 мин (+ персональное доп. время из грантов).
+    const isManager = isUnitHead
+      || await hasEducationPrivilege(session, 'manage_students', access.target)
+      || (await getEducationPrivilegeScope(session, 'mark_attendance')) === 'all'
     if (!isManager) {
       const lessonRow = access.lesson as unknown as { scheduled_date: string; scheduled_time: string | null; scheduled_end_time?: string | null }
       // Доп. время учителю: постоянное (lesson_id NULL) или разовое на этот урок.
