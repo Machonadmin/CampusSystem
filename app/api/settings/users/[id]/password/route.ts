@@ -3,6 +3,7 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
 
 async function guard() {
   const session = await getSession()
@@ -26,6 +27,10 @@ async function handlePasswordReset(request: NextRequest, params: { id: string })
       .update({ password_hash })
       .eq('id', params.id)
     if (error) throw error
+
+    // Сброс пароля администратором выводит человека со всех устройств: если
+    // пароль сбрасывают из-за утечки, старая сессия не должна продолжать жить.
+    await revokeSessionsBefore('person_accounts', 'id', params.id)
 
     // Сгенерированный (временный) пароль → пользователь обязан сменить его при
     // первом входе. Best-effort: до миграции колонки может не быть (42703).

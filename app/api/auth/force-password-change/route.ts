@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { getSession, reissueSession } from '@/lib/auth/session'
+import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { hashPassword, passwordStrengthIssue } from '@/lib/auth/password'
 import { throttleAuth } from '@/lib/auth/login-throttle'
 
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
     const { error } = await sb.from('person_accounts')
       .update({ password_hash, must_change_password: false }).eq('id', (account as { id: string }).id)
     if (error) throw error
+    // Временный пароль мог видеть кто-то ещё: выходим везде, кроме этого браузера.
+    await revokeSessionsBefore('person_accounts', 'id', (account as { id: string }).id)
+    await reissueSession(session)
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { message?: string }
