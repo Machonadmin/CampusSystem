@@ -598,7 +598,8 @@
         "search": "Имя или email...",
         "course_class": "1, 2, 10...",
         "enrollment_year": "2025"
-      }
+      },
+      "merged_into_existing": "Данные объединены с существующей карточкой"
     },
     "process": {
       "title": "Процесс",

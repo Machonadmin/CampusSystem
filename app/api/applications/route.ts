@@ -6,6 +6,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { StartProcessResult } from '@/lib/workflow/start-process'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import type { CommunityInsert, JourneyCommunityInsert } from '@/types/database'
+import { createOrMergeLead, writePostStartNotes, type CreateOrMergeLeadResult } from '@/lib/education/create-or-merge-lead'
 
 const interestSchema = z.object({
   direction_id: z.string().uuid().nullish(),
@@ -84,33 +85,66 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
-    const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', {
-      payload: {
-        person_id: body.person_id ?? null,
-        last_name: body.last_name?.trim() || null,
-        first_name: body.first_name?.trim() || body.full_name?.trim() || null,
-        middle_name: body.middle_name?.trim() || null,
-        hebrew_name: body.hebrew_name?.trim() || null,
-        phone: body.phone?.trim() || null,
-        phones: body.phones && body.phones.length > 0
-          ? body.phones.map(p => p.trim()).filter(Boolean)
-          : null,
-        email: body.email?.trim() || null,
-        gender: body.gender ?? null,
-        birth_date: body.birth_date || null,
-        address: (body.address && Object.values(body.address).some(v => v)) ? body.address : null,
-        marital_status: body.marital_status || null,
-        citizenship: body.citizenship || null,
-        passport_number: body.passport_number?.trim() || null,
-        interests: body.interests ?? [],
-        referral_source: body.referral_source || null,
-        comment: body.comment || null,
-        actor_id: session.person_id,
-      },
-    })
+    const phones = body.phones && body.phones.length > 0
+      ? body.phones.map(p => p.trim()).filter(Boolean)
+      : null
+    const address = (body.address && Object.values(body.address).some(v => v)) ? body.address : null
+    const payload = {
+      person_id: body.person_id ?? null,
+      last_name: body.last_name?.trim() || null,
+      first_name: body.first_name?.trim() || body.full_name?.trim() || null,
+      middle_name: body.middle_name?.trim() || null,
+      hebrew_name: body.hebrew_name?.trim() || null,
+      phone: body.phone?.trim() || null,
+      phones,
+      email: body.email?.trim() || null,
+      gender: body.gender ?? null,
+      birth_date: body.birth_date || null,
+      address,
+      marital_status: body.marital_status || null,
+      citizenship: body.citizenship || null,
+      passport_number: body.passport_number?.trim() || null,
+      interests: body.interests ?? [],
+      referral_source: body.referral_source || null,
+      comment: body.comment || null,
+      actor_id: session.person_id,
+    }
 
-    if (rpcErr) throw rpcErr
-    const { person_id: personId, journey_id: journeyId } = rpcResult as { person_id: string; journey_id: string }
+    let personId: string
+    let journeyId: string
+    let lead: CreateOrMergeLeadResult | null = null
+    if (body.person_id) {
+      // Сотрудница явно выбрала существующую персону — как раньше, без поиска.
+      const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', { payload })
+      if (rpcErr) throw rpcErr
+      ;({ person_id: personId, journey_id: journeyId } = rpcResult as { person_id: string; journey_id: string })
+    } else {
+      // Новая персона: совпадение по телефону/email → слияние с существующей
+      // карточкой (решение владельца 24.09.2026), см. lib/education/create-or-merge-lead.
+      lead = await createOrMergeLead(sb, {
+        payload,
+        incoming: {
+          first_name: payload.first_name,
+          last_name: payload.last_name,
+          middle_name: payload.middle_name,
+          hebrew_name: payload.hebrew_name,
+          email: payload.email,
+          gender: payload.gender,
+          birth_date: payload.birth_date,
+          address,
+          marital_status: payload.marital_status,
+          nationality: payload.citizenship,
+          passport_number: payload.passport_number,
+          phones: phones ?? (payload.phone ? [payload.phone] : []),
+        },
+        interests: body.interests ?? [],
+        actorId: session.person_id,
+        sourceLabel: 'הוזנה ע״י צוות',
+        comment: payload.comment,
+      })
+      personId = lead.personId
+      journeyId = lead.journeyId
+    }
 
     // Communities: для каждой переданной — найти/создать в communities + журнал
     // в journey_communities. Best-effort, вне транзакции — ошибка на одной общине
@@ -194,21 +228,28 @@ export async function POST(request: NextRequest) {
 
     // Автостарт процесса «Набор» — некритичный, ошибка не блокирует создание заявки.
     // Атомарно через RPC start_process (см. migrations/20260702210000_*.sql).
+    // Переиспользованный при слиянии journey уже в своём процессе — не трогаем.
     let workflowResult: StartProcessResult | null = null
     let workflowError: string | null = null
-    const { data: startResult, error: startErr } = await sb.rpc('start_process', {
-      p_process_code: 'recruitment',
-      p_journey_id: journeyId,
-      p_actor_id: session.person_id,
-    })
-    if (startErr) {
-      workflowError = startErr.message ?? serverT('process_start_error')
-    } else {
-      workflowResult = startResult as StartProcessResult
+    if (!lead || lead.newJourney) {
+      const { data: startResult, error: startErr } = await sb.rpc('start_process', {
+        p_process_code: 'recruitment',
+        p_journey_id: journeyId,
+        p_actor_id: session.person_id,
+      })
+      if (startErr) {
+        workflowError = startErr.message ?? serverT('process_start_error')
+      } else {
+        workflowResult = startResult as StartProcessResult
+      }
+      if (lead) await writePostStartNotes(sb, lead, session.person_id)
     }
 
     return NextResponse.json(
-      { person_id: personId, journey_id: journeyId, workflow: workflowResult, workflow_error: workflowError },
+      {
+        person_id: personId, journey_id: journeyId, workflow: workflowResult, workflow_error: workflowError,
+        ...(lead?.merged ? { merged: true, filled: lead.filled } : {}),
+      },
       { status: 201 }
     )
   } catch (err: unknown) {

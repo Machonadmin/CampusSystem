@@ -12,6 +12,7 @@ import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
+import { toastSuccess } from '@/components/ui/toast'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -535,7 +536,9 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           setError(data.error ?? tCommon('error'))
           return
         }
-        const created = await res.json().catch(() => ({})) as { person_id?: string; journey_id?: string }
+        const created = await res.json().catch(() => ({})) as { person_id?: string; journey_id?: string; merged?: boolean }
+        // Телефон/email совпал с существующей персоной — заявка влита в её карточку.
+        if (created.merged) toastSuccess(t('form.merged_into_existing'))
         const personId = created.person_id ?? (view === 'existing' ? selected?.id : null)
         await saveRelatives(personId ?? null)
         resetFields()

@@ -598,7 +598,8 @@
         "search": "Name or email...",
         "course_class": "1, 2, 10...",
         "enrollment_year": "2025"
-      }
+      },
+      "merged_into_existing": "Details merged into an existing card"
     },
     "process": {
       "title": "Process",

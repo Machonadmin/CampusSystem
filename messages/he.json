@@ -598,7 +598,8 @@
         "search": "שם או אימייל…",
         "course_class": "1, 2, 10…",
         "enrollment_year": "2025"
-      }
+      },
+      "merged_into_existing": "הפרטים מוזגו לכרטיס קיים"
     },
     "process": {
       "title": "תהליך",

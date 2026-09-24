@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { CommunityRoleSelect } from '@/components/education/CommunityRoleSelect'
+import { toastSuccess } from '@/components/ui/toast'
 
 // Источники по бизнес-процессу v2 (как в EducationJourneyForm).
 const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
@@ -88,6 +89,9 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
         return
       }
       const b = await res.json().catch(() => ({}))
+      // Телефон/email совпал с существующей персоной — сервер влил заявку в её
+      // карточку (журнал тот же, открываем его как обычно).
+      if (b.merged) toastSuccess(t('form.merged_into_existing'))
       onSaved(typeof b.journey_id === 'string' ? b.journey_id : undefined)
     } catch {
       setError(tCommon('error'))
