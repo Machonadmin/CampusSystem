@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const accent = getModuleColor('education')
 
@@ -36,6 +37,9 @@ export default function KodeshRavClient() {
   const [quotas, setQuotas] = useState<Quota[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  // 403 по каждому из двух запросов (очередь утверждений / квоты)
+  const [approvalsForbidden, setApprovalsForbidden] = useState(false)
+  const [quotasForbidden, setQuotasForbidden] = useState(false)
   const [year, setYear] = useState('')
 
   // Инлайн-редактирование квоты.
@@ -50,6 +54,7 @@ export default function KodeshRavClient() {
         fetch('/api/education/teacher-approvals?status=proposed'),
         fetch(`/api/education/teacher-quotas${yr ? `?year=${encodeURIComponent(yr)}` : ''}`),
       ])
+      setApprovalsForbidden(aRes.status === 403); setQuotasForbidden(qRes.status === 403)
       if (aRes.ok) { const b = await aRes.json(); setApprovals(b.approvals ?? []) }
       if (qRes.ok) { const b = await qRes.json(); setQuotas(b.quotas ?? []) }
     } finally { setLoading(false) }
@@ -96,12 +101,15 @@ export default function KodeshRavClient() {
   const inp: React.CSSProperties = { padding: '6px 9px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }
   const btn = (bg: string): React.CSSProperties => ({ fontSize: 12, fontWeight: 600, color: '#fff', background: bg, border: 'none', borderRadius: 7, padding: '5px 12px', cursor: 'pointer' })
 
+  // Оба запроса 403 → весь экран = ForbiddenState; один — только его секция.
+  if (approvalsForbidden && quotasForbidden) return <ForbiddenState />
+
   return (
     <div style={{ display: 'grid', gap: 24 }}>
       {/* Очередь утверждений */}
       <section style={{ display: 'grid', gap: 8 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('approvals_title')}</h3>
-        {loading ? <SkeletonRows avatar={false} rows={3} /> : approvals.length === 0 ? (
+        {loading ? <SkeletonRows avatar={false} rows={3} /> : approvalsForbidden ? <ForbiddenState /> : approvals.length === 0 ? (
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('approvals_empty')}</div>
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflowX: 'auto' }}>
@@ -135,13 +143,15 @@ export default function KodeshRavClient() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('quotas_title')}</h3>
           <div style={{ flex: 1 }} />
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--text-muted)' }}>
-            {t('year_label')}
-            <input value={year} onChange={e => setYear(e.target.value)} placeholder={t('year_placeholder')} dir="rtl" style={{ ...inp, width: 120 }} />
-          </label>
+          {!quotasForbidden && (
+            <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--text-muted)' }}>
+              {t('year_label')}
+              <input value={year} onChange={e => setYear(e.target.value)} placeholder={t('year_placeholder')} dir="rtl" style={{ ...inp, width: 120 }} />
+            </label>
+          )}
         </div>
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('quotas_hint')}</p>
-        {loading ? <SkeletonRows avatar={false} rows={4} /> : quotas.length === 0 ? (
+        {!quotasForbidden && <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{t('quotas_hint')}</p>}
+        {loading ? <SkeletonRows avatar={false} rows={4} /> : quotasForbidden ? <ForbiddenState /> : quotas.length === 0 ? (
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('quotas_empty')}</div>
         ) : (
           <div style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflowX: 'auto' }}>

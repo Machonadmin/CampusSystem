@@ -61,9 +61,6 @@
     "sent": "Отправлено",
     "action_failed": "Не удалось выполнить, попробуйте ещё раз",
     "city_input_placeholder": "Введите название города",
-    "city_choose_from_list": "Выбрать из списка",
-    "select_city": "Выберите город",
-    "other_city": "Другой город",
     "select_country": "Выберите страну",
     "popular_countries": "Популярные страны",
     "all_countries": "Все страны",
@@ -674,7 +671,8 @@
         "external_studies": "Внешнее обучение",
         "admitted": "Принята",
         "admitted_conditional": "Условно принята",
-        "waitlisted": "В список ожидания"
+        "waitlisted": "В список ожидания",
+        "converted": "Передана в приёмную комиссию"
       },
       "modals": {
         "activate_title": "Активировать пропущенный подэтап?",
@@ -762,7 +760,10 @@
         "social": "Соцсети",
         "call": "Звонок",
         "exhibition": "Выставка",
-        "other": "Другое"
+        "other": "Другое",
+        "public_form": "Форма на сайте",
+        "public_form_parent": "Форма на сайте (родитель)",
+        "public_form_representative": "Форма на сайте (представитель)"
       },
       "relation": {
         "mother": "Мать",
@@ -3097,7 +3098,6 @@
     "tabs": {
       "users": "Пользователи",
       "roles": "Роли и права",
-      "reference_cities": "Справочник городов",
       "reference_positions": "Справочник должностей",
       "workflows": "Шаблоны процессов",
       "audit": "Журнал изменений"
@@ -3177,28 +3177,6 @@
       "err_both_fields": "Заполните оба поля",
       "priv_name_placeholder": "Просмотр записей",
       "error": "Ошибка"
-    },
-    "reference_cities": {
-      "title": "Справочник городов",
-      "desc": "Управление списком городов по странам",
-      "country_label": "Страна",
-      "cities_title": "Города",
-      "add_city_button": "+ Добавить город",
-      "city_name_in_country_label": "Название города в стране «{country}»",
-      "city_name_placeholder": "Например: Петах-Тиква",
-      "save_button": "Добавить",
-      "saving": "Сохранение...",
-      "cancel": "Отмена",
-      "edit_save_button": "Сохранить",
-      "edit_button": "Изменить",
-      "delete_button": "Удалить",
-      "loading": "Загрузка...",
-      "empty_none": "Для этой страны пока нет городов",
-      "confirm_delete": "Удалить город «{name}»?",
-      "error_load": "Ошибка загрузки",
-      "error_add": "Ошибка добавления",
-      "error_save": "Ошибка сохранения",
-      "error_delete": "Ошибка удаления"
     },
     "reference_positions": {
       "title": "Справочник должностей",
@@ -3446,7 +3424,19 @@
       "convert_to_applicant": "Передана в приём",
       "waitlisted": "В списке ожидания",
       "qualified": "Подходит",
-      "not_qualified": "Не подходит"
+      "not_qualified": "Не подходит",
+      "done_event_yes": "Записан на мероприятие",
+      "done_event_skip": "Без мероприятия",
+      "postponed": "Приём отложен",
+      "all_collected": "Все собраны",
+      "partial": "Частично собраны",
+      "not_provided": "Не предоставил",
+      "feedback_received": "Мероприятие состоялось",
+      "no_show": "Мероприятие не состоялось",
+      "refused": "Отказ от приезда",
+      "refer_to_psychologist": "Направить к психологу",
+      "exam_required": "Нужны вступительные экзамены",
+      "external_studies": "Внешнее обучение"
     },
     "process_names": {
       "Набор": "Набор",
@@ -4331,6 +4321,7 @@
         "dormitory": "Общежитие",
         "jewishness": "Еврейство",
         "medical": "Врач",
+        "medical_psych": "Психолог",
         "final_approval": "Финал"
       }
     },
@@ -4757,6 +4748,7 @@
     "kodesh_slot_warning": "Внимание: это время зарезервировано под первые два урока иудаики. Слот сохранён — проверьте наложение.",
     "unauthorized": "Не авторизован",
     "forbidden": "Недостаточно прав",
+    "person_privileges_moved": "Личные права теперь меняются только в «Безопасности данных» — здесь сохранить изменения нельзя",
     "stage_reopen_blocked": "Сейчас нельзя изменить решение — следующий этап уже обработан",
     "no_access": "Нет доступа",
     "no_view_permission": "Нет прав на просмотр",

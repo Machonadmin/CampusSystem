@@ -96,18 +96,18 @@ export default function StaffCompIndexClient() {
       {/* Header */}
       <ModuleHeader module="finance" title={t('title')} subtitle={t('subtitle')} />
 
-      {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* Search — на узком экране кнопка переносится на свою строку, а не уезжает за край. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <input aria-label={t('search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('search_placeholder')}
           style={{
-            flex: 1, maxWidth: 360, fontSize: 13, padding: '8px 12px',
+            flex: '1 1 200px', maxWidth: 360, fontSize: 13, padding: '8px 12px',
             border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
           }}
         />
-        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
           {t('count')}: {filtered.length}
         </span>
         <PageActionButton

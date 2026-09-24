@@ -9,8 +9,8 @@ import { isMissingColumn } from '@/lib/supabase/errors'
 
 const CLASS_GROUP_SELECT = `
   *,
-  subject:subjects(id, name, name_he),
-  department:departments(id, name)
+  subject:subjects(id, name, name_he, name_en),
+  department:departments(id, name, name_he, name_en)
 `
 
 /**

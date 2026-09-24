@@ -35,8 +35,9 @@ interface NodeBody {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_tree')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_tree')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const body = await request.json() as NodeBody
 
     // Имя на иврите обязательно: без него экран показал бы пустую строку или
@@ -69,8 +70,9 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_tree')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_tree')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const body = await request.json() as NodeBody
     if (!body.id) return apiError('invalid_reference', 400)
 
@@ -108,8 +110,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requireDataSecurityPrivilege('manage_tree')
-    const sb = createServerClient()
+    const session = await requireDataSecurityPrivilege('manage_tree')
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const id = request.nextUrl.searchParams.get('id')
     if (!id) return apiError('invalid_reference', 400)
 

@@ -238,7 +238,9 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
         setGender(person.gender ?? '')
         setBirthDate(person.birth_date ? new Date(person.birth_date) : null)
         setMaritalStatus(person.marital_status ?? '')
-        setCitizenship(person.nationality ?? 'Россия')
+        // Правка: пустое поле остаётся пустым (раньше подставлялась «Россия» и
+        // молча записывалась в карточку при сохранении).
+        setCitizenship(person.nationality ?? '')
         setPassportNumber(person.passport_number ?? '')
         if (person.email) setEmail(person.email)
         const rawPhones: unknown[] = Array.isArray(person.phones) ? person.phones : []
@@ -247,7 +249,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
           .filter(Boolean)
         setPhones(flatPhones.length > 0 ? flatPhones : [''])
         const addr = (person.address as Record<string, string> | null) ?? {}
-        setCountry(addr.country ?? 'Россия')
+        setCountry(addr.country ?? '')
         setCity(addr.city ?? '')
         setStreet(addr.street ?? '')
         setHouse(addr.house ?? '')
