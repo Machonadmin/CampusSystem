@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useSafeBack } from '@/lib/hooks/useSafeBack'
+import { EDUCATION_SECTION_ROUTES } from '@/lib/education/education-hub'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -68,7 +69,7 @@ function formatPeriod(lang: string, start: string | null, end: string | null): s
 
 export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canMarkAttendance, canViewGrades, canSetGrades }: Props) {
   // «Назад» = реальная история; запасной родитель — раздел «Учёба».
-  const goBack = useSafeBack('/dashboard/education')
+  const goBack = useSafeBack(EDUCATION_SECTION_ROUTES.studies)
   const t = useTranslations('education.study')
   const tJournal = useTranslations('education.journal')
   const tGrades = useTranslations('education.grades')

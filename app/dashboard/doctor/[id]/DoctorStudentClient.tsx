@@ -5,6 +5,7 @@ import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -183,7 +184,7 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
         { label: studentName },
       ]} />
 
-      <ModuleHeader module="doctor" title={studentName} />
+      <ModuleHeader module="doctor" title={studentName} actions={<BackButton fallback="/dashboard/doctor" />} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (

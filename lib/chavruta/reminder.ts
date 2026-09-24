@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { effectiveChavrutaTeacherIds } from './teachers'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { pushNotificationRows } from '@/lib/notifications/create'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -33,18 +34,20 @@ export async function materializeChavrutaReminders(sb: SB): Promise<number> {
         .limit(1)
       if (existing && existing.length > 0) continue
 
+      const row = {
+        person_id: personId,
+        type: 'chavruta_reminder',
+        title: 'עם מי את עושה חברותא היום?',
+        link: '/dashboard/chavruta',
+        metadata: { date: today },
+      }
       const { error } = await sb
         .from('notifications')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: personId,
-          type: 'chavruta_reminder',
-          title: 'עם מי את עושה חברותא היום?',
-          link: '/dashboard/chavruta',
-          metadata: { date: today },
-        } as any)
+        .insert(row as any)
       if (error) { if (isMissingTable(error)) return created; continue }
       created++
+      await pushNotificationRows(sb, [row])
     }
     return created
   } catch {

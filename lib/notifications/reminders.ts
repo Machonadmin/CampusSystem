@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { pushNotificationRows } from '@/lib/notifications/create'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -45,17 +46,19 @@ export async function materializeTaskDeadlines(sb: SB, personId: string): Promis
       if (existing && existing.length > 0) continue
 
       const heading = tk.due_date === today ? 'משימה להיום' : 'משימה למחר'
+      const row = {
+        person_id: personId,
+        type: 'task_due',
+        title: `${heading}: ${tk.title}`,
+        link: `/dashboard/tasks/${tk.id}`,
+        metadata: { task_id: tk.id, due_date: tk.due_date },
+      }
       const { error: nErr } = await sb
         .from('notifications')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: personId,
-          type: 'task_due',
-          title: `${heading}: ${tk.title}`,
-          link: `/dashboard/tasks/${tk.id}`,
-          metadata: { task_id: tk.id, due_date: tk.due_date },
-        } as any)
+        .insert(row as any)
       if (nErr && isMissingTable(nErr)) return // таблицы ещё нет
+      if (!nErr) await pushNotificationRows(sb, [row])
     }
   } catch {
     /* тихо */
@@ -99,18 +102,22 @@ export async function materializeAllTaskDeadlines(sb: SB): Promise<number> {
       if (existing && existing.length > 0) continue
 
       const heading = tk.due_date === today ? 'משימה להיום' : 'משימה למחר'
+      const row = {
+        person_id: tk.assignee_id,
+        type: 'task_due',
+        title: `${heading}: ${tk.title}`,
+        link: `/dashboard/tasks/${tk.id}`,
+        metadata: { task_id: tk.id, due_date: tk.due_date },
+      }
       const { error: nErr } = await sb
         .from('notifications')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .insert({
-          person_id: tk.assignee_id,
-          type: 'task_due',
-          title: `${heading}: ${tk.title}`,
-          link: `/dashboard/tasks/${tk.id}`,
-          metadata: { task_id: tk.id, due_date: tk.due_date },
-        } as any)
+        .insert(row as any)
       if (nErr && isMissingTable(nErr)) return created // таблицы ещё нет
-      if (!nErr) created++
+      if (!nErr) {
+        created++
+        await pushNotificationRows(sb, [row])
+      }
     }
   } catch {
     /* тихо */
@@ -149,6 +156,7 @@ async function insertRemindersOneByOne(
       .update({ reminded_at: nowIso } as any)
       .eq('id', ev.id)
     created++
+    await pushNotificationRows(sb, [{ person_id: ev.owner_id, title: ev.title, link: ev.link ?? '/dashboard/calendar' }])
   }
   return created
 }
@@ -193,6 +201,7 @@ export async function materializeAllDueReminders(sb: SB): Promise<number> {
       .update({ reminded_at: nowIso } as any)
       .in('id', events.map(ev => ev.id))
     created = events.length
+    await pushNotificationRows(sb, events.map(ev => ({ person_id: ev.owner_id, title: ev.title, link: ev.link ?? '/dashboard/calendar' })))
   } catch {
     /* тихо */
   }
@@ -231,6 +240,7 @@ export async function materializeDueReminders(sb: SB, personId: string): Promise
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({ reminded_at: nowIso } as any)
         .in('id', events.map(ev => ev.id))
+      await pushNotificationRows(sb, events.map(ev => ({ person_id: personId, title: ev.title, link: ev.link ?? '/dashboard/calendar' })))
     }
   } catch {
     /* тихо — напоминания не критичны для отдачи уведомлений */

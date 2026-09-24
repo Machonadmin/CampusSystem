@@ -5,6 +5,7 @@ import { todayISO } from '@/lib/dates'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { toast } from '@/components/ui/toast'
@@ -400,6 +401,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         title={displayName}
         subtitle={t('subtitle')}
         actions={/* Month selector */ <>
+          <BackButton fallback="/dashboard/finance/staff" />
           <select value={month} onChange={e => setMonth(Number(e.target.value))}
             style={{ fontSize: 13, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border-strong)', color: 'var(--text)', background: 'var(--surface-2)' }}>
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
