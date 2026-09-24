@@ -5,6 +5,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
@@ -72,6 +74,7 @@ function toForm(c: Community): FormState {
 export default function CommunitiesPage() {
   const t = useTranslations('education.communities')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=settings')
   const tCommon = useTranslations('common')
 
   const [communities, setCommunities] = useState<Community[]>([])
@@ -197,6 +200,7 @@ export default function CommunitiesPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -205,6 +209,7 @@ export default function CommunitiesPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={<>
+          <BackButton fallback={sectionCrumb.href} />
           {canManage && (
             <button onClick={openNew} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)',
@@ -235,7 +240,9 @@ export default function CommunitiesPage() {
         <SkeletonRows rows={6} />
       ) : (
         <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--surface)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>
+          {/* Шапка колонок только на широком экране: на телефоне строки переносятся
+              в столбик, а шапка обрезалась («איש קשר» уезжал за край). */}
+          <div className="hidden sm:flex" style={{ gap: 10, alignItems: 'center', padding: '9px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>
             <div style={{ flex: 1, minWidth: 160 }}>{t('col_name')}</div>
             <div style={{ flex: 1, minWidth: 140 }}>{t('col_location')}</div>
             <div style={{ flex: 1, minWidth: 160 }}>{t('col_contact')}</div>

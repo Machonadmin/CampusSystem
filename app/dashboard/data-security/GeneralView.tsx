@@ -8,6 +8,7 @@ import { toastError, toastSuccess } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
 import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree'
 import { countPrivileges } from '@/lib/data-security/tree'
+import { changedFields } from '@/lib/data-security/edit-patch'
 import type { UnitNode } from '@/lib/data-security/units'
 import type { StaffSummary } from '@/lib/data-security/load'
 import UnitsPanel from './UnitsPanel'
@@ -678,15 +679,19 @@ function NodeEditor({ node, departments, t, busy, onClose, onSave }: {
   onClose: () => void
   onSave: (payload: Record<string, unknown>) => void
 }) {
-  const [form, setForm] = useState({
-    name_he: node?.name ?? '',
-    name_ru: '',
-    name_en: '',
-    description_he: node?.description ?? '',
-    description_ru: '',
-    description_en: '',
+  // Правка начинается с подписей КАК ОНИ В БАЗЕ, на всех языках. Раньше поле
+  // иврита получало подпись на языке экрана, а RU/EN открывались пустыми — и
+  // сохранение стирало переводы.
+  const [initial] = useState({
+    name_he: node?.texts.name_he ?? '',
+    name_ru: node?.texts.name_ru ?? '',
+    name_en: node?.texts.name_en ?? '',
+    description_he: node?.texts.description_he ?? '',
+    description_ru: node?.texts.description_ru ?? '',
+    description_en: node?.texts.description_en ?? '',
     department_id: node?.departmentId ?? '',
   })
+  const [form, setForm] = useState(initial)
   const [err, setErr] = useState('')
 
   const field = (key: keyof typeof form, label: string, area = false) => (
@@ -752,7 +757,12 @@ function NodeEditor({ node, departments, t, busy, onClose, onSave }: {
           onClick={() => {
             if (!form.name_he.trim()) { setErr(t('name_he_required')); return }
             setErr('')
-            onSave({ ...form, department_id: form.department_id || null })
+            if (!node) { onSave({ ...form, department_id: form.department_id || null }); return }
+            // Правка: только изменённые поля — нетронутые подписи не трогаем.
+            const changed: Record<string, unknown> = changedFields(initial, form)
+            if ('department_id' in changed) changed.department_id = form.department_id || null
+            if (Object.keys(changed).length === 0) { onClose(); return }
+            onSave(changed)
           }}
           style={{ flexGrow: 1, padding: '11px 0', borderRadius: 9, border: 0, background: getModuleColor('data_security'), color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
         >{t('save')}</SubmitButton>

@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -145,6 +146,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
         title={t('hub_title')}
         subtitle={t('hub_subtitle')}
         actions={<>
+          <BackButton fallback="/dashboard/education/studies" />
           <Link
             href="/dashboard/chavruta"
             style={{

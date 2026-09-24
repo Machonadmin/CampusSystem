@@ -8,6 +8,7 @@ import DashboardShell from '@/components/dashboard/DashboardShell'
 import { Toaster } from '@/components/ui/toast'
 import { ConfirmRoot } from '@/components/ui/ConfirmDialog'
 import TopProgressBar from '@/components/ui/TopProgressBar'
+import InAppNavTracker from '@/components/ui/InAppNavTracker'
 import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
 import ImpersonationBanner from '@/components/auth/ImpersonationBanner'
 
@@ -19,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <LanguageProvider initialLocale={locale} initialMessages={getServerMessages(locale)}>
       <Suspense fallback={null}><TopProgressBar /></Suspense>
+      <Suspense fallback={null}><InAppNavTracker /></Suspense>
       <DashboardShell userName={session.full_name} roles={session.roles}>
         {children}
       </DashboardShell>

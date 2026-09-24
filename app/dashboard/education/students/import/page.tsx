@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../../components/useSectionCrumb'
 import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -15,6 +17,7 @@ interface ImportResult { dry_run: boolean; summary: { total: number; created: nu
 export default function ImportStudentsPage() {
   const t = useTranslations('education.import')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=students')
 
   const [fileName, setFileName] = useState('')
   const [headers, setHeaders] = useState<string[]>([])
@@ -83,10 +86,11 @@ export default function ImportStudentsPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {/* Step 1: file */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>

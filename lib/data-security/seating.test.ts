@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { personSeats, withSeat, withoutSeat, toSeatPayload } from './seating'
+import { personSeats, withSeat, withoutSeat, toSeatPayload, activeSeatsFromPositions } from './seating'
 import type { UnitNode } from './units'
 
 // Маршрут посадки заменяет набор единиц ЦЕЛИКОМ. Значит любая правка с экрана
@@ -9,7 +9,7 @@ import type { UnitNode } from './units'
 
 const node = (id: string, seats: UnitNode['seats'], children: UnitNode[] = []): UnitNode => ({
   id, parentId: null, name: id, isEducational: false,
-  seatCount: seats.length, seats, seatCountDeep: seats.length, children,
+  seatCount: seats.length, seats, seatCountDeep: seats.length, names: { he: id, ru: id, en: '' }, children,
 })
 
 const tree: UnitNode[] = [
@@ -76,5 +76,36 @@ describe('toSeatPayload', () => {
     expect(toSeatPayload([{ departmentId: 'd1', isHead: true }])).toEqual({
       units: [{ department_id: 'd1', is_head: true }],
     })
+  })
+})
+
+describe('activeSeatsFromPositions', () => {
+  const today = '2026-09-24'
+
+  it('берёт только действующие посадки и сохраняет признак главы', () => {
+    expect(activeSeatsFromPositions([
+      { department_id: 'college', is_head: true, end_date: null },
+      { department_id: 'old', is_head: false, end_date: '2026-01-01' },
+      { department_id: 'ending', is_head: false, end_date: '2026-12-31' },
+      { department_id: 'closed_today', is_head: false, end_date: today },
+    ], today)).toEqual([
+      { departmentId: 'college', isHead: true },
+      { departmentId: 'ending', isHead: false },
+    ])
+  })
+
+  it('две записи на одну единицу — одна посадка, «глава» побеждает', () => {
+    expect(activeSeatsFromPositions([
+      { department_id: 'kodesh', is_head: false, end_date: null },
+      { department_id: 'kodesh', is_head: true, end_date: null },
+    ], today)).toEqual([{ departmentId: 'kodesh', isHead: true }])
+  })
+
+  it('не расширяет вниз по дереву: только прямые посадки', () => {
+    // Раньше окно «שינוי שיוך» начинало с расширенной области и отмечало все
+    // под-единицы. Здесь дерева нет вовсе — только то, что лежит в строках.
+    expect(activeSeatsFromPositions([
+      { department_id: 'college', is_head: false, end_date: null },
+    ], today).map(s => s.departmentId)).toEqual(['college'])
   })
 })

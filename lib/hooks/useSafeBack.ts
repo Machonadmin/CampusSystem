@@ -31,13 +31,27 @@ export function resolveBackTarget(opts: { canGoBack: boolean; fallback: string }
 }
 
 /**
- * Есть ли в истории браузера куда возвращаться внутри приложения. history.length>1
- * означает, что текущая запись не единственная в стеке этого окна/вкладки (в
- * standalone-PWA дно стека — start_url, поэтому после любой навигации length>1).
- * SSR-безопасно (нет window → false).
+ * Глубина истории ВНУТРИ приложения в этом документе. Раньше проверяли
+ * history.length > 1 — но это считает и чужие страницы, открытые в той же вкладке
+ * до входа в систему: «חזרה» на карточке уводил из приложения. Теперь глубину
+ * ведёт InAppNavTracker (в layout дашборда): переход вперёд +1, «назад» браузера −1.
+ * Полная перезагрузка страницы обнуляет её — тогда «חזרה» ведёт в fallback.
  */
+let inAppDepth = 0
+
+/** Чистая функция шага глубины (для тестов). */
+export function nextNavDepth(depth: number, kind: 'push' | 'pop'): number {
+  return kind === 'push' ? depth + 1 : Math.max(0, depth - 1)
+}
+
+/** Вызывается трекером на каждую смену адреса внутри приложения. */
+export function recordInAppNavigation(kind: 'push' | 'pop'): void {
+  inAppDepth = nextNavDepth(inAppDepth, kind)
+}
+
+/** Есть ли внутри приложения куда возвращаться. SSR-безопасно (нет window → false). */
 export function canGoBackInApp(): boolean {
-  return typeof window !== 'undefined' && window.history.length > 1
+  return typeof window !== 'undefined' && inAppDepth > 0
 }
 
 /**

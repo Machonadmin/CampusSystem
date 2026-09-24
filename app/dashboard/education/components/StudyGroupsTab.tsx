@@ -6,6 +6,7 @@ import PageActionButton from '@/components/ui/PageActionButton'
 import StudyGroupModal from './StudyGroupModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
@@ -17,13 +18,14 @@ interface Specialty { id: string; name: string; code: string | null; department_
 interface StudyGroup {
   id: string
   name: string
+  name_he?: string | null
   year_level: number | null
   year_start: number | null
   notes: string | null
   is_active: boolean
   department_id: string
   specialty_id: string | null
-  department: { id: string; name: string } | null
+  department: { id: string; name: string; name_he?: string | null; name_en?: string | null } | null
   specialty: { id: string; name: string; code: string | null } | null
   counts: { students: number }
 }
@@ -79,7 +81,7 @@ export default function StudyGroupsTab() {
   }, [filterDept])
 
   const handleDelete = async (group: StudyGroup) => {
-    if (!(await confirmDialog({ message: t('groups.confirm_delete').replace('{name}', group.name), tone: 'danger' }))) return
+    if (!(await confirmDialog({ message: t('groups.confirm_delete').replace('{name}', localizedName(group, lang)), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/education/study-groups/${group.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -193,10 +195,10 @@ export default function StudyGroupsTab() {
                         <td style={{ ...tdStyle, fontWeight: 500 }} data-label={t('groups.table_name')}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <Caret open={open} />
-                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{g.name}</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedName(g, lang)}</span>
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('groups.table_department')}>{g.department?.name ?? '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('groups.table_department')}>{g.department ? localizedDeptName(g.department, lang) : '—'}</td>
                         <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('groups.table_specialty')}>
                           {g.specialty
                             ? (g.specialty.code ? `[${g.specialty.code}] ${g.specialty.name}` : g.specialty.name)

@@ -1,5 +1,6 @@
 'use client'
 
+import { useSessionState } from '@/lib/hooks/useSessionState'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -61,7 +62,8 @@ export default function AcceptanceOverviewTab() {
 
   const [applicants, setApplicants] = useState<Applicant[]>([])
   const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
-  const [filter, setFilter] = useState<StatusFilter>('active')
+  // Фильтр переживает переход в карточку и «חזרה» (sessionStorage).
+  const [filter, setFilter, filterReady] = useSessionState<StatusFilter>('admission.filter', 'active')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -121,7 +123,7 @@ export default function AcceptanceOverviewTab() {
     }
   }, [filter, t])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { if (filterReady) load() }, [load, filterReady])
 
   function openSign(applicantName: string, journeyId: string, cell: StageCell, medicalPending: boolean) {
     setModal({ applicant: applicantName, journeyId, cell, medicalPending })

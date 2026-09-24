@@ -5,7 +5,11 @@
  * параметр не должен ронять экран.
  */
 
-/** Таблицы, на которые установлен триггер аудита (миграции 20260702170000 + 20260703140000). */
+/**
+ * Таблицы, на которые установлен триггер аудита (миграции 20260702170000 +
+ * 20260703140000 + 20260924120000). Последние три появятся в журнале только
+ * после ручного применения 20260924120000 — до этого фильтр по ним просто пуст.
+ */
 export const AUDITED_ENTITY_TYPES = [
   'persons',
   'education_journeys',
@@ -15,6 +19,9 @@ export const AUDITED_ENTITY_TYPES = [
   'staff_profiles',
   'process_instances',
   'stage_instances',
+  'departments',
+  'security_tree_nodes',
+  'security_tree_items',
 ] as const
 
 export const AUDIT_ACTIONS = ['create', 'update', 'delete'] as const

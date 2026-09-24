@@ -61,9 +61,6 @@
     "sent": "Sent",
     "action_failed": "Action failed, please try again",
     "city_input_placeholder": "Enter city name",
-    "city_choose_from_list": "Choose from list",
-    "select_city": "Select city",
-    "other_city": "Other city",
     "select_country": "Select country",
     "popular_countries": "Popular countries",
     "all_countries": "All countries",
@@ -674,7 +671,8 @@
         "external_studies": "External studies",
         "admitted": "Admitted",
         "admitted_conditional": "Admitted (conditional)",
-        "waitlisted": "To waitlist"
+        "waitlisted": "To waitlist",
+        "converted": "Handed to admission committee"
       },
       "modals": {
         "activate_title": "Activate skipped stage?",
@@ -762,7 +760,10 @@
         "social": "Social media",
         "call": "Phone call",
         "exhibition": "Exhibition",
-        "other": "Other"
+        "other": "Other",
+        "public_form": "Website form",
+        "public_form_parent": "Website form (parent)",
+        "public_form_representative": "Website form (representative)"
       },
       "relation": {
         "mother": "Mother",
@@ -3097,7 +3098,6 @@
     "tabs": {
       "users": "Users",
       "roles": "Roles & Permissions",
-      "reference_cities": "Cities Reference",
       "reference_positions": "Positions Reference",
       "workflows": "Process Templates",
       "audit": "Change log"
@@ -3177,28 +3177,6 @@
       "err_both_fields": "Fill in both fields",
       "priv_name_placeholder": "View records",
       "error": "Error"
-    },
-    "reference_cities": {
-      "title": "Cities Reference",
-      "desc": "Manage list of cities by country",
-      "country_label": "Country",
-      "cities_title": "Cities",
-      "add_city_button": "+ Add City",
-      "city_name_in_country_label": "City name in \"{country}\"",
-      "city_name_placeholder": "E.g.: Petah Tikva",
-      "save_button": "Add",
-      "saving": "Saving...",
-      "cancel": "Cancel",
-      "edit_save_button": "Save",
-      "edit_button": "Edit",
-      "delete_button": "Delete",
-      "loading": "Loading...",
-      "empty_none": "No cities for this country yet",
-      "confirm_delete": "Delete city \"{name}\"?",
-      "error_load": "Load error",
-      "error_add": "Error adding",
-      "error_save": "Save error",
-      "error_delete": "Delete error"
     },
     "reference_positions": {
       "title": "Positions Reference",
@@ -3446,7 +3424,19 @@
       "convert_to_applicant": "Handed to acceptance",
       "waitlisted": "Waitlisted",
       "qualified": "Qualified",
-      "not_qualified": "Not qualified"
+      "not_qualified": "Not qualified",
+      "done_event_yes": "Registered for event",
+      "done_event_skip": "Skip event",
+      "postponed": "Postponed",
+      "all_collected": "All collected",
+      "partial": "Partially collected",
+      "not_provided": "Not provided",
+      "feedback_received": "Event held",
+      "no_show": "Event not held",
+      "refused": "Refused to come",
+      "refer_to_psychologist": "Refer to psychologist",
+      "exam_required": "Entrance exams required",
+      "external_studies": "External studies"
     },
     "process_names": {
       "Набор": "Recruitment",
@@ -4331,6 +4321,7 @@
         "dormitory": "Dormitory",
         "jewishness": "Jewishness",
         "medical": "Medical",
+        "medical_psych": "Psychologist",
         "final_approval": "Final approval"
       }
     },
@@ -4757,6 +4748,7 @@
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
+    "person_privileges_moved": "Personal permissions are now edited only in Data Security — changes cannot be saved here",
     "stage_reopen_blocked": "Cannot change this decision now — the next stage was already handled",
     "no_access": "No access",
     "no_view_permission": "No permission to view",

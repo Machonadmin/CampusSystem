@@ -2,6 +2,7 @@
 
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import AlertsClient from './AlertsClient'
 
@@ -29,6 +30,7 @@ export default function AlertsPage() {
         </svg>}
         title={t('title')}
         subtitle={t('subtitle')}
+        actions={<BackButton fallback="/dashboard/education/studies" />}
       />
 
       <AlertsClient />

@@ -83,8 +83,9 @@ export default function StudentOverviewTab({ journeyId }: Props) {
       {/* Контактная строка (имя/фото — в шапке карточки) */}
       {contactBits.length > 0 && (
         <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {/* Телефон/email — всегда LTR: иначе в иврите «+79788682529» рисуется как «79788682529+». */}
           {contactBits.map((c, i) => (
-            <span key={i}>{c}</span>
+            <span key={i} dir="ltr">{c}</span>
           ))}
         </div>
       )}

@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string }
 interface Student { journey_id: string; name: string; department: { id: string; name: string } | null }
@@ -12,6 +15,7 @@ interface Student { journey_id: string; name: string; department: { id: string; 
 export default function TrackAssignmentPage() {
   const t = useTranslations('education.track_assign')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
 
@@ -21,17 +25,19 @@ export default function TrackAssignmentPage() {
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
 
   const trackName = (tr: Track) => (lang === 'he' ? tr.name_he : lang === 'ru' ? tr.name_ru : tr.name_en) || tr.name_he
 
   const load = useCallback(async () => {
-    setLoading(true); setErr(null)
+    setLoading(true); setErr(null); setForbidden(false)
     try {
       const [wl, tk] = await Promise.all([
         fetch('/api/education/track-assignment'),
         fetch('/api/education/study-tracks'),
       ])
       if (wl.ok) { const b = await wl.json(); setStudents(b.students ?? []) }
+      else if (wl.status === 403) setForbidden(true) // нет прав — не «ошибка» и не ложное «все распределены»
       else setErr(tCommon('load_error'))
       if (tk.ok) { const b = await tk.json(); setTracks(b.tracks ?? []) }
     } catch {
@@ -58,15 +64,18 @@ export default function TrackAssignmentPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
       {loading ? (
         <SkeletonRows rows={6} />
+      ) : forbidden ? (
+        <ForbiddenState />
       ) : students.length === 0 ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--success)', fontSize: 14, fontWeight: 600 }}>✓ {t('all_assigned')}</div>
       ) : (
