@@ -100,6 +100,15 @@ export const MODULES = [
     inSidebar: false, isPrivilegeModule: false,
   },
   {
+    code: 'profile', navKey: 'profile', href: '/dashboard/profile',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'Личный экран «הפרופיל שלי»: только свои данные и своя раскладка ' +
+      '(/api/me/preferences берёт person_id из сессии). Прав не выдаёт и не показывает чужого.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
+  {
     code: 'tasks', navKey: 'tasks', href: '/dashboard/tasks',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:

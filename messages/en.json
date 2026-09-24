@@ -5250,7 +5250,7 @@
     "deleting": "Removing…"
   },
   "home": {
-    "section_title": "What needs your attention",
+    "section_title": "My work",
     "pending_signatures": "Awaiting your signature",
     "my_tasks": "My tasks",
     "upcoming": "Upcoming in the calendar",
@@ -5273,7 +5273,8 @@
       "leads": "Active leads",
       "students": "Students",
       "collection": "Collection"
-    }
+    },
+    "my_maintenance": "My maintenance requests"
   },
   "search": {
     "placeholder": "Search a person…",
@@ -5565,5 +5566,44 @@
     "extras_attendance_saved": "Extra time saved",
     "extras_attendance_save_error": "Could not save the extra time",
     "extras_attendance_readonly": "Only the unit head can change the extra time"
+  },
+  "prefs": {
+    "favorites_group": "Favorites",
+    "arrange_menu": "Arrange menu",
+    "arrange_home": "Customize home",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "save_failed": "Could not save the change. Please try again.",
+    "no_tiles_after_prefs": "Your layout leaves no tiles here. You can change it in \"My profile\".",
+    "profile_title": "My profile",
+    "profile_subtitle": "Your details and your personal layout. The layout is saved to your account, so it is the same on your computer and your phone.",
+    "section_details": "My details",
+    "label_name": "Name",
+    "label_email": "Login email",
+    "label_position": "Position",
+    "section_display": "Display",
+    "language": "Language",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "display_device_note": "Language and theme are saved on this device only.",
+    "section_security": "Password",
+    "section_push": "Phone notifications (this device)",
+    "section_layout": "Menu and home layout",
+    "layout_hint": "A star moves an item to the \"Favorites\" group at the top of the menu and to the top of the home screen. The eye hides an item from the menu and the home screen. Only items you have access to are listed, and hiding never changes a permission: the item comes back with one click.",
+    "not_migrated": "Personal layout is not enabled in the system yet. It will work once the database update is run.",
+    "favorites_empty": "No favorites yet. Click the star next to an item below or on a home tile.",
+    "menu_items": "All items in your menu",
+    "hidden_note": "hidden",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "hide": "Hide",
+    "show": "Show",
+    "widgets_title": "\"My work\" blocks on the home screen",
+    "widgets_hint": "A block appears only when it has something for you.",
+    "tiles_title": "Module tiles on the home screen",
+    "tiles_all": "All modules",
+    "tiles_favorites": "Favorites only",
+    "reset": "Reset to default layout"
   }
 }

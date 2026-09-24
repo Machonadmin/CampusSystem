@@ -5,14 +5,25 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { localTodayISO, todayISO } from '@/lib/dates'
+import { fetchMyActiveTasks } from '@/lib/tasks/my-active-tasks-client'
+import type { WidgetId } from '@/lib/prefs/ui-prefs'
+import HomeAgenda from './HomeAgenda'
 
 /**
- * «Что требует внимания» на главной: личные виджеты, каждый грузится сам и
- * рендерит null, если пусто. Секция целиком скрывается, когда всё пусто.
+ * «העבודה שלי» на главной: всё, что ждёт сотрудника, в одном месте — ближайшие
+ * дни, подписи, задачи, заявки техобслуживания, уроки, лиды. Каждый блок
+ * грузится сам и рендерит null, если пусто (или нет доступа: сервер отвечает
+ * 403 → блока нет). Секция целиком скрывается, когда всё пусто.
+ *
+ * Какие блоки показывать и в каком порядке — личная раскладка сотрудника
+ * (lib/prefs/ui-prefs.ts, настраивается в «הפרופיל שלי»).
  */
-export default function HomeWidgets() {
+export default function HomeWidgets({ widgets }: { widgets: WidgetId[] }) {
   const t = useTranslations('home')
   const [hasAny, setHasAny] = useState(false)
+  // Стабильная ссылка: блоки держат onData в зависимостях загрузки — новая
+  // функция на каждый рендер перезапускала бы их запросы.
+  const onData = useCallback(() => setHasAny(true), [])
 
   return (
     <div>
@@ -20,13 +31,19 @@ export default function HomeWidgets() {
         <h2 className="text-sm font-bold tracking-widest uppercase mb-4" style={{ color: 'var(--text-faint)' }}>{t('section_title')}</h2>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: hasAny ? 24 : 0 }}>
-        <MyLessonsWidget onData={() => setHasAny(true)} />
-        <RecentLeadsWidget onData={() => setHasAny(true)} />
-        <StalledApplicantsWidget onData={() => setHasAny(true)} />
-        <PendingSignaturesWidget onData={() => setHasAny(true)} />
-        <MyTasksWidget onData={() => setHasAny(true)} />
-        {/* UpcomingEventsWidget удалён (owner-декластеризация): те же события
-            уже показывает постоянный блок HomeAgenda на этой же странице. */}
+        {widgets.map(id => {
+          switch (id) {
+            // «Ближайшие дни» — во всю ширину сетки, как раньше над блоками.
+            case 'agenda': return <div key={id} style={{ gridColumn: '1 / -1' }}><HomeAgenda onVisible={onData} /></div>
+            case 'pending_signatures': return <PendingSignaturesWidget key={id} onData={onData} />
+            case 'my_tasks': return <MyTasksWidget key={id} onData={onData} />
+            case 'my_maintenance': return <MyMaintenanceWidget key={id} onData={onData} />
+            case 'my_lessons': return <MyLessonsWidget key={id} onData={onData} />
+            case 'recent_leads': return <RecentLeadsWidget key={id} onData={onData} />
+            case 'stalled': return <StalledApplicantsWidget key={id} onData={onData} />
+            default: return null
+          }
+        })}
       </div>
     </div>
   )
@@ -223,13 +240,11 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/tasks?view=assigned&status=active')
-      if (res.ok) {
-        const b = await res.json()
-        const tasks = (b.tasks ?? []) as MyTask[]
-        // Сначала с ближайшим сроком.
-        tasks.sort((a, c) => (a.due_date ?? '9999').localeCompare(c.due_date ?? '9999'))
-        setItems(tasks); if (tasks.length) onData()
+      const tasks = await fetchMyActiveTasks()
+      if (tasks) {
+        // Сначала с ближайшим сроком (копия: общий кэш не мутируем).
+        const sorted = [...tasks].sort((a, c) => (a.due_date ?? '9999').localeCompare(c.due_date ?? '9999')) as MyTask[]
+        setItems(sorted); if (sorted.length) onData()
       }
     } catch { /* тихо */ } finally { setLoaded(true) }
   }, [onData])
@@ -261,4 +276,45 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
   )
 }
 
-// ── Скоро в календаре ────────────────────────────────────────────────────────
+// ── Мои заявки техобслуживания (назначены на меня, не закрыты) ───────────────
+// Без права maintenance.view сервер отвечает 403 → блока нет.
+interface MyTicket { id: string; title: string; status: string; priority: 'low' | 'normal' | 'high' | 'urgent'; is_overdue?: boolean; building_name?: string | null; room_number?: string | null; location_text?: string | null }
+const OPEN_TICKET = new Set(['open', 'in_progress'])
+function MyMaintenanceWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const router = useRouter()
+  const [items, setItems] = useState<MyTicket[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/maintenance/requests?assigned=me&page_size=100')
+      if (res.ok) {
+        const b = await res.json()
+        // Порядок сервера сохраняем: срочные выше, затем старые.
+        const s = ((b.requests ?? []) as MyTicket[]).filter(r => OPEN_TICKET.has(r.status))
+        setItems(s); if (s.length) onData()
+      }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('my_maintenance')} accent="var(--warn)" count={items.length} onClick={() => router.push('/dashboard/maintenance')}>
+      <div style={{ display: 'grid', gap: 7 }}>
+        {items.slice(0, 4).map(r => {
+          const where = [r.building_name, r.room_number].filter(Boolean).join(' · ') || r.location_text || ''
+          return (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: TASK_PRIORITY_COLOR[r.priority] ?? 'var(--text-faint)' }} />
+              <span style={{ flex: 1, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: r.is_overdue ? 600 : 400 }}>{r.title}</span>
+              {where && <span style={{ flexShrink: 0, fontSize: 11.5, color: r.is_overdue ? 'var(--danger, #DC2626)' : 'var(--text-faint)' }}>{where}</span>}
+            </div>
+          )
+        })}
+        {items.length > 4 && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
+  )
+}

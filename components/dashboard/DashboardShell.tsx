@@ -1,6 +1,7 @@
 'use client'
 
 import { SidebarProvider, useSidebar } from '@/lib/sidebar/SidebarContext'
+import { UiPrefsProvider } from '@/lib/prefs/UiPrefsContext'
 import Header from './Header'
 import Sidebar from './Sidebar'
 
@@ -50,10 +51,12 @@ function ShellContent({ children, userName, roles }: Props) {
 
 export default function DashboardShell({ children, userName, roles }: Props) {
   return (
-    <SidebarProvider>
-      <ShellContent userName={userName} roles={roles}>
-        {children}
-      </ShellContent>
-    </SidebarProvider>
+    <UiPrefsProvider>
+      <SidebarProvider>
+        <ShellContent userName={userName} roles={roles}>
+          {children}
+        </ShellContent>
+      </SidebarProvider>
+    </UiPrefsProvider>
   )
 }

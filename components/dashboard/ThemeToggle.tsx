@@ -2,37 +2,25 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-
-type Theme = 'light' | 'dark'
+import { applyTheme, readTheme, THEME_EVENT, type Theme } from '@/lib/theme'
 
 /**
- * Переключатель темы «светлая / тёмная». По умолчанию тема следует настройке
- * устройства (prefers-color-scheme); как только пользователь нажимает — выбор
- * становится явным, сохраняется в localStorage (у каждого свой на его
- * устройстве) и выставляется через data-theme на <html>. Скрипт без-мигания в
- * app/layout.tsx применяет сохранённый выбор ещё до первой отрисовки.
+ * Переключатель темы «светлая / тёмная» в шапке. Логика хранения — lib/theme.ts
+ * (общая с экраном «הפרופיל שלי»); смена темы там сразу отражается здесь.
  */
 export default function ThemeToggle() {
   const t = useTranslations('navigation')
   const [theme, setTheme] = useState<Theme | null>(null)
 
   useEffect(() => {
-    let initial: Theme
-    try {
-      const saved = localStorage.getItem('theme')
-      if (saved === 'light' || saved === 'dark') initial = saved
-      else initial = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    } catch {
-      initial = 'light'
-    }
-    setTheme(initial)
+    setTheme(readTheme())
+    const onChange = (e: Event) => setTheme((e as CustomEvent<Theme>).detail)
+    window.addEventListener(THEME_EVENT, onChange)
+    return () => window.removeEventListener(THEME_EVENT, onChange)
   }, [])
 
   function toggle() {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    try { localStorage.setItem('theme', next) } catch { /* приватный режим */ }
-    document.documentElement.setAttribute('data-theme', next)
+    applyTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   // До монтирования тема неизвестна — показываем нейтральную иконку (луна),
