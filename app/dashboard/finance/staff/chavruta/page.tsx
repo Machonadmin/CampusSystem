@@ -4,8 +4,9 @@ import { canViewStaffComp } from '@/lib/finance/staff-comp'
 import ChavrutaTeachersClient from './ChavrutaTeachersClient'
 
 /**
- * Управление списком преподавателей хеврута (§C). Живёт рядом с расчётными
- * листами (finance/staff), доступ — под тем же canViewStaffComp. Список тянет
+ * Список преподавателей хеврута — ТОЛЬКО ЧТЕНИЕ (решение владельца #6: мор и
+ * пары ведут в «מרכז חברותא», /dashboard/education/chavruta). Живёт рядом с
+ * расчётными листами (finance/staff), доступ — canViewStaffComp. Список тянет
  * клиент через /api/chavruta/teachers.
  */
 export default async function ChavrutaTeachersPage() {

@@ -1,13 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { toastError, toastSuccess } from '@/components/ui/toast'
-import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -18,6 +16,12 @@ interface Teacher {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+//
+// Решение владельца #6: «החברותא עצמו מנוהל בחברותא ובכספים מתעסקים בכספים».
+// Список мор хавруты и пары ведутся ТОЛЬКО в «מרכז חברותא»
+// (/dashboard/education/chavruta). Денежных полей на этом экране не было (тарифы
+// живут на карточке сотрудника), поэтому экран стал списком ТОЛЬКО ДЛЯ ЧТЕНИЯ со
+// ссылкой в хаб; добавление/удаление мор отсюда убрано.
 
 export default function ChavrutaTeachersClient() {
   const t = useTranslations('chavruta')
@@ -28,8 +32,6 @@ export default function ChavrutaTeachersClient() {
   const [loaded, setLoaded] = useState(false)
   const [featureOff, setFeatureOff] = useState(false)
   const [forbidden, setForbidden] = useState(false)
-  const [addPerson, setAddPerson] = useState<string | null>(null)
-  const [adding, setAdding] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -48,38 +50,6 @@ export default function ChavrutaTeachersClient() {
 
   useEffect(() => { load() }, [load])
 
-  async function addTeacher() {
-    if (!addPerson || adding) return
-    setAdding(true)
-    try {
-      const res = await fetch('/api/chavruta/teachers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ person_id: addPerson }),
-      })
-      if (!res.ok) { toastError(t('error')); return }
-      setAddPerson(null)
-      toastSuccess(t('teacher_added'))
-      await load()
-    } catch {
-      toastError(t('error'))
-    } finally {
-      setAdding(false)
-    }
-  }
-
-  async function removeTeacher(personId: string) {
-    if (!(await confirmDialog({ message: t('confirm_remove_teacher'), tone: 'danger' }))) return
-    try {
-      const res = await fetch(`/api/chavruta/teachers/${personId}`, { method: 'DELETE' })
-      if (!res.ok) { toastError(t('error')); return }
-      toastSuccess(t('teacher_removed'))
-      await load()
-    } catch {
-      toastError(t('error'))
-    }
-  }
-
   const th: React.CSSProperties = {
     textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
     textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 12px',
@@ -96,7 +66,7 @@ export default function ChavrutaTeachersClient() {
       ]} />
 
       {/* Header */}
-      <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_subtitle')} />
+      <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_readonly_subtitle')} />
 
       {!loaded ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
@@ -106,29 +76,13 @@ export default function ChavrutaTeachersClient() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('feature_not_ready')}</div>
       ) : (
         <>
-          {/* Add teacher */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <PersonSelect
-                value={addPerson}
-                onChange={pid => setAddPerson(pid)}
-                label={t('add_teacher')}
-                accentColor={accent}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={addTeacher}
-              disabled={!addPerson || adding}
-              style={{
-                padding: '9px 18px', fontSize: 13, fontWeight: 600,
-                background: (!addPerson || adding) ? 'var(--border)' : accent,
-                color: (!addPerson || adding) ? 'var(--text-faint)' : '#fff',
-                border: 'none', borderRadius: 8,
-                cursor: (!addPerson || adding) ? 'not-allowed' : 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >{adding ? t('saving') : t('add_teacher')}</button>
+          {/* Управление — только в хабе хавруты */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 220, fontSize: 13, color: 'var(--text-muted)' }}>{t('teachers_readonly_hint')}</div>
+            <Link href="/dashboard/education/chavruta"
+              style={{ padding: '9px 18px', fontSize: 13, fontWeight: 600, background: accent, color: '#fff', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              {t('manage_in_hub_link')}
+            </Link>
           </div>
 
           {/* Teachers table */}
@@ -141,7 +95,6 @@ export default function ChavrutaTeachersClient() {
                   <tr>
                     <th style={th}>{t('col_name')}</th>
                     <th style={th}>{t('col_source')}</th>
-                    <th style={{ ...th, textAlign: 'end' }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -158,19 +111,6 @@ export default function ChavrutaTeachersClient() {
                         }}>
                           {tc.source === 'kodesh' ? t('source_kodesh') : t('source_manual')}
                         </span>
-                      </td>
-                      <td data-label="" style={{ ...td, textAlign: 'end' }}>
-                        {tc.source === 'manual' && (
-                          <button
-                            type="button"
-                            onClick={() => removeTeacher(tc.person_id)}
-                            title={t('remove_teacher')}
-                            style={{
-                              fontSize: 12, fontWeight: 600, color: 'var(--danger, #DC2626)',
-                              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px',
-                            }}
-                          >× {t('remove_teacher')}</button>
-                        )}
                       </td>
                     </tr>
                   ))}

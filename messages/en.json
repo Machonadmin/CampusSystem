@@ -3798,7 +3798,9 @@
       "sh_delete": "Delete",
       "sh_confirm_delete": "Delete this event?",
       "sh_save": "Save",
-      "teaching_no_end_time_warning": "{n} approved lessons have no end time — not included in pay. Add an end time to the lesson."
+      "teaching_no_end_time_warning": "{n} approved lessons have no end time — not included in pay. Add an end time to the lesson.",
+      "cp_readonly_hint": "Pairs are managed in the Chavruta hub. Every active pair earns chavruta-plus pay.",
+      "cp_manage_link": "Manage chavruta teachers and pairs"
     }
   },
   "dormitory": {
@@ -5411,7 +5413,7 @@
     "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
     "pool_title": "Teacher pool",
     "assign_title": "Chavruta pairing",
-    "assign_hint": "Pair a teacher with a student to track chavrutas. The pairing does not affect pay.",
+    "assign_hint": "Pair a teacher with a student. Every active pair earns the teacher chavruta-plus pay (the rate is set in Finance).",
     "assign_pair": "Pair",
     "select_teacher": "Select teacher",
     "no_pairs": "No pairings yet",
@@ -5422,7 +5424,10 @@
     "teacher_journal_title": "Session journal",
     "open_teacher_journal": "Open chavruta session journal",
     "forbidden_hub": "You do not have permission to manage chavrutas",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "manage_in_hub_link": "Manage chavruta teachers and pairs",
+    "teachers_readonly_hint": "The chavruta teacher list and pairs are managed in the Chavruta hub. View only here.",
+    "teachers_readonly_subtitle": "Chavruta teachers — view only"
   },
   "impersonation": {
     "viewing_as": "Viewing as {name}",
